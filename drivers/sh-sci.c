@@ -18,7 +18,7 @@
 
 #include "common.h"
 
-#ifdef CFG_SH_SCIF_SERIAL
+#ifdef CONFIG_SH_SCIF_SERIAL
 
 #include "asm/termbits.h"
 #include "asm/io.h"
@@ -233,4 +233,4 @@ void serial_setbrg (void)
 	/* */
 }
 
-#endif /* CFG_SH4_SCIF_SERIAL */
+#endif /* CONFIG_SH_SCIF_SERIAL */

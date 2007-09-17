@@ -90,14 +90,14 @@
  * Serial console info
  */
 
-#define CFG_SH_ASC_SERIAL 1
+#define CONFIG_STM_ASC_SERIAL 1
 
 #define CONFIG_CONS_INDEX 0
 
 #if (CONFIG_CONS_INDEX == 0)
-#define CONFIG_SH_ASC_BASE 0xb8032000ul /* UART2 */
+#define CFG_STM_ASC_BASE 0xb8032000ul /* UART2 */
 #else
-#define CONFIG_SH_ASC_BASE 0xb8033000ul /* UART3 */
+#define CFG_STM_ASC_BASE 0xb8033000ul /* UART3 */
 #endif
 
 /*---------------------------------------------------------------
@@ -221,8 +221,7 @@
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 
 #define CONFIG_AUTO_COMPLETE
-#define CONFIG_COMMAND_HISTORY
-#define CONFIG_COMMAND_EDIT
+#define CONFIG_CMDLINE_EDITING
 
 /*-----------------------------------------------------------------------
  * FLASH organization

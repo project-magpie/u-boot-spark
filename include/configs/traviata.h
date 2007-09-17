@@ -84,8 +84,8 @@
 
 #define CONFIG_CONS_INDEX 0
 
-#define CFG_SH_ASC_SERIAL 1
-#define CONFIG_SH_ASC_BASE 0x540B2000 /* UART2 */
+#define CONFIG_STM_ASC_SERIAL 1
+#define CFG_STM_ASC_BASE 0x540B2000 /* UART2 */
 
 /*---------------------------------------------------------------------------
  *
@@ -114,8 +114,7 @@
 #define CONFIG_BOOTDELAY	20		/* default delay before executing bootcmd */
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 
-#define CONFIG_COMMAND_HISTORY
-#define CONFIG_COMMAND_EDIT
+#define CONFIG_CMDLINE_EDITING
 
 /*-----------------------------------------------------------------------
  * FLASH organization

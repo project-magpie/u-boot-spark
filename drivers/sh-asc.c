@@ -1,8 +1,8 @@
-/* $Id: sh-asc.c,v 1.12 2005/11/30 12:01:20 sturgesa Exp $
+/* $Id: stm-asc.c,v 1.12 2005/11/30 12:01:20 sturgesa Exp $
  *
- * sh-ipl+g/sh-asc.c
+ * stm-asc.c
  *
- * Support for Serial I/O using on chip ASC of the ST40
+ * Support for Serial I/O using STMicroelectronics' on-chip ASC.
  *
  *  Copyright (c) 2004  STMicroelectronics Limited
  *  Copyright (C) 1999  Takeshi Yaegachi & Niibe Yutaka

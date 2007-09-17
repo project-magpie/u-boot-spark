@@ -34,7 +34,7 @@ int (*sconsole_tstc) (void) = 0;
 void (*sconsole_setbrg) (void) = 0;
 #endif
 
-#if !(defined(CFG_SH_SCIF_SERIAL) || defined(CFG_SH_ASC_SERIAL))
+#if !(defined(CONFIG_SH_SCIF_SERIAL) || defined(CONFIG_STM_ASC_SERIAL))
 int serial_init (void)
 {
 	sconsole_buffer_t *sb = SCONSOLE_BUFFER;

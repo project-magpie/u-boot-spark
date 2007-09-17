@@ -85,12 +85,12 @@
 #define CFG_SCONSOLE_ADDR      (CFG_FLASH_BASE	+ (2048 << 10))
 #define CFG_SCONSOLE_SIZE      (1024 << 10)
 
-#define CFG_SH_ASC_SERIAL 1
+#define CONFIG_STM_ASC_SERIAL 1
 
 #if (CONFIG_CONS_INDEX == 0)
-#define CONFIG_SH_ASC_BASE 0x20831000ul /* COM0 */
+#define CFG_STM_ASC_BASE 0x20831000ul /* COM0 */
 #else
-#define CONFIG_SH_ASC_BASE 0x20833000ul /* COM1 */
+#define CFG_STM_ASC_BASE 0x20833000ul /* COM1 */
 #endif
 
 /*----------------------------------------------------------------------

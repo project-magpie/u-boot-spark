@@ -86,8 +86,8 @@
 
 #define CONFIG_CONS_INDEX 0
 
-#define CFG_SH_ASC_SERIAL 1
-#define CONFIG_SH_ASC_BASE 0x540B2000 /* UART2 */
+#define CONFIG_STM_ASC_SERIAL 1
+#define CFG_STM_ASC_BASE 0x540B2000 /* UART2 */
 
 /*---------------------------------------------------------------------------
  *

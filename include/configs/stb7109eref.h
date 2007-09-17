@@ -87,10 +87,10 @@
  * Serial console info
  */
 
-#define CFG_SH_ASC_SERIAL 1
+#define CONFIG_STM_ASC_SERIAL 1
 
 #define CONFIG_CONS_INDEX 0
-#define CONFIG_SH_ASC_BASE 0xb8032000ul /* UART2 */
+#define CFG_STM_ASC_BASE 0xb8032000ul /* UART2 */
 
 /*---------------------------------------------------------------
  * Ethernet driver config
@@ -178,8 +178,7 @@
 #define CONFIG_BOOTDELAY	10		/* default delay before executing bootcmd */
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 
-#define CONFIG_COMMAND_HISTORY
-#define CONFIG_COMMAND_EDIT
+#define CONFIG_CMDLINE_EDITING
 
 /*-----------------------------------------------------------------------
  * FLASH organization
