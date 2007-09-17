@@ -309,6 +309,18 @@ LIST_coldfire="	\
 
 LIST_avr32="atstk1002"
 
+#########################################################################
+## SuperH SH4 Systems
+#########################################################################
+
+LIST_sh4="stb7100mboard stb7109eref stb7100ref_27 stb7100ref_30"
+
+#########################################################################
+## STMicroelectronics ST200 Systems
+#########################################################################
+
+LIST_st200="sti5301mb390 sti5301mb424 stm8010mboard traviata"
+
 #-----------------------------------------------------------------------
 
 #----- for now, just run PPC by default -----
@@ -342,7 +354,9 @@ do
 	nios|nios2| \
 	x86|I486| \
 	coldfire| \
-	avr32)
+	avr32| \
+	sh4| \
+	st200)
 			for target in `eval echo '$LIST_'${arg}`
 			do
 				build_target ${target}

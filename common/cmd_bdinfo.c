@@ -181,7 +181,60 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	return 0;
 }
 
-#else /* ! PPC, which leaves MIPS */
+#elif defined(CONFIG_SH4)
+
+#include <asm/stb7100reg.h>
+
+int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	DECLARE_GLOBAL_DATA_PTR;
+
+	int i;
+	bd_t *bd = gd->bd;
+
+	print_num ("boot_params",	(ulong)bd->bi_boot_params);
+	print_num ("memstart",		(ulong)bd->bi_memstart);
+	print_num ("memsize",		(ulong)bd->bi_memsize);
+	print_num ("flashstart",	(ulong)bd->bi_flashstart);
+	print_num ("flashsize",		(ulong)bd->bi_flashsize);
+	print_num ("flashoffset",	(ulong)bd->bi_flashoffset);
+
+	puts ("ethaddr     =");
+	for (i=0; i<6; ++i) {
+		printf ("%c%02X", i ? ':' : ' ', bd->bi_enetaddr[i]);
+	}
+	puts ("\nip_addr     = ");
+	print_IPaddr (bd->bi_ip_addr);
+	printf ("\nbaudrate    = %d bps\n", bd->bi_baudrate);
+
+#ifdef CONFIG_SH_STB7100
+	if (STB7100_DEVICEID_7109(bd->bi_devid))
+		printf("\nSTb7109 version %ld.x\n", STB7100_DEVICEID_CUT(bd->bi_devid));
+	else if ( STB7100_DEVICEID_7100(bd->bi_devid))
+		printf("\nSTb7100 version %ld.x\n", STB7100_DEVICEID_CUT(bd->bi_devid));
+	else
+		printf("\nUnknown device\n");
+	printf ("PLL0      = %d MHz\n", bd->bi_pll0frq);
+	printf ("PLL1      = %d MHz\n", bd->bi_pll1frq);
+	printf ("ST40  CPU = %d MHz\n", bd->bi_st40cpufrq);
+	printf ("ST40  BUS = %d MHz\n", bd->bi_st40busfrq);
+	printf ("ST40  PER = %d MHz\n", bd->bi_st40perfrq);
+	printf ("ST231 CPU = %d MHz\n", bd->bi_st231frq);
+	printf ("ST BUS    = %d MHz\n", bd->bi_stbusfrq);
+	printf ("EMI       = %d MHz\n", bd->bi_emifrq);
+	printf ("LMI       = %d MHz\n", bd->bi_lmifrq);
+#endif
+#ifdef CONFIG_SH_STI5528
+	printf ("PLL1      = %d MHz\n", bd->bi_pll1frq);
+	printf ("ST40  CPU = %d MHz\n", bd->bi_st40cpufrq);
+	printf ("ST40  BUS = %d MHz\n", bd->bi_st40busfrq);
+	printf ("ST40  PER = %d MHz\n", bd->bi_st40perfrq);
+	printf ("EMI       = %d MHz\n", bd->bi_emifrq);
+#endif
+	return 0;
+}
+
+#else /* ! SH4 || PPC, which leaves MIPS */
 
 int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {

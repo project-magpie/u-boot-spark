@@ -150,6 +150,9 @@ Directory Hierarchy:
   - pxa		Files specific to Intel XScale PXA CPUs
   - s3c44b0	Files specific to Samsung S3C44B0 CPUs
   - sa1100	Files specific to Intel StrongARM SA1100 CPUs
+  - sh4_1xx     Files specific to SuperH SH4-100 series CPUs
+  - sh4_2xx     Files specific to SuperH SH4-200 series CPUs
+  - st231       Files specific to STMicroelectronics ST200 series CPUs
 - disk		Code for disk drive partition handling
 - doc		Documentation (don't expect too much)
 - drivers	Commonly used device drivers
@@ -164,6 +167,8 @@ Directory Hierarchy:
 - lib_mips	Files generic to MIPS	 architecture
 - lib_nios	Files generic to NIOS	 architecture
 - lib_ppc	Files generic to PowerPC architecture
+- lib_sh4	Files generic to SH4     architecture
+- lib_st200	Files generic to ST200   architecture
 - net		Networking code
 - post		Power On Self Test
 - rtc		Real Time Clock drivers
