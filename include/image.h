@@ -68,7 +68,6 @@
 #define IH_CPU_NIOS		13	/* Nios-32	*/
 #define IH_CPU_MICROBLAZE	14	/* MicroBlaze   */
 #define IH_CPU_NIOS2		15	/* Nios-II	*/
-#define IH_CPU_SH4	        16	/* SuperH SH-4  */
 #define IH_CPU_ST200	        18	/* STMicroelectronics ST200  */
 
 /*
