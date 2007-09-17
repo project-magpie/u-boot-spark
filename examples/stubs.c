@@ -125,6 +125,26 @@ gd_t *global_data;
 "	lwi	r5, r5, %1\n"			\
 "	bra	r5\n"				\
 	: : "i"(offsetof(gd_t, jt)), "i"(XF_ ## x * sizeof(void *)) : "r5");
+#elif defined(CONFIG_SH4)
+/*
+ * r31 holds the pointer to the global_data. r5 is a call-clobbered.
+ void __attribute__((unused)) __dummy##x (void) \
+
+ */
+
+#define EXPORT_FUNC(x)				\
+do {         \
+	int o;\
+	asm volatile (				\
+"	.globl " #x "\n"			\
+#x ":\n"); o=offsetof(gd_t, jt);		\
+	asm volatile (				\
+"	mov.l	@(%0, r13), r0\n"		\
+"	mov.l	@(r0, %1), r0\n"		\
+"	jmp	@r0\n"				\
+"	nop\n"				\
+	: "+z"(o) : "r"(XF_ ## x * sizeof(void *))) ; \
+} while (0);
 #else
 #error stubs definition missing for this architecture
 #endif

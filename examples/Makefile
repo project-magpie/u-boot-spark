@@ -53,6 +53,15 @@ ifeq ($(ARCH),microblaze)
 LOAD_ADDR = 0x80F00000
 endif
 
+ifeq ($(ARCH),sh4)
+include $(TOPDIR)/include/config.mk
+ifneq (,$(findstring $(BOARD),espresso stb7100mboard stb7100ref))
+LOAD_ADDR = 0x84000000
+else
+LOAD_ADDR = 0x88000000
+endif
+endif
+
 include $(TOPDIR)/config.mk
 
 SREC	= hello_world.srec

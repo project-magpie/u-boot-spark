@@ -81,6 +81,12 @@ endif
 ifeq ($(ARCH),microblaze)
 CROSS_COMPILE = mb-
 endif
+ifeq ($(ARCH),sh4)
+CROSS_COMPILE = sh4-linux-
+endif
+ifeq ($(ARCH),st200)
+CROSS_COMPILE = st231-linux-
+endif
 endif
 endif
 
@@ -126,10 +132,14 @@ PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-l
 
 # The "tools" are needed early, so put this first
 # Don't include stuff already done in $(LIBS)
+ifeq ($(ARCH),st200)
+SUBDIRS	= tools
+else
 SUBDIRS	= tools \
 	  examples \
 	  post \
 	  post/cpu
+endif
 .PHONY : $(SUBDIRS)
 
 #########################################################################
@@ -157,21 +167,21 @@ u-boot.dis:	u-boot
 
 u-boot:		depend $(SUBDIRS) $(OBJS) $(LIBS) $(LDSCRIPT)
 		UNDEF_SYM=`$(OBJDUMP) -x $(LIBS) |sed  -n -e 's/.*\(__u_boot_cmd_.*\)/-u\1/p'|sort|uniq`;\
-		$(LD) $(LDFLAGS) $$UNDEF_SYM $(OBJS) \
+		$(LD) $(LDFLAGS) $$UNDEF_SYM $(OBJS) common/cmd_flash.o \
 			--start-group $(LIBS) $(PLATFORM_LIBS) --end-group \
 			-Map u-boot.map -o u-boot
 
 $(LIBS):
-		$(MAKE) -C `dirname $@`
+		$(MAKE)  CROSS_COMPILE=${CROSS_COMPILE} -C `dirname $@`
 
 $(SUBDIRS):
-		$(MAKE) -C $@ all
+		$(MAKE)  CROSS_COMPILE=${CROSS_COMPILE} -C $@ all
 
 gdbtools:
-		$(MAKE) -C tools/gdb || exit 1
+		$(MAKE)  CROSS_COMPILE=${CROSS_COMPILE} -C tools/gdb || exit 1
 
 depend dep:
-		@for dir in $(SUBDIRS) ; do $(MAKE) -C $$dir .depend ; done
+		@for dir in $(SUBDIRS) ; do $(MAKE)  CROSS_COMPILE=${CROSS_COMPILE} -C $$dir .depend ; done
 
 tags:
 		ctags -w `find $(SUBDIRS) include \
@@ -1556,6 +1566,111 @@ suzaku_config:	unconfig
 	@./mkconfig -a $(@:_config=) microblaze microblaze suzaku AtmarkTechno
 
 #########################################################################
+
+#========================================================================
+# SuperH
+#========================================================================
+
+#########################################################################
+## SuperH SH4
+#########################################################################
+
+microdev_config		: 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH4202   1" >>include/config.h
+	@echo "#define CONFIG_SH_MICRODEV 1" >>include/config.h
+	@./mkconfig -a microdev sh4 sh4_2xx microdev "" sh4202_eval
+
+espresso_config		: 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STI5528  1" >>include/config.h
+	@echo "#define CONFIG_SH_STI5528_ESPRESSO 1" >>include/config.h
+	@./mkconfig -a espresso sh4 sh4_1xx espresso "" sti5528
+
+
+sti5528eval_config		: 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STI5528  1" >>include/config.h
+	@echo "#define CONFIG_SH_STI5528_EVAL 1" >>include/config.h
+	@./mkconfig -a sti5528eval sh4 sh4_1xx sti5528eval "" sti5528
+
+st220eval_config		: 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STM8000  1" >>include/config.h
+	@echo "#define CONFIG_SH_ST220_EVAL  1" >>include/config.h
+	@./mkconfig -a st220eval sh4 sh4_1xx st220eval "" stm8000
+
+stb7100mboard_config 		: 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
+	@echo "#define CONFIG_SH_STB7100_MBOARD  1" >>include/config.h
+	@./mkconfig -a stb7100mboard sh4 sh4_2xx stb7100mboard "" stb7100
+
+stb7100ref_27_config \
+stb7100ref_30_config : 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
+	@echo "#define CONFIG_SH_STB7100_REF  1" >>include/config.h
+	$(if $(findstring 27,$@), \
+	@echo "#define INPUT_CLOCK_RATE 27" >>include/config.h)
+	$(if $(findstring 30,$@), \
+	@echo "#define INPUT_CLOCK_RATE 30" >>include/config.h)
+	@./mkconfig -a stb7100ref sh4 sh4_2xx stb7100ref "" stb7100
+
+stb7109eref_config : unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
+	@echo "#define CONFIG_SH_STB7109E_REF  1" >>include/config.h
+	@echo "#define INPUT_CLOCK_RATE 27" >>include/config.h
+	@./mkconfig -a stb7109eref sh4 sh4_2xx stb7109eref "" stb7100
+
+stb7100simple_config			:	unconfig
+	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
+	@echo "#define CONFIG_SH_STB7100_MBOARD  1" >>include/config.h
+	@echo "#define CONFIG_SH_STB7100_V1_3" >>include/config.h
+	@./mkconfig -a stb7100simple sh4 sh4_2xx stb7100simple "" stb7100
+
+st40rastarter_config	: 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH4103   1" >>include/config.h
+	@echo "#define CONFIG_SH_ST40RA166  1" >>include/config.h
+	@echo "#define CONFIG_SH_ST40_STARTER 1" >>include/config.h
+	@./mkconfig -a st40rastarter sh4 sh4_1xx st40rastarter "" st40ra166
+
+#########################################################################
+
+#########################################################################
+## STMicroelectronics ST200
+#########################################################################
+
+sti5301mb390_config		: 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_STM_MB390   1" >>include/config.h
+	@echo "#define CONFIG_STM_STI5301 1" >>include/config.h
+	@echo "#define CONFIG_STM_ST231   1" >>include/config.h
+	@./mkconfig -a sti5301mb390 st200 st231 sti5301mb390 "" sti5301
+
+sti5301mb424_config		: 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_STM_MB424   1" >>include/config.h
+	@echo "#define CONFIG_STM_STI5301 1" >>include/config.h
+	@echo "#define CONFIG_STM_ST231   1" >>include/config.h
+	@./mkconfig -a sti5301mb424 st200 st231 sti5301mb424 "" sti5301
+
+stm8010mboard_config		:	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_STM_STM8010_MBOARD   1" >>include/config.h
+	@echo "#define CONFIG_STM_STM8010 1" >>include/config.h
+	@echo "#define CONFIG_STM_ST231   1" >>include/config.h
+	@./mkconfig -a stm8010mboard st200 st231 stm8010mboard "" stm8010
+
+traviata_config		:	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_STM_TRAVIATA   1" >>include/config.h
+	@echo "#define CONFIG_STM_STM8010 1" >>include/config.h
+	@echo "#define CONFIG_STM_ST231   1" >>include/config.h
+	@./mkconfig -a traviata st200 st231 traviata "" stm8010
+
 #########################################################################
 
 clean:
