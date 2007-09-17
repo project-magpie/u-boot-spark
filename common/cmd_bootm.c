@@ -246,8 +246,6 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	if (hdr->ih_arch != IH_CPU_MICROBLAZE)
 #elif defined(__SH4__)
 	if ((hdr->ih_arch != IH_CPU_SH4) && (hdr->ih_arch != IH_CPU_SH))
-#elif defined(__SH5__)
-	if ((hdr->ih_arch != IH_CPU_SH64) && (hdr->ih_arch != IH_CPU_SH))
 #elif defined(__nios2__)
 	if (hdr->ih_arch != IH_CPU_NIOS2)
 #elif defined(__ST200__)
@@ -1204,7 +1202,6 @@ print_type (image_header_t *hdr)
 	case IH_CPU_M68K:	arch = "M68K"; 			break;
 	case IH_CPU_MICROBLAZE:	arch = "Microblaze"; 		break;
 	case IH_CPU_SH4:	arch = "SH-4"; 			break;
-	case IH_CPU_SH64:	arch = "SH-5"; 			break;
 	case IH_CPU_ST200:	arch = "ST200";			break;
 	default:		arch = "Unknown Architecture";	break;
 	}
