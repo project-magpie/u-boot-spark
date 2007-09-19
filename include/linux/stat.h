@@ -67,7 +67,7 @@ struct stat {
 
 #endif	/* __PPC__ */
 
-#if defined (__ARM__) || defined (__I386__) || defined (__M68K__) || defined (__blackfin__)
+#if defined (__ARM__) || defined (__I386__) || defined (__M68K__) || defined (__blackfin__) || defined (__SH4__)
 
 struct stat {
 	unsigned short st_dev;
@@ -124,32 +124,6 @@ struct stat {
 };
 
 #endif	/* __MIPS__ */
-
-#if defined (__SH4__)
-
-struct stat {
-	unsigned short st_dev;
-	unsigned short __pad1;
-	unsigned long st_ino;
-	unsigned short st_mode;
-	unsigned short st_nlink;
-	unsigned short st_uid;
-	unsigned short st_gid;
-	unsigned short st_rdev;
-	unsigned short __pad2;
-	unsigned long  st_size;
-	unsigned long  st_blksize;
-	unsigned long  st_blocks;
-	unsigned long  st_atime;
-	unsigned long  st_atime_nsec;
-	unsigned long  st_mtime;
-	unsigned long  st_mtime_nsec;
-	unsigned long  st_ctime;
-	unsigned long  st_ctime_nsec;
-	unsigned long  __unused4;
-	unsigned long  __unused5;
-};
-#endif
 
 #ifdef __cplusplus
 }
