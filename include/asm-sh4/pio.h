@@ -53,9 +53,16 @@
 #define PIN_C1(PIN, DIR) (((DIR & 0x2)!=0) << PIN)
 #define PIN_C2(PIN, DIR) (((DIR & 0x4)!=0) << PIN)
 
+#define CLEAR_PIN_C0(PIN, DIR) (((DIR & 0x1)==0) << PIN)
+#define CLEAR_PIN_C1(PIN, DIR) (((DIR & 0x2)==0) << PIN)
+#define CLEAR_PIN_C2(PIN, DIR) (((DIR & 0x4)==0) << PIN)
+
 #define SET_PIO_PIN(PIO_ADDR, PIN, DIR) do {writel(PIN_C0(PIN,DIR),PIO_ADDR+0x24);\
 				    writel(PIN_C1(PIN,DIR),PIO_ADDR+0x34);\
-				    writel(PIN_C2(PIN,DIR),PIO_ADDR+0x44);} while (0)
+				    writel(PIN_C2(PIN,DIR),PIO_ADDR+0x44);\
+				    writel(CLEAR_PIN_C0(PIN,DIR),PIO_ADDR+0x28);\
+				    writel(CLEAR_PIN_C1(PIN,DIR),PIO_ADDR+0x38);\
+				    writel(CLEAR_PIN_C2(PIN,DIR),PIO_ADDR+0x48);} while (0)
 
 #define STPIO_SET_PIN(PIO_ADDR, PIN, V) writel(1<<PIN, PIO_ADDR + STPIO_POUT_OFFSET + ((V)? STPIO_SET_OFFSET : STPIO_CLEAR_OFFSET))
 
