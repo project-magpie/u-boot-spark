@@ -64,7 +64,8 @@
        defined(CONFIG_SH_STI5528_ESPRESSO) || \
        defined(CONFIG_SH_STB7100_MBOARD) || \
        defined(CONFIG_SH_STB7100_REF) || \
-       defined(CONFIG_SH_STB7109E_REF)
+       defined(CONFIG_SH_STB7109E_REF) || \
+       defined(CONFIG_SH_HMS1)
 #  include "asm/io_stb1eval.h"
 # else
 #  error "What system is this?"
