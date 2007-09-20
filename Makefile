@@ -2336,10 +2336,13 @@ stb7109eref_config : unconfig
 	@echo "#define INPUT_CLOCK_RATE 27" >>include/config.h
 	@./mkconfig -a stb7109eref sh4 sh4_2xx stb7109eref "" stb7100
 
-hms1_config :	unconfig
+hms1_config \
+hms1_128_config :	unconfig
 	@ >include/config.h
 	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
 	@echo "#define CONFIG_SH_HMS1  1" >>include/config.h
+	$(if $(findstring 128,$@), \
+	@echo "#define CONFIG_SH_HMS1_128  1" >>include/config.h)
 	@./mkconfig -a hms1 sh4 sh4_2xx hms1 "" stb7100
 
 
