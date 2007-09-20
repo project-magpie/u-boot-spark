@@ -2315,7 +2315,9 @@ stb7100mboard_config 		: 	unconfig
 	@./mkconfig -a stb7100mboard sh4 sh4_2xx stb7100mboard "" stb7100
 
 stb7100ref_27_config \
-stb7100ref_30_config : 	unconfig
+stb7100ref_30_config \
+stb7100ref_27_128_config \
+stb7100ref_30_128_config : 	unconfig
 	@ >include/config.h
 	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
 	@echo "#define CONFIG_SH_STB7100_REF  1" >>include/config.h
@@ -2323,6 +2325,8 @@ stb7100ref_30_config : 	unconfig
 	@echo "#define INPUT_CLOCK_RATE 27" >>include/config.h)
 	$(if $(findstring 30,$@), \
 	@echo "#define INPUT_CLOCK_RATE 30" >>include/config.h)
+	$(if $(findstring 128,$@), \
+	@echo "#define CONFIG_SH_STB7100_REF_128 1" >>include/config.h)
 	@./mkconfig -a stb7100ref sh4 sh4_2xx stb7100ref "" stb7100
 
 stb7109eref_config : unconfig

@@ -313,7 +313,10 @@ LIST_avr32="atstk1002"
 ## SuperH SH4 Systems
 #########################################################################
 
-LIST_sh4="stb7100mboard stb7109eref stb7100ref_27 stb7100ref_30"
+LIST_sh4="	\
+	stb7100mboard	stb7109eref	stb7100ref_27	stb7100ref_30 	\
+	stb7100ref_27_128		stb7100ref_30_128	\
+"
 
 #########################################################################
 ## STMicroelectronics ST200 Systems
