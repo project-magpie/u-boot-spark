@@ -65,7 +65,8 @@
        defined(CONFIG_SH_STB7100_MBOARD) || \
        defined(CONFIG_SH_STB7100_REF) || \
        defined(CONFIG_SH_STB7109E_REF) || \
-       defined(CONFIG_SH_HMS1)
+       defined(CONFIG_SH_HMS1) || \
+       defined(CONFIG_SH_MB519)
 #  include "asm/io_stb1eval.h"
 # else
 #  error "What system is this?"

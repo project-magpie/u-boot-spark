@@ -2308,7 +2308,7 @@ atstk1002_config	:	unconfig
 ## SuperH SH4
 #########################################################################
 
-stb7100mboard_config 		: 	unconfig
+stb7100mboard_config :		unconfig
 	@ >include/config.h
 	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
 	@echo "#define CONFIG_SH_STB7100_MBOARD  1" >>include/config.h
@@ -2329,7 +2329,7 @@ stb7100ref_30_128_config : 	unconfig
 	@echo "#define CONFIG_SH_STB7100_REF_128 1" >>include/config.h)
 	@./mkconfig -a stb7100ref sh4 sh4_2xx stb7100ref "" stb7100
 
-stb7109eref_config : unconfig
+stb7109eref_config :		unconfig
 	@ >include/config.h
 	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
 	@echo "#define CONFIG_SH_STB7109E_REF  1" >>include/config.h
@@ -2337,13 +2337,19 @@ stb7109eref_config : unconfig
 	@./mkconfig -a stb7109eref sh4 sh4_2xx stb7109eref "" stb7100
 
 hms1_config \
-hms1_128_config :	unconfig
+hms1_128_config :		unconfig
 	@ >include/config.h
 	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
 	@echo "#define CONFIG_SH_HMS1  1" >>include/config.h
 	$(if $(findstring 128,$@), \
 	@echo "#define CONFIG_SH_HMS1_128  1" >>include/config.h)
 	@./mkconfig -a hms1 sh4 sh4_2xx hms1 "" stb7100
+
+mb519_config :			unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STX7200  1" >>include/config.h
+	@echo "#define CONFIG_SH_MB519  1" >>include/config.h
+	@./mkconfig -a mb519 sh4 sh4_2xx mb519 "" stx7200
 
 
 #========================================================================

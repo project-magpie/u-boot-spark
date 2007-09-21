@@ -55,6 +55,10 @@ typedef struct bd_info
 	unsigned long bi_st40perfrq;
 	unsigned long bi_emifrq;
 #endif
+#ifdef CONFIG_SH_STX7200
+	unsigned long bi_devid;
+	unsigned long bi_emifrq;
+#endif
 } bd_t;
 #define bi_env_data bi_env->data
 #define bi_env_crc  bi_env->crc

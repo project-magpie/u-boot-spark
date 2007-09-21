@@ -1,7 +1,7 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2002.
+ * (C) Copyright 2007 STMicroelectronics.
  *
- * andy.sturges@st.com
+ * Stuart Menefy <stuart.menefy@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -22,24 +22,47 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __SH4REGTYPE_H
-#define __SH4REGTYPE_H
+OUTPUT_ARCH(sh4)
+ENTRY(_start)
 
-#ifndef _SH4REG_ASM_
-typedef volatile unsigned char *const sh4_byte_reg_t;
-typedef volatile unsigned short *const sh4_word_reg_t;
-typedef volatile unsigned int *const sh4_dword_reg_t;
-typedef volatile unsigned long long *const sh4_gword_reg_t;
+SECTIONS
+{
+	.text ALIGN(0x4):
+	{
+		__text_start = .;
+		cpu/sh4_2xx/start.o (.text)
+		*(.text)
+		__text_end = .;
+	}
 
-#define SH4_BYTE_REG(address) ((sh4_byte_reg_t) (address))
-#define SH4_WORD_REG(address) ((sh4_word_reg_t) (address))
-#define SH4_DWORD_REG(address) ((sh4_dword_reg_t) (address))
-#define SH4_GWORD_REG(address) ((sh4_gword_reg_t) (address))
-#else
-#define SH4_BYTE_REG(address) (address)
-#define SH4_WORD_REG(address) (address)
-#define SH4_DWORD_REG(address) (address)
-#define SH4_GWORD_REG(address) (address)
-#endif
+	.rodata ALIGN(0x4):
+	{
+		__rodata_start = .;
+		*(.rodata)
+		__rodata_end = .;
+	}
 
-#endif /* __SH4REGTYPE_H */
+	.data ALIGN(0x4):
+	{
+		__data_start = .;
+		*(.data)
+		__data_end = .;
+	}
+
+	.u_boot_cmd ALIGN(0x4):
+	{
+		__u_boot_cmd_start = .;
+		*(.u_boot_cmd)
+		__u_boot_cmd_end = .;
+	}
+
+	_uboot_end_data = .;
+
+	.bss ALIGN(0x4):
+	{
+		__bss_start = .;
+		*(.bss)
+		__bss_end = .;
+	}
+	_uboot_end = .;
+}

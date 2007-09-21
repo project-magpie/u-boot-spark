@@ -85,7 +85,7 @@
 /*---- Values for the BAUDRATE Register -----------------------*/
 
 
-#if defined(CONFIG_SH_STB7100)
+#if defined(CONFIG_SH_STB7100) || defined(CONFIG_SH_STX7200)
 #define PCLK			(gd->bd->bi_emifrq*1000000)
 #define BAUDRATE_VAL_M0(bps)	(PCLK / (16 * (bps)))
 #define BAUDRATE_VAL_M1(bps)    ( (((bps * (1 << 14))+ (1<<13)) / (PCLK/(1 << 6))))
