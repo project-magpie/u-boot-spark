@@ -86,9 +86,7 @@ static uchar *rx_packets[CONFIG_DMA_RX_SIZE];
 				 Phy interface
    ---------------------------------------------------------------------------*/
 
-#ifdef CONFIG_STMAC_STE10XP
-
-static uint stmac_phy_id = 0;
+#if defined(CONFIG_STMAC_STE10XP)	/* ST STE10xP */
 
 /* STE101P phy identifier values */
 #define STE100P_PHY_HI_ID       0x1c04
@@ -133,21 +131,25 @@ static uint stmac_phy_id = 0;
 #define MII_TSTAT_SMII  0x1000
 #define MII_TSTAT_RMII  0x0800
 #define MII_TSTAT_MII   0x0400
+
+#elif defined(CONFIG_STMAC_LAN8700)	/* SMSC LAN8700 */
+
+/* SMSC LAN8700 phy identifier values */
+#define LAN8700_PHY_HI_ID       0x0007
+#define LAN8700_PHY_LO_ID       0xc0c3
+
+#define	SPECIAL_MODE_REG	0x12		/* Special Modes Register */
+#define	PHY_ADDR_MSK		0x001f		/* PHY Address Mask */
+#define	PHY_ADDR_SHIFT		0		/* PHY Address Mask */
+
+#else
+#error Need to define PHY
+#endif
+
+
+/* MII mode */
 #define MII_ADVERTISE_PAUSE 0x0400	/* supports the pause command */
 
-#define DEFAULT_PHY_ID 0
-
-static void ste10xp_set_phy_addr (int phy_addr)
-{
-	uint value;
-
-	/* Read the XMC register */
-	value = stmac_mii_read (DEFAULT_PHY_ID, MII_XMC);
-	/* Set the PHY address */
-	value |= (phy_addr << 3) & 0x00f8;
-	stmac_mii_write (DEFAULT_PHY_ID, MII_XMC, value);
-	return;
-}
 
 static int stmac_phy_negotiate (int phy_addr)
 {
@@ -251,7 +253,7 @@ static unsigned int stmac_phy_get_addr (void)
 {
 	int i, phyaddr;
 
-	stmac_phy_id = 0;
+	uint stmac_phy_id = 0;
 
 	for (i = 0; i < 32; i++) {
 		unsigned int id1, id2;
@@ -261,6 +263,7 @@ static unsigned int stmac_phy_get_addr (void)
 		id2 = stmac_mii_read (phyaddr, MII_PHYSID2);
 
 		/* Make sure it is a valid identifier */
+#if defined(CONFIG_STMAC_STE10XP)
 		if ((id1 == STE101P_PHY_HI_ID) &&
 		    ((id2 == STE101P_PHY_LO_ID_REVB) ||
 		     (id2 == STE101P_PHY_LO_ID_REVA))) {
@@ -270,8 +273,15 @@ static unsigned int stmac_phy_get_addr (void)
 			   (id2 == STE100P_PHY_LO_ID)) {
 			stmac_phy_id = id1;
 			printf ("STMAC: STE100P found\n");
-
 		}
+#elif defined(CONFIG_STMAC_LAN8700)
+		if ((id1 == LAN8700_PHY_HI_ID) &&
+		    (id2 == LAN8700_PHY_LO_ID)) {
+			stmac_phy_id = id1;
+			printf ("STMAC: SMSC LAN8700 found\n");
+		}
+#endif	/* CONFIG_STMAC_LAN8700 */
+
 		if (stmac_phy_id)
 			return phyaddr;
 	}
@@ -289,12 +299,19 @@ static int stmac_phy_init (void)
 	if (eth_phy_addr < 0)
 		return -1;
 
+	/* test for H/W address disagreement with the assigned address */
+#if defined(CONFIG_STMAC_STE10XP)
 	value = stmac_mii_read (eth_phy_addr, MII_XMC);
 	value = (value & XMC_PHY_ADDR_MSK) >> XMC_PHY_ADDR_SHIFT;
-
+#elif defined(CONFIG_STMAC_LAN8700)
+	value = stmac_mii_read (eth_phy_addr, SPECIAL_MODE_REG);
+	value = (value & PHY_ADDR_MSK) >> PHY_ADDR_SHIFT;
+#else
+#error Need to define PHY
+#endif
 	if (value != eth_phy_addr) {
 		printf ("PHY address mismatch with hardware (hw %d != %d)\n",
-			((value & XMC_PHY_ADDR_MSK) >> XMC_PHY_ADDR_SHIFT),
+			value,
 			eth_phy_addr);
 	}
 
@@ -331,9 +348,6 @@ static int stmac_phy_init (void)
 	return 0;
 }
 
-#else
-#error Need do define phy
-#endif
 
 /* ----------------------------------------------------------------------------
 				 MII Interface
@@ -395,13 +409,13 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 
 /* define external interface to mii */
 
-int miiphy_read (unsigned char addr, unsigned char reg, unsigned short *value)
+int miiphy_read (char *devname, unsigned char addr, unsigned char reg, unsigned short *value)
 {
 	*value = stmac_mii_read (addr, reg);
 	return 0;
 }
 
-int miiphy_write (unsigned char addr, unsigned char reg, unsigned short value)
+int miiphy_write (char *devname, unsigned char addr, unsigned char reg, unsigned short value)
 {
 	stmac_mii_write (addr, reg, value);
 	return 0;

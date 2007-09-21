@@ -247,6 +247,8 @@
 #define MII_ADVERTISE       0x04        /* Advertisement control reg   */
 #define MII_LPA             0x05        /* Link partner ability reg    */
 #define MII_EXPANSION       0x06        /* Expansion register          */
+
+#if defined(CONFIG_STMAC_STE10XP)
 #define MII_DCOUNTER        0x12        /* Disconnect counter          */
 #define MII_FCSCOUNTER      0x13        /* False carrier counter       */
 #define MII_NWAYTEST        0x14        /* N-way auto-neg test reg     */
@@ -258,6 +260,7 @@
 #define MII_RESV2           0x1a        /* Reserved...                 */
 #define MII_TPISTATUS       0x1b        /* TPI status for 10mbps       */
 #define MII_NCONFIG         0x1c        /* Network interface config    */
+#endif	/* CONFIG_STMAC_STE10XP */
 
 /* Basic mode control register. */
 #define BMCR_RESV               0x003f  /* Unused...                   */

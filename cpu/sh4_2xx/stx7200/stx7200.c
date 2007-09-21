@@ -77,7 +77,11 @@ void stb7109_mac_speed(int speed)
 static void stb7109eth_hw_setup(void)
 {
 	unsigned long sysconf;
-	int shift = 0;	/* First MAC */
+#if defined(CONFIG_STMAC_MAC0)
+	const int shift = 0;	/* First MAC */
+#elif defined(CONFIG_STMAC_MAC1)
+	const int shift = 1;	/* Second MAC */
+#endif
 
 	sysconf = *STI7200_SYSCONF_SYS_CFG41;
         sysconf &= ~(DISABLE_MSG_READ << shift);

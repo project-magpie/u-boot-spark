@@ -97,15 +97,28 @@
  * Ethernet driver config
  */
 
+/* are we using the internal ST MAC device ? */
 #define CONFIG_DRIVER_NETSTMAC
 
-#define CONFIG_STMAC_ADDRESS 0xfd500000ul /* MAC0 */
-#define CONFIG_STMAC_STE10XP
+/* choose which internal MAC to use */
+#define 	CONFIG_STMAC_MAC0		/* Use MAC #0 */
+//#define 	CONFIG_STMAC_MAC1		/* Use MAC #1 */
+
+/*
+ * Select the appropriate base address for the selected MAC.
+ * Also, choose which external PHY to use.
+ */
+#if defined(CONFIG_STMAC_MAC0)
+#define CONFIG_STMAC_ADDRESS 0xfd500000ul	/* MAC #0 */
+#define CONFIG_STMAC_STE10XP			/* ST STE10xP */
+#elif defined(CONFIG_STMAC_MAC1)
+#define CONFIG_STMAC_ADDRESS 0xfd510000ul	/* MAC #1 */
+#define	CONFIG_STMAC_LAN8700			/* SMSC LAN8700 */
+#endif
 
 /*  If this board does not have eeprom for ethernet address so allow the user
  *  to set it in the environment
  */
-
 #define CONFIG_ENV_OVERWRITE
 
 /*---------------------------------------------------------------
