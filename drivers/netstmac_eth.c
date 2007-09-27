@@ -61,13 +61,14 @@ static volatile stmac_dma_des *dma_tx;
 static volatile stmac_dma_des *dma_rx;
 static int cur_rx;
 static int eth_phy_addr;
+static char miidevice[] = "stmacphy";
 
 #define MAX_ETH_FRAME_SIZE      1536
 #define MAX_PAUSE_TIME (MAC_FLOW_CONTROL_PT_MASK>>MAC_FLOW_CONTROL_PT_SHIFT)
 
 static void stmac_mii_write (int phy_addr, int reg, int value);
 static unsigned int stmac_mii_read (int phy_addr, int reg);
-void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed);
+static void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed);
 
 /* DMA structure */
 
@@ -81,6 +82,8 @@ struct dma_t
 } dma;
 
 static uchar *rx_packets[CONFIG_DMA_RX_SIZE];
+
+extern int stmac_default_pbl(void);
 
 /* ----------------------------------------------------------------------------
 				 Phy interface
@@ -229,25 +232,6 @@ static unsigned int stmac_phy_check_speed (int phy_addr)
 	return 0;
 }
 
-int stmac_phy_reset (int phy_addr)
-{
-	int loop = 100000;
-	int tmp;
-	stmac_mii_write (phy_addr, MII_BMCR, BMCR_RESET);
-	do {
-		udelay (10);
-		tmp = stmac_mii_read (phy_addr, MII_BMCR);
-		loop--;
-	} while ((loop > 0) && (tmp & BMCR_RESET));
-
-	if (tmp & BMCR_RESET) {
-		printf ("Warning: PHY reset failed to complete.\n");
-		return 1;
-	}
-
-	return 0;
-}
-
 /* Automatically gets and returns the PHY device */
 static unsigned int stmac_phy_get_addr (void)
 {
@@ -292,12 +276,16 @@ static int stmac_phy_init (void)
 {
 	uint advertised_caps, value;
 
-	stmac_phy_reset (0);
-
+	/* Obtain the PHY's address/id */
 	eth_phy_addr = stmac_phy_get_addr ();
-
 	if (eth_phy_addr < 0)
 		return -1;
+
+	/* Now reset the PHY we just found */
+	if (miiphy_reset (miidevice, eth_phy_addr)< 0) {
+		PRINTK ("PHY reset failed!");
+		return -1;
+	}
 
 	/* test for H/W address disagreement with the assigned address */
 #if defined(CONFIG_STMAC_STE10XP)
@@ -407,15 +395,14 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 	return val;
 }
 
-/* define external interface to mii */
-
-int miiphy_read (char *devname, unsigned char addr, unsigned char reg, unsigned short *value)
+/* define external interface to mii, through miiphy_register() */
+static int stmac_miiphy_read (char *devname, unsigned char addr, unsigned char reg, unsigned short *value)
 {
 	*value = stmac_mii_read (addr, reg);
 	return 0;
 }
 
-int miiphy_write (char *devname, unsigned char addr, unsigned char reg, unsigned short value)
+static int stmac_miiphy_write (char *devname, unsigned char addr, unsigned char reg, unsigned short value)
 {
 	stmac_mii_write (addr, reg, value);
 	return 0;
@@ -425,7 +412,7 @@ int miiphy_write (char *devname, unsigned char addr, unsigned char reg, unsigned
 				 MAC CORE Interface
    ---------------------------------------------------------------------------*/
 
-static void stmac_set_mac_addr (char *Addr)
+static void stmac_set_mac_addr (unsigned char *Addr)
 {
 	unsigned long data;
 
@@ -437,7 +424,7 @@ static void stmac_set_mac_addr (char *Addr)
 	return;
 }
 
-static int stmac_get_mac_addr (char *addr)
+static int stmac_get_mac_addr (unsigned char *addr)
 {
 	unsigned int hi_addr, lo_addr;
 
@@ -449,12 +436,12 @@ static int stmac_get_mac_addr (char *addr)
 		return 0;
 
 	/* Extract the MAC address from the high and low words */
-	addr[0] = lo_addr & 0xff;
-	addr[1] = (lo_addr >> 8) & 0xff;
-	addr[2] = (lo_addr >> 16) & 0xff;
-	addr[3] = (lo_addr >> 24) & 0xff;
-	addr[4] = hi_addr & 0xff;
-	addr[5] = (hi_addr >> 8) & 0xff;
+	addr[0] = lo_addr & 0xffu;
+	addr[1] = (lo_addr >> 8) & 0xffu;
+	addr[2] = (lo_addr >> 16) & 0xffu;
+	addr[3] = (lo_addr >> 24) & 0xffu;
+	addr[4] = hi_addr & 0xffu;
+	addr[5] = (hi_addr >> 8) & 0xffu;
 
 	return 1;
 }
@@ -498,7 +485,7 @@ static void stmac_set_rx_mode (void)
 	return;
 }
 
-void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed)
+static void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed)
 {
 	unsigned int flow = (unsigned int) STMAC_READ (MAC_FLOW_CONTROL),
 		ctrl = (unsigned int) STMAC_READ (MAC_CONTROL);
@@ -545,7 +532,7 @@ static void stmac_mac_core_init (void)
 /* ----------------------------------------------------------------------------
  *  			DESCRIPTORS functions
  * ---------------------------------------------------------------------------*/
-static void display_dma_desc_ring (stmac_dma_des * p, int size)
+static void display_dma_desc_ring (volatile stmac_dma_des * p, int size)
 {
 	int i;
 	for (i = 0; i < size; i++)
@@ -598,7 +585,7 @@ static void init_dma_desc_rings (void)
 
 	/* Clean out uncached buffers */
 
-	flush_cache (&dma, sizeof (struct dma_t));
+	flush_cache ((unsigned long)&dma, sizeof (struct dma_t));
 
 	/* Allocate memory for the DMA RX/TX buffer descriptors */
 	dma_rx = (volatile stmac_dma_des *) P2SEGADDR (&dma.desc_rx[0]);
@@ -810,7 +797,7 @@ static int check_rx_error_summary (unsigned int status)
 	return (0);
 }
 
-int stmac_eth_tx (volatile uchar * data, int len)
+static int stmac_eth_tx (volatile uchar * data, int len)
 {
 	volatile stmac_dma_des *p = dma_tx;
 	uint now = get_timer (0);
@@ -860,7 +847,7 @@ int stmac_eth_tx (volatile uchar * data, int len)
 }
 
 /* Receive function */
-static void stmac_eth_rx ()
+static void stmac_eth_rx (void)
 {
 	int frame_len = 0, pos;
 	volatile stmac_dma_des *drx;
@@ -894,7 +881,7 @@ static void stmac_eth_rx ()
 				RDES0_STATUS_FL_SHIFT;
 
 			if ((frame_len >= 0) && (frame_len <= PKTSIZE_ALIGN)) {
-				memcpy (NetRxPackets[0], rx_packets[pos],
+				memcpy ((void*)NetRxPackets[0], rx_packets[pos],
 					frame_len);
 				NetReceive (NetRxPackets[0], frame_len);
 			} else {
@@ -925,11 +912,12 @@ static void stmac_eth_rx ()
 	return;
 }
 
-int stmac_get_ethaddr (bd_t * bd)
+static int stmac_get_ethaddr (bd_t * bd)
 {
 	int env_size, rom_valid, env_present = 0, reg;
 	char *s = NULL, *e, es[] = "11:22:33:44:55:66";
-	uchar s_env_mac[64], v_env_mac[6], v_rom_mac[6], *v_mac;
+	char s_env_mac[64];
+	uchar v_env_mac[6], v_rom_mac[6], *v_mac;
 
 	env_size = getenv_r ("ethaddr", s_env_mac, sizeof (s_env_mac));
 	if ((env_size > 0) && (env_size < sizeof (es))) {	/* exit if env is bad */
@@ -1058,5 +1046,13 @@ extern int eth_send (volatile void *packet, int length)
 }
 
 #endif /* COMMANDS & CFG_NET */
+
+extern int stmac_miiphy_initialize(bd_t *bis)
+{
+#if defined(CONFIG_MII) || (CONFIG_COMMANDS & CFG_CMD_MII)
+	miiphy_register(miidevice, stmac_miiphy_read, stmac_miiphy_write);
+#endif
+	return 0;
+}
 
 #endif /* CONFIG_DRIVER_NETSTMAC */

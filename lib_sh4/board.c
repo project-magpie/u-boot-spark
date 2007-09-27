@@ -268,9 +268,11 @@ void start_sh4boot (void)
 	misc_init_r ();
 #endif
 
-#if (CONFIG_COMMANDS & CFG_CMD_NET )
+#if (CONFIG_COMMANDS & CFG_CMD_NET)
+#if defined(CONFIG_NET_MULTI)
 	puts ("Net:   ");
-	eth_init (gd->bd);
+#endif
+	eth_initialize(gd->bd);
 #endif
 
 	/* main_loop() can return to retry autoboot, if so just run it again. */

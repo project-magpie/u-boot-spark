@@ -78,6 +78,7 @@
 
 #define CONFIG_COMMANDS	(CONFIG_CMD_DFL | \
 			 CFG_CMD_ASKENV  | \
+			 CFG_CMD_MII | \
 			 CFG_CMD_NFS | CFG_CMD_PING | CFG_CMD_DHCP /* |\
 			 CFG_CMD_IDE | CFG_CMD_EXT2 */ )
 
