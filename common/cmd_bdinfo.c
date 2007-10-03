@@ -184,6 +184,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #elif defined(CONFIG_SH4)
 
 #include <asm/stb7100reg.h>
+#include <asm/sti7200reg.h>
 
 int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
@@ -214,22 +215,29 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		printf("\nSTb7100 version %ld.x\n", STB7100_DEVICEID_CUT(bd->bi_devid));
 	else
 		printf("\nUnknown device\n");
-	printf ("PLL0      = %d MHz\n", bd->bi_pll0frq);
-	printf ("PLL1      = %d MHz\n", bd->bi_pll1frq);
-	printf ("ST40  CPU = %d MHz\n", bd->bi_st40cpufrq);
-	printf ("ST40  BUS = %d MHz\n", bd->bi_st40busfrq);
-	printf ("ST40  PER = %d MHz\n", bd->bi_st40perfrq);
-	printf ("ST231 CPU = %d MHz\n", bd->bi_st231frq);
-	printf ("ST BUS    = %d MHz\n", bd->bi_stbusfrq);
-	printf ("EMI       = %d MHz\n", bd->bi_emifrq);
-	printf ("LMI       = %d MHz\n", bd->bi_lmifrq);
+	printf ("PLL0      = %3d MHz\n", bd->bi_pll0frq);
+	printf ("PLL1      = %3d MHz\n", bd->bi_pll1frq);
+	printf ("ST40  CPU = %3d MHz\n", bd->bi_st40cpufrq);
+	printf ("ST40  BUS = %3d MHz\n", bd->bi_st40busfrq);
+	printf ("ST40  PER = %3d MHz\n", bd->bi_st40perfrq);
+	printf ("ST231 CPU = %3d MHz\n", bd->bi_st231frq);
+	printf ("ST BUS    = %3d MHz\n", bd->bi_stbusfrq);
+	printf ("EMI       = %3d MHz\n", bd->bi_emifrq);
+	printf ("LMI       = %3d MHz\n", bd->bi_lmifrq);
 #endif
 #ifdef CONFIG_SH_STI5528
-	printf ("PLL1      = %d MHz\n", bd->bi_pll1frq);
-	printf ("ST40  CPU = %d MHz\n", bd->bi_st40cpufrq);
-	printf ("ST40  BUS = %d MHz\n", bd->bi_st40busfrq);
-	printf ("ST40  PER = %d MHz\n", bd->bi_st40perfrq);
-	printf ("EMI       = %d MHz\n", bd->bi_emifrq);
+	printf ("PLL1      = %3d MHz\n", bd->bi_pll1frq);
+	printf ("ST40  CPU = %3d MHz\n", bd->bi_st40cpufrq);
+	printf ("ST40  BUS = %3d MHz\n", bd->bi_st40busfrq);
+	printf ("ST40  PER = %3d MHz\n", bd->bi_st40perfrq);
+	printf ("EMI       = %3d MHz\n", bd->bi_emifrq);
+#endif
+#ifdef CONFIG_SH_STX7200
+	if (STB7200_DEVICEID_7200(bd->bi_devid))
+		printf("\nSTx7200 version %ld.x\n", STB7200_DEVICEID_CUT(bd->bi_devid));
+	else
+		printf("\nUnknown device\n");
+	printf ("EMI       = %3d MHz\n", bd->bi_emifrq);
 #endif
 	return 0;
 }

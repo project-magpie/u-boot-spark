@@ -302,4 +302,13 @@
 #define STI7200_SYSCONF_SYS_CFG46 SH4_DWORD_REG(STI7200_SYSCONF_REGS_BASE + 0x01b8)
 #define STI7200_SYSCONF_SYS_CFG47 SH4_DWORD_REG(STI7200_SYSCONF_REGS_BASE + 0x01bc)
 
+#define STB7200_DEVID_7200_VAL 0x2C0	/* QQQ: Need to confirm this is Correct! */
+#define STB7200_DEVID_ID_SHIFT 12	/* QQQ: Need to confirm this is Correct! */
+#define STB7200_DEVID_ID_MASK  0x3ff	/* QQQ: Need to confirm this is Correct! */
+#define STB7200_DEVID_CUT_SHIFT 28	/* QQQ: Need to confirm this is Correct! */
+#define STB7200_DEVID_CUT_MASK  0xf	/* QQQ: Need to confirm this is Correct! */
+
+#define STB7200_DEVICEID_7200(ID) ((((ID) >> STB7200_DEVID_ID_SHIFT) & STB7200_DEVID_ID_MASK) == STB7200_DEVID_7200_VAL)
+#define STB7200_DEVICEID_CUT(ID)  ((((ID) >> STB7200_DEVID_CUT_SHIFT) & STB7200_DEVID_CUT_MASK) + 1)
+
 #endif /* __STI7200REG_H */
