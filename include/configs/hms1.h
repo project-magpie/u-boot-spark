@@ -110,30 +110,12 @@
  */
 
 /*
- * There are 2 options for ethernet:
- *    The onboard SMC91111
- *    The DB641 STEM card - this has two ethernet devices Port0 and Port1
+ * There is only 1 option for ethernet:
+ *    The on-board SMSC LAN9117 (combined MAC+PHY)
  */
 
-/* Config for SMC91111 */
-
-#if 0
-#define CONFIG_DRIVER_SMC91111 1
-#define	CONFIG_SMC91111_BASE	0xa3e00300ul
-#endif
-
-/* Config for SMC9118 STEM card */
-
-#if 1
 #define CONFIG_DRIVER_SMC911X
-#if 1
-/* PORT 0 */
 #define	CONFIG_SMC911X_BASE	0xA1000000ul
-#else
-/* PORT 1 */
-#define	CONFIG_SMC911X_BASE	0xA1800000ul
-#endif
-#endif
 
 /*  If this board does not have eeprom for ethernet address so allow the user
  *  to set it in the environment

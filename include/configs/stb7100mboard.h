@@ -47,7 +47,7 @@
 #define CFG_FLASH_BASE		0xA0000000
 #define CFG_RESET_ADDRESS	0xA0000000
 
-#define CFG_MONITOR_LEN		0x00020000	/* Reserve 256 kB for Monitor */
+#define CFG_MONITOR_LEN		0x00020000	/* Reserve 128 kB for Monitor */
 #define CFG_MONITOR_BASE        0xA0000000
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB kB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)
@@ -80,6 +80,7 @@
 #define CONFIG_COMMANDS	(CONFIG_CMD_DFL | \
 			 CFG_CMD_ASKENV  | \
 			 CFG_CMD_NFS | CFG_CMD_PING | CFG_CMD_DHCP |\
+			 (STM_EXTRA_CFG_COMMANDS) | \
 			 CFG_CMD_IDE | CFG_CMD_EXT2 | \
 			 CFG_CMD_JFFS2)
 
@@ -106,33 +107,33 @@
 
 /*
  * There are 3 options for ethernet:
- *    The onboard SMC91111
+ *    The on-board SMSC LAN91C111
+ *    for STb7109, the on-chip STMAC & on-board PHY
  *    The DB641 STEM card - this has two ethernet devices Port0 and Port1
- *    For STx7109 the onchip ethernet:
  */
 
-#define CONFIG_DRIVER_SMC91111 1
-/* #define CONFIG_DRIVER_SMC911X */
-/* #define CONFIG_DRIVER_NETSTMAC */
-
-/* Config for SMC91111 */
-
-#define	CONFIG_SMC91111_BASE	0xa3e00300ul
-
-/* Config for SMC9118 STEM card */
-
 #if 1
-/* PORT 0 */
-#define	CONFIG_SMC911X_BASE	0xA1000000ul
+	/* Config for SMSC LAN91C111 (combined MAC+PHY) */
+#	define CONFIG_DRIVER_SMC91111
+#	define CONFIG_SMC91111_BASE		0xa3e00300ul
+#	define STM_EXTRA_CFG_COMMANDS		0
+#elif 1
+	/* Config for on-chip STMAC + STE10xP PHY */
+#	define CONFIG_DRIVER_NETSTMAC
+#	define CONFIG_STMAC_ADDRESS		0xb8110000ul
+#	define CONFIG_STMAC_STE10XP
+#	define STM_EXTRA_CFG_COMMANDS		CFG_CMD_MII
 #else
-/* PORT 1 */
-#define	CONFIG_SMC911X_BASE	0xA1800000ul
+	/* Config for SMSC LAN9118 STEM card */
+#	define CONFIG_DRIVER_SMC911X
+#	if 1
+#		define CONFIG_SMC911X_BASE	0xA1000000ul /* PORT 0 */
+#	else
+#		define CONFIG_SMC911X_BASE	0xA1800000ul /* PORT 1 */
+#	endif
+#	define STM_EXTRA_CFG_COMMANDS		0
 #endif
 
-/*  Config for stb7109 ethernet driver */
-
-#define CONFIG_STMAC_ADDRESS 0xB8110000ul
-#define CONFIG_STMAC_STE10XP
 
 /*  If this board does not have eeprom for ethernet address so allow the user
  *  to set it in the environment

@@ -46,7 +46,7 @@
 #define CFG_FLASH_BASE		0xA0000000
 #define CFG_RESET_ADDRESS	0xA0000000
 
-#define CFG_MONITOR_LEN		0x00020000	/* Reserve 256 kB for Monitor */
+#define CFG_MONITOR_LEN		0x00020000	/* Reserve 128 kB for Monitor */
 #define CFG_MONITOR_BASE        0xA0000000
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB kB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)
@@ -98,23 +98,33 @@
  * Ethernet driver config
  */
 
+/*
+ * There are 2 options for ethernet, both use the on-chip ST-MAC.
+ * The choice in PHYs are:
+ *    The on-board ST STE101P PHY.
+ *    External PHY connected via the MII off-board connector.
+ */
+
 /* are we using the internal ST MAC device ? */
 #define CONFIG_DRIVER_NETSTMAC
 
 /* choose which internal MAC to use */
-#define 	CONFIG_STMAC_MAC0		/* Use MAC #0 */
-//#define 	CONFIG_STMAC_MAC1		/* Use MAC #1 */
+#if 1
+#	define 	CONFIG_STMAC_MAC0			/* Use MAC #0 */
+#else
+#	define 	CONFIG_STMAC_MAC1			/* Use MAC #1 */
+#endif
 
 /*
  * Select the appropriate base address for the selected MAC.
- * Also, choose which external PHY to use.
+ * Also, choose which external PHY type to use.
  */
 #if defined(CONFIG_STMAC_MAC0)
-#define CONFIG_STMAC_ADDRESS 0xfd500000ul	/* MAC #0 */
-#define CONFIG_STMAC_STE10XP			/* ST STE10xP */
+#	define	CONFIG_STMAC_ADDRESS 0xfd500000ul	/* MAC #0 */
+#	define	CONFIG_STMAC_STE10XP			/* ST STE10xP */
 #elif defined(CONFIG_STMAC_MAC1)
-#define CONFIG_STMAC_ADDRESS 0xfd510000ul	/* MAC #1 */
-#define	CONFIG_STMAC_LAN8700			/* SMSC LAN8700 */
+#	define	CONFIG_STMAC_ADDRESS 0xfd510000ul	/* MAC #1 */
+#	define	CONFIG_STMAC_LAN8700			/* SMSC LAN8700 */
 #endif
 
 /*  If this board does not have eeprom for ethernet address so allow the user

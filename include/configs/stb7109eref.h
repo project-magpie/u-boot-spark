@@ -45,7 +45,7 @@
 #define CFG_FLASH_BASE		0xA0000000
 #define CFG_RESET_ADDRESS	0xA0000000
 
-#define CFG_MONITOR_LEN		0x00020000	/* Reserve 256 kB for Monitor */
+#define CFG_MONITOR_LEN		0x00020000	/* Reserve 128 kB for Monitor */
 #define CFG_MONITOR_BASE        0xA0000000
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB kB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)
@@ -78,6 +78,7 @@
 #define CONFIG_COMMANDS	(CONFIG_CMD_DFL | \
 			 CFG_CMD_ASKENV  | \
 			 CFG_CMD_NFS | CFG_CMD_PING | CFG_CMD_DHCP |\
+			 (STM_EXTRA_CFG_COMMANDS) | \
 			 CFG_CMD_IDE | CFG_CMD_EXT2 )
 
 /* this must be included AFTER the definition of CONFIG_COMMANDS (if any) */
@@ -98,13 +99,23 @@
 
 /*
  * There are 2 options for ethernet:
- *    The onboard SMC91111
+ *    The on-board SMSC LAN91C111
+ *    the on-chip STMAC & on-board PHY
  */
 
-/* Config for SMC91111 */
+#if 1
+	/* Config for SMSC LAN91C111 (combined MAC+PHY) */
+#	define CONFIG_DRIVER_SMC91111
+#	define CONFIG_SMC91111_BASE	0xa2000300ul
+#	define STM_EXTRA_CFG_COMMANDS	0
+#else
+	/* Config for on-chip STMAC + STE10xP PHY */
+#	define CONFIG_DRIVER_NETSTMAC
+#	define CONFIG_STMAC_ADDRESS	0xb8110000ul
+#	define CONFIG_STMAC_STE10XP
+#	define STM_EXTRA_CFG_COMMANDS	CFG_CMD_MII
+#endif
 
-#define CONFIG_DRIVER_SMC91111 1
-#define	CONFIG_SMC91111_BASE	0xa2000300ul
 
 /*  If this board does not have eeprom for ethernet address so allow the user
  *  to set it in the environment
