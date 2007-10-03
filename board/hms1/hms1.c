@@ -35,21 +35,16 @@
 void stb7100_reset(void);
 void stb7100_clocks(void);
 
-#define EPLD_FLASH *(volatile unsigned char *)(0xa3400000)
 #define EPLD_ATAPI *(volatile unsigned char *)(0xa3900000)
 
 #define LED *(volatile unsigned char *)(0xa2000000 + 0x00100010)
 
 void flashWriteEnable(void)
 {
-  /*  Enable vpp for writing to flash */
-  EPLD_FLASH = 3;	/* bits: 0 = VPP ON; 1 = RESET	*/
 }
 
 void flashWriteDisable(void)
 {
-  /*  Disable vpp for writing to flash */
-  EPLD_FLASH = 2;	/* bits: 0 = VPP ON; 1 = RESET	*/
 }
 
 #define PIO_BASE  0xb8024000

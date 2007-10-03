@@ -62,24 +62,30 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD stb7100mboard
+#define BOARD HMS1
 
-#define	CONFIG_EXTRA_ENV_SETTINGS "\0"
-
-
-#if 0
+#define	CONFIG_EXTRA_ENV_SETTINGS \
 		"board=" XSTR(BOARD) "\0" \
 		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
 		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
-		"monitor_sec=1:0\0" \
+		"monitor_sec=1:0-1\0" \
 		"load_addr=" XSTR(CFG_LOAD_ADDR) "\0" \
 		"unprot=" \
 		  "protect off $monitor_sec\0" \
 		"update=" \
 		  "erase $monitor_sec;" \
 		  "cp.b $load_addr $monitor_base $monitor_len;" \
-		  "protect on $monitor_sec\0"
-#endif
+		  "protect on $monitor_sec\0" \
+		"enableVpp=" \
+		  "mw b8022028 20;" \
+		  "mw b8022034 20;" \
+		  "mw b8022048 20;"	/* set PIO2[5] as OUTPUT */ \
+		  "mw b8022004 20\0"	/* set PIO2[5] = HIGH */ \
+		"disableVpp=" \
+		  "mw b8022028 20;" \
+		  "mw b8022034 20;" \
+		  "mw b8022048 20;"	/* set PIO2[5] as OUTPUT */ \
+		  "mw b8022008 20\0"	/* set PIO2[5] = LOW */
 
 #define CONFIG_COMMANDS	(CONFIG_CMD_DFL | \
 			 CFG_CMD_ASKENV  | \
