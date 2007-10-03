@@ -1135,8 +1135,8 @@ static void ide_ident (block_dev_desc_t *dev_desc)
 	 * 6.2.1.6: Identfy Drive, Table 39 for more details
 	 */
 
-	strswab (dev_desc->revision);
-	strswab (dev_desc->vendor);
+	strswab ((char*)dev_desc->revision);
+	strswab ((char*)dev_desc->vendor);
 #endif /* __LITTLE_ENDIAN */
 
 	if ((iop->config & 0x0080)==0x0080)

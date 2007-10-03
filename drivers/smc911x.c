@@ -47,8 +47,6 @@
 #define SMC_DEBUG 0
 
 #if SMC_DEBUG > 1
-static const char version[] =
-	"smc911x.c:v1.0 8/7/2005 by Andy Sturges\n";
 
 #define USE_TRACE 1
 #define USE_WARNING 1
@@ -540,7 +538,7 @@ static int smc_rcv(void);
 */
 
 int smc_get_ethaddr(bd_t *bd);
-int get_rom_mac(char *v_rom_mac);
+static int get_rom_mac(unsigned char *v_rom_mac);
 
 /*
  ------------------------------------------------------------
@@ -1302,7 +1300,8 @@ int smc_get_ethaddr (bd_t * bd)
 {
 	int env_size, rom_valid, env_present = 0, reg;
 	char *s = NULL, *e,  es[] = "11:22:33:44:55:66";
-	uchar s_env_mac[64], v_env_mac[6], v_rom_mac[6], *v_mac;
+	char s_env_mac[64];
+	uchar v_env_mac[6], v_rom_mac[6], *v_mac;
 
 	env_size = getenv_r ("ethaddr", s_env_mac, sizeof (s_env_mac));
 	if ((env_size > 0) && (env_size < sizeof (es))) {	/* exit if env is bad */
@@ -1355,13 +1354,13 @@ int smc_get_ethaddr (bd_t * bd)
 		}
 	}
 	memcpy (bd->bi_enetaddr, v_mac, 6);	/* update global address to match env (allows env changing) */
-	smc_set_mac_addr (v_mac);               /* use old function to update smc default */
+	smc_set_mac_addr ((char*)v_mac);        /* use old function to update smc default */
 	PRINTK("Using MAC Address %02X:%02X:%02X:%02X:%02X:%02X\n", v_mac[0], v_mac[1],
 		v_mac[2], v_mac[3], v_mac[4], v_mac[5]);
 	return (0);
 }
 
-int get_rom_mac (char *v_rom_mac)
+static int get_rom_mac (unsigned char *v_rom_mac)
 {
 	dword dwHigh16=0;
 	dword dwLow32=0;
