@@ -29,10 +29,11 @@
 
 	.global _start
 _start:
-	/* Set SR:	MD=1, RB=0, BL=0, IMASK=0xF */
-	MOV_CONST32_R0 0x400000F0 /* 0x400080F0 */
+	/* Set SR:	MD=1, RB=0, BL=0, FD=0, IMASK=0xF */
+	MOV_CONST32_R0 0x400000F0
 	ldc	r0, sr
-	MOV_CONST32_R0 0x00080001 /* 0x400080F0 */
+	/* Set FPSCR:	FR=0, SZ=0, PR=1, DN=0, RM=01 */
+	MOV_CONST32_R0 0x00080001
 	lds	r0, fpscr
 
 	/* Disable watchdog timer */
@@ -41,10 +42,10 @@ _start:
 	MOV_CONST16_R0 0xA500
 	mov.w   r0, @r1
 
+#ifndef CONFIG_SH_SE_MODE
 	/* disable Caches */
 	MOV_CONST16_R0 (CCR_OCE|CCR_ICE|CCR_EMODE)
 	mov	r0, a0
-
 	CALL	sh_cache_clear_op_offset
 
 	CALL	init_ram_offset
@@ -81,6 +82,7 @@ _start:
 	add	#2, r2
 	cmp/hi	r2,r3
 	bt	1b
+#endif	/* CONFIG_SH_SE_MODE */
 
 	/* init stack pointer */
 init_sp:
@@ -99,7 +101,7 @@ init_bss:
 /* Load address of board init routine */
 	mov.l	start_sh4boot_addr, r1
 	jmp	@r1        /*  never returns     */
-	nop
+	  nop
 
 	/* Constants used above */
 
@@ -114,31 +116,6 @@ start_sh4boot_addr:.long start_sh4boot
 
 	/* offsets for PIC calls */
 
-	.global sh_cache_clear_op_offset
-
 init_ram_offset:		.long init_ram - .
 sh_cache_clear_op_offset:	.long sh_cache_clear_op - .
 sh_cache_set_op_offset:		.long sh_cache_set_op - .
-
-TRA     = 0xff000020
-EXPEVT  = 0xff000024
-INTEVT  = 0xff000028
-MMU_TEA = 0xff00000c
-
-! Exception Vector Base
-!
-!	Should be aligned page boundary.
-!
-	.balign 	4096,0,4096
-vbr_base:
-	.long	0
-!
-	.balign 	256,0,256
-general_exception:
-
-	.balign 	1024,0,1024
-tlb_miss:
-
-	.balign 	512,0,512
-interrupt:
-

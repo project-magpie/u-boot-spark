@@ -30,19 +30,17 @@
 #include "asm/linkage.h"
 
 	.text
-ENTRY(sh_cache_set_op)
 
 	/*
 	 * void sh_cache_set_op (ulong op)
 	 * set bits in ccn.cr
 	 */
-
-
+ENTRY(sh_cache_set_op)
 	/* get ccn.cr address into r0 (0xff00001c) */
 	ENTER_P2
 	MOV_CONST32_R0	0xff00001c
-	mov.l   @r0, r1
-	or	a0,  r1
+	mov.l	@r0, r1
+	or	a0, r1
 	mov.l	r1, @r0
 	nop
 	nop
@@ -54,21 +52,20 @@ ENTRY(sh_cache_set_op)
 	nop
 	nop
 	rts
-	nop
+	  nop
 
 
 	/*
 	 * void sh_cache_clear_op (ulong op)
 	 * clears bits in ccn.cr
 	 */
-
 ENTRY(sh_cache_clear_op)
 	/* get ccn.cr address into r0 (0xff00001c) */
 	ENTER_P2
 	MOV_CONST32_R0	0xff00001c
 	mov.l	@r0, r1
-	not	a0, a0 /* invert op */
-	and	a0, r1 /* clear bits */
+	not	a0, a0	/* invert op */
+	and	a0, r1	/* clear bits */
 	mov.l	r1, @r0
 	nop
 	nop
@@ -80,4 +77,4 @@ ENTRY(sh_cache_clear_op)
 	nop
 	nop
 	rts
-	nop
+	  nop

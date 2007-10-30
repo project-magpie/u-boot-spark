@@ -24,6 +24,7 @@
 #ifdef CONFIG_DRIVER_NETSTMAC
 
 #include <command.h>
+#include <asm/addrspace.h>
 #include <asm/io.h>
 #include <net.h>
 #include <malloc.h>
@@ -600,7 +601,7 @@ static void init_dma_desc_rings (void)
 	}
 
 	for (i = 0; i < CONFIG_DMA_RX_SIZE; i++)
-		rx_packets[i] = P2SEGADDR (dma.rx_buff + (PKTSIZE_ALIGN * i));
+		rx_packets[i] = (uchar*)P2SEGADDR (dma.rx_buff + (PKTSIZE_ALIGN * i));
 
 	init_dma_ring (dma_rx, rx_packets, CONFIG_DMA_RX_SIZE, OWN_BIT);
 	init_dma_ring (dma_tx, 0, CONFIG_DMA_TX_SIZE, 0);

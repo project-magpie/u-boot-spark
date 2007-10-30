@@ -30,7 +30,12 @@
 
 void stx7200_reset(void);
 
+#ifdef CONFIG_SH_SE_MODE
+#define EPLD_BASE		0xb5000000	/* Phys 0x05000000 */
+#else
 #define EPLD_BASE		0xa5000000
+#endif	/* CONFIG_SH_SE_MODE */
+
 #define EPLD_FlashCtrlAddr	SH4_WORD_REG(EPLD_BASE + 0x400000)
 
 void flashWriteEnable(void)

@@ -359,26 +359,6 @@ static __inline__ void ctrl_outl (unsigned int b, unsigned long addr)
 
 #define IO_SPACE_LIMIT 0xffffffff
 
-#include "asm/addrspace.h"
-
-/*
- * Change virtual addresses to physical addresses and vv.
- * These are trivial on the 1:1 Linux/SuperH mapping
- */
-static __inline__ unsigned long virt_to_phys (volatile void *address)
-{
-	return PHYSADDR (address);
-}
-
-static __inline__ void *phys_to_virt (unsigned long address)
-{
-	return (void *) P1SEGADDR (address);
-}
-
-#define virt_to_bus virt_to_phys
-#define bus_to_virt phys_to_virt
-#define page_to_bus page_to_phys
-
 /*
  * readX/writeX() are used to access memory mapped devices. On some
  * architectures the memory mapped IO stuff needs to be accessed

@@ -2345,10 +2345,15 @@ hms1_128_config :		unconfig
 	@echo "#define CONFIG_SH_HMS1_128  1" >>include/config.h)
 	@./mkconfig -a hms1 sh4 sh4_2xx hms1 "" stb7100
 
-mb519_config :			unconfig
+mb519_config \
+mb519se_config :		unconfig
 	@ >include/config.h
 	@echo "#define CONFIG_SH_STX7200  1" >>include/config.h
-	@echo "#define CONFIG_SH_MB519  1" >>include/config.h
+	@echo "#define CONFIG_SH_MB519    1" >>include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE  1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/mb519/config.tmp)
 	@./mkconfig -a mb519 sh4 sh4_2xx mb519 "" stx7200
 
 

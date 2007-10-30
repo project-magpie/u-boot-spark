@@ -33,6 +33,12 @@
 #define P4SEG_REG_BASE	0xff000000
 #endif
 
+
+/* ----------------------------------------------------------------------------
+		29-bit Mode memory alias translations
+   ---------------------------------------------------------------------------*/
+#ifndef CONFIG_SH_SE_MODE
+
 /* Returns the privileged segment base of a given address  */
 #define PXSEG(a)	(((unsigned long)(a)) & 0xe0000000)
 
@@ -46,5 +52,24 @@
 #define P2SEGADDR(a)	((__typeof__(a))(((unsigned long)(a) & 0x1fffffff) | P2SEG))
 #define P3SEGADDR(a)	((__typeof__(a))(((unsigned long)(a) & 0x1fffffff) | P3SEG))
 #define P4SEGADDR(a)	((__typeof__(a))(((unsigned long)(a) & 0x1fffffff) | P4SEG))
+#endif /* CONFIG_SH_SE_MODE */
+
+
+/* ----------------------------------------------------------------------------
+		SE-Mode memory alias translations
+   ---------------------------------------------------------------------------*/
+#ifdef CONFIG_SH_SE_MODE
+#if !defined(CFG_SE_SDRAM_WINDOW) || !defined(CFG_SE_PHYSICAL_BASE) || !defined(CFG_SE_UNACHED_BASE)
+#error	SH-4 SE Memory Mappings needs to be defined!
+#endif
+	/*
+	 *	Convert VIRTUAL (cached) address to a UN-CACHED one.
+	 */
+#define P2SEGADDR(a)	(((unsigned long)(a)&CFG_SE_SDRAM_WINDOW)|CFG_SE_UNACHED_BASE)
+	/*
+	 *	Convert VIRTUAL address to a PHYSICAL one.
+	 */
+#define PHYSADDR(a)	(((unsigned long)(a)&CFG_SE_SDRAM_WINDOW)|CFG_SE_PHYSICAL_BASE)
+#endif	/* CONFIG_SH_SE_MODE */
 
 #endif /* __ASM_SH_ADDRSPACE_H */
