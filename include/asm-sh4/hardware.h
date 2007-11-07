@@ -60,6 +60,11 @@
 
 /****/
 
+/* Some bits in the CCN.MMUCR register */
+#define	MMUCR_TI	(1<<2)		/* MMUCR.TI */
+#define	MMUCR_SE	(1<<4)		/* MMUCR.SE */
+
+
 /*  SH4 UBC */
 /* User Break Controller control registers (common to all SH4) */
 

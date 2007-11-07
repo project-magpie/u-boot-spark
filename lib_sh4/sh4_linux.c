@@ -41,7 +41,6 @@ extern image_header_t header;	/* from cmd_bootm.c */
 
 extern int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[]);
 
-#define PARAM   (ntohl (hdr->ih_load))
 #define PAGE_OFFSET 0x1000
 
 #define MOUNT_ROOT_RDONLY ((unsigned long *) (param+0x000))
@@ -57,6 +56,10 @@ extern int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[]);
 
 extern void sh_cache_set_op(ulong);
 extern void flashWriteDisable(void);
+#ifdef CONFIG_SH_SE_MODE
+extern void sh_toggle_pmb_cacheability(void);
+#endif	/* CONFIG_SH_SE_MODE */
+
 
 void sh4_flush_cache_all(void)
 {
@@ -268,6 +271,15 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 
 	sh4_flush_cache_all();
 	flashWriteDisable();
+
+#ifdef CONFIG_SH_SE_MODE
+	/*
+	 * Now run out of the UN-cached PMB array #0.
+	 * For 32-bit mode, our contract with the kernel requires
+	 * that the kernel starts running out of an uncached PMB mapping.
+	 */
+	sh_toggle_pmb_cacheability();
+#endif	/* CONFIG_SH_SE_MODE */
 
 	theKernel ();
 }
