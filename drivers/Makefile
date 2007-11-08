@@ -52,7 +52,7 @@ COBJS	= 3c589.o 5701rls.o ali512x.o atmel_usart.o \
 	  pxa_pcmcia.o mpc8xx_pcmcia.o tqm8xx_pcmcia.o	\
 	  rpx_pcmcia.o \
 	  fsl_i2c.o \
-	  sh-sci.o stm-asc.o smc911x.o netstmac_eth.o
+	  smc911x.o sh-sci.o stm-asc.o stm-stmac.o
 
 SRCS	:= $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))

@@ -25,7 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= lib$(BOARD).a
 
-AOBJS	= init-stb7109eref.o
+AOBJS	= init-$(BOARD).o
 
 COBJS	= $(BOARD).o sconsole.o
 

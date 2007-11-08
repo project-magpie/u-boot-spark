@@ -31,7 +31,6 @@
 #define SH3_IRDA_IRQS { 52,  53,  55,  54 }
 #define SH4_SCIF_IRQS { 40,  41,  43,  42 }
 #define STB1_SCIF1_IRQS {23, 24,  26,  25 }
-#define SH5_SCIF_IRQS  { 39, 40, 42 }
 #define SH7300_SCIF0_IRQS {80,  80,  80,  80 }
 
 #if defined(CONFIG_CPU_SUBTYPE_SH7708)
@@ -95,23 +94,6 @@
 # define SCSPTR2 0xffe80020	/* 16 bit SCIF */
 # define SCIF_ORER 0x0001	/* overrun error bit */
 # define SCSCR_INIT(port)          0x38	/* TIE=0,RIE=0,TE=1,RE=1,REIE=1 */
-# define SCIF_ONLY
-
-#elif defined(CONFIG_CPU_SUBTYPE_SH5_101) || defined(CONFIG_CPU_SUBTYPE_SH5_103)
-# include <asm/hardware.h>
-/* # define SCIF_BASE_ADDR    0x01030000  */
-# define SCIF_ADDR_SH5     SCIF_BASE_ADDR	/* PHYS_PERIPHERAL_BLOCK+SCIF_BASE_ADDR */
-# define SCIF_PTR2_OFFS    0x0000020
-# define SCIF_LSR2_OFFS    0x0000024
-# define SCI_NPORTS 1
-# define SCI_INIT { \
-  { {}, PORT_SCIF, SCIF_ADDR_SH5, \
-     SH5_SCIF_IRQS, sci_init_pins_scif }  \
-}
-# define SCSPTR2           (SCIF_ADDR_SH5+SCIF_PTR2_OFFS)	/* 16 bit SCIF */
-# define SCLSR2            (SCIF_ADDR_SH5+SCIF_LSR2_OFFS)	/* 16 bit SCIF */
-# define SCSCR_INIT(port)  0x38	/* TIE=0,RIE=0,
-				   TE=1,RE=1,REIE=1 */
 # define SCIF_ONLY
 
 #else
@@ -367,8 +349,6 @@ SCIx_FNS (SCSMR, 0x00, 8, 0x00, 8, 0x00, 8, 0x00, 16)
  */
 #if defined(CONFIG_CPU_SUBTYPE_SH7300)
 #define SCBRR_VALUE(bps) ((P_CLOCK_RATE+16*bps)/(16*bps)-1)
-#elif defined(CONFIG_SH_STI5528)
-#define SCBRR_VALUE(bps) (((bd->bi_st40perfrq*1000000)+16*bps)/(32*bps)-1)
 #else
 #define SCBRR_VALUE(bps) ((P_CLOCK_RATE+16*bps)/(32*bps)-1)
 #endif

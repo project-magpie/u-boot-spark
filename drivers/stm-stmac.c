@@ -29,7 +29,7 @@
 #include <net.h>
 #include <malloc.h>
 #include <miiphy.h>
-#include "netstmac_eth.h"
+#include "stm-stmac.h"
 
 #if (CONFIG_COMMANDS & CFG_CMD_NET)
 
@@ -710,7 +710,7 @@ static void stmac_eth_stop_tx (void)
 static int stmac_dma_init (void)
 {
 
-	PRINTK ("STb7109eth: DMA Core setup\n");
+	PRINTK ("STM-STMAC: DMA Core setup\n");
 
 	/* DMA SW reset */
 	stmac_dma_reset ();

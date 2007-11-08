@@ -223,8 +223,8 @@
 #define TDES1_CONTROL_AC          0x04000000  /* Add CRC Disable */
 #define TDES1_CONTROL_DPD         0x00800000  /* Disable Padding */
 
-#define STMAC_READ(REG) readl(CONFIG_STMAC_ADDRESS+(REG))
-#define STMAC_WRITE(V, REG) writel(V, CONFIG_STMAC_ADDRESS+(REG))
+#define STMAC_READ(REG)		readl(CFG_STM_STMAC_BASE+(REG))
+#define STMAC_WRITE(V, REG)	writel(V, CFG_STM_STMAC_BASE+(REG))
 
 /* MII interface defns */
 

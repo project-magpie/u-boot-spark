@@ -49,20 +49,14 @@ void flashWriteDisable(void)
 }
 
 #define PIO_BASE  0xb8020000
+#define PIO2_BASE  0xb8024000
 
 static void configPIO(void)
 {
   /*  Setup PIO of ASC device */
-  SET_PIO_ASC(PIO_PORT(4), 3, 2, 4, 5);  /* UART2 - AS0 */
-  SET_PIO_ASC(PIO_PORT(5), 0, 1, 2, 3);  /* UART3 - AS1 */
-
+  SET_PIO_ASC(PIO_PORT(4), 3, 2, 4, 5);
   /*  Setup up ethernet reset */
-#ifdef CONFIG_DRIVER_SMC91111
   SET_PIO_PIN(PIO_PORT(2), 6, STPIO_OUT);
-#endif
-#ifdef CONFIG_DRIVER_NETSTMAC
-  SET_PIO_PIN(PIO_PORT(2), 4, STPIO_OUT);
-#endif
 }
 
 #if (CONFIG_COMMANDS & CFG_CMD_IDE)
@@ -100,15 +94,6 @@ int board_init(void)
 	STPIO_SET_PIN(PIO_PORT(2), 6, 0);
 #endif
 
-#ifdef CONFIG_DRIVER_NETSTMAC
-	/*  Reset ethernet chip */
-	STPIO_SET_PIN(PIO_PORT(2), 4, 1);
-	udelay(1000);
-	STPIO_SET_PIN(PIO_PORT(2), 4, 0);
-	udelay(2000);
-	STPIO_SET_PIN(PIO_PORT(2), 4, 1);
-#endif
-
 #if (CONFIG_COMMANDS & CFG_CMD_IDE)
 #ifdef CONFIG_SH_STB7100_IDE
 	stb7100ref_init_ide();
@@ -123,7 +108,13 @@ int board_init(void)
 
 int checkboard (void)
 {
-	printf ("\n\nBoard: STb7100ref\n");
+	printf ("\n\nBoard: STb7109E-Reference (MB448)"
+#ifdef CONFIG_SH_SE_MODE
+		"  [32-bit mode]"
+#else
+		"  [29-bit mode]"
+#endif
+		"\n");
 
 	LED = 1;
 

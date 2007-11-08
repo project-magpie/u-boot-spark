@@ -24,9 +24,7 @@
 
 #include <config.h>
 #include "asm/regdef.h"
-#include "asm/hardware.h"
 #include "asm/asmdefs.h"
-
 #include "asm/linkage.h"
 
 /*  NOTE:	 ALL THIS CODE MUST BE PIC !!!! */

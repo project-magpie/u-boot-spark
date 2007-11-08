@@ -94,7 +94,13 @@ int board_init(void)
 
 int checkboard (void)
 {
-	printf ("\n\nBoard: HMS1\n");
+	printf ("\n\nBoard: HMS1"
+#ifdef CONFIG_SH_SE_MODE
+		"  [32-bit mode]"
+#else
+		"  [29-bit mode]"
+#endif
+		"\n");
 
 	LED = 1;
 

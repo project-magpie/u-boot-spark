@@ -25,21 +25,27 @@
 #ifndef __SH4REGTYPE_H
 #define __SH4REGTYPE_H
 
-#ifndef _SH4REG_ASM_
-typedef volatile unsigned char *const sh4_byte_reg_t;
-typedef volatile unsigned short *const sh4_word_reg_t;
-typedef volatile unsigned int *const sh4_dword_reg_t;
-typedef volatile unsigned long long *const sh4_gword_reg_t;
 
-#define SH4_BYTE_REG(address) ((sh4_byte_reg_t) (address))
-#define SH4_WORD_REG(address) ((sh4_word_reg_t) (address))
-#define SH4_DWORD_REG(address) ((sh4_dword_reg_t) (address))
-#define SH4_GWORD_REG(address) ((sh4_gword_reg_t) (address))
-#else
-#define SH4_BYTE_REG(address) (address)
-#define SH4_WORD_REG(address) (address)
-#define SH4_DWORD_REG(address) (address)
-#define SH4_GWORD_REG(address) (address)
-#endif
+#ifndef __ASSEMBLY__
+
+typedef volatile unsigned char *const		sh4_byte_reg_t;
+typedef volatile unsigned short *const		sh4_word_reg_t;
+typedef volatile unsigned int *const		sh4_dword_reg_t;
+typedef volatile unsigned long long *const	sh4_gword_reg_t;
+
+#define SH4_BYTE_REG(address)	((sh4_byte_reg_t) (address))
+#define SH4_WORD_REG(address)	((sh4_word_reg_t) (address))
+#define SH4_DWORD_REG(address)	((sh4_dword_reg_t) (address))
+#define SH4_GWORD_REG(address)	((sh4_gword_reg_t) (address))
+
+#else	/* __ASSEMBLY__ */
+
+#define SH4_BYTE_REG(address)	(address)
+#define SH4_WORD_REG(address)	(address)
+#define SH4_DWORD_REG(address)	(address)
+#define SH4_GWORD_REG(address)	(address)
+
+#endif	/* __ASSEMBLY__ */
+
 
 #endif /* __SH4REGTYPE_H */

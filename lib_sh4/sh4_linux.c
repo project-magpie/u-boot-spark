@@ -24,9 +24,9 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/hardware.h>
 #include <asm/sh4-cache.h>
 #include <asm/io.h>
+#include <asm/sh4reg.h>
 
 #ifdef CONFIG_SHOW_BOOT_PROGRESS
 # include <status_led.h>
@@ -79,7 +79,7 @@ void sh4_flush_cache_all(void)
 
 	/* Invalidate caches */
 
-	sh_cache_set_op(CCR_OCI|CCR_ICI);
+	sh_cache_set_op(SH4_CCR_OCI|SH4_CCR_ICI);
 }
 
 void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],

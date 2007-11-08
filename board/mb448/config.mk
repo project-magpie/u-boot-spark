@@ -22,7 +22,7 @@
 #
 
 #
-# Espresso board
+# MB448 (STb7109EREF) board
 #
 
 # Installs at SDRAM BASE  + 31M in cache region

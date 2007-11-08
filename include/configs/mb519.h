@@ -128,10 +128,10 @@
  * Also, choose which external PHY type to use.
  */
 #if defined(CONFIG_STMAC_MAC0)
-#	define	CONFIG_STMAC_ADDRESS 0xfd500000ul	/* MAC #0 */
+#	define	CFG_STM_STMAC_BASE	 0xfd500000ul	/* MAC #0 */
 #	define	CONFIG_STMAC_STE10XP			/* ST STE10xP */
 #elif defined(CONFIG_STMAC_MAC1)
-#	define	CONFIG_STMAC_ADDRESS 0xfd510000ul	/* MAC #1 */
+#	define	CFG_STM_STMAC_BASE	 0xfd510000ul	/* MAC #1 */
 #	define	CONFIG_STMAC_LAN8700			/* SMSC LAN8700 */
 #endif
 
@@ -176,7 +176,7 @@
 #define CFG_HUSH_PARSER         1
 #define CFG_AUTO_COMPLETE       1
 #define	CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"mb519> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"MB519> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2     "> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/

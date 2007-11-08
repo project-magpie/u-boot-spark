@@ -1,6 +1,4 @@
 
-#define _SH4REG_ASM_
-
 #include "asm/stb7100reg.h"
 
 #include "../../cpu/sh4_2xx/stb7100/init-stb7100common.S"

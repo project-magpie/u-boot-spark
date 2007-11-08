@@ -22,7 +22,7 @@
 #
 
 #
-# Espresso board
+# HMS1 board
 #
 
 # Installs at SDRAM BASE  + 31M in cache region

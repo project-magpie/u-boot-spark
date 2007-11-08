@@ -24,27 +24,33 @@
 
 #include <common.h>
 
-#include <asm/hardware.h>
+#if defined(CONFIG_SH_STB7100)
+#include <asm/stb7100reg.h>
+#elif defined(CONFIG_SH_STX7200)
+#include <asm/stx7200reg.h>
+#else
+#error Missing Device Defintions!
+#endif
 
 #define TMU_TICKS_PER_SEC CFG_HZ
 #define TMU_START0 0x01
 #define TMU_MAX_COUNTER (~0UL)
 #define TMU_INPUT 0x0006
 
-#define TMU_OFF() *TMU_TSTR = 0;
-#define TMU_ON() *TMU_TSTR = *TMU_TSTR | 1;
-#define TMU_CLEAR() *TMU_TCOR0 = TMU_MAX_COUNTER; *TMU_TCNT0 = TMU_MAX_COUNTER;
-#define TMU_SET(v) *TMU_TCNT0 = (v ^ TMU_MAX_COUNTER);
-#define TMU_GET()  (*TMU_TCNT0 ^ TMU_MAX_COUNTER)
+#define TMU_OFF() *SH4_TMU_TSTR = 0;
+#define TMU_ON() *SH4_TMU_TSTR = *SH4_TMU_TSTR | 1;
+#define TMU_CLEAR() *SH4_TMU_TCOR0 = TMU_MAX_COUNTER; *SH4_TMU_TCNT0 = TMU_MAX_COUNTER;
+#define TMU_SET(v) *SH4_TMU_TCNT0 = (v ^ TMU_MAX_COUNTER);
+#define TMU_GET()  (*SH4_TMU_TCNT0 ^ TMU_MAX_COUNTER)
 
 /* RTC clock not connected on this board use pclock */
 int timer_init (void)
 {
 	TMU_OFF ();
 	/* Take clock from PCLOCK/1024 */
-	*TMU_TCR0 = *TMU_TCR0 & 0xfff8;
-	*TMU_TCR0 = *TMU_TCR0 | 0x4;
-	*TMU_TCOR0 = TMU_MAX_COUNTER;
+	*SH4_TMU_TCR0 = *SH4_TMU_TCR0 & 0xfff8;
+	*SH4_TMU_TCR0 = *SH4_TMU_TCR0 | 0x4;
+	*SH4_TMU_TCOR0 = TMU_MAX_COUNTER;
 	TMU_ON ();
 	return 0;
 }

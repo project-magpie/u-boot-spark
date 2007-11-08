@@ -2308,39 +2308,39 @@ atstk1002_config	:	unconfig
 ## SuperH SH4
 #########################################################################
 
-stb7100mboard_config :		unconfig
+mb411_config :		unconfig
 	@ >include/config.h
-	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
-	@echo "#define CONFIG_SH_STB7100_MBOARD  1" >>include/config.h
-	@./mkconfig -a stb7100mboard sh4 sh4_2xx stb7100mboard "" stb7100
+	@echo "#define CONFIG_SH_STB7100 1" >>include/config.h
+	@echo "#define CONFIG_SH_MB411   1" >>include/config.h
+	@./mkconfig -a mb411 sh4 sh4_2xx mb411 "" stb7100
 
-stb7100ref_27_config \
-stb7100ref_30_config \
-stb7100ref_27_128_config \
-stb7100ref_30_128_config : 	unconfig
+mb442_27_config \
+mb442_30_config \
+mb442_27_128_config \
+mb442_30_128_config : 	unconfig
 	@ >include/config.h
-	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
-	@echo "#define CONFIG_SH_STB7100_REF  1" >>include/config.h
+	@echo "#define CONFIG_SH_STB7100   1" >>include/config.h
+	@echo "#define CONFIG_SH_MB442     1" >>include/config.h
 	$(if $(findstring 27,$@), \
-	@echo "#define INPUT_CLOCK_RATE 27" >>include/config.h)
+	@echo "#define INPUT_CLOCK_RATE    27" >>include/config.h)
 	$(if $(findstring 30,$@), \
-	@echo "#define INPUT_CLOCK_RATE 30" >>include/config.h)
+	@echo "#define INPUT_CLOCK_RATE    30" >>include/config.h)
 	$(if $(findstring 128,$@), \
-	@echo "#define CONFIG_SH_STB7100_REF_128 1" >>include/config.h)
-	@./mkconfig -a stb7100ref sh4 sh4_2xx stb7100ref "" stb7100
+	@echo "#define CONFIG_SH_MB442_128 1" >>include/config.h)
+	@./mkconfig -a mb442 sh4 sh4_2xx mb442 "" stb7100
 
-stb7109eref_config :		unconfig
+mb448_config :		unconfig
 	@ >include/config.h
-	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
-	@echo "#define CONFIG_SH_STB7109E_REF  1" >>include/config.h
-	@echo "#define INPUT_CLOCK_RATE 27" >>include/config.h
-	@./mkconfig -a stb7109eref sh4 sh4_2xx stb7109eref "" stb7100
+	@echo "#define CONFIG_SH_STB7100   1" >>include/config.h
+	@echo "#define CONFIG_SH_MB448     1" >>include/config.h
+	@echo "#define INPUT_CLOCK_RATE    27" >>include/config.h
+	@./mkconfig -a mb448 sh4 sh4_2xx mb448 "" stb7100
 
 hms1_config \
 hms1_128_config :		unconfig
 	@ >include/config.h
-	@echo "#define CONFIG_SH_STB7100  1" >>include/config.h
-	@echo "#define CONFIG_SH_HMS1  1" >>include/config.h
+	@echo "#define CONFIG_SH_STB7100   1" >>include/config.h
+	@echo "#define CONFIG_SH_HMS1      1" >>include/config.h
 	$(if $(findstring 128,$@), \
 	@echo "#define CONFIG_SH_HMS1_128  1" >>include/config.h)
 	@./mkconfig -a hms1 sh4 sh4_2xx hms1 "" stb7100
@@ -2348,10 +2348,10 @@ hms1_128_config :		unconfig
 mb519_config \
 mb519se_config :		unconfig
 	@ >include/config.h
-	@echo "#define CONFIG_SH_STX7200  1" >>include/config.h
-	@echo "#define CONFIG_SH_MB519    1" >>include/config.h
+	@echo "#define CONFIG_SH_STX7200   1" >>include/config.h
+	@echo "#define CONFIG_SH_MB519     1" >>include/config.h
 	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_SH_SE_MODE  1" >>include/config.h)
+	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/mb519/config.tmp)
 	@./mkconfig -a mb519 sh4 sh4_2xx mb519 "" stx7200

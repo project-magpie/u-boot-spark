@@ -1,8 +1,5 @@
 
-#define _SH4REG_ASM_
-
 #include "asm/stb7100reg.h"
-
 #include "../cpu/sh4_2xx/stb7100/init-stb7100common.S"
 
 /*
@@ -104,7 +101,7 @@ __memory_setup_table:
 
 	POKE_LONG(ST40_LMI_STR(SYS), 0x35b06455)
 
-#if CONFIG_SH_STB7100_REF_128
+#if CONFIG_SH_MB442_128
 	POKE_LONG(ST40_LMI_SDRA0(SYS), 0x0c001a00)
 	POKE_LONG(ST40_LMI_SDRA1(SYS), 0x0c001a00)
 #else
@@ -148,7 +145,7 @@ __memory_setup_table:
 	POKE_LONG(ST40_LMI_SDMR0(VID), 0x00000033)
 	POKE_LONG(ST40_LMI_SCR(VID), 0x00000000)
 
-#if CONFIG_SH_STB7100_REF_128
+#if CONFIG_SH_MB442_128
        POKE_LONG(SH4_CCN_CCR, 0x8000090d)
 #endif
 

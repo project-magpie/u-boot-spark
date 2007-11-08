@@ -24,7 +24,7 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/sti7200reg.h>
+#include <asm/stx7200reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
 #include <ata.h>
@@ -62,19 +62,19 @@ int stmac_default_pbl(void)
 #ifdef CONFIG_STMAC_STE101P_RMII
 void stb7109_mac_speed(int speed)
 {
-	unsigned long sysconf = *STI7200_SYSCONF_SYS_CFG41;
+	unsigned long sysconf = *STX7200_SYSCONF_SYS_CFG41;
 
 	if (speed == 100)
 		sysconf |= MAC_SPEED;
 	else if (speed == 10)
 		sysconf &= ~MAC_SPEED;
 
-	*STI7200_SYSCONF_SYS_CFG41 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG41 = sysconf;
 }
 #endif
 
 /* ETH MAC pad configuration */
-static void stb7109eth_hw_setup(void)
+static void stmac_eth_hw_setup(void)
 {
 	unsigned long sysconf;
 #if defined(CONFIG_STMAC_MAC0)
@@ -83,7 +83,7 @@ static void stb7109eth_hw_setup(void)
 	const int shift = 1;	/* Second MAC */
 #endif
 
-	sysconf = *STI7200_SYSCONF_SYS_CFG41;
+	sysconf = *STX7200_SYSCONF_SYS_CFG41;
         sysconf &= ~(DISABLE_MSG_READ << shift);
         sysconf &= ~(DISABLE_MSG_WRITE << shift);
         //sysconf |=  (VCI_ACK_SOURCE << shift);
@@ -97,7 +97,7 @@ static void stb7109eth_hw_setup(void)
         sysconf &= ~(MII_MODE << shift);
         sysconf &= ~(PHY_CLK_EXT << shift);
 #endif
-	*STI7200_SYSCONF_SYS_CFG41 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG41 = sysconf;
 }
 #endif
 
@@ -109,13 +109,13 @@ int soc_init(void)
 	stx7200_clocks();
 
 #ifdef CONFIG_DRIVER_NETSTMAC
-	stb7109eth_hw_setup();
+	stmac_eth_hw_setup();
 #endif
 
-	bd->bi_devid = *STI7200_SYSCONF_DEVICEID_0;
+	bd->bi_devid = *STX7200_SYSCONF_DEVICEID_0;
 
 	/*  Make sure reset period is shorter than WDT timeout */
-	*STI7200_SYSCONF_SYS_CFG09 = (*STI7200_SYSCONF_SYS_CFG09 & 0xFF000000) | 0x000A8C;
+	*STX7200_SYSCONF_SYS_CFG09 = (*STX7200_SYSCONF_SYS_CFG09 & 0xFF000000) | 0x000A8C;
 
 	return 0;
 }

@@ -24,8 +24,15 @@
 
 #include <config.h>
 #include "asm/regdef.h"
-#include "asm/hardware.h"
 #include "asm/asmdefs.h"
+
+#if defined(CONFIG_SH_STB7100)
+#include <asm/stb7100reg.h>
+#elif defined(CONFIG_SH_STX7200)
+#include <asm/stx7200reg.h>
+#else
+#error Missing Device Defintions!
+#endif
 
 
 	.global _start
@@ -39,7 +46,7 @@ _start:
 	lds	r0, fpscr
 
 	/* Disable watchdog timer */
-	MOV_CONST32_R0 CPG_WTCSR
+	MOV_CONST32_R0 ST40_CPG_WTCSR
 	mov	r0, r1
 	MOV_CONST16_R0 0xA500
 	mov.w   r0, @r1
@@ -58,7 +65,7 @@ _start:
 
 #ifndef CONFIG_SH_SE_MODE
 	/* disable Caches */
-	MOV_CONST16_R0 (CCR_OCE|CCR_ICE|CCR_EMODE)
+	MOV_CONST16_R0 (SH4_CCR_OCE|SH4_CCR_ICE|SH4_CCR_EMODE)
 	mov	r0, a0
 	CALL	sh_cache_clear_op_offset
 
@@ -66,7 +73,7 @@ _start:
 	CALL	init_ram_offset
 
 	/* clear caches & enable icache & dcache write through */
-	MOV_CONST16_R0 (CCR_OCI|CCR_ICI|CCR_ICE|CCR_OCE|CCR_EMODE|CCR_WT)
+	MOV_CONST16_R0 (SH4_CCR_OCI|SH4_CCR_ICI|SH4_CCR_ICE|SH4_CCR_OCE|SH4_CCR_EMODE|SH4_CCR_WT)
 	mov	r0, a0
 	CALL	sh_cache_set_op_offset
 

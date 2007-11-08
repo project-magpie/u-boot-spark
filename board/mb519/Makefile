@@ -25,7 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= lib$(BOARD).a
 
-AOBJS	= init-mb519.o
+AOBJS	= init-$(BOARD).o
 
 COBJS	= $(BOARD).o sconsole.o
 

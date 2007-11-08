@@ -1,6 +1,6 @@
 #
-# (C) Copyright 2005
-# Andy Sturges (andy.sturges@st.com)
+# (C) Copyright 2003
+# Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -21,10 +21,24 @@
 # MA 02111-1307 USA
 #
 
-#
-# Espresso board
-#
+include $(TOPDIR)/config.mk
 
-# Installs at SDRAM BASE  + 31M in cache region
-TEXT_BASE = 0x85F00000
-PLATFORM_LDFLAGS +=
+LIB	= lib$(BOARD).a
+
+AOBJS	= init-$(BOARD).o
+
+COBJS	= $(BOARD).o sconsole.o
+
+OBJS	= $(COBJS) $(AOBJS)
+
+$(LIB):	.depend $(OBJS)
+	$(AR) crv $@ $(OBJS)
+
+#########################################################################
+
+.depend:	Makefile $(AOBJS:.o=.S) $(COBJS:.o=.c)
+		$(CC) -M $(CFLAGS) $(AOBJS:.o=.S) $(COBJS:.o=.c) > $@
+
+sinclude .depend
+
+#########################################################################

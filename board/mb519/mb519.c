@@ -24,7 +24,7 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/sti7200reg.h>
+#include <asm/stx7200reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
 
@@ -65,66 +65,66 @@ int board_init(void)
 
 	/* Serial port set up */
 	/* Route UART2&3 or SCI inputs instead of DVP to pins: conf_pad_dvp = 0 */
-	sysconf = *STI7200_SYSCONF_SYS_CFG40;
+	sysconf = *STX7200_SYSCONF_SYS_CFG40;
 	sysconf &= ~(1<<16);
-	*STI7200_SYSCONF_SYS_CFG40 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG40 = sysconf;
 
 	/* Route UART2&3/SCI outputs instead of DVP to pins: conf_pad_pio[1]=0 */
-	sysconf = *STI7200_SYSCONF_SYS_CFG07;
+	sysconf = *STX7200_SYSCONF_SYS_CFG07;
 	sysconf &= ~(1<<25);
-	*STI7200_SYSCONF_SYS_CFG07 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG07 = sysconf;
 
 	/* No idea, more routing: conf_pad_pio[0] = 0 */
-	sysconf = *STI7200_SYSCONF_SYS_CFG07;
+	sysconf = *STX7200_SYSCONF_SYS_CFG07;
 	sysconf &= ~(1<<24);
-	*STI7200_SYSCONF_SYS_CFG07 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG07 = sysconf;
 
 	/* Route UART2 (inputs and outputs) instead of SCI to pins: ssc2_mux_sel = 0 */
-	sysconf = *STI7200_SYSCONF_SYS_CFG07;
+	sysconf = *STX7200_SYSCONF_SYS_CFG07;
 	sysconf &= ~(1<<2);
-	*STI7200_SYSCONF_SYS_CFG07 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG07 = sysconf;
 
 	/* conf_pad_pio[4] = 0 */
-	sysconf = *STI7200_SYSCONF_SYS_CFG07;
+	sysconf = *STX7200_SYSCONF_SYS_CFG07;
 	sysconf &= ~(1<<28);
-	*STI7200_SYSCONF_SYS_CFG07 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG07 = sysconf;
 
 	/* Route UART3 (inputs and outputs) instead of SCI to pins: ssc3_mux_sel = 0 */
-	sysconf = *STI7200_SYSCONF_SYS_CFG07;
+	sysconf = *STX7200_SYSCONF_SYS_CFG07;
 	sysconf &= ~(1<<3);
-	*STI7200_SYSCONF_SYS_CFG07 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG07 = sysconf;
 
 	/* conf_pad_clkobs = 1 */
-	sysconf = *STI7200_SYSCONF_SYS_CFG07;
+	sysconf = *STX7200_SYSCONF_SYS_CFG07;
 	sysconf |= (1<<14);
-	*STI7200_SYSCONF_SYS_CFG07 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG07 = sysconf;
 
 	/* I2C and USB related routing */
 	/* bit4: ssc4_mux_sel = 0 (treat SSC4 as I2C) */
 	/* bit26: conf_pad_pio[2] = 0 route USB etc instead of DVO */
 	/* bit27: conf_pad_pio[3] = 0 DVO output selection (probably ignored) */
-	sysconf = *STI7200_SYSCONF_SYS_CFG07;
+	sysconf = *STX7200_SYSCONF_SYS_CFG07;
 	sysconf &= ~((1<<27)|(1<<26)|(1<<4));
-	*STI7200_SYSCONF_SYS_CFG07 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG07 = sysconf;
 
 	/* Enable SOFT_JTAG mode.
 	 * Taken from OS21, but is this correct?
 	 */
-	sysconf = *STI7200_SYSCONF_SYS_CFG33;
+	sysconf = *STX7200_SYSCONF_SYS_CFG33;
 	sysconf |= (1<<6);
 	sysconf &= ~((1<<0)|(1<<1)|(1<<2)|(1<<3));
-	*STI7200_SYSCONF_SYS_CFG33 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG33 = sysconf;
 
 	/* Route Ethernet pins to output */
 	/* bit26-16: conf_pad_eth(10:0) */
-	sysconf = *STI7200_SYSCONF_SYS_CFG41;
+	sysconf = *STX7200_SYSCONF_SYS_CFG41;
 	/* MII0: conf_pad_eth(0) = 0 (ethernet) */
 	sysconf &= ~(1<<16);
 	/* MII1: conf_pad_eth(2) = 0, (3)=0, (4)=0, (9)=0, (10)=0 (ethernet)
 	 * MII1: conf_pad_eth(6) = 0 (MII1TXD[0] = output) */
 	sysconf &= ~( (1<<(16+2)) | (1<<(16+3)) | (1<<(16+4)) | (1<<(16+6)) |
 		      (1<<(16+9)) | (1<<(16+10)));
-	*STI7200_SYSCONF_SYS_CFG41 = sysconf;
+	*STX7200_SYSCONF_SYS_CFG41 = sysconf;
 
 	configPIO();
 
@@ -133,7 +133,13 @@ int board_init(void)
 
 int checkboard (void)
 {
-	printf ("\n\nBoard: mb519\n");
+	printf ("\n\nBoard: STx7200-Reference (MB519)"
+#ifdef CONFIG_SH_SE_MODE
+		"  [32-bit mode]"
+#else
+		"  [29-bit mode]"
+#endif
+		"\n");
 
 	return 0;
 }

@@ -50,21 +50,9 @@
 
 #define __WANT_IO_DEF
 
-# if defined(CONFIG_SH_SH4202_MICRODEV)
-#  include "asm/io_microdev.h"
-# elif defined(CONFIG_SH_GX1_EVAL) || \
-       defined(CONFIG_SH_STB1_EVAL) || \
-       defined(CONFIG_SH_MEDIAREF) || \
-       defined(CONFIG_SH_ST40_DB547) || \
-       defined(CONFIG_SH_ST40_STARTER) || \
-       defined(CONFIG_SH_ST220_EVAL) || \
-       defined(CONFIG_SH_STM8000_DEMO) || \
-       defined(CONFIG_SH_TMM_LR2) || \
-       defined(CONFIG_SH_STI5528_EVAL) || \
-       defined(CONFIG_SH_STI5528_ESPRESSO) || \
-       defined(CONFIG_SH_STB7100_MBOARD) || \
-       defined(CONFIG_SH_STB7100_REF) || \
-       defined(CONFIG_SH_STB7109E_REF) || \
+# if defined(CONFIG_SH_MB411) || \
+       defined(CONFIG_SH_MB442) || \
+       defined(CONFIG_SH_MB448) || \
        defined(CONFIG_SH_HMS1) || \
        defined(CONFIG_SH_MB519)
 #  include "asm/io_stb1eval.h"
@@ -108,35 +96,12 @@ static __inline__ void _outl (unsigned int b, unsigned long addr)
 	*(volatile unsigned long *) addr = b;
 }
 
-#if 0
-extern unsigned char _inb (unsigned long port);
-extern unsigned short _inw (unsigned long port);
-extern unsigned int _inl (unsigned long port);
-extern void _outb (unsigned char b, unsigned long port);
-extern void _outw (unsigned short w, unsigned long port);
-extern void _outl (unsigned int l, unsigned long port);
-extern unsigned char _inb_p (unsigned long port);
-extern unsigned short _inw_p (unsigned long port);
-extern unsigned int _inl_p (unsigned long port);
-extern void _outb_p (unsigned char b, unsigned long port);
-extern void _outw_p (unsigned short w, unsigned long port);
-extern void _outl_p (unsigned int l, unsigned long port);
-#endif
 extern void _insb (unsigned long port, void *dst, unsigned long count);
 extern void _insw (unsigned long port, void *dst, unsigned long count);
 extern void _insl (unsigned long port, void *dst, unsigned long count);
 extern void _outsb (unsigned long port, const void *src, unsigned long count);
 extern void _outsw (unsigned long port, const void *src, unsigned long count);
 extern void _outsl (unsigned long port, const void *src, unsigned long count);
-
-#if 0
-extern unsigned char _readb (unsigned long addr);
-extern unsigned short _readw (unsigned long addr);
-extern unsigned int _readl (unsigned long addr);
-extern void _writeb (unsigned char b, unsigned long addr);
-extern void _writew (unsigned short b, unsigned long addr);
-extern void _writel (unsigned int b, unsigned long addr);
-#endif
 
 #ifdef __KERNEL__
 extern unsigned char ___raw_readb (unsigned long addr);

@@ -22,12 +22,11 @@
  * MA 02111-1307 USA
  */
 
-
 #include <config.h>
 #include "asm/regdef.h"
-#include "asm/hardware.h"
 #include "asm/asmdefs.h"
 #include "asm/linkage.h"
+#include "asm/sh4reg.h"
 
 	.text
 
@@ -38,7 +37,7 @@
 ENTRY(sh_cache_set_op)
 	/* get ccn.cr address into r0 (0xff00001c) */
 	ENTER_P2
-	MOV_CONST32_R0	CCN_CCR
+	MOV_CONST32_R0	SH4_CCN_CCR
 	mov.l	@r0, r1
 	or	a0, r1
 	mov.l	r1, @r0
@@ -62,7 +61,7 @@ ENTRY(sh_cache_set_op)
 ENTRY(sh_cache_clear_op)
 	/* get ccn.cr address into r0 (0xff00001c) */
 	ENTER_P2
-	MOV_CONST32_R0	CCN_CCR
+	MOV_CONST32_R0	SH4_CCN_CCR
 	mov.l	@r0, r1
 	not	a0, a0	/* invert op */
 	and	a0, r1	/* clear bits */
@@ -140,8 +139,8 @@ ENTRY(sh_toggle_pmb_cacheability)
 	mov.l	r1, @r0		/* write it */
 
 	/* Invalidate the ITLB */
-	MOV_CONST32_R0 CCN_MMUCR
-	mov	#(MMUCR_TI|MMUCR_SE), r1
+	MOV_CONST32_R0 SH4_CCN_MMUCR
+	mov	#(SH4_MMUCR_TI|SH4_MMUCR_SE), r1
 	mov.l	r1, @r0
 
 	/* switch PC, to run from original PMB region */

@@ -33,6 +33,8 @@
 #define CONFIG_SH4    1	              /* This is an SH4 CPU	        */
 #define CONFIG_CPU_SUBTYPE_SH4_2XX    /* its an SH4-202                 */
 
+#define INPUT_CLOCK_RATE 27
+
 #define P_CLOCK_RATE     66000000     /* clock rate for CSP             */
 
 /*-----------------------------------------------------------------------
@@ -60,10 +62,10 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD stb7109eref
+#define BOARD mb411
 
 #define	CONFIG_EXTRA_ENV_SETTINGS \
-		"board=" XSTR(BOARD) "_" XSTR(INPUT_CLOCK_RATE) "\0" \
+		"board=" XSTR(BOARD) "\0" \
 		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
 		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
 		"monitor_sec=1:0\0" \
@@ -79,7 +81,8 @@
 			 CFG_CMD_ASKENV  | \
 			 CFG_CMD_NFS | CFG_CMD_PING | CFG_CMD_DHCP |\
 			 (STM_EXTRA_CFG_COMMANDS) | \
-			 CFG_CMD_IDE | CFG_CMD_EXT2 )
+			 CFG_CMD_IDE | CFG_CMD_EXT2 | \
+			 CFG_CMD_JFFS2)
 
 /* this must be included AFTER the definition of CONFIG_COMMANDS (if any) */
 #include <cmd_confdefs.h>
@@ -91,29 +94,44 @@
 #define CONFIG_STM_ASC_SERIAL 1
 
 #define CONFIG_CONS_INDEX 0
+
+#if (CONFIG_CONS_INDEX == 0)
 #define CFG_STM_ASC_BASE 0xb8032000ul /* UART2 */
+#else
+#define CFG_STM_ASC_BASE 0xb8033000ul /* UART3 */
+#endif
 
 /*---------------------------------------------------------------
  * Ethernet driver config
  */
 
 /*
- * There are 2 options for ethernet:
+ * There are 3 options for ethernet:
  *    The on-board SMSC LAN91C111
- *    the on-chip STMAC & on-board PHY
+ *    for STb7109, the on-chip STMAC & on-board PHY
+ *    The DB641 STEM card - this has two ethernet devices Port0 and Port1
  */
 
 #if 1
 	/* Config for SMSC LAN91C111 (combined MAC+PHY) */
 #	define CONFIG_DRIVER_SMC91111
-#	define CONFIG_SMC91111_BASE	0xa2000300ul
-#	define STM_EXTRA_CFG_COMMANDS	0
-#else
+#	define CONFIG_SMC91111_BASE		0xa3e00300ul
+#	define STM_EXTRA_CFG_COMMANDS		0
+#elif 1
 	/* Config for on-chip STMAC + STE10xP PHY */
 #	define CONFIG_DRIVER_NETSTMAC
-#	define CONFIG_STMAC_ADDRESS	0xb8110000ul
+#	define CFG_STM_STMAC_BASE		0xb8110000ul
 #	define CONFIG_STMAC_STE10XP
-#	define STM_EXTRA_CFG_COMMANDS	CFG_CMD_MII
+#	define STM_EXTRA_CFG_COMMANDS		CFG_CMD_MII
+#else
+	/* Config for SMSC LAN9118 STEM card */
+#	define CONFIG_DRIVER_SMC911X
+#	if 1
+#		define CONFIG_SMC911X_BASE	0xA1000000ul /* PORT 0 */
+#	else
+#		define CONFIG_SMC911X_BASE	0xA1800000ul /* PORT 1 */
+#	endif
+#	define STM_EXTRA_CFG_COMMANDS		0
 #endif
 
 
@@ -121,7 +139,7 @@
  *  to set it in the environment
  */
 
-#define CONFIG_ENV_OVERWRITE
+/* #define CONFIG_ENV_OVERWRITE */
 
 
 /*---------------------------------------------------------------
@@ -131,7 +149,7 @@
 /* Choose one of the the following */
 
 #define CONFIG_SH_STB7100_IDE
-//#define CONFIG_SH_STB7100_SATA
+/* #define CONFIG_SH_STB7100_SATA */
 
 #ifdef CONFIG_SH_STB7100_IDE
 
@@ -171,31 +189,46 @@
 
 #endif
 
+/*----------------------------------------------------------------------
+ * jffs2 support
+ */
+
+#if (CONFIG_COMMANDS &  CFG_CMD_JFFS2)
+
+#define CFG_JFFS_CUSTOM_PART
+#define CFG_JFFS_SINGLE_PART	1
+
+#define CFG_JFFS2_FIRST_SECTOR 18  /* u-boot, env, kernel  */
+#define CFG_JFFS2_FIRST_BANK 0
+#define CFG_JFFS2_NUM_BANKS 1
+
+#endif
+
 /*-----------------------------------------------------------------------
  * Miscellaneous configurable options
  */
 
 #define CFG_HUSH_PARSER         1
-#define CFG_AUTO_COMPLETE       1
 #define	CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"STB7109E-REF> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"MB411> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2     "> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
 #define CFG_MAXARGS		16		/* max number of command args	*/
-#define CFG_HZ			(P_CLOCK_RATE/1024) /* HZ for timer ticks	*/
+#define CFG_HZ			(P_CLOCK_RATE/1024)		/* HZ for timer ticks		*/
 #define CFG_LOAD_ADDR		CFG_SDRAM_BASE	/* default load address		*/
 #define CFG_BOOTMAPSZ           (16 << 20)      /* initial linux memory size 	*/
 #define CONFIG_BOOTDELAY	10		/* default delay before executing bootcmd */
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 
+#define CONFIG_AUTO_COMPLETE
 #define CONFIG_CMDLINE_EDITING
 
 /*-----------------------------------------------------------------------
  * FLASH organization
  */
 
-/* stb7100 mboard organised as 8MB flash with 128k blocks */
+/* STb7100 Mboard organised as 8MB flash with 128k blocks */
 #define CFG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CFG_FLASH_PROTECTION    1	/* use hardware flash protection        */

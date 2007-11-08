@@ -99,7 +99,7 @@ void stb7109_mac_speed(int speed)
 #endif
 
 /* ETH MAC pad configuration */
-void stb7109eth_hw_setup(void)
+static void stmac_eth_hw_setup(void)
 {
 	unsigned long sysconf;
 
@@ -134,9 +134,9 @@ int soc_init(void)
 
   #ifdef CONFIG_DRIVER_NETSTMAC
   if (STB7100_DEVICEID_7109(*STB7100_SYSCONF_DEVICEID_0))
-	stb7109eth_hw_setup();
+	stmac_eth_hw_setup();
   else
-	printf("warning STMAC configured for a non STx7109 device\n");
+	printf("warning STMAC configured for a non STb7109 device\n");
   #endif
 
   bd->bi_devid = *STB7100_SYSCONF_DEVICEID_0;

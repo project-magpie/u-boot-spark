@@ -22,7 +22,7 @@
 #
 
 #
-# Espresso board
+# MB442 (STb7100REF or Coco) board
 #
 
 # Installs at SDRAM BASE  + 31M in cache region

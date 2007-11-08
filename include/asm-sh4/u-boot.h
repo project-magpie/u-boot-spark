@@ -48,13 +48,6 @@ typedef struct bd_info
 	unsigned long bi_emifrq;
 	unsigned long bi_lmifrq;
 #endif
-#ifdef CONFIG_SH_STI5528
-	unsigned long bi_pll1frq;
-	unsigned long bi_st40cpufrq;
-	unsigned long bi_st40busfrq;
-	unsigned long bi_st40perfrq;
-	unsigned long bi_emifrq;
-#endif
 #ifdef CONFIG_SH_STX7200
 	unsigned long bi_devid;
 	unsigned long bi_emifrq;

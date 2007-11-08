@@ -65,7 +65,7 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD stb7100ref
+#define BOARD mb442
 
 #define	CONFIG_EXTRA_ENV_SETTINGS \
 		"board=" XSTR(BOARD) "_" XSTR(INPUT_CLOCK_RATE) "\0" \
@@ -121,7 +121,7 @@
 #else
 	/* Config for on-chip STMAC + STE10xP PHY */
 #	define CONFIG_DRIVER_NETSTMAC
-#	define CONFIG_STMAC_ADDRESS	0xb8110000ul
+#	define CFG_STM_STMAC_BASE	0xb8110000ul
 #	define CONFIG_STMAC_STE10XP
 #	define STM_EXTRA_CFG_COMMANDS	CFG_CMD_MII
 #endif
@@ -187,7 +187,7 @@
 
 #define CFG_HUSH_PARSER         1
 #define	CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"STB7100-REF> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"MB442> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2     "> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
@@ -205,7 +205,7 @@
  * FLASH organization
  */
 
-/* stb7100 mboard organised as 8MB flash with 128k blocks */
+/* STb7100 reference board organised as 8MB flash with 128k blocks */
 #define CFG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CFG_FLASH_PROTECTION    1	/* use hardware flash protection        */
