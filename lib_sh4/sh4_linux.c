@@ -43,15 +43,15 @@ extern int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[]);
 
 #define PAGE_OFFSET 0x1000
 
-#define MOUNT_ROOT_RDONLY ((unsigned long *) (param+0x000))
-#define RAMDISK_FLAGS ((unsigned long *) (param+0x004))
-#define ORIG_ROOT_DEV ((unsigned long *) (param+0x008))
-#define LOADER_TYPE ((unsigned long *) (param+0x00c))
-#define INITRD_START ((unsigned long *) (param+0x010))
-#define INITRD_SIZE ((unsigned long *) (param+0x014))
+#define MOUNT_ROOT_RDONLY	((unsigned long *) (param+0x000))
+#define RAMDISK_FLAGS		((unsigned long *) (param+0x004))
+#define ORIG_ROOT_DEV		((unsigned long *) (param+0x008))
+#define LOADER_TYPE		((unsigned long *) (param+0x00c))
+#define INITRD_START		((unsigned long *) (param+0x010))
+#define INITRD_SIZE		((unsigned long *) (param+0x014))
+#define SE_MODE			((const unsigned long *) (param+0x018))
 /* ... */
-#define COMMAND_LINE ((char *) (param+0x100))
-#define COMMAND_LINE_SIZE 256
+#define COMMAND_LINE		((char *) (param+0x100))
 
 
 extern void sh_cache_set_op(ulong);
@@ -60,6 +60,11 @@ extern void flashWriteDisable(void);
 extern void sh_toggle_pmb_cacheability(void);
 #endif	/* CONFIG_SH_SE_MODE */
 
+#ifdef CONFIG_SH_SE_MODE
+#define CURRENT_SE_MODE 32	/* 32-bit (Space Enhanced) Mode */
+#else
+#define CURRENT_SE_MODE 29	/* 29-bit (Traditional) Mode */
+#endif	/* CONFIG_SH_SE_MODE */
 
 void sh4_flush_cache_all(void)
 {
@@ -254,6 +259,23 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	}
 
 	SHOW_BOOT_PROGRESS (15);
+
+	/* try and detect if the kernel is incomptable with U-boot */
+	if ((*SE_MODE & 0xFFFFFF00) != 0x53453F00)	/* 'SE?.' */
+	{
+		printf("\nWarning: Unable to determine if kernel is built for 29- or 32-bit mode!\n");
+	}
+	else if ((*SE_MODE & 0xFF) != CURRENT_SE_MODE)
+	{
+		printf("\n"
+			"Error: A %2u-bit Kernel is incomptable with this %2u-bit U-Boot!\n"
+			"Please re-configure and re-build vmlinux or u-boot.\n"
+			"Aborting the Boot process - Boot FAILED.  (SE_MODE=0x%08x)\n",
+			CURRENT_SE_MODE,
+			CURRENT_SE_MODE ^ 0x3d,
+			*SE_MODE);
+		return;
+	}
 
 #ifdef DEBUG
 	printf ("## Transferring control to Linux (at address %08lx) initrd =  %08lx ...\n",
