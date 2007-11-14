@@ -354,6 +354,20 @@ __memory_setup_table:
 
   POKE_LONG(ST40_LMI_GCC_0(1), 0x00382003)
 
+#ifdef CONFIG_SH_SE_MODE
+  /*
+   * Note that we also manually need to move the LMI0 and LMI1 base addresses to
+   * their 32-bit SE mode locations as defined in the datasheet and change the
+   * 'upper bound addresses' (in row attribute registers) for the LMIs.
+   */
+  UPDATE_LONG(STX7200_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
+  UPDATE_LONG(STX7200_SYSCONF_SYS_CFG39, 0xFFFFFF00, 0x00000080)
+  POKE_LONG(ST40_LMI_SDRA0_0(0), 0x48000a00)
+  POKE_LONG(ST40_LMI_SDRA1_0(0), 0x48000a00)
+  POKE_LONG(ST40_LMI_SDRA0_0(1), 0x88000a00)
+  POKE_LONG(ST40_LMI_SDRA1_0(1), 0x88000a00)
+#endif	/* CONFIG_SH_SE_MODE */
+
 	END_MARKER
 
 __memory_setup_table_end:

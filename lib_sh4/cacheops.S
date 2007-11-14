@@ -125,14 +125,17 @@ ENTRY(sh_toggle_pmb_cacheability)
 	/* set PC mask as bit #28 */
 	.set mask, 0x10000000	/* 0x80000000 ^ 0x90000000 */
 
+	/* set bits to toggle: PMB[n].C and PMB[n].UB */
+	.set toggle, (PMB_C|PMB_UB)
+
 	/* switch PC, to run from an UN-cached PMB region */
 	MOV_CONST32_R0 mask	/* Mask */
 	mov	r0, r2
 	SWITCH_PMB or, r2	/* PC = PC | 0x10000000 */
 
 	/* now toggle the cacheability of indexed PMB entry */
-	MOV_CONST32_R0	(PMB_C|PMB_UB)
-	mov	r0, r3		/* PMB[n].C and PMB[n].UB bits */
+	MOV_CONST32_R0	(toggle)
+	mov	r0, r3
 	MOV_CONST32_R0	(PMB_DATA_ARRAY|(index<<8))
 	mov.l	@r0, r1		/* read it */
 	xor	r3, r1		/* xor it */

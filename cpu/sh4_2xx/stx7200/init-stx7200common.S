@@ -33,70 +33,33 @@ ENTRY(init_ram)
 	/* Stash the pr somewhere safe */
 	sts     pr, r14
 
-	MOV_CONST32_R0 0X20000000
-	/* If in flash then init SDRAM */
-	mov	r14, r1
-	or	r0, r1			/* normalise to a P2 address		*/
-	mov.l	sdram_base, r2		/* address of SDRAM			*/
-	or	r0, r2			/* make sure p2				*/
-	cmp/hi	r2, r1			/* are we already in SDRAM ?		*/
-	bt	end
-
-	/*
-	 * I-cache & D-cache on; D-cache in write through
-	 */
-	mov.l   ccr_address, r0
-	mov.l   ccr_mode, r1
-	mov.l   r1, @r0
-	nop                                     /* Required 8 cycle delay */
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	bra     caches_on
-	  nop
-
-.balign 4
-ccr_address:            .long SH4_CCN_CCR
-ccr_mode:               .long 0x8000090b /* caches on, O-cache write through*/
-					 /* Enhanced mode on 200 series cores */
-
 	/*
 	 * We need to get the poke loop & associated data
-	 * into cache. The poke loop is structured so that it is
+	 * into caches. The poke loop is structured so that it is
 	 * all pulled into cache on it 1st iteration.
-	 * To get the poke table into Dcache, we simple read it all
-	 *
+	 * To get the poke table into D-cache, we simply read it all.
 	 */
-caches_on:
 	GETDEVID r7
 	mova    poke_loop_address, r0           /* R6: poke loop addr */
 	mov.l   @r0, r6
 	add     r0, r6
+#ifndef CONFIG_SH_SE_MODE
 	mov.l   p2_to_p1_mask, r3               /* R3: P2 -> P1 mapping */
 	and     r3, r6                          /* convert to P1 addresses */
+#endif	/* CONFIG_SH_SE_MODE */
 	mov.l   data_start_address, r1          /* R1 = start address */
 	add     r0, r1
 	mov.l   data_end_address, r2            /* R2 = end address */
 	add     r0, r2
+#ifndef CONFIG_SH_SE_MODE
 	and     r3, r1                          /* convert to a P1 addresses */
 	and     r3, r2
+#endif	/* CONFIG_SH_SE_MODE */
 	mov     r1, r5                          /* R5 = scratch data ptr */
 
 1:      mov.l   @r5+, r4                        /* Load poke table */
 	cmp/eq  r5, r2
 	bf      1b
-	bra     do_pokes
-	  nop
-
-	.balign 4
-poke_loop_address:      .long poke_loop - poke_loop_address
-data_start_address:     .long __memory_setup_table - poke_loop_address
-data_end_address:       .long __memory_setup_table_end - poke_loop_address
-p2_to_p1_mask:          .long ~0x20000000
 
 	/*
 	 * Its now safe to call the poke loop with real data, since it
@@ -111,20 +74,18 @@ do_pokes:
 
 	/* Restore the PR */
 	lds     r14, pr
-end:
 	rts
-	 nop
-
-
-do_cpy: mov.l   @r5+, r4                        /* Load poke table */
-	cmp/eq  r5, r2
-	bf      1b
-	bra     do_pokes
 	  nop
 
-.balign 4
-sdram_base:	.long CFG_SDRAM_BASE
-TTB:            .long 0xFF000008
+
+	.balign 4
+poke_loop_address:      .long poke_loop - poke_loop_address
+data_start_address:     .long __memory_setup_table - poke_loop_address
+data_end_address:       .long __memory_setup_table_end - poke_loop_address
+#ifndef CONFIG_SH_SE_MODE
+p2_to_p1_mask:          .long ~0x20000000
+#endif	/* CONFIG_SH_SE_MODE */
+
 
 /*
  * This is derived from STMicroelectronics gnu toolchain example:

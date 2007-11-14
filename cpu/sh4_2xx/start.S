@@ -45,72 +45,125 @@ _start:
 	MOV_CONST32_R0 0x00080001
 	lds	r0, fpscr
 
-	/* Disable watchdog timer */
+	/* Disable the watchdog timer */
 	MOV_CONST32_R0 ST40_CPG_WTCSR
 	mov	r0, r1
 	MOV_CONST16_R0 0xA500
 	mov.w   r0, @r1
 
-#ifdef CONFIG_SH_SE_MODE
-	/* set up the new PMB entries */
-	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0  UN-cached */
-	SH4_SET_PMB 1 0x90 0x40 128 0 0 1	/* LMI0  UN-cached */
-	SH4_SET_PMB 2 0xb0 0x00  16 0 0 1	/* FLASH UN-cached */
-	SH4_SET_PMB 3 0xb1 0x01  16 0 0 1	/* FLASH UN-cached */
-	SH4_SET_PMB 4 0xb5 0x05  16 0 0 1	/* EPLD  UN-cached */
-
-	/* Enable the cacheability for PMB array #0 */
-	CALL sh_toggle_pmb_cacheability_offset
-#endif	/* CONFIG_SH_SE_MODE */
-
-#ifndef CONFIG_SH_SE_MODE
 	/* disable Caches */
-	MOV_CONST16_R0 (SH4_CCR_OCE|SH4_CCR_ICE|SH4_CCR_EMODE)
+	MOV_CONST16_R0 (SH4_CCR_OCE|SH4_CCR_ICE|SH4_CCR_EMODE)	/* QQQ: use -1 instead ? */
 	mov	r0, a0
 	CALL	sh_cache_clear_op_offset
 
-	/* initialize the memory controllers */
-	CALL	init_ram_offset
-
-	/* clear caches & enable icache & dcache write through */
+	/* invalidate+enable the caches: both I$ & D$ (with write-through) */
 	MOV_CONST16_R0 (SH4_CCR_OCI|SH4_CCR_ICI|SH4_CCR_ICE|SH4_CCR_OCE|SH4_CCR_EMODE|SH4_CCR_WT)
 	mov	r0, a0
 	CALL	sh_cache_set_op_offset
 
 	/*
-	 * relocate code if we need to
+	 * are we in the correct location ? (i.e. RAM)
+	 *  r8 == 1 in RAM, assume initialization already done by GDB.
+	 *  r8 == 0 in FLASH, need to relocate, set up memory, etc...
+	 *  r9 == where we actualy ARE (PIC relocate source).
+	 * r10 == were we WANT to be   (PIC relocate target).
 	 */
-
-	/* set up P2 mask  */
-	MOV_CONST32_R0 0X20000000
+#ifndef CONFIG_SH_SE_MODE
+	MOV_CONST32_R0 0X20000000	/* set up P2 mask  */
 	mov	r0, r4
-	mova	_start_offset, r0	/* Load source address in r1		*/
-	mov	r0, r1
-	or	r4, r1
-	mov.l	@r1, r2
-	sub	r2, r1
+#endif	/* CONFIG_SH_SE_MODE */
+	mova	_start_offset, r0	/* Load source address in r9 */
+	mov	r0, r9			/* i.e. where we actualy ARE */
+#ifndef CONFIG_SH_SE_MODE
+	or	r4, r9			/* make sure its P2 */
+#endif	/* CONFIG_SH_SE_MODE */
+	mov.l	@r9, r10
+	sub	r10, r9
+	mov.l	target_addr, r10	/* Load target address in r10 */
+					/* i.e. were we WANT to be */
+#ifndef CONFIG_SH_SE_MODE
+	or	r4, r10			/* make sure its P2 */
+#endif	/* CONFIG_SH_SE_MODE */
+	cmp/eq	r9, r10			/* Are we in correct place already ? */
+	movt	r8			/* save SR.T in r8. */
 
-	mov.l	target_addr, r2		/* Load target address	in r2		*/
-	or	r4, r2			/* make sure its P2			*/
-	cmp/eq	r1, r2			/* Are we in correct place already ?	*/
-	bt	init_sp
+	/* set up the PMB entries we want to use */
+#ifdef CONFIG_SH_SE_MODE
+	/* QQQ: we need to explicitly invalidate all unused entires */
+	/* set up the new PMB entries we want to use */
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0  UN-cached */
+	SH4_SET_PMB 1 0x90 0x40 128 0 0 1	/* LMI0  UN-cached */
+	SH4_SET_PMB 2 0xb0 0x00  16 0 0 1	/* FLASH UN-cached */
+	SH4_SET_PMB 3 0xb1 0x01  16 0 0 1	/* FLASH UN-cached */
+	SH4_SET_PMB 4 0xb5 0x05  16 0 0 1	/* EPLD  UN-cached */
+#endif	/* CONFIG_SH_SE_MODE */
 
-	/* relocate code: r1 = source, r2 = dest, r3 dest end */
+	/*
+	 * initialize the memory controllers, if we need to.
+	 */
+	cmp/pl	r8			/* Are we in correct place already ? */
+	bt	done_memory_init
+	CALL	init_ram_offset		/* init_ram() */
+
+	/*
+	 * enable SE (32-bit) mode, if we need to.
+	 */
+#ifdef CONFIG_SH_SE_MODE
+	/* enable SE mode */
+	/* QQQ: for SH4-300, we will need different code here!  */
+	MOV_CONST32_R0 SH4_CCN_MMUCR
+	mov	#(SH4_MMUCR_TI|SH4_MMUCR_SE), r1
+	mov.l	r1, @r0
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+#endif	/* CONFIG_SH_SE_MODE */
+
+	/*
+	 * relocate code, if we need to.
+	 */
+	mov	r9, r1			/* where we actualy ARE */
+	mov	r10, r2			/* were we WANT to be */
+	/* relocate code: r1=source, r2=dest, r3=dest_end */
 	mov.l	bss_start, r3
-	or	r4, r3
+#ifndef CONFIG_SH_SE_MODE
+	MOV_CONST32_R0 0X20000000	/* set up P2 mask  */
+	or	r0, r3			/* make sure its P2 */
+#endif	/* CONFIG_SH_SE_MODE */
 1:	mov.w	@r1+, r0
 	mov.w	r0, @r2
 	add	#2, r2
 	cmp/hi	r2, r3
 	bt	1b
+
+	/*
+	 * now jump to absolute (non-PIC) address.
+	 */
+	mov.l	hyperspace_addr, r1
+	jmp	@r1		/* never returns */
+	  nop
+hyperspace:
+
+	/* Put the caches in Copy-Back (and not Write-Through) */
+done_memory_init:
+	MOV_CONST16_R0 (SH4_CCR_WT)
+	mov	r0, a0
+	CALL	sh_cache_clear_op_offset
+
+#ifdef CONFIG_SH_SE_MODE
+	/* Enable the cacheability for PMB array #0 */
+	CALL sh_toggle_pmb_cacheability_offset
 #endif	/* CONFIG_SH_SE_MODE */
 
 	/* init stack pointer */
-init_sp:
 	mov.l	stack_addr, sp
 
-	/* Clear bss */
-init_bss:
+	/* Clear the bss */
 	mov.l	bss_start, r1
 	add	#4, r1
 	mov.l	bss_end, r2
@@ -119,9 +172,9 @@ init_bss:
 	bf/s	1b		! while (r1 < r2)
 	  mov.l	r0, @-r2
 
-/* Load address of board init routine */
+	/* prepare to call board init routine: start_sh4boot() */
 	mov.l	start_sh4boot_addr, r1
-	jmp	@r1        /*  never returns     */
+	jmp	@r1		/* never returns */
 	  nop
 
 	/* Constants used above */
@@ -132,6 +185,7 @@ target_addr:	.long TEXT_BASE
 stack_addr:	.long TEXT_BASE - (CFG_GBL_DATA_SIZE + CFG_MALLOC_LEN + CFG_BOOTPARAMS_LEN)
 bss_start:	.long __bss_start
 bss_end:	.long __bss_end
+hyperspace_addr:.long hyperspace
 
 start_sh4boot_addr:.long start_sh4boot
 
