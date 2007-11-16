@@ -51,19 +51,54 @@
 	.endif
 .endm
 
-	/* OR 0x20 into top byte of PC */
-.macro ENTER_P2
-#ifndef CONFIG_SH_SE_MODE
+	/* unset top 3 bits of PC */
+.macro ENTER_P0
 	mova	1f, r0
-	mov	#0x20, r1
+	mov	#0xE0, r1
 	shll16	r1
 	shll8	r1
-	or	r0, r1
-	jmp	@r1
+	not	r1, r1		/* MASK is 0x1fffffff */
+	and	r1, r0		/* unset top 3-bits */
+	jmp	@r0
 	  nop
 .balign 4
 1:
-#endif
+.endm
+
+	/* OR 0x80 into top byte of PC */
+.macro ENTER_P1
+	mova	1f, r0
+	mov	#0xE0, r1
+	shll16	r1
+	shll8	r1
+	not	r1, r1		/* MASK is 0x1fffffff */
+	and	r1, r0		/* unset top 3-bits */
+	mov	#0x80, r1
+	shll16	r1
+	shll8	r1		/* MASK is 0x80000000 */
+	or	r1, r0		/* put PC in P1 */
+	jmp	@r0
+	  nop
+.balign 4
+1:
+.endm
+
+	/* OR 0xA0 into top byte of PC */
+.macro ENTER_P2
+	mova	1f, r0
+	mov	#0xE0, r1
+	shll16	r1
+	shll8	r1
+	not	r1, r1		/* MASK is 0x1fffffff */
+	and	r1, r0		/* unset top 3-bits */
+	mov	#0xA0, r1
+	shll16	r1
+	shll8	r1		/* MASK is 0xA0000000 */
+	or	r1, r0		/* put PC in P2 */
+	jmp	@r0
+	  nop
+.balign 4
+1:
 .endm
 
 	/* call a routine in another file */

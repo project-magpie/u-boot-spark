@@ -27,11 +27,15 @@
 #include "asm/asmdefs.h"
 #include "asm/linkage.h"
 
-/*  NOTE:	 ALL THIS CODE MUST BE PIC !!!! */
+/*
+ *	NOTE:	 ALL THIS CODE MUST BE PIC !!!!
+ *
+ *	This code expects to be run with the caches enabled.
+ */
 
 ENTRY(init_ram)
 	/* Stash the pr somewhere safe */
-	sts     pr, r14
+	sts	pr, r14
 
 	/*
 	 * We need to get the poke loop & associated data
@@ -40,26 +44,22 @@ ENTRY(init_ram)
 	 * To get the poke table into D-cache, we simply read it all.
 	 */
 	GETDEVID r7
-	mova    poke_loop_address, r0           /* R6: poke loop addr */
-	mov.l   @r0, r6
-	add     r0, r6
-#ifndef CONFIG_SH_SE_MODE
-	mov.l   p2_to_p1_mask, r3               /* R3: P2 -> P1 mapping */
-	and     r3, r6                          /* convert to P1 addresses */
-#endif	/* CONFIG_SH_SE_MODE */
-	mov.l   data_start_address, r1          /* R1 = start address */
-	add     r0, r1
-	mov.l   data_end_address, r2            /* R2 = end address */
-	add     r0, r2
-#ifndef CONFIG_SH_SE_MODE
-	and     r3, r1                          /* convert to a P1 addresses */
-	and     r3, r2
-#endif	/* CONFIG_SH_SE_MODE */
-	mov     r1, r5                          /* R5 = scratch data ptr */
+	mova	poke_loop_address, r0	/* R6: &poke_loop() */
+	mov.l	@r0, r6
+	add	r0, r6
+	mov.l	p2_to_p1_mask, r3	/* R3: P2 -> P1 mapping */
+	and	r3, r6			/* convert to P1 addresses */
+	mov.l	data_start_address, r1	/* R1 = start address */
+	add	r0, r1
+	mov.l	data_end_address, r2	/* R2 = end address */
+	add	r0, r2
+	and	r3, r1			/* convert to a P1 addresses */
+	and	r3, r2
+	mov	r1, r5			/* R5 = scratch data ptr */
 
-1:      mov.l   @r5+, r4                        /* Load poke table */
-	cmp/eq  r5, r2
-	bf      1b
+1:	mov.l	@r5+, r4		/* Load poke table in D$ */
+	cmp/eq	r5, r2
+	bf	1b
 
 	/*
 	 * Its now safe to call the poke loop with real data, since it
@@ -69,27 +69,25 @@ ENTRY(init_ram)
 	 * executing from cache should this happen.
 	 */
 do_pokes:
-	jsr     @r6                             /* R6 still points to table */
+	jsr	@r6		/* R6 still points poke_loop() */
 	  nop
 
 	/* Restore the PR */
-	lds     r14, pr
+	lds	r14, pr
 	rts
 	  nop
 
 
 	.balign 4
-poke_loop_address:      .long poke_loop - poke_loop_address
-data_start_address:     .long __memory_setup_table - poke_loop_address
-data_end_address:       .long __memory_setup_table_end - poke_loop_address
-#ifndef CONFIG_SH_SE_MODE
-p2_to_p1_mask:          .long ~0x20000000
-#endif	/* CONFIG_SH_SE_MODE */
+poke_loop_address:	.long poke_loop - poke_loop_address
+data_start_address:	.long __memory_setup_table - poke_loop_address
+data_end_address:	.long __memory_setup_table_end - poke_loop_address
+p2_to_p1_mask:		.long ~0x20000000
 
 
 /*
  * This is derived from STMicroelectronics gnu toolchain example:
- *   sh-superh-elf/examples/os21/romdynamic/bootstrap.S
+ *	sh-superh-elf/examples/os21/romdynamic/bootstrap.S
  * but it is not identical, because concurrently U-Boot added the
  * IF_DEVID, IF_NOT_DEVID, ELSE and ENDIF commands, while the toolset
  * added IF. This merged version supports both.
@@ -98,7 +96,7 @@ p2_to_p1_mask:          .long ~0x20000000
 /*
  * The poke table is a series of long words, in the format
  *
- *       opcode, address, operand, ...
+ *	opcode, address, operand, ...
  *
  * An opcode of 0 marks the table end
  */
@@ -111,8 +109,8 @@ p2_to_p1_mask:          .long ~0x20000000
 #define POKE_SHORT(A, V)				.long 2, A, V
 #define POKE_CHAR(A, V)					.long 1, A, V
 #define IF_DEVID(V)					.long 9,  (1f - .) -8, V
-#define IF_NOT_DEVID(V)				        .long 10, (1f - .) -8, V
-#define ELSE                                            .long 11, (2f - .) - 4 ; 1:
+#define IF_NOT_DEVID(V)					.long 10, (1f - .) -8, V
+#define ELSE						.long 11, (2f - .) - 4 ; 1:
 #define ENDIF						2: ; 1:
 #define IF(A, AND, VAL, COMMAND)			.long 12, A, AND, VAL; COMMAND
 #define END_MARKER					.long 0, 0, 0
@@ -125,117 +123,116 @@ p2_to_p1_mask:          .long ~0x20000000
  * with all its data in the D-cache
  */
 poke_loop:
-	mov.l   @r1+, r0        /* opcode */
-	mov.l   @r1+, r2        /* address */
-	mov.l   @r1+, r3        /* value */
+	mov.l	@r1+, r0	/* opcode */
+	mov.l	@r1+, r2	/* address */
+	mov.l	@r1+, r3	/* value */
 
-	cmp/eq  #0, r0          /* End marker ? */
-	bf      1f
+	cmp/eq	#0, r0		/* End marker ? */
+	bf	1f
 
-	rts                     /* Return point */
+	rts			/* Return point */
 	  nop
 
-1:      cmp/eq  #4, r0          /* 4 byte write... */
-	bf      1f
-	mov.l   r3, @r2
+1:	cmp/eq	#4, r0		/* 4 byte write... */
+	bf	1f
+	mov.l	r3, @r2
 
-1:      cmp/eq  #2, r0          /* 2 byte write... */
-	bf      1f
-	mov.w   r3, @r2
+1:	cmp/eq	#2, r0		/* 2 byte write... */
+	bf	1f
+	mov.w	r3, @r2
 
-1:      cmp/eq  #1, r0          /* 1 byte write... */
-	bf      1f
-	mov.b   r3, @r2
+1:	cmp/eq	#1, r0		/* 1 byte write... */
+	bf	1f
+	mov.b	r3, @r2
 
-1:      cmp/eq  #5, r0          /* 4 byte OR... */
-	bf      1f
-	mov.l   @r2,r4
-	or      r3,r4
-	mov.l   r4,@r2
+1:	cmp/eq	#5, r0		/* 4 byte OR... */
+	bf	1f
+	mov.l	@r2,r4
+	or	r3,r4
+	mov.l	r4,@r2
 
-1:      cmp/eq  #6, r0          /* 4 byte UPDATE... */
-	bf      1f
-	mov.l   @r2,r4
-	and     r3,r4
-	mov.l   @r1+,r3
-	or      r3,r4
-	mov.l   r4,@r2
+1:	cmp/eq	#6, r0		/* 4 byte UPDATE... */
+	bf	1f
+	mov.l	@r2,r4
+	and	r3,r4
+	mov.l	@r1+,r3
+	or	r3,r4
+	mov.l	r4,@r2
 
-1:      cmp/eq  #8, r0          /* 4 byte write UPDATE... */
-	bf      1f
-	mov.l   @r3,r4
-	mov.l   @r1+,r3
-	and     r3,r4
-	mov.l   @r1+,r3
-	shld    r3,r4
-	mov.l   @r1+,r3
-	or      r3,r4
-	mov.l   r4,@r2
+1:	cmp/eq	#8, r0		/* 4 byte write UPDATE... */
+	bf	1f
+	mov.l	@r3,r4
+	mov.l	@r1+,r3
+	and	r3,r4
+	mov.l	@r1+,r3
+	shld	r3,r4
+	mov.l	@r1+,r3
+	or	r3,r4
+	mov.l	r4,@r2
 
-1:      cmp/eq  #7, r0          /* WHILE != ... */
-	bf      1f
-	mov.l   @r1+,r5
-2:      mov.l   @r2,r4
-	and     r3,r4
-	cmp/eq  r4,r5
-	bf      2b
+1:	cmp/eq	#7, r0		/* WHILE != ... */
+	bf	1f
+	mov.l	@r1+,r5
+2:	mov.l	@r2,r4
+	and	r3,r4
+	cmp/eq	r4,r5
+	bf	2b
 
-1:      cmp/eq  #9, r0          /* IF_DEVID */
-	bf      1f		/* r2 skip offset, r3 condition, r7 holds out cut value */
-	cmp/eq  r3, r7
+1:	cmp/eq	#9, r0		/* IF_DEVID */
+	bf	1f		/* r2 skip offset, r3 condition, r7 holds out cut value */
+	cmp/eq	r3, r7
 	bt	poke_loop	/* go ahead with these pokes */
 	add	r2, r1
-	bra     poke_loop
+	bra	poke_loop
 	  nop
 
-1:      cmp/eq  #10, r0          /* IF_NOT_DEVID */
-	bf      1f		/* r2 skip offset, r3 condition, r7 holds out cut value */
-	cmp/eq  r3, r7
+1:	cmp/eq	#10, r0		/* IF_NOT_DEVID */
+	bf	1f		/* r2 skip offset, r3 condition, r7 holds out cut value */
+	cmp/eq	r3, r7
 	bf	poke_loop	/* go ahead with these pokes */
 	add	r2, r1
-	bra     poke_loop
+	bra	poke_loop
 	  nop
 
-1:      cmp/eq  #11, r0          /* ELSE */
-	bf      1f		/* r2 skip offset, r3 condition, r7 holds out cut value */
+1:	cmp/eq	#11, r0		/* ELSE */
+	bf	1f		/* r2 skip offset, r3 condition, r7 holds out cut value */
 	add	r2, r1
-	bra     poke_loop
+	bra	poke_loop
 	  nop
 
-1:      cmp/eq  #12,r0                           /* IF == ... next op */
-        bf      1f
-        mov.l   @r1+,r5
-        mov.l   @r2,r4
-        and     r3,r4
-        cmp/eq  r4,r5
-        bt      poke_loop                       /* Compare succeeded - perform next op */
-2:                                              /* Skip the next operation (read past it) */
-        mov.l   @r1+,r0                         /* R0 = opcode */
-        mov.l   @r1+,r2                         /* skip address */
-        mov.l   @r1+,r2                         /* skip value */
-                                                /* How many further reads do we need to skip? */
-        cmp/eq  #12,r0                           /* If it's another IF, skip 1 and go back to start of skip loop */
-        bf      3f
-        mov.l   @r1+,r2
-        bra     2b
-          nop
+1:	cmp/eq	#12,r0		/* IF == ... next op */
+	bf	delay
+	mov.l	@r1+,r5
+	mov.l	@r2,r4
+	and	r3,r4
+	cmp/eq	r4,r5
+	bt	poke_loop	/* Compare succeeded - perform next op */
+2:				/* Skip the next operation (read past it) */
+	mov.l	@r1+,r0		/* R0 = opcode */
+	mov.l	@r1+,r2		/* skip address */
+	mov.l	@r1+,r2		/* skip value */
+				/* How many further reads do we need to skip? */
+	cmp/eq	#12,r0		/* If it's another IF, skip 1 and go back to start of skip loop */
+	bf	3f
+	mov.l	@r1+,r2
+	bra	2b
+	  nop
 
-3:      mov     #5,r2
-        cmp/gt  r2,r0
-        bf      5f                              /* 0 further reads */
+3:	mov	#5,r2
+	cmp/gt	r2,r0
+	bf	5f		/* 0 further reads */
 
-        cmp/eq  #8,r0                           /* Is it number 8 (3 reads, otherwise 1 read) */
-        bf      4f
-        mov.l   @r1+,r2                         /* Skip 1 read */
-        mov.l   @r1+,r2                         /* Skip 1 read */
-4:      mov.l   @r1+,r2                         /* Skip 1 read and continue */
-5:      bra     poke_loop
-          nop
+	cmp/eq	#8,r0		/* Is it number 8 (3 reads, otherwise 1 read) */
+	bf	4f
+	mov.l	@r1+,r2		/* Skip 1 read */
+	mov.l	@r1+,r2		/* Skip 1 read */
+4:	mov.l	@r1+,r2		/* Skip 1 read and continue */
+5:	bra	poke_loop
+	  nop
 
-1:      mov     #1,r0           /* small delay */
-	swap.w  r0, r0
-
-2:      add     #-1,r0
-	cmp/eq  #0, r0
-	bf      2b
-	bt      poke_loop
+delay:	mov	#1,r0		/* small delay after EACH opcode */
+	swap.w	r0, r0		/* 0x10000 iterations (~65k) */
+2:	add	#-1,r0
+	cmp/eq	#0, r0
+	bf	2b
+	bt	poke_loop

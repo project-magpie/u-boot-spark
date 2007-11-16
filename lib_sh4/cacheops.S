@@ -36,12 +36,10 @@
 	 */
 ENTRY(sh_cache_set_op)
 	/* get ccn.cr address into r0 (0xff00001c) */
-	ENTER_P2
 	MOV_CONST32_R0	SH4_CCN_CCR
 	mov.l	@r0, r1
 	or	a0, r1
 	mov.l	r1, @r0
-	nop
 	nop
 	nop
 	nop
@@ -60,13 +58,11 @@ ENTRY(sh_cache_set_op)
 	 */
 ENTRY(sh_cache_clear_op)
 	/* get ccn.cr address into r0 (0xff00001c) */
-	ENTER_P2
 	MOV_CONST32_R0	SH4_CCN_CCR
 	mov.l	@r0, r1
 	not	a0, a0	/* invert op */
 	and	a0, r1	/* clear bits */
 	mov.l	r1, @r0
-	nop
 	nop
 	nop
 	nop
