@@ -42,7 +42,7 @@
  */
 
 #ifdef CONFIG_SH_SE_MODE
-#define CFG_FLASH_BASE		0xB0000000	/* FLASH (uncached) via PMB */
+#define CFG_FLASH_BASE		0xA0000000	/* FLASH (uncached) via PMB */
 #define CFG_SDRAM_BASE		0x80000000      /* LMI0 via PMB */
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI0 Physical Address */
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI0 un-cached addr via PMB */

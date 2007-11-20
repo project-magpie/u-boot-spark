@@ -1,6 +1,7 @@
 /*
- * (C) Copyright 2007 STMicroelectronics.
+ * (C) Copyright 2004-2007 STMicroelectronics.
  *
+ * Andy Sturges <andy.sturges@st.com>
  * Start Menefy <stuart.menefy@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -115,6 +116,13 @@ p2_to_p1_mask:		.long ~0x20000000
 #define IF(A, AND, VAL, COMMAND)			.long 12, A, AND, VAL; COMMAND
 #define END_MARKER					.long 0, 0, 0
 
+
+#define STB7100_CUT1 (STB7100_DEVID_7100_VAL << STB7100_DEVID_ID_SHIFT)
+#define STB7100_CUT2 (STB7100_DEVID_7100_VAL << STB7100_DEVID_ID_SHIFT) | (1 << STB7100_DEVID_CUT_SHIFT)
+#define STB7100_CUT3 (STB7100_DEVID_7100_VAL << STB7100_DEVID_ID_SHIFT) | (2 << STB7100_DEVID_CUT_SHIFT)
+#define STB7109_CUT1 (STB7100_DEVID_7109_VAL << STB7100_DEVID_ID_SHIFT)
+#define STB7109_CUT2 (STB7100_DEVID_7109_VAL << STB7100_DEVID_ID_SHIFT) | (1 << STB7100_DEVID_CUT_SHIFT)
+#define STB7109_CUT3 (STB7100_DEVID_7109_VAL << STB7100_DEVID_ID_SHIFT) | (2 << STB7100_DEVID_CUT_SHIFT)
 #define STX7200_CUT1 (STX7200_DEVID_7200_VAL << STB7100_DEVID_ID_SHIFT)
 
 /*

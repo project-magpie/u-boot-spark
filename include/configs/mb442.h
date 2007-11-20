@@ -45,19 +45,27 @@
  * Assume we run out of uncached memory for the moment
  */
 
-#define CFG_SDRAM_BASE		0x84000000      /* SDRAM in P1 region         */
-#define CFG_SDRAM_SIZE		0x02000000
-#define CFG_FLASH_BASE		0xA0000000
-#define CFG_RESET_ADDRESS	0xA0000000
+#ifdef CONFIG_SH_SE_MODE
+#define CFG_FLASH_BASE		0xA0000000	/* FLASH (uncached) via PMB */
+#define CFG_SDRAM_BASE		0x80000000      /* LMI-Sys via PMB */
+#define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI-Sys Physical Address */
+#define CFG_SE_UNACHED_BASE	0x90000000	/* LMI-Sys un-cached addr via PMB */
+#define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
+#else
+#define CFG_FLASH_BASE		0xA0000000	/* FLASH in P2 region */
+#define CFG_SDRAM_BASE		0x84000000      /* SDRAM in P1 region */
+#endif
+
+#define CFG_SDRAM_SIZE		0x04000000	/* 64MB of LMI-Sys SDRAM */
 
 #define CFG_MONITOR_LEN		0x00020000	/* Reserve 128 kB for Monitor */
-#define CFG_MONITOR_BASE        0xA0000000
-#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB kB for malloc */
+#define CFG_MONITOR_BASE        CFG_FLASH_BASE
+#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
 
 #define CFG_MEMTEST_START   	CFG_SDRAM_BASE
-#define CFG_MEMTEST_END     	(CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (2 << 20))
+#define CFG_MEMTEST_END     	(CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (3 << 20))
 
 #define CONFIG_BAUDRATE		115200
 #define CFG_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
@@ -116,7 +124,11 @@
 #if 1
 	/* Config for SMSC LAN91C111 (combined MAC+PHY) */
 #	define CONFIG_DRIVER_SMC91111
+#ifdef CONFIG_SH_SE_MODE
+#	define CONFIG_SMC91111_BASE	0xb2000300ul
+#else	/* CONFIG_SH_SE_MODE */
 #	define CONFIG_SMC91111_BASE	0xa2000300ul
+#endif	/* CONFIG_SH_SE_MODE */
 #	define STM_EXTRA_CFG_COMMANDS	0
 #else
 	/* Config for on-chip STMAC + STE10xP PHY */

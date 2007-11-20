@@ -31,24 +31,19 @@
 void stb7100_reset(void);
 void stb7100_clocks(void);
 
-#define EPLD_FLASH *(volatile unsigned char *)(0xa3400000)
-#define EPLD_ATAPI *(volatile unsigned char *)(0xa3900000)
-
-#define LED *(volatile unsigned char *)(0xa2000000 + 0x00100010)
-
 void flashWriteEnable(void)
 {
-  /*  Enable vpp for writing to flash */
-  EPLD_FLASH = 3;	/* bits: 0 = VPP ON; 1 = RESET	*/
+  /* Enable Vpp for writing to flash */
+  /* QQQ - to do */
 }
 
 void flashWriteDisable(void)
 {
-  /*  Disable vpp for writing to flash */
-  EPLD_FLASH = 2;	/* bits: 0 = VPP ON; 1 = RESET	*/
+  /* Disable Vpp for writing to flash */
+  /* QQQ - to do */
 }
 
-#define PIO_BASE  0xb8020000
+#define PIO_BASE  0xb8020000	/* Phys 0x18020000 */
 
 static void configPIO(void)
 {
@@ -70,7 +65,8 @@ static void configPIO(void)
 #ifdef CONFIG_SH_STB7100_IDE
 static void stb7100ref_init_ide(void)
 {
-  EPLD_ATAPI = 1; /* Enable ATAPI mode of EMI */
+  /* Enable ATAPI mode of EMI */
+  /* QQQ - to do */
 }
 #endif
 
@@ -130,8 +126,6 @@ int checkboard (void)
 		"  [29-bit mode]"
 #endif
 		"\n");
-
-	LED = 1;
 
 	return 0;
 }

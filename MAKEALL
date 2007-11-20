@@ -316,6 +316,7 @@ LIST_avr32="atstk1002"
 LIST_sh4="	\
 	mb411		mb448						\
 	mb442_27	mb442_30	mb442_27_128	mb442_30_128	\
+	mb442se_27	mb442se_30	mb442se_27_128	mb442se_30_128	\
 	hms1		hms1_128					\
 	mb519		mb519se						\
 "

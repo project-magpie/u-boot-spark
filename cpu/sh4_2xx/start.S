@@ -107,11 +107,22 @@ _start:
 	  add	#1, r0			/* next index counter */
 
 	/* set up the new PMB entries we want to use */
+#if defined(CONFIG_SH_STB7100)
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI-Sys UN-cached */
+	SH4_SET_PMB 1 0x90 0x40 128 0 0 1	/* LMI-Sys UN-cached */
+	SH4_SET_PMB 2 0xa0 0x00  16 0 0 1	/* FLASH   UN-cached */
+	SH4_SET_PMB 3 0xb2 0x02  16 0 0 1	/* OFF-chip  Peripherals UN-cached */
+	SH4_SET_PMB 4 0xb8 0x18  64 0 0 1	/* ON-chip   Peripherals UN-cached */
+	SH4_SET_PMB 5 0xbc 0x1c  64 0 0 1	/* ST40 core Peripherals UN-cached */
+#elif defined(CONFIG_SH_STX7200)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0  UN-cached */
 	SH4_SET_PMB 1 0x90 0x40 128 0 0 1	/* LMI0  UN-cached */
-	SH4_SET_PMB 2 0xb0 0x00  16 0 0 1	/* FLASH UN-cached */
-	SH4_SET_PMB 3 0xb1 0x01  16 0 0 1	/* FLASH UN-cached */
+	SH4_SET_PMB 2 0xa0 0x00  16 0 0 1	/* FLASH UN-cached */
+	SH4_SET_PMB 3 0xa1 0x01  16 0 0 1	/* FLASH UN-cached */
 	SH4_SET_PMB 4 0xb5 0x05  16 0 0 1	/* EPLD  UN-cached */
+#else
+	#error Do not know how to setup the PMB entries.
+#endif
 #endif	/* CONFIG_SH_SE_MODE */
 
 	cmp/pl	r8			/* Are we in correct place already ? */
@@ -159,6 +170,7 @@ _start:
 	/*
 	 * relocate code: r1=source, r2=dest, r3=dest_end
 	 */
+relocate:
 	mov	#0x1f, r0
 	not	r0, r0			/* mask = 0xffffffe0 */
 	mov	r9, r1			/* where we actualy ARE */
@@ -210,9 +222,11 @@ hyperspace:
 #endif	/* CONFIG_SH_SE_MODE */
 
 	/* init stack pointer */
+init_sp:	
 	mov.l	stack_addr, sp
 
 	/* Clear the bss */
+clear_bss:
 	mov.l	bss_start, r1
 	add	#4, r1
 	mov.l	bss_end, r2
@@ -220,6 +234,7 @@ hyperspace:
 1:	cmp/hs	r2, r1
 	bf/s	1b			/* while (r1 < r2) */
 	  mov.l	r0, @-r2
+done_bss:
 
 	/* prepare to call board init routine: start_sh4boot() */
 	mov.l	start_sh4boot_addr, r1

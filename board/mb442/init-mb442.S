@@ -1,6 +1,6 @@
 
 #include "asm/stb7100reg.h"
-#include "../cpu/sh4_2xx/stb7100/init-stb7100common.S"
+#include "../../cpu/sh4_2xx/init_ram.S"
 
 /*
  * The poke table is a series of long words, in the format
@@ -10,9 +10,7 @@
  * An opcode of 0 marks the table end
  */
 
-
 .balign 32
-
 
 __memory_setup_table:
 
@@ -203,6 +201,24 @@ __memory_setup_table:
 	IF_DEVID(STB7109_CUT3)
 	  POKE_LONG(ST40_EMI_GENCFG, 0x00000010)
 	ENDIF
+
+#ifdef CONFIG_SH_SE_MODE
+  /*
+   * Note that we also manually need to move the System and Video LMI base
+   * addresses to their 32-bit SE mode locations as defined in the datasheet.
+   */
+        UPDATE_LONG(STB7100_SYSCONF_SYS_CFG36, 0xFF00FF00, 0x00600040)
+#ifdef CONFIG_SH_MB442_128
+        POKE_LONG(ST40_LMI_SDRA0_0(SYS), 0x48001a00)
+        POKE_LONG(ST40_LMI_SDRA1_0(SYS), 0x48001a00)
+#else
+        POKE_LONG(ST40_LMI_SDRA0_0(SYS), 0x44001900)
+        POKE_LONG(ST40_LMI_SDRA1_0(SYS), 0x44001900)
+#endif
+        POKE_LONG(ST40_LMI_SDRA0_0(VID), 0x64001900)
+        POKE_LONG(ST40_LMI_SDRA1_0(VID), 0x64001900)
+
+#endif	/* CONFIG_SH_SE_MODE */
 
 	END_MARKER
 

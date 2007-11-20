@@ -2317,7 +2317,11 @@ mb411_config :		unconfig
 mb442_27_config \
 mb442_30_config \
 mb442_27_128_config \
-mb442_30_128_config : 	unconfig
+mb442_30_128_config \
+mb442se_27_config \
+mb442se_30_config \
+mb442se_27_128_config \
+mb442se_30_128_config : 	unconfig
 	@ >include/config.h
 	@echo "#define CONFIG_SH_STB7100   1" >>include/config.h
 	@echo "#define CONFIG_SH_MB442     1" >>include/config.h
@@ -2327,6 +2331,10 @@ mb442_30_128_config : 	unconfig
 	@echo "#define INPUT_CLOCK_RATE    30" >>include/config.h)
 	$(if $(findstring 128,$@), \
 	@echo "#define CONFIG_SH_MB442_128 1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/mb442/config.tmp)
 	@./mkconfig -a mb442 sh4 sh4_2xx mb442 "" stb7100
 
 mb448_config :		unconfig

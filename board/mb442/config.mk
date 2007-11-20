@@ -24,7 +24,20 @@
 #
 # MB442 (STb7100REF or Coco) board
 #
+#	Valid values for TEXT_BASE are:
+#
+#	0x87F00000	29-bit mode (Traditional Mode)
+#	0x83F00000	32-bit mode (Space-Enhancement Mode)
+#
+# Note:	Alternative definitions of TEXT_BASE are put into
+#	'config.tmp' from the top-level 'Makefile'.
+#
 
-# Installs at SDRAM BASE  + 31M in cache region
-TEXT_BASE = 0x85F00000
+sinclude $(OBJTREE)/board/$(BOARDDIR)/config.tmp
+
+ifndef TEXT_BASE
+# Installs at SDRAM BASE  + 63M in P1 (cachable)
+TEXT_BASE = 0x87F00000
+endif
+
 PLATFORM_LDFLAGS +=
