@@ -176,7 +176,7 @@ __memory_setup_table:
 
   /* "Refresh Interval" is set equal to 0xA28=2600 => 2600*3ns=7.8us */
   POKE_LONG(ST40_LMI_MIM_0(0), 0x0a28015b)
-  POKE_LONG(ST40_LMI_MIM_1(0), 0xffff1010)
+  POKE_LONG(ST40_LMI_MIM_1(0), 0x000000b0)
 
   POKE_LONG(ST40_LMI_STR_0(0), 0xcb2cab5b)
   POKE_LONG(ST40_LMI_STR_1(0), 0x000002d6)
@@ -267,7 +267,7 @@ __memory_setup_table:
 
   /* "Refresh Interval" is set equal to 0xA28=0d2600 => 2600*3ns=7.8us */
   POKE_LONG(ST40_LMI_MIM_0(1), 0x0a28015b)
-  POKE_LONG(ST40_LMI_MIM_1(1), 0xffff1010)
+  POKE_LONG(ST40_LMI_MIM_1(1), 0x000000b0)
 
   POKE_LONG(ST40_LMI_STR_0(1), 0xcb2cab5b)
   POKE_LONG(ST40_LMI_STR_1(1), 0x000002d6)
