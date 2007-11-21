@@ -313,7 +313,7 @@ LIST_avr32="atstk1002"
 ## SuperH SH4 Systems
 #########################################################################
 
-LIST_sh4="	\
+LIST_sh="	\
 	mb411		mb448						\
 	mb442_27	mb442_30	mb442_27_128	mb442_30_128	\
 	mb442se_27	mb442se_30	mb442se_27_128	mb442se_30_128	\
@@ -361,7 +361,7 @@ do
 	x86|I486| \
 	coldfire| \
 	avr32| \
-	sh4| \
+	sh| \
 	st200)
 			for target in `eval echo '$LIST_'${arg}`
 			do

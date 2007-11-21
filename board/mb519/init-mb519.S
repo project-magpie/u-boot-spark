@@ -1,6 +1,6 @@
 
 #include "asm/stx7200reg.h"
-#include "../../cpu/sh4_2xx/init_ram.S"
+#include "../../cpu/sh/init_ram.S"
 
 /*
  * This is derived from STMicroelectronics gnu toolchain example:

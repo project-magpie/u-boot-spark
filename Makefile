@@ -155,7 +155,7 @@ endif
 ifeq ($(ARCH),avr32)
 CROSS_COMPILE = avr32-
 endif
-ifeq ($(ARCH),sh4)
+ifeq ($(ARCH),sh)
 CROSS_COMPILE = sh4-linux-
 endif
 ifeq ($(ARCH),st200)
@@ -2312,7 +2312,7 @@ mb411_config :		unconfig
 	@ >include/config.h
 	@echo "#define CONFIG_SH_STB7100 1" >>include/config.h
 	@echo "#define CONFIG_SH_MB411   1" >>include/config.h
-	@./mkconfig -a mb411 sh4 sh4_2xx mb411 "" stb7100
+	@./mkconfig -a mb411 sh sh mb411 "" stb7100
 
 mb442_27_config \
 mb442_30_config \
@@ -2335,14 +2335,14 @@ mb442se_30_128_config : 	unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/mb442/config.tmp)
-	@./mkconfig -a mb442 sh4 sh4_2xx mb442 "" stb7100
+	@./mkconfig -a mb442 sh sh mb442 "" stb7100
 
 mb448_config :		unconfig
 	@ >include/config.h
 	@echo "#define CONFIG_SH_STB7100   1" >>include/config.h
 	@echo "#define CONFIG_SH_MB448     1" >>include/config.h
 	@echo "#define INPUT_CLOCK_RATE    27" >>include/config.h
-	@./mkconfig -a mb448 sh4 sh4_2xx mb448 "" stb7100
+	@./mkconfig -a mb448 sh sh mb448 "" stb7100
 
 hms1_config \
 hms1_128_config :		unconfig
@@ -2351,7 +2351,7 @@ hms1_128_config :		unconfig
 	@echo "#define CONFIG_SH_HMS1      1" >>include/config.h
 	$(if $(findstring 128,$@), \
 	@echo "#define CONFIG_SH_HMS1_128  1" >>include/config.h)
-	@./mkconfig -a hms1 sh4 sh4_2xx hms1 "" stb7100
+	@./mkconfig -a hms1 sh sh hms1 "" stb7100
 
 mb519_config \
 mb519se_config :		unconfig
@@ -2362,7 +2362,7 @@ mb519se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/mb519/config.tmp)
-	@./mkconfig -a mb519 sh4 sh4_2xx mb519 "" stx7200
+	@./mkconfig -a mb519 sh sh mb519 "" stx7200
 
 
 #========================================================================

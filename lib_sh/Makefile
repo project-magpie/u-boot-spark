@@ -27,7 +27,7 @@ LIB	= lib$(ARCH).a
 
 AOBJS	= memchr.o memcpy.o memmove.o memset.o strlen.o cacheops.o div64.o
 
-COBJS	= board.o sh4_linux.o time.o io_generic.o udivdi3.o
+COBJS	= board.o sh_linux.o time.o io_generic.o udivdi3.o
 
 OBJS	= $(AOBJS) $(COBJS)
 

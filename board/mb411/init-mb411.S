@@ -1,6 +1,6 @@
 
 #include "asm/stb7100reg.h"
-#include "../../cpu/sh4_2xx/init_ram.S"
+#include "../../cpu/sh/init_ram.S"
 
 /*
  * The poke table is a series of long words, in the format

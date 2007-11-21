@@ -61,7 +61,7 @@ ifeq ($(ARCH),avr32)
 LOAD_ADDR = 0x00000000
 endif
 
-ifeq ($(ARCH),sh4)
+ifeq ($(ARCH),sh)
 include $(TOPDIR)/include/config.mk
 ifneq (,$(findstring $(BOARD),stb7100mboard stb7100ref))
 LOAD_ADDR = 0x84000000

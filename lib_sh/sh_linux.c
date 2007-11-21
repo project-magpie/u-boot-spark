@@ -158,7 +158,7 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 		if ((hdr->ih_os != IH_OS_LINUX) ||
 		    (hdr->ih_arch != IH_CPU_SH) ||
 		    (hdr->ih_type != IH_TYPE_RAMDISK)) {
-			printf ("No Linux SH4 Ramdisk Image\n");
+			printf ("No Linux SH Ramdisk Image\n");
 			SHOW_BOOT_PROGRESS (-13);
 			do_reset (cmdtp, flag, argc, argv);
 		}
