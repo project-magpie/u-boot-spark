@@ -156,42 +156,36 @@
 //#define CONFIG_SH_STB7100_SATA
 
 #ifdef CONFIG_SH_STB7100_IDE
-
-#define	CFG_PIO_MODE	4
-
-#define CFG_IDE_MAXBUS       1
-#define CFG_IDE_MAXDEVICE    1
-
-#define CFG_ATA_BASE_ADDR    0xA2800000
-#define CFG_ATA_IDE0_OFFSET  0x00200000
-#define CFG_ATA_REG_OFFSET   0
-#define CFG_ATA_DATA_OFFSET  0
-#define CFG_ATA_STRIDE       0x00020000
-#define CFG_ATA_ALT_OFFSET   -0x0100000
-
-#define CONFIG_DOS_PARTITION
-
-#endif
+#	define CFG_PIO_MODE		4
+#	define CFG_IDE_MAXBUS		1
+#	define CFG_IDE_MAXDEVICE	1
+#ifdef CONFIG_SH_SE_MODE
+#	define CFG_ATA_BASE_ADDR	0xB2800000
+#else	/* CONFIG_SH_SE_MODE */
+#	define CFG_ATA_BASE_ADDR	0xA2800000
+#endif	/* CONFIG_SH_SE_MODE */
+#	define CFG_ATA_IDE0_OFFSET	0x00200000
+#	define CFG_ATA_REG_OFFSET	0
+#	define CFG_ATA_DATA_OFFSET	0
+#	define CFG_ATA_STRIDE		0x00020000
+#	define CFG_ATA_ALT_OFFSET	-0x0100000
+#	define CONFIG_DOS_PARTITION
+#endif	/* CONFIG_SH_STB7100_IDE */
 
 #ifdef CONFIG_SH_STB7100_SATA
-
-#define	CFG_PIO_MODE	4
-
-#define CFG_IDE_MAXBUS       1
-#define CFG_IDE_MAXDEVICE    1
-
-#define CFG_ATA_BASE_ADDR    0xB9209800
-#define CFG_ATA_IDE0_OFFSET  0x0
-#define CFG_ATA_REG_OFFSET   0x0
-#define CFG_ATA_DATA_OFFSET  0x0
-#define CFG_ATA_STRIDE       0x4
-#define CFG_ATA_ALT_OFFSET   0x8
-
-// #define CFG_64BIT_VSPRINTF
-#define CONFIG_LBA48
-#define CONFIG_DOS_PARTITION
-
-#endif
+#	define CFG_PIO_MODE		4
+#	define CFG_IDE_MAXBUS		1
+#	define CFG_IDE_MAXDEVICE	1
+#	define CFG_ATA_BASE_ADDR	0xB9209800
+#	define CFG_ATA_IDE0_OFFSET	0x0
+#	define CFG_ATA_REG_OFFSET	0x0
+#	define CFG_ATA_DATA_OFFSET	0x0
+#	define CFG_ATA_STRIDE		0x4
+#	define CFG_ATA_ALT_OFFSET	0x8
+#	define CONFIG_DOS_PARTITION
+#	define CONFIG_LBA48
+#	define CFG_64BIT_LBA
+#endif	/* CONFIG_SH_STB7100_SATA */
 
 /*-----------------------------------------------------------------------
  * Miscellaneous configurable options

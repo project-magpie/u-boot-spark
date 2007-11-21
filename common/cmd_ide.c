@@ -52,6 +52,9 @@
 unsigned long mips_io_port_base = 0;
 #endif
 #endif
+#if defined(CONFIG_SH_STB7100_SATA)
+# include <asm/stb7100reg.h>
+#endif
 
 #ifdef CONFIG_SHOW_BOOT_PROGRESS
 # include <status_led.h>
@@ -73,6 +76,12 @@ DECLARE_GLOBAL_DATA_PTR;
 #endif
 
 #if (CONFIG_COMMANDS & CFG_CMD_IDE)
+
+#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+#define INT64(X) X##LL	/* explicit qualification, to avoid warnings */
+#else
+#define INT64(X) X
+#endif
 
 #ifdef CONFIG_IDE_8xx_DIRECT
 /* Timings for IDE Interface
@@ -802,6 +811,17 @@ ide_outb(int dev, int port, unsigned char val)
 	EIEIO;
 	*((uchar *)(ATA_CURR_BASE(dev)+port)) = val;
 }
+#elif defined(CONFIG_SH_STB7100_SATA)
+static void __inline__
+ide_outb(int dev, int port, unsigned char val)
+{
+	DECLARE_GLOBAL_DATA_PTR;
+	bd_t *bd = gd->bd;
+	if (STB7100_DEVICEID_7109(bd->bi_devid) && (STB7100_DEVICEID_CUT(bd->bi_devid) >= 2))
+	  writeb(val, ATA_CURR_BASE(dev)+port);
+	else
+	  writel(val, ATA_CURR_BASE(dev)+port);
+}
 #else	/* ! __PPC__ */
 static void __inline__
 ide_outb(int dev, int port, unsigned char val)
@@ -822,6 +842,17 @@ ide_inb(int dev, int port)
 	debug ("ide_inb (dev= %d, port= 0x%x) : @ 0x%08lx -> 0x%02x\n",
 		dev, port, (ATA_CURR_BASE(dev)+port), val);
 	return (val);
+}
+#elif defined(CONFIG_SH_STB7100_SATA)
+static unsigned char __inline__
+ide_inb(int dev, int port)
+{
+	DECLARE_GLOBAL_DATA_PTR;
+	bd_t *bd = gd->bd;
+	if (STB7100_DEVICEID_7109(bd->bi_devid) && (STB7100_DEVICEID_CUT(bd->bi_devid) >= 2))
+	  return readb(ATA_CURR_BASE(dev)+port);
+	else
+	  return readl(ATA_CURR_BASE(dev)+port);
 }
 #else	/* ! __PPC__ */
 static unsigned char __inline__
@@ -930,6 +961,23 @@ output_data(int dev, ulong *sect_buf, int words)
 	}
 #endif
 }
+#elif defined(CONFIG_SH_STB7100_SATA)
+static void
+output_data(int dev, ulong *sect_buf, int words)
+{
+	int count = words<<1;
+	const unsigned short *buf = (unsigned short *)sect_buf;
+	DECLARE_GLOBAL_DATA_PTR;
+	bd_t *bd = gd->bd;
+	if (STB7100_DEVICEID_7109(bd->bi_devid) && (STB7100_DEVICEID_CUT(bd->bi_devid) >= 2))
+	{
+		while (count--)
+			writew(*buf++, ATA_CURR_BASE(dev)+ATA_DATA_REG);
+	} else {
+		while (count--)
+			writel(*buf++, ATA_CURR_BASE(dev)+ATA_DATA_REG);
+	}
+}
 #else	/* ! __PPC__ */
 static void
 output_data(int dev, ulong *sect_buf, int words)
@@ -980,6 +1028,23 @@ input_data(int dev, ulong *sect_buf, int words)
 		*dbuf++ = *pbuf;
 	}
 #endif
+}
+#elif defined(CONFIG_SH_STB7100_SATA)
+static void
+input_data(int dev, ulong *sect_buf, int words)
+{
+	unsigned short *buf = (unsigned short *)sect_buf;
+	int count = words << 1;
+	DECLARE_GLOBAL_DATA_PTR;
+	bd_t *bd = gd->bd;
+	if (STB7100_DEVICEID_7109(bd->bi_devid) && (STB7100_DEVICEID_CUT(bd->bi_devid) >= 2))
+	{
+		while (count--)
+		  *buf++ = readw(ATA_CURR_BASE(dev)+ATA_DATA_REG);
+	} else {
+		while (count--)
+		  *buf++ = readl(ATA_CURR_BASE(dev)+ATA_DATA_REG);
+	}
 }
 #else	/* ! __PPC__ */
 static void
@@ -1235,7 +1300,7 @@ ulong ide_read (int device, lbaint_t blknr, ulong blkcnt, ulong *buffer)
 #ifdef CONFIG_LBA48
 	unsigned char lba48 = 0;
 
-	if (blknr & 0x0000fffff0000000) {
+	if (blknr & INT64(0x0000fffff0000000)) {
 		/* more than 28 bits used, use 48bit mode */
 		lba48 = 1;
 	}
@@ -1354,7 +1419,7 @@ ulong ide_write (int device, lbaint_t blknr, ulong blkcnt, ulong *buffer)
 #ifdef CONFIG_LBA48
 	unsigned char lba48 = 0;
 
-	if (blknr & 0x0000fffff0000000) {
+	if (blknr & INT64(0x0000fffff0000000)) {
 		/* more than 28 bits used, use 48bit mode */
 		lba48 = 1;
 	}
@@ -1745,7 +1810,7 @@ unsigned char atapi_issue(int device,unsigned char* ccb,int ccblen, unsigned cha
 	}
 
 	output_data_shorts (device, (unsigned short *)ccb,ccblen/2); /* write command block */
- 	/* ATAPI Command written wait for completition */
+	/* ATAPI Command written wait for completition */
 	udelay (5000); /* device must set bsy */
 
 	mask = ATA_STAT_DRQ|ATA_STAT_BUSY|ATA_STAT_ERR;

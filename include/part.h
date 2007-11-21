@@ -41,8 +41,8 @@ typedef struct block_dev_desc {
 	unsigned char	product[20+1];	/* IDE Serial no, SCSI product */
 	unsigned char	revision[8+1];	/* firmware revision */
 	unsigned long	(*block_read)(int dev,
-				      unsigned long start,
-				      lbaint_t blkcnt,
+				      lbaint_t start,
+				      unsigned long blkcnt,
 				      unsigned long *buffer);
 }block_dev_desc_t;
 
