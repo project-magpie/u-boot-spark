@@ -24,7 +24,7 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/sh4-cache.h>
+#include <asm/sh-cache.h>
 #include <asm/io.h>
 #include <asm/sh4reg.h>
 

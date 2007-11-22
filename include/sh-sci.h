@@ -1,6 +1,5 @@
-/* $Id: sh-sci.h,v 1.6 2005/11/30 12:01:35 sturgesa Exp $
- *
- *  linux/drivers/char/sh-sci.h
+/*
+ *  include/sh-sci.h
  *
  *  SuperH on-chip serial module support.  (SCI with no FIFO / with FIFO)
  *  Copyright (C) 1999, 2000  Niibe Yutaka

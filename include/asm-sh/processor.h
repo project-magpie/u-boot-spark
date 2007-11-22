@@ -1,5 +1,5 @@
 /*
- * include/asm-sh4/processor.h
+ * include/asm-sh/processor.h
  *
  * Copyright (C) 1999, 2000  Niibe Yutaka
  */

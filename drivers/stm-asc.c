@@ -1,6 +1,5 @@
-/* $Id: stm-asc.c,v 1.12 2005/11/30 12:01:20 sturgesa Exp $
- *
- * stm-asc.c
+/*
+ * drivers/stm-asc.c
  *
  * Support for Serial I/O using STMicroelectronics' on-chip ASC.
  *

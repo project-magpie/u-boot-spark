@@ -1,4 +1,5 @@
-/* $Id: memcpy.S,v 1.2 2005/11/30 11:52:56 sturgesa Exp $
+/*
+ * lib_sh/memcpy.S
  *
  * "memcpy" implementation of SuperH
  *

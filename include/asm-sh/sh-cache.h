@@ -1,12 +1,11 @@
-/* $Id: sh4-cache.h,v 1.3 2005/11/30 12:00:31 sturgesa Exp $
- *
- * include/asm-sh4/cache.h
+/*
+ * include/asm-sh/sh-cache.h
  *
  * Copyright 2005 (C) Andy Sturges
  */
 
-#ifndef __ASM_SH4_CACHE_H
-#define __ASM_SH4_CACHE_H
+#ifndef __ASM_SH_CACHE_H
+#define __ASM_SH_CACHE_H
 
 #define CACHE_IC_ADDRESS_ARRAY	0xf0000000
 #define CACHE_OC_ADDRESS_ARRAY	0xf4000000
@@ -30,4 +29,4 @@
 #error Unknown CPU
 #endif
 
-#endif /* __ASM_SH4_CACHE_H */
+#endif /* __ASM_SH_CACHE_H */

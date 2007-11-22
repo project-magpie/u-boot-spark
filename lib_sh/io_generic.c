@@ -1,6 +1,5 @@
-/* $Id: io_generic.c,v 1.3 2005/09/13 13:45:41 sturgesa Exp $
- *
- * linux/arch/sh/kernel/io_generic.c
+/*
+ * lib_sh/io_generic.c
  *
  * Copyright (C) 2000  Niibe Yutaka
  *

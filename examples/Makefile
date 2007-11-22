@@ -63,7 +63,7 @@ endif
 
 ifeq ($(ARCH),sh)
 include $(TOPDIR)/include/config.mk
-ifneq (,$(findstring $(BOARD),stb7100mboard stb7100ref))
+ifneq (,$(findstring $(BOARD),mb411 mb442))
 LOAD_ADDR = 0x84000000
 else
 LOAD_ADDR = 0x88000000

@@ -166,7 +166,7 @@ Directory Hierarchy:
 - lib_mips	Files generic to MIPS	 architecture
 - lib_nios	Files generic to NIOS	 architecture
 - lib_ppc	Files generic to PowerPC architecture
-- lib_sh4	Files generic to SH4     architecture
+- lib_sh	Files generic to SuperH  architecture
 - lib_st200	Files generic to ST200   architecture
 - net		Networking code
 - post		Power On Self Test
