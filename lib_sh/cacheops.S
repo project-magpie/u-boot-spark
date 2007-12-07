@@ -24,6 +24,7 @@
 
 #include <config.h>
 #include "asm/regdef.h"
+#include "asm/addrspace.h"
 #include "asm/asmdefs.h"
 #include "asm/linkage.h"
 #include "asm/sh4reg.h"
@@ -122,7 +123,7 @@ ENTRY(sh_toggle_pmb_cacheability)
 	.set mask, 0x10000000	/* 0x80000000 ^ 0x90000000 */
 
 	/* set bits to toggle: PMB[n].C and PMB[n].UB */
-	.set toggle, (PMB_C|PMB_UB)
+	.set toggle, (SH4_PMB_C|SH4_PMB_UB)
 
 	/* switch PC, to run from an UN-cached PMB region */
 	MOV_CONST32_R0 mask	/* Mask */
@@ -132,14 +133,16 @@ ENTRY(sh_toggle_pmb_cacheability)
 	/* now toggle the cacheability of indexed PMB entry */
 	MOV_CONST32_R0	(toggle)
 	mov	r0, r3
-	MOV_CONST32_R0	(PMB_DATA_ARRAY|(index<<8))
+	MOV_CONST32_R0	(P4SEG_PMB_DATA|(index<<8))
 	mov.l	@r0, r1		/* read it */
 	xor	r3, r1		/* xor it */
 	mov.l	r1, @r0		/* write it */
 
-	/* Invalidate the ITLB */
+	/* Invalidate the ITLB, by setting MMUCR.TI */
 	MOV_CONST32_R0 SH4_CCN_MMUCR
-	mov	#(SH4_MMUCR_TI|SH4_MMUCR_SE), r1
+	mov.l	@r0, r1
+	mov	#(SH4_MMUCR_TI), r3
+	or	r3, r1
 	mov.l	r1, @r0
 
 	/* switch PC, to run from original PMB region */

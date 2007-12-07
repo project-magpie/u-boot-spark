@@ -24,6 +24,8 @@
 
 #include <config.h>
 #include "asm/regdef.h"
+#include "asm/addrspace.h"
+#include "asm/sh4reg.h"
 #include "asm/asmdefs.h"
 
 #if defined(CONFIG_SH_STB7100)
@@ -94,7 +96,7 @@ _start:
 	 * explicitly invalidate all unused entries
 	 * NOTE: for running from RAM, then keep PMB[0] as is.
 	 */
-	MOV_CONST32_R0 (PMB_ADDR_ARRAY)
+	MOV_CONST32_R0 (P4SEG_PMB_ADDR)
 	mov	r0, r1
 	mov	#0, r2			/* PMB[n].V = 0, i.e. INVALID */
 	mov	#1, r3

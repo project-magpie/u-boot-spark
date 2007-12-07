@@ -133,6 +133,14 @@
 #define SH4_RTC_RCR1	SH4_BYTE_REG(SH4_RTC_REGS_BASE + 0x38)
 #define SH4_RTC_RCR2	SH4_BYTE_REG(SH4_RTC_REGS_BASE + 0x3c)
 
+/*
+ * Privileged Mapping Buffer (PMB) bit-field defintions
+ */
+#define	SH4_PMB_WT		(1<<0)	/* PMB[n].WT */
+#define	SH4_PMB_C		(1<<3)	/* PMB[n].C */
+#define	SH4_PMB_V		(1<<8)	/* PMB[n].V */
+#define	SH4_PMB_UB		(1<<9)	/* PMB[n].UB */
+
 /*----------------------------------------------------------------------------*/
 
 #endif /* __SH4REG_H */

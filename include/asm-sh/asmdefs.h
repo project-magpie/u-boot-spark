@@ -135,12 +135,6 @@ where <index> is the PMB entry
 	<cache> is optional and is the page cacheability (default: 1 [on])
 	<wt> is optional and is the page cache mode (default: 0 [copy-back])
 	<ub> is optional and is the page buffer mode (default: 0 [buffered]) */
-#define PMB_ADDR_ARRAY	0xf6100000
-#define PMB_DATA_ARRAY	0xf7100000
-#define	PMB_WT		(1<<0)	/* PMB[n].WT */
-#define	PMB_C		(1<<3)	/* PMB[n].C */
-#define	PMB_V		(1<<8)	/* PMB[n].V */
-#define	PMB_UB		(1<<9)	/* PMB[n].UB */
 .macro SH4_SET_PMB i:req, vpn:req, ppn:req, size:req, cache=1, wt=0, ub=0
 	.set pmbdata, 0
 
@@ -157,15 +151,15 @@ where <index> is the PMB entry
 	.endif
 
 	.if (\cache)		/* PMB[n].C */
-		.set pmbdata, pmbdata|(PMB_C)
+		.set pmbdata, pmbdata|(SH4_PMB_C)
 	.endif
 
 	.if (\wt)		/* PMB[n].WT */
-		.set pmbdata, pmbdata|(PMB_WT)
+		.set pmbdata, pmbdata|(SH4_PMB_WT)
 	.endif
 
 	.if (\ub)		/* PMB[n].UB */
-		.set pmbdata, pmbdata|(PMB_UB)
+		.set pmbdata, pmbdata|(SH4_PMB_UB)
 	.endif
 
 	.if ( (\vpn<0x80) || (\vpn>=0xc0) )
@@ -179,12 +173,12 @@ where <index> is the PMB entry
 		/* poke ADDR_ARRAY entry */
 	MOV_CONST32_R0	(\vpn<<24)
 	mov	r0,r1
-	MOV_CONST32_R0	(PMB_ADDR_ARRAY | (\i<<8))
+	MOV_CONST32_R0	(P4SEG_PMB_ADDR | (\i<<8))
 	mov.l	r1,@r0
 
 		/* poke DATA_ARRAY entry */
-	MOV_CONST32_R0	((\ppn<<24) | PMB_V | pmbdata)
+	MOV_CONST32_R0	((\ppn<<24) | SH4_PMB_V | pmbdata)
 	mov	r0,r1
-	MOV_CONST32_R0	(PMB_DATA_ARRAY | (\i<<8))
+	MOV_CONST32_R0	(P4SEG_PMB_DATA | (\i<<8))
 	mov.l	r1,@r0
 .endm

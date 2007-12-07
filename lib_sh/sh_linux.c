@@ -27,6 +27,7 @@
 #include <asm/sh-cache.h>
 #include <asm/io.h>
 #include <asm/sh4reg.h>
+#include "asm/addrspace.h"
 
 #ifdef CONFIG_SHOW_BOOT_PROGRESS
 # include <status_led.h>
@@ -62,6 +63,7 @@ extern void sh_toggle_pmb_cacheability(void);
 
 #ifdef CONFIG_SH_SE_MODE
 #define CURRENT_SE_MODE 32	/* 32-bit (Space Enhanced) Mode */
+#define	PMB_ADDR(i)	((volatile unsigned long*)(P4SEG_PMB_ADDR+((i)<<8)))
 #else
 #define CURRENT_SE_MODE 29	/* 29-bit (Traditional) Mode */
 #endif	/* CONFIG_SH_SE_MODE */
@@ -100,6 +102,9 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	char *commandline = getenv ("bootargs");
 	char extra[128];	/* Extra command line args */
 	extra[0] = 0;
+#ifdef CONFIG_SH_SE_MODE
+	size_t i;
+#endif	/* CONFIG_SH_SE_MODE */
 
 	theKernel = (void (*)(void)) ntohl (hdr->ih_ep);
 	param = ntohl (hdr->ih_load);
@@ -291,17 +296,61 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	printf ("\nStarting kernel %s - 0x%08x - %d ...\n\n", COMMAND_LINE,
 		*INITRD_START, *INITRD_SIZE);
 
+	/*
+	 * Flush the operand caches, to ensure that there is no unwritten
+	 * data residing only in the caches, before the kernel invalidates
+	 * them.
+	 */
 	sh4_flush_cache_all();
+
+	/*
+	 * remove Vpp from the FLASH, so that no further writes can occur.
+	 */
 	flashWriteDisable();
 
 #ifdef CONFIG_SH_SE_MODE
+	/*
+	 * Before we can jump into the kernel, we need to invalidate all
+	 * (bar one) of the PMB array entries we are currently using.
+	 * Failure to do this, can result in the kernel creating a
+	 * new PMB entry with an overlapping virtual address, which
+	 * when accessed may result in a ITLBMULTIHIT or OTLBMULTIHIT
+	 * exception being raised.
+	 * We also need to enter the kernel running out of an UNCACHED
+	 * PMB entry. To perform this mode switch, we actually need to
+	 * have 2 PMB entries (#0, #1) both valid for the duration of
+	 * this mode switching. However, we invalidate all the others,
+	 * prior to this mode switch. Only after the mode switch, can
+	 * we then invaludate PMB[1], leaving just one (uncached) PMB
+	 * still valid - the one mapping the kernel itself (PMB[0]).
+	 * Note: after this point, U-boot may lose access to 
+	 * peripherals, including the serial console - so we can not
+	 * safely call puts(), printf(), etc. from this point onwards.
+	 */
+	/* set PMB[n].V = 0, for n == 2..15 */
+	for(i=2; i<16; i++)
+	{
+		*PMB_ADDR(i) = 0;	/* PMB[i].V = 0 */
+	}
+
 	/*
 	 * Now run out of the UN-cached PMB array #0.
 	 * For 32-bit mode, our contract with the kernel requires
 	 * that the kernel starts running out of an uncached PMB mapping.
 	 */
 	sh_toggle_pmb_cacheability();
+
+	/* now invalidate PMB entry #1, leaving just PMB #0 valid */
+	*PMB_ADDR(1) = 0;	/* PMB[1].V = 0 */
+
+	/*
+	 * we need to ensure that the ITLB is flushed, and not
+	 * harbouring any mappings from the recently invalidated
+	 * PMB entires.
+	 */
+	 *(volatile unsigned long*)SH4_CCN_MMUCR |= SH4_MMUCR_TI;
 #endif	/* CONFIG_SH_SE_MODE */
 
+	/* now, finally, we pass control to the kernel itself ... */
 	theKernel ();
 }
