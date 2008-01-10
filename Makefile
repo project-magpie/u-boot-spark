@@ -152,6 +152,12 @@ endif
 ifeq ($(ARCH),avr32)
 CROSS_COMPILE = avr32-linux-
 endif
+ifeq ($(ARCH),sh)
+CROSS_COMPILE = sh4-linux-
+endif
+ifeq ($(ARCH),st200)
+CROSS_COMPILE = st231-linux-
+endif
 endif
 endif
 
@@ -2608,6 +2614,106 @@ bf561-ezkit_config:	unconfig
 
 atstk1002_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) avr32 at32ap atstk1000 atmel at32ap7000
+
+#========================================================================
+# SuperH
+#========================================================================
+#########################################################################
+## SuperH SH4
+#########################################################################
+
+mb411_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STB7100 1" >>include/config.h
+	@echo "#define CONFIG_SH_MB411   1" >>include/config.h
+	@./mkconfig -a mb411 sh sh mb411 "" stb7100
+
+mb442_27_config \
+mb442_30_config \
+mb442_27_128_config \
+mb442_30_128_config \
+mb442se_27_config \
+mb442se_30_config \
+mb442se_27_128_config \
+mb442se_30_128_config : 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STB7100   1" >>include/config.h
+	@echo "#define CONFIG_SH_MB442     1" >>include/config.h
+	$(if $(findstring 27,$@), \
+	@echo "#define INPUT_CLOCK_RATE    27" >>include/config.h)
+	$(if $(findstring 30,$@), \
+	@echo "#define INPUT_CLOCK_RATE    30" >>include/config.h)
+	$(if $(findstring 128,$@), \
+	@echo "#define CONFIG_SH_MB442_128 1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/mb442/config.tmp)
+	@./mkconfig -a mb442 sh sh mb442 "" stb7100
+
+mb448_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STB7100   1" >>include/config.h
+	@echo "#define CONFIG_SH_MB448     1" >>include/config.h
+	@echo "#define INPUT_CLOCK_RATE    27" >>include/config.h
+	@./mkconfig -a mb448 sh sh mb448 "" stb7100
+
+hms1_config \
+hms1_128_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STB7100   1" >>include/config.h
+	@echo "#define CONFIG_SH_HMS1      1" >>include/config.h
+	$(if $(findstring 128,$@), \
+	@echo "#define CONFIG_SH_HMS1_128  1" >>include/config.h)
+	@./mkconfig -a hms1 sh sh hms1 "" stb7100
+
+mb519_config \
+mb519se_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STX7200   1" >>include/config.h
+	@echo "#define CONFIG_SH_MB519     1" >>include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/mb519/config.tmp)
+	@./mkconfig -a mb519 sh sh mb519 "" stx7200
+
+
+#========================================================================
+# STMicroelectronics ST200
+#========================================================================
+#########################################################################
+## STMicroelectronics ST231
+#########################################################################
+
+sti5301mb390_config		: 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_STM_MB390   1" >>include/config.h
+	@echo "#define CONFIG_STM_STI5301 1" >>include/config.h
+	@echo "#define CONFIG_STM_ST231   1" >>include/config.h
+	@./mkconfig -a sti5301mb390 st200 st231 sti5301mb390 "" sti5301
+
+sti5301mb424_config		: 	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_STM_MB424   1" >>include/config.h
+	@echo "#define CONFIG_STM_STI5301 1" >>include/config.h
+	@echo "#define CONFIG_STM_ST231   1" >>include/config.h
+	@./mkconfig -a sti5301mb424 st200 st231 sti5301mb424 "" sti5301
+
+stm8010mboard_config		:	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_STM_STM8010_MBOARD   1" >>include/config.h
+	@echo "#define CONFIG_STM_STM8010 1" >>include/config.h
+	@echo "#define CONFIG_STM_ST231   1" >>include/config.h
+	@./mkconfig -a stm8010mboard st200 st231 stm8010mboard "" stm8010
+
+traviata_config		:	unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_STM_TRAVIATA   1" >>include/config.h
+	@echo "#define CONFIG_STM_STM8010 1" >>include/config.h
+	@echo "#define CONFIG_STM_ST231   1" >>include/config.h
+	@./mkconfig -a traviata st200 st231 traviata "" stm8010
+
 
 #########################################################################
 #########################################################################

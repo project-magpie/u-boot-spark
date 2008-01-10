@@ -48,6 +48,7 @@ COBJS	= 3c589.o 5701rls.o ali512x.o at45.o ata_piix.o \
 	  serial_xuartlite.o \
 	  sil680.o sl811_usb.o sm501.o smc91111.o smiLynxEM.o \
 	  status_led.o sym53c8xx.o systemace.o ahci.o \
+	  smc911x.o sh-sci.o stm-asc.o stm-stmac.o \
 	  ti_pci1410a.o tigon3.o tqm8xx_pcmcia.o tsec.o \
 	  tsi108_eth.o tsi108_i2c.o tsi108_pci.o \
 	  usb_ohci.o \

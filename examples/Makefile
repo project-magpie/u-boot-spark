@@ -61,6 +61,15 @@ ifeq ($(ARCH),avr32)
 LOAD_ADDR = 0x00000000
 endif
 
+ifeq ($(ARCH),sh)
+include $(TOPDIR)/include/config.mk
+ifneq (,$(findstring $(BOARD),mb411 mb442))
+LOAD_ADDR = 0x84000000
+else
+LOAD_ADDR = 0x88000000
+endif
+endif
+
 include $(TOPDIR)/config.mk
 
 ELF	= hello_world
