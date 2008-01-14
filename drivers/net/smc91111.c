@@ -1593,7 +1593,7 @@ int smc_get_ethaddr (bd_t * bd)
 		}
 	}
 	memcpy (bd->bi_enetaddr, v_mac, 6);	/* update global address to match env (allows env changing) */
-	smc_set_mac_addr (v_mac);		/* use old function to update smc default */
+	smc_set_mac_addr ((uchar *)v_mac);	/* use old function to update smc default */
 	PRINTK("Using MAC Address %02X:%02X:%02X:%02X:%02X:%02X\n", v_mac[0], v_mac[1],
 		v_mac[2], v_mac[3], v_mac[4], v_mac[5]);
 	return (0);

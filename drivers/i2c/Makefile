@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2001-2006
+# (C) Copyright 2000-2007
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -12,7 +12,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -23,19 +23,16 @@
 
 include $(TOPDIR)/config.mk
 
-#CFLAGS += -DDEBUG
+LIB 	:= $(obj)libi2c.a
 
-LIB	= $(obj)librtc.a
+COBJS-y += fsl_i2c.o
+COBJS-y += omap1510_i2c.o
+COBJS-y += omap24xx_i2c.o
+COBJS-y += tsi108_i2c.o
 
-COBJS	= date.o   \
-	  bf5xx_rtc.o ds12887.o ds1302.o ds1306.o ds1307.o \
-	  ds1337.o ds1374.o ds1556.o ds164x.o ds174x.o ds3231.o \
-	  m41t11.o max6900.o m48t35ax.o mc146818.o mk48t59.o \
-	  mpc5xxx.o mpc8xx.o pcf8563.o s3c24x0_rtc.o rs5c372.o \
-	  mcfrtc.o
-
-SRCS	:= $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS))
+COBJS	:= $(COBJS-y)
+SRCS 	:= $(COBJS:.o=.c)
+OBJS 	:= $(addprefix $(obj),$(COBJS))
 
 all:	$(LIB)
 

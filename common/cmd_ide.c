@@ -72,8 +72,6 @@ DECLARE_GLOBAL_DATA_PTR;
 # define SYNC		/* nothing */
 #endif
 
-#if defined(CONFIG_CMD_IDE)
-
 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
 #define INT64(X) X##LL	/* explicit qualification, to avoid warnings */
 #else
@@ -2125,5 +2123,3 @@ U_BOOT_CMD(
 	"diskboot- boot from IDE device\n",
 	"loadAddr dev:part\n"
 );
-
-#endif

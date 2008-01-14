@@ -30,7 +30,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_CMD_BDI)
 static void print_num(const char *, ulong);
 
 #ifndef CONFIG_ARM	/* PowerPC and other */
@@ -409,4 +408,3 @@ U_BOOT_CMD(
 	"bdinfo  - print Board Info structure\n",
 	NULL
 );
-#endif
