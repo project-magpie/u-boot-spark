@@ -157,7 +157,7 @@ void stb7100_reset(void)
 	asm volatile ("trapa #0");
 }
 
-#ifdef CONFIG_SH_STB7100_SATA
+#if defined(CONFIG_SH_STB7100_SATA)
 
 #define SATA_AHB2STBUS_BASE			0xB9209000
 #define SATA_AHBHOST_BASE			0xB9209800
@@ -273,28 +273,41 @@ void stb7100_sata_init(void)
 	return;
 }
 
-#if 0	/* QQQ TO FIX */
-void inline ide_outb(int dev, int port, unsigned char val)
+extern ulong ide_bus_offset[CFG_IDE_MAXBUS];
+
+	/*
+	 * The following 2 functions are only required to
+	 * workround a silicon bug on the STb710x on SATA.
+	 *
+	 * This bug is present on all STb7100 chips, and
+	 * cut 1.x of the STb7109.  It was fixed on
+	 * cut 2.x (and later) of the STb7109.
+	 *
+	 * If is safe to enable these fuctions on all STb710x
+	 * chips, but it is less efficent if is not required.
+	 */
+
+extern void ide_outb(int dev, int port, unsigned char val)
 {
 	DECLARE_GLOBAL_DATA_PTR;
 	bd_t *bd = gd->bd;
-	printf("QQQ: ide_outb(dev=%u, port=%u, val=0x%02x)\n", dev, port, val);
-	if (STB7100_DEVICEID_7109(bd->bi_devid) && (STB7100_DEVICEID_CUT(bd->bi_devid) >= 2))
+	if ( STB7100_DEVICEID_7109(bd->bi_devid) &&
+	     (STB7100_DEVICEID_CUT(bd->bi_devid) >= 2) )
 	  writeb(val, ATA_CURR_BASE(dev)+port);
 	else
 	  writel(val, ATA_CURR_BASE(dev)+port);
 }
 
-unsigned char inline ide_inb(int dev, int port)
+extern unsigned char ide_inb(int dev, int port)
 {
 	DECLARE_GLOBAL_DATA_PTR;
 	bd_t *bd = gd->bd;
-	printf("QQQ: ide_inb(dev=%u, port=%u)\n", dev, port);
-	if (STB7100_DEVICEID_7109(bd->bi_devid) && (STB7100_DEVICEID_CUT(bd->bi_devid) >= 2))
+	if ( STB7100_DEVICEID_7109(bd->bi_devid) &&
+	     (STB7100_DEVICEID_CUT(bd->bi_devid) >= 2) )
 	  return readb(ATA_CURR_BASE(dev)+port);
 	else
 	  return readl(ATA_CURR_BASE(dev)+port);
 }
-#endif
 
-#endif
+#endif /* defined(CONFIG_SH_STB7100_SATA) */
+

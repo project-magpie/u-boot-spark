@@ -64,8 +64,8 @@
 #define CFG_BOOTPARAMS_LEN	(128 << 10)
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
 
-#define CFG_MEMTEST_START   	CFG_SDRAM_BASE
-#define CFG_MEMTEST_END     	(CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (3 << 20))
+#define CFG_MEMTEST_START	CFG_SDRAM_BASE
+#define CFG_MEMTEST_END		(CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (3 << 20))
 
 #define CONFIG_BAUDRATE		115200
 #define CFG_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
@@ -153,10 +153,9 @@
  * IDE driver config
  */
 
-/* Choose one of the the following */
-
-#define CONFIG_SH_STB7100_IDE
-//#define CONFIG_SH_STB7100_SATA
+/* Choose one of the the following two: */
+//#define CONFIG_SH_STB7100_IDE
+#define CONFIG_SH_STB7100_SATA
 
 #ifdef CONFIG_SH_STB7100_IDE
 #	define CFG_PIO_MODE		4
@@ -172,7 +171,6 @@
 #	define CFG_ATA_DATA_OFFSET	0
 #	define CFG_ATA_STRIDE		0x00020000
 #	define CFG_ATA_ALT_OFFSET	-0x0100000
-#	define CONFIG_DOS_PARTITION
 #endif	/* CONFIG_SH_STB7100_IDE */
 
 #ifdef CONFIG_SH_STB7100_SATA
@@ -185,10 +183,13 @@
 #	define CFG_ATA_DATA_OFFSET	0x0
 #	define CFG_ATA_STRIDE		0x4
 #	define CFG_ATA_ALT_OFFSET	0x8
-#	define CONFIG_DOS_PARTITION
-#	define CONFIG_LBA48
-#	define CFG_64BIT_LBA
 #endif	/* CONFIG_SH_STB7100_SATA */
+
+#if defined(CONFIG_SH_STB7100_IDE) || defined(CONFIG_SH_STB7100_SATA)
+#	define CFG_64BIT_LBA
+#	define CONFIG_LBA48
+#	define CONFIG_DOS_PARTITION
+#endif
 
 /*-----------------------------------------------------------------------
  * Miscellaneous configurable options
@@ -203,7 +204,7 @@
 #define CFG_MAXARGS		16		/* max number of command args	*/
 #define CFG_HZ			(P_CLOCK_RATE/1024) /* HZ for timer ticks	*/
 #define CFG_LOAD_ADDR		CFG_SDRAM_BASE	/* default load address		*/
-#define CFG_BOOTMAPSZ           (16 << 20)      /* initial linux memory size 	*/
+#define CFG_BOOTMAPSZ           (16 << 20)      /* initial linux memory size	*/
 #define CONFIG_BOOTDELAY	10		/* default delay before executing bootcmd */
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 
@@ -219,7 +220,7 @@
 #define CFG_FLASH_CFI
 #define CFG_FLASH_PROTECTION    1	/* use hardware flash protection        */
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
-#define CFG_MAX_FLASH_SECT	64    	/* max number of sectors on one chip 	*/
+#define CFG_MAX_FLASH_SECT	64	/* max number of sectors on one chip	*/
 
 
 /*-----------------------------------------------------------------------

@@ -60,8 +60,8 @@
 #define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128kB */
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
 
-#define CFG_MEMTEST_START   	CFG_SDRAM_BASE
-#define CFG_MEMTEST_END     	(CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (3 << 20))
+#define CFG_MEMTEST_START	CFG_SDRAM_BASE
+#define CFG_MEMTEST_END		(CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (3 << 20))
 
 #define CONFIG_BAUDRATE		115200
 #define CFG_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
@@ -121,9 +121,9 @@
 
 /* choose which internal MAC to use */
 #if 1
-#	define 	CONFIG_STMAC_MAC0			/* Use MAC #0 */
+#	define	CONFIG_STMAC_MAC0			/* Use MAC #0 */
 #else
-#	define 	CONFIG_STMAC_MAC1			/* Use MAC #1 */
+#	define	CONFIG_STMAC_MAC1			/* Use MAC #1 */
 #endif
 
 /*
@@ -147,28 +147,23 @@
  * IDE driver config
  */
 
-/* SATA should work on cut 2 */
+/* SATA should work on cut 2 of the STi7200 */
 //#define CONFIG_SH_STB7100_SATA
 
 #ifdef CONFIG_SH_STB7100_SATA
-
-#define	CFG_PIO_MODE	4
-
-#define CFG_IDE_MAXBUS       1
-#define CFG_IDE_MAXDEVICE    1
-
-#define CFG_ATA_BASE_ADDR    0x????
-#define CFG_ATA_IDE0_OFFSET  0x0
-#define CFG_ATA_REG_OFFSET   0x0
-#define CFG_ATA_DATA_OFFSET  0x0
-#define CFG_ATA_STRIDE       0x4
-#define CFG_ATA_ALT_OFFSET   0x8
-
-// #define CFG_64BIT_VSPRINTF
-#define CONFIG_LBA48
-#define CONFIG_DOS_PARTITION
-
-#endif
+#	define CFG_PIO_MODE		4
+#	define CFG_IDE_MAXBUS		1
+#	define CFG_IDE_MAXDEVICE	1
+#	define CFG_ATA_BASE_ADDR	0x????
+#	define CFG_ATA_IDE0_OFFSET	0x0
+#	define CFG_ATA_REG_OFFSET	0x0
+#	define CFG_ATA_DATA_OFFSET	0x0
+#	define CFG_ATA_STRIDE		0x4
+#	define CFG_ATA_ALT_OFFSET	0x8
+#	define CFG_64BIT_LBA
+#	define CONFIG_LBA48
+#	define CONFIG_DOS_PARTITION
+#endif	/* CONFIG_SH_STB7100_SATA */
 
 /*-----------------------------------------------------------------------
  * Miscellaneous configurable options
@@ -184,7 +179,7 @@
 #define CFG_MAXARGS		16		/* max number of command args	*/
 #define CFG_HZ			(P_CLOCK_RATE/1024) /* HZ for timer ticks	*/
 #define CFG_LOAD_ADDR		CFG_SDRAM_BASE	/* default load address		*/
-#define CFG_BOOTMAPSZ           (16 << 20)      /* initial linux memory size 	*/
+#define CFG_BOOTMAPSZ           (16 << 20)      /* initial linux memory size	*/
 #define CONFIG_BOOTDELAY	10		/* default delay before executing bootcmd */
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 
@@ -200,7 +195,7 @@
 #define CONFIG_FLASH_PROTECT_SINGLE_CELL
 #define CFG_FLASH_PROTECTION    1	/* use hardware flash protection        */
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
-#define CFG_MAX_FLASH_SECT	300    	/* max number of sectors on one chip 	*/
+#define CFG_MAX_FLASH_SECT	300	/* max number of sectors on one chip	*/
 
 
 /*-----------------------------------------------------------------------
