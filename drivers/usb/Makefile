@@ -50,3 +50,6 @@ include $(SRCTREE)/rules.mk
 sinclude $(obj).depend
 
 #########################################################################
+
+usb_ohci.o:	CFLAGS += -Wno-strict-aliasing
+

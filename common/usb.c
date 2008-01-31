@@ -180,7 +180,7 @@ int usb_control_msg(struct usb_device *dev, unsigned int pipe,
 	setup_packet.value = swap_16(value);
 	setup_packet.index = swap_16(index);
 	setup_packet.length = swap_16(size);
- 	USB_PRINTF("usb_control_msg: request: 0x%X, requesttype: 0x%X\nvalue 0x%X index 0x%X length 0x%X\n",
+	USB_PRINTF("usb_control_msg: request: 0x%X, requesttype: 0x%X\nvalue 0x%X index 0x%X length 0x%X\n",
 		request,requesttype,value,index,size);
 	dev->status=USB_ST_NOT_PROC; /*not yet processed */
 
@@ -241,6 +241,21 @@ int usb_maxpacket(struct usb_device *dev,unsigned long pipe)
 		return(dev->epmaxpacketin[((pipe>>15) & 0xf)]);
 }
 
+	/*
+	 * Due to a bug in the SH4 compiler, it can generate
+	 * an unaligned access if we evaluate ep->wMaxPacketSize.
+	 * As a workaround, we move such accesses into a different
+	 * non-inlineable function, which will make it safe.
+	 * This should be removed, once the compiler is fixed.
+	 * See https://bugzilla.stlinux.com/show_bug.cgi?id=3313
+	 * 2008-01-24 Sean McGoogan <Sean.McGoogan@st.com>
+	 */
+static short __attribute__((noinline))
+getMaxPacketSize(const struct usb_endpoint_descriptor * const ep)
+{
+	return ep->wMaxPacketSize;
+}
+
 /*
  * set the max packed value of all endpoints in the given configuration
  */
@@ -248,27 +263,29 @@ int usb_set_maxpacket(struct usb_device *dev)
 {
 	int i,ii,b;
 	struct usb_endpoint_descriptor *ep;
+	short wMaxPacketSize;
 
 	for(i=0; i<dev->config.bNumInterfaces;i++) {
 		for(ii=0; ii<dev->config.if_desc[i].bNumEndpoints; ii++) {
 			ep=&dev->config.if_desc[i].ep_desc[ii];
 			b=ep->bEndpointAddress & USB_ENDPOINT_NUMBER_MASK;
+			wMaxPacketSize=getMaxPacketSize(ep);
 
 			if((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)==USB_ENDPOINT_XFER_CONTROL) {	/* Control => bidirectional */
-				dev->epmaxpacketout[b] = ep->wMaxPacketSize;
-				dev->epmaxpacketin [b] = ep->wMaxPacketSize;
+				dev->epmaxpacketout[b] = wMaxPacketSize;
+				dev->epmaxpacketin [b] = wMaxPacketSize;
 				USB_PRINTF("##Control EP epmaxpacketout/in[%d] = %d\n",b,dev->epmaxpacketin[b]);
 			}
 			else {
 				if ((ep->bEndpointAddress & 0x80)==0) { /* OUT Endpoint */
-					if(ep->wMaxPacketSize > dev->epmaxpacketout[b]) {
-						dev->epmaxpacketout[b] = ep->wMaxPacketSize;
+					if(wMaxPacketSize > dev->epmaxpacketout[b]) {
+						dev->epmaxpacketout[b] = wMaxPacketSize;
 						USB_PRINTF("##EP epmaxpacketout[%d] = %d\n",b,dev->epmaxpacketout[b]);
 					}
 				}
 				else  { /* IN Endpoint */
-					if(ep->wMaxPacketSize > dev->epmaxpacketin[b]) {
-						dev->epmaxpacketin[b] = ep->wMaxPacketSize;
+					if(wMaxPacketSize > dev->epmaxpacketin[b]) {
+						dev->epmaxpacketin[b] = wMaxPacketSize;
 						USB_PRINTF("##EP epmaxpacketin[%d] = %d\n",b,dev->epmaxpacketin[b]);
 					}
 				} /* if out */
@@ -1088,7 +1105,7 @@ int usb_hub_configure(struct usb_device *dev)
 	/* silence compiler warning if USB_BUFSIZ is > 256 [= sizeof(char)] */
 	i = descriptor->bLength;
 	if (i > USB_BUFSIZ) {
-		USB_HUB_PRINTF("usb_hub_configure: failed to get hub descriptor - too long: %d\N",
+		USB_HUB_PRINTF("usb_hub_configure: failed to get hub descriptor - too long: %d\n",
 			descriptor->bLength);
 		return -1;
 	}

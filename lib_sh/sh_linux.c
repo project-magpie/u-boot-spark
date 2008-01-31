@@ -24,7 +24,7 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/sh-cache.h>
+#include <asm/cache.h>
 #include <asm/io.h>
 #include <asm/sh4reg.h>
 #include "asm/addrspace.h"
@@ -67,27 +67,6 @@ extern void sh_toggle_pmb_cacheability(void);
 #else
 #define CURRENT_SE_MODE 29	/* 29-bit (Traditional) Mode */
 #endif	/* CONFIG_SH_SE_MODE */
-
-void sh4_flush_cache_all(void)
-{
-	unsigned long addr, end_addr, entry_offset;
-
-	/* Flush dcache */
-
-	end_addr = CACHE_OC_ADDRESS_ARRAY +
-		(DCACHE_SETS << DCACHE_ENTRY_SHIFT) * DCACHE_WAYS;
-
-	entry_offset = 1 << DCACHE_ENTRY_SHIFT;
-	for (addr = CACHE_OC_ADDRESS_ARRAY;
-	     addr < end_addr;
-	     addr += entry_offset) {
-		ctrl_outl(0, addr);
-	}
-
-	/* Invalidate caches */
-
-	sh_cache_set_op(SH4_CCR_OCI|SH4_CCR_ICI);
-}
 
 void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 		     ulong addr, ulong * len_ptr, int verify)
@@ -301,7 +280,10 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	 * data residing only in the caches, before the kernel invalidates
 	 * them.
 	 */
-	sh4_flush_cache_all();
+	sh_flush_cache_all();
+
+	/* Invalidate both instruction and data caches */
+	sh_cache_set_op(SH4_CCR_OCI|SH4_CCR_ICI);
 
 	/*
 	 * remove Vpp from the FLASH, so that no further writes can occur.

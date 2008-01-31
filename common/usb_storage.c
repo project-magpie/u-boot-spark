@@ -55,6 +55,11 @@
 #include <asm/processor.h>
 
 
+#if defined(__SH4__)
+#include <asm/cache.h>
+#endif
+
+
 #if defined(CONFIG_CMD_USB)
 #include <part.h>
 #include <usb.h>
@@ -169,7 +174,7 @@ static struct us_data usb_stor[USB_MAX_STOR_DEV];
 
 int usb_stor_get_info(struct usb_device *dev, struct us_data *us, block_dev_desc_t *dev_desc);
 int usb_storage_probe(struct usb_device *dev, unsigned int ifnum,struct us_data *ss);
-unsigned long usb_stor_read(int device, unsigned long blknr, unsigned long blkcnt, void *buffer);
+unsigned long usb_stor_read(int device, lbaint_t blknr, unsigned long blkcnt, void *buffer);
 struct usb_device * usb_get_dev_index(int index);
 void uhci_show_temp_int_td(void);
 
@@ -941,13 +946,14 @@ static void usb_bin_fixup(struct usb_device_descriptor descriptor,
 
 #define USB_MAX_READ_BLK 20
 
-unsigned long usb_stor_read(int device, unsigned long blknr, unsigned long blkcnt, void *buffer)
+unsigned long usb_stor_read(int device, lbaint_t blknr, unsigned long blkcnt, void *buffer)
 {
 	unsigned long start,blks, buf_addr;
 	unsigned short smallblks;
 	struct usb_device *dev;
 	int retry,i;
 	ccb *srb = &usb_ccb;
+	const int my_data_caches_on = sh_data_caches_on;
 
 	if (blkcnt == 0)
 		return 0;
@@ -966,12 +972,17 @@ unsigned long usb_stor_read(int device, unsigned long blknr, unsigned long blkcn
 			break;
 	}
 
+	if (my_data_caches_on)	/* is data cache on ? */
+		sh_disable_data_caches();
+
 	usb_disable_asynch(1); /* asynch transfer not allowed */
 	srb->lun=usb_dev_desc[device].lun;
 	buf_addr=(unsigned long)buffer;
 	start=blknr;
 	blks=blkcnt;
 	if(usb_test_unit_ready(srb,(struct us_data *)dev->privptr)) {
+		if (my_data_caches_on)	/* were the data caches on ? */
+			sh_enable_data_caches();
 		printf("Device NOT ready\n   Request Sense returned %02X %02X %02X\n",
 			srb->sense_buf[2],srb->sense_buf[12],srb->sense_buf[13]);
 		return 0;
@@ -1002,6 +1013,10 @@ retry_it:
 		blks-=smallblks;
 		buf_addr+=srb->datalen;
 	} while(blks!=0);
+
+	if (my_data_caches_on)	/* were the data caches on ? */
+		sh_enable_data_caches();
+
 	USB_STOR_PRINTF("usb_read: end startblk %lx, blccnt %x buffer %lx\n",start,smallblks,buf_addr);
 	usb_disable_asynch(0); /* asynch transfer allowed */
 	if(blkcnt>=USB_MAX_READ_BLK)

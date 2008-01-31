@@ -1,3 +1,8 @@
+#if 0	/* QQQ - DELETE */
+#	define PHYSICAL_ADDR(addr)	( 0x1fffffffu & (__u32)(addr) )
+#else
+#	define PHYSICAL_ADDR(addr)	(addr)
+#endif	/* QQQ - DELETE */
 /*
  * URB OHCI HCD (Host Controller Driver) for USB on the AT91RM9200 and PCI bus.
  *
@@ -414,7 +419,7 @@ static void ohci_dump (ohci_t *controller, int verbose)
 		ep_print_int_eds (controller, "hcca");
 	dbg ("hcca frame #%04x", controller->hcca->frame_no);
 	ohci_dump_roothub (controller, 1);
-
+}
 #endif /* DEBUG */
 
 /*-------------------------------------------------------------------------*
@@ -631,9 +636,9 @@ static int ep_link (ohci_t *ohci, ed_t *edi)
 	case PIPE_CONTROL:
 		ed->hwNextED = 0;
 		if (ohci->ed_controltail == NULL) {
-			writel (ed, &ohci->regs->ed_controlhead);
+			writel (PHYSICAL_ADDR(ed), &ohci->regs->ed_controlhead);
 		} else {
-			ohci->ed_controltail->hwNextED = m32_swap ((unsigned long)ed);
+			ohci->ed_controltail->hwNextED = PHYSICAL_ADDR(m32_swap ((unsigned long)ed));
 		}
 		ed->ed_prev = ohci->ed_controltail;
 		if (!ohci->ed_controltail && !ohci->ed_rm_list[0] &&
@@ -788,7 +793,7 @@ static ed_t * ep_add_ed (struct usb_device *usb_dev, unsigned long pipe,
 		ed->hwINFO = m32_swap (OHCI_ED_SKIP); /* skip ed */
 		/* dummy td; end of td list for ed */
 		td = td_alloc (usb_dev);
-		ed->hwTailP = m32_swap ((unsigned long)td);
+		ed->hwTailP = PHYSICAL_ADDR(m32_swap ((unsigned long)td));
 		ed->hwHeadP = ed->hwTailP;
 		ed->state = ED_UNLINK;
 		ed->type = usb_pipetype (pipe);
@@ -834,7 +839,7 @@ static void td_fill (ohci_t *ohci, unsigned int info,
 	td_pt->hwNextTD = 0;
 
 	/* fill the old dummy TD */
-	td = urb_priv->td [index] = (td_t *)(m32_swap (urb_priv->ed->hwTailP) & ~0xf);
+	td = urb_priv->td [index] = (td_t *)PHYSICAL_ADDR(m32_swap (urb_priv->ed->hwTailP) & ~0xf);
 
 	td->ed = urb_priv->ed;
 	td->next_dl_td = NULL;
@@ -851,12 +856,12 @@ static void td_fill (ohci_t *ohci, unsigned int info,
 		data = 0;
 
 	td->hwINFO = m32_swap (info);
-	td->hwCBP = m32_swap ((unsigned long)data);
+	td->hwCBP = PHYSICAL_ADDR(m32_swap ((unsigned long)data));
 	if (data)
-		td->hwBE = m32_swap ((unsigned long)(data + len - 1));
+		td->hwBE = PHYSICAL_ADDR(m32_swap ((unsigned long)(data + len - 1)));
 	else
 		td->hwBE = 0;
-	td->hwNextTD = m32_swap ((unsigned long)td_pt);
+	td->hwNextTD = PHYSICAL_ADDR(m32_swap ((unsigned long)td_pt));
 
 	/* append to queue */
 	td->ed->hwTailP = td->hwNextTD;
@@ -1640,7 +1645,7 @@ static int hc_start (ohci_t * ohci)
 	writel (0, &ohci->regs->ed_controlhead);
 	writel (0, &ohci->regs->ed_bulkhead);
 
-	writel ((__u32)ohci->hcca, &ohci->regs->hcca); /* a reset clears this */
+	writel (PHYSICAL_ADDR((__u32)ohci->hcca), &ohci->regs->hcca); /* a reset clears this */
 
 	fminterval = 0x2edf;
 	writel ((fminterval * 9) / 10, &ohci->regs->periodicstart);

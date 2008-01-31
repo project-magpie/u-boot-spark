@@ -31,6 +31,10 @@
 #include <part.h>
 #include <usb.h>
 
+#if defined(__SH4__)
+#include <asm/cache.h>
+#endif
+
 #ifdef CONFIG_USB_STORAGE
 static int usb_stor_curr_dev=-1; /* current device */
 #endif
@@ -449,6 +453,7 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 	if ((strncmp(argv[1], "reset", 5) == 0) ||
 		 (strncmp(argv[1], "start", 5) == 0)){
+		sh_disable_data_caches();
 		usb_stop();
 		printf("(Re)start USB...\n");
 		i = usb_init();
@@ -457,6 +462,7 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		if (i >= 0)
 	 		usb_stor_curr_dev = usb_stor_scan(1);
 #endif
+		sh_enable_data_caches();
 		return 0;
 	}
 	if (strncmp(argv[1],"stop",4) == 0) {
@@ -487,6 +493,7 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 	if (strncmp(argv[1],"inf",3) == 0) {
 		int d;
+		sh_disable_data_caches();
 		if (argc==2) {
 			for(d=0;d<USB_MAX_DEVICE;d++) {
 				dev=usb_get_dev_index(d);
@@ -495,6 +502,7 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				usb_display_desc(dev);
 				usb_display_config(dev);
 			}
+			sh_enable_data_caches();
 			return 0;
 		}
 		else {
@@ -511,6 +519,7 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			}
 			if (dev==NULL) {
 				printf("*** NO Device avaiable ***\n");
+				sh_enable_data_caches();
 				return 0;
 			}
 			else {
@@ -518,6 +527,7 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				usb_display_config(dev);
 			}
 		}
+		sh_enable_data_caches();
 		return 0;
 	}
 #ifdef CONFIG_USB_STORAGE
@@ -535,6 +545,7 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 	if (strncmp(argv[1],"part",4) == 0) {
 		int devno, ok;
+		sh_disable_data_caches();
 		for (ok=0, devno=0; devno<USB_MAX_STOR_DEV; ++devno) {
 			stor_dev=usb_stor_get_dev(devno);
 			if (stor_dev->type!=DEV_TYPE_UNKNOWN) {
@@ -545,6 +556,7 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				print_part(stor_dev);
 			}
 		}
+		sh_enable_data_caches();
 		if (!ok) {
 			printf("\nno USB devices available\n");
 			return 1;
