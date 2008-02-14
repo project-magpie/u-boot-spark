@@ -1,8 +1,3 @@
-#if 0	/* QQQ - DELETE */
-#	define PHYSICAL_ADDR(addr)	( 0x1fffffffu & (__u32)(addr) )
-#else
-#	define PHYSICAL_ADDR(addr)	(addr)
-#endif	/* QQQ - DELETE */
 /*
  * URB OHCI HCD (Host Controller Driver) for USB on the AT91RM9200 and PCI bus.
  *
@@ -75,6 +70,17 @@
     defined(CONFIG_PCI_OHCI) || \
     defined(CONFIG_MPC5200)
 # define OHCI_USE_NPS		/* force NoPowerSwitching mode */
+#endif
+
+/*
+ * On the SuperH architecture, we need to pass 'physical'
+ * addresses (in P0) to the on-chip USB hardware, and
+ * not use 'virtual' addresses (in P1).
+ */
+#ifdef __SH4__
+#	define PHYSICAL_ADDR(addr)	( 0x1ffffffful & (__u32)(addr) )
+#else
+#	define PHYSICAL_ADDR(addr)	(addr)
 #endif
 
 #undef OHCI_VERBOSE_DEBUG	/* not always helpful */
@@ -652,9 +658,9 @@ static int ep_link (ohci_t *ohci, ed_t *edi)
 	case PIPE_BULK:
 		ed->hwNextED = 0;
 		if (ohci->ed_bulktail == NULL) {
-			writel (ed, &ohci->regs->ed_bulkhead);
+			writel (PHYSICAL_ADDR(ed), &ohci->regs->ed_bulkhead);
 		} else {
-			ohci->ed_bulktail->hwNextED = m32_swap ((unsigned long)ed);
+			ohci->ed_bulktail->hwNextED = PHYSICAL_ADDR(m32_swap ((unsigned long)ed));
 		}
 		ed->ed_prev = ohci->ed_bulktail;
 		if (!ohci->ed_bulktail && !ohci->ed_rm_list[0] &&
@@ -839,7 +845,7 @@ static void td_fill (ohci_t *ohci, unsigned int info,
 	td_pt->hwNextTD = 0;
 
 	/* fill the old dummy TD */
-	td = urb_priv->td [index] = (td_t *)PHYSICAL_ADDR(m32_swap (urb_priv->ed->hwTailP) & ~0xf);
+	td = urb_priv->td [index] = (td_t *)(m32_swap (urb_priv->ed->hwTailP) & ~0xf);
 
 	td->ed = urb_priv->ed;
 	td->next_dl_td = NULL;

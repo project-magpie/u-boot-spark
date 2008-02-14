@@ -31,20 +31,11 @@
 
 #if defined(CONFIG_USB_OHCI_NEW) && defined(CFG_USB_OHCI_CPU_INIT)
 
-#ifdef CONFIG_CPU_SUBTYPE_STX7200	/* QQQ - CHECK MACRO NAME HERE */
-#define STRAP_MODE	0 /* 8 bit */	/* QQQ is this correct ? */
-#else
-#define STRAP_MODE	AHB2STBUS_STRAP_16_BIT
-#endif
-#define MSGSIZE		AHB2STBUS_MSGSIZE_4
-#define CHUNKSIZE	AHB2STBUS_CHUNKSIZE_4
-
 #define mdelay(x)	do { udelay((x)*1000); } while(0)
 
 
 	/* QQQ: following line should be in configPIO() */
 #define PIO_BASE  0xb8020000	/* Phys 0x18020000 */
-
 
 extern int usb_cpu_init(void)
 {
@@ -118,10 +109,15 @@ extern int usb_cpu_init(void)
 	 ****************************************************************
 	 ****************************************************************/
 
+
 	/* Set strap mode */
+#define STRAP_MODE	AHB2STBUS_STRAP_16_BIT
 	reg = readl(AHB2STBUS_STRAP);
+#if STRAP_MODE == 0
 	reg &= ~AHB2STBUS_STRAP_16_BIT;
+#else
 	reg |= STRAP_MODE;
+#endif
 	writel(reg, AHB2STBUS_STRAP);
 
 	/* Start PLL */
@@ -134,11 +130,11 @@ extern int usb_cpu_init(void)
 	/* Set the STBus Opcode Config for 32-bit access */
 	writel(AHB2STBUS_STBUS_OPC_32BIT, AHB2STBUS_STBUS_OPC);
 
-	/* Set the Message Size Config to n packets per message */
-	writel(MSGSIZE, AHB2STBUS_MSGSIZE);
+	/* Set the Message Size Config to 4 packets per message */
+	writel(AHB2STBUS_MSGSIZE_4, AHB2STBUS_MSGSIZE);
 
-	/* Set the Chunk Size Config to n packets per chunk */
-	writel(CHUNKSIZE, AHB2STBUS_CHUNKSIZE);
+	/* Set the Chunk Size Config to 4 packets per chunk */
+	writel(AHB2STBUS_CHUNKSIZE_4, AHB2STBUS_CHUNKSIZE);
 
 	return 0;
 }
@@ -154,5 +150,4 @@ extern int usb_cpu_init_fail(void)
 }
 
 #endif /* defined(CONFIG_USB_OHCI) && defined(CFG_USB_OHCI_CPU_INIT) */
-
 

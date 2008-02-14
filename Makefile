@@ -2698,7 +2698,6 @@ mb442se_30_128_config : 	unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/mb442/config.tmp)
-	@echo "TEXT_BASE = 0x07F00000" >$(obj)board/mb442/config.tmp
 	@./mkconfig -a mb442 sh sh mb442 "" stb7100
 
 mb448_config :		unconfig
