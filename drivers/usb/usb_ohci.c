@@ -83,6 +83,21 @@
 #	define PHYSICAL_ADDR(addr)	(addr)
 #endif
 
+/* WARNING! WARNING! WARNING! WARNING!
+ * Uncommenting the following line will remove some delays in the USB
+ * sub-system. However, it is possible that some of these removed delays
+ * may be actually necessary on some hardware devices.
+ * So, although this gives a useful performance improvement, it does
+ * so at the potential risk of reliability and stability.  This should be
+ * considered as an experiential configuration, and not at all recommended
+ * for production or deployment code, unless it has been thoroughly
+ * tested for your specific hardware.
+ * Enabling this optimisation makes some assumptions, that may be totally
+ * without any foundation.  If reliability or stability becomes an issue,
+ * then please disable this configuration option, as a first step.
+ * Use it at your own peril - caveat emptor! */
+//#define CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS
+
 #undef OHCI_VERBOSE_DEBUG	/* not always helpful */
 #undef DEBUG
 #undef SHOW_INFO
@@ -1465,7 +1480,9 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 	urb->actual_length = 0;
 	pkt_print(urb, dev, pipe, buffer, transfer_len, setup, "SUB", usb_pipein(pipe));
 #else
+#ifndef CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS
 	wait_ms(1);
+#endif	/* CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS */
 #endif
 	if (!maxsize) {
 		err("submit_common_message: pipesize for pipe %lx is zero",
@@ -1489,6 +1506,10 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 		timeout = BULK_TO;
 	else
 		timeout = 100;
+#ifdef CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS
+	/* use units of 100us, instead of 1ms */
+	timeout *= 10;
+#endif	/* CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS */
 
 	/* wait for it to complete */
 	for (;;) {
@@ -1514,7 +1535,12 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 		}
 
 		if (--timeout) {
+#ifdef CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS
+			/* use units of 100us, instead of 1ms */
+			udelay(100);
+#else
 			wait_ms(1);
+#endif	/* CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS */
 			if (!urb->finished)
 				dbg("\%");
 
@@ -1533,7 +1559,9 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 #ifdef DEBUG
 	pkt_print(urb, dev, pipe, buffer, transfer_len, setup, "RET(ctlr)", usb_pipein(pipe));
 #else
+#ifndef CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS
 	wait_ms(1);
+#endif	/* CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS */
 #endif
 
 	/* free TDs in urb_priv */
@@ -1559,7 +1587,9 @@ int submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 #ifdef DEBUG
 	pkt_print(NULL, dev, pipe, buffer, transfer_len, setup, "SUB", usb_pipein(pipe));
 #else
+#ifndef CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS
 	wait_ms(1);
+#endif	/* CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS */
 #endif
 	if (!maxsize) {
 		err("submit_control_message: pipesize for pipe %lx is zero",
@@ -1749,7 +1779,9 @@ static int hc_interrupt (void)
 	}
 
 	if (ints & OHCI_INTR_WDH) {
+#ifndef CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS
 		wait_ms(1);
+#endif	/* CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS */
 		writel (OHCI_INTR_WDH, &regs->intrdisable);
 		(void)readl (&regs->intrdisable); /* flush */
 		stat = dl_done_list (&gohci, dl_reverse_done_list (&gohci));
