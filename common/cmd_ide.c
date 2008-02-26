@@ -56,8 +56,8 @@
 #include <asm/io.h>
 #endif
 
-#if defined(CONFIG_SH_STB7100_SATA)
-# include <asm/stb7100reg.h>
+#if defined(CONFIG_SH_STB7100_SATA) && defined(CONFIG_SH_STB7100)
+#include <asm/stb7100reg.h>
 #endif
 
 #ifdef CONFIG_IDE_8xx_DIRECT
@@ -940,7 +940,7 @@ output_data(int dev, ulong *sect_buf, int words)
 	}
 #endif
 }
-#elif defined(CONFIG_SH_STB7100_SATA)
+#elif defined(CONFIG_SH_STB7100_SATA) && defined(CONFIG_SH_STB7100)
 static void
 output_data(int dev, ulong *sect_buf, int words)
 {
@@ -1015,7 +1015,7 @@ input_data(int dev, ulong *sect_buf, int words)
 	}
 #endif
 }
-#elif defined(CONFIG_SH_STB7100_SATA)
+#elif defined(CONFIG_SH_STB7100_SATA) && defined(CONFIG_SH_STB7100)
 static void
 input_data(int dev, ulong *sect_buf, int words)
 {

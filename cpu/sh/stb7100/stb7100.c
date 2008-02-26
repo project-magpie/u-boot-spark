@@ -27,7 +27,10 @@
 #include <asm/stb7100reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
+#include <asm/stbus.h>
 #include <ata.h>
+
+#define PIO_BASE  0xb8020000	/* Phys 0x18020000 */
 
 static int st40c_div[] = {1, 2, 3, 4, 6, 8, 1, 1};
 static int st40b_div[] = {1, 2, 3, 4, 6, 8, 2, 2};
@@ -71,8 +74,6 @@ void stb7100_clocks(void)
 #define MII_MODE            0x00040000 /* RMII interface activated */
 #define ETH_IF_ON           0x00010000 /* ETH interface on */
 #define DVO_ETH_PAD_DISABLE 0x00020000 /* DVO eth pad disable */
-
-#define PIO_BASE  0xb8020000
 
 int stmac_default_pbl(void)
 {
@@ -310,4 +311,94 @@ extern unsigned char ide_inb(int dev, int port)
 }
 
 #endif /* defined(CONFIG_SH_STB7100_SATA) */
+
+
+#if defined(CONFIG_USB_OHCI_NEW)
+
+extern void stb7100_usb_init(void)
+{
+	unsigned long reg;
+	DECLARE_GLOBAL_DATA_PTR;
+	bd_t *bd = gd->bd;
+
+	/* Work around for USB over-current detection chip being
+	 * active low, and the 710x being active high.
+	 *
+	 * This test is wrong for 7100 cut 3.0 (which needs the work
+	 * around), but as we can't reliably determine the minor
+	 * revision number, hard luck, this works for most people.
+	 */
+	if ( ( (STB7100_DEVICEID_7109(bd->bi_devid)) &&
+	       (STB7100_DEVICEID_CUT(bd->bi_devid) < 2) ) ||
+	     ( (STB7100_DEVICEID_7100(bd->bi_devid)) &&
+	       (STB7100_DEVICEID_CUT(bd->bi_devid) < 3) ) )
+	{
+		/* Setup PIO for USB over-current */
+		SET_PIO_PIN(PIO_PORT(5), 6, STPIO_OUT);
+		STPIO_SET_PIN(PIO_PORT(5), 6, 0);
+	}
+
+	/*
+	 * There have been two changes to the USB power enable signal:
+	 *
+	 * - 7100 upto and including cut 3.0 and 7109 1.0 generated an
+	 *   active high enables signal. From 7100 cut 3.1 and 7109 cut 2.0
+	 *   the signal changed to active low.
+	 *
+	 * - The 710x ref board (mb442) has always used power distribution
+	 *   chips which have active high enables signals (on rev A and B
+	 *   this was a TI TPS2052, rev C used the ST equivalent a ST2052).
+	 *   However rev A and B had a pull up on the enables signal, while
+	 *   rev C changed this to a pull down.
+	 *
+	 * The net effect of all this is that the easiest way to drive
+	 * this signal is ignore the USB hardware and drive it as a PIO
+	 * pin.
+	 *
+	 * (Note the USB over current input on the 710x changed from active
+	 * high to low at the same cuts, but board revs A and B had a resistor
+	 * option to select an inverted output from the TPS2052, so no
+	 * software work around is required.)
+	 */
+	/* Setup PIO for USB power */
+	SET_PIO_PIN(PIO_PORT(5), 7, STPIO_OUT);
+	STPIO_SET_PIN(PIO_PORT(5), 7, 1);
+
+	/* Make sure PLL is on */
+#define SYS_CFG2_PLL_POWER_DOWN_BIT	1
+	reg = readl(STB7100_SYSCONF_SYS_CFG02);
+	if (reg & SYS_CFG2_PLL_POWER_DOWN_BIT)
+	{
+		writel(reg & (~SYS_CFG2_PLL_POWER_DOWN_BIT),
+			STB7100_SYSCONF_SYS_CFG02);
+		udelay(100000);	/* QQQ: can this delay be shorter ? */
+	}
+
+	/* Set strap mode */
+#define STRAP_MODE	AHB2STBUS_STRAP_16_BIT
+	reg = readl(AHB2STBUS_STRAP);
+#if STRAP_MODE == 0
+	reg &= ~AHB2STBUS_STRAP_16_BIT;
+#else
+	reg |= STRAP_MODE;
+#endif
+	writel(reg, AHB2STBUS_STRAP);
+
+	/* Start PLL */
+	reg = readl(AHB2STBUS_STRAP);
+	writel(reg | AHB2STBUS_STRAP_PLL, AHB2STBUS_STRAP);
+	udelay(100000);	/* QQQ: can this delay be shorter ? */
+	writel(reg & (~AHB2STBUS_STRAP_PLL), AHB2STBUS_STRAP);
+	udelay(100000);	/* QQQ: can this delay be shorter ? */
+
+	/* Set the STBus Opcode Config for 32-bit access */
+	writel(AHB2STBUS_STBUS_OPC_32BIT, AHB2STBUS_STBUS_OPC);
+
+	/* Set the Message Size Config to 4 packets per message */
+	writel(AHB2STBUS_MSGSIZE_4, AHB2STBUS_MSGSIZE);
+
+	/* Set the Chunk Size Config to 4 packets per chunk */
+	writel(AHB2STBUS_CHUNKSIZE_4, AHB2STBUS_CHUNKSIZE);
+}
+#endif /* defined(CONFIG_USB_OHCI_NEW) */
 

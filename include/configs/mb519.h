@@ -143,6 +143,33 @@
  */
 #define CONFIG_ENV_OVERWRITE
 
+
+/*---------------------------------------------------------------
+ * USB driver config
+ */
+
+/* Choose if we want USB Mass-Storage Support */
+//#define CONFIG_SH_STB7100_USB
+
+#ifdef CONFIG_SH_STB7100_USB
+#	define CONFIG_CMD_USB
+#	define CONFIG_CMD_FAT
+#	define CONFIG_USB_OHCI_NEW
+#	define CONFIG_USB_STORAGE
+#	define CFG_USB_OHCI_CPU_INIT
+#	define CFG_USB0_BASE			0xfd200000	/* middle */
+#	define CFG_USB1_BASE			0xfd300000	/* right */
+#	define CFG_USB2_BASE			0xfd400000	/* left */
+#	define CFG_USB_BASE			CFG_USB0_BASE
+#	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
+#	define CFG_USB_OHCI_SLOT_NAME		"ohci"
+#	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
+#	define LITTLEENDIAN
+	/* Uncomment the following line only if using STi7200
+	 * cut 1.x silicon, without the RC-delay board fix. */
+//#	define CONFIG_USB_STI7200_CUT1_SOFT_JTAG_RESET_WORKAROUND
+#endif	/* ifdef CONFIG_SH_STB7100_USB */
+
 /*---------------------------------------------------------------
  * IDE driver config
  */
@@ -160,10 +187,15 @@
 #	define CFG_ATA_DATA_OFFSET	0x0
 #	define CFG_ATA_STRIDE		0x4
 #	define CFG_ATA_ALT_OFFSET	0x8
+#endif	/* CONFIG_SH_STB7100_SATA */
+
+#if defined(CONFIG_SH_STB7100_SATA) ||	\
+    defined(CONFIG_SH_STB7100_USB)
 #	define CFG_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION
-#endif	/* CONFIG_SH_STB7100_SATA */
+#	define CONFIG_CMD_EXT2
+#endif
 
 /*-----------------------------------------------------------------------
  * Miscellaneous configurable options

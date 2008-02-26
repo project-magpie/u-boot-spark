@@ -30,10 +30,9 @@
  *--------------------------------------------------------------*/
 
 /* Defines for the USB controller register offsets. */
-#define UHOST2C_BASE			0xb9100000
-#define AHB2STBUS_WRAPPER_GLUE_BASE	(UHOST2C_BASE + 0x00000000)
-#define AHB2STBUS_OHCI_BASE		(UHOST2C_BASE + 0x000ffc00)
-#define AHB2STBUS_PROTOCOL_BASE		(UHOST2C_BASE + 0x000fff00)
+#define AHB2STBUS_WRAPPER_GLUE_BASE	(CFG_USB_BASE + 0x00000000)
+#define AHB2STBUS_OHCI_BASE		(CFG_USB_BASE + 0x000ffc00)
+#define AHB2STBUS_PROTOCOL_BASE		(CFG_USB_BASE + 0x000fff00)
 
 /* The transaction opcode is programmed in this register. */
 #define AHB2STBUS_STBUS_OPC		(AHB2STBUS_PROTOCOL_BASE + 0x00)
@@ -67,10 +66,5 @@
 #define AHB2STBUS_STRAP			(AHB2STBUS_WRAPPER_GLUE_BASE + 0x14)
 #define AHB2STBUS_STRAP_PLL		0x08	/* PLL_PWR_DWN */
 #define AHB2STBUS_STRAP_16_BIT		0x04	/* SS_WORD_IF */
-
-/* SYSCONF registers. */
-#define SYSCONF_BASE			0xb9001000
-#define SYS_CFG2			(SYSCONF_BASE + 0x108)
-#define SYS_CFG2_PLL_POWER_DOWN_BIT	1
 
 #endif	/* __STBUS_H__ */
