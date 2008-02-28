@@ -559,6 +559,9 @@ void flash_print_info (flash_info_t * info)
 		int erased;
 		volatile unsigned long *flash;
 
+		/* make sure the sector is in read mode first */
+		flash_write_cmd (info, i, 0, info->cmd_reset);
+
 		/*
 		 * Check if whole sector is erased
 		 */
@@ -1273,6 +1276,7 @@ ulong flash_get_size (ulong base, int banknum)
 					num_erase_regions, NUM_ERASE_REGIONS);
 				break;
 			}
+			flash_write_cmd (info, 0, 0, FLASH_CMD_CFI);
 			if (geometry_reversed)
 				tmp = flash_read_long (info, 0,
 					       FLASH_OFFSET_ERASE_REGIONS +
@@ -1297,10 +1301,16 @@ ulong flash_get_size (ulong base, int banknum)
 				switch (info->vendor) {
 				case CFI_CMDSET_INTEL_EXTENDED:
 				case CFI_CMDSET_INTEL_STANDARD:
+					/* for multi-bank devices, the READ_ID command
+					 * must be issued on a per sector basis */
+					flash_write_cmd (info, sect_cnt, 0, FLASH_CMD_READ_ID);
 					info->protect[sect_cnt] =
 						flash_isset (info, sect_cnt,
 							     FLASH_OFFSET_PROTECT,
 							     FLASH_STATUS_PROTECT);
+					/* for multi-bank devices, the RESET command
+					 * must be issued on a per sector basis */
+					flash_write_cmd (info, sect_cnt, 0, FLASH_CMD_RESET);
 					break;
 				default:
 					info->protect[sect_cnt] = 0; /* default: not protected */
