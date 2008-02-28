@@ -50,13 +50,14 @@
 
 #define __WANT_IO_DEF
 
-# if defined(CONFIG_SH_MB411) || \
-       defined(CONFIG_SH_MB442) || \
-       defined(CONFIG_SH_MB448) || \
-       defined(CONFIG_SH_HMS1) || \
-       defined(CONFIG_SH_MB519)
+#if defined(CONFIG_SH_MB411)	|| \
+       defined(CONFIG_SH_MB442)	|| \
+       defined(CONFIG_SH_MB448)	|| \
+       defined(CONFIG_SH_HMS1)	|| \
+       defined(CONFIG_SH_MB519)	|| \
+       defined(CONFIG_SH_CB101)
 #  include "asm/io_stb1eval.h"
-# else
+#else
 #  error "What system is this?"
 #endif
 
