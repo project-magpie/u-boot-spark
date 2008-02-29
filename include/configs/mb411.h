@@ -30,12 +30,12 @@
  * (easy to change)
  */
 
-#define CONFIG_SH4    1	              /* This is an SH4 CPU	        */
-#define CONFIG_CPU_SUBTYPE_SH4_2XX    /* its an SH4-202                 */
+#define CONFIG_SH4	1		/* This is an SH4 CPU		*/
+#define CONFIG_CPU_SUBTYPE_SH4_2XX	/* its an SH4-202		*/
 
 #define INPUT_CLOCK_RATE 27
 
-#define P_CLOCK_RATE     66000000     /* clock rate for CSP             */
+#define P_CLOCK_RATE	66000000	/* clock rate for CSP		*/
 
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
@@ -64,7 +64,7 @@
 
 #define BOARD mb411
 
-#define	CONFIG_EXTRA_ENV_SETTINGS \
+#define CONFIG_EXTRA_ENV_SETTINGS \
 		"board=" XSTR(BOARD) "\0" \
 		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
 		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
@@ -94,14 +94,14 @@
  * Serial console info
  */
 
-#define CONFIG_STM_ASC_SERIAL 1
+#define CONFIG_STM_ASC_SERIAL	1
 
-#define CONFIG_CONS_INDEX 0
+#define CONFIG_CONS_INDEX	0
 
 #if (CONFIG_CONS_INDEX == 0)
-#define CFG_STM_ASC_BASE 0xb8032000ul /* UART2 */
+#define CFG_STM_ASC_BASE	0xb8032000ul	/* UART2 */
 #else
-#define CFG_STM_ASC_BASE 0xb8033000ul /* UART3 */
+#define CFG_STM_ASC_BASE	0xb8033000ul	/* UART3 */
 #endif
 
 /*---------------------------------------------------------------
@@ -223,16 +223,16 @@
  * Miscellaneous configurable options
  */
 
-#define CFG_HUSH_PARSER         1
-#define	CFG_LONGHELP		1		/* undef to save memory		*/
+#define CFG_HUSH_PARSER		1
+#define CFG_LONGHELP		1		/* undef to save memory		*/
 #define CFG_PROMPT		"MB411> "	/* Monitor Command Prompt	*/
-#define CFG_PROMPT_HUSH_PS2     "> "
+#define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
 #define CFG_MAXARGS		16		/* max number of command args	*/
 #define CFG_HZ			(P_CLOCK_RATE/1024)		/* HZ for timer ticks		*/
 #define CFG_LOAD_ADDR		CFG_SDRAM_BASE	/* default load address		*/
-#define CFG_BOOTMAPSZ           (16 << 20)      /* initial linux memory size	*/
+#define CFG_BOOTMAPSZ		(16 << 20)	/* initial linux memory size	*/
 #define CONFIG_BOOTDELAY	10		/* default delay before executing bootcmd */
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 
@@ -246,9 +246,10 @@
 /* STb7100 Mboard organised as 8MB flash with 128k blocks */
 #define CFG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
-#define CFG_FLASH_PROTECTION    1	/* use hardware flash protection        */
+#define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
 #define CFG_MAX_FLASH_SECT	64	/* max number of sectors on one chip	*/
+#define CFG_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
 
 
 /*-----------------------------------------------------------------------
@@ -257,10 +258,10 @@
 
 /* Address and size of Primary Environment Sector	*/
 
-#define	CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_OFFSET          0x20000
-#define CFG_ENV_ADDR            (CFG_FLASH_BASE + CFG_ENV_OFFSET)
-#define CFG_ENV_SIZE            0x10000
-#define CFG_ENV_SECT_SIZE       0x20000
+#define CFG_ENV_IS_IN_FLASH	1
+#define CFG_ENV_OFFSET		0x20000
+#define CFG_ENV_ADDR		(CFG_FLASH_BASE + CFG_ENV_OFFSET)
+#define CFG_ENV_SIZE		0x10000
+#define CFG_ENV_SECT_SIZE	0x20000
 
 #endif	/* __CONFIG_H */
