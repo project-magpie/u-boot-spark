@@ -901,6 +901,7 @@ static void td_submit_job (struct usb_device *dev, unsigned long pipe, void *buf
 	int cnt = 0;
 	__u32 info = 0;
 	unsigned int toggle = 0;
+	volatile struct ed * ed;
 
 	/* OHCI handles the DATA-toggles itself, we just use the USB-toggle bits for reseting */
 	if(usb_gettoggle(dev, usb_pipeendpoint(pipe), usb_pipeout(pipe))) {
@@ -928,6 +929,27 @@ static void td_submit_job (struct usb_device *dev, unsigned long pipe, void *buf
 		td_fill (ohci, info | (cnt? TD_T_TOGGLE:toggle), data, data_len, dev, cnt, urb);
 		cnt++;
 
+		/* check for possible DataToggle errors */
+		ed = urb->td[0]->ed;
+		if ( ((ed->hwHeadP>>1)&0x1) != (toggle ? 0 : 1) )
+		{
+			/*
+			 * If we were now to instruct the HC to process
+			 * the TDs, we would yield a DataToggle error.
+			 * We correct this here, by ensuring the HC
+			 * is back in sync with the device.
+			 */
+#if 0
+			printf ("\n************************************************************\n"
+				"OHCI: Correcting putative DataToggle Error for dev=%u, en=%u-%s\n"
+				"************************************************************\n",
+				usb_pipedevice(pipe),
+				usb_pipeendpoint(pipe),
+				usb_pipeout(pipe) ? "O" : "I");
+#endif
+				/* invert the "toggleCarry" bit in the ED */
+			ed->hwHeadP ^= 0x2;
+		}
 		if (!ohci->sleeping)
 			writel (OHCI_BLF, &ohci->regs->cmdstatus); /* start bulk list */
 		break;
@@ -1057,6 +1079,12 @@ static int dl_done_list (ohci_t *ohci, td_t *td_list)
 			dbg("ConditionCode %#x", cc);
 			stat = cc_to_error[cc];
 		}
+
+		/* save the toggleCarry bit, for later use */
+		usb_settoggle (lurb_priv->dev,
+			usb_pipeendpoint(lurb_priv->pipe),
+			usb_pipeout(lurb_priv->pipe),
+			(ed->hwHeadP>>1)&0x1);
 
 		/* see if this done list makes for all TD's of current URB,
 		 * and mark the URB finished if so */
