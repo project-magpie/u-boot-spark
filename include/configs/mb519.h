@@ -71,11 +71,19 @@
 
 #define BOARD mb519
 
+#if CFG_MONITOR_LEN == 0x00020000		/* 128 kB */
+#	define MONITOR_SECTORS	"1:0"		/* 1 sector */
+#elif CFG_MONITOR_LEN == 0x00040000		/* 256 kB */
+#	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
+#else						/* unknown */
+#	error "Unable to determine sectors for monitor"
+#endif
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 		"board=" XSTR(BOARD) "_" XSTR(INPUT_CLOCK_RATE) "\0" \
 		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
 		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
-		"monitor_sec=1:0\0" \
+		"monitor_sec=" MONITOR_SECTORS "\0" \
 		"load_addr=" XSTR(CFG_LOAD_ADDR) "\0" \
 		"unprot=" \
 		  "protect off $monitor_sec\0" \
@@ -238,7 +246,7 @@
 /* Address and size of Primary Environment Sector	*/
 
 #define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_OFFSET		0x20000
+#define CFG_ENV_OFFSET		CFG_MONITOR_LEN
 #define CFG_ENV_ADDR		(CFG_FLASH_BASE + CFG_ENV_OFFSET)
 #define CFG_ENV_SIZE		0x10000
 #define CFG_ENV_SECT_SIZE	0x20000
