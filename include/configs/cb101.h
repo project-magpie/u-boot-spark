@@ -103,6 +103,8 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_MII
+#define CONFIG_CMD_NAND
+#define CONFIG_CMD_JFFS2
 
 /*--------------------------------------------------------------
  * Serial console info
@@ -207,7 +209,7 @@
 #define CONFIG_CMDLINE_EDITING
 
 /*-----------------------------------------------------------------------
- * FLASH organization
+ * NOR FLASH organization
  */
 
 /* M58LT256GT: 32Mbyte 259 blocks, 128K block size plus parameter block */
@@ -233,4 +235,49 @@
 #define CFG_ENV_SIZE		0x10000
 #define CFG_ENV_SECT_SIZE	0x20000
 
+
+/*-----------------------------------------------------------------------
+ * NAND FLASH organization
+ */
+
+#define CFG_MAX_NAND_DEVICE	2
+#define NAND_MAX_CHIPS		CFG_MAX_NAND_DEVICE
+#define CFG_NAND0_BASE		0xA2000000	/* Physical 0x02000000 */
+#define CFG_NAND1_BASE		0xA3000000	/* Physical 0x03000000 */
+#define CFG_NAND_BASE_LIST	{ CFG_NAND0_BASE, CFG_NAND1_BASE }
+
+
+/*----------------------------------------------------------------------
+ * jffs2 support
+ */
+
+#if defined(CONFIG_CMD_JFFS2)
+#define CONFIG_JFFS2_NAND	/* JFFS2 support on NAND Flash */
+#define CONFIG_JFFS2_CMDLINE	/* mtdparts command line support */
+#define MTDPARTS_DEFAULT						\
+	"mtdparts="							\
+	"physmap-flash:"	/* First NOR flash device */		\
+		"256k(U-Boot)"		/* first partition */		\
+		",128k(Environment)"					\
+		",-(RestOfNor0)"	/* last partition */		\
+		";"		/* delimiter */				\
+	"gen_nand.1:"		/* First NAND flash device */		\
+		"32M(kernel-nand0)"	/* first partition */		\
+		",32M(root-nand0)"					\
+		",-(RestOfNand0)"	/* last partition */		\
+		";"		/* delimiter */				\
+	"gen_nand.2:"		/* Second NAND flash device */		\
+		"32M(kernel-nand1)"	/* first partition */		\
+		",32M(root-nand1)"					\
+		",-(RestOfNand1)"	/* last partition */
+#define MTDIDS_DEFAULT							\
+	"nor0=physmap-flash"	/* First NOR flash device */		\
+		","		/* delimiter */				\
+	"nand0=gen_nand.1"	/* First NAND flash device */		\
+		","		/* delimiter */				\
+	"nand1=gen_nand.2"	/* Second NAND flash device */
+#endif	/* CONFIG_CMD_JFFS2 */
+
+
 #endif	/* __CONFIG_H */
+

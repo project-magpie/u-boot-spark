@@ -41,7 +41,9 @@ void flashWriteDisable(void)
 	/*  Disable vpp for writing to flash */
 }
 
+
 #define PIO_BASE  0xfd020000
+
 
 static void configPIO(void)
 {
@@ -57,7 +59,33 @@ static void configPIO(void)
 	udelay(1);
 	STPIO_SET_PIN(PIO_PORT(4), 7, 1);
 
+#if defined(CONFIG_CMD_NAND)
+	/*  Setup PIO for NAND FLASH devices: Ready/Not_Busy */
+	SET_PIO_PIN(PIO_PORT(2), 7, STPIO_IN);
+#endif	/* CONFIG_CMD_NAND */
 }
+
+
+#if defined(CONFIG_CMD_NAND)
+static void nand_emi_init(void)
+{
+	/* setup the EMI configuration for the 2 banks
+	 * containing NAND flash devices. */
+
+	/* NAND FLASH in EMI Bank #1 (128MB) */
+	*ST40_EMI_BANK1_EMICONFIGDATA0 = 0x04100e99;
+	*ST40_EMI_BANK1_EMICONFIGDATA1 = 0x04000200;
+	*ST40_EMI_BANK1_EMICONFIGDATA2 = 0x04000200;
+	*ST40_EMI_BANK1_EMICONFIGDATA3 = 0x00000000;
+
+	/* NAND FLASH in EMI Bank #2 (1GB) */
+	*ST40_EMI_BANK2_EMICONFIGDATA0 = 0x04100e99;
+	*ST40_EMI_BANK2_EMICONFIGDATA1 = 0x04000200;
+	*ST40_EMI_BANK2_EMICONFIGDATA2 = 0x04000200;
+	*ST40_EMI_BANK2_EMICONFIGDATA3 = 0x00000000;
+}
+#endif	/* CONFIG_CMD_NAND */
+
 
 int board_init(void)
 {
@@ -125,6 +153,10 @@ int board_init(void)
 	sysconf &= ~( (1<<(16+2)) | (1<<(16+3)) | (1<<(16+4)) | (1<<(16+6)) |
 		      (1<<(16+9)) | (1<<(16+10)));
 	*STX7200_SYSCONF_SYS_CFG41 = sysconf;
+
+#if defined(CONFIG_CMD_NAND)
+	nand_emi_init();
+#endif	/* CONFIG_CMD_NAND */
 
 	configPIO();
 

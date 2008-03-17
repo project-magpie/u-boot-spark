@@ -32,7 +32,7 @@
 #endif
 
 int nand_curr_device = -1;
-nand_info_t nand_info[CFG_MAX_NAND_DEVICE];
+nand_info_t nand_info[CFG_MAX_NAND_DEVICE] = {{0}};
 
 static struct nand_chip nand_chip[CFG_MAX_NAND_DEVICE];
 static ulong base_address[CFG_MAX_NAND_DEVICE] = CFG_NAND_BASE_LIST;

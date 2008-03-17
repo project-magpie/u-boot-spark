@@ -30,6 +30,9 @@
 #include <version.h>
 #include <net.h>
 #include <environment.h>
+#if defined(CONFIG_CMD_NAND)
+#include <nand.h>
+#endif
 
 extern ulong _uboot_end_data;
 extern ulong _uboot_end;
@@ -219,6 +222,11 @@ void start_sh4boot (void)
 
 	/* initialize malloc() area */
 	mem_malloc_init ();
+
+#if defined(CONFIG_CMD_NAND)
+	puts ("NAND:  ");
+	nand_init();		/* go init the NAND */
+#endif
 
 	/* Allocate environment function pointers etc. */
 	env_relocate ();

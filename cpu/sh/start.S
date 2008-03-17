@@ -117,14 +117,21 @@ _start:
 	SH4_SET_PMB 4 0xb8 0x18  64 0 0 1	/* ON-chip   Peripherals UN-cached */
 	SH4_SET_PMB 5 0xbc 0x1c  64 0 0 1	/* ST40 core Peripherals UN-cached */
 #elif defined(CONFIG_SH_STX7200)
-	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0  UN-cached */
-	SH4_SET_PMB 1 0x90 0x40 128 0 0 1	/* LMI0  UN-cached */
-	SH4_SET_PMB 2 0xa0 0x00  16 0 0 1	/* FLASH UN-cached */
-	SH4_SET_PMB 3 0xa1 0x01  16 0 0 1	/* FLASH UN-cached */
-	SH4_SET_PMB 4 0xb5 0x05  16 0 0 1	/* EPLD  UN-cached */
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 UN-cached */
+	SH4_SET_PMB 1 0x90 0x40 128 0 0 1	/* LMI0 UN-cached */
+	SH4_SET_PMB 2 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 3 0xa1 0x01  16 0 0 1	/* NOR FLASH UN-cached */
+#if defined(CONFIG_SH_MB519)			/* MB519 */
+	SH4_SET_PMB 4 0xb5 0x05  16 0 0 1	/* EPLD UN-cached */
+#elif defined(CONFIG_SH_CB101)			/* CB101 */
+	SH4_SET_PMB 4 0xa2 0x02  16 0 0 1	/* NAND FLASH UN-cached */
+	SH4_SET_PMB 5 0xa3 0x03  16 0 0 1	/* NAND FLASH UN-cached */
 #else
-	#error Do not know how to setup the PMB entries.
-#endif
+	#error Do not know which board we are using for PMB setup.
+#endif	/* defined(CONFIG_SH_MBxxx) */
+#else
+	#error Do not know which chip we are using for PMB setup.
+#endif	/* defined(CONFIG_SH_STxxx) */
 #endif	/* CONFIG_SH_SE_MODE */
 
 	cmp/pl	r8			/* Are we in correct place already ? */
