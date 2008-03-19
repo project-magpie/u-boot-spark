@@ -497,8 +497,10 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
 			if (flash_full_status_check
 			    (info, sect, info->erase_blk_tout, "erase")) {
 				rcode = 1;
-			} else
+			} else {
+				flash_write_cmd (info, sect, 0, FLASH_CMD_RESET);
 				putc ('.');
+			}
 		}
 	}
 	puts (" done\n");
@@ -730,6 +732,7 @@ int flash_real_protect (flash_info_t * info, long sector, int prot)
 			}
 		}
 	}
+	flash_write_cmd (info, sector, 0, FLASH_CMD_RESET);
 	return retcode;
 }
 
@@ -1356,12 +1359,17 @@ static flash_sect_t find_sector (flash_info_t * info, ulong addr)
 static int flash_write_cfiword (flash_info_t * info, ulong dest,
 				cfiword_t cword)
 {
+	flash_sect_t sector;
 	cfiptr_t ctladdr;
 	cfiptr_t cptr;
-	int flag;
+	int flag, retcode;
 
 	ctladdr.cp = flash_make_addr (info, 0, 0);
 	cptr.cp = (uchar *) dest;
+
+	/* put the flash in read mode */
+	sector = find_sector (info, dest);
+	flash_write_cmd (info, sector, 0, FLASH_CMD_RESET);
 
 	/* Check if Flash is (sufficiently) erased */
 	switch (info->portwidth) {
@@ -1389,8 +1397,8 @@ static int flash_write_cfiword (flash_info_t * info, ulong dest,
 	switch (info->vendor) {
 	case CFI_CMDSET_INTEL_EXTENDED:
 	case CFI_CMDSET_INTEL_STANDARD:
-		flash_write_cmd (info, 0, 0, FLASH_CMD_CLEAR_STATUS);
-		flash_write_cmd (info, 0, 0, FLASH_CMD_WRITE);
+		flash_write_cmd (info, sector, 0, FLASH_CMD_CLEAR_STATUS);
+		flash_write_cmd (info, sector, 0, FLASH_CMD_WRITE);
 		break;
 	case CFI_CMDSET_AMD_EXTENDED:
 	case CFI_CMDSET_AMD_STANDARD:
@@ -1418,8 +1426,10 @@ static int flash_write_cfiword (flash_info_t * info, ulong dest,
 	if (flag)
 		enable_interrupts ();
 
-	return flash_full_status_check (info, find_sector (info, dest),
+	retcode = flash_full_status_check (info, sector,
 					info->write_tout, "write");
+	flash_write_cmd (info, sector, 0, FLASH_CMD_RESET);
+	return retcode;
 }
 
 #ifdef CFG_FLASH_USE_BUFFER_WRITE
@@ -1439,6 +1449,7 @@ static int flash_write_cfibuffer (flash_info_t * info, ulong dest, uchar * cp,
 		src.cp = cp;
 		dst.cp = (uchar *) dest;
 		sector = find_sector (info, dest);
+		flash_write_cmd (info, sector, 0, FLASH_CMD_RESET);
 		flash_write_cmd (info, sector, 0, FLASH_CMD_CLEAR_STATUS);
 		flash_write_cmd (info, sector, 0, FLASH_CMD_WRITE_TO_BUFFER);
 		if ((retcode = flash_status_check (info, sector, info->buffer_write_tout,
@@ -1487,6 +1498,7 @@ static int flash_write_cfibuffer (flash_info_t * info, ulong dest, uchar * cp,
 							   info->buffer_write_tout,
 							   "buffer write");
 		}
+		flash_write_cmd (info, sector, 0, FLASH_CMD_RESET);
 		return retcode;
 
 	case CFI_CMDSET_AMD_STANDARD:
