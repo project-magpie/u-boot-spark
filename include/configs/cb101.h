@@ -137,10 +137,7 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-/* Note: USB is currently only supported in 29-bit mode */
-#if !defined(CONFIG_SH_SE_MODE)		/* QQQ - DELETE */
 #define CONFIG_SH_STB7100_USB
-#endif					/* QQQ - DELETE */
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
@@ -156,9 +153,9 @@
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
 #	define LITTLEENDIAN
-	/* Uncomment the following line only if using STi7200
-	 * cut 1.x silicon, without the RC-delay board fix. */
-//#	define CONFIG_USB_STI7200_CUT1_SOFT_JTAG_RESET_WORKAROUND
+	/* The following macro should ONLY be defined, when using
+	 * STi7200 cut 1.x, without the RC-delay board fix applied. */
+#	define CONFIG_USB_STI7200_CUT1_SOFT_JTAG_RESET_WORKAROUND
 #endif	/* ifdef CONFIG_SH_STB7100_USB */
 
 /*---------------------------------------------------------------

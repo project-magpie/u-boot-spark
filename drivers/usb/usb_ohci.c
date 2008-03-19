@@ -73,15 +73,26 @@
 #endif
 
 /*
- * On the SuperH architecture, we need to pass 'physical'
- * addresses (in P0) to the on-chip USB hardware, and
- * not use 'virtual' addresses (in P1).
+ * On the SuperH architecture, we need to pass 'physical' addresses
+ * to the on-chip USB hardware, and not use 'virtual' CPU addresses.
+ *
+ * In 29-bit mode, we just zero the top 3 bits of the virtual address.
+ *
+ * In 32-bit mode, we need to honour the PMB mappings.
+ * 	i.e. VA 0x80000000 == PA 0x40000000
+ *
+ * Note: We must not modify at all if the address is 0x00000000.
  */
 #ifdef __SH4__
-#	define PHYSICAL_ADDR(addr)	( 0x1ffffffful & (__u32)(addr) )
+#if defined(CONFIG_SH_SE_MODE)
+#	define PHYSICAL_ADDR(addr)	\
+	((__u32)(addr) ? ((0x1ffffffful&(__u32)(addr))|0x40000000ul) : 0ul)
 #else
+#	define PHYSICAL_ADDR(addr)	( 0x1ffffffful & (__u32)(addr) )
+#endif	/* CONFIG_SH_SE_MODE */
+#else	/* __SH4__ */
 #	define PHYSICAL_ADDR(addr)	(addr)
-#endif
+#endif	/* __SH4__ */
 
 /* WARNING! WARNING! WARNING! WARNING!
  * Uncommenting the following line will remove some delays in the USB

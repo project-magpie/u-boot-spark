@@ -23,7 +23,7 @@
 
 # Update this for each release
 
-SH_IDENT_STRING="\"stm23-2008-03-17\""	# QQQ: Have spec file fill this in automatically ?
+SH_IDENT_STRING="\"stm23-2008-03-19\""	# QQQ: Have spec file fill this in automatically ?
 
 PLATFORM_CPPFLAGS += -DCONFIG_SH4 -D__SH4__ -DCONFIG_IDENT_STRING=$(SH_IDENT_STRING)
 PLATFORM_LDFLAGS  += -n

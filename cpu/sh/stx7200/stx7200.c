@@ -149,7 +149,7 @@ void stx7200_reset(void)
  *
  * NOTE: Register reads and USB_tdo variable:
  * All the reads are for USB_tdo, which is not used in this code.
- * Their were commented-out debugging prints following each read,
+ * They were commented-out debugging prints following each read,
  * so it's entirely possible that the reads could be dropped. But
  * they will affect timing and so might be significant. In the
  * absence of any understanding of how exactly this "black box"
