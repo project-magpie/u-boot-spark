@@ -498,7 +498,7 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
 			    (info, sect, info->erase_blk_tout, "erase")) {
 				rcode = 1;
 			} else {
-				flash_write_cmd (info, sect, 0, FLASH_CMD_RESET);
+				flash_write_cmd (info, sect, 0, info->cmd_reset);
 				putc ('.');
 			}
 		}
@@ -732,7 +732,7 @@ int flash_real_protect (flash_info_t * info, long sector, int prot)
 			}
 		}
 	}
-	flash_write_cmd (info, sector, 0, FLASH_CMD_RESET);
+	flash_write_cmd (info, sector, 0, info->cmd_reset);
 	return retcode;
 }
 
@@ -1317,6 +1317,9 @@ ulong flash_get_size (ulong base, int banknum)
 			}
 		}
 
+		/* go back into CFI mode */
+		flash_write_cmd (info, 0, 0, FLASH_CMD_CFI);
+
 		info->sector_count = sect_cnt;
 		/* multiply the size by the number of chips */
 		info->size = (1 << flash_read_uchar (info, FLASH_OFFSET_SIZE)) * size_ratio;
@@ -1369,7 +1372,7 @@ static int flash_write_cfiword (flash_info_t * info, ulong dest,
 
 	/* put the flash in read mode */
 	sector = find_sector (info, dest);
-	flash_write_cmd (info, sector, 0, FLASH_CMD_RESET);
+	flash_write_cmd (info, sector, 0, info->cmd_reset);
 
 	/* Check if Flash is (sufficiently) erased */
 	switch (info->portwidth) {
@@ -1428,7 +1431,7 @@ static int flash_write_cfiword (flash_info_t * info, ulong dest,
 
 	retcode = flash_full_status_check (info, sector,
 					info->write_tout, "write");
-	flash_write_cmd (info, sector, 0, FLASH_CMD_RESET);
+	flash_write_cmd (info, sector, 0, info->cmd_reset);
 	return retcode;
 }
 
