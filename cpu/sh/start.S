@@ -112,20 +112,23 @@ _start:
 #if defined(CONFIG_SH_STB7100)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI-Sys UN-cached */
 	SH4_SET_PMB 1 0x90 0x40 128 0 0 1	/* LMI-Sys UN-cached */
-	SH4_SET_PMB 2 0xa0 0x00  16 0 0 1	/* FLASH   UN-cached */
-	SH4_SET_PMB 3 0xb2 0x02  16 0 0 1	/* OFF-chip  Peripherals UN-cached */
-	SH4_SET_PMB 4 0xb8 0x18  64 0 0 1	/* ON-chip   Peripherals UN-cached */
-	SH4_SET_PMB 5 0xbc 0x1c  64 0 0 1	/* ST40 core Peripherals UN-cached */
+	SH4_SET_PMB 2 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 3 0xa8 0x00  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB 4 0xb2 0x02  16 0 0 1	/* OFF-chip  Peripherals UN-cached */
+	SH4_SET_PMB 5 0xb8 0x18  64 0 0 1	/* ON-chip   Peripherals UN-cached */
+	SH4_SET_PMB 6 0xbc 0x1c  64 0 0 1	/* ST40 core Peripherals UN-cached */
 #elif defined(CONFIG_SH_STX7200)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 UN-cached */
 	SH4_SET_PMB 1 0x90 0x40 128 0 0 1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 3 0xa1 0x01  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 4 0xa8 0x00  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB 5 0xa9 0x01  16		/* NOR FLASH CACHED */
 #if defined(CONFIG_SH_MB519)			/* MB519 */
-	SH4_SET_PMB 4 0xb5 0x05  16 0 0 1	/* EPLD UN-cached */
+	SH4_SET_PMB 6 0xb5 0x05  16 0 0 1	/* EPLD UN-cached */
 #elif defined(CONFIG_SH_CB101)			/* CB101 */
-	SH4_SET_PMB 4 0xa2 0x02  16 0 0 1	/* NAND FLASH UN-cached */
-	SH4_SET_PMB 5 0xa3 0x03  16 0 0 1	/* NAND FLASH UN-cached */
+	SH4_SET_PMB 6 0xa2 0x02  16 0 0 1	/* NAND FLASH UN-cached */
+	SH4_SET_PMB 7 0xa3 0x03  16 0 0 1	/* NAND FLASH UN-cached */
 #else
 	#error Do not know which board we are using for PMB setup.
 #endif	/* defined(CONFIG_SH_MBxxx) */
