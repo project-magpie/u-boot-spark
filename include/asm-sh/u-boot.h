@@ -48,7 +48,7 @@ typedef struct bd_info
 	unsigned long bi_emifrq;
 	unsigned long bi_lmifrq;
 #endif
-#ifdef CONFIG_SH_STX7200
+#if defined(CONFIG_SH_STX7111) || defined(CONFIG_SH_STX7200)
 	unsigned long bi_devid;
 	unsigned long bi_emifrq;
 #endif

@@ -1,7 +1,8 @@
 /*
- * (C) Copyright 2004 STMicroelectronics.
+ * (C) Copyright 2004-2008 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -30,6 +31,8 @@
 
 #if defined(CONFIG_SH_STB7100)
 #include <asm/stb7100reg.h>
+#elif defined(CONFIG_SH_STX7111)
+#include <asm/stx7111reg.h>
 #elif defined(CONFIG_SH_STX7200)
 #include <asm/stx7200reg.h>
 #else
@@ -58,7 +61,7 @@ _start:
 	 * Determine if we are in the correct location ? (i.e. RAM)
 	 *  r8 == 1 in RAM, assume initialization already done by GDB.
 	 *  r8 == 0 in FLASH, need to relocate, set up memory, etc...
-	 *  r9 == where we actualy ARE       (PIC relocate source).
+	 *  r9 == where we actually ARE      (PIC relocate source).
 	 * r10 == were we WANT to be [BEGIN] (PIC relocate target).
 	 * r11 == were we WANT to be [END]   (PIC relocate target).
 	 *
@@ -69,7 +72,7 @@ _start:
 	MOV_CONST32_R0 0x1fffffff	/* set up P0 mask  */
 	mov	r0, r4
 	mova	_start_offset, r0	/* Load source address in r9 */
-	mov	r0, r9			/* i.e. where we actualy ARE */
+	mov	r0, r9			/* i.e. where we actually ARE */
 	mov.l	@r9, r10
 	sub	r10, r9
 #ifndef CONFIG_SH_SE_MODE
@@ -132,6 +135,13 @@ _start:
 #else
 	#error Do not know which board we are using for PMB setup.
 #endif	/* defined(CONFIG_SH_MBxxx) */
+#elif defined(CONFIG_SH_STX7111) && defined(CONFIG_SH_MB618)
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI UN-cached */
+	SH4_SET_PMB 1 0x90 0x40 128 0 0 1	/* LMI UN-cached */
+	SH4_SET_PMB 2 0xa0 0x00  16 0 0 1	/* NOR/NAND FLASH UN-cached */
+	SH4_SET_PMB 3 0xa1 0x01  16 0 0 1	/* NOR/NAND FLASH UN-cached */
+	SH4_SET_PMB 4 0xa8 0x00  16		/* NOR/NAND FLASH CACHED */
+	SH4_SET_PMB 5 0xa9 0x01  16		/* NOR/NAND FLASH CACHED */
 #else
 	#error Do not know which chip we are using for PMB setup.
 #endif	/* defined(CONFIG_SH_STxxx) */
@@ -164,8 +174,8 @@ _start:
 	 * enable SE (32-bit) mode, if we need to.
 	 */
 #ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_CPU_SUBTYPE_SH4_2XX	/* it is an SH4-200 */
 	/* enable SE mode */
-	/* QQQ: for SH4-300, we will need different code here!  */
 	MOV_CONST32_R0 SH4_CCN_MMUCR
 	mov	#(SH4_MMUCR_TI|SH4_MMUCR_SE), r1
 	mov.l	r1, @r0
@@ -177,6 +187,26 @@ _start:
 	nop
 	nop
 	nop
+#else					/* it is an SH4-300 */
+	/* enable SE mode */
+	MOV_CONST32_R0 SH4_PASCR_SE
+	mov	r0, r1
+	MOV_CONST32_R0 SH4_CCN_PASCR
+	mov.l	r1, @r0
+	/* invalidate the UTLB/ITLB */
+	MOV_CONST32_R0 SH4_CCN_MMUCR
+	mov	#(SH4_MMUCR_TI), r1
+	mov.l	r1, @r0
+	/* QQQ: 8 NOPs is insufficient for SH4-300 - FIXME */
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+#endif	/* CONFIG_CPU_SUBTYPE_SH4_2XX */
 #endif	/* CONFIG_SH_SE_MODE */
 
 	/*
@@ -185,7 +215,7 @@ _start:
 relocate:
 	mov	#0x1f, r0
 	not	r0, r0			/* mask = 0xffffffe0 */
-	mov	r9, r1			/* where we actualy ARE */
+	mov	r9, r1			/* where we actually ARE */
 	and	r0, r1			/* ensure source is 32-byte cache aligned */
 	mov	r10, r2			/* were we WANT to be: START off */
 	and	r0, r2			/* ensure destination is 32-byte cache aligned */
@@ -208,13 +238,13 @@ relocate:
 	mov.l	r0, @(28,r2)
 	ocbp	@r2			/* flush one line */
 	add	#32, r1			/* next line */
-	pref	@r1			/* pre-featch next line */
+	pref	@r1			/* pre-fetch next line */
 	add	#32, r2			/* next line */
 	cmp/hi	r2, r3			/* while (r2<=r3) ... */
 	bt	1b
 
 	/*
-	 * now jump to absolute (non-PIC) address environent.
+	 * now jump to absolute (non-PIC) address environment.
 	 */
 	mov.l	hyperspace_addr, r1
 	jmp	@r1		/* never returns */
@@ -225,7 +255,7 @@ hyperspace:
 	/*
 	 * At this point:
 	 *	We can stop using PIC, and use absolute code.
-	 *	The EMI/LMI initialization has been complated.
+	 *	The EMI/LMI initialization has been completed.
 	 */
 
 #ifdef CONFIG_SH_SE_MODE

@@ -20,7 +20,8 @@
 #	define DCACHE_SETS		512
 #	define DCACHE_WAYS		1
 #	define DCACHE_LINESZ		L1_CACHE_BYTES
-#elif defined(CONFIG_CPU_SUBTYPE_SH4_2XX)	/* it's an SH4-200 */
+#elif defined(CONFIG_CPU_SUBTYPE_SH4_2XX)	/* it's an SH4-200 */	\
+   || defined(CONFIG_CPU_SUBTYPE_SH4_3XX)	/* it's an SH4-300 */
 #	define DCACHE_SIZE		32768
 #	define DCACHE_WAY_INCR		(DCACHE_SIZE >> 1)
 #	define DCACHE_ENTRY_SHIFT	5

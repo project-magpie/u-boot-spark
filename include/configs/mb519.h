@@ -80,7 +80,7 @@
 #endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-		"board=" XSTR(BOARD) "_" XSTR(INPUT_CLOCK_RATE) "\0" \
+		"board=" XSTR(BOARD) "\0" \
 		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
 		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
 		"monitor_sec=" MONITOR_SECTORS "\0" \
@@ -108,9 +108,10 @@
  * Serial console info
  */
 
+/* we are using the internal ST ASC UART */
 #define CONFIG_STM_ASC_SERIAL	1
 
-#define CONFIG_CONS_INDEX	0
+/* choose which UART to use */
 #define CFG_STM_ASC_BASE	0xfd032000ul	/* UART2 */
 
 /*---------------------------------------------------------------
@@ -226,7 +227,7 @@
 #define CONFIG_CMDLINE_EDITING
 
 /*-----------------------------------------------------------------------
- * FLASH organization
+ * NOR FLASH organization
  */
 
 /* M58LT256GT: 32Mbyte 259 blocks, 128K block size plus parameter block */
@@ -235,15 +236,12 @@
 #define CONFIG_FLASH_PROTECT_SINGLE_CELL
 #define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
-#define CFG_MAX_FLASH_SECT	300	/* max number of sectors on one chip	*/
+#define CFG_MAX_FLASH_SECT	259	/* max number of sectors on one chip	*/
 #define CFG_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
 
-
 /*-----------------------------------------------------------------------
- * NVRAM organization
+ * Addresss, size, & location of U-boot's Environment Sector
  */
-
-/* Address and size of Primary Environment Sector	*/
 
 #define CFG_ENV_IS_IN_FLASH	1
 #define CFG_ENV_OFFSET		CFG_MONITOR_LEN

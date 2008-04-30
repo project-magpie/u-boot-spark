@@ -112,9 +112,10 @@
  * Serial console info
  */
 
+/* we are using the internal ST ASC UART */
 #define CONFIG_STM_ASC_SERIAL	1
 
-#define CONFIG_CONS_INDEX	0
+/* choose which UART to use */
 #define CFG_STM_ASC_BASE	0xb8032000ul	/* UART2 */
 
 /*---------------------------------------------------------------
@@ -198,7 +199,7 @@
 #endif
 
 /*----------------------------------------------------------------------
- * jffs2 support
+ * JFFS2 support
  */
 
 #if defined(CONFIG_CMD_JFFS2)
@@ -233,7 +234,7 @@
 #define CONFIG_CMDLINE_EDITING
 
 /*-----------------------------------------------------------------------
- * FLASH organization
+ * NOR FLASH organization
  */
 
 /* stb7100 mboard organised as 8MB flash with 128k blocks */
@@ -244,12 +245,9 @@
 #define CFG_MAX_FLASH_SECT	64	/* max number of sectors on one chip	*/
 #define CFG_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
 
-
 /*-----------------------------------------------------------------------
- * NVRAM organization
+ * Addresss, size, & location of U-boot's Environment Sector
  */
-
-/* Address and size of Primary Environment Sector	*/
 
 #define CFG_ENV_IS_IN_FLASH	1
 #define CFG_ENV_OFFSET		CFG_MONITOR_LEN

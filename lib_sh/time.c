@@ -26,6 +26,8 @@
 
 #if defined(CONFIG_SH_STB7100)
 #include <asm/stb7100reg.h>
+#elif defined(CONFIG_SH_STX7111)
+#include <asm/stx7111reg.h>
 #elif defined(CONFIG_SH_STX7200)
 #include <asm/stx7200reg.h>
 #else

@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2007-2008 STMicroelectronics Limited
+ * (C) Copyright 2007 STMicroelectronics.
+ *
  * Stuart Menefy <stuart.menefy@st.com>
- * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -22,42 +22,47 @@
  * MA 02111-1307 USA
  */
 
-#include <common.h>
-#include <command.h>
+OUTPUT_ARCH(sh4)
+ENTRY(_start)
 
-#if defined(CONFIG_SH_STB7100)
-extern void stb7100_usb_init(void);
-#elif defined(CONFIG_SH_STX7111)
-extern void stx7111_usb_init(void);
-#elif defined(CONFIG_SH_STX7200)
-extern void stx7200_usb_init(void);
-#else
-#error Missing Device Defintions!
-#endif
-
-#if defined(CONFIG_USB_OHCI_NEW) && defined(CFG_USB_OHCI_CPU_INIT)
-
-extern int usb_cpu_init(void)
+SECTIONS
 {
-#if defined(CONFIG_SH_STB7100)
-	stb7100_usb_init();
-#elif defined(CONFIG_SH_STX7111)
-	stx7111_usb_init();
-#elif defined(CONFIG_SH_STX7200)
-	stx7200_usb_init();
-#endif
-	return 0;
+	.text ALIGN(0x4):
+	{
+		__text_start = .;
+		cpu/sh/start.o (.text)
+		*(.text)
+		__text_end = .;
+	}
+
+	.rodata ALIGN(0x4):
+	{
+		__rodata_start = .;
+		*(.rodata)
+		__rodata_end = .;
+	}
+
+	.data ALIGN(0x4):
+	{
+		__data_start = .;
+		*(.data)
+		__data_end = .;
+	}
+
+	.u_boot_cmd ALIGN(0x4):
+	{
+		__u_boot_cmd_start = .;
+		*(.u_boot_cmd)
+		__u_boot_cmd_end = .;
+	}
+
+	_uboot_end_data = .;
+
+	.bss ALIGN(0x4):
+	{
+		__bss_start = .;
+		*(.bss)
+		__bss_end = .;
+	}
+	_uboot_end = .;
 }
-
-extern int usb_cpu_stop(void)
-{
-	return 0;
-}
-
-extern int usb_cpu_init_fail(void)
-{
-	return 0;
-}
-
-#endif /* defined(CONFIG_USB_OHCI_NEW) && defined(CFG_USB_OHCI_CPU_INIT) */
-

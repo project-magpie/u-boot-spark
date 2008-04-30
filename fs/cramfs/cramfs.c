@@ -44,8 +44,23 @@ struct cramfs_super super;
 
 /* CPU address space offset calculation macro, struct part_info offset is
  * device address space offset, so we need to shift it by a device start address. */
+/*
+ * FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
+ * if CFG_NO_FLASH is set, then we have probably NOT got any NOR flash
+ * present, hence 'flash_info' will not exist. This will result in
+ * this code faling to link, as the PART_OFFSET macro assumes it
+ * does exist. We bodge this issue, but defining this macro to
+ * just use an arbirary address - however this will BREAK the
+ * CRMAFS code, so it is a quick hack, and not a proper solution.
+ * We will need a proper solution for this, if CRAMFS is required.
+ */
+#ifdef CFG_NO_FLASH
+#warning CRAMFS is BROKEN if CFG_NO_FLASH is defined!
+#define PART_OFFSET(x)	(0x00000000)	/* will at least compile! */
+#else
 extern flash_info_t flash_info[];
 #define PART_OFFSET(x)	(x->offset + flash_info[x->dev->id->num].start[0])
+#endif	/* CFG_NO_FLASH */
 
 static int cramfs_read_super (struct part_info *info)
 {

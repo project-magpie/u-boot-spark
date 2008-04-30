@@ -33,6 +33,8 @@
 #define CONFIG_SH4	1		/* This is an SH4 CPU		*/
 #define CONFIG_CPU_SUBTYPE_SH4_2XX	/* its an SH4-202		*/
 
+#define INPUT_CLOCK_RATE 27
+
 #define P_CLOCK_RATE	66000000	/* clock rate for CSP		*/
 
 /*-----------------------------------------------------------------------
@@ -71,7 +73,7 @@
 #endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-		"board=" XSTR(BOARD) "_" XSTR(INPUT_CLOCK_RATE) "\0" \
+		"board=" XSTR(BOARD) "\0" \
 		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
 		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
 		"monitor_sec=" MONITOR_SECTORS "\0" \
@@ -99,9 +101,10 @@
  * Serial console info
  */
 
+/* we are using the internal ST ASC UART */
 #define CONFIG_STM_ASC_SERIAL	1
 
-#define CONFIG_CONS_INDEX	0
+/* choose which UART to use */
 #define CFG_STM_ASC_BASE	0xb8032000ul	/* UART2 */
 
 /*---------------------------------------------------------------
@@ -216,7 +219,7 @@
 #define CONFIG_CMDLINE_EDITING
 
 /*-----------------------------------------------------------------------
- * FLASH organization
+ * NOR FLASH organization
  */
 
 /* STb7109E reference board organised as 8MB flash with 128k blocks */
@@ -227,12 +230,9 @@
 #define CFG_MAX_FLASH_SECT	64	/* max number of sectors on one chip	*/
 #define CFG_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
 
-
 /*-----------------------------------------------------------------------
- * NVRAM organization
+ * Addresss, size, & location of U-boot's Environment Sector
  */
-
-/* Address and size of Primary Environment Sector	*/
 
 #define CFG_ENV_IS_IN_FLASH	1
 #define CFG_ENV_OFFSET		CFG_MONITOR_LEN

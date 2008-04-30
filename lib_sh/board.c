@@ -109,11 +109,13 @@ static int display_banner (void)
 	return (0);
 }
 
+#ifndef CFG_NO_FLASH
 static void display_flash_config (ulong size)
 {
-	puts ("Flash: ");
+	puts ("NOR:   ");
 	print_size (size, "\n");
 }
+#endif /* CFG_NO_FLASH */
 
 
 static int init_baudrate (void)
@@ -168,7 +170,9 @@ void start_sh4boot (void)
 	bd_t *bd;
 	ulong addr;
 	init_fnc_t **init_fnc_ptr;
+#ifndef CFG_NO_FLASH
 	ulong size;
+#endif /* CFG_NO_FLASH */
 
 	char *s, *e;
 	int i;
@@ -202,10 +206,11 @@ void start_sh4boot (void)
 	monitor_flash_len = (ulong) & _uboot_end_data - TEXT_BASE;
 
 	/* configure available FLASH banks */
-
 	flashWriteEnable();
+#ifndef CFG_NO_FLASH
 	size = flash_init ();
 	display_flash_config (size);
+#endif /* CFG_NO_FLASH */
 
 	bd = gd->bd;
 	bd->bi_boot_params = addr;
@@ -213,7 +218,9 @@ void start_sh4boot (void)
 	bd->bi_memsize = gd->ram_size;	/* size  of  DRAM memory in bytes */
 	bd->bi_baudrate = gd->baudrate;	/* Console Baudrate */
 	bd->bi_flashstart = CFG_FLASH_BASE;
+#ifndef CFG_NO_FLASH
 	bd->bi_flashsize = size;
+#endif /* CFG_NO_FLASH */
 #if CFG_MONITOR_BASE == CFG_FLASH_BASE
 	bd->bi_flashoffset = monitor_flash_len;	/* reserved area for U-Boot */
 #else

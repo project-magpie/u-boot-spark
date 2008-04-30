@@ -2704,7 +2704,6 @@ mb448_config :		unconfig
 	@ >include/config.h
 	@echo "#define CONFIG_SH_STB7100   1" >>include/config.h
 	@echo "#define CONFIG_SH_MB448     1" >>include/config.h
-	@echo "#define INPUT_CLOCK_RATE    27" >>include/config.h
 	@./mkconfig -a mb448 sh sh mb448 "" stb7100
 
 hms1_config \
@@ -2726,6 +2725,17 @@ mb519se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/mb519/config.tmp)
 	@./mkconfig -a mb519 sh sh mb519 "" stx7200
+
+mb618_config \
+mb618se_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STX7111   1" >>include/config.h
+	@echo "#define CONFIG_SH_MB618     1" >>include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/mb618/config.tmp)
+	@./mkconfig -a mb618 sh sh mb618 "" stx7111
 
 cb101_config \
 cb101se_config :		unconfig

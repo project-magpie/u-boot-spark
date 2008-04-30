@@ -54,6 +54,7 @@
 #define SH4_CCN_QACR1	SH4_DWORD_REG(0xff00003c)
 #define SH4_CCN_CVR	SH4_DWORD_REG(0xff000040)
 #define SH4_CCN_PRR	SH4_DWORD_REG(0xff000044)
+#define SH4_CCN_PASCR	SH4_DWORD_REG(0xff000070)
 
 /* Some bits in the CCN.CCR register */
 #define SH4_CCR_OCE	(1<<0)
@@ -68,6 +69,9 @@
 /* Some bits in the CCN.MMUCR register */
 #define	SH4_MMUCR_TI	(1<<2)		/* MMUCR.TI */
 #define	SH4_MMUCR_SE	(1<<4)		/* MMUCR.SE */
+
+/* Some bits in the CCN.PASCR register */
+#define	SH4_PASCR_SE	(1<<31)		/* PASCR.SE */
 
 
 /* User Break Controller control registers (common to all SH4 variants) */

@@ -31,8 +31,9 @@
 
 /* Defines for the USB controller register offsets. */
 #define AHB2STBUS_WRAPPER_GLUE_BASE	(CFG_USB_BASE + 0x00000000)
-#define AHB2STBUS_OHCI_BASE		(CFG_USB_BASE + 0x000ffc00)
 #define AHB2STBUS_PROTOCOL_BASE		(CFG_USB_BASE + 0x000fff00)
+
+#if defined(CONFIG_SH_STB7000) || defined(CONFIG_SH_STX7200)
 
 /* The transaction opcode is programmed in this register. */
 #define AHB2STBUS_STBUS_OPC		(AHB2STBUS_PROTOCOL_BASE + 0x00)
@@ -61,6 +62,13 @@
 #define AHB2STBUS_CHUNKSIZE_16		0x4
 #define AHB2STBUS_CHUNKSIZE_32		0x5
 #define AHB2STBUS_CHUNKSIZE_64		0x6
+
+#elif defined(CONFIG_SH_STX7111)
+
+/* No documentation for this */
+#define AHB2STBUS_STBUS_CONFIG		(AHB2STBUS_PROTOCOL_BASE + 0x04)
+
+#endif
 
 /* AHB Strap options are programmed in this register. */
 #define AHB2STBUS_STRAP			(AHB2STBUS_WRAPPER_GLUE_BASE + 0x14)
