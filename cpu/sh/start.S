@@ -175,38 +175,30 @@ _start:
 	 */
 #ifdef CONFIG_SH_SE_MODE
 #ifdef CONFIG_CPU_SUBTYPE_SH4_2XX	/* it is an SH4-200 */
-	/* enable SE mode */
+	/* enable SE mode & invalidate the UTLB/ITLB */
 	MOV_CONST32_R0 SH4_CCN_MMUCR
 	mov	#(SH4_MMUCR_TI|SH4_MMUCR_SE), r1
-	mov.l	r1, @r0
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
+	mov.l	r1, @r0			/* MMUCR.TI = MMUCR.SE = 1 */
 #else					/* it is an SH4-300 */
-	/* enable SE mode */
+	/* invalidate the UTLB/ITLB, first. */
+	MOV_CONST32_R0 SH4_CCN_MMUCR
+	mov	#(SH4_MMUCR_TI), r1
+	mov.l	r1, @r0			/* MMUCR.TI = 1 */
+	/* then, enable SE mode */
 	MOV_CONST32_R0 SH4_PASCR_SE
 	mov	r0, r1
 	MOV_CONST32_R0 SH4_CCN_PASCR
-	mov.l	r1, @r0
-	/* invalidate the UTLB/ITLB */
-	MOV_CONST32_R0 SH4_CCN_MMUCR
-	mov	#(SH4_MMUCR_TI), r1
-	mov.l	r1, @r0
-	/* QQQ: 8 NOPs is insufficient for SH4-300 - FIXME */
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
+	mov.l	r1, @r0			/* PASCR.SE = 1 */
 #endif	/* CONFIG_CPU_SUBTYPE_SH4_2XX */
+	/* ensure MMU coherency, by issuing an RTE instruction */
+	/* this idiom works for all SH4-x00 series cores */
+	mova	relocate, r0
+	ldc	r0, spc		/* SPC = address of relocate */
+	stc	sr, r0
+	ldc	r0, ssr		/* SSR = SR */
+	rte			/* do it */
+	  nop
+.balign 4
 #endif	/* CONFIG_SH_SE_MODE */
 
 	/*
