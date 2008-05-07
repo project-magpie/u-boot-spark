@@ -28,7 +28,6 @@
 #include <asm/io.h>
 #include <asm/pio.h>
 
-void stb7100_reset(void);
 void stb7100_clocks(void);
 
 void flashWriteEnable(void)
@@ -128,10 +127,4 @@ int checkboard (void)
 		"\n");
 
 	return 0;
-}
-
-int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
-{
-	stb7100_reset();
-	 /*NOTREACHED*/ return (0);
 }

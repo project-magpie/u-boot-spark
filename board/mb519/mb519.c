@@ -28,8 +28,6 @@
 #include <asm/io.h>
 #include <asm/pio.h>
 
-void stx7200_reset(void);
-
 #ifdef CONFIG_SH_SE_MODE
 #define EPLD_BASE		0xb5000000	/* Phys 0x05000000 */
 #else
@@ -142,10 +140,4 @@ int checkboard (void)
 		"\n");
 
 	return 0;
-}
-
-int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
-{
-	stx7200_reset();
-	/*NOTREACHED*/ return (0);
 }

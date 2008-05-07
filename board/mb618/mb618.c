@@ -30,8 +30,6 @@
 
 #define PIO_BASE  0xfd020000	/* Base of PIO block in COMMs block */
 
-void stx7111_reset(void);
-
 void flashWriteEnable(void)
 {
 	/* Enable Vpp for writing to flash */
@@ -91,10 +89,4 @@ int checkboard (void)
 #endif
 		"\n");
 	return 0;
-}
-
-int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
-{
-	stx7111_reset();
-	/*NOTREACHED*/ return (0);
 }

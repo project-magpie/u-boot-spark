@@ -149,15 +149,6 @@ int soc_init(void)
   return 0;
 }
 
-void stb7100_reset(void)
-{
-	ulong sr;
-	asm ("stc sr, %0":"=r" (sr));
-	sr |= (1 << 28);	/* set block bit */
-	asm ("ldc %0, sr": :"r" (sr));
-	asm volatile ("trapa #0");
-}
-
 #if defined(CONFIG_SH_STB7100_SATA)
 
 #define SATA_AHB2STBUS_BASE			0xB9209000

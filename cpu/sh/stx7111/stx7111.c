@@ -128,18 +128,8 @@ int soc_init(void)
 	return 0;
 }
 
-void stx7111_reset(void)
-{
-	ulong sr;
-	asm ("stc sr, %0":"=r" (sr));
-	sr |= (1 << 28);	/* set block bit */
-	asm ("ldc %0, sr": :"r" (sr));
-	asm volatile ("trapa #0");
-}
-
 
 #if defined(CONFIG_USB_OHCI_NEW)
-
 extern void stx7111_usb_init(void)
 {
 	unsigned long reg, req_reg;

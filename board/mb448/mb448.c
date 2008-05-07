@@ -28,7 +28,6 @@
 #include <asm/io.h>
 #include <asm/pio.h>
 
-void stb7100_reset(void);
 void stb7100_clocks(void);
 
 #define EPLD_FLASH *(volatile unsigned char *)(0xa3400000)
@@ -119,10 +118,4 @@ int checkboard (void)
 	LED = 1;
 
 	return 0;
-}
-
-int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
-{
-	stb7100_reset();
-	 /*NOTREACHED*/ return (0);
 }

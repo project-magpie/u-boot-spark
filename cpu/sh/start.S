@@ -54,7 +54,7 @@ _start:
 	/* disable the watchdog timer */
 	MOV_CONST32_R0 ST40_CPG_WTCSR
 	mov	r0, r1
-	MOV_CONST16_R0 0xA500
+	MOV_CONST16_R0 0xA500	/* WTCSR.TME=0 */
 	mov.w   r0, @r1
 
 	/*

@@ -32,7 +32,6 @@
 #include <jffs2/jffs2.h>
 #endif
 
-void stb7100_reset(void);
 void stb7100_clocks(void);
 
 #define EPLD_FLASH *(volatile unsigned char *)(0xa3400000)
@@ -114,11 +113,6 @@ int checkboard (void)
 	return 0;
 }
 
-int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
-{
-	stb7100_reset();
-	 /*NOTREACHED*/ return (0);
-}
 
 #if defined CFG_JFFS_CUSTOM_PART
 

@@ -33,6 +33,16 @@
 #if defined(CONFIG_CMD_NAND)
 #include <nand.h>
 #endif
+#if defined(CONFIG_SH_STB7100)
+#include <asm/stb7100reg.h>
+#elif defined(CONFIG_SH_STX7111)
+#include <asm/stx7111reg.h>
+#elif defined(CONFIG_SH_STX7200)
+#include <asm/stx7200reg.h>
+#else
+#error Missing Device Defintions!
+#endif
+#include <asm/st40reg.h>
 
 extern ulong _uboot_end_data;
 extern ulong _uboot_end;
@@ -303,4 +313,52 @@ void hang (void)
 {
 	puts ("### ERROR ### Please RESET the board ###\n");
 	for (;;);
+}
+
+
+static void sh_reset (void) __attribute__ ((noreturn));
+static void sh_reset (void)
+{
+#if 1
+	/*
+	 * We will use the on-chip watchdog timer to force a
+	 * power-on-reset of the device.
+	 * A power-on-reset is required to guarantee all SH4-200 cores
+	 * will reset back into 29-bit mode, if they were in SE mode.
+	 * However, on SH4-300 series parts, issuing a TRAP instruction
+	 * with SR.BL=1 is sufficient. However, we will use a "one size fits
+	 * all" solution here, and use the watchdog for all SH parts.
+	 */
+
+		/* WTCNT          = FF	counter to overflow next tick */
+	*ST40_CPG_WTCNT = 0x5AFF;
+
+		/* WTCSR2.CKS[3]  = 0	use legacy clock dividers */
+	*ST40_CPG_WTCSR2 = 0xAA00;
+
+		/* WTCSR.TME      = 1	enable up-count counter */
+		/* WTCSR.WT       = 1	watchdog timer mode */
+		/* WTCSR.RSTS     = 0	enable power-on reset */
+		/* WTCSR.CKS[2:0] = 2	clock division ratio 1:128 */
+		/* NOTE: we need CKS to be big enough to allow
+		 * U-boot to disable the watchdog, AFTER the reset,
+		 * otherwise, we enter an infinite-loop of resetting! */
+	*ST40_CPG_WTCSR = 0xA5C2;
+
+	/* wait for H/W reset to kick in ... */
+	for (;;);
+#else
+	ulong sr;
+	asm ("stc sr, %0":"=r" (sr));
+	sr |= (1 << 28);	/* set block bit */
+	asm ("ldc %0, sr": :"r" (sr));
+	asm volatile ("trapa #0");
+#endif
+}
+
+
+extern int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+{
+	sh_reset();
+	/*NOTREACHED*/ return (0);
 }

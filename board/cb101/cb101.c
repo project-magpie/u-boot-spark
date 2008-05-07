@@ -29,8 +29,6 @@
 #include <asm/io.h>
 #include <asm/pio.h>
 
-void stx7200_reset(void);
-
 void flashWriteEnable(void)
 {
 	/*  Enable vpp for writing to flash */
@@ -175,10 +173,3 @@ int checkboard (void)
 
 	return 0;
 }
-
-int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
-{
-	stx7200_reset();
-	/*NOTREACHED*/ return (0);
-}
-
