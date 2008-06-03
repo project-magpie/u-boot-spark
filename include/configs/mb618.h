@@ -123,33 +123,23 @@
  */
 
 /*
- * There are 2 options for ethernet, both use the on-chip ST-MAC.
+ * There are 2 options for ethernet, both use the on-chip ST-GMAC.
  * The choice in PHYs are:
- *    The on-board ST STE101P PHY.
+ *    The on-board SMSC LAN8700
  *    External PHY connected via the MII off-board connector.
  */
 
-/* are we using the internal ST MAC device ? */
-#define CONFIG_DRIVER_NETSTMAC
-
-/* choose which internal MAC to use */
-#if 1
-#	define CONFIG_STMAC_MAC0			/* Use MAC #0 */
-#else
-#	define CONFIG_STMAC_MAC1			/* Use MAC #1 */
-#endif
+/* are we using the internal ST GMAC device ? */
+#define CONFIG_DRIVER_NET_STM_GMAC
 
 /*
- * Select the appropriate base address for the selected MAC.
- * Also, choose which external PHY type to use.
+ * Select the appropriate base address for the GMAC.
+ * Also, choose which PHY to use.
  */
-#if defined(CONFIG_STMAC_MAC0)
-#	define CFG_STM_STMAC_BASE	 0xfd500000ul	/* MAC #0 */
-#	define CONFIG_STMAC_STE10XP			/* ST STE10xP */
-#elif defined(CONFIG_STMAC_MAC1)
-#	define CFG_STM_STMAC_BASE	 0xfd510000ul	/* MAC #1 */
-#	define CONFIG_STMAC_LAN8700			/* SMSC LAN8700 */
-#endif
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+#	define CFG_STM_STMAC_BASE	 0xfd110000ul	/* MAC = STM GMAC0 */
+#	define CONFIG_STMAC_LAN8700			/* PHY = SMSC LAN8700 */
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user
  *  to set it in the environment

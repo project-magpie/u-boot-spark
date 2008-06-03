@@ -542,7 +542,7 @@ int eth_initialize(bd_t *bis)
 #if defined(CONFIG_DRIVER_TI_EMAC)
 	dm644x_eth_miiphy_initialize(bis);
 #endif
-#if defined(CONFIG_DRIVER_NETSTMAC)
+#if defined(CONFIG_DRIVER_NETSTMAC) || defined(CONFIG_DRIVER_NET_STM_GMAC)
 	stmac_miiphy_initialize(bis);
 #endif
 	return 0;

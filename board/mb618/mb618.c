@@ -30,6 +30,24 @@
 
 #define PIO_BASE  0xfd020000	/* Base of PIO block in COMMs block */
 
+#ifdef CONFIG_SH_SE_MODE
+#define EPLD_BASE		0xb4000000	/* Phys 0x04000000 */
+#else
+#define EPLD_BASE		0xa4000000
+#endif	/* CONFIG_SH_SE_MODE */
+
+static inline void epld_write(unsigned long value, unsigned long offset)
+{
+	/* 8-bit write to EPLD registers */
+	writeb(value, EPLD_BASE + offset);
+}
+
+static inline unsigned long epld_read(unsigned long offset)
+{
+	/* 8-bit read from EPLD registers */
+	return readb(EPLD_BASE + offset);
+}
+
 void flashWriteEnable(void)
 {
 	/* Enable Vpp for writing to flash */
@@ -52,29 +70,94 @@ static void configPIO(void)
 	SET_PIO_PIN(PIO_PORT(3), 4, STPIO_OUT);
 }
 
-int board_init(void)
+extern int board_init(void)
 {
-#ifdef QQQ	/* QQQ - DELETE */
-	unsigned long sysconf;
-
-	/* I2C and USB related routing */
-	/* bit4: ssc4_mux_sel = 0 (treat SSC4 as I2C) */
-	/* bit26: conf_pad_pio[2] = 0 route USB etc instead of DVO */
-	/* bit27: conf_pad_pio[3] = 0 DVO output selection (probably ignored) */
-	sysconf = *STX7111_SYSCONF_SYS_CFG07;
-	sysconf &= ~((1<<27)|(1<<26)|(1<<4));
-	*STX7111_SYSCONF_SYS_CFG07 = sysconf;
-
-	/* Enable SOFT_JTAG mode.
-	 * Taken from OS21, but is this correct?
-	 */
-	sysconf = *STX7111_SYSCONF_SYS_CFG33;
-	sysconf |= (1<<6);
-	sysconf &= ~((1<<0)|(1<<1)|(1<<2)|(1<<3));
-	*STX7111_SYSCONF_SYS_CFG33 = sysconf;
-#endif		/* QQQ - DELETE */
-
 	configPIO();
+
+	return 0;
+}
+
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+static void mb618_phy_reset05(void)
+{
+	/* Bring the PHY out of reset in MII mode */
+	epld_write(0x4 | 0, 0);
+	epld_write(0x4 | 1, 0);
+}
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+
+/*
+ * We have several EPLD versions to cope with, with slightly different memory
+ * maps and features:
+ *
+ * version 04:
+ * off  read        reset
+ *  0   Status      undef  (unused)
+ *  4   Ctrl        20     (unused)
+ *  8   Test        33
+ *  c   Ident       0      (should be 1 but broken)
+ * (note writes are broken)
+ *
+ * version 05:
+ * off  read     write       reset
+ *  0   Ident    Ctrl        45
+ *  4   Test     Test        55
+ *  8   IntStat  IntMaskSet  -
+ *  c   IntMask  IntMaskClr  0
+ */
+static int mb618_init_epld(void)
+{
+	unsigned char epld_reg;
+	int test_offset = -1;
+	int version_offset = -1;
+	int version = -1;
+
+	epld_reg = epld_read(0x4);
+	switch (epld_reg) {
+	case 0x20:
+		/*
+		 * Probably the Ctrl reg of a 04 EPLD. Look for the default
+		 * value in the test reg (we can't do a test as it is broken).
+		 */
+		epld_reg = epld_read(0x8);
+		if (epld_reg == 0x33)
+			version = 4;
+		break;
+	case 0x55:
+		/* Probably the Test reg of the 05 or later EPLD */
+		test_offset = 4;
+		version_offset = 0;
+		break;
+	}
+
+	if (test_offset > 0) {
+		epld_write(0x63, test_offset);
+		epld_reg = epld_read(test_offset);
+		if (epld_reg != (unsigned char)(~0x63)) {
+			printf("Failed mb618 EPLD test (off %02x, res %02x)\n",
+			       test_offset, epld_reg);
+			return 1;
+		}
+
+		/* Assume we can trust the version register */
+		version = epld_read(version_offset) & 0xf;
+	}
+
+	if (version < 0) {
+		printf("Unable to determine mb618 EPLD version\n");
+		return 1;
+	}
+
+	printf("mb618 EPLD version %02d\n", version);
+
+	switch (version) {
+	case 5:
+		/* We need to control the PHY reset in software */
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+		mb618_phy_reset05();
+#endif
+		break;
+	}
 
 	return 0;
 }
@@ -88,5 +171,9 @@ int checkboard (void)
 		"  [29-bit mode]"
 #endif
 		"\n");
-	return 0;
+
+	/*
+	 * initialize the EPLD.
+	 */
+	return mb618_init_epld();
 }

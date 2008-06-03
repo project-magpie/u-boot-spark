@@ -47,15 +47,14 @@ static void stx7111_clocks(void)
 	bd->bi_emifrq = 100;
 }
 
-#ifdef CONFIG_DRIVER_NETSTMAC
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
 
-#define MII_MODE		(1<<0)
-#define PHY_CLK_EXT             (1<<2)
-#define MAC_SPEED               (1<<4)
-#define VCI_ACK_SOURCE          (1<<6)
-#define RESET                   (1<<8)
-#define DISABLE_MSG_READ        (1<<12)
-#define DISABLE_MSG_WRITE       (1<<14)
+#define ETHERNET_INTERFACE_ON	(1ul<<16)
+#define PHY_CLK_EXT		(1ul<<19)
+#define MAC_SPEED_SEL           (1ul<<20)
+#define PHY_INTF_SEL_MASK	(0x7ul<<24)
+#define ENMII			(1ul<<27)
+
 /* Remaining bits define pad functions, default appears to work */
 
 int stmac_default_pbl(void)
@@ -63,51 +62,52 @@ int stmac_default_pbl(void)
 	return 32;
 }
 
-#ifdef CONFIG_STMAC_STE101P_RMII
-void stb7109_mac_speed(int speed)
+#ifdef CONFIG_STMAC_STE101P_RMII	/* QQQ */
+void stx7111_mac_speed(int speed)
 {
-#ifdef QQQ	/* QQQ - DELETE */
-	unsigned long sysconf = *STX7200_SYSCONF_SYS_CFG41;
+	unsigned long sysconf = *STX7111_SYSCONF_SYS_CFG07;
 
+	/* MAC_SPEED_SEL = 0|1 */
 	if (speed == 100)
-		sysconf |= MAC_SPEED;
+		sysconf |= MAC_SPEED_SEL;
 	else if (speed == 10)
-		sysconf &= ~MAC_SPEED;
+		sysconf &= ~MAC_SPEED_SEL;
 
-	*STX7200_SYSCONF_SYS_CFG41 = sysconf;
-#endif		/* QQQ - DELETE */
+	*STX7111_SYSCONF_SYS_CFG07 = sysconf;
 }
-#endif
+#endif	/* CONFIG_STMAC_STE101P_RMII */
 
 /* ETH MAC pad configuration */
 static void stmac_eth_hw_setup(void)
 {
-#ifdef QQQ	/* QQQ - DELETE */
-	unsigned long sysconf;
-#if defined(CONFIG_STMAC_MAC0)
-	const int shift = 0;	/* First MAC */
-#elif defined(CONFIG_STMAC_MAC1)
-	const int shift = 1;	/* Second MAC */
-#endif
+	const unsigned long en_mii  = 1;
+	const unsigned long sel     = 0;
+	const unsigned long ext_clk = 0;
 
-	sysconf = *STX7200_SYSCONF_SYS_CFG41;
-        sysconf &= ~(DISABLE_MSG_READ << shift);
-        sysconf &= ~(DISABLE_MSG_WRITE << shift);
-        //sysconf |=  (VCI_ACK_SOURCE << shift);
-        sysconf &= ~(VCI_ACK_SOURCE << shift);
-        sysconf |=  (RESET << shift);
+	unsigned long sysconf = *STX7111_SYSCONF_SYS_CFG07;
 
-#ifdef CONFIG_STMAC_STE101P_RMII
-        sysconf |= (MII_MODE << shift);
-        sysconf &= ~(PHY_CLK_EXT << shift);
-#else
-        sysconf &= ~(MII_MODE << shift);
-        sysconf &= ~(PHY_CLK_EXT << shift);
-#endif
-	*STX7200_SYSCONF_SYS_CFG41 = sysconf;
-#endif		/* QQQ - DELETE */
+	/* Ethernet ON */
+	sysconf |= ETHERNET_INTERFACE_ON;
+
+	/* PHY EXT CLOCK: 0: provided by STX7111; 1: external */
+	if (ext_clk)
+		sysconf |= PHY_CLK_EXT;
+	else
+		sysconf &= ~PHY_CLK_EXT;
+
+	/* Default GMII/MII slection */
+	sysconf &= ~PHY_INTF_SEL_MASK;
+	sysconf |= ((sel<<24) & PHY_INTF_SEL_MASK);
+
+	/* MII mode */
+	if (en_mii)
+		sysconf |= ENMII;
+	else
+		sysconf &= ~ENMII;
+
+	*STX7111_SYSCONF_SYS_CFG07 = sysconf;
 }
-#endif
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 int soc_init(void)
 {
@@ -116,9 +116,9 @@ int soc_init(void)
 
 	stx7111_clocks();
 
-#ifdef CONFIG_DRIVER_NETSTMAC
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
 	stmac_eth_hw_setup();
-#endif
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 	bd->bi_devid = *STX7111_SYSCONF_DEVICEID_0;
 

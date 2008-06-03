@@ -142,6 +142,7 @@ _start:
 	SH4_SET_PMB 3 0xa1 0x01  16 0 0 1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 4 0xa8 0x00  16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 5 0xa9 0x01  16		/* NOR/NAND FLASH CACHED */
+	SH4_SET_PMB 6 0xb4 0x04  16 0 0 1	/* EPLD UN-cached */
 #else
 	#error Do not know which chip we are using for PMB setup.
 #endif	/* defined(CONFIG_SH_STxxx) */

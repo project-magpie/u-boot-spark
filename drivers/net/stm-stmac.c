@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2006  STMicroelectronics Limited
+ *  Copyright (c) 2006-2008  STMicroelectronics Limited
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -17,11 +17,12 @@
  * MA 02111-1307 USA
  *
  * author(s): Andy Sturges (andy.sturges@st.com)
+ *            Sean McGoogan <Sean.McGoogan@st.com>
  */
 
 #include <common.h>
 
-#ifdef CONFIG_DRIVER_NETSTMAC
+#if defined(CONFIG_DRIVER_NETSTMAC) || defined(CONFIG_DRIVER_NET_STM_GMAC)
 
 #include <command.h>
 #include <asm/addrspace.h>
@@ -34,26 +35,18 @@
 #if defined(CONFIG_CMD_NET)
 
 /* #define DEBUG */
-
 #ifdef DEBUG
-#define PRINTK(args...) printf(args)
+#	define PRINTK(args...) printf(args)
 #else
-#define PRINTK(args...)
+#	define PRINTK(args...)
 #endif
 
-/* This structure is common for both receive and transmit DMA descriptors.
- * A descriptor should not be used for storing more than one frame. */
-struct stmac_dma_des_t
-{
-	unsigned int des0;	/* Status */
-	unsigned int des1;	/* Ctrl bits, Buffer 2 length, Buffer 1 length */
-	void *des2;		/* Buffer 1 Address Pointer */
-	void *des3;		/* Buffer 2 Address Pointer or the next Descriptor */
-};
-
-typedef struct stmac_dma_des_t stmac_dma_des;
-
-/* Use single dma descriptors */
+/* prefix to use for diagnostics */
+#ifdef CONFIG_DRIVER_NETSTMAC
+#	define STMAC	"STM-MAC: "
+#else
+#	define STMAC	"STM-GMAC: "
+#endif /* CONFIG_DRIVER_NETSTMAC */
 
 #define CONFIG_DMA_RX_SIZE 8
 #define CONFIG_DMA_TX_SIZE 1	/* Only ever use 1 tx buffer */
@@ -72,19 +65,20 @@ static unsigned int stmac_mii_read (int phy_addr, int reg);
 static void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed);
 
 /* DMA structure */
-
 struct dma_t
 {
-	uchar _dummy1[L1_CACHE_BYTES];
 	stmac_dma_des desc_rx[CONFIG_DMA_RX_SIZE];
 	stmac_dma_des desc_tx[CONFIG_DMA_TX_SIZE];
 	uchar rx_buff[CONFIG_DMA_RX_SIZE * (PKTSIZE_ALIGN)];
-	uchar _dummy2[L1_CACHE_BYTES];
-} dma;
+	uchar _dummy[L1_CACHE_BYTES];
+} __attribute__ ((aligned (L1_CACHE_BYTES))) dma;
 
-static uchar *rx_packets[CONFIG_DMA_RX_SIZE];
+static void *rx_packets[CONFIG_DMA_RX_SIZE];
 
 extern int stmac_default_pbl(void);
+
+#define likely(x)	__builtin_expect(!!(x), 1)
+#define unlikely(x)	__builtin_expect(!!(x), 0)
 
 /* ----------------------------------------------------------------------------
 				 Phy interface
@@ -92,10 +86,11 @@ extern int stmac_default_pbl(void);
 
 #if defined(CONFIG_STMAC_STE10XP)	/* ST STE10xP */
 
-/* STE101P phy identifier values */
+/* STE100P phy identifier values */
 #define STE100P_PHY_HI_ID       0x1c04
 #define STE100P_PHY_LO_ID       0x0011
 
+/* STE101P phy identifier values */
 #define STE101P_PHY_HI_ID       0x0006
 #define STE101P_PHY_LO_ID_REVA  0x1c51
 #define STE101P_PHY_LO_ID_REVB  0x1c52
@@ -174,20 +169,20 @@ static int stmac_phy_negotiate (int phy_addr)
 
 		/* Restart auto-negotiation if remote fault */
 		if (status & BMSR_RFAULT) {
-			printf ("PHY remote fault detected\n");
+			printf (STMAC "PHY remote fault detected\n");
 			/* Restart auto-negotiation */
-			printf ("PHY restarting auto-negotiation\n");
+			printf (STMAC "PHY restarting auto-negotiation\n");
 			stmac_mii_write (phy_addr, MII_BMCR,
 					 BMCR_ANENABLE | BMCR_ANRESTART);
 		}
 	}
 
 	if (!(status & BMSR_ANEGCOMPLETE)) {
-		printf ("PHY auto-negotiate timed out\n");
+		printf (STMAC "PHY auto-negotiate timed out\n");
 	}
 
 	if (status & BMSR_RFAULT) {
-		printf ("PHY remote fault detected\n");
+		printf (STMAC "PHY remote fault detected\n");
 	}
 
 	return (1);
@@ -202,7 +197,7 @@ static unsigned int stmac_phy_check_speed (int phy_addr)
 	/* Read Status register */
 	status = stmac_mii_read (phy_addr, MII_BMSR);
 
-	printf ("STMAC: ");
+	printf (STMAC);
 
 	/* Check link status.  If 0, default to 100 Mbps. */
 	if ((status & BMSR_LSTATUS) == 0) {
@@ -253,17 +248,17 @@ static unsigned int stmac_phy_get_addr (void)
 		    ((id2 == STE101P_PHY_LO_ID_REVB) ||
 		     (id2 == STE101P_PHY_LO_ID_REVA))) {
 			stmac_phy_id = id1;
-			printf ("STMAC: STE101P found\n");
+			printf (STMAC "STE101P found\n");
 		} else if ((id1 == STE100P_PHY_HI_ID) &&
 			   (id2 == STE100P_PHY_LO_ID)) {
 			stmac_phy_id = id1;
-			printf ("STMAC: STE100P found\n");
+			printf (STMAC "STE100P found\n");
 		}
 #elif defined(CONFIG_STMAC_LAN8700)
 		if ((id1 == LAN8700_PHY_HI_ID) &&
 		    (id2 == LAN8700_PHY_LO_ID)) {
 			stmac_phy_id = id1;
-			printf ("STMAC: SMSC LAN8700 found\n");
+			printf (STMAC "SMSC LAN8700 found\n");
 		}
 #endif	/* CONFIG_STMAC_LAN8700 */
 
@@ -284,7 +279,7 @@ static int stmac_phy_init (void)
 
 	/* Now reset the PHY we just found */
 	if (miiphy_reset (miidevice, eth_phy_addr)< 0) {
-		PRINTK ("PHY reset failed!");
+		PRINTK (STMAC "PHY reset failed!\n");
 		return -1;
 	}
 
@@ -299,7 +294,7 @@ static int stmac_phy_init (void)
 #error Need to define PHY
 #endif
 	if (value != eth_phy_addr) {
-		printf ("PHY address mismatch with hardware (hw %d != %d)\n",
+		printf (STMAC "PHY address mismatch with hardware (hw %d != %d)\n",
 			value,
 			eth_phy_addr);
 	}
@@ -351,7 +346,7 @@ static int stmac_mii_poll_busy (void)
 			return 1;
 		}
 	}
-	printf ("stmac_mii_busy timeout\n");
+	printf (STMAC "stmac_mii_busy timeout\n");
 	return (0);
 }
 
@@ -362,18 +357,21 @@ static void stmac_mii_write (int phy_addr, int reg, int value)
 	/* Select register */
 	mii_addr =
 		((phy_addr & MAC_MII_ADDR_PHY_MASK) << MAC_MII_ADDR_PHY_SHIFT)
-		| ((reg & MAC_MII_ADDR_REG_MASK) << MAC_MII_ADDR_REG_SHIFT) |
-		MAC_MII_ADDR_WRITE;
+		| ((reg & MAC_MII_ADDR_REG_MASK) << MAC_MII_ADDR_REG_SHIFT)
+		| MAC_MII_ADDR_WRITE | MAC_MII_ADDR_BUSY;
 
 	stmac_mii_poll_busy ();
 
 	/* Set the MII address register to write */
-	STMAC_WRITE (mii_addr, MAC_MII_DATA);
-	STMAC_WRITE (value, MAC_MII_ADDR);
+	STMAC_WRITE (value, MAC_MII_DATA);
+	STMAC_WRITE (mii_addr, MAC_MII_ADDR);
 
 	stmac_mii_poll_busy ();
 
+#if defined(CONFIG_STMAC_STE10XP)	/* ST STE10xP PHY */
+	/* QQQ: is the following actually needed ? */
 	(void) stmac_mii_read (phy_addr, reg);
+#endif	/* CONFIG_STMAC_STE10XP */
 }
 
 static unsigned int stmac_mii_read (int phy_addr, int reg)
@@ -382,7 +380,8 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 
 	mii_addr =
 		((phy_addr & MAC_MII_ADDR_PHY_MASK) << MAC_MII_ADDR_PHY_SHIFT)
-		| ((reg & MAC_MII_ADDR_REG_MASK) << MAC_MII_ADDR_REG_SHIFT);
+		| ((reg & MAC_MII_ADDR_REG_MASK) << MAC_MII_ADDR_REG_SHIFT)
+		| MAC_MII_ADDR_BUSY;
 
 	/* Select register */
 	stmac_mii_poll_busy ();
@@ -413,6 +412,38 @@ static int stmac_miiphy_write (char *devname, unsigned char addr, unsigned char 
 				 MAC CORE Interface
    ---------------------------------------------------------------------------*/
 
+#ifdef DEBUG
+static void gmac_dump_regs(void)
+{
+	int i;
+	const char fmt[] =
+		"\tReg No. %2d (offset 0x%03x): 0x%08x\n";
+	const char header[] =
+		"\t----------------------------------------------\n"
+		"\t  %s registers (base addr = 0x%8x)\n"
+		"\t----------------------------------------------\n";
+
+	printf (header, "MAC CORE", (unsigned int)CFG_STM_STMAC_BASE);
+	for (i = 0; i < 18; i++) {
+		int offset = i * 4;
+		printf(fmt, i, offset, STMAC_READ (offset));
+	}
+
+	printf (header, "MAC DMA", (unsigned int)CFG_STM_STMAC_BASE);
+	for (i = 0; i < 9; i++) {
+		int offset = i * 4;
+		printf (fmt, i, (DMA_BUS_MODE + offset),
+			STMAC_READ (DMA_BUS_MODE + offset));
+	}
+
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	printf ("\tSTBus bridge register (0x%08x) = 0x%08x\n",
+		(unsigned int)(CFG_STM_STMAC_BASE + STBUS_BRIDGE_OFFSET),
+		STMAC_READ (STBUS_BRIDGE_OFFSET));
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+}
+#endif	/* DEBUG */
+
 static void stmac_set_mac_addr (unsigned char *Addr)
 {
 	unsigned long data;
@@ -421,8 +452,6 @@ static void stmac_set_mac_addr (unsigned char *Addr)
 	STMAC_WRITE (data, MAC_ADDR_HIGH);
 	data = (Addr[3] << 24) | (Addr[2] << 16) | (Addr[1] << 8) | Addr[0];
 	STMAC_WRITE (data, MAC_ADDR_LOW);
-
-	return;
 }
 
 static int stmac_get_mac_addr (unsigned char *addr)
@@ -451,11 +480,16 @@ static void stmac_mac_enable (void)
 {
 	unsigned int value = (unsigned int) STMAC_READ (MAC_CONTROL);
 
-	PRINTK ("MAC RX/TX enabled\n");
+	PRINTK (STMAC "MAC RX/TX enabled\n");
 
-	/* set: TE (transmitter enable, bit 3), RE (receive enable, bit 2)
-	   and RA (receive all mode, bit 31) */
-	value |= (MAC_CONTROL_RA | MAC_CONTROL_TE | MAC_CONTROL_RE);
+	/* set: TE (transmitter enable), RE (receive enable) */
+	value |= (MAC_CONTROL_TE | MAC_CONTROL_RE);
+
+#ifdef CONFIG_DRIVER_NETSTMAC
+	/* and RA (receive all mode) */
+//	value |= MAC_CONTROL_RA;	/* QQQ: suspect we can delete this */
+#endif	/* CONFIG_DRIVER_NETSTMAC */
+
 	STMAC_WRITE (value, MAC_CONTROL);
 	return;
 }
@@ -464,9 +498,14 @@ static void stmac_mac_disable (void)
 {
 	unsigned int value = (unsigned int) STMAC_READ (MAC_CONTROL);
 
-	PRINTK ("%s: MAC RX/TX disabled\n", __FUNCTION__);
+	PRINTK (STMAC "MAC RX/TX disabled\n");
 
-	value &= ~(MAC_CONTROL_RA | MAC_CONTROL_TE | MAC_CONTROL_RE);
+	value &= ~(MAC_CONTROL_TE | MAC_CONTROL_RE);
+
+#ifdef CONFIG_DRIVER_NETSTMAC
+//	value &= ~MAC_CONTROL_RA;	/* QQQ: suspect we can delete this */
+#endif	/* CONFIG_DRIVER_NETSTMAC */
+
 	STMAC_WRITE (value, MAC_CONTROL);
 	return;
 }
@@ -475,9 +514,12 @@ static void stmac_set_rx_mode (void)
 {
 	unsigned int value = (unsigned int) STMAC_READ (MAC_CONTROL);
 
-	PRINTK ("STMAC: perfect filtering mode.\n");
+#ifdef CONFIG_DRIVER_NETSTMAC
+	PRINTK (STMAC "MAC address perfect filtering only mode\n");
 	value &= ~(MAC_CONTROL_PM | MAC_CONTROL_PR | MAC_CONTROL_IF |
 		   MAC_CONTROL_HO | MAC_CONTROL_HP);
+#endif	/* CONFIG_DRIVER_NETSTMAC */
+
 	STMAC_WRITE (0x0, MAC_HASH_HIGH);
 	STMAC_WRITE (0x0, MAC_HASH_LOW);
 
@@ -488,22 +530,55 @@ static void stmac_set_rx_mode (void)
 
 static void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed)
 {
-	unsigned int flow = (unsigned int) STMAC_READ (MAC_FLOW_CONTROL),
-		ctrl = (unsigned int) STMAC_READ (MAC_CONTROL);
+	unsigned int flow = (unsigned int) STMAC_READ (MAC_FLOW_CONTROL);
+	unsigned int ctrl = (unsigned int) STMAC_READ (MAC_CONTROL);
 
-	PRINTK ("%s\n", __FUNCTION__);
+	PRINTK (STMAC "%s(full_duplex=%d, speed=%u)\n", __FUNCTION__, full_duplex, speed);
 
 	if (!(full_duplex)) {	/* Half Duplex */
+#ifdef CONFIG_DRIVER_NETSTMAC
 		flow &= ~(MAC_FLOW_CONTROL_FCE | MAC_FLOW_CONTROL_PT_MASK |
 			  MAC_FLOW_CONTROL_PCF);
 		ctrl &= ~MAC_CONTROL_F;
 		ctrl |= MAC_CONTROL_DRO;
+#endif	/* CONFIG_DRIVER_NETSTMAC */
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+		flow &= ~(MAC_FLOW_CONTROL_TFE | MAC_FLOW_CONTROL_PT_MASK |
+			  MAC_FLOW_CONTROL_RFE);
+		ctrl &= ~MAC_CONTROL_DM;
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 	} else {		/* Full Duplex */
-		flow |= MAC_FLOW_CONTROL_FCE | MAC_FLOW_CONTROL_PCF |
-			(MAX_PAUSE_TIME << MAC_FLOW_CONTROL_PT_SHIFT);
+#ifdef CONFIG_DRIVER_NETSTMAC
 		ctrl |= MAC_CONTROL_F;
 		ctrl &= ~MAC_CONTROL_DRO;
+		flow |= MAC_FLOW_CONTROL_FCE | MAC_FLOW_CONTROL_PCF;
+#endif	/* CONFIG_DRIVER_NETSTMAC */
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+		ctrl |= MAC_CONTROL_DM;
+		flow |= MAC_FLOW_CONTROL_TFE | MAC_FLOW_CONTROL_RFE;
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+		flow |= (MAX_PAUSE_TIME << MAC_FLOW_CONTROL_PT_SHIFT);
 	}
+
+#ifdef CONFIG_DRIVER_NETSTMAC
+	/* use MII */
+	ctrl &= ~MAC_CONTROL_PS;
+#endif	/* CONFIG_DRIVER_NETSTMAC */
+
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	switch (speed) {
+	case 1000:		/* Gigabit */
+		ctrl &= ~MAC_CONTROL_PS;
+		break;
+	case 100:		/* 100Mbps */
+		ctrl |= MAC_CONTROL_PS | MAC_CONTROL_FES;
+		break;
+	case 10:		/* 10Mbps */
+		ctrl |= MAC_CONTROL_PS;
+		ctrl &= ~MAC_CONTROL_FES;
+		break;
+	}
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 	STMAC_WRITE (flow, MAC_FLOW_CONTROL);
 	STMAC_WRITE (ctrl, MAC_CONTROL);
@@ -516,16 +591,23 @@ static void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed)
 /* This function provides the initial setup of the MAC controller */
 static void stmac_mac_core_init (void)
 {
-	unsigned int value = 0;
+	unsigned int value;
 
 	/* Set the MAC control register with our default value */
 	value = (unsigned int) STMAC_READ (MAC_CONTROL);
-	value |= MAC_CONTROL_HBD | MAC_CONTROL_PM;
+	value |= MAC_CORE_INIT;
 	STMAC_WRITE (value, MAC_CONTROL);
 
-	/* Change the MAX_FRAME bits in the MMC control register. */
-	STMAC_WRITE (((MAX_ETH_FRAME_SIZE << MMC_CONTROL_MAX_FRM_SHIFT) &
-		      MMC_CONTROL_MAX_FRM_MASK), MMC_CONTROL);
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	/* STBus Bridge Configuration */
+	STMAC_WRITE(STBUS_BRIDGE_MAGIC, STBUS_BRIDGE_OFFSET);
+
+	/* Freeze MMC counters */
+	STMAC_WRITE(MMC_COUNTER_FREEZE, MMC_CONTROL);
+
+	/* Mask all interrupts */
+	STMAC_WRITE(~0u, MAC_INT_MASK);
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 	return;
 }
@@ -533,41 +615,47 @@ static void stmac_mac_core_init (void)
 /* ----------------------------------------------------------------------------
  *  			DESCRIPTORS functions
  * ---------------------------------------------------------------------------*/
-static void display_dma_desc_ring (volatile stmac_dma_des * p, int size)
+
+#ifdef DEBUG
+static void display_dma_desc_ring (volatile const stmac_dma_des * p, int size)
 {
 	int i;
 	for (i = 0; i < size; i++)
 		printf ("\t%d [0x%x]: "
-			"desc0=0x%x desc1=0x%x buffer1=0x%x\n", i,
-			(unsigned int) &p[i].des0, p[i].des0,
-			p[i].des1, (unsigned int) p[i].des2);
+			"desc0=0x%08x, desc1=0x%08x, buffer1=0x%08x\n",
+			i, (unsigned int) &p[i].des01.u.des0,
+			p[i].des01.u.des0, p[i].des01.u.des1, p[i].des2);
 }
+#endif	/* DEBUG */
 
-static void init_desc_owner (volatile stmac_dma_des * head, unsigned int size,
-			     unsigned int owner)
+static void init_rx_desc (volatile stmac_dma_des * p,
+	unsigned int ring_size, void **buffers)
 {
 	int i;
-	volatile stmac_dma_des *p = head;
 
-	for (i = 0; i < size; i++) {
-		p->des0 = owner;
+	for (i = 0; i < ring_size; i++) {
+		p->des01.u.des0 = p->des01.u.des1 = 0;
+		p->des01.rx.own = 1;
+		p->des01.rx.buffer1_size = PKTSIZE_ALIGN;
+		p->des01.rx.disable_ic = 1;
+		if (i == ring_size - 1)
+			p->des01.rx.end_ring = 1;
+		p->des2 = ((void *) (PHYSADDR (buffers[i])));
+		p->des3 = NULL;
 		p++;
 	}
 	return;
 }
 
-static void init_dma_ring (volatile stmac_dma_des * p, uchar ** phy,
-			   unsigned int ring_size, unsigned int own_bit)
+static void init_tx_desc (volatile stmac_dma_des * p, unsigned int ring_size)
 {
 	int i;
+
 	for (i = 0; i < ring_size; i++) {
-		p->des0 = own_bit;
-		p->des1 = (!(own_bit) ? 0 :
-			   ((PKTSIZE_ALIGN) << DES1_RBS1_SIZE_SHIFT));
-		if (i == ring_size - 1) {
-			p->des1 |= DES1_CONTROL_TER;
-		}
-		p->des2 = (!(own_bit) ? 0 : ((void *) (PHYSADDR (phy[i]))));
+		p->des01.u.des0 = p->des01.u.des1 = 0;
+		if (i == ring_size - 1)
+			p->des01.tx.end_ring = 1;
+		p->des2 = NULL;
 		p->des3 = NULL;
 		p++;
 	}
@@ -582,10 +670,9 @@ static void init_dma_desc_rings (void)
 {
 	int i;
 
-	PRINTK ("allocate and init the DMA RX/TX lists\n");
+	PRINTK (STMAC "allocate and init the DMA RX/TX lists\n");
 
 	/* Clean out uncached buffers */
-
 	flush_cache ((unsigned long)&dma, sizeof (struct dma_t));
 
 	/* Allocate memory for the DMA RX/TX buffer descriptors */
@@ -594,22 +681,24 @@ static void init_dma_desc_rings (void)
 
 	cur_rx = 0;
 
-	if ((dma_rx == NULL) || (dma_tx == NULL)) {
-		printf ("%s:ERROR allocating the DMA Tx/Rx desc\n",
-			__FUNCTION__);
+	if ((dma_rx == NULL) || (dma_tx == NULL) ||
+	    (((u32)dma_rx % L1_CACHE_BYTES) != 0) ||
+	    (((u32)dma_tx % L1_CACHE_BYTES) != 0)) {
+		printf (STMAC "ERROR allocating the DMA Tx/Rx desc\n");
 		return;
 	}
 
 	for (i = 0; i < CONFIG_DMA_RX_SIZE; i++)
-		rx_packets[i] = (uchar*)P2SEGADDR (dma.rx_buff + (PKTSIZE_ALIGN * i));
+		rx_packets[i] = (void *) P2SEGADDR (dma.rx_buff + (PKTSIZE_ALIGN * i));
 
-	init_dma_ring (dma_rx, rx_packets, CONFIG_DMA_RX_SIZE, OWN_BIT);
-	init_dma_ring (dma_tx, 0, CONFIG_DMA_TX_SIZE, 0);
+	/* Initialize the contents of the DMA buffers */
+	init_rx_desc (dma_rx, CONFIG_DMA_RX_SIZE, rx_packets);
+	init_tx_desc (dma_tx, CONFIG_DMA_TX_SIZE);
 
 #ifdef DEBUG
-	printf (" - RX descriptor ring:\n");
+	printf (STMAC "RX descriptor ring:\n");
 	display_dma_desc_ring (dma_rx, CONFIG_DMA_RX_SIZE);
-	printf (" - TX descriptor ring:\n");
+	printf (STMAC "TX descriptor ring:\n");
 	display_dma_desc_ring (dma_tx, CONFIG_DMA_TX_SIZE);
 #endif
 
@@ -665,7 +754,7 @@ static void stmac_dma_stop_tx (void)
 	unsigned int value;
 
 	value = (unsigned int) STMAC_READ (DMA_CONTROL);
-	value |= ~DMA_CONTROL_ST;
+	value &= ~DMA_CONTROL_ST;
 	STMAC_WRITE (value, DMA_CONTROL);
 
 	return;
@@ -686,7 +775,7 @@ static void stmac_dma_stop_rx (void)
 	unsigned int value;
 
 	value = (unsigned int) STMAC_READ (DMA_CONTROL);
-	value |= ~DMA_CONTROL_SR;
+	value &= ~DMA_CONTROL_SR;
 	STMAC_WRITE (value, DMA_CONTROL);
 
 	return;
@@ -696,8 +785,6 @@ static void stmac_eth_stop_tx (void)
 {
 
 	stmac_dma_stop_tx ();
-
-	init_desc_owner (dma_tx, CONFIG_DMA_TX_SIZE, 0);
 
 	return;
 }
@@ -710,10 +797,7 @@ static void stmac_eth_stop_tx (void)
 static int stmac_dma_init (void)
 {
 
-	PRINTK ("STM-STMAC: DMA Core setup\n");
-
-	/* DMA SW reset */
-	stmac_dma_reset ();
+	PRINTK (STMAC "DMA Core setup\n");
 
 	/* Enable Application Access by writing to DMA CSR0 */
 	STMAC_WRITE (DMA_BUS_MODE_DEFAULT |
@@ -724,78 +808,155 @@ static int stmac_dma_init (void)
 	STMAC_WRITE (0, DMA_INTR_ENA);
 
 	/* The base address of the RX/TX descriptor */
-
 	STMAC_WRITE (PHYSADDR (dma_tx), DMA_TX_BASE_ADDR);
 	STMAC_WRITE (PHYSADDR (dma_rx), DMA_RCV_BASE_ADDR);
 
 	return (0);
 }
 
-static int check_tx_error_summary (uint status)
+static int check_tx_error_summary (const stmac_dma_des * const p)
 {
+	int ret = 0;	/* assume there are no errors */
 
-	PRINTK ("TDES0: 0x%x\n", status);
-
-	if (status & TDES0_STATUS_ES) {
-		printf ("STMAC: DMA tx ERROR: ");
-
-		if (status & TDES0_STATUS_UF) {
-			printf ("Underflow Error\n");
-			goto out_error;
+	if (unlikely(p->des01.tx.error_summary)) {
+		if (unlikely(p->des01.tx.loss_carrier)) {
+			PRINTK(STMAC "TX: loss_carrier error\n");
 		}
-		if (status & TDES0_STATUS_EX_DEF) {
-			printf ("Ex Deferrals\n");
-			goto set_collision;
+		if (unlikely(p->des01.tx.no_carrier)) {
+			PRINTK(STMAC "TX: no_carrier error\n");
 		}
-		if (status & TDES0_STATUS_EX_COL) {
-			printf ("Ex Collisions\n");
-			goto set_collision;
+		if (unlikely(p->des01.tx.late_collision)) {
+			PRINTK(STMAC "TX: late_collision error\n");
 		}
-		if (status & TDES0_STATUS_LATE_COL) {
-			printf ("Late Collision\n");
-			goto set_collision;
+		if (unlikely(p->des01.tx.excessive_collisions)) {
+			PRINTK(STMAC "TX: excessive_collisions\n");
 		}
-		if (status & TDES0_STATUS_NO_CARRIER) {
-			printf ("No Carrier\n");
-			goto out_error;
+		if (unlikely(p->des01.tx.excessive_deferral)) {
+			PRINTK(STMAC "TX: excessive_deferral\n");
 		}
-		if (status & TDES0_STATUS_LOSS_CARRIER) {
-			printf ("Loss of Carrier\n");
-			goto out_error;
+		if (unlikely(p->des01.tx.underflow_error)) {
+			PRINTK(STMAC "TX: underflow error\n");
 		}
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+		if (unlikely(p->des01.tx.jabber_timeout)) {
+			PRINTK(STMAC "TX: jabber_timeout error\n");
+		}
+		if (unlikely(p->des01.tx.frame_flushed)) {
+			PRINTK(STMAC "TX: frame_flushed error\n");
+		}
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+		ret = -1;
 	}
 
-	return (0);
+	if (unlikely(p->des01.tx.deferred)) {
+		PRINTK(STMAC "TX: deferred\n");
+		ret = -1;
+	}
+#ifdef CONFIG_DRIVER_NETSTMAC
+	if (unlikely(p->des01.tx.heartbeat_fail)) {
+		PRINTK(STMAC "TX: heartbeat_fail\n");
+		ret = -1;
+	}
+#endif	/* CONFIG_DRIVER_NETSTMAC */
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	if (unlikely(p->des01.tx.payload_error)) {
+		PRINTK(STMAC "TX Addr/Payload csum error\n");
+		ret = -1;
+	}
+	if (unlikely(p->des01.tx.ip_header_error)) {
+		PRINTK(STMAC "TX IP header csum error\n");
+		ret = -1;
+	}
+	if (p->des01.tx.vlan_frame) {
+		PRINTK(STMAC "TX: VLAN frame\n");
+	}
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
-      set_collision:
-      out_error:
+#ifdef DEBUG
+	if (ret != 0) {
+		printf(STMAC "%s() returning %d\n", __FUNCTION__, ret);
+	}
+#endif
 
-	return (-1);
+	return (ret);
 }
 
-/* When a frame is received the status is written into TDESC0 of the descriptor
- * having the LS bit set. */
-static int check_rx_error_summary (unsigned int status)
+static int check_rx_error_summary (const stmac_dma_des * const p)
 {
-	if (status & RDES0_STATUS_ES) {
-		printf ("STMAC: DMA rx ERROR: ");
-		if (status & RDES0_STATUS_DE)
-			printf ("descriptor error\n");
-		if (status & RDES0_STATUS_PFE)
-			printf ("partial frame error\n");
-		if (status & RDES0_STATUS_RUNT_FRM)
-			printf ("runt Frame\n");
-		if (status & RDES0_STATUS_TL)
-			printf ("frame too long\n");
-		if (status & RDES0_STATUS_COL_SEEN) {
-			printf ("collision seen\n");
-		}
-		if (status & RDES0_STATUS_CE)
-			printf ("CRC Error\n");
+	int ret = 0;	/* assume there are no errors */
 
-		return (-1);
+	if (unlikely(p->des01.rx.error_summary)) {
+		if (unlikely(p->des01.rx.descriptor_error)) {
+			/* frame doesn't fit within the current descriptor. */
+			PRINTK(STMAC "RX: descriptor error\n");
+		}
+		if (unlikely(p->des01.rx.crc_error)) {
+			PRINTK(STMAC "RX: CRC error\n");
+		}
+#ifdef CONFIG_DRIVER_NETSTMAC
+		if (unlikely(p->des01.rx.partial_frame_error)) {
+			PRINTK(STMAC "RX: partial_frame_error\n");
+		}
+		if (unlikely(p->des01.rx.runt_frame)) {
+			PRINTK(STMAC "RX: runt_frame\n");
+		}
+		if (unlikely(p->des01.rx.frame_too_long)) {
+			PRINTK(STMAC "RX: frame_too_long\n");
+		}
+		if (unlikely(p->des01.rx.collision)) {
+			PRINTK(STMAC "RX: collision\n");
+		}
+#endif	/* CONFIG_DRIVER_NETSTMAC */
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+		if (unlikely(p->des01.rx.overflow_error)) {
+			PRINTK(STMAC "RX: Overflow error\n");
+		}
+		if (unlikely(p->des01.rx.late_collision)) {
+			PRINTK(STMAC "RX: late_collision\n");
+		}
+		if (unlikely(p->des01.rx.receive_watchdog)) {
+			PRINTK(STMAC "RX: receive_watchdog error\n");
+		}
+		if (unlikely(p->des01.rx.error_gmii)) {
+			PRINTK(STMAC "RX: GMII error\n");
+		}
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+		ret = -1;
 	}
-	return (0);
+
+	if (unlikely(p->des01.rx.length_error)) {
+		PRINTK(STMAC "RX: length_error error\n");
+		ret = -1;
+	}
+	if (unlikely(p->des01.rx.dribbling)) {
+		PRINTK(STMAC "RX: dribbling error\n");
+		ret = -1;
+	}
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	if (unlikely(p->des01.rx.filtering_fail)) {
+		PRINTK(STMAC "RX: filtering_fail error\n");
+		ret = -1;
+	}
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+#ifdef CONFIG_DRIVER_NETSTMAC
+	if (unlikely(p->des01.rx.last_descriptor == 0)) {
+		PRINTK(STMAC "RX: Oversized Ethernet "
+			"frame spanned multiple buffers\n");
+		ret = -1;
+	}
+	if (unlikely(p->des01.rx.mii_error)) {
+		PRINTK(STMAC "RX: MII error\n");
+		ret = -1;
+	}
+#endif	/* CONFIG_DRIVER_NETSTMAC */
+
+#ifdef DEBUG
+	if (ret != 0) {
+		printf(STMAC "%s() returning %d\n", __FUNCTION__, ret);
+	}
+#endif
+
+	return (ret);
 }
 
 static int stmac_eth_tx (volatile uchar * data, int len)
@@ -803,29 +964,34 @@ static int stmac_eth_tx (volatile uchar * data, int len)
 	volatile stmac_dma_des *p = dma_tx;
 	uint now = get_timer (0);
 	uint status = 0;
+	u32 end_ring;
 
-	while ((p->des0 & OWN_BIT)
+	while (p->des01.tx.own
 	       && (get_timer (now) < CONFIG_STMAC_TX_TIMEOUT)) {
 		;
 	}
 
-	if (p->des0 & OWN_BIT) {
-		printf ("STMAC: tx timeout - no desc available\n");
+	if (p->des01.tx.own) {
+		printf (STMAC "tx timeout - no desc available\n");
 		return -1;
 	}
 
-	flush_cache ((ulong) data, len);	/* Make sure data in memory */
-	p->des2 = (stmac_dma_des *) PHYSADDR (data);
+	/* Make sure data is in real memory */
+	flush_cache ((ulong) data, len);
+	p->des2 = (void *) PHYSADDR (data);
 
-	/* Clean and set the descriptor 1 */
-
-	p->des1 = ((TDES1_CONTROL_IC | TDES1_CONTROL_FS | TDES1_CONTROL_LS) |
-		   ((p->des1 & DES1_CONTROL_TER) ? DES1_CONTROL_TER : 0) |
-		   ((len << DES1_RBS1_SIZE_SHIFT) & DES1_RBS1_SIZE_MASK));
-	p->des0 = OWN_BIT;
+	/* Clean and set the TX descriptor */
+	end_ring = p->des01.tx.end_ring;
+	p->des01.u.des0 = p->des01.u.des1 = 0;
+	p->des01.tx.interrupt = 1;
+	p->des01.tx.first_segment = 1;
+	p->des01.tx.last_segment = 1;
+	p->des01.tx.end_ring = end_ring;
+	p->des01.tx.buffer1_size = len;
+	p->des01.tx.own = 1;
 
 #ifdef DEBUG
-	PRINTK ("\nSTMAC: TX (cur_tx = %d)\n", cur_tx);
+	PRINTK ("\n" STMAC "TX %s(data=0x%08x, len=%d)\n", __FUNCTION__, data, len);
 	display_dma_desc_ring (dma_tx, CONFIG_DMA_TX_SIZE);
 #endif
 
@@ -840,72 +1006,77 @@ static int stmac_eth_tx (volatile uchar * data, int len)
 			break;
 	}
 	if (!(status & DMA_STATUS_TI)) {
-		printf ("STMAC: tx timeout\n");
+		printf (STMAC "tx timeout\n");
 	}
-	check_tx_error_summary (status);
 
-	return (0);
+	return check_tx_error_summary ((stmac_dma_des *)p);
 }
 
 /* Receive function */
 static void stmac_eth_rx (void)
 {
-	int frame_len = 0, pos;
+	int frame_len = 0;
 	volatile stmac_dma_des *drx;
 
-	pos = cur_rx;
-	drx = dma_rx + pos;
+	/* select the RX descriptor to use */
+	drx = dma_rx + cur_rx;
 
-	if ((pos < 0) || (pos >= CONFIG_DMA_RX_SIZE)) {
-		printf ("STMAC %s: [dma drx = 0x%x, pos=%d]\n", __FUNCTION__,
-			(unsigned int) drx, pos);
+	if ((cur_rx < 0) || (cur_rx >= CONFIG_DMA_RX_SIZE)) {
+		printf (STMAC "%s: [dma drx = 0x%x, cur_rx=%d]\n", __FUNCTION__,
+			(unsigned int) drx, cur_rx);
+#ifdef DEBUG
 		display_dma_desc_ring (dma_rx, CONFIG_DMA_RX_SIZE);
+#endif	/* DEBUG */
 	}
 
-	if (!(drx->des0 & OWN_BIT) && (drx->des0 & RDES0_STATUS_LS)) {
-		unsigned int status = drx->des0;
-#ifdef  DEBUG
-		PRINTK ("RX descriptor ring:\n");
+	if (!(drx->des01.rx.own) && (drx->des01.rx.last_descriptor)) {
+#ifdef DEBUG
+		PRINTK (STMAC "RX descriptor ring:\n");
 		display_dma_desc_ring (dma_rx, CONFIG_DMA_RX_SIZE);
 #endif
 
 		/* Check if the frame was not successfully received */
-		if (check_rx_error_summary (status) < 0) {
-			drx->des0 = OWN_BIT;
-		} else if ((status & RDES0_STATUS_FS)
-			   && (status & RDES0_STATUS_LS)) {
+		if (check_rx_error_summary ((stmac_dma_des *)drx) < 0) {
+			drx->des01.rx.own = 1;
+		} else if (drx->des01.rx.first_descriptor
+			   && drx->des01.rx.last_descriptor) {
 
 			/* FL (frame length) indicates the length in byte including
 			 * the CRC */
-			frame_len =
-				(status & RDES0_STATUS_FL_MASK) >>
-				RDES0_STATUS_FL_SHIFT;
-
+			frame_len = drx->des01.rx.frame_length;
 			if ((frame_len >= 0) && (frame_len <= PKTSIZE_ALIGN)) {
-				memcpy ((void*)NetRxPackets[0], rx_packets[pos],
+#ifdef DEBUG
+				const unsigned char *p = rx_packets[cur_rx];
+				printf("\nRX[%d]:  0x%08x ", cur_rx, p);
+				printf("DA=%02x:%02x:%02x:%02x:%02x:%02x",
+					p[0], p[1], p[2], p[3], p[4], p[5]);
+				p+=6;
+				printf(" SA=%02x:%02x:%02x:%02x:%02x:%02x",
+					p[0], p[1], p[2], p[3], p[4], p[5]);
+				p+=6;
+				printf(" Type=%04x\n", p[0]<<8|p[1]);
+#endif
+				memcpy ((void*)NetRxPackets[0], rx_packets[cur_rx],
 					frame_len);
 				NetReceive (NetRxPackets[0], frame_len);
 			} else {
-				printf ("%s: Framelen %d too long\n",
+				printf (STMAC "%s: Framelen %d too long\n",
 					__FUNCTION__, frame_len);
 			}
-
-			drx->des0 = OWN_BIT;
-
+			drx->des01.rx.own = 1;
 #ifdef DEBUG
-			PRINTK ("%s: frame received \n", __FUNCTION__);
+			PRINTK (STMAC "%s: frame received \n", __FUNCTION__);
 #endif
 		} else {
-			printf ("%s: very long frame received\n",
+			printf (STMAC "%s: very long frame received\n",
 				__FUNCTION__);
 		}
 
-		if (drx->des1 & DES1_CONTROL_TER)
-			pos = 0;
+		/* advance to the next RX descriptor (for next time) */
+		if (drx->des01.rx.end_ring)
+			cur_rx = 0;	/* wrap, to first */
 		else
-			pos++;
-		/* drx = dma_rx + pos; */
-		cur_rx = pos;
+			cur_rx++;	/* advance to next */
 
 	} else {
 		STMAC_WRITE (1, DMA_RCV_POLL_DEMAND);	/* request input */
@@ -980,15 +1151,21 @@ static int stmac_reset_eth (bd_t * bd)
 {
 	int err;
 
-	err = stmac_get_ethaddr (bd);	/* set smc_mac_addr, and sync it with u-boot globals */
+	/* MAC Software reset */
+	stmac_dma_reset ();		/* Must be done early  */
+
+	/* set smc_mac_addr, and sync it with u-boot globals */
+	err = stmac_get_ethaddr (bd);
 
 	if (err < 0) {
-		memset (bd->bi_enetaddr, 0, 6);	/* hack to make error stick! upper code will abort if not set */
-		return (-1);	/* upper code ignores this, but NOT bi_enetaddr */
+		/* hack to make error stick! upper code will abort if not set */
+		memset (bd->bi_enetaddr, 0, 6);
+		/* upper code ignores return value, but NOT bi_enetaddr */
+		return (-1);
 	}
 
 	if (stmac_phy_init () < 0) {
-		printf ("Phy not detected\n");
+		printf (STMAC "Phy not detected\n");
 		return -1;
 	}
 
@@ -1004,6 +1181,10 @@ static int stmac_reset_eth (bd_t * bd)
 	stmac_dma_start_rx ();
 	stmac_dma_start_tx ();
 
+#ifdef DEBUG
+	gmac_dump_regs ();
+#endif
+
 	STMAC_WRITE (1, DMA_RCV_POLL_DEMAND);	/* request input */
 
 	return (0);
@@ -1017,7 +1198,7 @@ extern int eth_init (bd_t * bd)
 
 extern void eth_halt (void)
 {
-	PRINTK ("%s\n", __FUNCTION__);
+	PRINTK (STMAC "%s\n", __FUNCTION__);
 
 	/* Reset the TX/RX processes */
 	stmac_dma_stop_rx ();
@@ -1027,14 +1208,12 @@ extern void eth_halt (void)
 	stmac_mac_disable ();
 
 	/* Free buffers */
-
 	free_dma_desc_resources ();
 }
 
 /* Get a data block via Ethernet */
 extern int eth_rx (void)
 {
-	PRINTK ("%s: status 0x%x\n", __FUNCTION__, status);
 	stmac_eth_rx ();
 	return 1;
 }
@@ -1042,11 +1221,22 @@ extern int eth_rx (void)
 /* Send a data block via Ethernet. */
 extern int eth_send (volatile void *packet, int length)
 {
-	stmac_eth_tx (packet, length);
-	return 1;
+#ifdef DEBUG
+	const unsigned char *p = packet;
+	printf("TX   :  0x%08x ", p);
+	printf("DA=%02x:%02x:%02x:%02x:%02x:%02x",
+		p[0], p[1], p[2], p[3], p[4], p[5]);
+	p+=6;
+	printf(" SA=%02x:%02x:%02x:%02x:%02x:%02x",
+		p[0], p[1], p[2], p[3], p[4], p[5]);
+	p+=6;
+	printf(" Type=%04x\n", p[0]<<8|p[1]);
+#endif
+
+	return stmac_eth_tx (packet, length);
 }
 
-#endif /* COMMANDS & CFG_NET */
+#endif /* CONFIG_CMD_NET */
 
 extern int stmac_miiphy_initialize(bd_t *bis)
 {
@@ -1056,4 +1246,5 @@ extern int stmac_miiphy_initialize(bd_t *bis)
 	return 0;
 }
 
-#endif /* CONFIG_DRIVER_NETSTMAC */
+#endif /* CONFIG_DRIVER_NETSTMAC || CONFIG_DRIVER_NET_STM_GMAC */
+
