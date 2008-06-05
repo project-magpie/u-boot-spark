@@ -368,8 +368,8 @@ static void stmac_mii_write (int phy_addr, int reg, int value)
 	stmac_mii_poll_busy ();
 
 	/* Set the MII address register to write */
-	STMAC_WRITE (mii_addr, MAC_MII_DATA);
-	STMAC_WRITE (value, MAC_MII_ADDR);
+	STMAC_WRITE (value, MAC_MII_DATA);
+	STMAC_WRITE (mii_addr, MAC_MII_ADDR);
 
 	stmac_mii_poll_busy ();
 
