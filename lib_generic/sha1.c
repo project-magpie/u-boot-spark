@@ -29,7 +29,12 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #endif
 
+#ifdef USE_HOSTCC
+#include <string.h>
+#else
 #include <linux/string.h>
+#endif
+
 #include "sha1.h"
 
 /*
