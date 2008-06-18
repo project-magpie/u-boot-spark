@@ -25,6 +25,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <asm/soc.h>
 #include <asm/stx7111reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
@@ -57,16 +58,17 @@ static void stx7111_clocks(void)
 
 /* Remaining bits define pad functions, default appears to work */
 
-int stmac_default_pbl(void)
+extern int stmac_default_pbl(void)
 {
 	return 32;
 }
 
-#ifdef CONFIG_STMAC_STE101P_RMII	/* QQQ */
-void stx7111_mac_speed(int speed)
+extern void stmac_set_mac_speed(int speed)
 {
+	/* QQQ: check this code is actually correct for the 7111 */
 	unsigned long sysconf = *STX7111_SYSCONF_SYS_CFG07;
 
+//	printf("QQQ: %s(speed=%u)\n", __FUNCTION__, speed); /* QQQ - DELETE */
 	/* MAC_SPEED_SEL = 0|1 */
 	if (speed == 100)
 		sysconf |= MAC_SPEED_SEL;
@@ -75,7 +77,6 @@ void stx7111_mac_speed(int speed)
 
 	*STX7111_SYSCONF_SYS_CFG07 = sysconf;
 }
-#endif	/* CONFIG_STMAC_STE101P_RMII */
 
 /* ETH MAC pad configuration */
 static void stmac_eth_hw_setup(void)

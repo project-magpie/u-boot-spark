@@ -132,6 +132,9 @@ _start:
 #elif defined(CONFIG_SH_CB101)			/* CB101 */
 	SH4_SET_PMB 6 0xa2 0x02  16 0 0 1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 7 0xa3 0x03  16 0 0 1	/* NAND FLASH UN-cached */
+#elif defined(CONFIG_SH_MB671)			/* MB671 */
+	SH4_SET_PMB 6 0xb5 0x05  16 0 0 1	/* EPLD UN-cached */
+	/* QQQ: add NAND flash */
 #else
 	#error Do not know which board we are using for PMB setup.
 #endif	/* defined(CONFIG_SH_MBxxx) */

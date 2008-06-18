@@ -25,6 +25,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <asm/soc.h>
 #include <asm/stx7200reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
@@ -58,52 +59,76 @@ static void stx7200_clocks(void)
 #define DISABLE_MSG_WRITE       (1<<14)
 /* Remaining bits define pad functions, default appears to work */
 
-int stmac_default_pbl(void)
+extern int stmac_default_pbl(void)
 {
 	return 32;
 }
 
-#ifdef CONFIG_STMAC_STE101P_RMII
-void stb7109_mac_speed(int speed)
+extern void stmac_set_mac_speed(int speed)
 {
+#if defined(CONFIG_STMAC_MAC0)
+	const int mac = 0;    /* First MAC */
+#elif defined(CONFIG_STMAC_MAC1)
+	const int mac = 1;    /* Second MAC */
+#endif
 	unsigned long sysconf = *STX7200_SYSCONF_SYS_CFG41;
 
 	if (speed == 100)
-		sysconf |= MAC_SPEED;
+		sysconf |= (MAC_SPEED << mac);
 	else if (speed == 10)
-		sysconf &= ~MAC_SPEED;
+		sysconf &= ~(MAC_SPEED << mac);
 
 	*STX7200_SYSCONF_SYS_CFG41 = sysconf;
 }
-#endif
 
 /* ETH MAC pad configuration */
-static void stmac_eth_hw_setup(void)
+extern void stx7200_configure_ethernet(
+	int mac, int rmii, int ext_clk, int phy_bus)
 {
 	unsigned long sysconf;
-#if defined(CONFIG_STMAC_MAC0)
-	const int shift = 0;	/* First MAC */
-#elif defined(CONFIG_STMAC_MAC1)
-	const int shift = 1;	/* Second MAC */
-#endif
 
 	sysconf = *STX7200_SYSCONF_SYS_CFG41;
-        sysconf &= ~(DISABLE_MSG_READ << shift);
-        sysconf &= ~(DISABLE_MSG_WRITE << shift);
-        //sysconf |=  (VCI_ACK_SOURCE << shift);
-        sysconf &= ~(VCI_ACK_SOURCE << shift);
-        sysconf |=  (RESET << shift);
 
-#ifdef CONFIG_STMAC_STE101P_RMII
-        sysconf |= (MII_MODE << shift);
-        sysconf &= ~(PHY_CLK_EXT << shift);
-#else
-        sysconf &= ~(MII_MODE << shift);
-        sysconf &= ~(PHY_CLK_EXT << shift);
-#endif
+	/* Route Ethernet pins to output */
+	/* bit26-16: conf_pad_eth(10:0) */
+	if (mac == 0) {
+		/* MII0: conf_pad_eth(0) = 0 (ethernet) */
+		sysconf &= ~(1<<16);
+	} else {
+		/* MII1: conf_pad_eth(2) = 0, (3)=0, (4)=0, (9)=0, (10)=0 (eth)
+		 * MII1: conf_pad_eth(6) = 0 (MII1TXD[0] = output)
+		 * (remaining bits have no effect in ethernet mode */
+		sysconf &= ~( (1<<(16+2)) | (1<<(16+3)) | (1<<(16+4)) |
+			      (1<<(16+6)) | (1<<(16+9)) | (1<<(16+10))  );
+	}
+
+	/* DISABLE_MSG_FOR_WRITE=0 */
+	sysconf &= ~(DISABLE_MSG_WRITE << mac);
+
+	/* DISABLE_MSG_FOR_READ=0 */
+	sysconf &= ~(DISABLE_MSG_READ << mac);
+
+	/* VCI_ACK_SOURCE = 0 */
+        sysconf &= ~(VCI_ACK_SOURCE << mac);
+
+	/* ETHERNET_INTERFACE_ON (aka RESET) = 1 */
+        sysconf |= (RESET << mac);
+
+	/* RMII_MODE */
+	if (rmii)
+		sysconf |= (MII_MODE << mac);
+	else
+		sysconf &= ~(MII_MODE << mac);
+
+	/* PHY_CLK_EXT */
+	if (ext_clk)
+		sysconf |= (PHY_CLK_EXT << mac);
+	else
+		sysconf &= ~(PHY_CLK_EXT << mac);
+
 	*STX7200_SYSCONF_SYS_CFG41 = sysconf;
 }
-#endif
+#endif	/* CONFIG_DRIVER_NETSTMAC */
 
 int soc_init(void)
 {
@@ -111,10 +136,6 @@ int soc_init(void)
 	bd_t *bd = gd->bd;
 
 	stx7200_clocks();
-
-#ifdef CONFIG_DRIVER_NETSTMAC
-	stmac_eth_hw_setup();
-#endif
 
 	bd->bi_devid = *STX7200_SYSCONF_DEVICEID_0;
 
@@ -426,6 +447,8 @@ static void usb_soft_jtag_reset(void)
 
 extern void stx7200_usb_init(void)
 {
+	DECLARE_GLOBAL_DATA_PTR;
+	const bd_t * const bd = gd->bd;
 	unsigned long reg;
 	const unsigned char power_pins[3] = {1, 3, 4};
 	const unsigned char oc_pins[3] = {0, 2, 5};
@@ -466,8 +489,12 @@ extern void stx7200_usb_init(void)
 	/* USB power */
 	SET_PIO_PIN(PIO_PORT(7), power_pins[port], STPIO_ALT_OUT);
 	STPIO_SET_PIN(PIO_PORT(7), power_pins[port], 1);
-	/* USB oc */
-	SET_PIO_PIN(PIO_PORT(7), oc_pins[port], STPIO_ALT_BIDIR);
+
+	/* USB Over-Current */
+ 	if (STX7200_DEVICEID_CUT(bd->bi_devid) < 2)
+		SET_PIO_PIN(PIO_PORT(7), oc_pins[port], STPIO_ALT_BIDIR);
+	else
+		SET_PIO_PIN(PIO_PORT(7), oc_pins[port], STPIO_IN);
 
 	/* tusb_powerdown_req[port] = 0 */
 	reg = readl(STX7200_SYSCONF_SYS_CFG22);

@@ -1,7 +1,7 @@
 /*
- * (C) Copyright 2007 STMicroelectronics.
+ * (C) Copyright 2007-2008 STMicroelectronics.
  *
- * Stuart Menefy <stuart.menefy@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -31,7 +31,7 @@
  */
 
 #define CONFIG_SH4	1		/* This is an SH4 CPU		*/
-#define CONFIG_CPU_SUBTYPE_SH4_2XX	/* its an SH4-202		*/
+#define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 
 /* This should really be replaced with something which uses bd->...	*/
 #define P_CLOCK_RATE	87500000	/* clock rate for CSP		*/
@@ -41,20 +41,39 @@
  * Assume we run out of uncached memory for the moment
  */
 
+/*
+ * NOTE:
+ * Although the MB671 board physically has 256MB & 256MB of DRAM
+ * in LMI0 and LMI1 respectfully; in U-boot we currently only
+ * support LMI0. Furthermore, in 32-bit mode, we limit LMI0
+ * to the FIRST 128MB of DRAM, due to their being no 256MB
+ * page-size available in the PMB.
+ * So, when we are in 32-bit mode, we pretend that only
+ * the first 128MB of the 256 LMI0 is present to U-boot. This
+ * restriction results in the following:
+ * 	a) "mtest" can only test half of LMI0.
+ * 	b) the kernel + ramdisk *must* be in first half of LMI0.
+ * 	c) U-boot itself will be in LMI0_BASE+127MB.
+ * Once the linux kernel is booted, then all of LMI memory is
+ * visible. This restriction is only in a U-boot context in SE mode.
+ * In 29-bit mode all 256MB of LMI0 is visible, as expected.
+ */
 #ifdef CONFIG_SH_SE_MODE
 #define CFG_FLASH_BASE		0xA0000000	/* FLASH (uncached) via PMB */
 #define CFG_SDRAM_BASE		0x80000000      /* LMI0 via PMB */
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI0 Physical Address */
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI0 un-cached addr via PMB */
 #define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
+#define CFG_SDRAM_SIZE		0x08000000	/* half of the 256MB LMI0 SDRAM */
 #else
 #define CFG_FLASH_BASE		0xA0000000	/* FLASH in P2 region */
 #define CFG_SDRAM_BASE		0x88000000      /* SDRAM in P1 region */
+#define CFG_SDRAM_SIZE		0x10000000	/* 256MB of LMI0 SDRAM */
 #endif
 
-#define CFG_SDRAM_SIZE		0x08000000	/* 128MB of LMI0 SDRAM */
-
 #define CFG_MONITOR_LEN		0x00020000	/* Reserve 128 kB for Monitor */
+#undef CFG_MONITOR_LEN				/* QQQ - DELETE */
+#define CFG_MONITOR_LEN		0x00040000	/* QQQ - DELETE */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128kB */
@@ -69,7 +88,7 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD mb519
+#define BOARD mb671
 
 #if CFG_MONITOR_LEN == 0x00020000		/* 128 kB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
@@ -122,7 +141,7 @@
 /*
  * There are 2 options for ethernet, both use the on-chip ST-MAC.
  * The choice in PHYs are:
- *    The on-board ST STE101P PHY.
+ *    The on-board MSC LAN8700 PHY.
  *    External PHY connected via the MII off-board connector.
  */
 
@@ -142,9 +161,10 @@
  */
 #if defined(CONFIG_STMAC_MAC0)
 #	define CFG_STM_STMAC_BASE	 0xfd500000ul	/* MAC #0 */
-#	define CONFIG_STMAC_STE10XP			/* ST STE10xP */
+#	define CONFIG_STMAC_LAN8700			/* SMSC LAN8700 */
 #elif defined(CONFIG_STMAC_MAC1)
 #	define CFG_STM_STMAC_BASE	 0xfd510000ul	/* MAC #1 */
+#error QQQ:MB539B	/* QQQ what to do for a MB539B ??? */
 #	define CONFIG_STMAC_LAN8700			/* SMSC LAN8700 */
 #endif
 
@@ -160,6 +180,7 @@
 
 /* Choose if we want USB Mass-Storage Support */
 //#define CONFIG_SH_STB7100_USB
+#define CONFIG_SH_STB7100_USB		/* QQQ - DELETE */
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
@@ -171,13 +192,12 @@
 #	define CFG_USB1_BASE			0xfd300000	/* right */
 #	define CFG_USB2_BASE			0xfd400000	/* left */
 #	define CFG_USB_BASE			CFG_USB0_BASE
+#	undef CFG_USB_BASE					/* QQQ - DELETE */
+#	define CFG_USB_BASE			CFG_USB0_BASE	/* QQQ - DELETE */
 #	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
 #	define LITTLEENDIAN
-	/* The following macro should ONLY be defined, when using
-	 * STi7200 cut 1.x, without the RC-delay board fix applied. */
-#	define CONFIG_USB_STI7200_CUT1_SOFT_JTAG_RESET_WORKAROUND
 #endif	/* ifdef CONFIG_SH_STB7100_USB */
 
 /*---------------------------------------------------------------
@@ -214,7 +234,7 @@
 #define CFG_HUSH_PARSER		1
 #define CFG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"MB519> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"MB671> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/

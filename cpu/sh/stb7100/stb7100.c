@@ -24,6 +24,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <asm/soc.h>
 #include <asm/stb7100reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
@@ -75,7 +76,7 @@ void stb7100_clocks(void)
 #define ETH_IF_ON           0x00010000 /* ETH interface on */
 #define DVO_ETH_PAD_DISABLE 0x00020000 /* DVO eth pad disable */
 
-int stmac_default_pbl(void)
+extern int stmac_default_pbl(void)
 {
   DECLARE_GLOBAL_DATA_PTR;
   bd_t *bd = gd->bd;
@@ -84,11 +85,10 @@ int stmac_default_pbl(void)
   return 32; /*  may be modified externally */
 }
 
-#ifdef CONFIG_STMAC_STE101P_RMII
-void stb7109_mac_speed(int speed)
+extern void stmac_set_mac_speed(int speed)
 {
-
 	unsigned long sysconf = *STB7100_SYSCONF_SYS_CFG07;
+//	printf("QQQ: %s(speed=%u)\n", __FUNCTION__, speed); /* QQQ - DELETE */
 
 	if (speed == 100)
 		sysconf |= MAC_SPEED_SEL;
@@ -97,7 +97,6 @@ void stb7109_mac_speed(int speed)
 
 	*STB7100_SYSCONF_SYS_CFG07 = sysconf;
 }
-#endif
 
 /* ETH MAC pad configuration */
 static void stmac_eth_hw_setup(void)
@@ -107,11 +106,11 @@ static void stmac_eth_hw_setup(void)
 	sysconf = *STB7100_SYSCONF_SYS_CFG07;
 	sysconf |= (DVO_ETH_PAD_DISABLE | ETH_IF_ON /*| MAC_SPEED_SEL*/);
 
-#ifdef CONFIG_STMAC_STE101P_RMII
+#ifdef CONFIG_STMAC_STE101P_RMII	/* QQQ - DELETE */
 	sysconf |= MII_MODE; /* RMII selected*/
-#else
+#else					/* QQQ - DELETE */
 	sysconf &= ~MII_MODE; /* MII selected */
-#endif
+#endif					/* QQQ - DELETE */
 	*STB7100_SYSCONF_SYS_CFG07 = sysconf;
 
 	/* STe101P: enable the external interrupts */

@@ -56,6 +56,7 @@
        defined(CONFIG_SH_HMS1)	|| \
        defined(CONFIG_SH_MB519)	|| \
        defined(CONFIG_SH_MB618)	|| \
+       defined(CONFIG_SH_MB671)	|| \
        defined(CONFIG_SH_CB101)
 #  include "asm/io_stb1eval.h"
 #else

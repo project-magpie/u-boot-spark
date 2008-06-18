@@ -25,6 +25,7 @@
 #if defined(CONFIG_DRIVER_NETSTMAC) || defined(CONFIG_DRIVER_NET_STM_GMAC)
 
 #include <command.h>
+#include <asm/soc.h>
 #include <asm/addrspace.h>
 #include <asm/io.h>
 #include <net.h>
@@ -74,8 +75,6 @@ struct dma_t
 } __attribute__ ((aligned (L1_CACHE_BYTES))) dma;
 
 static void *rx_packets[CONFIG_DMA_RX_SIZE];
-
-extern int stmac_default_pbl(void);
 
 #define likely(x)	__builtin_expect(!!(x), 1)
 #define unlikely(x)	__builtin_expect(!!(x), 0)
@@ -582,9 +581,10 @@ static void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed)
 
 	STMAC_WRITE (flow, MAC_FLOW_CONTROL);
 	STMAC_WRITE (ctrl, MAC_CONTROL);
-#ifdef CONFIG_STMAC_STE101P_RMII
-	stb7109_mac_speed (speed);
-#endif
+	
+	/* ensure the SoC knows the correct speed */
+	stmac_set_mac_speed (speed);
+
 	return;
 }
 
@@ -1192,13 +1192,14 @@ static int stmac_reset_eth (bd_t * bd)
 
 extern int eth_init (bd_t * bd)
 {
+	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
 	stmac_reset_eth (bd);
 	return 0;
 }
 
 extern void eth_halt (void)
 {
-	PRINTK (STMAC "%s\n", __FUNCTION__);
+	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
 
 	/* Reset the TX/RX processes */
 	stmac_dma_stop_rx ();
@@ -1221,6 +1222,7 @@ extern int eth_rx (void)
 /* Send a data block via Ethernet. */
 extern int eth_send (volatile void *packet, int length)
 {
+	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
 #ifdef DEBUG
 	const unsigned char *p = packet;
 	printf("TX   :  0x%08x ", p);
@@ -1240,6 +1242,7 @@ extern int eth_send (volatile void *packet, int length)
 
 extern int stmac_miiphy_initialize(bd_t *bis)
 {
+	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
 #if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
 	miiphy_register(miidevice, stmac_miiphy_read, stmac_miiphy_write);
 #endif

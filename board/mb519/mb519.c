@@ -24,6 +24,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <asm/soc.h>
 #include <asm/stx7200reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
@@ -113,17 +114,6 @@ int board_init(void)
 	sysconf &= ~((1<<0)|(1<<1)|(1<<2)|(1<<3));
 	*STX7200_SYSCONF_SYS_CFG33 = sysconf;
 
-	/* Route Ethernet pins to output */
-	/* bit26-16: conf_pad_eth(10:0) */
-	sysconf = *STX7200_SYSCONF_SYS_CFG41;
-	/* MII0: conf_pad_eth(0) = 0 (ethernet) */
-	sysconf &= ~(1<<16);
-	/* MII1: conf_pad_eth(2) = 0, (3)=0, (4)=0, (9)=0, (10)=0 (ethernet)
-	 * MII1: conf_pad_eth(6) = 0 (MII1TXD[0] = output) */
-	sysconf &= ~( (1<<(16+2)) | (1<<(16+3)) | (1<<(16+4)) | (1<<(16+6)) |
-		      (1<<(16+9)) | (1<<(16+10)));
-	*STX7200_SYSCONF_SYS_CFG41 = sysconf;
-
 	configPIO();
 
 	return 0;
@@ -138,6 +128,16 @@ int checkboard (void)
 		"  [29-bit mode]"
 #endif
 		"\n");
+
+#ifdef CONFIG_DRIVER_NETSTMAC
+#if defined(CONFIG_STMAC_MAC0)
+	/* On-board PHY (MII0), in MII mode, using its own clock  */
+	stx7200_configure_ethernet(0, 0, 1, 0);
+#elif defined(CONFIG_STMAC_MAC1)
+	/* External PHY board (MII1), in MII mode, using its own clock */
+	stx7200_configure_ethernet(1, 0, 1, 1);
+#endif
+#endif	/* CONFIG_DRIVER_NETSTMAC */
 
 	return 0;
 }
