@@ -1,7 +1,8 @@
 /*
- * (C) Copyright 2004 STMicroelectronics.
+ * (C) Copyright 2004-2008 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -27,7 +28,8 @@
 #include <asm/cache.h>
 #include <asm/io.h>
 #include <asm/sh4reg.h>
-#include "asm/addrspace.h"
+#include <asm/addrspace.h>
+#include <asm/pmb.h>
 
 #ifdef CONFIG_SHOW_BOOT_PROGRESS
 # include <status_led.h>
@@ -244,7 +246,7 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 
 	SHOW_BOOT_PROGRESS (15);
 
-	/* try and detect if the kernel is incomptable with U-boot */
+	/* try and detect if the kernel is incompatible with U-boot */
 	if ((*SE_MODE & 0xFFFFFF00) != 0x53453F00)	/* 'SE?.' */
 	{
 		printf("\nWarning: Unable to determine if kernel is built for 29- or 32-bit mode!\n");
@@ -252,7 +254,7 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	else if ((*SE_MODE & 0xFF) != CURRENT_SE_MODE)
 	{
 		printf("\n"
-			"Error: A %2u-bit Kernel is incomptable with this %2u-bit U-Boot!\n"
+			"Error: A %2u-bit Kernel is incompatible with this %2u-bit U-Boot!\n"
 			"Please re-configure and re-build vmlinux or u-boot.\n"
 			"Aborting the Boot process - Boot FAILED.  (SE_MODE=0x%08x)\n",
 			CURRENT_SE_MODE,
@@ -276,6 +278,11 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 		*INITRD_START, *INITRD_SIZE);
 
 	/*
+	 * remove Vpp from the FLASH, so that no further writes can occur.
+	 */
+	flashWriteDisable();
+
+	/*
 	 * Flush the operand caches, to ensure that there is no unwritten
 	 * data residing only in the caches, before the kernel invalidates
 	 * them.
@@ -285,50 +292,73 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	/* Invalidate both instruction and data caches */
 	sh_cache_set_op(SH4_CCR_OCI|SH4_CCR_ICI);
 
-	/*
-	 * remove Vpp from the FLASH, so that no further writes can occur.
-	 */
-	flashWriteDisable();
-
 #ifdef CONFIG_SH_SE_MODE
 	/*
 	 * Before we can jump into the kernel, we need to invalidate all
-	 * (bar one) of the PMB array entries we are currently using.
+	 * (bar one, or two) of the PMB array entries we are currently using.
 	 * Failure to do this, can result in the kernel creating a
 	 * new PMB entry with an overlapping virtual address, which
 	 * when accessed may result in a ITLBMULTIHIT or OTLBMULTIHIT
 	 * exception being raised.
+	 *
 	 * We also need to enter the kernel running out of an UNCACHED
 	 * PMB entry. To perform this mode switch, we actually need to
-	 * have 2 PMB entries (#0, #1) both valid for the duration of
+	 * have 2 PMB entries (#0, #2) both valid for the duration of
 	 * this mode switching. However, we invalidate all the others,
 	 * prior to this mode switch. Only after the mode switch, can
-	 * we then invaludate PMB[1], leaving just one (uncached) PMB
+	 * we then invalidate PMB[2], leaving just one (uncached) PMB
 	 * still valid - the one mapping the kernel itself (PMB[0]).
-	 * Note: after this point, U-boot may lose access to 
+	 *
+	 * Note: if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES is true, then
+	 * please read the previous comment as:
+	 *
+	 * We also need to enter the kernel running out of an UNCACHED
+	 * PMB entry. To perform this mode switch, we actually need to
+	 * have 4 PMB entries (#0, #1, #2 & #3) valid for the duration of
+	 * this mode switching. However, we invalidate all the others,
+	 * prior to this mode switch. Only after the mode switch, can
+	 * we then invalidate PMB[2:3], leaving just two (uncached) PMB
+	 * still valid - the two mapping the kernel itself (PMB[0:1]).
+	 *
+	 * Note: after this point, U-boot may lose access to
 	 * peripherals, including the serial console - so we can not
 	 * safely call puts(), printf(), etc. from this point onwards.
 	 */
-	/* set PMB[n].V = 0, for n == 2..15 */
-	for(i=2; i<16; i++)
+#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	/* set PMB[n].V = 0, for n == 4..15 */
+	for(i=4; i<16; i++)
 	{
 		*PMB_ADDR(i) = 0;	/* PMB[i].V = 0 */
 	}
+#else	/* CFG_SH_LMI_NEEDS_2_PMB_ENTRIES */
+	/* set PMB[n].V = 0, for n == 1, 3..15 */
+	*PMB_ADDR(1) = 0;		/* PMB[1].V = 0 */
+	for(i=3; i<16; i++)
+	{
+		*PMB_ADDR(i) = 0;	/* PMB[i].V = 0 */
+	}
+#endif	/* CFG_SH_LMI_NEEDS_2_PMB_ENTRIES */
 
 	/*
-	 * Now run out of the UN-cached PMB array #0.
+	 * Now run out of the UN-cached PMB array #0 (and #1).
 	 * For 32-bit mode, our contract with the kernel requires
 	 * that the kernel starts running out of an uncached PMB mapping.
 	 */
 	sh_toggle_pmb_cacheability();
 
-	/* now invalidate PMB entry #1, leaving just PMB #0 valid */
-	*PMB_ADDR(1) = 0;	/* PMB[1].V = 0 */
+#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	/* now invalidate PMB entry #2, #3, leaving just PMB #0, #1 valid */
+	*PMB_ADDR(2) = 0;	/* PMB[2].V = 0 */
+	*PMB_ADDR(3) = 0;	/* PMB[3].V = 0 */
+#else	/* CFG_SH_LMI_NEEDS_2_PMB_ENTRIES */
+	/* now invalidate PMB entry #2, leaving just PMB #0 valid */
+	*PMB_ADDR(2) = 0;	/* PMB[2].V = 0 */
+#endif	/* CFG_SH_LMI_NEEDS_2_PMB_ENTRIES */
 
 	/*
 	 * we need to ensure that the ITLB is flushed, and not
 	 * harbouring any mappings from the recently invalidated
-	 * PMB entires.
+	 * PMB entries.
 	 */
 	 *(volatile unsigned long*)SH4_CCN_MMUCR |= SH4_MMUCR_TI;
 #endif	/* CONFIG_SH_SE_MODE */

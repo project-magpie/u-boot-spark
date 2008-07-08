@@ -31,7 +31,7 @@
 #elif defined(CONFIG_SH_STX7200)
 #include <asm/stx7200reg.h>
 #else
-#error Missing Device Defintions!
+#error Missing Device Definitions!
 #endif
 
 #define TMU_TICKS_PER_SEC CFG_HZ

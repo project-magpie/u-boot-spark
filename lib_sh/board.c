@@ -40,7 +40,7 @@
 #elif defined(CONFIG_SH_STX7200)
 #include <asm/stx7200reg.h>
 #else
-#error Missing Device Defintions!
+#error Missing Device Definitions!
 #endif
 #include <asm/st40reg.h>
 

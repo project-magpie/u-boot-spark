@@ -32,7 +32,7 @@ extern void stx7111_usb_init(void);
 #elif defined(CONFIG_SH_STX7200)
 extern void stx7200_usb_init(void);
 #else
-#error Missing Device Defintions!
+#error Missing Device Definitions!
 #endif
 
 #if defined(CONFIG_USB_OHCI_NEW) && defined(CFG_USB_OHCI_CPU_INIT)

@@ -28,7 +28,7 @@
 #	Valid values for TEXT_BASE are:
 #
 #	0x97F00000	29-bit mode (Traditional Mode)
-#	0x87F00000	32-bit mode (Space-Enhancement Mode)
+#	0x8FF00000	32-bit mode (Space-Enhancement Mode)
 #
 # Note:	Alternative definitions of TEXT_BASE are put into
 #	'config.tmp' from the top-level 'Makefile'.

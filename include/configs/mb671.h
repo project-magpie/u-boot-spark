@@ -41,35 +41,18 @@
  * Assume we run out of uncached memory for the moment
  */
 
-/*
- * NOTE:
- * Although the MB671 board physically has 256MB & 256MB of DRAM
- * in LMI0 and LMI1 respectfully; in U-boot we currently only
- * support LMI0. Furthermore, in 32-bit mode, we limit LMI0
- * to the FIRST 128MB of DRAM, due to their being no 256MB
- * page-size available in the PMB.
- * So, when we are in 32-bit mode, we pretend that only
- * the first 128MB of the 256 LMI0 is present to U-boot. This
- * restriction results in the following:
- * 	a) "mtest" can only test half of LMI0.
- * 	b) the kernel + ramdisk *must* be in first half of LMI0.
- * 	c) U-boot itself will be in LMI0_BASE+127MB.
- * Once the linux kernel is booted, then all of LMI memory is
- * visible. This restriction is only in a U-boot context in SE mode.
- * In 29-bit mode all 256MB of LMI0 is visible, as expected.
- */
 #ifdef CONFIG_SH_SE_MODE
 #define CFG_FLASH_BASE		0xA0000000	/* FLASH (uncached) via PMB */
 #define CFG_SDRAM_BASE		0x80000000      /* LMI0 via PMB */
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI0 Physical Address */
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI0 un-cached addr via PMB */
 #define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
-#define CFG_SDRAM_SIZE		0x08000000	/* half of the 256MB LMI0 SDRAM */
 #else
 #define CFG_FLASH_BASE		0xA0000000	/* FLASH in P2 region */
 #define CFG_SDRAM_BASE		0x88000000      /* SDRAM in P1 region */
-#define CFG_SDRAM_SIZE		0x10000000	/* 256MB of LMI0 SDRAM */
 #endif
+
+#define CFG_SDRAM_SIZE		0x10000000	/* 256MB of LMI0 SDRAM */
 
 #define CFG_MONITOR_LEN		0x00020000	/* Reserve 128 kB for Monitor */
 #undef CFG_MONITOR_LEN				/* QQQ - DELETE */

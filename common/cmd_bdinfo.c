@@ -280,7 +280,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #elif defined(CONFIG_SH_STX7200)
 #include <asm/stx7200reg.h>
 #else
-#error Missing Device Defintions!
+#error Missing Device Definitions!
 #endif
 
 int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
