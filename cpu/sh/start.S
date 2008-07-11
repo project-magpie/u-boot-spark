@@ -44,6 +44,12 @@
 	.global _start
 _start:
 
+	/* Add a few NOP instructions, to workaround the
+	 * problem reported in the following bugzilla report:
+	 * https://bugzilla.stlinux.com/show_bug.cgi?id=4173 */
+	nop
+	nop
+
 	/* Set SR:	MD=1, RB=0, BL=0, FD=0, IMASK=0xF */
 	MOV_CONST32_R0 0x400000F0
 	ldc	r0, sr
