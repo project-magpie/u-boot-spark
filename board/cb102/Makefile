@@ -21,23 +21,24 @@
 # MA 02111-1307 USA
 #
 
-#
-# CB101 board:
-#
-#	Valid values for TEXT_BASE are:
-#
-#	0x8FF00000	29-bit mode (Traditional Mode)
-#	0x87F00000	32-bit mode (Space-Enhancement Mode)
-#
-# Note:	Alternative definitions of TEXT_BASE are put into
-#	'config.tmp' from the top-level 'Makefile'.
-#
+include $(TOPDIR)/config.mk
 
-sinclude $(OBJTREE)/board/$(BOARDDIR)/config.tmp
+LIB	= lib$(BOARD).a
 
-ifndef TEXT_BASE
-# Installs at LMI0 BASE + 127MB in P1 (cachable)
-TEXT_BASE = 0x8FF00000
-endif
+AOBJS	= init-$(BOARD).o
 
-PLATFORM_LDFLAGS +=
+COBJS	= $(BOARD).o sconsole.o
+
+OBJS	= $(COBJS) $(AOBJS)
+
+$(LIB):	.depend $(OBJS)
+	$(AR) crv $@ $(OBJS)
+
+#########################################################################
+
+.depend:	Makefile $(AOBJS:.o=.S) $(COBJS:.o=.c)
+		$(CC) -M $(CFLAGS) $(AOBJS:.o=.S) $(COBJS:.o=.c) > $@
+
+sinclude .depend
+
+#########################################################################

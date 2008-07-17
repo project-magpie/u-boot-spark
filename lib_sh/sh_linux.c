@@ -257,8 +257,8 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 			"Error: A %2u-bit Kernel is incompatible with this %2u-bit U-Boot!\n"
 			"Please re-configure and re-build vmlinux or u-boot.\n"
 			"Aborting the Boot process - Boot FAILED.  (SE_MODE=0x%08x)\n",
+			CURRENT_SE_MODE ^ (32 ^ 29),
 			CURRENT_SE_MODE,
-			CURRENT_SE_MODE ^ 0x3d,
 			*SE_MODE);
 		return;
 	}

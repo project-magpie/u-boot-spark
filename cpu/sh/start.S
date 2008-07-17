@@ -51,14 +51,17 @@ _start:
 	nop
 
 	/* Set SR:	MD=1, RB=0, BL=0, FD=0, IMASK=0xF */
+set_sr:
 	MOV_CONST32_R0 0x400000F0
 	ldc	r0, sr
 
 	/* Set FPSCR:	FR=0, SZ=0, PR=1, DN=0, RM=01 */
+set_fpscr:
 	MOV_CONST32_R0 0x00080001
 	lds	r0, fpscr
 
 	/* disable the watchdog timer */
+disable_watchdog:
 	MOV_CONST32_R0 ST40_CPG_WTCSR
 	mov	r0, r1
 	MOV_CONST16_R0 0xA500	/* WTCSR.TME=0 */
@@ -76,6 +79,7 @@ _start:
 	 *  r8 == 1 assume we are already in 32-bit SE mode (done by GDB).
 	 *  r8 == 0 we are in 29-bit mode, and need to switch to 32-bit mode.
 	 */
+which_location:
 	MOV_CONST32_R0 0x1fffffff	/* set up P0 mask  */
 	mov	r0, r4
 	mova	_start_offset, r0	/* Load source address in r9 */
@@ -106,6 +110,7 @@ _start:
 	 * explicitly invalidate all unused entries
 	 * NOTE: for running from RAM, then keep PMB[0] as is.
 	 */
+invalidate_pmb:
 	MOV_CONST32_R0 (P4SEG_PMB_ADDR)
 	mov	r0, r1
 	mov	#0, r2			/* PMB[n].V = 0, i.e. INVALID */
@@ -119,6 +124,7 @@ _start:
 	  add	#1, r0			/* next index counter */
 
 	/* set up the new PMB entries we want to use */
+set_pmb:
 #if defined(CONFIG_SH_STB7100)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI-Sys UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI-Sys UN-cached */
@@ -165,19 +171,33 @@ _start:
 	SH4_SET_PMB 7 0xa9 0x01  16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8 0xb5 0x05  16 0 0 1	/* EPLD UN-cached */
 	/* QQQ: add NAND flash */
+#elif defined(CONFIG_SH_STX7200) && defined(CONFIG_SH_CB102)
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
+	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
+	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
+	#endif
+	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB 7 0xa9 0x01  16		/* NOR FLASH CACHED */
 #else
 	#error Do not know which board/chip we are using for PMB setup.
 #endif	/* defined(CONFIG_SH_STB7100) */
 #endif	/* CONFIG_SH_SE_MODE */
 
+concider_hyperspace:
 	cmp/pl	r8			/* Are we in correct place already ? */
 	bt	hyperspace
 
 	/* disable the caches */
+do_disable_caches:
 	mov	#-1, a0		/* clear all bits in the CCR */
 	CALL	sh_cache_clear_op_offset
 
 	/* invalidate+enable the caches: both I$ & D$ (with copy-back) */
+do_enable_caches:
 	MOV_CONST16_R0 (SH4_CCR_OCI|SH4_CCR_ICI|SH4_CCR_ICE|SH4_CCR_OCE|SH4_CCR_EMODE)
 	mov	r0, a0
 	CALL	sh_cache_set_op_offset
@@ -186,17 +206,20 @@ _start:
 	 * switch to P0 region (cachable), if we need to.
 	 * Recall, we are still in 29-bit mode at this juncture.
 	 */
+enter_p0:
 	ENTER_P0
 
 	/*
 	 * initialize the memory controllers, if we need to.
 	 */
+do_init_ram:
 	CALL	init_ram_offset		/* init_ram() */
 
 	/*
 	 * enable SE (32-bit) mode, if we need to.
 	 */
 #ifdef CONFIG_SH_SE_MODE
+enable_se_mode:
 #ifdef CONFIG_CPU_SUBTYPE_SH4_2XX	/* it is an SH4-200 */
 	/* enable SE mode & invalidate the UTLB/ITLB */
 	MOV_CONST32_R0 SH4_CCN_MMUCR
@@ -262,6 +285,7 @@ relocate:
 	/*
 	 * now jump to absolute (non-PIC) address environment.
 	 */
+do_hyperspace:
 	mov.l	hyperspace_addr, r1
 	jmp	@r1		/* never returns */
 	  nop
@@ -275,6 +299,7 @@ hyperspace:
 	 */
 
 #ifdef CONFIG_SH_SE_MODE
+do_enable_pmb_cache:
 	/* Enable the cacheability for PMB array #0 */
 	CALL sh_toggle_pmb_cacheability_offset
 #endif	/* CONFIG_SH_SE_MODE */
@@ -295,6 +320,7 @@ clear_bss:
 done_bss:
 
 	/* prepare to call board init routine: start_sh4boot() */
+do_start_sh4boot:
 	mov.l	start_sh4boot_addr, r1
 	jmp	@r1			/* never returns */
 	  mov r8, a0

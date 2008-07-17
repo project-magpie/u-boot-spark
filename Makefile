@@ -2759,6 +2759,17 @@ cb101se_config :		unconfig
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/cb101/config.tmp)
 	@./mkconfig -a cb101 sh sh cb101 "" stx7200
 
+cb102_config \
+cb102se_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STX7200   1" >>include/config.h
+	@echo "#define CONFIG_SH_CB102     1" >>include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/cb102/config.tmp)
+	@./mkconfig -a cb102 sh sh cb102 "" stx7200
+
 
 #========================================================================
 # STMicroelectronics ST200

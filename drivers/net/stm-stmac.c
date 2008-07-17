@@ -83,16 +83,15 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 				 Phy interface
    ---------------------------------------------------------------------------*/
 
-#if defined(CONFIG_STMAC_STE10XP)	/* ST STE10xP */
+#if defined(CONFIG_STMAC_STE10XP)	/* ST STe10xp */
 
-/* STE100P phy identifier values */
-#define STE100P_PHY_HI_ID       0x1c04
-#define STE100P_PHY_LO_ID       0x0011
+/* STe100p phy identifier values */
+#define STE100P_PHY_ID		0x1c040011u
+#define STE100P_PHY_ID_MASK	0xffffffffu
 
-/* STE101P phy identifier values */
-#define STE101P_PHY_HI_ID       0x0006
-#define STE101P_PHY_LO_ID_REVA  0x1c51
-#define STE101P_PHY_LO_ID_REVB  0x1c52
+/* STe101p phy identifier values */
+#define STE101P_PHY_ID		0x00061c50u
+#define STE101P_PHY_ID_MASK	0xfffffff0u
 
 /******************************************************************************
  * IEEE Standard 802.3-2002 vendor specific registers (0x10-0x1e) STe10xP
@@ -133,15 +132,15 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #elif defined(CONFIG_STMAC_LAN8700)	/* SMSC LAN8700 */
 
 /* SMSC LAN8700 phy identifier values */
-#define LAN8700_PHY_HI_ID       0x0007
-#define LAN8700_PHY_LO_ID       0xc0c3
+#define LAN8700_PHY_ID		0x0007c0c0u
+#define LAN8700_PHY_ID_MASK	0xfffffff0u
 
 #define	SPECIAL_MODE_REG	0x12		/* Special Modes Register */
 #define	PHY_ADDR_MSK		0x001f		/* PHY Address Mask */
 #define	PHY_ADDR_SHIFT		0		/* PHY Address Mask */
 
 #else
-#error Need to define PHY
+#error Need to define which PHY to use
 #endif
 
 
@@ -230,40 +229,32 @@ static unsigned int stmac_phy_check_speed (int phy_addr)
 /* Automatically gets and returns the PHY device */
 static unsigned int stmac_phy_get_addr (void)
 {
-	int i, phyaddr;
-
-	uint stmac_phy_id = 0;
+	unsigned int i;
 
 	for (i = 0; i < 32; i++) {
-		unsigned int id1, id2;
-		phyaddr = (i + 1) % 32;
-
+		unsigned int id1, id2, id;
+		unsigned int phyaddr = (i + 1u) % 32u;
 		id1 = stmac_mii_read (phyaddr, MII_PHYSID1);
 		id2 = stmac_mii_read (phyaddr, MII_PHYSID2);
-
-		/* Make sure it is a valid identifier */
+		id  = (id1 << 16) | (id2);
+		/* Make sure it is a valid (known) identifier */
 #if defined(CONFIG_STMAC_STE10XP)
-		if ((id1 == STE101P_PHY_HI_ID) &&
-		    ((id2 == STE101P_PHY_LO_ID_REVB) ||
-		     (id2 == STE101P_PHY_LO_ID_REVA))) {
-			stmac_phy_id = id1;
-			printf (STMAC "STE101P found\n");
-		} else if ((id1 == STE100P_PHY_HI_ID) &&
-			   (id2 == STE100P_PHY_LO_ID)) {
-			stmac_phy_id = id1;
-			printf (STMAC "STE100P found\n");
+		if ((id & STE101P_PHY_ID_MASK) == STE101P_PHY_ID) {
+			printf (STMAC "STe101P found\n");
+			return phyaddr;
+		} else if ((id & STE100P_PHY_ID_MASK) == STE100P_PHY_ID) {
+			printf (STMAC "STe100P found\n");
+			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_LAN8700)
-		if ((id1 == LAN8700_PHY_HI_ID) &&
-		    (id2 == LAN8700_PHY_LO_ID)) {
-			stmac_phy_id = id1;
+		if ((id & LAN8700_PHY_ID_MASK) == LAN8700_PHY_ID) {
 			printf (STMAC "SMSC LAN8700 found\n");
-		}
-#endif	/* CONFIG_STMAC_LAN8700 */
-
-		if (stmac_phy_id)
 			return phyaddr;
+		}
+#endif	/* CONFIG_STMAC_STE10XP */
 	}
+
+	printf (STMAC "Unable to find a PHY (unknown ID?)\n");
 	return (-1);
 }
 

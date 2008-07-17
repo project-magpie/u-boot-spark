@@ -1,6 +1,7 @@
 #
-# (C) Copyright 2004
+# (C) Copyright 2004-2008
 # Andy Sturges, STMicroelectronics, andy.sturges@st.com
+# Sean McGoogan STMicroelectronics, <Sean.McGoogan@st.com>
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -26,7 +27,7 @@
 # for actual build number, in the following identifier.
 # Regular Expression for string is:
 # 	"stm[2-9][0-9]-[2-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]"
-SH_IDENT_STRING="\"stm23-2008-07-11\""
+SH_IDENT_STRING="\"stm23-2008-07-17\""
 
 PLATFORM_CPPFLAGS += -DCONFIG_SH4 -D__SH4__ -DCONFIG_IDENT_STRING=$(SH_IDENT_STRING)
 PLATFORM_LDFLAGS  += -n
