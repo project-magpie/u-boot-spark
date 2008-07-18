@@ -1147,7 +1147,7 @@ static int flash_detect_cfi (flash_info_t * info)
 		for (info->chipwidth = FLASH_CFI_BY8;
 		     info->chipwidth <= info->portwidth;
 		     info->chipwidth <<= 1) {
-			flash_write_cmd (info, 0, 0, info->cmd_reset);
+			flash_write_cmd (info, 0, 0, FLASH_CMD_RESET);
 			for (cfi_offset=0; cfi_offset < sizeof(flash_offset_cfi)/sizeof(uint); cfi_offset++) {
 				flash_write_cmd (info, 0, flash_offset_cfi[cfi_offset], FLASH_CMD_CFI);
 				if (flash_isequal (info, 0, FLASH_OFFSET_CFI_RESP, 'Q')
@@ -1273,7 +1273,7 @@ ulong flash_get_size (ulong base, int banknum)
 					num_erase_regions, NUM_ERASE_REGIONS);
 				break;
 			}
-			flash_write_cmd (info, 0, 0, FLASH_CMD_CFI);
+
 			if (geometry_reversed)
 				tmp = flash_read_long (info, 0,
 					       FLASH_OFFSET_ERASE_REGIONS +
@@ -1300,14 +1300,18 @@ ulong flash_get_size (ulong base, int banknum)
 				case CFI_CMDSET_INTEL_STANDARD:
 					/* for multi-bank devices, the READ_ID command
 					 * must be issued on a per sector basis */
-					flash_write_cmd (info, sect_cnt, 0, FLASH_CMD_READ_ID);
+					flash_write_cmd (info, sect_cnt,
+                                                         info->cfi_offset,
+                                                         FLASH_CMD_READ_ID);
 					info->protect[sect_cnt] =
 						flash_isset (info, sect_cnt,
 							     FLASH_OFFSET_PROTECT,
 							     FLASH_STATUS_PROTECT);
 					/* for multi-bank devices, the RESET command
 					 * must be issued on a per sector basis */
-					flash_write_cmd (info, sect_cnt, 0, FLASH_CMD_RESET);
+					flash_write_cmd (info, sect_cnt,
+                                                         info->cfi_offset,
+                                                         FLASH_CMD_RESET);
 					break;
 				default:
 					info->protect[sect_cnt] = 0; /* default: not protected */
@@ -1315,10 +1319,12 @@ ulong flash_get_size (ulong base, int banknum)
 
 				sect_cnt++;
 			}
+                        switch (info->vendor) {
+                        case CFI_CMDSET_INTEL_EXTENDED:
+                        case CFI_CMDSET_INTEL_STANDARD:
+                            flash_write_cmd (info, 0, info->cfi_offset, FLASH_CMD_CFI);
+                        }
 		}
-
-		/* go back into CFI mode */
-		flash_write_cmd (info, 0, 0, FLASH_CMD_CFI);
 
 		info->sector_count = sect_cnt;
 		/* multiply the size by the number of chips */
