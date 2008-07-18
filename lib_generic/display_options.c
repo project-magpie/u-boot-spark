@@ -62,7 +62,7 @@ void print_size (ulong size, const char *s)
 		n += 1;
 	}
 
-	printf ("%2ld", n);
+	printf ("%3ld", n);
 	if (m) {
 		printf (".%ld", m);
 	}
