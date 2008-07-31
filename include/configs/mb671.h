@@ -55,8 +55,6 @@
 #define CFG_SDRAM_SIZE		0x10000000	/* 256MB of LMI0 SDRAM */
 
 #define CFG_MONITOR_LEN		0x00020000	/* Reserve 128 kB for Monitor */
-#undef CFG_MONITOR_LEN				/* QQQ - DELETE */
-#define CFG_MONITOR_LEN		0x00040000	/* QQQ - DELETE */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128kB */
@@ -123,9 +121,9 @@
 
 /*
  * There are 2 options for ethernet, both use the on-chip ST-MAC.
- * The choice in PHYs are:
- *    The on-board MSC LAN8700 PHY.
- *    External PHY connected via the MII off-board connector.
+ * The choice in PHYs is:
+ *    1) The on-board SMSC LAN8700 PHY.
+ *    2) External PHY connected via the MII off-board connector (MB539B).
  */
 
 /* are we using the internal ST MAC device ? */
@@ -147,7 +145,6 @@
 #	define CONFIG_STMAC_LAN8700			/* SMSC LAN8700 */
 #elif defined(CONFIG_STMAC_MAC1)
 #	define CFG_STM_STMAC_BASE	 0xfd510000ul	/* MAC #1 */
-#error QQQ:MB539B	/* QQQ what to do for a MB539B ??? */
 #	define CONFIG_STMAC_LAN8700			/* SMSC LAN8700 */
 #endif
 
@@ -163,7 +160,6 @@
 
 /* Choose if we want USB Mass-Storage Support */
 //#define CONFIG_SH_STB7100_USB
-#define CONFIG_SH_STB7100_USB		/* QQQ - DELETE */
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
@@ -175,8 +171,6 @@
 #	define CFG_USB1_BASE			0xfd300000	/* right */
 #	define CFG_USB2_BASE			0xfd400000	/* left */
 #	define CFG_USB_BASE			CFG_USB0_BASE
-#	undef CFG_USB_BASE					/* QQQ - DELETE */
-#	define CFG_USB_BASE			CFG_USB0_BASE	/* QQQ - DELETE */
 #	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1

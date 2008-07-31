@@ -132,10 +132,10 @@ int checkboard (void)
 
 #ifdef CONFIG_DRIVER_NETSTMAC
 #if defined(CONFIG_STMAC_MAC0)
-	/* On-board PHY (MII0) in RMII mode, using MII_CLK */
+	/* On-board PHY on MII0 in RMII mode, using MII_CLK */
 	stx7200_configure_ethernet (0, 1, 0, 0);
 #elif defined(CONFIG_STMAC_MAC1)
-	/* External PHY board (MB539B) on MII1 in MII mode, using its own clock */
+	/* External PHY on MII1 in MII mode, using its own clock */
 	stx7200_configure_ethernet (1, 0, 1, 1);
 #endif
 #endif	/* CONFIG_DRIVER_NETSTMAC */

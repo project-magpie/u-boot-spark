@@ -170,7 +170,6 @@ set_pmb:
 	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 7 0xa9 0x01  16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8 0xb5 0x05  16 0 0 1	/* EPLD UN-cached */
-	/* QQQ: add NAND flash */
 #elif defined(CONFIG_SH_STX7200) && defined(CONFIG_SH_CB102)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */

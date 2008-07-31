@@ -99,7 +99,8 @@ extern void stx7200_configure_ethernet(
 		 * MII1: conf_pad_eth(6) = 0 (MII1TXD[0] = output)
 		 * (remaining bits have no effect in ethernet mode */
 		sysconf &= ~( (1<<(16+2)) | (1<<(16+3)) | (1<<(16+4)) |
-			      (1<<(16+6)) | (1<<(16+9)) | (1<<(16+10))  );
+			      (1<<(16+5)) | (1<<(16+6)) | (1<<(16+7)) |
+			      (1<<(16+8)) | (1<<(16+9)) | (1<<(16+10))  );
 	}
 
 	/* DISABLE_MSG_FOR_WRITE=0 */
