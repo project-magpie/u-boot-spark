@@ -218,7 +218,7 @@
 //#define BMCR_PDOWN			0x0800		/* Power-down */
 #define BMCR_ANENABLE			0x1000		/* Enable Auto-Negotiation */
 //#define BMCR_SPEED100			0x2000		/* Select 100Mbps */
-//#define BMCR_LOOPBACK			0x4000		/* Enable Loop-back Mode */
+#define BMCR_LOOPBACK			0x4000		/* Enable Loop-back Mode */
 //#define BMCR_RESET			0x8000		/* Software Reset */
 
 /* Basic Mode Status Register defines */

@@ -42,6 +42,9 @@
 #	define PRINTK(args...)
 #endif
 
+/* do we want to put the PHY in loop-back mode ? */
+/* #define CONFIG_PHY_LOOPBACK */
+
 /* prefix to use for diagnostics */
 #ifdef CONFIG_DRIVER_NETSTMAC
 #	define STMAC	"STM-MAC: "
@@ -318,6 +321,13 @@ static int stmac_phy_init (void)
 
 	stmac_phy_negotiate (eth_phy_addr);
 	stmac_phy_check_speed (eth_phy_addr);
+
+#ifdef CONFIG_PHY_LOOPBACK
+	/* put the PHY in loop-back mode, if required */
+	value = stmac_mii_read (eth_phy_addr, MII_BMCR);
+	value |= BMCR_LOOPBACK;
+	stmac_mii_write (eth_phy_addr, MII_BMCR, value);
+#endif	/* CONFIG_PHY_LOOPBACK */
 
 	return 0;
 }
@@ -1036,7 +1046,7 @@ static void stmac_eth_rx (void)
 			 * the CRC */
 			frame_len = drx->des01.rx.frame_length;
 			if ((frame_len >= 0) && (frame_len <= PKTSIZE_ALIGN)) {
-#ifdef DEBUG
+#if defined(DEBUG) || defined(CONFIG_PHY_LOOPBACK)
 				const unsigned char *p = rx_packets[cur_rx];
 				printf("\nRX[%d]:  0x%08x ", cur_rx, p);
 				printf("DA=%02x:%02x:%02x:%02x:%02x:%02x",
@@ -1214,8 +1224,8 @@ extern int eth_rx (void)
 extern int eth_send (volatile void *packet, int length)
 {
 	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
-#ifdef DEBUG
-	const unsigned char *p = packet;
+#if defined(DEBUG) || defined(CONFIG_PHY_LOOPBACK)
+	const unsigned char * p = (const unsigned char*)packet;
 	printf("TX   :  0x%08x ", p);
 	printf("DA=%02x:%02x:%02x:%02x:%02x:%02x",
 		p[0], p[1], p[2], p[3], p[4], p[5]);
