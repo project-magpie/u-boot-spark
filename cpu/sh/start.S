@@ -34,6 +34,8 @@
 #include <asm/stb7100reg.h>
 #elif defined(CONFIG_SH_STX7111)
 #include <asm/stx7111reg.h>
+#elif defined(CONFIG_SH_STX7141)
+#include <asm/stx7141reg.h>
 #elif defined(CONFIG_SH_STX7200)
 #include <asm/stx7200reg.h>
 #else
@@ -141,6 +143,8 @@ set_pmb:
 	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 7 0xa9 0x01  16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 8 0xb4 0x04  16 0 0 1	/* EPLD UN-cached */
+#elif defined(CONFIG_SH_STX7141) && defined(CONFIG_SH_MB628)
+#error QQQ - to do!
 #elif defined(CONFIG_SH_STX7200) && defined(CONFIG_SH_MB519)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 UN-cached */

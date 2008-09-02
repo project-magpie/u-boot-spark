@@ -277,6 +277,8 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #include <asm/stb7100reg.h>
 #elif defined(CONFIG_SH_STX7111)
 #include <asm/stx7111reg.h>
+#elif defined(CONFIG_SH_STX7141)
+#include <asm/stx7141reg.h>
 #elif defined(CONFIG_SH_STX7200)
 #include <asm/stx7200reg.h>
 #else
@@ -325,6 +327,13 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #ifdef CONFIG_SH_STX7111
 	if (STX7111_DEVICEID_7111(bd->bi_devid))
 		printf("\nSTx7111 version %ld.x\n", STX7111_DEVICEID_CUT(bd->bi_devid));
+	else
+		printf("\nUnknown device\n");
+	printf ("EMI       = %3d MHz\n", bd->bi_emifrq);
+#endif
+#ifdef CONFIG_SH_STX7141
+	if (STX7141_DEVICEID_7141(bd->bi_devid))
+		printf("\nSTx7141 version %ld.x\n", STX7141_DEVICEID_CUT(bd->bi_devid));
 	else
 		printf("\nUnknown device\n");
 	printf ("EMI       = %3d MHz\n", bd->bi_emifrq);

@@ -68,6 +68,10 @@
 /* No documentation for this */
 #define AHB2STBUS_STBUS_CONFIG		(AHB2STBUS_PROTOCOL_BASE + 0x04)
 
+#elif defined(CONFIG_SH_STX7141)
+
+/* QQQ - to do ? */
+
 #endif
 
 /* AHB Strap options are programmed in this register. */

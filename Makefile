@@ -2737,6 +2737,17 @@ mb618se_config :		unconfig
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/mb618/config.tmp)
 	@./mkconfig -a mb618 sh sh mb618 "" stx7111
 
+mb628_config \
+mb628se_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STX7141   1" >>include/config.h
+	@echo "#define CONFIG_SH_MB628     1" >>include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/mb628/config.tmp)
+	@./mkconfig -a mb628 sh sh mb628 "" stx7141
+
 mb671_config \
 mb671se_config :		unconfig
 	@ >include/config.h

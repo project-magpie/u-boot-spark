@@ -1,6 +1,7 @@
 /*
- * (C) Copyright 2005
- * Andy Stugres, STMicroelectronics, <andy.sturges@st.com>
+ * (C) Copyright STMicroelectronics 2005, 2008
+ * Andy Stugres, <andy.sturges@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -24,15 +25,15 @@
 #ifndef _PIO_H_
 #define _PIO_H_	1
 
-#define STPIO_NONPIO            0       /* Non-PIO function (ST40 defn) */
-#define STPIO_BIDIR_Z1          0       /* Input weak pull-up (arch defn) */
-#define STPIO_BIDIR             1       /* Bidirectonal open-drain */
-#define STPIO_OUT               2       /* Output push-pull */
-/*efine STPIO_BIDIR             3        * Bidirectional open drain */
-#define STPIO_IN                4       /* Input Hi-Z */
-/*efine STPIO_IN                5        * Input Hi-Z */
-#define STPIO_ALT_OUT           6       /* Alt output push-pull (arch defn) */
-#define STPIO_ALT_BIDIR         7       /* Alt bidir open drain (arch defn) */
+#define STPIO_NONPIO		0	/* Non-PIO function (ST40 defn) */
+#define STPIO_BIDIR_Z1		0	/* Input weak pull-up (arch defn) */
+#define STPIO_BIDIR		1	/* Bidirectonal open-drain */
+#define STPIO_OUT		2	/* Output push-pull */
+/*efine STPIO_BIDIR		3	* Bidirectional open drain */
+#define STPIO_IN		4	/* Input Hi-Z */
+/*efine STPIO_IN		5	* Input Hi-Z */
+#define STPIO_ALT_OUT		6	/* Alt output push-pull (arch defn) */
+#define STPIO_ALT_BIDIR		7	/* Alt bidir open drain (arch defn) */
 
 #define STPIO_POUT_OFFSET	0x00
 #define STPIO_PIN_OFFSET	0x10
@@ -45,37 +46,71 @@
 #define STPIO_SET_OFFSET	0x4
 #define STPIO_CLEAR_OFFSET	0x8
 
-#define PIO_PORT_SIZE 0x1000
+#if defined(CONFIG_SH_STB7100)
+#define PIO_PORT_SIZE		0x1000					/* QQQ - DELETE */
+#define PIO_PORT(n)		( ((n)*PIO_PORT_SIZE) + PIO_BASE)	/* QQQ - DELETE */
+#else	/* CONFIG_SH_STB7100 */
+#define PIO_PORT(n)		( ST40_PIO ## n ## _REGS_BASE )
+#endif	/* CONFIG_SH_STB7100 */
 
-#define PIO_PORT(n) (((n)*PIO_PORT_SIZE) + PIO_BASE)
+#define PIN_C0(PIN, DIR)	((((DIR) & 0x1)!=0) << (PIN))
+#define PIN_C1(PIN, DIR)	((((DIR) & 0x2)!=0) << (PIN))
+#define PIN_C2(PIN, DIR)	((((DIR) & 0x4)!=0) << (PIN))
 
-#define PIN_C0(PIN, DIR) (((DIR & 0x1)!=0) << PIN)
-#define PIN_C1(PIN, DIR) (((DIR & 0x2)!=0) << PIN)
-#define PIN_C2(PIN, DIR) (((DIR & 0x4)!=0) << PIN)
+#define CLEAR_PIN_C0(PIN, DIR)	((((DIR) & 0x1)==0) << (PIN))
+#define CLEAR_PIN_C1(PIN, DIR)	((((DIR) & 0x2)==0) << (PIN))
+#define CLEAR_PIN_C2(PIN, DIR)	((((DIR) & 0x4)==0) << (PIN))
 
-#define CLEAR_PIN_C0(PIN, DIR) (((DIR & 0x1)==0) << PIN)
-#define CLEAR_PIN_C1(PIN, DIR) (((DIR & 0x2)==0) << PIN)
-#define CLEAR_PIN_C2(PIN, DIR) (((DIR & 0x4)==0) << PIN)
+#define SET_PIO_PIN(PIO_ADDR, PIN, DIR)					\
+do {									\
+	writel(	PIN_C0((PIN),(DIR)),					\
+		(PIO_ADDR)+STPIO_PC0_OFFSET+STPIO_SET_OFFSET);		\
+	writel(	PIN_C1((PIN),(DIR)),					\
+		(PIO_ADDR)+STPIO_PC1_OFFSET+STPIO_SET_OFFSET);		\
+	writel(	PIN_C2((PIN),(DIR)),					\
+		(PIO_ADDR)+STPIO_PC2_OFFSET+STPIO_SET_OFFSET);		\
+	writel(	CLEAR_PIN_C0((PIN),(DIR)),				\
+		(PIO_ADDR)+STPIO_PC0_OFFSET+STPIO_CLEAR_OFFSET);	\
+	writel(	CLEAR_PIN_C1((PIN),(DIR)),				\
+		(PIO_ADDR)+STPIO_PC1_OFFSET+STPIO_CLEAR_OFFSET);	\
+	writel(	CLEAR_PIN_C2((PIN),(DIR)),				\
+		(PIO_ADDR)+STPIO_PC2_OFFSET+STPIO_CLEAR_OFFSET);	\
+} while (0)
 
-#define SET_PIO_PIN(PIO_ADDR, PIN, DIR) do {writel(PIN_C0(PIN,DIR),PIO_ADDR+0x24);\
-				    writel(PIN_C1(PIN,DIR),PIO_ADDR+0x34);\
-				    writel(PIN_C2(PIN,DIR),PIO_ADDR+0x44);\
-				    writel(CLEAR_PIN_C0(PIN,DIR),PIO_ADDR+0x28);\
-				    writel(CLEAR_PIN_C1(PIN,DIR),PIO_ADDR+0x38);\
-				    writel(CLEAR_PIN_C2(PIN,DIR),PIO_ADDR+0x48);} while (0)
+#define STPIO_SET_PIN(PIO_ADDR, PIN, V)				\
+do {								\
+	writel(	1<<(PIN),					\
+		(PIO_ADDR) + STPIO_POUT_OFFSET +		\
+		((V)? STPIO_SET_OFFSET : STPIO_CLEAR_OFFSET));	\
+} while (0)
+#define STPIO_GET_PIN(PORT, PIN)				\
+	((readb(PIO_PORT(PORT)+STPIO_PIN_OFFSET)>>(PIN))&0x01)
 
-#define STPIO_SET_PIN(PIO_ADDR, PIN, V) writel(1<<PIN, PIO_ADDR + STPIO_POUT_OFFSET + ((V)? STPIO_SET_OFFSET : STPIO_CLEAR_OFFSET))
-#define STPIO_GET_PIN(PORT, PIN) ((readb(PIO_PORT(PORT)+STPIO_PIN_OFFSET)>>(PIN))&0x01)
+#define SET_PIO_ASC_OUTDIR(PIO_ADDR, TX, RX, CTS, RTS, OUTDIR)	\
+do {								\
+	writel(	PIN_C0((TX),  (OUTDIR))		|		\
+		PIN_C0((RX),  STPIO_IN)		|		\
+		PIN_C0((CTS), STPIO_IN)		|		\
+		PIN_C0((RTS), (OUTDIR)),			\
+		(PIO_ADDR)+STPIO_PC0_OFFSET+STPIO_SET_OFFSET);	\
+	writel(	PIN_C1((TX),  (OUTDIR))		|		\
+		PIN_C1((RX),  STPIO_IN)		|		\
+		PIN_C1((CTS), STPIO_IN)		|		\
+		PIN_C1((RTS), (OUTDIR)),			\
+		(PIO_ADDR)+STPIO_PC1_OFFSET+STPIO_SET_OFFSET);	\
+	writel(	PIN_C2((TX),  (OUTDIR))		|		\
+		PIN_C2((RX),  STPIO_IN)		|		\
+		PIN_C2((CTS), STPIO_IN)		|		\
+		PIN_C2((RTS), (OUTDIR)),			\
+		(PIO_ADDR)+STPIO_PC2_OFFSET+STPIO_SET_OFFSET);	\
+} while (0)
 
-#define SET_PIO_ASC(PIO_ADDR, TX, RX, CTS, RTS) \
-	writel(PIN_C0(TX, STPIO_ALT_OUT) | PIN_C0(RX, STPIO_IN) | \
-	       PIN_C0(CTS, STPIO_IN) | PIN_C0(RTS, STPIO_ALT_OUT),\
-	       PIO_ADDR+0x24) ; \
-	writel(PIN_C1(TX, STPIO_ALT_OUT) | PIN_C1(RX, STPIO_IN) | \
-	       PIN_C1(CTS, STPIO_IN) | PIN_C1(RTS, STPIO_ALT_OUT),\
-	       PIO_ADDR+0x34) ; \
-	writel(PIN_C2(TX, STPIO_ALT_OUT) | PIN_C2(RX, STPIO_IN) | \
-	       PIN_C2(CTS, STPIO_IN) | PIN_C2(RTS, STPIO_ALT_OUT),\
-	       PIO_ADDR+0x44) ;
+#if defined(CONFIG_SH_STX7141)
+#define SET_PIO_ASC(PIO_ADDR, TX, RX, CTS, RTS)			\
+	SET_PIO_ASC_OUTDIR((PIO_ADDR), (TX), (RX), (CTS), (RTS), STPIO_OUT)
+#else	/* CONFIG_SH_STX7141 */
+#define SET_PIO_ASC(PIO_ADDR, TX, RX, CTS, RTS)			\
+	SET_PIO_ASC_OUTDIR((PIO_ADDR), (TX), (RX), (CTS), (RTS), STPIO_ALT_OUT)
+#endif	/* CONFIG_SH_STX7141 */
 
 #endif

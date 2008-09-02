@@ -29,6 +29,8 @@
 extern void stb7100_usb_init(void);
 #elif defined(CONFIG_SH_STX7111)
 extern void stx7111_usb_init(void);
+#elif defined(CONFIG_SH_STX7141)
+extern void stx7141_usb_init(void);
 #elif defined(CONFIG_SH_STX7200)
 extern void stx7200_usb_init(void);
 #else
@@ -43,6 +45,8 @@ extern int usb_cpu_init(void)
 	stb7100_usb_init();
 #elif defined(CONFIG_SH_STX7111)
 	stx7111_usb_init();
+#elif defined(CONFIG_SH_STX7141)
+	stx7141_usb_init();
 #elif defined(CONFIG_SH_STX7200)
 	stx7200_usb_init();
 #endif
