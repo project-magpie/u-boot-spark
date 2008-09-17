@@ -1,0 +1,252 @@
+/*
+ * (C) Copyright 2008 STMicroelectronics.
+ *
+ * Stuart Menefy <stuart.menefy@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+#include <common.h>
+#include <command.h>
+#include <asm/soc.h>
+#include <asm/stx7105reg.h>
+#include <asm/io.h>
+#include <asm/pio.h>
+#include <asm/stbus.h>
+#include <ata.h>
+
+#define PIO_BASE  ST40_PIO0_REGS_BASE
+
+static void stx7105_clocks(void)
+{
+	DECLARE_GLOBAL_DATA_PTR;
+	bd_t *bd = gd->bd;
+
+	/*
+	 * FIXME
+	 * Gross hack to get the serial port working.
+	 * See the defintion of PCLK in drivers/stm-asc.c
+	 * for where this is used.
+	 */
+	bd->bi_emifrq = 100;
+}
+
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+
+#define ETHERNET_INTERFACE_ON	(1ul<<16)
+#define EXT_MDIO		(1ul<<17)
+#define RMII_MODE		(1ul<<18)
+#define PHY_CLK_EXT		(1ul<<19)
+#define MAC_SPEED_SEL           (1ul<<20)
+#define PHY_INTF_SEL_MASK	(0x3ul<<25)
+#define ENMII			(1ul<<27)
+/* Remaining bits define pad functions, default appears to work */
+
+extern int stmac_default_pbl(void)
+{
+	return 8;
+}
+
+extern void stmac_set_mac_speed(int speed)
+{
+	unsigned long sysconf = *STX7105_SYSCONF_SYS_CFG07;
+
+	/* MAC_SPEED_SEL = 0|1 */
+	if (speed == 100)
+		sysconf |= MAC_SPEED_SEL;
+	else if (speed == 10)
+		sysconf &= ~MAC_SPEED_SEL;
+
+	*STX7105_SYSCONF_SYS_CFG07 = sysconf;
+}
+
+/* ETH MAC pad configuration */
+static void stmac_eth_hw_setup( int reverse_mii, int rmii_mode, int mode,
+				int ext_mdio, int ext_clk, int phy_bus)
+{
+	unsigned long sysconf;
+
+	sysconf = *STX7105_SYSCONF_SYS_CFG07;
+	/* Ethernet ON */
+	sysconf |= (ETHERNET_INTERFACE_ON);
+	/* MII M-DIO select: 1: miim_dio from external input, 0: from GMAC */
+	if (ext_mdio)
+		sysconf |= (EXT_MDIO);
+	else
+		sysconf &= ~(EXT_MDIO);
+	/* RMII pin multiplexing: 0: RMII interface active, 1: MII interface */
+	if (rmii_mode)
+		sysconf &= ~(RMII_MODE);
+	else
+		sysconf |= (RMII_MODE);
+	/* PHY EXT CLOCK: 0: provided by STx7105; 1: external */
+	if (ext_clk)
+		sysconf |= (PHY_CLK_EXT);
+	else
+		sysconf &= ~(PHY_CLK_EXT);
+	/* Default GMII/MII selection */
+	sysconf &= ~(PHY_INTF_SEL_MASK);
+	sysconf |= ((mode&3ul)<<25);
+	/* MII mode */
+	if (reverse_mii)
+		sysconf &= ~(ENMII);
+	else
+		sysconf |= (ENMII);
+	*STX7105_SYSCONF_SYS_CFG07 = sysconf;
+
+	/* Pin configuration... */
+
+	/* PIO7[4] CFG37[8+4,4] = Alternate1 = MIIRX_DV/MII_EXCRS */
+	/* PIO7[5] CFG37[8+5,5] = Alternate1 = MIIRX_ER/MII_EXCOL */
+	/* PIO7[6] CFG37[8+6,6] = Alternate1 = MIITXD[0] */
+	/* PIO7[7] CFG37[8+7,7] = Alternate1 = MIITXD[1] */
+	sysconf = *STX7105_SYSCONF_SYS_CFG37;
+	sysconf &= ~(0xf0f0ul);	/* Mask=3,3,3,3 */
+	sysconf |=   0x0000ul;	/* OR  =0,0,0,0 */
+	*STX7105_SYSCONF_SYS_CFG37 = sysconf;
+	SET_PIO_PIN(PIO_PORT(7), 4, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(7), 5, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(7), 6, STPIO_ALT_OUT);
+	SET_PIO_PIN(PIO_PORT(7), 7, STPIO_ALT_OUT);
+
+	/* PIO8[0] CFG46[8+0,0] = Alternate1 = MIITXD[2] */
+	/* PIO8[1] CFG46[8+1,1] = Alternate1 = MIITXD[3] */
+	/* PIO8[2] CFG46[8+2,2] = Alternate1 = MIITX_EN */
+	/* PIO8[3] CFG46[8+3,3] = Alternate1 = MIIMDIO */
+	/* PIO8[4] CFG46[8+4,4] = Alternate1 = MIIMDC */
+	/* PIO8[5] CFG46[8+5,5] = Alternate1 = MIIRXCLK */
+	/* PIO8[6] CFG46[8+6,6] = Alternate1 = MIIRXD[0] */
+	/* PIO8[7] CFG46[8+7,7] = Alternate1 = MIIRXD[1] */
+	sysconf = *STX7105_SYSCONF_SYS_CFG46;
+	sysconf &= ~(0xfffful);	/* Mask=3,3,3,3,3,3,3,3 */
+	sysconf |=   0x0000ul;	/* OR  =0,0,0,0,0,0,0,0 */
+	*STX7105_SYSCONF_SYS_CFG46 = sysconf;
+	SET_PIO_PIN(PIO_PORT(8), 0, STPIO_ALT_OUT);
+	SET_PIO_PIN(PIO_PORT(8), 1, STPIO_ALT_OUT);
+	SET_PIO_PIN(PIO_PORT(8), 2, STPIO_ALT_OUT);
+	SET_PIO_PIN(PIO_PORT(8), 3, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(8), 4, STPIO_ALT_OUT);
+	SET_PIO_PIN(PIO_PORT(8), 5, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(8), 6, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(8), 7, STPIO_ALT_BIDIR);
+
+	/* PIO9[0] CFG47[8+0,0] = Alternate1 = MIIRXD[2] */
+	/* PIO9[1] CFG47[8+1,1] = Alternate1 = MIIRXD[3] */
+	/* PIO9[2] CFG47[8+2,2] = Alternate1 = MIITXCLK */
+	/* PIO9[3] CFG47[8+3,3] = Alternate1 = MIICOL */
+	/* PIO9[4] CFG47[8+4,4] = Alternate1 = MIICRS */
+	/* PIO9[5] CFG47[8+5,5] = Alternate1 = MIIPHYCLK */
+	/* PIO9[6] CFG47[8+6,6] = Alternate1 = MIIMDINT */
+	sysconf = *STX7105_SYSCONF_SYS_CFG47;
+	sysconf &= ~(0x7f7ful);	/* Mask=3,3,3,3,3,3,3 */
+	sysconf |=   0x0000ul;	/* OR  =0,0,0,0,0,0,0 */
+	*STX7105_SYSCONF_SYS_CFG47 = sysconf;
+	SET_PIO_PIN(PIO_PORT(9), 0, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(9), 1, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(9), 2, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(9), 3, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(9), 4, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(9), 5, STPIO_ALT_OUT);
+	SET_PIO_PIN(PIO_PORT(9), 6, STPIO_ALT_BIDIR);
+}
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+
+int soc_init(void)
+{
+	DECLARE_GLOBAL_DATA_PTR;
+	bd_t *bd = gd->bd;
+
+	stx7105_clocks();
+
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	stmac_eth_hw_setup (0, 0, 0, 1, 0, 0);
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+
+	bd->bi_devid = *STX7105_SYSCONF_DEVICEID_0;
+
+#if QQQ	/* QQQ - TO FIX */
+	/*  Make sure reset period is shorter than WDT timeout */
+	*STX7105_SYSCONF_SYS_CFG09 = (*STX7105_SYSCONF_SYS_CFG09 & 0xFF000000) | 0x000A8C;
+#endif	/* QQQ - TO FIX */
+
+	return 0;
+}
+
+
+#if defined(CONFIG_USB_OHCI_NEW)
+extern void stx7105_usb_init(void)
+{
+	unsigned long reg;
+	const unsigned char oc_pins[2]    = {4, 6};	/* PIO4 */
+	const unsigned char power_pins[2] = {5, 7};	/* PIO4 */
+#if CFG_USB_BASE == CFG_USB0_BASE
+	const size_t port = 0;
+#elif CFG_USB_BASE == CFG_USB1_BASE
+	const size_t port = 1;
+#else
+#error Unknown USB Host Controller Base Address
+#endif
+
+	/* Power on the USB */
+	reg = readl(STX7105_SYSCONF_SYS_CFG32);
+	/* Power up USB host controller */
+	/* USBn_HC_POWER_DOWN_REQ = 0 = Powered Up */
+	reg &= ~(1ul<<(4+port));
+	/* Power up USB PHY */
+	/* USBn_PHY_POWER_DOWN_REQ = 0 = Powered Up */
+	reg &= ~(1ul<<(6+port));
+	writel(reg, STX7105_SYSCONF_SYS_CFG32);
+
+	/* USB overcurrent enable */
+	reg = readl(STX7105_SYSCONF_SYS_CFG04);
+	/* USB0_PRT_OVCURR_POL = 0 = Active Low */
+	reg &= ~(1ul<<(3+port));
+	/* USBn_PRT_OVCURR_IN = 0 = PIO4[oc_pins[port]] */
+	reg &= ~(1ul<<(5+port));
+	/* CFG_USBn_OVRCURR_ENABLE = 1 = OC Enabled */
+	reg |= 1ul<<(11+port);
+	writel(reg, STX7105_SYSCONF_SYS_CFG04);
+
+	/* Route USBn OC Routing via PIO4[oc_pins[port]] */
+	reg = *STX7105_SYSCONF_SYS_CFG34;
+	/* PIO4[oc_pins[port]] CFG34[8+oc_pins[port],oc_pins[port]] = Alternate4 */
+	reg &= ~(0x0101ul<<(oc_pins[port]));	/* Mask=3 */
+	reg |=   0x0101ul<<(oc_pins[port]);	/* OR=3 */
+	*STX7105_SYSCONF_SYS_CFG34 = reg;
+	/* set PIO directionality, for OC as IN */
+	SET_PIO_PIN(PIO_PORT(4), oc_pins[port], STPIO_IN);
+
+	/* Route USBn POWER Routing via PIO4[power_pins[port]] */
+	reg = *STX7105_SYSCONF_SYS_CFG34;
+	/* PIO4[power_pins[port]] CFG34[8+power_pins[port],power_pins[port]] = Alternate4 */
+	reg &= ~(0x0101ul<<(power_pins[port]));	/* Mask=3 */
+	reg |=   0x0101ul<<(power_pins[port]);	/* OR=3 */
+	*STX7105_SYSCONF_SYS_CFG34 = reg;
+	/* set PIO directionality, for POWER as ALT_OUT */
+	SET_PIO_PIN(PIO_PORT(4), power_pins[port], STPIO_ALT_OUT);
+
+	/* start the USB Wrapper Host Controller */
+	ST40_start_host_control(
+		USB_FLAGS_STRAP_8BIT |
+		USB_FLAGS_STBUS_CONFIG_THRESHOLD128);
+}
+
+#endif /* defined(CONFIG_USB_OHCI_NEW) */
+

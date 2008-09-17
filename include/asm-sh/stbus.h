@@ -25,17 +25,24 @@
 #ifndef __STBUS_H__
 #define __STBUS_H__
 
-/*--------------------------------------------------------------*
- * These register are described in ADCS 7801572B.
- *--------------------------------------------------------------*/
+/*
+ * This file attempts to support all the various flavours of USB wrappers,
+ * thus some of the registers appear to overlap.
+ *
+ * Some of these register are described in ADCS 7518758 and 7618754
+ */
+
 
 /* Defines for the USB controller register offsets. */
 #define AHB2STBUS_WRAPPER_GLUE_BASE	(CFG_USB_BASE + 0x00000000)
+#define AHB2STBUS_OHCI_BASE		(CFG_USB_BASE + 0x000ffc00)
+#define AHB2STBUS_EHCI_BASE		(CFG_USB_BASE + 0x000ffe00)
 #define AHB2STBUS_PROTOCOL_BASE		(CFG_USB_BASE + 0x000fff00)
 
-#if defined(CONFIG_SH_STB7000) || defined(CONFIG_SH_STX7200)
 
-/* The transaction opcode is programmed in this register. */
+/* Protocol converter registers (separate registers) */
+
+/* The transaction opcode is programmed in this register */
 #define AHB2STBUS_STBUS_OPC		(AHB2STBUS_PROTOCOL_BASE + 0x00)
 #define AHB2STBUS_STBUS_OPC_4BIT	0x00
 #define AHB2STBUS_STBUS_OPC_8BIT	0x01
@@ -53,7 +60,7 @@
 #define AHB2STBUS_MSGSIZE_32		0x5
 #define AHB2STBUS_MSGSIZE_64		0x6
 
-/* The chunk size in number of packets is programmed in this register. */
+/* The chunk size in number of packets is programmed in this register */
 #define AHB2STBUS_CHUNKSIZE		(AHB2STBUS_PROTOCOL_BASE + 0x08)
 #define AHB2STBUS_CHUNKSIZE_DISABLE	0x0
 #define AHB2STBUS_CHUNKSIZE_2		0x1
@@ -63,20 +70,30 @@
 #define AHB2STBUS_CHUNKSIZE_32		0x5
 #define AHB2STBUS_CHUNKSIZE_64		0x6
 
-#elif defined(CONFIG_SH_STX7111)
 
-/* No documentation for this */
+/* Protocol converter registers (combined register) */
+
 #define AHB2STBUS_STBUS_CONFIG		(AHB2STBUS_PROTOCOL_BASE + 0x04)
 
-#elif defined(CONFIG_SH_STX7141)
 
-/* QQQ - to do ? */
+/* Wrapper Glue registers */
 
-#endif
-
-/* AHB Strap options are programmed in this register. */
 #define AHB2STBUS_STRAP			(AHB2STBUS_WRAPPER_GLUE_BASE + 0x14)
 #define AHB2STBUS_STRAP_PLL		0x08	/* PLL_PWR_DWN */
-#define AHB2STBUS_STRAP_16_BIT		0x04	/* SS_WORD_IF */
+#define AHB2STBUS_STRAP_8_BIT		0x00	/* ss_word_if */
+#define AHB2STBUS_STRAP_16_BIT		0x04	/* ss_word_if */
+
+
+/* QQQ move the following to somewhere more sensible */
+#define USB_FLAGS_STRAP_8BIT			(1<<0)
+#define USB_FLAGS_STRAP_16BIT			(2<<0)
+#define USB_FLAGS_STRAP_PLL			(1<<2)
+#define USB_FLAGS_OPC_MSGSIZE_CHUNKSIZE		(1<<3)
+#define USB_FLAGS_STBUS_CONFIG_THRESHOLD128	(1<<4)
+#define USB_FLAGS_STBUS_CONFIG_THRESHOLD256	(2<<4)
+
+
+/* function to start the USB Host Controller Wrapper */
+extern int ST40_start_host_control(unsigned int flags);
 
 #endif	/* __STBUS_H__ */

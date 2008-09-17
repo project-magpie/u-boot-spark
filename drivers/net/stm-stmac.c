@@ -126,6 +126,8 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define XMC_PHY_ADDR_MSK         0x00f8	/* PHY Address Mask */
 #define XMC_PHY_ADDR_SHIFT       3	/* PHY Address Mask */
 #define XMC_PRE_SUP              0x0002	/* Preamble Suppression */
+#define PHY_ADDR_MSK		XMC_PHY_ADDR_MSK	/* PHY Address Mask */
+#define PHY_ADDR_SHIFT		XMC_PHY_ADDR_SHIFT	/* PHY Address Mask */
 
 /* MII mode */
 #define MII_TSTAT_SMII  0x1000
@@ -138,9 +140,19 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define LAN8700_PHY_ID		0x0007c0c0u
 #define LAN8700_PHY_ID_MASK	0xfffffff0u
 
-#define	SPECIAL_MODE_REG	0x12		/* Special Modes Register */
-#define	PHY_ADDR_MSK		0x001f		/* PHY Address Mask */
-#define	PHY_ADDR_SHIFT		0		/* PHY Address Mask */
+#define SPECIAL_MODE_REG	0x12		/* Special Modes Register */
+#define PHY_ADDR_MSK		0x001f		/* PHY Address Mask */
+#define PHY_ADDR_SHIFT		0		/* PHY Address Mask */
+
+#elif defined(CONFIG_STMAC_DP83865)	/* Nat Semi DP83865 */
+
+/* Nat Semi DP83865 phy identifier values */
+#define DP83865_PHY_ID		0x20005c70u
+#define DP83865_PHY_ID_MASK	0xfffffff0u
+
+#define PHY_SUP_REG		0x1f		/* PHY Support Register */
+#define PHY_ADDR_MSK		0x001f		/* PHY Address Mask */
+#define PHY_ADDR_SHIFT		0		/* PHY Address Mask */
 
 #else
 #error Need to define which PHY to use
@@ -254,6 +266,11 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "SMSC LAN8700 found\n");
 			return phyaddr;
 		}
+#elif defined(CONFIG_STMAC_DP83865)
+		if ((id & DP83865_PHY_ID_MASK) == DP83865_PHY_ID) {
+			printf (STMAC "NS DP83865 found\n");
+			return phyaddr;
+		}
 #endif	/* CONFIG_STMAC_STE10XP */
 	}
 
@@ -279,13 +296,14 @@ static int stmac_phy_init (void)
 	/* test for H/W address disagreement with the assigned address */
 #if defined(CONFIG_STMAC_STE10XP)
 	value = stmac_mii_read (eth_phy_addr, MII_XMC);
-	value = (value & XMC_PHY_ADDR_MSK) >> XMC_PHY_ADDR_SHIFT;
 #elif defined(CONFIG_STMAC_LAN8700)
 	value = stmac_mii_read (eth_phy_addr, SPECIAL_MODE_REG);
-	value = (value & PHY_ADDR_MSK) >> PHY_ADDR_SHIFT;
+#elif defined(CONFIG_STMAC_DP83865)
+	value = stmac_mii_read (eth_phy_addr, PHY_SUP_REG);
 #else
 #error Need to define PHY
 #endif
+	value = (value & PHY_ADDR_MSK) >> PHY_ADDR_SHIFT;
 	if (value != eth_phy_addr) {
 		printf (STMAC "PHY address mismatch with hardware (hw %d != %d)\n",
 			value,

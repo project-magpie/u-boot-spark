@@ -32,6 +32,8 @@
 
 #if defined(CONFIG_SH_STB7100)
 #include <asm/stb7100reg.h>
+#elif defined(CONFIG_SH_STX7105)
+#include <asm/stx7105reg.h>
 #elif defined(CONFIG_SH_STX7111)
 #include <asm/stx7111reg.h>
 #elif defined(CONFIG_SH_STX7141)
@@ -135,6 +137,19 @@ set_pmb:
 	SH4_SET_PMB 6 0xb2 0x02  16 0 0 1	/* OFF-chip  Peripherals UN-cached */
 	SH4_SET_PMB 7 0xb8 0x18  64 0 0 1	/* ON-chip   Peripherals UN-cached */
 	SH4_SET_PMB 8 0xbc 0x1c  64 0 0 1	/* ST40 core Peripherals UN-cached */
+#elif defined(CONFIG_SH_STX7105) && defined(CONFIG_SH_MB680)
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
+	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
+	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
+	#endif
+	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 6 0xa4 0x04  16 0 0 1	/* NAND FLASH UN-cached */
+	SH4_SET_PMB 7 0xa8 0x00  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB 8 0xa9 0x01  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB 9 0xb7 0x07  16 0 0 1	/* EPLD UN-cached */
 #elif defined(CONFIG_SH_STX7111) && defined(CONFIG_SH_MB618)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI UN-cached */
