@@ -348,8 +348,8 @@ int doc_rw (struct DiskOnChip* this, int cmd,
 
 void doc_print(struct DiskOnChip *this) {
 	printf("%s at 0x%lX,\n"
-	       "\t  %d chip%s %s, size %d MB, \n"
-	       "\t  total size %ld MB, sector size %ld kB\n",
+	       "\t  %d chip%s %s, size %d MiB, \n"
+	       "\t  total size %ld MiB, sector size %ld KiB\n",
 	       this->name, this->physadr, this->numchips,
 	       this->numchips>1 ? "s" : "", this->chips_name,
 	       1 << (this->chipshift - 20),
@@ -366,9 +366,9 @@ void doc_print(struct DiskOnChip *this) {
 		       "\t    Binary partition: size %ld%s\n"
 		       "\t    Flash disk partition: size %ld%s, offset 0x%lx\n",
 		       bin_size > (1 << 20) ? bin_size >> 20 : bin_size >> 10,
-		       bin_size > (1 << 20) ? "MB" : "kB",
+		       bin_size > (1 << 20) ? "MiB" : "KiB",
 		       flash_size > (1 << 20) ? flash_size >> 20 : flash_size >> 10,
-		       flash_size > (1 << 20) ? "MB" : "kB", bin_size);
+		       flash_size > (1 << 20) ? "MiB" : "KiB", bin_size);
 	} else {
 		puts ("\t  No NFTL boot record found.\n");
 	}
@@ -794,7 +794,7 @@ static void DoC_ScanChips(struct DiskOnChip *this)
 	this->totlen = this->numchips * (1 << this->chipshift);
 
 #ifdef DOC_DEBUG
-	printf("%d flash chips found. Total DiskOnChip size: %ld MB\n",
+	printf("%d flash chips found. Total DiskOnChip size: %ld MiB\n",
 	       this->numchips, this->totlen >> 20);
 #endif
 }
@@ -990,7 +990,7 @@ static void DoC2k_init(struct DiskOnChip* this)
 	else
 		this->nftl_found = 1;
 
-	printf("%s @ 0x%lX, %ld MB\n", this->name, this->physadr, this->totlen >> 20);
+	printf("%s @ 0x%lX, %ld MiB\n", this->name, this->physadr, this->totlen >> 20);
 }
 
 int doc_read_ecc(struct DiskOnChip* this, loff_t from, size_t len,

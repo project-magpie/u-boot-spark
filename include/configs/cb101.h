@@ -52,12 +52,12 @@
 #define CFG_SDRAM_BASE		0x88000000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x08000000	/* 128MB of LMI0 SDRAM */
+#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI0 SDRAM */
 
-#define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 kB for Monitor */
+#define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
-#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB for malloc */
-#define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128kB */
+#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
+#define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128 KiB */
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
 
 #define CFG_MEMTEST_START	CFG_SDRAM_BASE
@@ -71,9 +71,9 @@
 
 #define BOARD cb101
 
-#if CFG_MONITOR_LEN == 0x00020000		/* 128 kB */
+#if CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
-#elif CFG_MONITOR_LEN == 0x00040000		/* 256 kB */
+#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
 #	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
 #else						/* unknown */
 #	error "Unable to determine sectors for monitor"
@@ -210,7 +210,7 @@
  * NOR FLASH organization
  */
 
-/* M58LT256GT: 32Mbyte 259 blocks, 128K block size plus parameter block */
+/* M58LT256GT: 32MiB 259 blocks, 128KiB block size plus parameter block */
 #define CFG_FLASH_CFI_WIDTH	FLASH_CFI_16BIT
 #define CFG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI

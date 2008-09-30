@@ -52,12 +52,12 @@
 #define CFG_SDRAM_BASE		0x8C800000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x03000000	/* 48MB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x03000000	/* 48 MiB of LMI SDRAM */
 
-#define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 kB for Monitor */
+#define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
-#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB for malloc */
-#define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128kB */
+#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
+#define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128 KiB */
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
 
 #define CFG_MEMTEST_START	CFG_SDRAM_BASE
@@ -71,15 +71,15 @@
 
 #define BOARD mb628
 
-#if CFG_MONITOR_LEN == 0x00008000		/* 32 kB */
+#if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
-#elif CFG_MONITOR_LEN == 0x00010000		/* 64 kB */
+#elif CFG_MONITOR_LEN == 0x00010000		/* 64 KiB */
 #	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
-#elif CFG_MONITOR_LEN == 0x00018000		/* 96 kB */
+#elif CFG_MONITOR_LEN == 0x00018000		/* 96 KiB */
 #	define MONITOR_SECTORS	"1:0-2"		/* 3 sectors */
-#elif CFG_MONITOR_LEN == 0x00020000		/* 128 kB */
+#elif CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
 #	define MONITOR_SECTORS	"1:0-3"		/* 4 sectors */
-#elif CFG_MONITOR_LEN == 0x00040000		/* 256 kB */
+#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
 #	define MONITOR_SECTORS	"1:0-4"		/* 5 sectors */
 #else						/* unknown */
 #	error "Unable to determine sectors for monitor"
@@ -225,7 +225,7 @@
  * NOR FLASH organization
  */
 
-/* M58LT256JSB: 32Mbyte 259 blocks, 128kB block size */
+/* M58LT256JSB: 32MiB 259 blocks, 128 KiB block size */
 #ifndef CONFIG_CMD_NAND				/* NOR flash present ? */
 #	define CONFIG_CMD_JFFS2			/* enable JFFS2 support */
 #	define CFG_FLASH_CFI_DRIVER
@@ -250,8 +250,8 @@
  * NAND FLASH organization
  */
 
-/* NAND512W3A: 64MByte  8-bit, 4096 Blocks (16kB+512B) of 32 Pages (512+16) */
-/* NAND512W4A: 64MByte 16-bit, 4096 Blocks (16kB+512B) of 32 Pages (512+16) */
+/* NAND512W3A: 64MiB  8-bit, 4096 Blocks (16KiB+512B) of 32 Pages (512+16) */
+/* NAND512W4A: 64MiB 16-bit, 4096 Blocks (16KiB+512B) of 32 Pages (512+16) */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CONFIG_CMD_JFFS2			/* enable JFFS2 support */
 #	define CFG_MAX_NAND_DEVICE	1

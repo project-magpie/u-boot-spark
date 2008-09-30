@@ -210,49 +210,49 @@ static ulong flash_get_size (ulong addr, flash_info_t *info)
 			info->flash_id += FLASH_AM400T;
 			info->sector_count = 11;
 			info->size = 0x00100000;
-			break;			/* => 1 MB		*/
+			break;			/* => 1 MiB		*/
 
 		case AMD_ID_LV400B:
 			DEBUGF("Am29LV400B\n");
 			info->flash_id += FLASH_AM400B;
 			info->sector_count = 11;
 			info->size = 0x00100000;
-			break;			/* => 1 MB		*/
+			break;			/* => 1 MiB		*/
 
 		case AMD_ID_LV800T:
 			DEBUGF("Am29LV800T\n");
 			info->flash_id += FLASH_AM800T;
 			info->sector_count = 19;
 			info->size = 0x00200000;
-			break;			/* => 2 MB		*/
+			break;			/* => 2 MiB		*/
 
 		case AMD_ID_LV800B:
 			DEBUGF("Am29LV400B\n");
 			info->flash_id += FLASH_AM800B;
 			info->sector_count = 19;
 			info->size = 0x00200000;
-			break;			/* => 2 MB		*/
+			break;			/* => 2 MiB		*/
 
 		case AMD_ID_LV160T:
 			DEBUGF("Am29LV160T\n");
 			info->flash_id += FLASH_AM160T;
 			info->sector_count = 35;
 			info->size = 0x00400000;
-			break;			/* => 4 MB		*/
+			break;			/* => 4 MiB		*/
 
 		case AMD_ID_LV160B:
 			DEBUGF("Am29LV160B\n");
 			info->flash_id += FLASH_AM160B;
 			info->sector_count = 35;
 			info->size = 0x00400000;
-			break;			/* => 4 MB		*/
+			break;			/* => 4 MiB		*/
 
 		case AMD_ID_LV320T:
 			DEBUGF("Am29LV320T\n");
 			info->flash_id += FLASH_AM320T;
 			info->sector_count = 67;
 			info->size = 0x00800000;
-			break;			/* => 8 MB		*/
+			break;			/* => 8 MiB		*/
 
 #if 0
 		/* Has the same ID as AMD_ID_LV320T, to be fixed */
@@ -261,7 +261,7 @@ static ulong flash_get_size (ulong addr, flash_info_t *info)
 			info->flash_id += FLASH_AM320B;
 			info->sector_count = 67;
 			info->size = 0x00800000;
-			break;			/* => 8 MB		*/
+			break;			/* => 8 MiB		*/
 #endif
 
 		case AMD_ID_LV033C:
@@ -613,33 +613,33 @@ void flash_print_info (flash_info_t *info)
 	}
 
 	switch (info->flash_id & FLASH_TYPEMASK) {
-	case FLASH_AM040:	printf ("29F040 or 29LV040 (4 Mbit, uniform sectors)\n");
+	case FLASH_AM040:	printf ("29F040 or 29LV040 (4 Mibit, uniform sectors)\n");
 				break;
-	case FLASH_AM400B:	printf ("AM29LV400B (4 Mbit, bottom boot sect)\n");
+	case FLASH_AM400B:	printf ("AM29LV400B (4 Mibit, bottom boot sect)\n");
 				break;
-	case FLASH_AM400T:	printf ("AM29LV400T (4 Mbit, top boot sector)\n");
+	case FLASH_AM400T:	printf ("AM29LV400T (4 Mibit, top boot sector)\n");
 				break;
-	case FLASH_AM800B:	printf ("AM29LV800B (8 Mbit, bottom boot sect)\n");
+	case FLASH_AM800B:	printf ("AM29LV800B (8 Mibit, bottom boot sect)\n");
 				break;
-	case FLASH_AM800T:	printf ("AM29LV800T (8 Mbit, top boot sector)\n");
+	case FLASH_AM800T:	printf ("AM29LV800T (8 Mibit, top boot sector)\n");
 				break;
-	case FLASH_AM160B:	printf ("AM29LV160B (16 Mbit, bottom boot sect)\n");
+	case FLASH_AM160B:	printf ("AM29LV160B (16 Mibit, bottom boot sect)\n");
 				break;
-	case FLASH_AM160T:	printf ("AM29LV160T (16 Mbit, top boot sector)\n");
+	case FLASH_AM160T:	printf ("AM29LV160T (16 Mibit, top boot sector)\n");
 				break;
-	case FLASH_AM320B:	printf ("AM29LV320B (32 Mbit, bottom boot sect)\n");
+	case FLASH_AM320B:	printf ("AM29LV320B (32 Mibit, bottom boot sect)\n");
 				break;
-	case FLASH_AM320T:	printf ("AM29LV320T (32 Mbit, top boot sector)\n");
+	case FLASH_AM320T:	printf ("AM29LV320T (32 Mibit, top boot sector)\n");
 				break;
 	default:		printf ("Unknown Chip Type\n");
 				break;
 	}
 
 	if (info->size % 0x100000 == 0) {
-		printf ("  Size: %ld MB in %d Sectors\n",
+		printf ("  Size: %ld MiB in %d Sectors\n",
 			info->size / 0x100000, info->sector_count);
 	} else if (info->size % 0x400 == 0) {
-		printf ("  Size: %ld KB in %d Sectors\n",
+		printf ("  Size: %ld KiB in %d Sectors\n",
 			info->size / 0x400, info->sector_count);
 	} else {
 		printf ("  Size: %ld B in %d Sectors\n",

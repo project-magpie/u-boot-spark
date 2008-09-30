@@ -145,7 +145,7 @@ void dev_print (block_dev_desc_t *dev_desc)
 		lba = dev_desc->lba;
 
 		lba512 = (lba * (dev_desc->blksz/512));
-		mb = (10 * lba512) / 2048;	/* 2048 = (1024 * 1024) / 512 MB */
+		mb = (10 * lba512) / 2048;	/* 2048 = (1024 * 1024) / 512 MiB */
 		/* round to 1 digit */
 		mb_quot	= mb / 10;
 		mb_rem	= mb - (10 * mb_quot);
@@ -158,13 +158,13 @@ void dev_print (block_dev_desc_t *dev_desc)
 			printf ("            Supports 48-bit addressing\n");
 #endif
 #if defined(CFG_64BIT_LBA) && defined(CFG_64BIT_VSPRINTF)
-		printf ("            Capacity: %ld.%ld MB = %ld.%ld GB (%qd x %ld)\n",
+		printf ("            Capacity: %ld.%ld MiB = %ld.%ld GiB (%qd x %ld)\n",
 			mb_quot, mb_rem,
 			gb_quot, gb_rem,
 			lba,
 			dev_desc->blksz);
 #else
-		printf ("            Capacity: %ld.%ld MB = %ld.%ld GB (%ld x %ld)\n",
+		printf ("            Capacity: %ld.%ld MiB = %ld.%ld GiB (%ld x %ld)\n",
 			mb_quot, mb_rem,
 			gb_quot, gb_rem,
 			(ulong)lba,

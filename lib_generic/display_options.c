@@ -39,17 +39,17 @@ int display_options (void)
 }
 
 /*
- * print sizes as "xxx kB", "xxx.y kB", "xxx MB" or "xxx.y MB" as needed;
+ * print sizes as "xxx KiB", "xxx.y KiB", "xxx MiB" or "xxx.y MiB" as needed;
  * allow for optional trailing string (like "\n")
  */
 void print_size (ulong size, const char *s)
 {
 	ulong m, n;
-	ulong d = 1 << 20;		/* 1 MB */
+	ulong d = 1 << 20;		/* 1 MiB */
 	char  c = 'M';
 
-	if (size < d) {			/* print in kB */
-		c = 'k';
+	if (size < d) {			/* print in KiB */
+		c = 'K';
 		d = 1 << 10;
 	}
 
@@ -66,7 +66,7 @@ void print_size (ulong size, const char *s)
 	if (m) {
 		printf (".%ld", m);
 	}
-	printf (" %cB%s", c, s);
+	printf (" %ciB%s", c, s);
 }
 
 /*

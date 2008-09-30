@@ -31,6 +31,9 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 static void print_num(const char *, ulong);
+#if defined(CONFIG_SH4)
+static void print_mem(const char *, ulong);
+#endif
 
 #ifndef CONFIG_ARM	/* PowerPC and other */
 
@@ -296,9 +299,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 	print_num ("boot_params",	(ulong)bd->bi_boot_params);
 	print_num ("memstart",		(ulong)bd->bi_memstart);
-	print_num ("memsize",		(ulong)bd->bi_memsize);
+	print_mem ("memsize",		(ulong)bd->bi_memsize);
 	print_num ("flashstart",	(ulong)bd->bi_flashstart);
-	print_num ("flashsize",		(ulong)bd->bi_flashsize);
+	print_mem ("flashsize",		(ulong)bd->bi_flashsize);
 	print_num ("flashoffset",	(ulong)bd->bi_flashoffset);
 
 	puts ("ethaddr     =");
@@ -424,6 +427,14 @@ static void print_num(const char *name, ulong value)
 {
 	printf ("%-12s= 0x%08lX\n", name, value);
 }
+
+#if defined(CONFIG_SH4)
+static void print_mem(const char *name, ulong value)
+{
+	printf ("%-12s= 0x%08lX\t(", name, value);
+	print_size (value, ")\n");
+}
+#endif
 
 #if defined(CONFIG_PPC) || defined(CONFIG_M68K)
 static void print_str(const char *name, const char *str)

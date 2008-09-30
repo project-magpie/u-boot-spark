@@ -95,7 +95,7 @@ void print_part_mac (block_dev_desc_t *dev_desc)
 
 	n  = ddesc.blk_count;
 
-	mb = ldiv(n, ((1024 * 1024) / ddesc.blk_size)); /* MB */
+	mb = ldiv(n, ((1024 * 1024) / ddesc.blk_size)); /* MiB */
 	/* round to 1 digit */
 	mb.rem *= 10 * ddesc.blk_size;
 	mb.rem += 512 * 1024;
@@ -107,7 +107,7 @@ void print_part_mac (block_dev_desc_t *dev_desc)
 
 
 	printf ("Block Size=%d, Number of Blocks=%d, "
-		"Total Capacity: %ld.%ld MB = %ld.%ld GB\n"
+		"Total Capacity: %ld.%ld MiB = %ld.%ld GiB\n"
 		"DeviceType=0x%x, DeviceId=0x%x\n\n"
 		"   #:                 type name"
 		"                   length   base       (size)\n",
@@ -139,7 +139,7 @@ void print_part_mac (block_dev_desc_t *dev_desc)
 		/* update partition count */
 		n = mpart.map_count;
 
-		c      = 'k';
+		c      = 'K';
 		bytes  = mpart.block_count;
 		bytes /= (1024 / ddesc.blk_size);  /* kB; assumes blk_size == 512 */
 		if (bytes >= 1024) {
@@ -151,7 +151,7 @@ void print_part_mac (block_dev_desc_t *dev_desc)
 			c = 'G';
 		}
 
-		printf ("%20.32s %-18.32s %10u @ %-10u (%3ld%c)\n",
+		printf ("%20.32s %-18.32s %10u @ %-10u (%3ld%ciB)\n",
 			mpart.type,
 			mpart.name,
 			mpart.block_count,

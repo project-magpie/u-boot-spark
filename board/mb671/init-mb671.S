@@ -246,7 +246,7 @@ __memory_setup_table:
 	POKE32(ST40_EMI_BANK3_BASEADDRESS, 0x00000010)
 	POKE32(ST40_EMI_BANK4_BASEADDRESS, 0x00000014)
 
-	/* Bank 0 - On-board 32MBytes Flash at address 0x00000000 -> 0x01ffffff */
+	/* Bank 0 - On-board 32MiB Flash at address 0x00000000 -> 0x01ffffff */
 	POKE32(ST40_EMI_BANK0_EMICONFIGDATA0, 0x001016d1)
 	POKE32(ST40_EMI_BANK0_EMICONFIGDATA1, 0x9d200000)
 	POKE32(ST40_EMI_BANK0_EMICONFIGDATA2, 0x9d220000)
@@ -276,10 +276,10 @@ __memory_setup_table:
 	POKE32(ST40_LMI_STR_0(0), 0xcd2db41b)
 	POKE32(ST40_LMI_STR_1(0), 0x002202d6)
 
-	/* lmi base address 0x08000000 + 256Mbytes */
+	/* lmi base address 0x08000000 + 256MiB */
 	POKE32(ST40_LMI_SDRA0_0(0), 0x18001a20)
 
-	/* lmi base address 0x08000000 + 256Mbytes */
+	/* lmi base address 0x08000000 + 256MiB */
 	POKE32(ST40_LMI_SDRA1_0(0), 0x18001a20)
 
 	/* Delay ~ 200 uS (assumes 400MHz CPU clock) */
@@ -365,11 +365,11 @@ __memory_setup_table:
 	POKE32(ST40_LMI_STR_1(1), 0x002202d6)
 
 	/* SDRAM Row Attribute 0 */
-	/* lmi base address 0x18000000 + 64Mbytes */
+	/* lmi base address 0x18000000 + 64MiB */
 	POKE32(ST40_LMI_SDRA0_0(1), 0x1c001a20)
 
 	/* SDRAM Row Attribute 1 */
-	/* lmi base address 0x18000000 + 64Mbytes */
+	/* lmi base address 0x18000000 + 64MiB */
 	POKE32(ST40_LMI_SDRA1_0(1), 0x1c001a20)
 
 	/* Delay ~ 200 uS (assumes 400MHz CPU clock) */

@@ -151,13 +151,13 @@ __memory_setup_table:
   POKE_LONG(ST40_EMI_BANK3_BASEADDRESS, 0x00000010)
   POKE_LONG(ST40_EMI_BANK4_BASEADDRESS, 0x00000014)
 
-  /* Bank #0 - NOR FLASH (32MB) at address 0x00000000 -> 0x01ffffff */
+  /* Bank #0 - NOR FLASH (32MiB) at address 0x00000000 -> 0x01ffffff */
   POKE_LONG(ST40_EMI_BANK0_EMICONFIGDATA0, 0x04320691)
   POKE_LONG(ST40_EMI_BANK0_EMICONFIGDATA1, 0x8F122300)
   POKE_LONG(ST40_EMI_BANK0_EMICONFIGDATA2, 0x8F122300)
   POKE_LONG(ST40_EMI_BANK0_EMICONFIGDATA3, 0x00000000)
 
-  /* Bank #1 - NAND FLASH (128MB), at address 0x02000000 -> 0x02FFFFFF */
+  /* Bank #1 - NAND FLASH (128MiB), at address 0x02000000 -> 0x02FFFFFF */
 #if 0
   /* this code has been moved to nand_emi_init() in board/cb101/cb101.c */
   POKE_LONG(ST40_EMI_BANK1_EMICONFIGDATA0, 0x04100e99);
@@ -193,10 +193,10 @@ __memory_setup_table:
   POKE_LONG(ST40_LMI_STR_0(0), 0xcb2cab5b)
   POKE_LONG(ST40_LMI_STR_1(0), 0x000002d6)
 
-  /* lmi base address 0x08000000 + 128Mbytes 13x10 */
+  /* lmi base address 0x08000000 + 128MiB 13x10 */
   POKE_LONG(ST40_LMI_SDRA0_0(0), 0x10000a00)
 
-  /* lmi base address 0x08000000 + 128Mbytes 13x10 */
+  /* lmi base address 0x08000000 + 128MiB 13x10 */
   POKE_LONG(ST40_LMI_SDRA1_0(0), 0x10000a00)
 
   /* Enable clock with NOP command */
@@ -284,10 +284,10 @@ __memory_setup_table:
   POKE_LONG(ST40_LMI_STR_0(1), 0xcb2cab5b)
   POKE_LONG(ST40_LMI_STR_1(1), 0x000002d6)
 
-  /* lmi base address 0x18000000 + 64Mbytes 13x10 (all 128MBytes are not visible in 29bits mode) */
+  /* lmi base address 0x18000000 + 64MiB 13x10 (all 128MiB are not visible in 29bits mode) */
   POKE_LONG(ST40_LMI_SDRA0_0(1), 0x1c000a00)
 
-  /* lmi base address 0x18000000 + 64Mbytes 13x10 (all 128MBytes are not visible in 29bits mode) */
+  /* lmi base address 0x18000000 + 64MiB 13x10 (all 128MiB are not visible in 29bits mode) */
   POKE_LONG(ST40_LMI_SDRA1_0(1), 0x1c000a00)
 
   /* Enable clock with NOP command */

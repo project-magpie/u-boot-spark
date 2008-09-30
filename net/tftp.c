@@ -315,7 +315,7 @@ TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
 		if (TftpBlock == 0) {
 			TftpBlockWrap++;
 			TftpBlockWrapOffset += TftpBlkSize * TFTP_SEQUENCE_SIZE;
-			printf ("\n\t %lu MB received\n\t ", TftpBlockWrapOffset>>20);
+			printf ("\n\t %lu MiB received\n\t ", TftpBlockWrapOffset>>20);
 		} else {
 			if (((TftpBlock - 1) % 10) == 0) {
 				putc ('#');

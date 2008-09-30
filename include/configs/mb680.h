@@ -52,12 +52,12 @@
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x10000000	/* 256MB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
 
-#define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 kB for Monitor */
+#define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
-#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB for malloc */
-#define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128kB */
+#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
+#define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128 KiB */
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
 
 #define CFG_MEMTEST_START	CFG_SDRAM_BASE
@@ -71,15 +71,15 @@
 
 #define BOARD mb680
 
-#if CFG_MONITOR_LEN == 0x00008000		/* 32 kB */
+#if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
-#elif CFG_MONITOR_LEN == 0x00010000		/* 64 kB */
+#elif CFG_MONITOR_LEN == 0x00010000		/* 64 KiB */
 #	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
-#elif CFG_MONITOR_LEN == 0x00018000		/* 96 kB */
+#elif CFG_MONITOR_LEN == 0x00018000		/* 96 KiB */
 #	define MONITOR_SECTORS	"1:0-2"		/* 3 sectors */
-#elif CFG_MONITOR_LEN == 0x00020000		/* 128 kB */
+#elif CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
 #	define MONITOR_SECTORS	"1:0-3"		/* 4 sectors */
-#elif CFG_MONITOR_LEN == 0x00040000		/* 256 kB */
+#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
 #	define MONITOR_SECTORS	"1:0-4"		/* 5 sectors */
 #else						/* unknown */
 #	error "Unable to determine sectors for monitor"
@@ -224,7 +224,7 @@
  * NOR FLASH organization
  */
 
-/* M58LT256: 32Mbyte 259 blocks, 128kB block size */
+/* M58LT256: 32MiB 259 blocks, 128 KiB block size */
 #ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
 #	define CFG_FLASH_CFI_DRIVER
 #	define CFG_FLASH_CFI
@@ -250,7 +250,7 @@
  * NAND FLASH organization
  */
 
-/* NAND512W3A: 64MByte  8-bit, 4096 Blocks (16kB+512B) of 32 Pages (512+16) */
+/* NAND512W3A: 64MiB  8-bit, 4096 Blocks (16KiB+512B) of 32 Pages (512+16) */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CFG_MAX_NAND_DEVICE	1
 #	define NAND_MAX_CHIPS		CFG_MAX_NAND_DEVICE
@@ -270,12 +270,12 @@
  * Address, size, & location of U-boot's Environment Sector
  */
 
-#define CFG_ENV_SIZE			0x4000	/* 16KiB of environment data */
+#define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
 #ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
 #	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
-#	define CFG_ENV_SECT_SIZE	0x20000	/* 128KiB Sector size */
+#	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
 #elif defined(CONFIG_CMD_NAND)			/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	define CFG_ENV_OFFSET	0		/* beginning of NAND flash */

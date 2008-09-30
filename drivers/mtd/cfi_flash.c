@@ -348,7 +348,7 @@ unsigned long flash_init (void)
 		size += flash_info[i].size = flash_get_size (bank_base[i], i);
 		if (flash_info[i].flash_id == FLASH_UNKNOWN) {
 #ifndef CFG_FLASH_QUIET_TEST
-			printf ("## Unknown FLASH on Bank %d - Size = 0x%08lx = %ld MB\n",
+			printf ("## Unknown FLASH on Bank %d - Size = 0x%08lx = %ld MiB\n",
 				i+1, flash_info[i].size, flash_info[i].size << 20);
 #endif /* CFG_FLASH_QUIET_TEST */
 		}
@@ -520,7 +520,7 @@ void flash_print_info (flash_info_t * info)
 
 	printf ("CFI conformant FLASH (%d x %d)",
 		(info->portwidth << 3), (info->chipwidth << 3));
-	printf ("  Size: %ld MB in %d Sectors\n",
+	printf ("  Size: %ld MiB in %d Sectors\n",
 		info->size >> 20, info->sector_count);
 	printf ("  ");
 	switch (info->vendor) {

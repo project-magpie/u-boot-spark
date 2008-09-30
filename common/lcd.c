@@ -746,7 +746,7 @@ static void *lcd_logo (void)
 		strmhz(temp, gd->cpu_clk));
 	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 3,
 					info, strlen(info));
-	sprintf (info, "  %ld MB RAM, %ld MB Flash",
+	sprintf (info, "  %ld MiB RAM, %ld MiB Flash",
 		gd->ram_size >> 20,
 		gd->bd->bi_flashsize >> 20 );
 	lcd_drawchars (LCD_INFO_X, LCD_INFO_Y + VIDEO_FONT_HEIGHT * 4,
@@ -754,7 +754,7 @@ static void *lcd_logo (void)
 #  else
 	/* leave one blank line */
 
-	sprintf (info, "MPC823 CPU at %s MHz, %ld MB RAM, %ld MB Flash",
+	sprintf (info, "MPC823 CPU at %s MHz, %ld MiB RAM, %ld MiB Flash",
 		strmhz(temp, gd->cpu_clk),
 		gd->ram_size >> 20,
 		gd->bd->bi_flashsize >> 20 );

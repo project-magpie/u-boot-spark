@@ -56,11 +56,11 @@
 #define CFG_SDRAM_BASE		0x84000000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x04000000	/* 64MB of LMI-Sys SDRAM */
+#define CFG_SDRAM_SIZE		0x04000000	/* 64 MiB of LMI-Sys SDRAM */
 
-#define CFG_MONITOR_LEN		0x00020000	/* Reserve 128 kB for Monitor */
+#define CFG_MONITOR_LEN		0x00020000	/* Reserve 128 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
-#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1MB for malloc */
+#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
 
@@ -75,9 +75,9 @@
 
 #define BOARD mb442
 
-#if CFG_MONITOR_LEN == 0x00020000		/* 128 kB */
+#if CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
-#elif CFG_MONITOR_LEN == 0x00040000		/* 256 kB */
+#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
 #	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
 #else						/* unknown */
 #	error "Unable to determine sectors for monitor"
@@ -245,7 +245,7 @@
  * NOR FLASH organization
  */
 
-/* STb7100 reference board organised as 8MB flash with 128k blocks */
+/* STb7100 reference board organised as 8 MiB flash with 128 KiB blocks */
 #define CFG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/

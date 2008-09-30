@@ -710,7 +710,8 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		pattern = 0;
 	}
 
-	printf ("Testing %08x ... %08x:\n", (uint)start, (uint)end);
+	printf ("Testing %08lx ... %08lx  (", (ulong)start, (ulong)end);
+	print_size ( (ulong)end - (ulong)start, "):\n" );
 #if defined(CFG_ALT_MEMTEST)
 	PRINTF("%s:%d: start 0x%p end 0x%p\n",
 		__FUNCTION__, __LINE__, start, end);

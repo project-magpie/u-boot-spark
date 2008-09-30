@@ -242,8 +242,8 @@ void nand_print(struct nand_chip *nand)
 {
 	if (nand->numchips > 1) {
 		printf("%s at 0x%lx,\n"
-		       "\t  %d chips %s, size %d MB, \n"
-		       "\t  total size %ld MB, sector size %ld kB\n",
+		       "\t  %d chips %s, size %d MiB, \n"
+		       "\t  total size %ld MiB, sector size %ld KiB\n",
 		       nand->name, nand->IO_ADDR, nand->numchips,
 		       nand->chips_name, 1 << (nand->chipshift - 20),
 		       nand->totlen >> 20, nand->erasesize >> 10);
@@ -515,7 +515,7 @@ static void NanD_ScanChips(struct nand_chip *nand)
 	nand->totlen = nand->numchips * (1 << nand->chipshift);
 
 #ifdef NAND_DEBUG
-	printf("%d flash chips found. Total nand_chip size: %ld MB\n",
+	printf("%d flash chips found. Total nand_chip size: %ld MiB\n",
 	       nand->numchips, nand->totlen >> 20);
 #endif
 }

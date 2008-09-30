@@ -1576,7 +1576,7 @@ static inline int __init doc_probe(unsigned long physadr)
 			reg = DoC_Mplus_Toggle;
 			break;
 		case DOC_ChipID_DocMilPlus32:
-			printk(KERN_ERR "DiskOnChip Millennium Plus 32MB is not supported, ignoring.\n");
+			printk(KERN_ERR "DiskOnChip Millennium Plus 32MiB is not supported, ignoring.\n");
 		default:
 			ret = -ENODEV;
 			goto notfound;
