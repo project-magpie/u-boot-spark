@@ -33,6 +33,7 @@ DECLARE_GLOBAL_DATA_PTR;
 static void print_num(const char *, ulong);
 #if defined(CONFIG_SH4)
 static void print_mem(const char *, ulong);
+static void print_mhz(const char *name, ulong value);
 #endif
 
 #ifndef CONFIG_ARM	/* PowerPC and other */
@@ -304,64 +305,59 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	print_mem ("flashsize",		(ulong)bd->bi_flashsize);
 	print_num ("flashoffset",	(ulong)bd->bi_flashoffset);
 
+#if defined(CONFIG_CMD_NET)
 	puts ("ethaddr     =");
 	for (i=0; i<6; ++i) {
 		printf ("%c%02X", i ? ':' : ' ', bd->bi_enetaddr[i]);
 	}
 	puts ("\nip_addr     = ");
 	print_IPaddr (bd->bi_ip_addr);
+#endif
 	printf ("\nbaudrate    = %d bps\n", bd->bi_baudrate);
 
-#ifdef CONFIG_SH_STB7100
+#if defined(CONFIG_SH_STB7100)
 	if (STB7100_DEVICEID_7109(bd->bi_devid))
-		printf("\nSTb7109 version %ld.x\n", STB7100_DEVICEID_CUT(bd->bi_devid));
-	else if ( STB7100_DEVICEID_7100(bd->bi_devid))
-		printf("\nSTb7100 version %ld.x\n", STB7100_DEVICEID_CUT(bd->bi_devid));
-	else
-		printf("\nUnknown device\n");
-	printf ("PLL0      = %3d MHz\n", bd->bi_pll0frq);
-	printf ("PLL1      = %3d MHz\n", bd->bi_pll1frq);
-	printf ("ST40  CPU = %3d MHz\n", bd->bi_st40cpufrq);
-	printf ("ST40  BUS = %3d MHz\n", bd->bi_st40busfrq);
-	printf ("ST40  PER = %3d MHz\n", bd->bi_st40perfrq);
-	printf ("ST231 CPU = %3d MHz\n", bd->bi_st231frq);
-	printf ("ST BUS    = %3d MHz\n", bd->bi_stbusfrq);
-	printf ("EMI       = %3d MHz\n", bd->bi_emifrq);
-	printf ("LMI       = %3d MHz\n", bd->bi_lmifrq);
-#endif
-#ifdef CONFIG_SH_STX7105
+		printf ("\nSTb7109 version %ld.x", STB7100_DEVICEID_CUT(bd->bi_devid));
+	else if (STB7100_DEVICEID_7100(bd->bi_devid))
+		printf ("\nSTb7100 version %ld.x", STB7100_DEVICEID_CUT(bd->bi_devid));
+#elif defined(CONFIG_SH_STX7105)
 	if (STX7105_DEVICEID_7105(bd->bi_devid))
-		printf("\nSTx7105 version %ld.x\n", STX7105_DEVICEID_CUT(bd->bi_devid));
-	else
-		printf("\nUnknown device\n");
-	printf ("EMI       = %3d MHz\n", bd->bi_emifrq);
-#endif
-#ifdef CONFIG_SH_STX7111
+		printf ("\nSTx7105 version %ld.x", STX7105_DEVICEID_CUT(bd->bi_devid));
+#elif defined(CONFIG_SH_STX7111)
 	if (STX7111_DEVICEID_7111(bd->bi_devid))
-		printf("\nSTx7111 version %ld.x\n", STX7111_DEVICEID_CUT(bd->bi_devid));
-	else
-		printf("\nUnknown device\n");
-	printf ("EMI       = %3d MHz\n", bd->bi_emifrq);
-#endif
-#ifdef CONFIG_SH_STX7141
+		printf ("\nSTx7111 version %ld.x", STX7111_DEVICEID_CUT(bd->bi_devid));
+#elif defined(CONFIG_SH_STX7141)
 	if (STX7141_DEVICEID_7141(bd->bi_devid))
-		printf("\nSTx7141 version %ld.x\n", STX7141_DEVICEID_CUT(bd->bi_devid));
-	else
-		printf("\nUnknown device\n");
-	printf ("EMI       = %3d MHz\n", bd->bi_emifrq);
-#endif
-#ifdef CONFIG_SH_STX7200
+		printf ("\nSTx7141 version %ld.x", STX7141_DEVICEID_CUT(bd->bi_devid));
+#elif defined(CONFIG_SH_STX7200)
 	if (STX7200_DEVICEID_7200(bd->bi_devid))
-		printf("\nSTx7200 version %ld.x\n", STX7200_DEVICEID_CUT(bd->bi_devid));
-	else
-		printf("\nUnknown device\n");
-	printf ("EMI       = %3d MHz\n", bd->bi_emifrq);
-#endif
-#ifdef CONFIG_SH_SE_MODE
-	printf ("\nAddress Mode: 32-bit\n");
+		printf ("\nSTx7200 version %ld.x", STX7200_DEVICEID_CUT(bd->bi_devid));
 #else
-	printf ("\nAddress Mode: 29-bit\n");
+#error Missing Device Definitions!
 #endif
+	else
+		printf ("\nUnknown device! (id=0x%08lx)", bd->bi_devid);
+
+#ifdef CONFIG_SH_SE_MODE
+	printf ("  [32-bit mode]\n");
+#else
+	printf ("  [29-bit mode]\n");
+#endif
+
+#ifdef CONFIG_SH_STB7100
+	print_mhz ("PLL0",		bd->bi_pll0frq);
+	print_mhz ("PLL1",		bd->bi_pll1frq);
+	print_mhz ("ST40  CPU",		bd->bi_st40cpufrq);
+	print_mhz ("ST40  BUS",		bd->bi_st40busfrq);
+	print_mhz ("ST40  PER",		bd->bi_st40perfrq);
+	print_mhz ("ST231 CPU",		bd->bi_st231frq);
+	print_mhz ("ST BUS",		bd->bi_stbusfrq);
+	print_mhz ("EMI",		bd->bi_emifrq);
+	print_mhz ("LMI",		bd->bi_lmifrq);
+#else
+	print_mhz ("EMI",		bd->bi_emifrq);
+#endif	/* CONFIG_SH_STB7100 */
+
 	return 0;
 }
 
@@ -433,6 +429,10 @@ static void print_mem(const char *name, ulong value)
 {
 	printf ("%-12s= 0x%08lX\t(", name, value);
 	print_size (value, ")\n");
+}
+static void print_mhz(const char *name, ulong value)
+{
+	printf ("%-12s= %3lu MHz\n", name, value);
 }
 #endif
 
