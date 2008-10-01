@@ -392,14 +392,14 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	   ) {
 		int rc;
 
-		puts ("Copy to Flash... ");
+		puts ("Copy to Flash\n");
 
 		rc = flash_write ((char *)addr, dest, count*size);
 		if (rc != 0) {
 			flash_perror (rc);
 			return (1);
 		}
-		puts ("done\n");
+		puts (" done\n");
 		return 0;
 	}
 #endif

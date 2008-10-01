@@ -187,8 +187,9 @@ int saveenv(void)
 		goto Done;
 	}
 
-	puts ("Writing to Flash... ");
-	debug (" %08lX ... %08lX ...",
+	puts ("Writing to Flash...");
+	debug ("  %08lX ... %08lX ...",
+	puts ("\n");
 		(ulong)&(flash_addr_new->data),
 		sizeof(env_ptr->data)+(ulong)&(flash_addr_new->data));
 	if ((rc = flash_write((char *)env_ptr->data,
@@ -207,7 +208,7 @@ int saveenv(void)
 		flash_perror (rc);
 		goto Done;
 	}
-	puts ("done\n");
+	puts (" done\n");
 
 #if CFG_ENV_SECT_SIZE > CFG_ENV_SIZE
 	if (up_data) { /* restore the rest of sector */
@@ -306,8 +307,10 @@ int saveenv(void)
 	end_addr = flash_sect_addr + 0x20000 - 1;
 #endif
 
-	debug ("Protect off %08lX ... %08lX\n",
+	puts ("Unprotecting Flash...");
+	debug ("  %08lX ... %08lX",
 		(ulong)flash_sect_addr, end_addr);
+	puts ("\n");
 
 	if (flash_sect_protect (0, flash_sect_addr, end_addr))
 		return 1;
@@ -316,16 +319,17 @@ int saveenv(void)
 	if (flash_sect_erase (flash_sect_addr, end_addr))
 		return 1;
 
-	puts ("Writing to Flash... ");
+	puts ("Writing to Flash...\n");
 	rc = flash_write((char *)env_buffer, flash_sect_addr, len);
 	if (rc != 0) {
 		flash_perror (rc);
 		rcode = 1;
 	} else {
-		puts ("done\n");
+		puts (" done\n");
 	}
 
 	/* try to re-protect */
+	puts ("Protecting Flash...\n");
 	(void) flash_sect_protect (1, flash_sect_addr, end_addr);
 	return rcode;
 }
