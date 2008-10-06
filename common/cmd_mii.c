@@ -107,7 +107,7 @@ int do_mii (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		for (j = start; j < end; j++) {
 			if (miiphy_info (devname, j, &oui, &model, &rev) == 0) {
 				printf ("PHY 0x%02X: "
-					"OUI = 0x%04X, "
+					"OUI = 0x%06X, "
 					"Model = 0x%02X, "
 					"Rev = 0x%02X, "
 					"%3dbase%s, %s\n",
@@ -493,7 +493,7 @@ int do_mii (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		for (j = start; j <= end; j++) {
 			if (miiphy_info (devname, j, &oui, &model, &rev) == 0) {
 				printf("PHY 0x%02X: "
-					"OUI = 0x%04X, "
+					"OUI = 0x%06X, "
 					"Model = 0x%02X, "
 					"Rev = 0x%02X, "
 					"%3dbase%s, %s\n",
