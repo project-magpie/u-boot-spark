@@ -157,7 +157,9 @@ set_pmb:
 	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 7 0xa9 0x01  16		/* NOR/NAND FLASH CACHED */
-	SH4_SET_PMB 8 0xb4 0x04  16 0 0 1	/* EPLD UN-cached */
+#ifndef CONFIG_SH_NO_EPLD
+	SH4_SET_PMB 8 0xb6 0x06  16 0 0 1	/* EPLD UN-cached */
+#endif	/* CONFIG_SH_NO_EPLD */
 #elif defined(CONFIG_SH_STX7141) && defined(CONFIG_SH_MB628)
 #error QQQ - to do!
 #elif defined(CONFIG_SH_STX7200) && defined(CONFIG_SH_MB519)
