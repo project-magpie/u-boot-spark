@@ -218,7 +218,7 @@ do_disable_caches:
 
 	/* invalidate+enable the caches: both I$ & D$ (with copy-back) */
 do_enable_caches:
-	MOV_CONST16_R0 (SH4_CCR_OCI|SH4_CCR_ICI|SH4_CCR_ICE|SH4_CCR_OCE|SH4_CCR_EMODE)
+	MOV_CONST16_R0 (SH4_CCR_OCI|SH4_CCR_ICI|SH4_CCR_ICE|SH4_CCR_OCE|SH4_CCR_CB|SH4_CCR_EMODE)
 	mov	r0, a0
 	CALL	sh_cache_set_op_offset
 
