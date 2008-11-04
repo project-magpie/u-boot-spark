@@ -71,10 +71,16 @@
 
 #define BOARD mb618
 
-#if CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
+#if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
-#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
+#elif CFG_MONITOR_LEN == 0x00010000		/* 64 KiB */
 #	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
+#elif CFG_MONITOR_LEN == 0x00018000		/* 96 KiB */
+#	define MONITOR_SECTORS	"1:0-2"		/* 3 sectors */
+#elif CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
+#	define MONITOR_SECTORS	"1:0-3"		/* 4 sectors */
+#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
+#	define MONITOR_SECTORS	"1:0-4"		/* 5 sectors */
 #else						/* unknown */
 #	error "Unable to determine sectors for monitor"
 #endif
