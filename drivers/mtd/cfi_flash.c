@@ -1293,6 +1293,20 @@ ulong flash_get_size (ulong base, int banknum)
 			erase_region_count = (tmp & 0xffff) + 1;
 			debug ("erase_region_count = %d erase_region_size = %d\n",
 				erase_region_count, erase_region_size);
+
+				/*
+				 * ensure we do not violate array bounds, specifically:
+				 *	flash_info_t.start[CFG_MAX_FLASH_SECT];
+				 *	flash_info_t.protect[CFG_MAX_FLASH_SECT];
+				 */
+			if (erase_region_count > CFG_MAX_FLASH_SECT) {
+				printf ("Error: Number of Sectors (%d) > CFG_MAX_FLASH_SECT (%d)\n",
+					erase_region_count,
+					CFG_MAX_FLASH_SECT);
+				flash_write_cmd (info, 0, 0, info->cmd_reset);
+				return 0;	/* return, to avoid corrupting any memory */
+			}
+
 			for (j = 0; j < erase_region_count; j++) {
 				info->start[sect_cnt] = sector;
 				sector += (erase_region_size * size_ratio);
