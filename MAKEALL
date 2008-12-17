@@ -680,6 +680,8 @@ LIST_sh="		\
 	mb671se		\
 	mb680		\
 	mb680se		\
+	pdk7105		\
+	pdk7105se	\
 	cb101		\
 	cb101se		\
 	cb102		\

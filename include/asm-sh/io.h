@@ -50,16 +50,17 @@
 
 #define __WANT_IO_DEF
 
-#if defined(CONFIG_SH_MB411)	|| \
-       defined(CONFIG_SH_MB442)	|| \
-       defined(CONFIG_SH_MB448)	|| \
-       defined(CONFIG_SH_HMS1)	|| \
-       defined(CONFIG_SH_MB519)	|| \
-       defined(CONFIG_SH_MB618)	|| \
-       defined(CONFIG_SH_MB628)	|| \
-       defined(CONFIG_SH_MB671)	|| \
-       defined(CONFIG_SH_MB680)	|| \
-       defined(CONFIG_SH_CB101)	|| \
+#if defined(CONFIG_SH_MB411)		|| \
+       defined(CONFIG_SH_MB442)		|| \
+       defined(CONFIG_SH_MB448)		|| \
+       defined(CONFIG_SH_HMS1)		|| \
+       defined(CONFIG_SH_MB519)		|| \
+       defined(CONFIG_SH_MB618)		|| \
+       defined(CONFIG_SH_MB628)		|| \
+       defined(CONFIG_SH_MB671)		|| \
+       defined(CONFIG_SH_MB680)		|| \
+       defined(CONFIG_SH_PDK7105)	|| \
+       defined(CONFIG_SH_CB101)		|| \
        defined(CONFIG_SH_CB102)
 #  include "asm/io_stb1eval.h"
 #else
