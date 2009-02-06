@@ -11,6 +11,10 @@
  *
  *  Copyright (C) 2000 Steven J. Hill (sjhill@realitydiluted.com)
  * 		  2002 Thomas Gleixner (tglx@linutronix.de)
+ *		  2009 STMicroelectronics. (Sean McGoogan <Sean.McGoogan@st.com>)
+ *
+ *
+ *  02-06-2009  SMG: added support for 3 bytes of ECC per 128 byte record.
  *
  *  02-08-2004  tglx: support for strange chips, which cannot auto increment
  *		pages on read / read_oob
@@ -2528,6 +2532,10 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 	case NAND_ECC_HW3_256:
 		break;
 
+	case NAND_ECC_HW3_128:
+		this->eccsize = 128;	/* set eccsize to 128 bytes/record */
+		break;
+
 	case NAND_ECC_NONE:
 		printk (KERN_WARNING "NAND_ECC_NONE selected by board driver. This is not recommended !!\n");
 		this->eccmode = NAND_ECC_NONE;
@@ -2555,6 +2563,7 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 		this->eccbytes += 3;
 	case NAND_ECC_HW3_512:
 	case NAND_ECC_HW3_256:
+	case NAND_ECC_HW3_128:
 		if (this->calculate_ecc && this->correct_data && this->enable_hwecc)
 			break;
 		printk (KERN_WARNING "No ECC functions supplied, Hardware ECC not possible\n");
@@ -2576,6 +2585,10 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 	case NAND_ECC_HW3_256:
 	case NAND_ECC_SOFT:
 		this->eccsteps = mtd->oobblock / 256;
+		break;
+
+	case NAND_ECC_HW3_128:
+		this->eccsteps = mtd->oobblock / 128;
 		break;
 
 	case NAND_ECC_NONE:

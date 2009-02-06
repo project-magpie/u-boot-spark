@@ -71,6 +71,30 @@ disable_watchdog:
 	MOV_CONST16_R0 0xA500	/* WTCSR.TME=0 */
 	mov.w   r0, @r1
 
+
+	/*
+	 * If were are going to boot U-boot from NAND flash, then
+	 * we need add a special "signature" pattern in the first
+	 * logical block (block zero).
+	 */
+#ifdef CFG_BOOT_FROM_NAND
+skip_signature:
+	bra	skipped_signature	/* skip over the "block 0 signature" */
+
+	/*
+	 * Write out the 64-byte preamble signature pattern, to identify
+	 * the current NAND flash block, as the good "logical block ZERO".
+	 * This signature must start at offset +0x0080 in the block.
+	 */
+	.balign 0x80, 0x00		/* starts 128 bytes into "Block Zero" */
+preamble_signature_pattern:
+	bytes 0x00 0x3f			/* 64-bytes: 0x00, 0x01, ..., 0x3f */
+
+skipped_signature:
+					/* resume from here */
+#endif	/* CFG_BOOT_FROM_NAND */
+
+
 	/*
 	 * Determine if we are in the correct location ? (i.e. RAM)
 	 *  r8 == 1 in RAM, assume initialization already done by GDB.

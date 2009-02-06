@@ -1,7 +1,8 @@
 /*
- * (C) Copyright 2004 STMicroelectronics.
+ * (C) Copyright 2004, 2007, 2009 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -182,3 +183,21 @@ where <index> is the PMB entry
 	MOV_CONST32_R0	(P4SEG_PMB_DATA | (\i<<8))
 	mov.l	r1,@r0
 .endm
+
+/*
+ * Write out a series of bytes, monotonically increasing
+ * in value from "first" to "last" (inclusive).
+ *
+ * Usage:	BYTES <first> <last>
+ * where <first> is the first byte to generate
+ * where <last>  is the last byte to generate
+ *
+ * Note: this macro uses recursion (one level per byte)
+ */
+.macro BYTES first=0, last=63
+	.byte \first
+	.if \last-\first
+	BYTES "(\first+1)",\last	/* note: recursion */
+	.endif
+.endm
+

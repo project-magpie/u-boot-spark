@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2009 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -36,6 +36,7 @@
  * in the STB Peripheral board (MB705)*/
 #define EPLD_IDENT		0x00	/* EPLD Identifier Register */
 #define EPLD_TEST		0x02	/* EPLD Test Register */
+#define EPLD_SWITCH		0x04	/* EPLD Switch Register */
 #define EPLD_MISC		0x0a	/* Miscellaneous Control Register */
 
 #ifdef CONFIG_SH_SE_MODE
@@ -166,6 +167,20 @@ int checkboard (void)
 	 * initialize the EPLD.
 	 */
 	mb680_init_epld();
+
+#if 1	/* QQQ - DELETE */
+{
+const unsigned long nand_reg = *ST40_EMI_NAND_VERSION_REG;
+const unsigned long epld_reg = epld_read(EPLD_SWITCH);
+	printf ("*ST40_EMI_NAND_VERSION_REG = %u.%u.%u\n",
+		(nand_reg>>8)&0x0ful,
+		(nand_reg>>4)&0x0ful,
+		(nand_reg>>0)&0x0ful);
+	printf("*EPLD_SWITCH = 0x%08x  -->  boot-from-%s\n",
+		epld_reg,
+		(epld_reg & (1ul<<8)) ? "NAND" : "NOR");
+}
+#endif	/* QQQ - DELETE */
 
 	return 0;
 }
