@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2009 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -39,12 +39,14 @@
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
+ *
+ * See board/mb628/config.mk for details of the memory map.
  */
 
 #ifdef CONFIG_SH_SE_MODE
 #define CFG_FLASH_BASE		0xA0000000	/* FLASH (uncached) via PMB */
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
-#define CFG_SDRAM_BASE		0x80000000      /* LMI    Cached addr via PMB */
+#define CFG_SDRAM_BASE		0x80800000      /* LMI    Cached addr via PMB */
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
 #define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
 #else
@@ -52,7 +54,7 @@
 #define CFG_SDRAM_BASE		0x8C800000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x03000000	/* 48 MiB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x03200000	/* 50 MiB of LMI SDRAM */
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE

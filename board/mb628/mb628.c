@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2009 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -31,7 +31,7 @@
 
 /* EPLD registers */
 #ifdef CONFIG_SH_SE_MODE
-#define EPLD_BASE		0xb5000000	/* Phys 0x05050000 */
+#define EPLD_BASE		0xb5000000	/* Phys 0x05000000 */
 #else
 #define EPLD_BASE		0xa5000000
 #endif	/* CONFIG_SH_SE_MODE */

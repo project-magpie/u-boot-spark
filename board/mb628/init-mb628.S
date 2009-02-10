@@ -37,7 +37,19 @@ __memory_setup_table:
 /* QQQ - TO DO */
 
 #ifdef CONFIG_SH_SE_MODE
-#error QQQ
+	/*
+	 * Note that we also manually need to move the LMI0 and LMI1 base addresses to
+	 * their 32-bit SE mode locations as defined in the datasheet and change the
+	 * 'upper bound addresses' (in row attribute registers) for the LMIs.
+	 */
+#if 0	/* QQQ - DELETE */
+	UPDATE32(STX7141_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
+	UPDATE32(STX7141_SYSCONF_SYS_CFG39, 0xFFFFFF00, 0x00000080)
+	UPDATE32(ST40_LMI_SDRA0_0(0), 0x001FFFFF, 0x48000000)
+	UPDATE32(ST40_LMI_SDRA1_0(0), 0x001FFFFF, 0x48000000)
+	UPDATE32(ST40_LMI_SDRA0_0(1), 0x001FFFFF, 0x88000000)
+	UPDATE32(ST40_LMI_SDRA1_0(1), 0x001FFFFF, 0x88000000)
+#endif	/* QQQ - DELETE */
 #endif	/* CONFIG_SH_SE_MODE */
 
 	END_MARKER
