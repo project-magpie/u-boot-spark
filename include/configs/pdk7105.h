@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2009 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -124,7 +124,6 @@
  * Ethernet driver config
  */
 
-/* QQQ: TO DO v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v */
 /*
  * There are 2 options for ethernet, both use the on-chip ST-GMAC.
  * The choice in PHYs are:
@@ -133,15 +132,15 @@
  */
 
 /* are we using the internal ST GMAC device ? */
-//QQQ #define CONFIG_DRIVER_NET_STM_GMAC
+#define CONFIG_DRIVER_NET_STM_GMAC
 
 /*
  * Select the appropriate base address for the GMAC.
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC_BASE	 0xfd110000ul	/* MAC = STM GMAC0 */
-#	define CONFIG_STMAC_KSZ8041FTL	/* QQQ - TO TEST */	/* PHY = Micrel KSZ8041FTL */
+#	define CFG_STM_STMAC_BASE	0xfd110000ul	/* MAC = STM GMAC0 */
+#	define CONFIG_STMAC_KSZ8041FTL			/* PHY = Micrel KSZ8041FTL */
 #else
 #	undef CONFIG_CMD_NET		/* undefine if no networking at all */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
@@ -217,7 +216,7 @@
  */
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
 #define CONFIG_CMD_FLASH	/* define for NOR flash */
-//QQQ#define CONFIG_CMD_NAND	/* define for NAND flash */
+#define CONFIG_CMD_NAND		/* define for NAND flash */
 
 /*-----------------------------------------------------------------------
  * NOR FLASH organization
@@ -249,12 +248,11 @@
  * NAND FLASH organization
  */
 
-/* QQQ: TO DO v v v v v v v v v v v v v v v v v v v v v v v v v v v v v v */
-/* NAND512W3A: 64MiB  8-bit, 4096 Blocks (16KiB+512B) of 32 Pages (512+16) */
+/* HY27UH08AG5B : 2GiB  8-bit, 16384 Blocks (128KiB+4KiB) of 64 Pages (2048+64) */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CFG_MAX_NAND_DEVICE	1
 #	define NAND_MAX_CHIPS		CFG_MAX_NAND_DEVICE
-#	define CFG_NAND0_BASE		0xA4000000	/* Physical 0x04000000 */
+#	define CFG_NAND0_BASE		0xA6000000	/* Physical 0x06000000 */
 #	define CFG_NAND_BASE_LIST	{ CFG_NAND0_BASE }
 #	define MTDPARTS_NAND						\
 	"gen_nand.1:"		/* First NAND flash device */		\

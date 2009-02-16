@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2006 DENX Software Engineering
- * (C) Copyright 2008 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2009 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -64,6 +64,17 @@ static void pdk7105_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 
 
 /*
+ * hardware specific access to the Ready/not_Busy signal.
+ * Signal is routed through the EMI NAND Controller block.
+ */
+static int pdk7105_device_ready(struct mtd_info *mtd)
+{
+	/* extract bit 1: status of RBn pin on boot bank */
+	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
+}
+
+
+/*
  * Board-specific NAND initialization. The following members of the
  * argument are board-specific (per include/linux/mtd/nand.h):
  * - IO_ADDR_R?: address to read the 8 I/O lines of the flash device
@@ -85,6 +96,7 @@ extern int board_nand_init(struct nand_chip *nand)
 {
 	nand->hwcontrol = pdk7105_hwcontrol;
 	nand->eccmode = NAND_ECC_SOFT;
+	nand->dev_ready = pdk7105_device_ready;
 	nand->chip_delay = 25;
 	nand->options = NAND_NO_AUTOINCR;
 	return 0;
