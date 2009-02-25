@@ -27,7 +27,7 @@ LIB	= lib$(BOARD).a
 
 AOBJS	= init-hms1.o
 
-COBJS	= $(BOARD).o sconsole.o
+COBJS	= $(BOARD).o
 
 OBJS	= $(COBJS) $(AOBJS)
 

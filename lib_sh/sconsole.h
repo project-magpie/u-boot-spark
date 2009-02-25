@@ -2,6 +2,9 @@
  * (C) Copyright 2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
+ * (C) Copyright 2009 STMicroelectronics.
+ * Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -25,6 +28,19 @@
 #define _SCONSOLE_H_
 
 #include <config.h>
+
+
+/*
+ * set the address and size of the SCONSOLE_BUFFER,
+ * if not explicitly defined in the config.h file.
+ */
+#ifndef CFG_SCONSOLE_ADDR
+#define CFG_SCONSOLE_ADDR		CFG_SDRAM_BASE
+#endif	/* CFG_SCONSOLE_ADDR */
+#ifndef CFG_SCONSOLE_SIZE
+#define CFG_SCONSOLE_SIZE		0x2000	/* 8 KiB */
+#endif	/* CFG_SCONSOLE_SIZE */
+
 
 typedef struct sconsole_buffer_s
 {
