@@ -131,7 +131,11 @@ ecc_t ecc_gen(const unsigned char* p_data, const enum ecc_size size)
   unsigned char byte_d;
 
   ecc_t result;
-  printf("QQQ: %s(p_data=%p, size=%u)\n", __FUNCTION__, p_data, (int)size);	/* QQQ - DELETE */
+  if ( (size!=128) || (((unsigned long)p_data)%4!=0) )	/* QQQ - DELETE */
+  {							/* QQQ - DELETE */
+	printf("ERROR: %s(p_data=%p, size=%u)\n",	/* QQQ - DELETE */
+		__FUNCTION__, p_data, (unsigned)size);	/* QQQ - DELETE */
+  }							/* QQQ - DELETE */
 
   switch (size)
   {

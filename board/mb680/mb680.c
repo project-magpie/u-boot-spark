@@ -168,7 +168,7 @@ int checkboard (void)
 	 */
 	mb680_init_epld();
 
-#if 1	/* QQQ - DELETE */
+#if 0	/* QQQ - DELETE */
 {
 const unsigned long nand_reg = *ST40_EMI_NAND_VERSION_REG;
 const unsigned long epld_reg = epld_read(EPLD_SWITCH);

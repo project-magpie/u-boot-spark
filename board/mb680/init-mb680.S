@@ -30,7 +30,7 @@
 #define DELAY(VAL)				/* do nothing */
 
 
-.balign 32
+	.balign 32
 
 __memory_setup_table:
 

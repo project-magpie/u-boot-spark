@@ -92,8 +92,8 @@ struct region_info_user {
 struct nand_oobinfo {
 	uint32_t useecc;
 	uint32_t eccbytes;
-	uint32_t oobfree[8][2];
-	uint32_t eccpos[32];
+	uint32_t oobfree[16][2];
+	uint32_t eccpos[48];
 };
 
 #endif /* __MTD_ABI_H__ */

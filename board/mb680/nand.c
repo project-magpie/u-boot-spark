@@ -1,4 +1,3 @@
-#define D { printf("QQQ: got to %s() @ %s:%u\n",__FUNCTION__,__FILE__,__LINE__); }
 /*
  * (C) Copyright 2006 DENX Software Engineering
  * (C) Copyright 2008-2009 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
@@ -69,7 +68,7 @@ static void mb680_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 	/* QQQ move following to ST40-specific (not board) file */
 static struct nand_oobinfo mb680_nand_oobinfo = {
 	.useecc = MTD_NANDECC_AUTOPLACE,
-#if 1	/* QQQ */
+#if defined(CFG_NAND_SMALLPAGE)
 	.eccbytes = 12,
 	.eccpos = {
 		 0,  1,  2,	/* ECC for 1st 128-byte record */
@@ -77,9 +76,9 @@ static struct nand_oobinfo mb680_nand_oobinfo = {
 		 8,  9, 10,	/* ECC for 3rd 128-byte record */
 		12, 13, 14},	/* ECC for 4th 128-byte record */
 	.oobfree = { {3, 1}, {7, 1}, {11, 1}, {15, 1} }
-#else	/* QQQ */
+#elif defined(CFG_NAND_LARGEPAGE)
 	.eccbytes = 48,
-	.eccpos = {		/* QQQ: need to increase size of array DEFINITION */
+	.eccpos = {
 		 0,  1,  2,	/* ECC for  1st 128-byte record */
 		 4,  5,  6,	/* ECC for  2nd 128-byte record */
 		 8,  9, 10,	/* ECC for  3rd 128-byte record */
@@ -96,50 +95,96 @@ static struct nand_oobinfo mb680_nand_oobinfo = {
 		52, 53, 54,	/* ECC for 14th 128-byte record */
 		56, 57, 58,	/* ECC for 15th 128-byte record */
 		60, 61, 62},	/* ECC for 16th 128-byte record */
-	.oobfree = {		/* QQQ: need to increase size of array DEFINITION */
+	.oobfree = {
 		{ 3, 1}, { 7, 1}, {11, 1}, {15, 1},
 		{19, 1}, {23, 1}, {27, 1}, {31, 1},
 		{35, 1}, {39, 1}, {43, 1}, {47, 1},
 		{51, 1}, {55, 1}, {59, 1}, {63, 1} },
-#endif	/* QQQ */
+#else
+#error "Either CFG_NAND_LARGEPAGE or CFG_NAND_SMALLPAGE must be defined!"
+#endif
 };
 
 
+#define isprint(x)	( ((x)>=0x20u) && ((x)<0x7fu) )			/* QQQ - DELETE */
 	/* QQQ move following to ST40-specific (not board) file */
 static int nand_mb680_calculate_ecc(struct mtd_info * const mtd, const u_char * const dat, u_char * const ecc_code)
 {
 	const struct nand_chip const * this = mtd->priv;
 
-	printf("QQQ: nand_mb680_calculate_ecc(mtd=%p, dat=%p, ecc_code=%p)\n", mtd, dat, ecc_code);
+//QQQ	printf("QQQ: %s(mtd=%p, dat=%p, ecc_code=%p)\n", __FUNCTION__, mtd, dat, ecc_code);	/* QQQ - DELETE */
 
-	if ( (this->eccmode==NAND_ECC_HW3_128) &&
-	     ((((unsigned long)dat)%4)==0) )	/* data *must* be 4-bytes aligned */
+	if (this->eccmode!=NAND_ECC_HW3_128)
 	{
-		/* calculate the ECC bytes */
+		printf("ERROR: Can not calculate ECC: Internal Error (eccmode=%u)\n",
+			this->eccmode);
+		ecc_code[0] = 'B';
+		ecc_code[1] = 'A';
+		ecc_code[2] = 'D';
+		return 1;	/* Note: caller ignores this value! */
+	}
+	else if ((((unsigned long)dat)%4)!=0)	/* data *must* be 4-bytes aligned */
+	{
+		printf("ERROR: Can not calculate ECC: data (%08lx) must be 4-byte aligned!\n",
+			(unsigned long)dat);
+		ecc_code[0] = 'B';
+		ecc_code[1] = 'A';
+		ecc_code[2] = 'D';
+		return 2;	/* Note: caller ignores this value! */
+	}
+	else	/* calculate 3 ECC bytes per 128 bytes of data */
+	{
 		const ecc_t computed_ecc = ecc_gen(dat, ECC_128);
 		/* poke them into the right place */
 		ecc_code[0] = computed_ecc.byte[0];
 		ecc_code[1] = computed_ecc.byte[1];
 		ecc_code[2] = computed_ecc.byte[2];
-		printf("QQQ: calculated[0:2] = %02x %02x %02x\n", ecc_code[0], ecc_code[1], ecc_code[2]);	/* QQQ - DELETE */
-	}
-	else
-	{
-		printf("ERROR: Arghhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh!\n");	/* QQQ - SORT OUT */
-		ecc_code[0] = 'B';
-		ecc_code[1] = 'A';
-		ecc_code[2] = 'D';
-		return 1;							/* QQQ - SORT OUT */
+#if 0									/* QQQ - DELETE */
+		printf("QQQ: calculated[0:2] = %02x %02x %02x  (%c%c%c)\n",
+			(unsigned)ecc_code[0],
+			(unsigned)ecc_code[1],
+			(unsigned)ecc_code[2],
+			isprint(ecc_code[0]) ? ecc_code[0] : '.',
+			isprint(ecc_code[1]) ? ecc_code[1] : '.',
+			isprint(ecc_code[2]) ? ecc_code[2] : '.');	/* QQQ - DELETE */
+#endif									/* QQQ - DELETE */
 	}
 
-	return(0);
+	return 0;
 }
-
 
 	/* QQQ move following to ST40-specific (not board) file */
 static int nand_mb680_correct_data(struct mtd_info *mtd, u_char *dat, u_char *read_ecc, u_char *calc_ecc)
 {
-	printf("QQQ: nand_mb680_correct_data(mtd=%p, dat=%p, read_ecc=%p, calc_ecc=%p)\n", mtd, dat, read_ecc, calc_ecc);
+#if 0									/* QQQ - DELETE */
+	printf("QQQ: %s(mtd=%p, dat=%p, read_ecc=%p, calc_ecc=%p)\n",
+		__FUNCTION__, mtd, dat, read_ecc, calc_ecc);		/* QQQ - DELETE */
+#endif									/* QQQ - DELETE */
+
+	if (    (read_ecc[0] == calc_ecc[0]) &&
+		(read_ecc[1] == calc_ecc[1]) &&
+		(read_ecc[2] == calc_ecc[2])    )
+	{
+		return 0;		/* ECCs agree, nothing to do */
+	}
+
+#if 0									/* QQQ - DELETE */
+	printf("ERROR: ECC detected - NOT corrected!\n");		/* QQQ - NEED TO FIX THIS PROPERLY */
+	printf("QQQ: read_ecc[0:2]   = %02x %02x %02x  (%c%c%c)\n",
+		(unsigned)read_ecc[0],
+		(unsigned)read_ecc[1],
+		(unsigned)read_ecc[2],
+		isprint(read_ecc[0]) ? read_ecc[0] : '.',
+		isprint(read_ecc[1]) ? read_ecc[1] : '.',
+		isprint(read_ecc[2]) ? read_ecc[2] : '.');		/* QQQ - DELETE */
+	printf("QQQ: calc_ecc[0:2]   = %02x %02x %02x  (%c%c%c)\n",
+		(unsigned)calc_ecc[0],
+		(unsigned)calc_ecc[1],
+		(unsigned)calc_ecc[2],
+		isprint(calc_ecc[0]) ? calc_ecc[0] : '.',
+		isprint(calc_ecc[1]) ? calc_ecc[1] : '.',
+		isprint(calc_ecc[2]) ? calc_ecc[2] : '.');		/* QQQ - DELETE */
+#endif									/* QQQ - DELETE */
 #if 0
 enum ecc_check
 {
@@ -167,7 +212,7 @@ enum ecc_check
 		dat += 512;
 	}
 #endif
-	return(0);
+	return 0;
 }
 
 
@@ -199,17 +244,17 @@ static void nand_mb680_enable_hwecc(struct mtd_info *mtd, int mode)
  */
 extern int board_nand_init(struct nand_chip *nand)
 {
-	nand->hwcontrol = mb680_hwcontrol;
-	nand->chip_delay = 25;
-	nand->options = NAND_NO_AUTOINCR;
+	nand->hwcontrol     = mb680_hwcontrol;
+	nand->chip_delay    = 25;
+	nand->options       = NAND_NO_AUTOINCR;
 
 #ifdef CFG_NAND_ECC_HW3_128
 	nand->eccmode       = NAND_ECC_HW3_128;
 	nand->options      |= NAND_USE_FLASH_BBT;
-	nand->autooob       = &mb680_nand_oobinfo;	/* QQQ: "mb680" -> "st40" (or similar) */
-	nand->calculate_ecc = nand_mb680_calculate_ecc;	/* QQQ: "mb680" -> "st40" (or similar) */
-	nand->correct_data  = nand_mb680_correct_data;	/* QQQ: "mb680" -> "st40" (or similar) */
-	nand->enable_hwecc  = nand_mb680_enable_hwecc;	/* QQQ: "mb680" -> "st40" (or similar) */
+	nand->autooob       = &mb680_nand_oobinfo;	/* QQQ: "mb680" -> "stm" (or similar) */
+	nand->calculate_ecc = nand_mb680_calculate_ecc;	/* QQQ: "mb680" -> "stm" (or similar) */
+	nand->correct_data  = nand_mb680_correct_data;	/* QQQ: "mb680" -> "stm" (or similar) */
+	nand->enable_hwecc  = nand_mb680_enable_hwecc;	/* QQQ: "mb680" -> "stm" (or similar) */
 #else
 	nand->eccmode       = NAND_ECC_SOFT;
 #endif /* CFG_NAND_ECC_HW3_128 */

@@ -75,6 +75,99 @@
  * 	a) MUST use HW3_128, AND
  * 	b) MUST use BBTs.
  * 	c) MAY  use bit-banging to write it.
+ *
+ *
+
+There is a H/W problem with bit-banging if the SoC has been booted
+in boot-from-NAND mode, that renders bit-banging unusable.  A proper
+workaround is to use "Flex" mode. Currently this is not implemented in
+U-Boot, so right now, we  need to build 2 (slightly different) versions
+of U-Boot. One of them is to be burned to NAND, and other is used to
+burn the other to NAND flash in "boot-from-NOR" mode.
+
+The key steps used to do this are as follows:
+
+To build a boot-from-NAND flash image:
+--------------------------------------
+
+	1) Configure "include/configs/mb680.h", as follows:
+
+		#define CFG_BOOT_FROM_NAND
+		#undef  CONFIG_CMD_NAND
+
+	e.g.	host% sed -i							\
+			-e "/^#undef CFG_BOOT_FROM_NAND/s/#undef/#define/"	\
+			-e "/^#define CONFIG_CMD_NAND/s/#define/#undef/"	\
+			include/configs/mb680.h
+
+	2) Build "u-boot.bin":
+
+		host% make distclean ; make mb680_config ; make
+	OR	host% make distclean ; make mb680se_config ; make
+
+	3) Copy it with a better name, to keep it safe.
+
+		host% cp -p u-boot.bin u-boot.bin.nand
+
+
+To program NAND flash:	(in boot-from-NOR mode)
+----------------------
+
+	4) Set the board switches as follows:
+
+		Board	Switch	State
+		-----	------	-----
+		MB680	SW2-3	ON
+		MB680	SW7-2	ON
+		MB705	SW8-1	ON
+
+	5) Configure "include/configs/mb680.h", as follows:
+
+		#undef  CFG_BOOT_FROM_NAND
+		#define CONFIG_CMD_NAND
+		#define CFG_NAND_ECC_HW3_128
+
+	e.g.	host% sed -i							\
+			-e "/^#define CFG_BOOT_FROM_NAND/s/#define/#undef/"	\
+			-e "/^#undef CONFIG_CMD_NAND/s/#undef/#define/"		\
+			include/configs/mb680.h
+
+	6) Build "u-boot":
+
+		host% make distclean ; make mb680_config ; make
+	OR	host% make distclean ; make mb680se_config ; make
+
+	7) Copy it with a better name, to keep it safe.
+
+		host% cp -p u-boot u-boot.nor
+
+	8) download "u-boot.nor" with GDB:
+
+		host % sh4-linux-gdb -ex "sh4tp hti:mb680:st40"        -ex load -ex c u-boot.nor
+	OR	host % sh4-linux-gdb -ex "sh4tp hti:mb680:st40,seuc=1" -ex load -ex c u-boot.nor
+
+	9) Use this U-boot to burn the above "u-boot.bin.nand" (and
+	   anything else, e.g. kernel, ramdisk) to the NAND flash device.
+	   NOTE: on the 7105 is is *essential* that "u-boot.bin.nand" is
+	   written to *physical* block zero. e.g.
+
+	   	MB680> nand write $load_addr 0 40000
+
+To boot-from-NAND:
+------------------
+
+	10) Set the board switches as follows:
+
+		Board	Switch	State
+		-----	------	-----
+		MB680	SW2-3	OFF
+		MB680	SW7-2	OFF
+		MB705	SW8-1	OFF
+
+	11) Power on the board!
+
+ *	------------------------------------------------
+ *
  */
 
 
@@ -83,9 +176,7 @@
  * If so, then define the "CFG_BOOT_FROM_NAND" macro,
  * otherwise (e.g. NOR/SPI Flash booting), do not define it.
  */
-/* #define CFG_BOOT_FROM_NAND */
-#define CFG_BOOT_FROM_NAND			/* QQQ - DELETE FOR DEFAULT CASE */
-
+#undef CFG_BOOT_FROM_NAND		/* define to build a NAND-bootable image */
 
 /*-----------------------------------------------------------------------
  * Do we want to read/write NAND Flash compatible with the ST40's NAND
@@ -93,18 +184,24 @@
  * If so, then define the "CFG_NAND_ECC_HW3_128" macro.
  */
 /* #define CFG_NAND_ECC_HW3_128 */
-#define CFG_NAND_ECC_HW3_128			/* QQQ - DELETE FOR DEFAULT CASE */
+#define CFG_NAND_ECC_HW3_128		/* QQQ - DELETE FOR DEFAULT CASE */
 
+	/*
+	 * If using CFG_NAND_ECC_HW3_128, then we must also choose
+	 * if we are using a small-page or large-page NAND device.
+	 */
+#if 1
+#define CFG_NAND_SMALLPAGE		/* for small-page  (512 Bytes) NAND devices */
+#else
+#define CFG_NAND_LARGEPAGE		/* for large-page (2048 Bytes) NAND devices */
+#endif
 
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
 
-#ifndef CFG_BOOT_FROM_NAND			/* Do *NOT* swap CSA and CSB in EPLD */
-#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
-#else		/* else, we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
+#ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
 		/*
 		 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
 		 * If so, then who takes responsibility for this???
@@ -113,6 +210,9 @@
 		 */
 #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
+#else		/* else, do *NOT* swap CSA and CSB in EPLD */
+#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
 #endif
 
 #ifdef CONFIG_SH_SE_MODE
