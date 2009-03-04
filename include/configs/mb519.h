@@ -108,10 +108,19 @@
  * Serial console info
  */
 
-/* we are using the internal ST ASC UART */
-#define CONFIG_STM_ASC_SERIAL	1
+/*
+ * We can use one of two methods for the "serial" console.
+ * We can either use the (normal hardware) internal ST ASC UART;
+ * OR we can use STMicroelectronics' DTF (Data Transfer Format)
+ * mechanism over a JTAG link to a remote GDB debugger.
+ */
+#if 1
+#	define CONFIG_STM_ASC_SERIAL	/* use a ST ASC UART */
+#else
+#	define CONFIG_STM_DTF_SERIAL	/* use DTF over JTAG */
+#endif
 
-/* choose which UART to use */
+/* choose which ST ASC UART to use */
 #define CFG_STM_ASC_BASE	0xfd032000ul	/* UART2 (lower) */
 //#define CFG_STM_ASC_BASE	0xfd033000ul	/* UART3 (upper) */
 

@@ -27,7 +27,7 @@ LIB	= lib$(BOARD).a
 
 AOBJS	= init-$(BOARD).o
 
-COBJS	= $(BOARD).o sconsole.o
+COBJS	= $(BOARD).o
 
 OBJS	= $(COBJS) $(AOBJS)
 

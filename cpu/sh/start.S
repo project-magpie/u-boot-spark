@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2008 STMicroelectronics.
+ * (C) Copyright 2004-2009 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -185,7 +185,13 @@ set_pmb:
 	SH4_SET_PMB 8 0xb6 0x06  16 0 0 1	/* EPLD UN-cached */
 #endif	/* CONFIG_SH_NO_EPLD */
 #elif defined(CONFIG_SH_STX7141) && defined(CONFIG_SH_MB628)
-#error QQQ - to do!
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI UN-cached */
+	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI UN-cached */
+	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR/NAND FLASH UN-cached */
+	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR/NAND FLASH UN-cached */
+	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR/NAND FLASH CACHED */
+	SH4_SET_PMB 7 0xa9 0x01  16		/* NOR/NAND FLASH CACHED */
+	SH4_SET_PMB 8 0xb5 0x05  16 0 0 1	/* EPLD UN-cached */
 #elif defined(CONFIG_SH_STX7200) && defined(CONFIG_SH_MB519)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 UN-cached */

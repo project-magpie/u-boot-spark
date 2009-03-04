@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2009 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -39,12 +39,14 @@
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
+ *
+ * See board/mb628/config.mk for details of the memory map.
  */
 
 #ifdef CONFIG_SH_SE_MODE
 #define CFG_FLASH_BASE		0xA0000000	/* FLASH (uncached) via PMB */
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
-#define CFG_SDRAM_BASE		0x80000000      /* LMI    Cached addr via PMB */
+#define CFG_SDRAM_BASE		0x80800000      /* LMI    Cached addr via PMB */
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
 #define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
 #else
@@ -52,7 +54,7 @@
 #define CFG_SDRAM_BASE		0x8C800000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x03000000	/* 48 MiB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x03200000	/* 50 MiB of LMI SDRAM */
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
@@ -114,10 +116,19 @@
  * Serial console info
  */
 
-/* we are using the internal ST ASC UART */
-#define CONFIG_STM_ASC_SERIAL	1
+/*
+ * We can use one of two methods for the "serial" console.
+ * We can either use the (normal hardware) internal ST ASC UART;
+ * OR we can use STMicroelectronics' DTF (Data Transfer Format)
+ * mechanism over a JTAG link to a remote GDB debugger.
+ */
+#if 1
+#	define CONFIG_STM_ASC_SERIAL	/* use a ST ASC UART */
+#else
+#	define CONFIG_STM_DTF_SERIAL	/* use DTF over JTAG */
+#endif
 
-/* choose which UART to use */
+/* choose which ST ASC UART to use */
 #if 1
 	/* ASC1	(left-most)	"RS232 1" */
 #	define CFG_STM_ASC_BASE		0xfd031000

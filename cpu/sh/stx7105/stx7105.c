@@ -91,16 +91,18 @@ static void stmac_eth_hw_setup( int reverse_mii, int rmii_mode, int mode,
 		sysconf |= (EXT_MDIO);
 	else
 		sysconf &= ~(EXT_MDIO);
-	/* RMII pin multiplexing: 0: RMII interface active, 1: MII interface */
+	/* RMII pin multiplexing: 0: MII interface active, 1: RMII interface */
+	/* cut 1: This register was not connected, so only MII available */
 	if (rmii_mode)
-		sysconf &= ~(RMII_MODE);
-	else
 		sysconf |= (RMII_MODE);
-	/* PHY EXT CLOCK: 0: provided by STx7105; 1: external */
-	if (ext_clk)
-		sysconf |= (PHY_CLK_EXT);
 	else
-		sysconf &= ~(PHY_CLK_EXT);
+		sysconf &= ~(RMII_MODE);
+	/*
+	 * PHY EXT CLOCK: 0: provided by STx7105; 1: external
+	 * cut 1: sysconf7[19], however this was not connected, so only
+	 * input supported.
+	 * cut 2: direction now based on PIO direction, so this code removed.
+	 */
 	/* Default GMII/MII selection */
 	sysconf &= ~(PHY_INTF_SEL_MASK);
 	sysconf |= ((mode&3ul)<<25);
@@ -163,7 +165,13 @@ static void stmac_eth_hw_setup( int reverse_mii, int rmii_mode, int mode,
 	SET_PIO_PIN(PIO_PORT(9), 2, STPIO_ALT_BIDIR);
 	SET_PIO_PIN(PIO_PORT(9), 3, STPIO_ALT_BIDIR);
 	SET_PIO_PIN(PIO_PORT(9), 4, STPIO_ALT_BIDIR);
-	SET_PIO_PIN(PIO_PORT(9), 5, STPIO_ALT_OUT);
+	/* MIIPHYCLK */
+	/* Not implemented in cut 1 (DDTS GNBvd69906) - clock never output */
+	/* In cut 2 PIO direction used to control input or output. */
+	if (ext_clk)
+		SET_PIO_PIN(PIO_PORT(9), 5, STPIO_IN);
+	else
+		SET_PIO_PIN(PIO_PORT(9), 5, STPIO_ALT_OUT);
 	SET_PIO_PIN(PIO_PORT(9), 6, STPIO_ALT_BIDIR);
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */

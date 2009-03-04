@@ -2,6 +2,9 @@
  * (C) Copyright 2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
+ * (C) Copyright 2009 STMicroelectronics.
+ * Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -26,15 +29,10 @@
 
 #include "sconsole.h"
 
-#if 0
-void (*sconsole_putc) (char) = 0;
-void (*sconsole_puts) (const char *) = 0;
-int (*sconsole_getc) (void) = 0;
-int (*sconsole_tstc) (void) = 0;
-void (*sconsole_setbrg) (void) = 0;
-#endif
+#if	!defined(CONFIG_SH_SCIF_SERIAL) &&	\
+	!defined(CONFIG_STM_ASC_SERIAL) &&	\
+	!defined(CONFIG_STM_DTF_SERIAL)
 
-#if !defined(CONFIG_SH_SCIF_SERIAL) && !defined(CONFIG_STM_ASC_SERIAL)
 int serial_init (void)
 {
 	sconsole_buffer_t *sb = SCONSOLE_BUFFER;

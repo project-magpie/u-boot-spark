@@ -52,7 +52,11 @@ __memory_setup_table:
 	 * only in 29-bit mode - even if U-Boot will be built for 32-bit mode.
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
-#include "romgen-mb680.S"
+#if 1
+#include "romgen-mb680-stx7105c2.S"	/* for STx7105 cut 2.x */
+#else
+#include "romgen-mb680-stx7105c1.S"	/* for STx7105 cut 1.x */
+#endif
 
 #ifdef CONFIG_SH_SE_MODE
 	/*

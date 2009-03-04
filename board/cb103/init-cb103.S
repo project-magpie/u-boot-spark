@@ -42,17 +42,17 @@ __memory_setup_table:
 	 * to an STMC2 (note: currently it must be version 2) and then
 	 * executing the following command (redirecting the output):
 	 *
-	 * host% romgen --target-connect --show-comment <stmc2>:mb671:st40
+	 * host% romgen --target-connect --show-comment <stmc2>:cb103:st40
 	 *
 	 * Where "<stmc2>" should be replaced with the IP address
-	 * (or the DNS name) of the STMC2 box.  Also the "mb671" should
+	 * (or the DNS name) of the STMC2 box.  Also the "cb103" should
 	 * substituted if you have a custom target-pack connect command.
 	 *
 	 * Note: The connect command used with "romgen", should connect
 	 * only in 29-bit mode - even if U-Boot will be built for 32-bit mode.
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
-#include "romgen-mb671.S"
+#include "romgen-cb103.S"
 
 #ifdef CONFIG_SH_SE_MODE
 	/*

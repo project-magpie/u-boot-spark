@@ -2,6 +2,9 @@
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
+ * (C) Copyright 2009 STMicroelectronics.
+ * Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -294,8 +297,15 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	DECLARE_GLOBAL_DATA_PTR;
-
-	int i;
+#if defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+	#define MAX_EMI_BANKS	6	/* Maximum of 6 EMI Banks */
+	const u32 emi_base = 0xa0000000u;
+	u32 base[MAX_EMI_BANKS+1];	/* Base address for each bank */
+	u32 enabled;			/* number of enabled EMI banks */
+#endif	/* CONFIG_CMD_BDI_DUMP_EMI_BANKS */
+#if defined(CONFIG_CMD_NET) || defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+	unsigned int i;
+#endif
 	bd_t *bd = gd->bd;
 
 	print_num ("boot_params",	(ulong)bd->bi_boot_params);
@@ -357,6 +367,44 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #else
 	print_mhz ("EMI",		bd->bi_emifrq);
 #endif	/* CONFIG_SH_STB7100 */
+
+#if defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+	enabled = *ST40_EMI_BANK_ENABLE;
+	printf("#EMI Banks  = %u\n", enabled);
+	if (enabled > MAX_EMI_BANKS)
+	{
+		printf("Error: Maximum Number of Enabled Banks should be %u\n", MAX_EMI_BANKS);
+		enabled = MAX_EMI_BANKS;
+	}
+
+	/*
+	 * EmiBaseAddress[5:0] == Address[27:22] (Multiple of 4MiB)
+	 *
+	 * Retreive all the configured EMI bank bases into base[].
+	 */
+	for(i=0; i<enabled; i++)
+	{
+		const u32 start = *ST40_EMI_BASEADDRESS(i) & 0x3fu;
+		base[i] = emi_base + (start << (22));
+	}
+	/* last valid bank occupies all remaining space */
+	base[i] = emi_base + (128u << (20));	/* total size of EMI is 128MiB */
+
+	/*
+	 * Print out the ranges of each bank.
+	 */
+	for(i=0; i<enabled; i++)
+	{
+		const u32 lower = base[i];
+		const u32 upper = base[i+1];
+		printf ("EMI #%u CS%c  = 0x%08X ... 0x%08X (",
+			i,
+			'A' + i,
+			lower,
+			upper-1u);
+		print_size (upper-lower, ")\n");
+	}
+#endif	/* CONFIG_CMD_BDI_DUMP_EMI_BANKS */
 
 	return 0;
 }
