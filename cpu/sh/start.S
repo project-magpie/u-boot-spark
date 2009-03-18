@@ -132,6 +132,9 @@ set_pmb:
 #if defined(CONFIG_SH_STB7100)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI-Sys UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI-Sys UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#error Need to configure PMBs properly when more than 128MiB.
+	#endif
 	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5 0xa8 0x00  16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 6 0xb2 0x02  16 0 0 1	/* OFF-chip  Peripherals UN-cached */
@@ -153,6 +156,9 @@ set_pmb:
 #elif defined(CONFIG_SH_STX7111) && defined(CONFIG_SH_MB618)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#error Need to configure PMBs properly when more than 128MiB.
+	#endif
 	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR/NAND FLASH CACHED */
@@ -163,6 +169,9 @@ set_pmb:
 #elif defined(CONFIG_SH_STX7141) && defined(CONFIG_SH_MB628)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#error Need to configure PMBs properly when more than 128MiB.
+	#endif
 	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR/NAND FLASH CACHED */
@@ -171,6 +180,9 @@ set_pmb:
 #elif defined(CONFIG_SH_STX7200) && defined(CONFIG_SH_MB519)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#error Need to configure PMBs properly when more than 128MiB.
+	#endif
 	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR FLASH CACHED */
@@ -179,6 +191,9 @@ set_pmb:
 #elif defined(CONFIG_SH_STX7200) && defined(CONFIG_SH_CB101)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#error Need to configure PMBs properly when more than 128MiB.
+	#endif
 	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR FLASH CACHED */
