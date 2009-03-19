@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2006-2008  STMicroelectronics Limited
+ *  Copyright (c) 2006-2009 STMicroelectronics Limited
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -140,9 +140,9 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define LAN8700_PHY_ID		0x0007c0c0u
 #define LAN8700_PHY_ID_MASK	0xfffffff0u
 
-#define SPECIAL_MODE_REG	0x12		/* Special Modes Register */
-#define PHY_ADDR_MSK		0x001f		/* PHY Address Mask */
-#define PHY_ADDR_SHIFT		0		/* PHY Address Mask */
+#define SPECIAL_MODE_REG	0x12	/* Special Modes Register */
+#define PHY_ADDR_MSK		0x001f	/* PHY Address Mask */
+#define PHY_ADDR_SHIFT		0	/* PHY Address Mask */
 
 #elif defined(CONFIG_STMAC_DP83865)	/* Nat Semi DP83865 */
 
@@ -150,9 +150,15 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define DP83865_PHY_ID		0x20005c70u
 #define DP83865_PHY_ID_MASK	0xfffffff0u
 
-#define PHY_SUP_REG		0x1f		/* PHY Support Register */
-#define PHY_ADDR_MSK		0x001f		/* PHY Address Mask */
-#define PHY_ADDR_SHIFT		0		/* PHY Address Mask */
+#define PHY_SUP_REG		0x1f	/* PHY Support Register */
+#define PHY_ADDR_MSK		0x001f	/* PHY Address Mask */
+#define PHY_ADDR_SHIFT		0	/* PHY Address Mask */
+
+#elif defined(CONFIG_STMAC_KSZ8041FTL)	/* Micrel KSZ8041FTL */
+
+/* Micrel KSZ8041FTL phy identifier values */
+#define KSZ8041FTL_PHY_ID	0x00221512u
+#define KSZ8041FTL_PHY_ID_MASK	0x01ffffffu
 
 #else
 #error Need to define which PHY to use
@@ -271,6 +277,11 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "NS DP83865 found\n");
 			return phyaddr;
 		}
+#elif defined(CONFIG_STMAC_KSZ8041FTL)
+		if ((id & KSZ8041FTL_PHY_ID_MASK) == KSZ8041FTL_PHY_ID) {
+			printf (STMAC "KSZ8041FTL found\n");
+			return phyaddr;
+		}
 #endif	/* CONFIG_STMAC_STE10XP */
 	}
 
@@ -300,15 +311,22 @@ static int stmac_phy_init (void)
 	value = stmac_mii_read (eth_phy_addr, SPECIAL_MODE_REG);
 #elif defined(CONFIG_STMAC_DP83865)
 	value = stmac_mii_read (eth_phy_addr, PHY_SUP_REG);
+#elif defined(CONFIG_STMAC_KSZ8041FTL)
+	/* The Micrel KSZ8041FTL does not appear to support
+	 * reading the H/W PHY address from any register.
+	 * So, we bypass the following test.
+	 */
 #else
 #error Need to define PHY
 #endif
+#if !defined(CONFIG_STMAC_KSZ8041FTL)
 	value = (value & PHY_ADDR_MSK) >> PHY_ADDR_SHIFT;
 	if (value != eth_phy_addr) {
 		printf (STMAC "PHY address mismatch with hardware (hw %d != %d)\n",
 			value,
 			eth_phy_addr);
 	}
+#endif
 
 	/* Read the ANE Advertisement register */
 	advertised_caps = stmac_mii_read (eth_phy_addr, MII_ADVERTISE);
