@@ -28,7 +28,7 @@
 
 #if defined(CONFIG_CMD_NAND)
 
-#include "ecc.h"
+#include <asm/ecc.h>
 
 
 static const unsigned char byte_parity_table[] =   /* Parity look up table */

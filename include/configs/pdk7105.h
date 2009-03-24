@@ -1,3 +1,4 @@
+#define CONFIG_CMD_BDI_DUMP_EMI_BANKS	/* QQQ - DELETE */
 /*
  * (C) Copyright 2008-2009 STMicroelectronics.
  *
@@ -37,18 +38,58 @@
 #define P_CLOCK_RATE	87500000	/* clock rate for CSP		*/
 
 /*-----------------------------------------------------------------------
+ * Are we booting directly from a NAND Flash device ?
+ * If so, then define the "CFG_BOOT_FROM_NAND" macro,
+ * otherwise (e.g. NOR/SPI Flash booting), do not define it.
+ */
+#undef CFG_BOOT_FROM_NAND		/* define to build a NAND-bootable image */
+
+/*-----------------------------------------------------------------------
+ * Do we want to read/write NAND Flash compatible with the ST40's NAND
+ * Controller H/W IP block?  That is 3 bytes of ECC per 128 byte record.
+ * If so, then define the "CFG_NAND_ECC_HW3_128" macro.
+ * QQQ: this is only for "boot-mode", and not for FM or AFM - need to explain this better!
+ * QQQ: do we need a different #define,, or a #if 1 ... #else ... #endif ???
+ */
+/* #define CFG_NAND_ECC_HW3_128 */
+#define CFG_NAND_ECC_HW3_128		/* QQQ - DELETE FOR DEFAULT CASE */
+
+	/*
+	 * If using CFG_NAND_ECC_HW3_128, then we must also choose
+	 * if we are using a small-page or large-page NAND device.
+	 */
+#if 0
+#define CFG_NAND_SMALLPAGE		/* for small-page  (512 Bytes) NAND devices */
+#else
+#define CFG_NAND_LARGEPAGE		/* for large-page (2048 Bytes) NAND devices */
+#endif
+
+/*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
 
+#ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
+		/*
+		 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
+		 * If so, then who takes responsibility for this???
+		 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
+		 */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NOR_BASE	0xA6000000	/* CSB: NOR Flash,  Physical 0x06000000 (8MiB) */
+#else		/* else, do *NOT* swap CSA and CSB in EPLD */
+#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NAND_BASE	0xA6000000	/* CSB: NAND Flash, Physical 0x06000000 (8MiB) */
+#endif /* CFG_BOOT_FROM_NAND */
+
 #ifdef CONFIG_SH_SE_MODE
-#define CFG_FLASH_BASE		0xA0000000	/* NOR FLASH (uncached) via PMB */
+#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH (uncached) via PMB */
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
 #define CFG_SDRAM_BASE		0x80000000      /* LMI    Cached addr via PMB */
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
 #define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
 #else
-#define CFG_FLASH_BASE		0xA0000000	/* NOR FLASH in P2 region */
+#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH in P2 region */
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
@@ -261,7 +302,7 @@
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CFG_MAX_NAND_DEVICE	1
 #	define NAND_MAX_CHIPS		CFG_MAX_NAND_DEVICE
-#	define CFG_NAND0_BASE		0xA6000000	/* Physical 0x06000000 */
+#	define CFG_NAND0_BASE		CFG_EMI_NAND_BASE
 #	define CFG_NAND_BASE_LIST	{ CFG_NAND0_BASE }
 #	define MTDPARTS_NAND						\
 	"gen_nand.1:"		/* First NAND flash device */		\

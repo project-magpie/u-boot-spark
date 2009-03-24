@@ -30,6 +30,7 @@
 #include <asm/io.h>
 #include <asm/pio.h>
 #include <asm/stx7105reg.h>
+#include <asm/stm-nand.h>
 
 
 /*
@@ -67,6 +68,7 @@ static void pdk7105_hwcontrol(struct mtd_info *mtdinfo, int cmd)
  * hardware specific access to the Ready/not_Busy signal.
  * Signal is routed through the EMI NAND Controller block.
  */
+/* QQQ: move to *chip* specific file ??? */
 static int pdk7105_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
@@ -94,11 +96,22 @@ static int pdk7105_device_ready(struct mtd_info *mtd)
  */
 extern int board_nand_init(struct nand_chip *nand)
 {
-	nand->hwcontrol = pdk7105_hwcontrol;
-	nand->eccmode = NAND_ECC_SOFT;
-	nand->dev_ready = pdk7105_device_ready;
-	nand->chip_delay = 25;
-	nand->options = NAND_NO_AUTOINCR;
+	nand->hwcontrol     = pdk7105_hwcontrol;
+	nand->dev_ready     = pdk7105_device_ready;
+	nand->chip_delay    = 25;			/* QQQ delete this ??? */
+	nand->options       = NAND_NO_AUTOINCR;
+
+#ifdef CFG_NAND_ECC_HW3_128
+	nand->eccmode       = NAND_ECC_HW3_128;
+	nand->options      |= NAND_USE_FLASH_BBT;
+	nand->autooob       = &stm_nand_oobinfo;
+	nand->calculate_ecc = stm_nand_calculate_ecc;
+	nand->correct_data  = stm_nand_correct_data;
+	nand->enable_hwecc  = stm_nand_enable_hwecc;
+#else
+	nand->eccmode       = NAND_ECC_SOFT;
+#endif /* CFG_NAND_ECC_HW3_128 */
+
 	return 0;
 }
 #endif	/* CONFIG_CMD_NAND */
