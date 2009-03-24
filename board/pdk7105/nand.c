@@ -98,12 +98,17 @@ extern int board_nand_init(struct nand_chip *nand)
 {
 	nand->hwcontrol     = pdk7105_hwcontrol;
 	nand->dev_ready     = pdk7105_device_ready;
-	nand->chip_delay    = 25;			/* QQQ delete this ??? */
+	nand->chip_delay    = 0;
+
 	nand->options       = NAND_NO_AUTOINCR;
+#if 1	/* QQQ - DELETE */
+	nand->options      |= NAND_USE_FLASH_BBT;
+#endif	/* QQQ - DELETE */
+
+	nand->badblock_pattern = &stm_nand_badblock_pattern;
 
 #ifdef CFG_NAND_ECC_HW3_128
 	nand->eccmode       = NAND_ECC_HW3_128;
-	nand->options      |= NAND_USE_FLASH_BBT;
 	nand->autooob       = &stm_nand_oobinfo;
 	nand->calculate_ecc = stm_nand_calculate_ecc;
 	nand->correct_data  = stm_nand_correct_data;

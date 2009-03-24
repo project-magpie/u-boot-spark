@@ -25,6 +25,8 @@
 
 extern struct nand_oobinfo stm_nand_oobinfo;
 
+extern struct nand_bbt_descr stm_nand_badblock_pattern;
+
 extern int stm_nand_calculate_ecc (
 	struct mtd_info * const mtd,
 	const u_char * const dat,

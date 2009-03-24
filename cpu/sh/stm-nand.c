@@ -30,6 +30,39 @@
 #include <asm/ecc.h>
 
 
+/*
+ * Define the bad/good block scan pattern which are used while scanning
+ * the NAND device for any factory marked good/bad blocks.
+ *
+ * For small page devices, factory bad block markers are in byte 5.
+ * For large page devices, factory bad block markers are in bytes 0 & 1.
+ * Any bit in those bytes being a zero, implies the block is bad.
+ *
+ * We only scan the first & 2nd page in each block.
+ * However, we do also check the entire data area in those 2 pages,
+ * to see if they are properly erased. Improperly erased pages
+ * result in the entire bock also being treated as bad.
+ *
+ * Note: using "SCANALLPAGES" takes a significant performance hit!
+ */
+static uint8_t scan_pattern[] = { 0xffu, 0xffu };
+
+struct nand_bbt_descr stm_nand_badblock_pattern = {
+	.pattern = scan_pattern,
+/*	.options = NAND_BBT_SCANEMPTY | NAND_BBT_SCANALLPAGES */
+	.options = NAND_BBT_SCANEMPTY | NAND_BBT_SCAN2NDPAGE,
+#if defined(CFG_NAND_SMALLPAGE)
+	.offs = 5,	/* Byte 5 */
+	.len = 1,
+#elif defined(CFG_NAND_LARGEPAGE)
+	.offs = 0,	/* Bytes 0-1 */
+	.len = 2,
+#else
+#error "Either CFG_NAND_LARGEPAGE or CFG_NAND_SMALLPAGE must be defined!"
+#endif
+};
+
+
 #ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
 
 struct nand_oobinfo stm_nand_oobinfo = {
