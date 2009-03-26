@@ -117,6 +117,7 @@ int soc_init(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
 	bd_t *bd = gd->bd;
+	unsigned long reg;
 
 	stx7141_clocks();
 
@@ -126,11 +127,40 @@ int soc_init(void)
 
 	bd->bi_devid = *STX7141_SYSCONF_DEVICEID_0;
 
-#ifdef QQQ	/* QQQ - TO DO */
-	/*  Make sure reset period is shorter than WDT timeout */
-	*STX7141_SYSCONF_SYS_CFG09 = (*STX7141_SYSCONF_SYS_CFG09 & 0xFF000000) | 0x000A8C;
+	/*
+	 * Reset Generation Configuration
+	 * Make sure reset period is shorter than WDT time-out,
+	 * and that the reset is not bypassed.
+	 *
+	 *	[28:27] = CPU_RST_OUT_BYPASS[1:0]
+	 *	[25:0]  = RESETOUT_PERIOD
+	 */
+	reg = *STX7141_SYSCONF_SYS_CFG09;
+	/* Propagate the reset signal */
+	reg = (reg & (~(3ul<<27))) | ((0ul)<<27);
+	/* use the default "short" reset time of 100us */
+	reg = (reg & (~0x03FFFFFFul)) | 0x00000A8Cul;
+	*STX7141_SYSCONF_SYS_CFG09 = reg;
 
-#endif		/* QQQ - TO DO */
+	/*
+	 * SH4 Boot Configuration
+	 * Unmask the reset signal from the SH4 core.
+	 *
+	 *	[4:3] = SH4_MASK_RST_OUT[1:0]
+	 *
+	 * SH4_MASK_RST_OUT[1]: mask rst_out signal from SH4-eCM core
+	 * SH4_MASK_RST_OUT[0]: mask rst_out signal from SH4-eSTB core
+	 */
+	reg = *STX7141_SYSCONF_SYS_CFG08;
+#if 1
+	/* Unmask the reset signal from the SH4-eSTB core */
+	reg = (reg & (~(1ul<<3))) | ((0ul)<<3);
+#else
+	/* Unmask the reset signal from the SH4-eCM core */
+	reg = (reg & (~(1ul<<4))) | ((0ul)<<4);
+#endif
+	*STX7141_SYSCONF_SYS_CFG08 = reg;
+
 	return 0;
 }
 
