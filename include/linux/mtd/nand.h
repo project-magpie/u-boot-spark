@@ -64,6 +64,13 @@ extern void nand_release (struct mtd_info *mtd);
 /* Read raw data from the device without ECC */
 extern int nand_read_raw (struct mtd_info *mtd, uint8_t *buf, loff_t from, size_t len, size_t ooblen);
 
+/* read/write with ECC functions */
+extern int nand_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
+			  size_t * retlen, u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel);
+extern int nand_read_oob (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf);
+extern int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
+			   size_t * retlen, const u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel);
+extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char *buf);
 
 /* This constant declares the max. oobsize / page, which
  * is supported now. If you add a chip with bigger oobsize/page

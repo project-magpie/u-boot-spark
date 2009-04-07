@@ -65,6 +65,17 @@ static void mb680_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 
 
 /*
+ * hardware specific access to the Ready/not_Busy signal.
+ * Signal is routed through the EMI NAND Controller block.
+ */
+static int mb680_device_ready(struct mtd_info *mtd)
+{
+	/* extract bit 1: status of RBn pin on boot bank */
+	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
+}
+
+
+/*
  * Board-specific NAND initialization. The following members of the
  * argument are board-specific (per include/linux/mtd/nand.h):
  * - IO_ADDR_R?: address to read the 8 I/O lines of the flash device
@@ -84,19 +95,25 @@ static void mb680_hwcontrol(struct mtd_info *mtdinfo, int cmd)
  */
 extern int board_nand_init(struct nand_chip *nand)
 {
+	struct mtd_info * const mtd = nand->priv;
+
 	nand->hwcontrol     = mb680_hwcontrol;
-	nand->chip_delay    = 25;
+	nand->dev_ready     = mb680_device_ready;
+	nand->eccmode       = NAND_ECC_SOFT;
 	nand->options       = NAND_NO_AUTOINCR;
+#if 1
+	nand->options      |= NAND_USE_FLASH_BBT;
+	nand->badblock_pattern = &stm_nand_badblock_pattern;
+#endif
 
 #ifdef CFG_NAND_ECC_HW3_128
-	nand->eccmode       = NAND_ECC_HW3_128;
-	nand->options      |= NAND_USE_FLASH_BBT;
-	nand->autooob       = &stm_nand_oobinfo;
-	nand->calculate_ecc = stm_nand_calculate_ecc;
-	nand->correct_data  = stm_nand_correct_data;
+	mtd->read           = stm_nand_read;
+	mtd->write          = stm_nand_write;
+	mtd->read_ecc       = stm_nand_read_ecc;
+	mtd->write_ecc      = stm_nand_write_ecc;
+	mtd->read_oob       = stm_nand_read_oob;
+	mtd->write_oob      = stm_nand_write_oob;
 	nand->enable_hwecc  = stm_nand_enable_hwecc;
-#else
-	nand->eccmode       = NAND_ECC_SOFT;
 #endif /* CFG_NAND_ECC_HW3_128 */
 
 	return 0;

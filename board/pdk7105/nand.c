@@ -68,7 +68,6 @@ static void pdk7105_hwcontrol(struct mtd_info *mtdinfo, int cmd)
  * hardware specific access to the Ready/not_Busy signal.
  * Signal is routed through the EMI NAND Controller block.
  */
-/* QQQ: move to *chip* specific file ??? */
 static int pdk7105_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
@@ -96,25 +95,25 @@ static int pdk7105_device_ready(struct mtd_info *mtd)
  */
 extern int board_nand_init(struct nand_chip *nand)
 {
+	struct mtd_info * const mtd = nand->priv;
+
 	nand->hwcontrol     = pdk7105_hwcontrol;
 	nand->dev_ready     = pdk7105_device_ready;
-	nand->chip_delay    = 0;
-
+	nand->eccmode       = NAND_ECC_SOFT;
 	nand->options       = NAND_NO_AUTOINCR;
-#if 1	/* QQQ - DELETE */
+#if 1
 	nand->options      |= NAND_USE_FLASH_BBT;
-#endif	/* QQQ - DELETE */
-
 	nand->badblock_pattern = &stm_nand_badblock_pattern;
+#endif
 
 #ifdef CFG_NAND_ECC_HW3_128
-	nand->eccmode       = NAND_ECC_HW3_128;
-	nand->autooob       = &stm_nand_oobinfo;
-	nand->calculate_ecc = stm_nand_calculate_ecc;
-	nand->correct_data  = stm_nand_correct_data;
+	mtd->read           = stm_nand_read;
+	mtd->write          = stm_nand_write;
+	mtd->read_ecc       = stm_nand_read_ecc;
+	mtd->write_ecc      = stm_nand_write_ecc;
+	mtd->read_oob       = stm_nand_read_oob;
+	mtd->write_oob      = stm_nand_write_oob;
 	nand->enable_hwecc  = stm_nand_enable_hwecc;
-#else
-	nand->eccmode       = NAND_ECC_SOFT;
 #endif /* CFG_NAND_ECC_HW3_128 */
 
 	return 0;

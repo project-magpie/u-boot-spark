@@ -46,13 +46,12 @@
 
 /*-----------------------------------------------------------------------
  * Do we want to read/write NAND Flash compatible with the ST40's NAND
- * Controller H/W IP block?  That is 3 bytes of ECC per 128 byte record.
+ * Controller H/W IP block for "boot-mode"?
+ * If we want to read/write NAND flash that is meant to support booting
+ * from NAND, then we need to use 3 bytes of ECC per 128 byte record.
  * If so, then define the "CFG_NAND_ECC_HW3_128" macro.
- * QQQ: this is only for "boot-mode", and not for FM or AFM - need to explain this better!
- * QQQ: do we need a different #define,, or a #if 1 ... #else ... #endif ???
  */
-/* #define CFG_NAND_ECC_HW3_128 */
-#define CFG_NAND_ECC_HW3_128		/* QQQ - DELETE FOR DEFAULT CASE */
+#define CFG_NAND_ECC_HW3_128		/* define for "boot-from-NAND" compatabilty */
 
 	/*
 	 * If using CFG_NAND_ECC_HW3_128, then we must also choose
@@ -63,6 +62,17 @@
 #else
 #define CFG_NAND_LARGEPAGE		/* for large-page (2048 Bytes) NAND devices */
 #endif
+
+	/*
+	 * If using CFG_NAND_ECC_HW3_128, then we must also define
+	 * where the (high watermark) boundary is. That is, the
+	 * NAND offset, below which we are in "boot-mode", and
+	 * must use 3 bytes of ECC for each 128 byte record.
+	 * For this offset (and above) we can use any supported
+	 * ECC configuration (e.g 3/256 S/W, or 3/512 H/W).
+	 */
+#define CFG_NAND_STM_BOOT_MODE_BOUNDARY (16ul << 20)	/* 16MiB */
+
 
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration

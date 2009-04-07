@@ -42,3 +42,51 @@ extern void stm_nand_enable_hwecc (
 	struct mtd_info *mtd,
 	int mode);
 
+
+extern int stm_nand_read (
+	struct mtd_info *mtd,
+	loff_t from,
+	size_t len,
+	size_t * retlen,
+	u_char * buf);
+
+extern int stm_nand_read_ecc (
+	struct mtd_info *mtd,
+	loff_t from,
+	size_t len,
+	size_t * retlen,
+	u_char * buf,
+	u_char * eccbuf,
+	struct nand_oobinfo *oobsel);
+
+extern int stm_nand_read_oob (
+	struct mtd_info *mtd,
+	loff_t from,
+	size_t len,
+	size_t * retlen,
+	u_char * buf);
+
+extern int stm_nand_write (
+	struct mtd_info *mtd,
+	loff_t to,
+	size_t len,
+	size_t * retlen,
+	const u_char * buf);
+
+extern int stm_nand_write_ecc (
+	struct mtd_info *mtd,
+	loff_t to,
+	size_t len,
+	size_t * retlen,
+	const u_char * buf,
+	u_char * eccbuf,
+	struct nand_oobinfo *oobsel);
+
+extern int stm_nand_write_oob (
+	struct mtd_info *mtd,
+	loff_t to,
+	size_t len,
+	size_t * retlen,
+	const u_char *buf);
+
+

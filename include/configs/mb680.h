@@ -1,3 +1,4 @@
+#define CONFIG_CMD_BDI_DUMP_EMI_BANKS	/* QQQ - DELETE */
 /*
  * (C) Copyright 2008-2009 STMicroelectronics.
  *
@@ -37,141 +38,6 @@
 #define P_CLOCK_RATE	87500000	/* clock rate for CSP		*/
 
 /*-----------------------------------------------------------------------
- * NAND Flash Configuration.		QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ
- *
- * There are several configuration choices, not all of which are orthogonal!
- *
- * 1) BIT-BANGING.
- *	Y = Can not use if in NAND BOOT MODE.
- *	    Provided in initial U-Boot NAND support.
- *	N = Need to use Flex or Advanced Flex Mode.
- *
- * 2) BAD BLOCK TABLES.
- * 	Y = need to be compatible with Linux & OS21
- * 	N = All HW3_128 ECC will be erroneously reported as bad - can not program!
- *
- * 3) BOOT-FROM-NAND.
- *	Y = Need HW3/128 ECC (when in Boot-Mode).
- *	    Need to include magic "signature".
- *	N = Can use ANY ECC e.g. S/W
- *
- * 4) PAGE SIZE.					(ORTHOGONAL)
- * 	Need to choose different nand_oobinfo structs.
- *	512  = only size currently tested.
- *	2048 = eccpos & oobfree need to be re-sized
- *
- *	BIT-BANGING	BBT	BOOT-FROM-NAND	ECC	Comment
- *	-----------	---	--------------	---	-------
- *		N	N	N		?
- *		N	N	Y		3/128	BAD  - HW ECC looks like a BAD BLOCK
- *		N	Y	N		?
- *		N	Y	Y		3/128	okay - Primary usage!
- *		Y	N	N		Any	okay - 1st version paradigm, currently S/W ECC
- *		Y	N	Y		3/128	BAD  - HW ECC looks like a BAD BLOCK
- *		Y	Y	N		Any	okay - No issues. Currently S/W ECC.
- *		Y	Y	Y		3/128	okay - Need HW3_128 ECC
- *
- * If we enable BOOT-FROM-NAND, then we:
- * 	a) MUST use HW3_128, AND
- * 	b) MUST use BBTs.
- * 	c) MAY  use bit-banging to write it.
- *
- *
-
-There is a H/W problem with bit-banging if the SoC has been booted
-in boot-from-NAND mode, that renders bit-banging unusable.  A proper
-workaround is to use "Flex" mode. Currently this is not implemented in
-U-Boot, so right now, we  need to build 2 (slightly different) versions
-of U-Boot. One of them is to be burned to NAND, and other is used to
-burn the other to NAND flash in "boot-from-NOR" mode.
-
-The key steps used to do this are as follows:
-
-To build a boot-from-NAND flash image:
---------------------------------------
-
-	1) Configure "include/configs/mb680.h", as follows:
-
-		#define CFG_BOOT_FROM_NAND
-		#undef  CONFIG_CMD_NAND
-
-	e.g.	host% sed -i							\
-			-e "/^#undef CFG_BOOT_FROM_NAND/s/#undef/#define/"	\
-			-e "/^#define CONFIG_CMD_NAND/s/#define/#undef/"	\
-			include/configs/mb680.h
-
-	2) Build "u-boot.bin":
-
-		host% make distclean ; make mb680_config ; make
-	OR	host% make distclean ; make mb680se_config ; make
-
-	3) Copy it with a better name, to keep it safe.
-
-		host% cp -p u-boot.bin u-boot.bin.nand
-
-
-To program NAND flash:	(in boot-from-NOR mode)
-----------------------
-
-	4) Set the board switches as follows:
-
-		Board	Switch	State
-		-----	------	-----
-		MB680	SW2-3	ON
-		MB680	SW7-2	ON
-		MB705	SW8-1	ON
-
-	5) Configure "include/configs/mb680.h", as follows:
-
-		#undef  CFG_BOOT_FROM_NAND
-		#define CONFIG_CMD_NAND
-		#define CFG_NAND_ECC_HW3_128
-
-	e.g.	host% sed -i							\
-			-e "/^#define CFG_BOOT_FROM_NAND/s/#define/#undef/"	\
-			-e "/^#undef CONFIG_CMD_NAND/s/#undef/#define/"		\
-			include/configs/mb680.h
-
-	6) Build "u-boot":
-
-		host% make distclean ; make mb680_config ; make
-	OR	host% make distclean ; make mb680se_config ; make
-
-	7) Copy it with a better name, to keep it safe.
-
-		host% cp -p u-boot u-boot.nor
-
-	8) download "u-boot.nor" with GDB:
-
-		host % sh4-linux-gdb -ex "sh4tp hti:mb680:st40"        -ex load -ex c u-boot.nor
-	OR	host % sh4-linux-gdb -ex "sh4tp hti:mb680:st40,seuc=1" -ex load -ex c u-boot.nor
-
-	9) Use this U-boot to burn the above "u-boot.bin.nand" (and
-	   anything else, e.g. kernel, ramdisk) to the NAND flash device.
-	   NOTE: on the 7105 is is *essential* that "u-boot.bin.nand" is
-	   written to *physical* block zero. e.g.
-
-	   	MB680> nand write $load_addr 0 40000
-
-To boot-from-NAND:
-------------------
-
-	10) Set the board switches as follows:
-
-		Board	Switch	State
-		-----	------	-----
-		MB680	SW2-3	OFF
-		MB680	SW7-2	OFF
-		MB705	SW8-1	OFF
-
-	11) Power on the board!
-
- *	------------------------------------------------
- *
- */
-
-
-/*-----------------------------------------------------------------------
  * Are we booting directly from a NAND Flash device ?
  * If so, then define the "CFG_BOOT_FROM_NAND" macro,
  * otherwise (e.g. NOR/SPI Flash booting), do not define it.
@@ -180,11 +46,12 @@ To boot-from-NAND:
 
 /*-----------------------------------------------------------------------
  * Do we want to read/write NAND Flash compatible with the ST40's NAND
- * Controller H/W IP block?  That is 3 bytes of ECC per 128 byte record.
+ * Controller H/W IP block for "boot-mode"?
+ * If we want to read/write NAND flash that is meant to support booting
+ * from NAND, then we need to use 3 bytes of ECC per 128 byte record.
  * If so, then define the "CFG_NAND_ECC_HW3_128" macro.
  */
-/* #define CFG_NAND_ECC_HW3_128 */
-#define CFG_NAND_ECC_HW3_128		/* QQQ - DELETE FOR DEFAULT CASE */
+#define CFG_NAND_ECC_HW3_128		/* define for "boot-from-NAND" compatabilty */
 
 	/*
 	 * If using CFG_NAND_ECC_HW3_128, then we must also choose
@@ -195,6 +62,17 @@ To boot-from-NAND:
 #else
 #define CFG_NAND_LARGEPAGE		/* for large-page (2048 Bytes) NAND devices */
 #endif
+
+	/*
+	 * If using CFG_NAND_ECC_HW3_128, then we must also define
+	 * where the (high watermark) boundary is. That is, the
+	 * NAND offset, below which we are in "boot-mode", and
+	 * must use 3 bytes of ECC for each 128 byte record.
+	 * For this offset (and above) we can use any supported
+	 * ECC configuration (e.g 3/256 S/W, or 3/512 H/W).
+	 */
+#define CFG_NAND_STM_BOOT_MODE_BOUNDARY (16ul << 20)	/* 16MiB */
+
 
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
@@ -213,7 +91,7 @@ To boot-from-NAND:
 #else		/* else, do *NOT* swap CSA and CSB in EPLD */
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
-#endif
+#endif /* CFG_BOOT_FROM_NAND */
 
 #ifdef CONFIG_SH_SE_MODE
 #define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH (uncached) via PMB */
@@ -222,7 +100,7 @@ To boot-from-NAND:
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
 #define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
 #else
-#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE /* NOR FLASH in P2 region */
+#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH in P2 region */
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
