@@ -80,6 +80,7 @@ disable_watchdog:
 #ifdef CFG_BOOT_FROM_NAND
 skip_signature:
 	bra	skipped_signature	/* skip over the "block 0 signature" */
+	 nop
 
 	/*
 	 * Write out the 64-byte preamble signature pattern, to identify
