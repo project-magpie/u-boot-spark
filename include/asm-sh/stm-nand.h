@@ -23,9 +23,15 @@
 #include <nand.h>
 
 
-extern struct nand_oobinfo stm_nand_oobinfo;
+extern struct nand_bbt_descr stm_nand_badblock_pattern_16;
+extern struct nand_bbt_descr stm_nand_badblock_pattern_64;
 
-extern struct nand_bbt_descr stm_nand_badblock_pattern;
+extern int stm_nand_default_bbt (
+	struct mtd_info *mtd);
+
+
+#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
+
 
 extern int stm_nand_calculate_ecc (
 	struct mtd_info * const mtd,
@@ -66,6 +72,7 @@ extern int stm_nand_read_oob (
 	size_t * retlen,
 	u_char * buf);
 
+
 extern int stm_nand_write (
 	struct mtd_info *mtd,
 	loff_t to,
@@ -88,5 +95,45 @@ extern int stm_nand_write_oob (
 	size_t len,
 	size_t * retlen,
 	const u_char *buf);
+
+
+#endif	/* CFG_NAND_ECC_HW3_128 */
+
+
+#ifdef CFG_NAND_FLEX_MODE	/* for STM "flex-mode" (c.f. "bit-banging") */
+
+
+extern int stm_flex_device_ready(
+	struct mtd_info * const mtd);
+
+extern void stm_flex_select_chip (
+	struct mtd_info * const mtd,
+	const int chipnr);
+
+extern void stm_flex_hwcontrol (
+	struct mtd_info * const mtd,
+	int control);
+
+
+extern u_char stm_flex_read_byte(
+	struct mtd_info * const mtd);
+
+extern void stm_flex_write_byte(
+	struct mtd_info * const mtd,
+	u_char byte);
+
+
+extern void stm_flex_read_buf(
+	struct mtd_info * const mtd,
+	u_char * const buf,
+	const int len);
+
+extern void stm_flex_write_buf(
+	struct mtd_info * const mtd,
+	const u_char *buf,
+	const int len);
+
+
+#endif /* CFG_NAND_FLEX_MODE */
 
 

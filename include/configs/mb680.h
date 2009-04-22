@@ -44,35 +44,6 @@
  */
 #undef CFG_BOOT_FROM_NAND		/* define to build a NAND-bootable image */
 
-/*-----------------------------------------------------------------------
- * Do we want to read/write NAND Flash compatible with the ST40's NAND
- * Controller H/W IP block for "boot-mode"?
- * If we want to read/write NAND flash that is meant to support booting
- * from NAND, then we need to use 3 bytes of ECC per 128 byte record.
- * If so, then define the "CFG_NAND_ECC_HW3_128" macro.
- */
-#define CFG_NAND_ECC_HW3_128		/* define for "boot-from-NAND" compatabilty */
-
-	/*
-	 * If using CFG_NAND_ECC_HW3_128, then we must also choose
-	 * if we are using a small-page or large-page NAND device.
-	 */
-#if 1
-#define CFG_NAND_SMALLPAGE		/* for small-page  (512 Bytes) NAND devices */
-#else
-#define CFG_NAND_LARGEPAGE		/* for large-page (2048 Bytes) NAND devices */
-#endif
-
-	/*
-	 * If using CFG_NAND_ECC_HW3_128, then we must also define
-	 * where the (high watermark) boundary is. That is, the
-	 * NAND offset, below which we are in "boot-mode", and
-	 * must use 3 bytes of ECC for each 128 byte record.
-	 * For this offset (and above) we can use any supported
-	 * ECC configuration (e.g 3/256 S/W, or 3/512 H/W).
-	 */
-#define CFG_NAND_STM_BOOT_MODE_BOUNDARY (16ul << 20)	/* 16MiB */
-
 
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
@@ -88,9 +59,11 @@
 		 */
 #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #else		/* else, do *NOT* swap CSA and CSB in EPLD */
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
 #endif /* CFG_BOOT_FROM_NAND */
 
 #ifdef CONFIG_SH_SE_MODE
@@ -325,6 +298,45 @@
 		",-(RestOfNand0)"	/* last partition */
 #	define MTDIDS_NAND						\
 	"nand0=gen_nand.1"	/* First NAND flash device */
+
+	/*
+	 * Currently, there are 2 main modes to read/write from/to
+	 * NAND devices on STM SoCs:
+	 *	a) "bit-banging" (can NOT be used in boot-from-NAND)
+	 *	b) FLEX-mode (only supported means for boot-from-NAND)
+	 * If CFG_NAND_FLEX_MODE is defined, then FLEX-mode will be
+	 * used, otherwise, "bit-banging" will be used.
+	 */
+#	define CFG_NAND_FLEX_MODE	/* define to use NAND FLEX-MODE */
+
+	/*
+	 * Do we want to read/write NAND Flash compatible with the ST40's
+	 * NAND Controller H/W IP block for "boot-mode"? If we want
+	 * to read/write NAND flash that is meant to support booting
+	 * from NAND, then we need to use 3 bytes of ECC per 128 byte
+	 * record.  If so, then define the "CFG_NAND_ECC_HW3_128" macro.
+	 */
+#	define CFG_NAND_ECC_HW3_128	/* define for "boot-from-NAND" compatibility */
+
+	/*
+	 * If using CFG_NAND_ECC_HW3_128, then we must also define
+	 * where the (high watermark) boundary is. That is, the
+	 * NAND offset, below which we are in "boot-mode", and
+	 * must use 3 bytes of ECC for each 128 byte record.
+	 * For this offset (and above) we can use any supported
+	 * ECC configuration (e.g 3/256 S/W, or 3/512 H/W).
+	 */
+#	define CFG_NAND_STM_BOOT_MODE_BOUNDARY (1ul << 20)	/* 1 MiB */
+
+	/*
+	 * If we want to store the U-boot environment variables in
+	 * the NAND device, then we also need to specify *where* the
+	 * environment variables will be stored. Typically this
+	 * would be immediately after the U-boot monitor itself.
+	 * However, that *may* be a bad block. Define the following
+	 * to place the environment in an appropriate good block.
+	 */
+#	define CFG_NAND_ENV_OFFSET (CFG_MONITOR_LEN + 0x0)	/* immediately after u-boot.bin */
 #endif	/* CONFIG_CMD_NAND */
 
 /*-----------------------------------------------------------------------
@@ -339,7 +351,7 @@
 #	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
 #elif defined(CONFIG_CMD_NAND)			/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
-#	define CFG_ENV_OFFSET	0		/* beginning of NAND flash */
+#	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
 #else
 #	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #endif	/* CONFIG_CMD_NAND */

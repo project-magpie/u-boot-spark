@@ -34,11 +34,12 @@
 
 
 /*
- * hardware specific access to control-lines
+ * hardware specific access to control-lines for "bit-banging".
  *	CL -> Emi_Addr(17)
  *	AL -> Emi_Addr(18)
  *	nCE is handled by EMI (not s/w controlable)
  */
+#ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
 static void pdk7105_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 {
 	struct nand_chip* this = (struct nand_chip *)(mtdinfo->priv);
@@ -62,17 +63,20 @@ static void pdk7105_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 		break;
 	}
 }
+#endif /* CFG_NAND_FLEX_MODE */
 
 
 /*
  * hardware specific access to the Ready/not_Busy signal.
  * Signal is routed through the EMI NAND Controller block.
  */
+#ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
 static int pdk7105_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
 	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
 }
+#endif /* CFG_NAND_FLEX_MODE */
 
 
 /*
@@ -95,28 +99,32 @@ static int pdk7105_device_ready(struct mtd_info *mtd)
  */
 extern int board_nand_init(struct nand_chip *nand)
 {
-	struct mtd_info * const mtd = nand->priv;
-
-	nand->hwcontrol     = pdk7105_hwcontrol;
-	nand->dev_ready     = pdk7105_device_ready;
 	nand->eccmode       = NAND_ECC_SOFT;
 	nand->options       = NAND_NO_AUTOINCR;
-#if 1
-	nand->options      |= NAND_USE_FLASH_BBT;
-	nand->badblock_pattern = &stm_nand_badblock_pattern;
-#endif
 
-#ifdef CFG_NAND_ECC_HW3_128
-	mtd->read           = stm_nand_read;
-	mtd->write          = stm_nand_write;
-	mtd->read_ecc       = stm_nand_read_ecc;
-	mtd->write_ecc      = stm_nand_write_ecc;
-	mtd->read_oob       = stm_nand_read_oob;
-	mtd->write_oob      = stm_nand_write_oob;
-	nand->enable_hwecc  = stm_nand_enable_hwecc;
-#endif /* CFG_NAND_ECC_HW3_128 */
+#ifdef CFG_NAND_FLEX_MODE	/* for STM "flex-mode" (c.f. "bit-banging") */
+	nand->select_chip   = stm_flex_select_chip;
+	nand->dev_ready     = stm_flex_device_ready;
+	nand->hwcontrol     = stm_flex_hwcontrol;
+	nand->read_byte     = stm_flex_read_byte;
+	nand->write_byte    = stm_flex_write_byte;
+	nand->read_buf      = stm_flex_read_buf;
+	nand->write_buf     = stm_flex_write_buf;
+#else				/* for "bit-banging" (c.f. STM "flex-mode")  */
+	nand->dev_ready     = pdk7105_device_ready;
+	nand->hwcontrol     = pdk7105_hwcontrol;
+#endif /* CFG_NAND_FLEX_MODE */
+
+#if 1
+	/* Enable the following to use a Bad Block Table (BBT) */
+	nand->options      |= NAND_USE_FLASH_BBT;
+	nand->scan_bbt      = stm_nand_default_bbt;
+#endif
 
 	return 0;
 }
+
+
 #endif	/* CONFIG_CMD_NAND */
+
 

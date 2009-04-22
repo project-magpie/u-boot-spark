@@ -77,6 +77,7 @@ extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t *
  * adjust this accordingly.
  */
 #define NAND_MAX_OOBSIZE	64
+#define NAND_MAX_PAGESIZE	2048
 
 /*
  * Constants for hardware specific CLE/ALE/NCE function
