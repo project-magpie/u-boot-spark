@@ -1,15 +1,3 @@
-#define D { printf("QQQ: got to %s() %s:%u\n", __FUNCTION__, __FILE__, __LINE__); }
-extern volatile int sean_qqq;			/* QQQ - DELETE */
-volatile int sean_qqq = 0;			/* QQQ - DELETE */
-#define QQQ_START	{ sean_qqq++; }		/* QQQ - DELETE */
-#define QQQ_END		{ sean_qqq--; }		/* QQQ - DELETE */
-#define QQQ_TEST	{ if (sean_qqq != 1)						\
-				printf("WARNING!!! Unexpected entry in %s() %s:%u\n",	\
-					__FUNCTION__,					\
-					__FILE__,					\
-					__LINE__);					\
-			}
-
 /*
  * (C) Copyright 2008-2009 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -252,7 +240,6 @@ extern int stm_nand_default_bbt (struct mtd_info *mtd)
 {
 	struct nand_chip * const this = (struct nand_chip *)(mtd->priv);
 
-D	printf("QQQ: mtd->oobsize  = %u\n", mtd->oobsize);	/* QQQ - DELETE */
 	/* over-write the default "badblock_pattern", with our one */
 	/* choose the correct pattern struct, depending on the OOB size */
 	if (mtd->oobsize > 16)
@@ -457,12 +444,12 @@ static void set_ecc_diffs (
 	/* also, we need to reinitialize oob_buf */
 	this->oobdirty		= 1;
 
-#if 1	/* QQQ - DELETE */
+#if VERBOSE_ECC
 	printf("info: switching to NAND \"%s\" ECC (%u/%u)\n",
 		(diffs==&special_ecc) ? "BOOT-mode" : "NON-boot-mode",
 		this->eccbytes,
 		this->eccsize);
-#endif	/* QQQ - DELETE */
+#endif	/* VERBOSE_ECC */
 }
 
 
@@ -516,7 +503,7 @@ extern void stm_nand_enable_hwecc (
 extern int stm_nand_read (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf)
 {
 	int result;
-QQQ_START
+
 	result = set_ecc_mode (mtd, from, len);
 	if (result != 0)
 	{
@@ -526,7 +513,7 @@ QQQ_START
 	{
 		result = nand_read_ecc (mtd, from, len, retlen, buf, NULL, NULL);
 	}
-QQQ_END
+
 	return result;
 }
 
@@ -535,7 +522,7 @@ extern int stm_nand_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
 	size_t * retlen, u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel)
 {
 	int result;
-QQQ_START
+
 	result = set_ecc_mode (mtd, from, len);
 	if (result != 0)
 	{
@@ -545,7 +532,7 @@ QQQ_START
 	{
 		result = nand_read_ecc (mtd, from, len, retlen, buf, eccbuf, oobsel);
 	}
-QQQ_END
+
 	return result;
 }
 
@@ -553,7 +540,7 @@ QQQ_END
 extern int stm_nand_read_oob (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf)
 {
 	int result;
-QQQ_START
+
 	result = set_ecc_mode (mtd, from, len);
 	if (result != 0)
 	{
@@ -563,7 +550,7 @@ QQQ_START
 	{
 		result = nand_read_oob (mtd, from, len, retlen, buf);
 	}
-QQQ_END
+
 	return result;
 }
 
@@ -571,7 +558,7 @@ QQQ_END
 extern int stm_nand_write (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char * buf)
 {
 	int result;
-QQQ_START
+
 	result = set_ecc_mode (mtd, to, len);
 	if (result != 0)
 	{
@@ -581,7 +568,7 @@ QQQ_START
 	{
 		result = nand_write_ecc (mtd, to, len, retlen, buf, NULL, NULL);
 	}
-QQQ_END
+
 	return result;
 }
 
@@ -590,7 +577,7 @@ extern int stm_nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 	size_t * retlen, const u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel)
 {
 	int result;
-QQQ_START
+
 	result = set_ecc_mode (mtd, to, len);
 	if (result != 0)
 	{
@@ -600,7 +587,7 @@ QQQ_START
 	{
 		result = nand_write_ecc (mtd, to, len, retlen, buf, eccbuf, oobsel);
 	}
-QQQ_END
+
 	return result;
 }
 
@@ -608,7 +595,7 @@ QQQ_END
 extern int stm_nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char *buf)
 {
 	int result;
-QQQ_START
+
 	result = set_ecc_mode (mtd, to, len);
 	if (result != 0)
 	{
@@ -618,7 +605,7 @@ QQQ_START
 	{
 		result = nand_write_oob (mtd, to, len, retlen, buf);
 	}
-QQQ_END
+
 	return result;
 }
 
@@ -787,7 +774,7 @@ extern void stm_flex_select_chip(
 #ifdef CFG_NAND_FLEX_CSn_MAP
 		csn                = csn_map[csn];		/* Re-map to different CSn if needed */
 #endif	/* CFG_NAND_FLEX_CSn_MAP */
-#if DEBUG_FLEX || 1	/* QQQ, remove unconditional aspect  */
+#if DEBUG_FLEX
 		printf("info: stm_nand_flex_device.csn = %u\n", csn);
 #endif
 

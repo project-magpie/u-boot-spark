@@ -1,4 +1,3 @@
-#define D { printf("QQQ: got to %s() %s:%u\n", __FUNCTION__, __FILE__, __LINE__); }
 /*
  * (C) Copyright 2006 DENX Software Engineering
  * (C) Copyright 2008-2009 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
@@ -45,7 +44,7 @@ static void mb680_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 {
 	struct nand_chip* this = (struct nand_chip *)(mtdinfo->priv);
 
-D	switch(cmd) {
+	switch(cmd) {
 
 	case NAND_CTL_SETCLE:
 		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W | (1u << 17));
@@ -75,7 +74,7 @@ D	switch(cmd) {
 static int mb680_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
-D	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
+	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
 }
 #endif /* CFG_NAND_FLEX_MODE */
 

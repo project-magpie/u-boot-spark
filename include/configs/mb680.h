@@ -1,4 +1,3 @@
-#define CONFIG_CMD_BDI_DUMP_EMI_BANKS	/* QQQ - DELETE */
 /*
  * (C) Copyright 2008-2009 STMicroelectronics.
  *

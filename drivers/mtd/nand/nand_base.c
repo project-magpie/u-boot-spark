@@ -1,11 +1,3 @@
-extern volatile int sean_qqq;			/* QQQ - DELETE */
-#define QQQ_TEST	{ if (sean_qqq != 1)	/* QQQ - DELETE */			\
-				printf("WARNING!!! unexpected entry in %s() %s:%u\n",	\
-					__FUNCTION__,					\
-					__FILE__,					\
-					__LINE__);					\
-			}
-
 /*
  *  drivers/mtd/nand.c
  *
@@ -545,6 +537,11 @@ static void nand_command (struct mtd_info *mtd, unsigned command, int column, in
 {
 	register struct nand_chip *this = mtd->priv;
 
+#if 0									/* QQQ - DELETE */
+	printf("QQQ: %s( command=0x%02x,  column=0x%x,  page=0x%x\n",	/* QQQ - DELETE */
+		__FUNCTION__, command, column, page_addr);		/* QQQ - DELETE */
+#endif									/* QQQ - DELETE */
+
 	/* Begin command latch cycle */
 	this->hwcontrol(mtd, NAND_CTL_SETCLE);
 	/*
@@ -649,6 +646,11 @@ static void nand_command (struct mtd_info *mtd, unsigned command, int column, in
 static void nand_command_lp (struct mtd_info *mtd, unsigned command, int column, int page_addr)
 {
 	register struct nand_chip *this = mtd->priv;
+
+#if 0									/* QQQ - DELETE */
+	printf("QQQ: %s( command=0x%02x,  column=0x%x,  page=0x%x\n",	/* QQQ - DELETE */
+		__FUNCTION__, command, column, page_addr);		/* QQQ - DELETE */
+#endif									/* QQQ - DELETE */
 
 	/* Emulate NAND_CMD_READOOB */
 	if (command == NAND_CMD_READOOB) {
@@ -1096,7 +1098,6 @@ out:
 */
 static int nand_read (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf)
 {
-	QQQ_TEST	/* QQQ - DELETE */
 	return nand_read_ecc (mtd, from, len, retlen, buf, NULL, NULL);
 }
 
@@ -1130,7 +1131,6 @@ extern int nand_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
 	int	compareecc = 1;
 	int	oobreadlen;
 
-	QQQ_TEST	/* QQQ - DELETE */
 	DEBUG (MTD_DEBUG_LEVEL3, "nand_read_ecc: from = 0x%08x, len = %i\n", (unsigned int) from, (int) len);
 
 	/* Do not allow reads past end of device */
@@ -1388,7 +1388,6 @@ extern int nand_read_oob (struct mtd_info *mtd, loff_t from, size_t len, size_t 
 	struct nand_chip *this = mtd->priv;
 	int	blockcheck = (1 << (this->phys_erase_shift - this->page_shift)) - 1;
 
-	QQQ_TEST	/* QQQ - DELETE */
 	DEBUG (MTD_DEBUG_LEVEL3, "nand_read_oob: from = 0x%08x, len = %i\n", (unsigned int) from, (int) len);
 
 	/* Shift to get page */
@@ -1603,7 +1602,6 @@ static u_char * nand_prepare_oobbuf (struct mtd_info *mtd, u_char *fsbuf, struct
 */
 static int nand_write (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char * buf)
 {
-	QQQ_TEST	/* QQQ - DELETE */
 	return (nand_write_ecc (mtd, to, len, retlen, buf, NULL, NULL));
 }
 
@@ -1628,7 +1626,6 @@ extern int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 	u_char *oobbuf, *bufstart;
 	int	ppblock = (1 << (this->phys_erase_shift - this->page_shift));
 
-	QQQ_TEST	/* QQQ - DELETE */
 	DEBUG (MTD_DEBUG_LEVEL3, "nand_write_ecc: to = 0x%08x, len = %i\n", (unsigned int) to, (int) len);
 
 	/* Initialize retlen, in case of early exit */
@@ -1778,7 +1775,6 @@ extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t *
 	int column, page, status, ret = -EIO, chipnr;
 	struct nand_chip *this = mtd->priv;
 
-	QQQ_TEST	/* QQQ - DELETE */
 	DEBUG (MTD_DEBUG_LEVEL3, "nand_write_oob: to = 0x%08x, len = %i\n", (unsigned int) to, (int) len);
 
 	/* Shift to get page */
