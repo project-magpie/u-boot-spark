@@ -64,12 +64,20 @@ extern void nand_release (struct mtd_info *mtd);
 /* Read raw data from the device without ECC */
 extern int nand_read_raw (struct mtd_info *mtd, uint8_t *buf, loff_t from, size_t len, size_t ooblen);
 
+/* read/write with ECC functions */
+extern int nand_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
+			  size_t * retlen, u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel);
+extern int nand_read_oob (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf);
+extern int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
+			   size_t * retlen, const u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel);
+extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char *buf);
 
 /* This constant declares the max. oobsize / page, which
  * is supported now. If you add a chip with bigger oobsize/page
  * adjust this accordingly.
  */
 #define NAND_MAX_OOBSIZE	64
+#define NAND_MAX_PAGESIZE	2048
 
 /*
  * Constants for hardware specific CLE/ALE/NCE function
@@ -135,6 +143,8 @@ extern int nand_read_raw (struct mtd_info *mtd, uint8_t *buf, loff_t from, size_
 #define NAND_ECC_HW8_512	6
 /* Hardware ECC 12 byte ECC per 2048 Byte data */
 #define NAND_ECC_HW12_2048	7
+/* Hardware ECC 3 byte ECC per 128 Byte data */
+#define NAND_ECC_HW3_128	8
 
 /*
  * Constants for Hardware ECC

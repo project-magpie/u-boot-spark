@@ -49,20 +49,14 @@
  * Assume we run out of uncached memory for the moment
  */
 
-#ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
-		/*
-		 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
-		 * If so, then who takes responsibility for this???
-		 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
-		 * Should U-Boot read SW8(1) on the MB705, and do something?
-		 */
+#ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSC with JE2 */
 #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
+#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (32MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
-#else		/* else, do *NOT* swap CSA and CSB in EPLD */
+#else		/* else, do *NOT* swap CSA and CSC using JE2 */
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
-#define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
+#define CFG_EMI_NAND_BASE	0xA6000000	/* CSC: NAND Flash, Physical 0x06000000 (8MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 2 }		/* NAND is on Chip Select CSC */
 #endif /* CFG_BOOT_FROM_NAND */
 
 #ifdef CONFIG_SH_SE_MODE
@@ -93,18 +87,12 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD mb680
+#define BOARD pdk7105
 
-#if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
+#if CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
-#elif CFG_MONITOR_LEN == 0x00010000		/* 64 KiB */
-#	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
-#elif CFG_MONITOR_LEN == 0x00018000		/* 96 KiB */
-#	define MONITOR_SECTORS	"1:0-2"		/* 3 sectors */
-#elif CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
-#	define MONITOR_SECTORS	"1:0-3"		/* 4 sectors */
 #elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
-#	define MONITOR_SECTORS	"1:0-4"		/* 5 sectors */
+#	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
 #else						/* unknown */
 #	error "Unable to determine sectors for monitor"
 #endif
@@ -152,8 +140,10 @@
 
 /* choose which ST ASC UART to use */
 #if 1
+	/* 9-pin D-type connector on STi7105-SDK-SB daughter board */
 #	define CFG_STM_ASC_BASE		0xfd032000ul	/* UART2 = AS0 */
 #else
+	/* JN5, 6-way connector - QQQ NOT TESTED */
 #	define CFG_STM_ASC_BASE		0xfd033000ul	/* UART3 = AS1 */
 #endif
 
@@ -164,8 +154,8 @@
 /*
  * There are 2 options for ethernet, both use the on-chip ST-GMAC.
  * The choice in PHYs are:
- *    The on-board Nat Semi DP83865
- *    External PHY connected via the MII off-board connector.
+ *    The on-board Micrel KSZ8041FTL
+ *    External PHY connected via the MII off-board 15x2 header.
  */
 
 /* are we using the internal ST GMAC device ? */
@@ -176,8 +166,10 @@
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC_BASE	 0xfd110000ul	/* MAC = STM GMAC0 */
-#	define CONFIG_STMAC_DP83865			/* PHY = NS DP83865 */
+#	define CFG_STM_STMAC_BASE	0xfd110000ul	/* MAC = STM GMAC0 */
+#	define CONFIG_STMAC_KSZ8041FTL			/* PHY = Micrel KSZ8041FTL */
+#else
+#	undef CONFIG_CMD_NET		/* undefine if no networking at all */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user
@@ -199,8 +191,8 @@
 #	define CONFIG_USB_OHCI_NEW
 #	define CONFIG_USB_STORAGE
 #	define CFG_USB_OHCI_CPU_INIT
-#	define CFG_USB0_BASE			0xfe100000	/* upper */
-#	define CFG_USB1_BASE			0xfea00000	/* lower */
+#	define CFG_USB0_BASE			0xfe100000	/* rear (adjacent to RJ-45) */
+#	define CFG_USB1_BASE			0xfea00000	/* front (near corner) */
 #	define CFG_USB_BASE			CFG_USB0_BASE
 #	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
@@ -226,7 +218,7 @@
 #define CFG_HUSH_PARSER		1
 #define CFG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"MB680> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"PDK7105> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
@@ -244,7 +236,7 @@
  */
 
 /* Choose if we want FLASH Support (NAND &/or NOR devices)
- * With the MB680 + MB705 combination, we may use *both*
+ * With the PDK7105 combination, we may use *both*
  * NOR and NAND flash, at the same time, if we want.
  *
  * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
@@ -257,14 +249,14 @@
  * NOR FLASH organization
  */
 
-/* M58LT256: 32MiB 259 blocks, 128 KiB block size */
+/* S29GL01GP: 128MiB, 1024 blocks * 128KiB block size */
 #ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
 #	define CFG_FLASH_CFI_DRIVER
 #	define CFG_FLASH_CFI
 #	define CONFIG_FLASH_PROTECT_SINGLE_CELL
 #	define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/
 #	define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
-#	define CFG_MAX_FLASH_SECT	259	/* max number of sectors on one chip	*/
+#	define CFG_MAX_FLASH_SECT	1024	/* max number of sectors on one chip	*/
 #	define CFG_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
 #	define MTDPARTS_NOR						\
 	"physmap-flash:"	/* First NOR flash device */		\
@@ -283,7 +275,7 @@
  * NAND FLASH organization
  */
 
-/* NAND512W3A: 64MiB  8-bit, 4096 Blocks (16KiB+512B) of 32 Pages (512+16) */
+/* HY27UH08AG5B : 2GiB  8-bit, 16384 Blocks (128KiB+4KiB) of 64 Pages (2048+64) */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CFG_MAX_NAND_DEVICE	1
 #	define NAND_MAX_CHIPS		CFG_MAX_NAND_DEVICE

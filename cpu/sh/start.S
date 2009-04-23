@@ -71,6 +71,31 @@ disable_watchdog:
 	MOV_CONST16_R0 0xA500	/* WTCSR.TME=0 */
 	mov.w   r0, @r1
 
+
+	/*
+	 * If were are going to boot U-boot from NAND flash, then
+	 * we need add a special "signature" pattern in the first
+	 * logical block (block zero).
+	 */
+#ifdef CFG_BOOT_FROM_NAND
+skip_signature:
+	bra	skipped_signature	/* skip over the "block 0 signature" */
+	 nop
+
+	/*
+	 * Write out the 64-byte preamble signature pattern, to identify
+	 * the current NAND flash block, as the good "logical block ZERO".
+	 * This signature must start at offset +0x0080 in the block.
+	 */
+	.balign 0x80, 0x00		/* starts 128 bytes into "Block Zero" */
+preamble_signature_pattern:
+	bytes 0x00 0x3f			/* 64-bytes: 0x00, 0x01, ..., 0x3f */
+
+skipped_signature:
+					/* resume from here */
+#endif	/* CFG_BOOT_FROM_NAND */
+
+
 	/*
 	 * Determine if we are in the correct location ? (i.e. RAM)
 	 *  r8 == 1 in RAM, assume initialization already done by GDB.
@@ -147,12 +172,37 @@ set_pmb:
 	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	#endif
+	#ifdef CFG_BOOT_FROM_NAND /* booting from NAND, so CSA and CSB swapped in EPLD */
+	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NAND FLASH UN-cached */
+	SH4_SET_PMB 5 0xa4 0x04  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 6 0xa5 0x05  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 7 0xa8 0x04  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB 8 0xa9 0x05  16		/* NOR FLASH CACHED */
+	#else	/* else, CSA and CSB are not swapped in EPLD */
 	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 6 0xa4 0x04  16 0 0 1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 7 0xa8 0x00  16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8 0xa9 0x01  16		/* NOR FLASH CACHED */
+	#endif	/* CFG_BOOT_FROM_NAND */
 	SH4_SET_PMB 9 0xb7 0x07  16 0 0 1	/* EPLD UN-cached */
+#elif defined(CONFIG_SH_STX7105) && defined(CONFIG_SH_PDK7105)
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
+	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
+	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
+	#endif
+	SH4_SET_PMB  4 0xa0 0x00  64 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB  5 0xa4 0x04  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB  6 0xa5 0x05  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB  7 0xa6 0x06  16 0 0 1	/* NAND + CI UN-cached */
+	SH4_SET_PMB  8 0xa7 0x07  16 0 0 1	/* PCI UN-cached */
+	SH4_SET_PMB  9 0xa8 0x00  64		/* NOR FLASH CACHED */
+	SH4_SET_PMB 10 0xac 0x04  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB 11 0xad 0x05  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB 12 0xae 0x06  16		/* NAND + CI CACHED */
+	SH4_SET_PMB 13 0xaf 0x07  16		/* PCI CACHED */
 #elif defined(CONFIG_SH_STX7111) && defined(CONFIG_SH_MB618)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI UN-cached */
