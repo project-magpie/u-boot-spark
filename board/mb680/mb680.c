@@ -110,6 +110,21 @@ static int mb680_init_epld(void)
 	return 0;
 }
 
+#ifdef CONFIG_STMAC_LAN8700
+static void phy_reset(void)
+{
+	/* Reset the SMSC LAN8700 PHY */
+	STPIO_SET_PIN(PIO_PORT(5), 5, 1);
+	STPIO_SET_PIN(PIO_PORT(11), 2, 1);
+	udelay(1);
+	STPIO_SET_PIN(PIO_PORT(5), 5, 0);
+	udelay(100);
+	STPIO_SET_PIN(PIO_PORT(5), 5, 1);
+	udelay(1);
+	STPIO_SET_PIN(PIO_PORT(11), 2, 0);
+}
+#endif	/* CONFIG_STMAC_LAN8700 */
+
 static void configPIO(void)
 {
 	unsigned long sysconf;
@@ -144,11 +159,22 @@ static void configPIO(void)
 	sysconf &= ~0x0f0ful;	/* 3,3,3,3 */
 	sysconf |=  0x000ful;	/* 1,1,1,1 */
 	*STX7105_SYSCONF_SYS_CFG35 = sysconf;
+
+#ifdef CONFIG_STMAC_LAN8700
+	/* Configure SMSC LAN8700 PHY Reset signals */
+	SET_PIO_PIN(PIO_PORT(5), 5, STPIO_OUT);
+	SET_PIO_PIN(PIO_PORT(11), 2, STPIO_OUT);
+#endif	/* CONFIG_STMAC_LAN8700 */
 }
 
 extern int board_init(void)
 {
 	configPIO();
+
+	/* Reset the PHY */
+#ifdef CONFIG_STMAC_LAN8700
+	phy_reset();
+#endif	/* CONFIG_STMAC_LAN8700 */
 
 	return 0;
 }

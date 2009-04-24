@@ -123,8 +123,8 @@ static void stmac_eth_hw_setup( int reverse_mii, int rmii_mode, int mode,
 	sysconf &= ~(0xf0f0ul);	/* Mask=3,3,3,3 */
 	sysconf |=   0x0000ul;	/* OR  =0,0,0,0 */
 	*STX7105_SYSCONF_SYS_CFG37 = sysconf;
-	SET_PIO_PIN(PIO_PORT(7), 4, STPIO_ALT_BIDIR);
-	SET_PIO_PIN(PIO_PORT(7), 5, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(7), 4, STPIO_IN);
+	SET_PIO_PIN(PIO_PORT(7), 5, STPIO_IN);
 	SET_PIO_PIN(PIO_PORT(7), 6, STPIO_ALT_OUT);
 	SET_PIO_PIN(PIO_PORT(7), 7, STPIO_ALT_OUT);
 
@@ -145,9 +145,9 @@ static void stmac_eth_hw_setup( int reverse_mii, int rmii_mode, int mode,
 	SET_PIO_PIN(PIO_PORT(8), 2, STPIO_ALT_OUT);
 	SET_PIO_PIN(PIO_PORT(8), 3, STPIO_ALT_BIDIR);
 	SET_PIO_PIN(PIO_PORT(8), 4, STPIO_ALT_OUT);
-	SET_PIO_PIN(PIO_PORT(8), 5, STPIO_ALT_BIDIR);
-	SET_PIO_PIN(PIO_PORT(8), 6, STPIO_ALT_BIDIR);
-	SET_PIO_PIN(PIO_PORT(8), 7, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(8), 5, STPIO_IN);
+	SET_PIO_PIN(PIO_PORT(8), 6, STPIO_IN);
+	SET_PIO_PIN(PIO_PORT(8), 7, STPIO_IN);
 
 	/* PIO9[0] CFG47[8+0,0] = Alternate1 = MIIRXD[2] */
 	/* PIO9[1] CFG47[8+1,1] = Alternate1 = MIIRXD[3] */
@@ -160,11 +160,11 @@ static void stmac_eth_hw_setup( int reverse_mii, int rmii_mode, int mode,
 	sysconf &= ~(0x7f7ful);	/* Mask=3,3,3,3,3,3,3 */
 	sysconf |=   0x0000ul;	/* OR  =0,0,0,0,0,0,0 */
 	*STX7105_SYSCONF_SYS_CFG47 = sysconf;
-	SET_PIO_PIN(PIO_PORT(9), 0, STPIO_ALT_BIDIR);
-	SET_PIO_PIN(PIO_PORT(9), 1, STPIO_ALT_BIDIR);
-	SET_PIO_PIN(PIO_PORT(9), 2, STPIO_ALT_BIDIR);
-	SET_PIO_PIN(PIO_PORT(9), 3, STPIO_ALT_BIDIR);
-	SET_PIO_PIN(PIO_PORT(9), 4, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(9), 0, STPIO_IN);
+	SET_PIO_PIN(PIO_PORT(9), 1, STPIO_IN);
+	SET_PIO_PIN(PIO_PORT(9), 2, STPIO_IN);
+	SET_PIO_PIN(PIO_PORT(9), 3, STPIO_IN);
+	SET_PIO_PIN(PIO_PORT(9), 4, STPIO_IN);
 	/* MIIPHYCLK */
 	/* Not implemented in cut 1 (DDTS GNBvd69906) - clock never output */
 	/* In cut 2 PIO direction used to control input or output. */
@@ -172,7 +172,7 @@ static void stmac_eth_hw_setup( int reverse_mii, int rmii_mode, int mode,
 		SET_PIO_PIN(PIO_PORT(9), 5, STPIO_IN);
 	else
 		SET_PIO_PIN(PIO_PORT(9), 5, STPIO_ALT_OUT);
-	SET_PIO_PIN(PIO_PORT(9), 6, STPIO_ALT_BIDIR);
+	SET_PIO_PIN(PIO_PORT(9), 6, STPIO_IN);
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
@@ -184,7 +184,7 @@ int soc_init(void)
 	stx7105_clocks();
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-	stmac_eth_hw_setup (0, 0, 0, 1, 0, 0);
+	stmac_eth_hw_setup (0, 0, 0, 0, 1, 0);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 	bd->bi_devid = *STX7105_SYSCONF_DEVICEID_0;

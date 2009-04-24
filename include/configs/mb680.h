@@ -162,9 +162,10 @@
  */
 
 /*
- * There are 2 options for ethernet, both use the on-chip ST-GMAC.
+ * There are 3 options for ethernet, all use the on-chip ST-GMAC.
  * The choice in PHYs are:
- *    The on-board Nat Semi DP83865
+ *    The on-board Nat Semi DP83865	(only on Rev A, B)
+ *    The on-board SMSC LAN8700		(only on Rev C)		(NOW the DEFAULT)
  *    External PHY connected via the MII off-board connector.
  */
 
@@ -177,7 +178,11 @@
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #	define CFG_STM_STMAC_BASE	 0xfd110000ul	/* MAC = STM GMAC0 */
-#	define CONFIG_STMAC_DP83865			/* PHY = NS DP83865 */
+#if 0							/* Choose NS or SMSC PHY */
+#	define CONFIG_STMAC_DP83865	/* Rev A,B */	/* PHY = NS DP83865 */
+#else
+#	define CONFIG_STMAC_LAN8700	/* Rev C */	/* PHY = SMSC LAN8700 */
+#endif
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user
