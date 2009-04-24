@@ -189,10 +189,15 @@ int soc_init(void)
 
 	bd->bi_devid = *STX7105_SYSCONF_DEVICEID_0;
 
-#if QQQ	/* QQQ - TO FIX */
-	/*  Make sure reset period is shorter than WDT timeout */
-	*STX7105_SYSCONF_SYS_CFG09 = (*STX7105_SYSCONF_SYS_CFG09 & 0xFF000000) | 0x000A8C;
-#endif	/* QQQ - TO FIX */
+	/*
+	 * Make sure the reset period is shorter than WDT time-out,
+	 * and that the reset loop-back chain is *not* bypassed.
+	 *	SYS_CFG09[29]    = long_reset_mode
+	 *	SYS_CFG09[28:27] = cpu_rst_out_bypass(1:0)
+	 *	SYS_CFG09[25:0]  = ResetOut_period
+	 */
+//QQQ	*STX7105_SYSCONF_SYS_CFG09 = (*STX7105_SYSCONF_SYS_CFG09 & 0xF7000000) | 0x000A8C;
+	*STX7105_SYSCONF_SYS_CFG09 = (*STX7105_SYSCONF_SYS_CFG09 & 0xF4000000ul) | 0x000A8Cul;
 
 	return 0;
 }
