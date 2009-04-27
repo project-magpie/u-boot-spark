@@ -53,9 +53,9 @@ __memory_setup_table:
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
 #if 1
-#include "romgen-mb680-stx7105c2.S"	/* for STx7105 cut 2.x */
+#include "mb680-stx7105c2.romgen"	/* for STx7105 cut 2.x */
 #else
-#include "romgen-mb680-stx7105c1.S"	/* for STx7105 cut 1.x */
+#include "mb680-stx7105c1.romgen"	/* for STx7105 cut 1.x */
 #endif
 
 #ifdef CONFIG_SH_SE_MODE
