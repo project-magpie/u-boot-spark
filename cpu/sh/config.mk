@@ -22,3 +22,5 @@
 #
 
 PLATFORM_CPPFLAGS += -m4 -m4-nofpu -U__sh3__
+
+LDSCRIPT := $(SRCTREE)/cpu/$(CPU)/u-boot.lds

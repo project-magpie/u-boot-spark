@@ -1,4 +1,8 @@
 /*
+ * (C) Copyright 2007 STMicroelectronics.
+ *
+ * Stuart Menefy <stuart.menefy@st.com>
+ *
  * (C) Copyright 2004 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
