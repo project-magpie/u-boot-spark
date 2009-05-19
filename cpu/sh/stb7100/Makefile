@@ -23,21 +23,25 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= lib$(SOC).a
+LIB	= $(obj)lib$(SOC).a
 
-OBJS	= stb7100.o
+COBJS	= stb7100.o
 SOBJS	=
 
-all:	.depend $(LIB)
+SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))
+START	:= $(addprefix $(obj),$(START))
 
-$(LIB):	$(SOBJS) $(OBJS)
-	$(AR) crv $@ $(SOBJS) $(OBJS)
+all:	$(obj).depend $(LIB)
+
+$(LIB):	$(OBJS)
+	$(AR) $(ARFLAGS) $@ $(OBJS)
 
 #########################################################################
 
-.depend:	Makefile $(SOBJS:.o=.S) $(OBJS:.o=.c)
-		$(CC) -M $(CFLAGS) $(SOBJS:.o=.S) $(OBJS:.o=.c) > $@
+# defines $(obj).depend target
+include $(SRCTREE)/rules.mk
 
-sinclude .depend
+sinclude $(obj).depend
 
 #########################################################################
