@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 STMicroelectronics Limited
+ * Copyright (C) 2007-2009 STMicroelectronics Limited
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -33,6 +33,8 @@
 
 #if defined(CONFIG_SH_STB7100)
 extern void stb7100_usb_init(void);
+#elif defined(CONFIG_SH_STX5197)
+extern void stx5197_usb_init(void);
 #elif defined(CONFIG_SH_STX7105)
 extern void stx7105_usb_init(void);
 #elif defined(CONFIG_SH_STX7111)
@@ -51,6 +53,8 @@ extern int usb_cpu_init(void)
 {
 #if defined(CONFIG_SH_STB7100)
 	stb7100_usb_init();
+#elif defined(CONFIG_SH_STX5197)
+	stx5197_usb_init();
 #elif defined(CONFIG_SH_STX7105)
 	stx7105_usb_init();
 #elif defined(CONFIG_SH_STX7111)

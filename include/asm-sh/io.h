@@ -59,6 +59,7 @@
        defined(CONFIG_SH_MB628)		|| \
        defined(CONFIG_SH_MB671)		|| \
        defined(CONFIG_SH_MB680)		|| \
+       defined(CONFIG_SH_MB704)		|| \
        defined(CONFIG_SH_PDK7105)	|| \
        defined(CONFIG_SH_CB101)		|| \
        defined(CONFIG_SH_CB102)

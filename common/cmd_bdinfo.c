@@ -280,19 +280,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 #elif defined(CONFIG_SH4)
 
-#if defined(CONFIG_SH_STB7100)
-#include <asm/stb7100reg.h>
-#elif defined(CONFIG_SH_STX7105)
-#include <asm/stx7105reg.h>
-#elif defined(CONFIG_SH_STX7111)
-#include <asm/stx7111reg.h>
-#elif defined(CONFIG_SH_STX7141)
-#include <asm/stx7141reg.h>
-#elif defined(CONFIG_SH_STX7200)
-#include <asm/stx7200reg.h>
-#else
-#error Missing Device Definitions!
-#endif
+#include "asm/socregs.h"
 
 int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
@@ -311,9 +299,11 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	print_num ("boot_params",	(ulong)bd->bi_boot_params);
 	print_num ("memstart",		(ulong)bd->bi_memstart);
 	print_mem ("memsize",		(ulong)bd->bi_memsize);
+#ifndef CFG_NO_FLASH
 	print_num ("flashstart",	(ulong)bd->bi_flashstart);
 	print_mem ("flashsize",		(ulong)bd->bi_flashsize);
 	print_num ("flashoffset",	(ulong)bd->bi_flashoffset);
+#endif /* CFG_NO_FLASH */
 
 #if defined(CONFIG_CMD_NET)
 	puts ("ethaddr     =");
@@ -330,6 +320,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		printf ("\nSTb7109 version %ld.x", STB7100_DEVICEID_CUT(bd->bi_devid));
 	else if (STB7100_DEVICEID_7100(bd->bi_devid))
 		printf ("\nSTb7100 version %ld.x", STB7100_DEVICEID_CUT(bd->bi_devid));
+#elif defined(CONFIG_SH_STX5197)
+	if (STX5197_DEVICEID_5197(bd->bi_devid))
+		printf ("\nSTx5197 version %ld.x", STX5197_DEVICEID_CUT(bd->bi_devid));
 #elif defined(CONFIG_SH_STX7105)
 	if (STX7105_DEVICEID_7105(bd->bi_devid))
 		printf ("\nSTx7105 version %ld.x", STX7105_DEVICEID_CUT(bd->bi_devid));

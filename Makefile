@@ -2759,6 +2759,17 @@ mb671se_config :		unconfig
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/mb671/config.tmp)
 	@./mkconfig -a mb671 sh sh mb671 "" stx7200
 
+mb704_config \
+mb704se_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STX5197   1" >>include/config.h
+	@echo "#define CONFIG_SH_MB704     1" >>include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/mb704/config.tmp)
+	@./mkconfig -a mb704 sh sh mb704 "" stx5197
+
 mb680_config \
 mb680se_config :		unconfig
 	@ >include/config.h

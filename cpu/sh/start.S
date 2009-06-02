@@ -29,20 +29,7 @@
 #include "asm/sh4reg.h"
 #include "asm/asmdefs.h"
 #include "asm/pmb.h"
-
-#if defined(CONFIG_SH_STB7100)
-#include <asm/stb7100reg.h>
-#elif defined(CONFIG_SH_STX7105)
-#include <asm/stx7105reg.h>
-#elif defined(CONFIG_SH_STX7111)
-#include <asm/stx7111reg.h>
-#elif defined(CONFIG_SH_STX7141)
-#include <asm/stx7141reg.h>
-#elif defined(CONFIG_SH_STX7200)
-#include <asm/stx7200reg.h>
-#else
-#error Missing Device Definitions!
-#endif
+#include "asm/socregs.h"
 
 
 	.global _start
@@ -165,6 +152,9 @@ set_pmb:
 	SH4_SET_PMB 6 0xb2 0x02  16 0 0 1	/* OFF-chip  Peripherals UN-cached */
 	SH4_SET_PMB 7 0xb8 0x18  64 0 0 1	/* ON-chip   Peripherals UN-cached */
 	SH4_SET_PMB 8 0xbc 0x1c  64 0 0 1	/* ST40 core Peripherals UN-cached */
+#elif defined(CONFIG_SH_STX5197) && defined(CONFIG_SH_MB704)
+	SH4_SET_PMB 0 0x80 0x40  64 0 0 1	/* LMI-Sys UN-cached */
+	SH4_SET_PMB 2 0x90 0x40  64 0 0 1	/* LMI-Sys UN-cached */
 #elif defined(CONFIG_SH_STX7105) && defined(CONFIG_SH_MB680)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */

@@ -1,7 +1,6 @@
 #
-# (C) Copyright 2004-2009
-# Andy Sturges, STMicroelectronics, andy.sturges@st.com
-# Sean McGoogan STMicroelectronics, <Sean.McGoogan@st.com>
+# (C) Copyright 2009 STMicroelectronics.
+# Sean McGoogan <Sean.McGoogan@st.com>
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -22,12 +21,23 @@
 # MA 02111-1307 USA
 #
 
-# Update this for each release.
-# The SPEC file will automatically substitute the date
-# for actual build number, in the following identifier.
-# Regular Expression for string is:
-# 	"stm[2-9][0-9]-[2-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]"
-SH_IDENT_STRING="\"stm23-2009-06-02\""
+include $(TOPDIR)/config.mk
 
-PLATFORM_CPPFLAGS += -DCONFIG_SH4 -D__SH4__ -DCONFIG_IDENT_STRING=$(SH_IDENT_STRING)
-PLATFORM_LDFLAGS  += -n
+LIB	= lib$(SOC).a
+
+OBJS	= stx5197.o spi.o
+SOBJS	=
+
+all:	.depend $(LIB)
+
+$(LIB):	$(SOBJS) $(OBJS)
+	$(AR) crv $@ $(SOBJS) $(OBJS)
+
+#########################################################################
+
+.depend:	Makefile $(SOBJS:.o=.S) $(OBJS:.o=.c)
+		$(CC) -M $(CFLAGS) $(SOBJS:.o=.S) $(OBJS:.o=.c) > $@
+
+sinclude .depend
+
+#########################################################################

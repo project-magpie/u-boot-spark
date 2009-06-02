@@ -1,7 +1,8 @@
 /*
- * (C) Copyright 2004 STMicroelectronics.
+ * (C) Copyright 2004-2009 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -33,19 +34,10 @@
 #if defined(CONFIG_CMD_NAND)
 #include <nand.h>
 #endif
-#if defined(CONFIG_SH_STB7100)
-#include <asm/stb7100reg.h>
-#elif defined(CONFIG_SH_STX7105)
-#include <asm/stx7105reg.h>
-#elif defined(CONFIG_SH_STX7111)
-#include <asm/stx7111reg.h>
-#elif defined(CONFIG_SH_STX7141)
-#include <asm/stx7141reg.h>
-#elif defined(CONFIG_SH_STX7200)
-#include <asm/stx7200reg.h>
-#else
-#error Missing Device Definitions!
+#if defined(CONFIG_SPI)
+#include <spi.h>
 #endif
+#include <asm/socregs.h>
 #include <asm/st40reg.h>
 
 extern ulong _uboot_end_data;
@@ -231,15 +223,15 @@ void start_sh4boot (void)
 	bd->bi_memstart = CFG_SDRAM_BASE;	/* start of  DRAM memory */
 	bd->bi_memsize = gd->ram_size;	/* size  of  DRAM memory in bytes */
 	bd->bi_baudrate = gd->baudrate;	/* Console Baudrate */
-	bd->bi_flashstart = CFG_FLASH_BASE;
 #ifndef CFG_NO_FLASH
+	bd->bi_flashstart = CFG_FLASH_BASE;
 	bd->bi_flashsize = size;
-#endif /* CFG_NO_FLASH */
 #if CFG_MONITOR_BASE == CFG_FLASH_BASE
 	bd->bi_flashoffset = monitor_flash_len;	/* reserved area for U-Boot */
 #else
 	bd->bi_flashoffset = 0;
 #endif
+#endif /* CFG_NO_FLASH */
 
 	/* initialize malloc() area */
 	mem_malloc_init ();
@@ -248,6 +240,12 @@ void start_sh4boot (void)
 	puts ("NAND:  ");
 	nand_init();		/* go init the NAND */
 #endif
+
+#if defined(CONFIG_SPI)
+	/* QQQ: need to move this if we want environment in SPI flash */
+	spi_init();		/* go init the SPI */
+#endif	/* defined(CONFIG_SPI) */
+
 
 	/* Allocate environment function pointers etc. */
 	env_relocate ();

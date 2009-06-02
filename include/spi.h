@@ -1,6 +1,7 @@
 /*
  * (C) Copyright 2001
  * Gerald Van Baren, Custom IDEAS, vanbaren@cideas.com.
+ * (C) Copyright 2009 STMicroelectronics. Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -69,5 +70,12 @@ void spi_init(void);
  *   Returns: 0 on success, not 0 on failure
  */
 int  spi_xfer(spi_chipsel_type chipsel, int bitlen, uchar *dout, uchar *din);
+
+/*
+ * External table of chip select functions (see the appropriate board
+ * support for the actual definition of the table).
+ */
+extern spi_chipsel_type spi_chipsel[];
+extern int spi_chipsel_cnt;
 
 #endif	/* _SPI_H_ */
