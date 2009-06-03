@@ -678,12 +678,14 @@ LIST_sh="		\
 	mb618se		\
 	mb671		\
 	mb671se		\
-	mb704		\
-	mb704se		\
 	mb680		\
 	mb680se		\
 	pdk7105		\
 	pdk7105se	\
+	mb704		\
+	mb704se		\
+	5197cab		\
+	5197cabse	\
 	cb101		\
 	cb101se		\
 	cb102		\

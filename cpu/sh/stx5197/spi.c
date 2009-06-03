@@ -438,7 +438,10 @@ static int spi_probe_serial_flash(void)
 		(devid[2] != 0x20u)	||	/* Memory Type */
 		(				/* Memory Capacity */
 			(devid[3] != 0x14u) &&	/* M25P80 */
-			(devid[3] != 0x16u)	/* M25P32 */
+			(devid[3] != 0x15u) &&	/* M25P16 */
+			(devid[3] != 0x16u) &&	/* M25P32 */
+			(devid[3] != 0x17u) &&	/* M25P64 */
+			(devid[3] != 0x18u)	/* M25P128 */
 		)
 	   )
 	{
@@ -447,16 +450,32 @@ static int spi_probe_serial_flash(void)
 		return -1;
 	}
 	pageSize = 256u;
-	eraseSize = 1u<<16;			/* 64KiB, 256 pages/sector */
+	eraseSize = 64u<<10;			/* 64KiB, 256 pages/sector */
 	if (devid[3] == 0x14u)
 	{
-		deviceSize = 1 << 20;		/* 8 Mbit == 1 MiB */
 		deviceName = "ST M25P80";
+		deviceSize = 1 << 20;		/* 8 Mbit == 1 MiB */
+	}
+	else if (devid[3] == 0x15u)
+	{
+		deviceName = "ST M25P16";
+		deviceSize = 2 << 20;		/* 16 Mbit == 2 MiB */
 	}
 	else if (devid[3] == 0x16u)
 	{
-		deviceSize = 4 << 20;		/* 32 Mbit == 4 MiB */
 		deviceName = "ST M25P32";
+		deviceSize = 4 << 20;		/* 32 Mbit == 4 MiB */
+	}
+	else if (devid[3] == 0x17u)
+	{
+		deviceName = "ST M25P64";
+		deviceSize = 8 << 20;		/* 64 Mbit == 8 MiB */
+	}
+	else if (devid[3] == 0x18u)
+	{
+		deviceName = "ST M25P128";
+		deviceSize = 16 << 20;		/* 128 Mbit == 16 MiB */
+		eraseSize = 256u<<10;		/* 256KiB, 1024 pages/sector */
 	}
 
 #else
@@ -736,7 +755,7 @@ static void my_spi_write(
 	size_t i;
 	unsigned page;
 	const uchar * ptr;
-	unsigned char buff[0x10000];	/* 64KiB sector size */
+	unsigned char buff[256<<10];	/* maximum of 256 KiB erase size */
 	unsigned char enable[1] = { OP_WREN };
 	unsigned char erase[4] = {
 		OP_SE,
