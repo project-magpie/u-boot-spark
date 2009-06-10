@@ -1,9 +1,9 @@
-#include "asm/stx7200reg.h"
-#include "../../cpu/sh/init_ram.S"
+#include "asm/stx7141reg.h"
+#include "../../../cpu/sh/init_ram.S"
 
 /*
  * This is derived from STMicroelectronics gnu toolchain example:
- *   sh-superh-elf/examples/os21/romdynamic/memory_mb671.S
+ *   sh-superh-elf/examples/os21/romdynamic/memory_mb628.S
  */
 
 /*
@@ -42,17 +42,17 @@ __memory_setup_table:
 	 * to an STMC2 (note: currently it must be version 2) and then
 	 * executing the following command (redirecting the output):
 	 *
-	 * host% romgen --target-connect --show-comment <stmc2>:cb103:st40
+	 * host% romgen --target-connect --show-comment <stmc2>:mb628:estb
 	 *
 	 * Where "<stmc2>" should be replaced with the IP address
-	 * (or the DNS name) of the STMC2 box.  Also the "cb103" should
+	 * (or the DNS name) of the STMC2 box.  Also the "mb628" should
 	 * substituted if you have a custom target-pack connect command.
 	 *
 	 * Note: The connect command used with "romgen", should connect
 	 * only in 29-bit mode - even if U-Boot will be built for 32-bit mode.
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
-#include "cb103.romgen"
+#include "mb628.romgen"
 
 #ifdef CONFIG_SH_SE_MODE
 	/*
@@ -60,12 +60,12 @@ __memory_setup_table:
 	 * their 32-bit SE mode locations as defined in the datasheet and change the
 	 * 'upper bound addresses' (in row attribute registers) for the LMIs.
 	 */
-	UPDATE_LONG(STX7200_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
-	UPDATE_LONG(STX7200_SYSCONF_SYS_CFG39, 0xFFFFFF00, 0x00000080)
-	POKE_LONG(ST40_LMI_SDRA0_0(0), 0x50001a00)
-	POKE_LONG(ST40_LMI_SDRA1_0(0), 0x50001a00)
-	POKE_LONG(ST40_LMI_SDRA0_0(1), 0x90001a00)
-	POKE_LONG(ST40_LMI_SDRA1_0(1), 0x90001a00)
+	UPDATE32(STX7141_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
+	UPDATE32(STX7141_SYSCONF_SYS_CFG39, 0xFFFFFF00, 0x00000080)
+	UPDATE32(ST40_LMI_SDRA0_0(0), 0x001FFFFF, 0x48000000)
+	UPDATE32(ST40_LMI_SDRA1_0(0), 0x001FFFFF, 0x48000000)
+	UPDATE32(ST40_LMI_SDRA0_0(1), 0x001FFFFF, 0x88000000)
+	UPDATE32(ST40_LMI_SDRA1_0(1), 0x001FFFFF, 0x88000000)
 #endif	/* CONFIG_SH_SE_MODE */
 
 	END_MARKER

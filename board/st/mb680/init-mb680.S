@@ -1,5 +1,5 @@
 #include "asm/stx7105reg.h"
-#include "../../cpu/sh/init_ram.S"
+#include "../../../cpu/sh/init_ram.S"
 
 /*
  * This is derived from STMicroelectronics gnu toolchain example:

@@ -1,9 +1,9 @@
-#include "asm/stx7105reg.h"
-#include "../../cpu/sh/init_ram.S"
+#include "asm/stx7200reg.h"
+#include "../../../cpu/sh/init_ram.S"
 
 /*
  * This is derived from STMicroelectronics gnu toolchain example:
- *   sh-superh-elf/examples/os21/romdynamic/memory_mb680.S
+ *   sh-superh-elf/examples/os21/romdynamic/memory_mb671.S
  */
 
 /*
@@ -42,30 +42,30 @@ __memory_setup_table:
 	 * to an STMC2 (note: currently it must be version 2) and then
 	 * executing the following command (redirecting the output):
 	 *
-	 * host% romgen --target-connect --show-comment <stmc2>:sdk7105:st40
+	 * host% romgen --target-connect --show-comment <stmc2>:mb671:st40
 	 *
 	 * Where "<stmc2>" should be replaced with the IP address
-	 * (or the DNS name) of the STMC2 box.  Also the "sdk7105" should
+	 * (or the DNS name) of the STMC2 box.  Also the "mb671" should
 	 * substituted if you have a custom target-pack connect command.
 	 *
 	 * Note: The connect command used with "romgen", should connect
 	 * only in 29-bit mode - even if U-Boot will be built for 32-bit mode.
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
-#include "pdk7105.romgen"
+#include "mb671.romgen"
 
 #ifdef CONFIG_SH_SE_MODE
 	/*
-	 * Note that we also manually need to move the LMI base addresses to
+	 * Note that we also manually need to move the LMI0 and LMI1 base addresses to
 	 * their 32-bit SE mode locations as defined in the datasheet and change the
 	 * 'upper bound addresses' (in row attribute registers) for the LMIs.
 	 */
-	UPDATE32(STX7105_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
-	/* Change LMI upper bound addresses
-	 * Upper LMI addr=0x40000000 + 512MiB=0x60000000
-	 */
-	UPDATE32(ST40_LMI_SDRA0_0(), 0x001FFFFF, 0x60000000)
-	UPDATE32(ST40_LMI_SDRA1_0(), 0x001FFFFF, 0x60000000)
+	UPDATE_LONG(STX7200_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
+	UPDATE_LONG(STX7200_SYSCONF_SYS_CFG39, 0xFFFFFF00, 0x00000080)
+	POKE_LONG(ST40_LMI_SDRA0_0(0), 0x50001a00)
+	POKE_LONG(ST40_LMI_SDRA1_0(0), 0x50001a00)
+	POKE_LONG(ST40_LMI_SDRA0_0(1), 0x90001a00)
+	POKE_LONG(ST40_LMI_SDRA1_0(1), 0x90001a00)
 #endif	/* CONFIG_SH_SE_MODE */
 
 	END_MARKER
