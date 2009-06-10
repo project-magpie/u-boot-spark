@@ -184,7 +184,11 @@ int soc_init(void)
 	stx7105_clocks();
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
+#ifdef CONFIG_SYS_STM_GMAC_NOT_EXT_CLK
+	stmac_eth_hw_setup (0, 0, 0, 0, 0, 0);
+#else
 	stmac_eth_hw_setup (0, 0, 0, 0, 1, 0);
+#endif
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 	bd->bi_devid = *STX7105_SYSCONF_DEVICEID_0;
