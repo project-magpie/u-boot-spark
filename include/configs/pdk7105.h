@@ -34,7 +34,7 @@
 #define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 
 /* This should really be replaced with something which uses bd->...	*/
-#define P_CLOCK_RATE	87500000	/* clock rate for CSP		*/
+#define CONFIG_SYS_CLK_FREQ	87500000	/* clock rate for CSP		*/
 
 /*-----------------------------------------------------------------------
  * Are we booting directly from a NAND Flash device ?

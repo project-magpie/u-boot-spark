@@ -11,6 +11,7 @@
  */
 
 #include "common.h"
+#include <asm/clk.h>
 
 #include <linux/config.h>
 
@@ -347,9 +348,9 @@ SCIx_FNS (SCSMR, 0x00, 8, 0x00, 8, 0x00, 8, 0x00, 16)
  * -- Mitch Davis - 15 Jul 2000
  */
 #if defined(CONFIG_CPU_SUBTYPE_SH7300)
-#define SCBRR_VALUE(bps) ((P_CLOCK_RATE+16*bps)/(16*bps)-1)
+#define SCBRR_VALUE(bps) ((get_peripheral_clk_rate()+16*bps)/(16*bps)-1)
 #else
-#define SCBRR_VALUE(bps) ((P_CLOCK_RATE+16*bps)/(32*bps)-1)
+#define SCBRR_VALUE(bps) ((get_peripheral_clk_rate()+16*bps)/(32*bps)-1)
 #endif
 #define BPS_2400       SCBRR_VALUE(2400)
 #define BPS_4800       SCBRR_VALUE(4800)
