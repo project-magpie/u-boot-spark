@@ -34,20 +34,6 @@
 
 __memory_setup_table:
 
-	/*
-	 * These initial pokes are required/recommended when booting from SPI
-	 * serial flash.
-	 */
-#ifdef CONFIG_SPI_FLASH_ST
-	POKE32(ST40_EMI_SPI_CONFIGDATA, 0x000200a1)
-	/* For ST serial flash we use CONTIG_MODE and FAST_READ */
-	POKE32(ST40_EMI_SPI_MODESELECT, 0x00000003)
-#elif defined(CONFIG_SPI_FLASH_ATMEL)
-	POKE32(ST40_EMI_SPI_CONFIGDATA, 0x000200a4)
-	POKE32(ST40_EMI_SPI_MODESELECT, 0x00000000)
-#endif
-	POKE32(ST40_EMI_SPI_CLOCKDIV, 0x00000006)
-
 
 	/*
 	 * include the appropriate set of "GDB pokes", (usually) generated

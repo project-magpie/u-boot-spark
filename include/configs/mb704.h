@@ -37,6 +37,15 @@
 #define P_CLOCK_RATE	87500000	/* clock rate for CSP		*/
 
 /*-----------------------------------------------------------------------
+ * Are we booting directly from a SPI Serial Flash device ?
+ * If so, then define the "CFG_BOOT_FROM_SPI" macro,
+ * otherwise (e.g. for NOR/NAND Flash booting), do not define it.
+ * As the MB704 board only has SPI flash, then define it.
+ */
+#define CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
+
+
+/*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
@@ -52,8 +61,9 @@
 
 #define CFG_SDRAM_SIZE		0x04000000	/* 64 MiB of LMI SDRAM */
 
+#define CFG_EMI_SPI_BASE	0xA0000000	/* SPI Serial FLASH in SPIBOOT-mode */
+#define CFG_MONITOR_BASE	0		/* Offset in SPI for u-boot.bin */
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
-#define CFG_MONITOR_BASE        CFG_FLASH_BASE
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128 KiB */
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
@@ -69,26 +79,13 @@
 
 #define BOARD mb704
 
-#if CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */		/* QQQ ??? */
-#	define MONITOR_SECTORS	"1:0"		/* 1 sector */		/* QQQ ??? */
-#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */		/* QQQ ??? */
-#	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */		/* QQQ ??? */
-#else						/* unknown */		/* QQQ ??? */
-#	error "Unable to determine sectors for monitor"			/* QQQ ??? */
-#endif									/* QQQ ??? */
-
 #define CONFIG_EXTRA_ENV_SETTINGS \
 		"board=" XSTR(BOARD) "\0" \
-/* QQQ */	"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
+		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
 		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
-/* QQQ */	"monitor_sec=" MONITOR_SECTORS "\0" \
 		"load_addr=" XSTR(CFG_LOAD_ADDR) "\0" \
-		"unprot=" \
-		  "protect off $monitor_sec\0" \
 		"update=" \
-		  "erase $monitor_sec;" \
-		  "cp.b $load_addr $monitor_base $monitor_len;" \
-		  "protect on $monitor_sec\0"
+		  "eeprom write $load_addr $monitor_base $monitor_len\0"
 
 /*--------------------------------------------------------------
  * Command line configuration.
@@ -152,12 +149,10 @@
 #	undef CONFIG_CMD_NET		/* un-define if no networking at all */
 #endif	/* CONFIG_DRIVER_NETSTMAC */
 
-
 /*  If this board does not have eeprom for ethernet address so allow the user
  *  to set it in the environment
  */
 #define CONFIG_ENV_OVERWRITE
-
 
 /*---------------------------------------------------------------
  * USB driver config
@@ -275,14 +270,11 @@
 
 #define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
-#ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
-#	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
+#if 1
+#	define CFG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
-#	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
 #else
-	/* QQQ - TO DO */
 #	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
-#endif	/* CONFIG_CMD_NAND */
-
+#endif
 
 #endif	/* __CONFIG_H */

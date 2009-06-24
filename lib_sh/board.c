@@ -241,14 +241,13 @@ void start_sh4boot (void)
 	nand_init();		/* go init the NAND */
 #endif
 
-#if defined(CONFIG_SPI)
-	/* QQQ: need to move this if we want environment in SPI flash */
-	spi_init();		/* go init the SPI */
-#endif	/* defined(CONFIG_SPI) */
-
-
 	/* Allocate environment function pointers etc. */
 	env_relocate ();
+
+#if defined(CONFIG_SPI)
+	/* This needs to be done *after* env_relocate(). */
+	spi_init();		/* go init the SPI */
+#endif	/* defined(CONFIG_SPI) */
 
 	/* board MAC address */
 	s = getenv ("ethaddr");
