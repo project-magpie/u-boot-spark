@@ -1,7 +1,8 @@
 /*
- * (C) Copyright 2004 STMicroelectronics.
+ * (C) Copyright 2007-2009 STMicroelectronics.
  *
- * Andy Sturges <andy.sturges@st.com>
+ * Stuart Menefy <stuart.menefy@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -30,8 +31,11 @@ SECTIONS
 	.text ALIGN(0x4):
 	{
 		__text_start = .;
-		cpu/sh/start.o (.text)
-		*(.text)
+		cpu/sh/start.o (.text.init)
+		*(.text.init)		/* pre-initialization code */
+		. = ALIGN(32);		/* align to a cache-line */
+		*(.data.init)		/* pre-initialization data */
+		*(.text)		/* post-initialization code */
 		__text_end = .;
 	}
 
@@ -62,6 +66,7 @@ SECTIONS
 	{
 		__bss_start = .;
 		*(.bss)
+		*(COMMON)		/* ensure common data is initialized */
 		__bss_end = .;
 	}
 	_uboot_end = .;

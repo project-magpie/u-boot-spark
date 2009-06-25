@@ -30,6 +30,8 @@
 #define DELAY(VAL)				/* do nothing */
 
 
+	.section .data.init, "a"
+
 	.balign 32
 
 __memory_setup_table:

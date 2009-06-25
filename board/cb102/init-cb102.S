@@ -32,8 +32,10 @@
 #define DELAY(VAL)				/* do nothing */
 #endif /* CONFIG_STM_NEW_POKE_TABLE_PARADIGM */
 
-.balign 32
 
+	.section .data.init, "a"
+
+	.balign 32
 
 __memory_setup_table:
 

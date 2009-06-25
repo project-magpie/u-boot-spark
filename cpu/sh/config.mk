@@ -2,6 +2,9 @@
 # (C) Copyright 2003
 # Wolfgang Denk, DENX Software Engineering, <wd@denx.de>
 #
+# (C) Copyright 2009 STMicroelectronics.
+# Sean McGoogan <Sean.McGoogan@st.com>
+#
 # See file CREDITS for list of people who contributed to this
 # project.
 #
@@ -22,3 +25,7 @@
 #
 
 PLATFORM_CPPFLAGS += -m4 -m4-nofpu -U__sh3__
+
+# all SH (ST40) CPUs will use the same linker script file
+LDSCRIPT := $(TOPDIR)/cpu/$(CPU)/u-boot.lds
+

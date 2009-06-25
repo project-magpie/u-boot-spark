@@ -10,7 +10,10 @@
  * An opcode of 0 marks the table end
  */
 
-.balign 32
+
+	.section .data.init, "a"
+
+	.balign 32
 
 __memory_setup_table:
 

@@ -29,8 +29,10 @@
 #define WHILE_NE32(A, AND, VAL)			WHILE_NE(A, AND, VAL)
 #define DELAY(VAL)				/* do nothing */
 
-.balign 32
 
+	.section .data.init, "a"
+
+	.balign 32
 
 __memory_setup_table:
 

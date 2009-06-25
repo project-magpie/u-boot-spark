@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2008 STMicroelectronics.
+ * (C) Copyright 2004-2009 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -31,7 +31,7 @@
 #include "asm/sh4reg.h"
 #include "asm/pmb.h"
 
-	.text
+	.section .text.init, "ax"
 
 	/*
 	 * void sh_cache_set_op (ulong op)

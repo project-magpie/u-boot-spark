@@ -1,8 +1,9 @@
 /*
- * (C) Copyright 2004-2007 STMicroelectronics.
+ * (C) Copyright 2004-2009 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Start Menefy <stuart.menefy@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -33,6 +34,8 @@
  *
  *	This code expects to be run with the caches enabled.
  */
+
+	.section .text.init, "ax"
 
 ENTRY(init_ram)
 	/* Stash the pr somewhere safe */
