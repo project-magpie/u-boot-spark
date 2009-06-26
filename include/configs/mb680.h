@@ -341,6 +341,23 @@
 	 * to place the environment in an appropriate good block.
 	 */
 #	define CFG_NAND_ENV_OFFSET (CFG_MONITOR_LEN + 0x0)	/* immediately after u-boot.bin */
+
+	/*
+	 * If we want to store "u-boot.bin" in NAND flash starting at
+	 * physical block #0, but there are Bad Blocks in the first
+	 * few blocks that we need to "skip" over, then we need
+	 * to define CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING to allow
+	 * skipping of these bad blocks for u-boot to relocate itself.
+	 * In addition, we also need to tell U-boot the block size,
+	 * and provide it a local abridged copy of the master Bad Block
+	 * Table (BBT), which must also be stored in physical block #0
+	 * - see "cpu/sh/start.S" for details.
+	 * Also, CFG_NAND_SKIP_BLOCK_COUNT defines the number of blocks
+	 * stored in the abridged copy of the master BBT.
+	 */
+#	define CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING	/* define for skipping */
+#	define CFG_NAND_SKIP_BLOCK_SIZE		(16<<10)/* Block Size = 16 KiB */
+#	define CFG_NAND_SKIP_BLOCK_COUNT	16	/* entries in the array */
 #endif	/* CONFIG_CMD_NAND */
 
 /*-----------------------------------------------------------------------

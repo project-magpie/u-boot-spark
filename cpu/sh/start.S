@@ -93,6 +93,46 @@ skip_signature:
 preamble_signature_pattern:
 	bytes 0x00 0x3f			/* 64-bytes: 0x00, 0x01, ..., 0x3f */
 
+#if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+	/*
+	 *	const static struct skip_bb
+	 *	{
+	 *		char	pattern[8];
+	 *		u32	block_size;
+	 *		u32	num_blocks;
+	 *		u32	array[num_blocks];
+	 *	} skip_bb;
+	 *
+	 *	"array[]" is a set of flags, whose value is
+	 *	interpreted as:
+	 *		if array[x] == 0,
+	 *		then physical block #x is GOOD,
+	 *		else physical block #x is BAD.
+	 *	NOTE Physical Block #0 *must* always be GOOD.
+	 *
+	 *	assert( strcmp(pattern,"SKIP_BBs") == 0 );
+	 *	assert( (block_size % (16<<10)) == 0 );
+	 *	assert( sizeof(array) == num_blocks * 4 );
+	 *	assert( array[0] == 0 );
+	 *
+	 *	By default the linker will fill "array[]"
+	 *	with ZEROS (assume all blocks are GOOD).
+	 *	If is the responsibility of the configurer
+	 *	to ensure that "array[]" is big enough.
+	 *	It is the responsibility of the NAND flasher
+	 *	to fill the array appropriately.
+	 */
+skip_bb:			/* the skip_bb structure */
+skip_bb_pattern:		/* 8-byte "magic" pattern */
+	.ascii "SKIP_BBs"
+skip_bb_size:			/* size of each NAND block */
+	.long	CFG_NAND_SKIP_BLOCK_SIZE
+skip_bb_count:			/* number of bad-block entries in array */
+	.long	CFG_NAND_SKIP_BLOCK_COUNT
+skip_bb_array:			/* the array itself (0==GOOD) */
+	.fill CFG_NAND_SKIP_BLOCK_COUNT, 4, 0
+#endif	/* CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
+
 skipped_signature:
 					/* resume from here */
 #endif	/* CFG_BOOT_FROM_NAND */
@@ -340,9 +380,21 @@ enable_se_mode:
 .balign 4
 #endif	/* CONFIG_SH_SE_MODE */
 
+
 	/*
-	 * relocate code: r1=source, r2=dest, r3=dest_end
-	 * QQQ: in 32-bit mode, "dest" is UN-cached - should optimize this.
+	 * now relocate "u-boot.bin" (from FLASH to RAM):
+	 *	r0 == scratch/temp
+	 *	r1 == source address (SRC)
+	 *	r2 == destination address (DST)
+	 *	r3 == destination END address
+	 *	r4 == &skip_bb.array[x] (x=block number: 0,1,2,...)
+	 *	r5 == skip_bb.block_size	(CFG_NAND_SKIP_BLOCK_SIZE)
+	 *	r6 == skip_bb.block_size - 1	(block mask)
+	 *
+	 *	NOTE:	r4, r5 & r6 are only used if the the macro
+	 *		CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING is defined.
+	 *
+	 *	QQQ: in 32-bit mode, "DST" is UN-cached - should optimize this.
 	 */
 relocate:
 	mov	#0x1f, r0
@@ -352,7 +404,15 @@ relocate:
 	mov	r10, r2			/* were we WANT to be: START off */
 	and	r0, r2			/* ensure destination is 32-byte cache aligned */
 	mov	r11, r3			/* were we WANT to be: END off */
-1:	mov.l	@(0,r1), r0		/* read & write a line at a time */
+#if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+	mov.l	skip_bb_offset, r4	/* r4 = &skip_bb - _start */
+	add	r9, r4			/* r4 = &skip_bb (P0 (cached)) */
+	mov.l	@(8,r4), r5		/* r5 = NAND block_size */
+	mov	r5, r6
+	add	#-1, r6			/* r6 = block_size - 1 (i.e. mask) */
+	add	#16, r4			/* r4 = &array[0]  */
+#endif	/* CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
+1:	mov.l	@(0,r1), r0		/* read & write a cache line at a time */
 	mov.l	r0, @(0,r2)
 	mov.l	@(4,r1), r0
 	mov.l	r0, @(4,r2)
@@ -369,11 +429,27 @@ relocate:
 	mov.l	@(28,r1), r0
 	mov.l	r0, @(28,r2)
 	ocbp	@r2			/* flush one line */
-	add	#32, r1			/* next line */
+	add	#32, r1			/* next source line */
+#if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+	mov	r1, r0			/* test for a new block */
+	and	r6, r0			/* r0 = SRC & (block_size - 1) */
+	cmp/eq	#0, r0			/* is it a new block ? */
+	bf	do_next_line		/* branch if it is the same block */
+do_next_block:				/* okay, we are on a new NAND block */
+	add	#4, r4
+	mov.l	@r4, r0			/* r0 = array[++x] */
+	cmp/eq	#0, r0			/* is it a GOOD block ? */
+	bt	do_next_line		/* branch if it is a GOOD block */
+					/* okay, we have a BAD block, try NEXT */
+	bra	do_next_block		/* check it is good as well! */
+	  add	r5, r1			/* SRC += block_size */
+do_next_line:
+#endif	/* CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 	pref	@r1			/* pre-fetch next line */
 	add	#32, r2			/* next line */
 	cmp/hi	r2, r3			/* while (r2<=r3) ... */
 	bt	1b
+
 
 	/*
 	 * now jump to absolute (non-PIC) address environment.
@@ -398,7 +474,7 @@ do_enable_pmb_cache:
 #endif	/* CONFIG_SH_SE_MODE */
 
 	/* init stack pointer */
-init_sp:	
+init_sp:
 	mov.l	stack_addr, sp
 
 	/* Clear the bss */
@@ -428,6 +504,9 @@ stack_addr:	.long TEXT_BASE - (CFG_GBL_DATA_SIZE + CFG_MALLOC_LEN + CFG_BOOTPARA
 bss_start:	.long __bss_start
 bss_end:	.long __bss_end
 hyperspace_addr:.long hyperspace
+#if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+skip_bb_offset:	.long skip_bb - _start
+#endif	/* CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 
 start_sh4boot_addr:.long start_sh4boot
 
