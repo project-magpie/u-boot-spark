@@ -24,10 +24,12 @@
 
 #include <common.h>
 #include <command.h>
-#include <nand.h>
 
 
 #if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING) && defined(CONFIG_CMD_NAND)
+
+
+#include <nand.h>
 
 
 #define NAND_SIGNATURE_OFFSET		0x80u

@@ -404,14 +404,14 @@ relocate:
 	mov	r10, r2			/* were we WANT to be: START off */
 	and	r0, r2			/* ensure destination is 32-byte cache aligned */
 	mov	r11, r3			/* were we WANT to be: END off */
-#if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+#if defined(CFG_BOOT_FROM_NAND) && defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
 	mov.l	skip_bb_offset, r4	/* r4 = &skip_bb - _start */
 	add	r9, r4			/* r4 = &skip_bb (P0 (cached)) */
 	mov.l	@(8,r4), r5		/* r5 = NAND block_size */
 	mov	r5, r6
 	add	#-1, r6			/* r6 = block_size - 1 (i.e. mask) */
 	add	#16, r4			/* r4 = &array[0]  */
-#endif	/* CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
+#endif	/* CFG_BOOT_FROM_NAND && CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 1:	mov.l	@(0,r1), r0		/* read & write a cache line at a time */
 	mov.l	r0, @(0,r2)
 	mov.l	@(4,r1), r0
@@ -430,7 +430,7 @@ relocate:
 	mov.l	r0, @(28,r2)
 	ocbp	@r2			/* flush one line */
 	add	#32, r1			/* next source line */
-#if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+#if defined(CFG_BOOT_FROM_NAND) && defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
 	mov	r1, r0			/* test for a new block */
 	and	r6, r0			/* r0 = SRC & (block_size - 1) */
 	cmp/eq	#0, r0			/* is it a new block ? */
@@ -444,7 +444,7 @@ do_next_block:				/* okay, we are on a new NAND block */
 	bra	do_next_block		/* check it is good as well! */
 	  add	r5, r1			/* SRC += block_size */
 do_next_line:
-#endif	/* CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
+#endif	/* CFG_BOOT_FROM_NAND && CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 	pref	@r1			/* pre-fetch next line */
 	add	#32, r2			/* next line */
 	cmp/hi	r2, r3			/* while (r2<=r3) ... */
@@ -504,9 +504,9 @@ stack_addr:	.long TEXT_BASE - (CFG_GBL_DATA_SIZE + CFG_MALLOC_LEN + CFG_BOOTPARA
 bss_start:	.long __bss_start
 bss_end:	.long __bss_end
 hyperspace_addr:.long hyperspace
-#if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+#if defined(CFG_BOOT_FROM_NAND) && defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
 skip_bb_offset:	.long skip_bb - _start
-#endif	/* CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
+#endif	/* CFG_BOOT_FROM_NAND && CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 
 start_sh4boot_addr:.long start_sh4boot
 

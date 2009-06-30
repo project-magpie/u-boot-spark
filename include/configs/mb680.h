@@ -341,7 +341,9 @@
 	 * to place the environment in an appropriate good block.
 	 */
 #	define CFG_NAND_ENV_OFFSET (CFG_MONITOR_LEN + 0x0)	/* immediately after u-boot.bin */
+#endif	/* CONFIG_CMD_NAND */
 
+#if 1 && defined(CFG_BOOT_FROM_NAND)		/* we are booting from NAND */
 	/*
 	 * If we want to store "u-boot.bin" in NAND flash starting at
 	 * physical block #0, but there are Bad Blocks in the first
@@ -358,7 +360,7 @@
 #	define CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING	/* define for skipping */
 #	define CFG_NAND_SKIP_BLOCK_SIZE		(16<<10)/* Block Size = 16 KiB */
 #	define CFG_NAND_SKIP_BLOCK_COUNT	16	/* entries in the array */
-#endif	/* CONFIG_CMD_NAND */
+#endif /* CFG_BOOT_FROM_NAND */
 
 /*-----------------------------------------------------------------------
  * Address, size, & location of U-boot's Environment Sector
