@@ -130,6 +130,23 @@
 
 #define SR_WIP			(1u<<0)		/* Status Register Write In Progress bit */
 
+#elif defined(CONFIG_SPI_FLASH_MXIC)	/******************************/
+
+/* For Macronix MX25Lxxx Serial Flash */
+#define CFG_STM_SPI_MODE	SPI_MODE_3
+#define CFG_STM_SPI_FREQUENCY	(10*1000*1000)	/* 10 MHz */
+#define CFG_STM_SPI_DEVICE_MASK	0x00u		/* Mask Bits */
+#define CFG_STM_SPI_DEVICE_VAL	0x00u		/* Binary xxxxxxxx */
+
+#define OP_READ_STATUS		0x05u		/* Read Status Register */
+#define OP_READ_DEVID		0x9fu		/* Read ID */
+#define OP_READ_ARRAY		0x03u		/* Read Data Bytes */
+#define OP_WREN			0x06u		/* Write Enable */
+#define OP_SE			0x20u		/* Sector Erase */
+#define OP_PP			0x02u		/* Page Program */
+
+#define SR_WIP			(1u<<0)		/* Status Register Write In Progress bit */
+
 #else					/******************************/
 
 #error Please specify which SPI Serial Flash is being used
@@ -372,7 +389,7 @@ static void spi_wait_till_ready(void)
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 	while (!(spi_read_status() & SR_READY))
 		;	/* do nothing */
-#elif defined(CONFIG_SPI_FLASH_ST)
+#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
 	while (spi_read_status() & SR_WIP)
 		;	/* do nothing */
 #else
@@ -476,6 +493,28 @@ static int spi_probe_serial_flash(void)
 		deviceName = "ST M25P128";
 		deviceSize = 16 << 20;		/* 128 Mbit == 16 MiB */
 		eraseSize = 256u<<10;		/* 256KiB, 1024 pages/sector */
+	}
+
+#elif defined(CONFIG_SPI_FLASH_MXIC)
+
+	if (
+		(devid[1] != 0xc2u)	||	/* Manufacturer ID */
+		(devid[2] != 0x26u)	||	/* Memory Type */
+		(				/* Memory Capacity */
+			(devid[3] != 0x18u)	/* MX25L12855E */
+		)
+	   )
+	{
+		printf("ERROR: Unknown SPI Device detected, devid = 0x%02x, 0x%02x, 0x%02x\n",
+			devid[1], devid[2], devid[3]);
+		return -1;
+	}
+	pageSize = 256u;
+	eraseSize = 4u<<10;			/* 4KiB, 16 pages/sector */
+	if (devid[3] == 0x18u)
+	{
+		deviceName = "MX25L12855E";
+		deviceSize = 16 << 20;		/* 128 Mbit == 16 MiB */
 	}
 
 #else
@@ -747,7 +786,7 @@ static void my_spi_write(
 	/* now wait until the programming has completed ... */
 	spi_wait_till_ready();
 }
-#elif defined(CONFIG_SPI_FLASH_ST)
+#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
 {
 	const unsigned pages       = eraseSize / pageSize;
 	const unsigned long sector = (address / eraseSize) * eraseSize;
@@ -755,7 +794,11 @@ static void my_spi_write(
 	size_t i;
 	unsigned page;
 	const uchar * ptr;
+#if defined(CONFIG_SPI_FLASH_MXIC)
 	unsigned char buff[256<<10];	/* maximum of 256 KiB erase size */
+#elif defined(CONFIG_SPI_FLASH_MXIC)
+	unsigned char buff[4<<10];	/* maximum of 4 KiB erase size */
+#endif
 	unsigned char enable[1] = { OP_WREN };
 	unsigned char erase[4] = {
 		OP_SE,
@@ -842,7 +885,9 @@ static void my_spi_write(
 		page_base += pageSize;
 	}
 }
-#endif
+#else
+#error Please specify which SPI Serial Flash is being used
+#endif	/* defined(CONFIG_STM_SPI_xxxxxx) */
 
 
 /**********************************************************************/
