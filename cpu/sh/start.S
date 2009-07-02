@@ -95,7 +95,7 @@ config_spiboot_controller:
 	/* Slow (divide) the SPI clock down to improve reliability. */
 	mov	#4, r0			/* *ST40_EMI_SPI_CLOCKDIV = 4 */
 	mov.l	r0, @(ST40_EMI_SPI_CLOCKDIV-ST40_EMI_SPI_REGS_BASE,r1)
-#ifdef CONFIG_SPI_FLASH_ST
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
 	MOV_CONST32_R0 0x000200a1	/* *ST40_EMI_SPI_CONFIGDATA = 0x000200a0|ST */
 	mov.l	r0, @(ST40_EMI_SPI_CONFIGDATA-ST40_EMI_SPI_REGS_BASE,r1)
 	/* For ST serial flash we use CONTIG_MODE and FAST_READ */

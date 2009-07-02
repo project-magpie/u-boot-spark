@@ -466,33 +466,29 @@ static int spi_probe_serial_flash(void)
 			devid[1], devid[2], devid[3]);
 		return -1;
 	}
-	pageSize = 256u;
-	eraseSize = 64u<<10;			/* 64KiB, 256 pages/sector */
+	pageSize   = 256u;
+	eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
+	deviceSize = 1u<<devid[3];		/* Memory Capacity */
 	if (devid[3] == 0x14u)
 	{
-		deviceName = "ST M25P80";
-		deviceSize = 1 << 20;		/* 8 Mbit == 1 MiB */
+		deviceName = "ST M25P80";	/* 8 Mbit == 1 MiB */
 	}
 	else if (devid[3] == 0x15u)
 	{
-		deviceName = "ST M25P16";
-		deviceSize = 2 << 20;		/* 16 Mbit == 2 MiB */
+		deviceName = "ST M25P16";	/* 16 Mbit == 2 MiB */
 	}
 	else if (devid[3] == 0x16u)
 	{
-		deviceName = "ST M25P32";
-		deviceSize = 4 << 20;		/* 32 Mbit == 4 MiB */
+		deviceName = "ST M25P32";	/* 32 Mbit == 4 MiB */
 	}
 	else if (devid[3] == 0x17u)
 	{
-		deviceName = "ST M25P64";
-		deviceSize = 8 << 20;		/* 64 Mbit == 8 MiB */
+		deviceName = "ST M25P64";	/* 64 Mbit == 8 MiB */
 	}
 	else if (devid[3] == 0x18u)
 	{
-		deviceName = "ST M25P128";
-		deviceSize = 16 << 20;		/* 128 Mbit == 16 MiB */
-		eraseSize = 256u<<10;		/* 256KiB, 1024 pages/sector */
+		deviceName = "ST M25P128";	/* 128 Mbit == 16 MiB */
+		eraseSize = 256u<<10;		/* 256 KiB, 1024 pages/sector */
 	}
 
 #elif defined(CONFIG_SPI_FLASH_MXIC)
@@ -501,6 +497,8 @@ static int spi_probe_serial_flash(void)
 		(devid[1] != 0xc2u)	||	/* Manufacturer ID */
 		(devid[2] != 0x26u)	||	/* Memory Type */
 		(				/* Memory Capacity */
+			(devid[3] != 0x15u) &&	/* MX25L1655D */
+			(devid[3] != 0x17u) &&	/* MX25L6455E */
 			(devid[3] != 0x18u)	/* MX25L12855E */
 		)
 	   )
@@ -509,12 +507,20 @@ static int spi_probe_serial_flash(void)
 			devid[1], devid[2], devid[3]);
 		return -1;
 	}
-	pageSize = 256u;
-	eraseSize = 4u<<10;			/* 4KiB, 16 pages/sector */
-	if (devid[3] == 0x18u)
+	pageSize   = 256u;
+	eraseSize  = 4u<<10;			/* 4 KiB, 16 pages/sector */
+	deviceSize = 1u<<devid[3];		/* Memory Capacity */
+	if (devid[3] == 0x15u)
 	{
-		deviceName = "MX25L12855E";
-		deviceSize = 16 << 20;		/* 128 Mbit == 16 MiB */
+		deviceName = "MXIC MX25L1655D";	/* 16 Mbit == 2 MiB */
+	}
+	else if (devid[3] == 0x17u)
+	{
+		deviceName = "MXIC MX25L6455E";	/* 64 Mbit == 8 MiB */
+	}
+	else if (devid[3] == 0x18u)
+	{
+		deviceName = "MXIC MX25L12855E";/* 128 Mbit == 16 MiB */
 	}
 
 #else
@@ -794,7 +800,7 @@ static void my_spi_write(
 	size_t i;
 	unsigned page;
 	const uchar * ptr;
-#if defined(CONFIG_SPI_FLASH_MXIC)
+#if defined(CONFIG_SPI_FLASH_ST)
 	unsigned char buff[256<<10];	/* maximum of 256 KiB erase size */
 #elif defined(CONFIG_SPI_FLASH_MXIC)
 	unsigned char buff[4<<10];	/* maximum of 4 KiB erase size */
