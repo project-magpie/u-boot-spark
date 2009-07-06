@@ -29,20 +29,7 @@
 #include "asm/sh4reg.h"
 #include "asm/asmdefs.h"
 #include "asm/pmb.h"
-
-#if defined(CONFIG_SH_STB7100)
-#include <asm/stb7100reg.h>
-#elif defined(CONFIG_SH_STX7105)
-#include <asm/stx7105reg.h>
-#elif defined(CONFIG_SH_STX7111)
-#include <asm/stx7111reg.h>
-#elif defined(CONFIG_SH_STX7141)
-#include <asm/stx7141reg.h>
-#elif defined(CONFIG_SH_STX7200)
-#include <asm/stx7200reg.h>
-#else
-#error Missing Device Definitions!
-#endif
+#include "asm/socregs.h"
 
 
 	.section .text.init, "ax"
@@ -139,6 +126,36 @@ skipped_signature:
 
 
 	/*
+	 * If were are going to boot U-boot from SPI (serial flash),
+	 * then the following pokes are required/recommended to be
+	 * done early, when using the EMI's SPIBOOT mode controller.
+	 */
+#ifdef CFG_BOOT_FROM_SPI
+config_spiboot_controller:
+	MOV_CONST32_R0 ST40_EMI_SPI_REGS_BASE
+	mov	r0, r1
+	/* Slow (divide) the SPI clock down to improve reliability. */
+	mov	#4, r0			/* *ST40_EMI_SPI_CLOCKDIV = 4 */
+	mov.l	r0, @(ST40_EMI_SPI_CLOCKDIV-ST40_EMI_SPI_REGS_BASE,r1)
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+	MOV_CONST32_R0 0x000200a1	/* *ST40_EMI_SPI_CONFIGDATA = 0x000200a0|ST */
+	mov.l	r0, @(ST40_EMI_SPI_CONFIGDATA-ST40_EMI_SPI_REGS_BASE,r1)
+	/* For ST serial flash we use CONTIG_MODE and FAST_READ */
+	mov	#3, r0			/* *ST40_EMI_SPI_MODESELECT = CONTIG_MODE|FAST_READ */
+	mov.l	r0, @(ST40_EMI_SPI_MODESELECT-ST40_EMI_SPI_REGS_BASE,r1)
+#elif defined(CONFIG_SPI_FLASH_ATMEL)
+	MOV_CONST32_R0 0x000200a4	/* *ST40_EMI_SPI_CONFIGDATA = 0x000200a0|ATMEL */
+	mov.l	r0, @(ST40_EMI_SPI_CONFIGDATA-ST40_EMI_SPI_REGS_BASE,r1)
+	/* For ATMEL serial flash we use OLD_MODE and Normal (read) mode */
+	mov	#0, r0			/* *ST40_EMI_SPI_MODESELECT = 0 */
+	mov.l	r0, @(ST40_EMI_SPI_MODESELECT-ST40_EMI_SPI_REGS_BASE,r1)
+#else
+#warning Not configuring SPI_MODESELECT or SPI_CONFIGDATA registers!
+#endif	/* if defined(CONFIG_SPI_FLASH_xxx) */
+#endif	/* CFG_BOOT_FROM_SPI */
+
+
+	/*
 	 * Determine if we are in the correct location ? (i.e. RAM)
 	 *  r8 == 1 in RAM, assume initialization already done by GDB.
 	 *  r8 == 0 in FLASH, need to relocate, set up memory, etc...
@@ -207,6 +224,14 @@ set_pmb:
 	SH4_SET_PMB 6 0xb2 0x02  16 0 0 1	/* OFF-chip  Peripherals UN-cached */
 	SH4_SET_PMB 7 0xb8 0x18  64 0 0 1	/* ON-chip   Peripherals UN-cached */
 	SH4_SET_PMB 8 0xbc 0x1c  64 0 0 1	/* ST40 core Peripherals UN-cached */
+#elif defined(CONFIG_SH_STX5197) && defined(CONFIG_SH_MB704)
+	SH4_SET_PMB 0 0x80 0x40  64 0 0 1	/* LMI-Sys UN-cached */
+	SH4_SET_PMB 2 0x90 0x40  64 0 0 1	/* LMI-Sys UN-cached */
+	SH4_SET_PMB 4 0xa0 0x00 128 0 0 1	/* SPI Flash (in SPIBOOT mode) UN-cached */
+#elif defined(CONFIG_SH_STX5197) && defined(CONFIG_SH_5197CAB)
+	SH4_SET_PMB 0 0x80 0x40  64 0 0 1	/* LMI-Sys UN-cached */
+	SH4_SET_PMB 2 0x90 0x40  64 0 0 1	/* LMI-Sys UN-cached */
+	SH4_SET_PMB 4 0xa0 0x00 128 0 0 1	/* SPI Flash (in SPIBOOT mode) UN-cached */
 #elif defined(CONFIG_SH_STX7105) && defined(CONFIG_SH_MB680)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
@@ -519,3 +544,16 @@ sh_cache_set_op_offset:		.long sh_cache_set_op - .
 sh_toggle_pmb_cacheability_offset:
 				.long sh_toggle_pmb_cacheability - .
 #endif	/* CONFIG_SH_SE_MODE */
+
+
+#if defined(CFG_ENV_IS_IN_EEPROM) && defined(CFG_BOOT_FROM_SPI)
+	/*
+	 * The following is a hack to work around a awkward linker
+	 * dependency issue. We need to force "ld" to pull in the CPU
+	 * specific version of "env_eeprom.o", rather than the generic
+	 * "common/env_eeprom.o" file that the linker seems to prefer!
+	 * QQQ: try to solve this properly, or make it non-loadable!
+	 */
+	.long env_init	/* any reference to anything in "env_eeprom.o" */
+#endif /* CFG_ENV_IS_IN_EEPROM && CFG_BOOT_FROM_SPI */
+

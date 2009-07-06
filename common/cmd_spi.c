@@ -1,6 +1,7 @@
 /*
  * (C) Copyright 2002
  * Gerald Van Baren, Custom IDEAS, vanbaren@cideas.com
+ * (C) Copyright 2009 STMicroelectronics.  Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -38,13 +39,6 @@
 #endif
 
 /*
- * External table of chip select functions (see the appropriate board
- * support for the actual definition of the table).
- */
-extern spi_chipsel_type spi_chipsel[];
-extern int spi_chipsel_cnt;
-
-/*
  * Values from last command.
  */
 static int   device;
@@ -65,7 +59,7 @@ static uchar din[MAX_SPI_BYTES];
 
 int do_spi (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	char  *cp = 0;
+	uchar  *cp = 0;
 	uchar tmp;
 	int   j;
 	int   rcode = 0;
@@ -82,7 +76,7 @@ int do_spi (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		if (argc >= 3)
 			bitlen = simple_strtoul(argv[2], NULL, 10);
 		if (argc >= 4) {
-			cp = argv[3];
+			cp = (uchar*)argv[3];
 			for(j = 0; *cp; j++, cp++) {
 				tmp = *cp - '0';
 				if(tmp > 9)
@@ -117,7 +111,7 @@ int do_spi (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		printf("Error with the SPI transaction.\n");
 		rcode = 1;
 	} else {
-		cp = (char *)din;
+		cp = din;
 		for(j = 0; j < ((bitlen + 7) / 8); j++) {
 			printf("%02X", *cp++);
 		}

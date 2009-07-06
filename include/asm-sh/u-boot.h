@@ -1,6 +1,9 @@
 /*
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, <wd@denx.de>
+ * (C) Copyright 2004-2009 STMicroelectronics.
+ * Andy Sturges <andy.sturges@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -33,9 +36,11 @@ typedef struct bd_info
 	unsigned long bi_boot_params;	/* where this board expects params */
 	unsigned long bi_memstart;	/* start of DRAM memory */
 	unsigned long bi_memsize;	/* size  of DRAM memory in bytes */
+#ifndef CFG_NO_FLASH
 	unsigned long bi_flashstart;	/* start of FLASH memory */
 	unsigned long bi_flashsize;	/* size  of FLASH memory */
 	unsigned long bi_flashoffset;	/* reserved area for startup monitor */
+#endif /* CFG_NO_FLASH */
 #ifdef CONFIG_SH_STB7100
 	unsigned long bi_devid;
 	unsigned long bi_pll0frq;
@@ -48,7 +53,8 @@ typedef struct bd_info
 	unsigned long bi_emifrq;
 	unsigned long bi_lmifrq;
 #endif
-#if	defined(CONFIG_SH_STX7105) ||	\
+#if	defined(CONFIG_SH_STX5197) ||	\
+	defined(CONFIG_SH_STX7105) ||	\
 	defined(CONFIG_SH_STX7111) ||	\
 	defined(CONFIG_SH_STX7141) ||	\
 	defined(CONFIG_SH_STX7200)

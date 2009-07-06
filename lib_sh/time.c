@@ -1,7 +1,8 @@
 /*
- * (C) Copyright 2004 STMicroelectronics.
+ * (C) Copyright 2004,2009 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -23,20 +24,7 @@
  */
 
 #include <common.h>
-
-#if defined(CONFIG_SH_STB7100)
-#include <asm/stb7100reg.h>
-#elif defined(CONFIG_SH_STX7105)
-#include <asm/stx7105reg.h>
-#elif defined(CONFIG_SH_STX7111)
-#include <asm/stx7111reg.h>
-#elif defined(CONFIG_SH_STX7141)
-#include <asm/stx7141reg.h>
-#elif defined(CONFIG_SH_STX7200)
-#include <asm/stx7200reg.h>
-#else
-#error Missing Device Definitions!
-#endif
+#include <asm/socregs.h>
 
 #define TMU_TICKS_PER_SEC CFG_HZ
 #define TMU_START0 0x01

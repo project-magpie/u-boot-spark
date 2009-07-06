@@ -2781,6 +2781,28 @@ pdk7105se_config :		unconfig
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/pdk7105/config.tmp)
 	@./mkconfig -a pdk7105 sh sh pdk7105 "" stx7105
 
+mb704_config \
+mb704se_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STX5197   1" >>include/config.h
+	@echo "#define CONFIG_SH_MB704     1" >>include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/mb704/config.tmp)
+	@./mkconfig -a mb704 sh sh mb704 "" stx5197
+
+5197cab_config \
+5197cabse_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STX5197   1" >>include/config.h
+	@echo "#define CONFIG_SH_5197CAB   1" >>include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/5197cab/config.tmp)
+	@./mkconfig -a 5197cab sh sh 5197cab "" stx5197
+
 cb101_config \
 cb101se_config :		unconfig
 	@ >include/config.h
