@@ -24,6 +24,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <asm/soc.h>
 #include <asm/stb7100reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
@@ -67,10 +68,6 @@ static void stb7100ref_init_ide(void)
   /* Enable ATAPI mode of EMI */
   /* QQQ - to do */
 }
-#endif
-
-#ifdef CONFIG_SH_STB7100_SATA
-extern void stb7100_sata_init(void);
 #endif
 
 #endif

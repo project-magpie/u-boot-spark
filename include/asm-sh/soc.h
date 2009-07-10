@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2009 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -28,7 +28,7 @@
 
 
 /*
- *	common call-back functons for STMAC.
+ *	common call-back functions for STMAC.
  */
 extern int  stmac_default_pbl (void);
 extern void stmac_set_mac_speed (int speed);
@@ -39,6 +39,15 @@ extern void stmac_set_mac_speed (int speed);
  */
 extern void stx7200_configure_ethernet (
 	int mac, int rmii, int ext_clk, int phy_bus);
+
+
+/*
+ * SATA initialization functions.
+ */
+extern void stm_sata_miphy_init(void);
+extern void stm_sata_init(void);
+extern void stb7100_sata_init(void);
+
 
 #endif	/* _SOC_H_ */
 

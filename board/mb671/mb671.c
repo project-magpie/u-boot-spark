@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2008 STMicroelectronics.
+ * (C) Copyright 2007-2009 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -38,13 +38,13 @@
 
 #define EPLD_FlashCtrlAddr	SH4_WORD_REG(EPLD_BASE + 0x400000)
 
-void flashWriteEnable(void)
+extern void flashWriteEnable(void)
 {
 	/*  Enable vpp for writing to flash */
 	*EPLD_FlashCtrlAddr = 3;
 }
 
-void flashWriteDisable(void)
+extern void flashWriteDisable(void)
 {
 	/*  Disable vpp for writing to flash */
 	*EPLD_FlashCtrlAddr = 2;
@@ -59,7 +59,7 @@ static void configPIO(void)
 	SET_PIO_ASC(PIO_PORT(5), 4, 3, 5, 6);  /* UART3 - AS1 */
 }
 
-int board_init(void)
+extern int board_init(void)
 {
 	unsigned long sysconf;
 
@@ -120,7 +120,8 @@ int board_init(void)
 	return 0;
 }
 
-int checkboard (void)
+
+extern int checkboard (void)
 {
 	printf ("\n\nBoard: STx7200-Reference (MB671)"
 #ifdef CONFIG_SH_SE_MODE
@@ -139,6 +140,10 @@ int checkboard (void)
 	stx7200_configure_ethernet (1, 0, 1, 1);
 #endif
 #endif	/* CONFIG_DRIVER_NETSTMAC */
+
+#if defined(CONFIG_SH_STM_SATA)
+	stm_sata_init();
+#endif	/* CONFIG_SH_STM_SATA */
 
 	return 0;
 }
