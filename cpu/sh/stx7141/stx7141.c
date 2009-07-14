@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2009 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -225,4 +225,34 @@ extern void stx7141_usb_init(void)
 }
 
 #endif /* defined(CONFIG_USB_OHCI_NEW) */
+
+
+#if defined(CONFIG_SH_STM_SATA)
+extern void stx7141_configure_sata(void)
+{
+	static int initialised_phy = 0;
+	unsigned long sysconf;
+
+	if (!initialised_phy)
+	{
+		/* enable reset  */
+		sysconf = *STX7141_SYSCONF_SYS_CFG04;
+		sysconf |= 1u<<9;
+		*STX7141_SYSCONF_SYS_CFG04 = sysconf;
+
+		sysconf = *STX7141_SYSCONF_SYS_CFG32;
+		sysconf |= 1u<<6;	/* [6] SATA_SLUMBER_POWER_MODE */
+		*STX7141_SYSCONF_SYS_CFG32 = sysconf;
+
+		/* initialize the SATA PHY */
+		stm_sata_miphy_init();
+
+		/* configure the SATA host controller */
+		stm_sata_probe();
+
+		initialised_phy = 1;
+	}
+}
+#endif	/* CONFIG_SH_STM_SATA */
+
 

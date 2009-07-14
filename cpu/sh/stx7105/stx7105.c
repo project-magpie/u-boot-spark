@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2009 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -262,4 +262,35 @@ extern void stx7105_usb_init(void)
 }
 
 #endif /* defined(CONFIG_USB_OHCI_NEW) */
+
+
+#if defined(CONFIG_SH_STM_SATA)
+extern void stx7105_configure_sata(void)
+{
+	static int initialised_phy = 0;
+	unsigned long sysconf;
+
+	if (!initialised_phy)
+	{
+		/* Power up the SATA PHY */
+		sysconf = *STX7105_SYSCONF_SYS_CFG32;
+		sysconf &= ~(1u<<9);	/* [11] SATA1_PHY_POWER_DOWN_REQ */
+		*STX7105_SYSCONF_SYS_CFG32 = sysconf;
+
+		/* initialize the SATA PHY */
+		stm_sata_miphy_init();
+
+		/* Power up the SATA host */
+		sysconf = *STX7105_SYSCONF_SYS_CFG32;
+		sysconf &= ~(1u<<11);	/* [9] SATA1_HC_POWER_DOWN_REQ */
+		*STX7105_SYSCONF_SYS_CFG32 = sysconf;
+
+		/* configure the SATA host controller */
+		stm_sata_probe();
+
+		initialised_phy = 1;
+	}
+}
+#endif	/* CONFIG_SH_STM_SATA */
+
 

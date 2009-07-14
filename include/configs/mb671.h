@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2008 STMicroelectronics.
+ * (C) Copyright 2007-2009 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -192,7 +192,7 @@
 
 /* SATA works on cut 3.x of the STx7200 (just one port) */
 /* Choose if we want to use a SATA HDD */
-#define CONFIG_SH_STM_SATA
+//#define CONFIG_SH_STM_SATA
 
 #ifdef CONFIG_SH_STM_SATA
 #	define CONFIG_CMD_IDE				/* enable "ide" command set */

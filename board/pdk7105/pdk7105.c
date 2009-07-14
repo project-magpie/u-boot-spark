@@ -24,6 +24,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <asm/soc.h>
 #include <asm/stx7105reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
@@ -164,6 +165,10 @@ static void configPIO(void)
 extern int board_init(void)
 {
 	configPIO();
+
+#if defined(CONFIG_SH_STM_SATA)
+	stx7105_configure_sata ();
+#endif	/* CONFIG_SH_STM_SATA */
 
 	return 0;
 }

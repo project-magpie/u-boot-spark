@@ -45,8 +45,12 @@ extern void stx7200_configure_ethernet (
  * SATA initialization functions.
  */
 extern void stm_sata_miphy_init(void);
-extern void stm_sata_init(void);
+extern int  stm_sata_probe(void);
+
 extern void stb7100_sata_init(void);
+extern void stx7105_configure_sata(void);
+extern void stx7141_configure_sata(void);
+extern void stx7200_configure_sata(void);
 
 
 #endif	/* _SOC_H_ */

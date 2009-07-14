@@ -24,6 +24,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <asm/soc.h>
 #include <asm/stx7105reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
@@ -175,6 +176,10 @@ extern int board_init(void)
 #ifdef CONFIG_STMAC_LAN8700
 	phy_reset();
 #endif	/* CONFIG_STMAC_LAN8700 */
+
+#if defined(CONFIG_SH_STM_SATA)
+	stx7105_configure_sata ();
+#endif	/* CONFIG_SH_STM_SATA */
 
 	return 0;
 }

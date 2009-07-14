@@ -142,7 +142,7 @@ extern int checkboard (void)
 #endif	/* CONFIG_DRIVER_NETSTMAC */
 
 #if defined(CONFIG_SH_STM_SATA)
-	stm_sata_init();
+	stx7200_configure_sata ();
 #endif	/* CONFIG_SH_STM_SATA */
 
 	return 0;

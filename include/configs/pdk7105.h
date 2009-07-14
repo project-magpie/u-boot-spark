@@ -201,10 +201,26 @@
 #endif	/* ifdef CONFIG_SH_STB7100_USB */
 
 /*---------------------------------------------------------------
- * IDE driver config
+ * SATA driver config
  */
 
-#if defined(CONFIG_SH_STB7100_USB)
+/* SATA works on cut 3.x of the STx7105 (just one port) */
+/* Choose if we want to use a SATA HDD */
+//#define CONFIG_SH_STM_SATA
+
+#ifdef CONFIG_SH_STM_SATA
+#	define CONFIG_CMD_IDE				/* enable "ide" command set */
+#	define CFG_ATA_BASE_ADDR	0xfe209000	/* E-SATA connector */
+#	define CFG_ATA_IDE0_OFFSET	0x800		/* Host Controller */
+#	define CFG_ATA_REG_OFFSET	0x0
+#	define CFG_ATA_DATA_OFFSET	0x0
+#	define CFG_ATA_STRIDE		0x4
+#	define CFG_IDE_MAXBUS		1
+#	define CFG_IDE_MAXDEVICE	1
+#endif	/* CONFIG_SH_STM_SATA */
+
+#if defined(CONFIG_SH_STM_SATA) ||	\
+    defined(CONFIG_SH_STB7100_USB)
 #	define CFG_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION
