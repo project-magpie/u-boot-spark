@@ -48,11 +48,6 @@ set_sr:
 	MOV_CONST32_R0 0x400000F0
 	ldc	r0, sr
 
-	/* Set FPSCR:	FR=0, SZ=0, PR=1, DN=0, RM=01 */
-set_fpscr:
-	MOV_CONST32_R0 0x00080001
-	lds	r0, fpscr
-
 	/* disable the watchdog timer */
 disable_watchdog:
 	MOV_CONST32_R0 ST40_CPG_WTCSR

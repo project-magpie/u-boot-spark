@@ -24,7 +24,9 @@
 # MA 02111-1307 USA
 #
 
-PLATFORM_CPPFLAGS += -m4 -m4-nofpu -U__sh3__
+### old:  PLATFORM_CPPFLAGS += -m4 -m4-nofpu -U__sh3__
+### want: PLATFORM_CPPFLAGS += -m4 -mno-implicit-fp
+PLATFORM_CPPFLAGS += -m4-nofpu -U__sh3__ -D__SH4__=1
 
 # all SH (ST40) CPUs will use the same linker script file
 LDSCRIPT := $(TOPDIR)/cpu/$(CPU)/u-boot.lds
