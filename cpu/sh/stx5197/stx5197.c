@@ -31,6 +31,7 @@
 #include <asm/pio.h>
 #include <asm/stbus.h>
 #include <ata.h>
+#include <spi.h>
 
 
 #define SET_SYSCONF_BIT(reg,flag,bit)			\
@@ -147,6 +148,55 @@ extern void stx5197_usb_init(void)
 		USB_FLAGS_STBUS_CONFIG_THRESHOLD256);
 }
 #endif /* defined(CONFIG_USB_OHCI_NEW) */
+
+
+/**********************************************************************/
+
+
+/*
+ * assert or de-assert the SPI Chip Select line.
+ *
+ *	input: cs == true, assert CS, else deassert CS
+ */
+#if defined(CONFIG_SPI) && !defined(CONFIG_SOFT_SPI)
+static void spi_chip_select(const int cs)
+{
+	unsigned long reg;
+
+	reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
+
+	if (cs)
+	{	/* assert SPI CS */
+		reg &= ~(1ul<<13);	/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 0 [13] */
+	}
+	else
+	{	/* DE-assert SPI CS */
+		reg |= 1ul<<13;		/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 1 [13] */
+	}
+
+	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;
+
+	if (cs)
+	{	/* wait 250ns for CS assert to propagate  */
+		udelay(1);	/* QQQ: can we make this shorter ? */
+	}
+}
+
+
+/*
+ * The SPI command uses this table of functions for controlling the SPI
+ * chip selects: it calls the appropriate function to control the SPI
+ * chip selects.
+ */
+spi_chipsel_type spi_chipsel[] =
+{
+	spi_chip_select
+};
+int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
+#endif	/* CONFIG_SPI && !defined(CONFIG_SOFT_SPI) */
+
+
+/**********************************************************************/
 
 
 extern int soc_init(void)

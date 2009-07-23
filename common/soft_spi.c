@@ -27,7 +27,7 @@
 #include <common.h>
 #include <spi.h>
 
-#if defined(CONFIG_SOFT_SPI)
+#if defined(CONFIG_SOFT_SPI) && !defined(CONFIG_SH4)
 
 /*-----------------------------------------------------------------------
  * Definitions

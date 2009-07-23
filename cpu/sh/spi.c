@@ -23,7 +23,8 @@
  */
 
 #include <common.h>
-#include <asm/stx5197reg.h>
+#include <asm/soc.h>
+#include <asm/socregs.h>
 #include <asm/io.h>
 #include <spi.h>
 
@@ -37,6 +38,7 @@
 /**********************************************************************/
 
 
+#if !defined(CONFIG_SOFT_SPI)			/* Use SSC for SPI */
 /* SSC Baud Rate Generator Register */
 #define SSC_BRG			0x0000
 
@@ -73,7 +75,6 @@
 /* SSC I2C Control Register */
 #define SSC_I2C			0x0018
 
-
 #define SPI_CPHA		0x01		/* clock phase */
 #define SPI_CPOL		0x02		/* clock polarity */
 #define SPI_LSB_FIRST		0x08		/* endianness */
@@ -83,6 +84,8 @@
 #define SPI_MODE_1		(0|SPI_CPHA)
 #define SPI_MODE_2		(SPI_CPOL|0)
 #define SPI_MODE_3		(SPI_CPOL|SPI_CPHA)
+
+#endif	/* CONFIG_SOFT_SPI */
 
 
 /**********************************************************************/
@@ -217,49 +220,37 @@ static void hexdump(
 
 
 /*
- * assert or de-assert the SPI Chip Select line.
- *
- *	input: cs == true, assert CS, else deassert CS
- */
-static void spi_chip_select(const int cs)
-{
-	unsigned long reg;
-
-	reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
-
-	if (cs)
-	{	/* assert SPI CS */
-		reg &= ~(1ul<<13);	/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 0 [13] */
-	}
-	else
-	{	/* DE-assert SPI CS */
-		reg |= 1ul<<13;		/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 1 [13] */
-	}
-
-	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;
-
-	if (cs)
-	{	/* wait 250ns for CS assert to propagate  */
-		udelay(1);	/* QQQ: can we make this shorter ? */
-	}
-}
-
-
-/**********************************************************************/
-
-
-/*
- * transfer (i.e. exchange) one "word" with SPI device.
+ * Transfer (i.e. exchange) one "word" with selected SPI device.
  * Typically one word is 8-bits (an octet), but it does not need to be,
- * this function is word-width agnostic.
+ * this function is word-width agnostic - when using the SSC.
+ * However, for PIO bit-banging, then one word is explicitly
+ * unconditionally assumed to be exactly 8-bits in length.
  *
- *	input:   out is word to be send from SSC to slave SPI device
- *	returns: word read from the slave SPI device
+ *	input:   "out" is word to be send to slave SPI device
+ *	returns: one word read from the slave SPI device
+ *
+ * It is the caller's responsibility to ensure that the
+ * chip select (SPI_NOTCS) is correctly asserted.
  */
 static unsigned int spi_xfer_one_word(const unsigned int out)
 {
-	unsigned int in;
+	unsigned int in = 0;
 
+#if defined(CONFIG_SOFT_SPI)		/* Use PIO Bit-Banging for SPI */
+	signed int i;
+	for(i=7; i>=0; i--)		/* for each bit in turn ... */
+	{				/* do 8 bits, msb first */
+		SPI_SCL(0);		/* SPI_CLK = low */
+		SPI_SDA(out & (1u<<i));	/* output next bit on SPI_DOUT */
+		SPI_DELAY;		/* clock low cycle */
+
+		SPI_SCL(1);		/* SPI_CLK = high */
+		SPI_DELAY;		/* sample on RISING clock edge */
+
+		in <<= 1;		/* shift */
+		in |= SPI_READ;		/* get next bit from SPI_DIN */
+	}
+#else					/* Use SSC for SPI */
 	/* write out data 'out' */
 	ssc_write(SSC_TBUF, out);
 
@@ -271,6 +262,7 @@ static unsigned int spi_xfer_one_word(const unsigned int out)
 
 	/* read in data */
 	in = ssc_read(SSC_RBUF);
+#endif	/* CONFIG_SOFT_SPI */
 
 	/* return exchanged data */
 	return in;
@@ -294,7 +286,7 @@ static unsigned int spi_xfer_one_word(const unsigned int out)
  *	Note: 'din' may be NULL if caller does not need to see it.
  */
 extern int spi_xfer(
-	spi_chipsel_type chipsel,
+	spi_chipsel_type const chipsel,
 	const int bitlen,
 	uchar * const dout,
 	uchar * const din)
@@ -363,12 +355,13 @@ extern int spi_xfer(
  * input:   none
  * returns: the value of the status register.
  */
-static unsigned int spi_read_status(void)
+static unsigned int spi_read_status(
+	spi_chipsel_type const chipsel)
 {
 	unsigned char data[2] = { OP_READ_STATUS, 0x00 };
 
 	/* issue the Status Register Read command */
-	spi_xfer(spi_chip_select, sizeof(data)*8, data, data);
+	spi_xfer(chipsel, sizeof(data)*8, data, data);
 
 	/* return the status byte read */
 	return data[1];
@@ -384,13 +377,14 @@ static unsigned int spi_read_status(void)
  * input:   none
  * returns: none
  */
-static void spi_wait_till_ready(void)
+static void spi_wait_till_ready(
+	spi_chipsel_type const chipsel)
 {
 #if defined(CONFIG_SPI_FLASH_ATMEL)
-	while (!(spi_read_status() & SR_READY))
+	while (!(spi_read_status(chipsel) & SR_READY))
 		;	/* do nothing */
 #elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
-	while (spi_read_status() & SR_WIP)
+	while (spi_read_status(chipsel) & SR_WIP)
 		;	/* do nothing */
 #else
 #error Please specify which SPI Serial Flash is being used
@@ -405,7 +399,8 @@ static void spi_wait_till_ready(void)
  * probe the serial flash on the SPI bus, to ensure
  * it is a known type, and initialize its properties.
  */
-static int spi_probe_serial_flash(void)
+static int spi_probe_serial_flash(
+	spi_chipsel_type const chipsel)
 {
 	unsigned int status;
 	unsigned char devid[8] = {
@@ -413,7 +408,7 @@ static int spi_probe_serial_flash(void)
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, };
 
 	/* read & detect the SPI device type */
-	status = spi_read_status();
+	status = spi_read_status(chipsel);
 	if (
 		(status == 0xffu)	/* nothing talking to us ? */	||
 		( (status & CFG_STM_SPI_DEVICE_MASK) != CFG_STM_SPI_DEVICE_VAL )
@@ -428,7 +423,7 @@ static int spi_probe_serial_flash(void)
 	 * if we get here, then we think we may have a SPI
 	 * device, so now check it is the correct one!
 	 */
-	spi_xfer(spi_chip_select, sizeof(devid)*8, devid, devid);
+	spi_xfer(chipsel, sizeof(devid)*8, devid, devid);
 
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 
@@ -549,6 +544,9 @@ static int spi_probe_serial_flash(void)
 extern void spi_init(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
+	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
+
+#if !defined(CONFIG_SOFT_SPI)			/* Use SSC for SPI */
 	unsigned long reg;
 	const unsigned long bits_per_word = 8;	/* one word == 8-bits */
 	const unsigned long mode = CFG_STM_SPI_MODE /* | SPI_LOOP */;
@@ -556,14 +554,19 @@ extern void spi_init(void)
 	const unsigned long hz = CFG_STM_SPI_FREQUENCY;
 	      unsigned long sscbrg = fcomms/(2*hz);
 
+#if defined(CONFIG_SH_STX5197)
 	/* configure SSC0 to use the SPI pads (not PIO1[7:6]) */
 	reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
 	reg |= 1ul<<14;	/* CFG_CTRL_M.SPI_BOOTNOTCOMMS = 1 [14] */
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;
+#endif	/* CONFIG_SH_STX5197 */
+
+#endif	/* CONFIG_SOFT_SPI */
 
 	/* de-assert SPI CS */
-	spi_chip_select(0);
+	(*chipsel)(0);
 
+#if !defined(CONFIG_SOFT_SPI)			/* Use SSC for SPI */
 	/* program the SSC's Baud-Rate Generator */
 	if ((sscbrg < 0x07u) || (sscbrg > (0x1u << 16)))
 	{
@@ -620,9 +623,10 @@ extern void spi_init(void)
 
 	/* clear the status register */
 	(void)ssc_read(SSC_RBUF);
+#endif	/* CONFIG_SOFT_SPI */
 
 	/* now probe the serial flash, to ensure it is the correct one */
-	spi_probe_serial_flash();
+	spi_probe_serial_flash(chipsel);
 }
 
 
@@ -686,6 +690,7 @@ extern ssize_t spi_read (
 	const unsigned long start = get_binary_offset(addr,alen);
 	const unsigned long offset = get_dataflash_offset(start);
 	const unsigned long last   = start + len - 1ul;
+	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
 
 	if (len < 1) return len;
 	if (last >= deviceSize)	/* Out of range ? */
@@ -696,7 +701,7 @@ extern ssize_t spi_read (
 	}
 
 	/* assert SPI CS */
-	spi_chip_select(1);
+	(*chipsel)(1);
 
 	/* issue appropriate READ array command */
 	spi_xfer_one_word(OP_READ_ARRAY);
@@ -722,7 +727,7 @@ extern ssize_t spi_read (
 	}
 
 	/* de-assert SPI CS */
-	spi_chip_select(0);
+	(*chipsel)(0);
 
 	return len;
 }
@@ -732,6 +737,7 @@ extern ssize_t spi_read (
 
 
 static void my_spi_write(
+	spi_chipsel_type const chipsel,
 	const unsigned long address,
 	const uchar * const buffer,
 	unsigned long len)
@@ -763,14 +769,14 @@ static void my_spi_write(
 		};
 
 		/* copy page (to be updated) in serial flash into buffer #1 */
-		spi_xfer(spi_chip_select, sizeof(transfer)*8, transfer, NULL);
+		spi_xfer(chipsel, sizeof(transfer)*8, transfer, NULL);
 
 		/* now wait until the transfer has completed ... */
-		spi_wait_till_ready();
+		spi_wait_till_ready(chipsel);
 	}
 
 	/* assert SPI CS */
-	spi_chip_select(1);
+	(*chipsel)(1);
 
 	/* issue appropriate WRITE command */
 	spi_xfer_one_word(OP_WRITE_VIA_BUFFER1);
@@ -787,10 +793,10 @@ static void my_spi_write(
 	}
 
 	/* de-assert SPI CS */
-	spi_chip_select(0);
+	(*chipsel)(0);
 
 	/* now wait until the programming has completed ... */
-	spi_wait_till_ready();
+	spi_wait_till_ready(chipsel);
 }
 #elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
 {
@@ -850,22 +856,22 @@ static void my_spi_write(
 	}
 
 	/* issue a WRITE ENABLE (WREN) command */
-	spi_xfer(spi_chip_select, sizeof(enable)*8, enable, NULL);
+	spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
 
 	/* issue a Sector Erase command */
-	spi_xfer(spi_chip_select, sizeof(erase)*8, erase, NULL);
+	spi_xfer(chipsel, sizeof(erase)*8, erase, NULL);
 
 	/* now wait until the erase has completed ... */
-	spi_wait_till_ready();
+	spi_wait_till_ready(chipsel);
 
 	/* now program each page in turn ... */
 	for (page_base=sector,page=0u; page<pages; page++)
 	{
 		/* issue a WRITE ENABLE (WREN) command */
-		spi_xfer(spi_chip_select, sizeof(enable)*8, enable, NULL);
+		spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
 
 		/* assert SPI CS */
-		spi_chip_select(1);
+		(*chipsel)(1);
 
 		/* issue a Page Program command */
 		spi_xfer_one_word(OP_PP);
@@ -882,10 +888,10 @@ static void my_spi_write(
 		}
 
 		/* de-assert SPI CS */
-		spi_chip_select(0);
+		(*chipsel)(0);
 
 		/* now wait until the programming has completed ... */
-		spi_wait_till_ready();
+		spi_wait_till_ready(chipsel);
 
 		/* advance to next page */
 		page_base += pageSize;
@@ -912,6 +918,7 @@ extern ssize_t spi_write (
 	const unsigned long byte   = first % eraseSize;
 	      unsigned long ptr    = first;
 	unsigned written = 0;		/* amount written between two dots */
+	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
 
 	if (len < 1) return len;
 	if (last >= deviceSize)	/* Out of range ? */
@@ -926,7 +933,7 @@ extern ssize_t spi_write (
 	{
 		/* till end of first erase block, or entirety, which is less */
 		const unsigned long size = MIN(len,eraseSize-byte);
-		my_spi_write(first, buffer, size);
+		my_spi_write(chipsel, first, buffer, size);
 
 		sector++;
 		ptr += size;
@@ -945,7 +952,7 @@ extern ssize_t spi_write (
 		}
 
 		/* a whole erase block */
-		my_spi_write(ptr, buffer, eraseSize);
+		my_spi_write(chipsel, ptr, buffer, eraseSize);
 
 		sector++;
 		ptr += eraseSize;
@@ -957,26 +964,11 @@ extern ssize_t spi_write (
 	/* finally, process any data at the tail */
 	if (ptr <= last)
 	{
-		my_spi_write(ptr, buffer, last-ptr+1u);
+		my_spi_write(chipsel, ptr, buffer, last-ptr+1u);
 	}
 
 	return len;
 }
-
-
-/**********************************************************************/
-
-
-/*
- * The SPI command uses this table of functions for controlling the SPI
- * chip selects: it calls the appropriate function to control the SPI
- * chip selects.
- */
-spi_chipsel_type spi_chipsel[] =
-{
-	spi_chip_select
-};
-int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
 
 
 /**********************************************************************/

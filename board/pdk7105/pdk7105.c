@@ -30,9 +30,6 @@
 #include <asm/pio.h>
 
 
-#define PIO_BASE  0xfd020000	/* Base of PIO block in COMMs block */
-
-
 void flashWriteEnable(void)
 {
 	/* Enable Vpp for writing to flash */
@@ -120,6 +117,45 @@ static void configEthernet(void)
 	STPIO_SET_PIN(PIO_PORT(15), 5, 1);
 }
 
+#if defined(CONFIG_SPI)
+static void configSpi(void)
+{
+#if defined(CONFIG_SOFT_SPI)
+	/* Configure SPI Serial Flash for PIO "bit-banging" */
+
+#if 1
+	/*
+	 * On the PDK-7105 board, the following 4 pairs of PIO
+	 * pins are connected together with a 3K3 resistor.
+	 *
+	 *	SPI_CLK  PIO15[0] <-> PIO2[5] COM_CLK
+	 *	SPI_DOUT PIO15[1] <-> PIO2[6] COM_DOUT
+	 *	SPI_NOCS PIO15[2] <-> PIO2[4] COM_NOTCS
+	 *	SPI_DIN  PIO15[3] <-> PIO2[7] COM_DIN
+	 *
+	 * To minimise drive "contention", we may set
+	 * associated pins on PIO2 to be simple inputs.
+	 */
+	SET_PIO_PIN(PIO_PORT(2),4,STPIO_IN);	/* COM_NOTCS */
+	SET_PIO_PIN(PIO_PORT(2),5,STPIO_IN);	/* COM_CLK */
+	SET_PIO_PIN(PIO_PORT(2),6,STPIO_IN);	/* COM_DOUT */
+	SET_PIO_PIN(PIO_PORT(2),7,STPIO_IN);	/* COM_DIN */
+#endif
+
+	/* SPI is on PIO15:[3:0] */
+	SET_PIO_PIN(PIO_PORT(15),3,STPIO_IN);	/* SPI_DIN */
+	SET_PIO_PIN(PIO_PORT(15),0,STPIO_OUT);	/* SPI_CLK */
+	SET_PIO_PIN(PIO_PORT(15),1,STPIO_OUT);	/* SPI_DOUT */
+	SET_PIO_PIN(PIO_PORT(15),2,STPIO_OUT);	/* SPI_NOCS */
+
+	/* drive outputs with sensible initial values */
+	STPIO_SET_PIN(PIO_PORT(15), 2, 1);	/* deassert SPI_NOCS */
+	STPIO_SET_PIN(PIO_PORT(15), 0, 1);	/* assert SPI_CLK */
+	STPIO_SET_PIN(PIO_PORT(15), 1, 0);	/* deassert SPI_DOUT */
+#endif	/* CONFIG_SOFT_SPI */
+}
+#endif	/* CONFIG_SPI */
+
 static void configPIO(void)
 {
 	unsigned long sysconf;
@@ -160,6 +196,11 @@ static void configPIO(void)
 
 	/* Configure & Reset the Ethernet PHY */
 	configEthernet();
+
+#if defined(CONFIG_SPI)
+	/* Configure for SPI Serial Flash */
+	configSpi();
+#endif	/* CONFIG_SPI */
 }
 
 extern int board_init(void)

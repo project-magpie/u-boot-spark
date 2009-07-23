@@ -25,7 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= lib$(SOC).a
 
-OBJS	= stx5197.o spi.o env_eeprom.o
+OBJS	= stx5197.o env_eeprom.o
 SOBJS	=
 
 all:	.depend $(LIB)

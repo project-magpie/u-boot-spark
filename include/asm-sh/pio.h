@@ -84,7 +84,7 @@ do {								\
 		((V)? STPIO_SET_OFFSET : STPIO_CLEAR_OFFSET));	\
 } while (0)
 #define STPIO_GET_PIN(PORT, PIN)				\
-	((readb(PIO_PORT(PORT)+STPIO_PIN_OFFSET)>>(PIN))&0x01)
+	((readl(PIO_PORT(PORT)+STPIO_PIN_OFFSET)>>(PIN))&0x01)
 
 #define SET_PIO_ASC_OUTDIR(PIO_ADDR, TX, RX, CTS, RTS, OUTDIR)	\
 do {								\

@@ -31,8 +31,8 @@
 #include <asm/pio.h>
 #include <asm/stbus.h>
 #include <ata.h>
+#include <spi.h>
 
-#define PIO_BASE  ST40_PIO0_REGS_BASE
 
 static void stx7105_clocks(void)
 {
@@ -292,5 +292,61 @@ extern void stx7105_configure_sata(void)
 	}
 }
 #endif	/* CONFIG_SH_STM_SATA */
+
+
+#if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
+extern void stx7105_spi_scl(const int val)
+{
+	const int pin = 0;	/* PIO15[0] = SPI_CLK */
+	STPIO_SET_PIN(PIO_PORT(15), pin, val ? 1 : 0);
+}
+
+extern void stx7105_spi_sda(const int val)
+{
+	const int pin = 1;	/* PIO15[1] = SPI_DOUT */
+	STPIO_SET_PIN(PIO_PORT(15), pin, val ? 1 : 0);
+}
+
+extern unsigned char stx7105_spi_read(void)
+{
+	const int pin = 3;	/* PIO15[3] = SPI_DIN */
+	return STPIO_GET_PIN(15, pin);
+}
+
+/*
+ * assert or de-assert the SPI Chip Select line.
+ *
+ *	input: cs == true, assert CS, else deassert CS
+ */
+static void spi_chip_select(const int cs)
+{
+	const int pin = 2;	/* PIO15[2] = SPI_NOTCS */
+
+	if (cs)
+	{	/* assert SPI CSn */
+		STPIO_SET_PIN(PIO_PORT(15), pin, 0);
+	}
+	else
+	{	/* DE-assert SPI CSn */
+		STPIO_SET_PIN(PIO_PORT(15), pin, 1);
+	}
+
+	if (cs)
+	{	/* wait 250ns for CSn assert to propagate  */
+		udelay(1);	/* QQQ: can we make this shorter ? */
+	}
+}
+
+/*
+ * The SPI command uses this table of functions for controlling the SPI
+ * chip selects: it calls the appropriate function to control the SPI
+ * chip selects.
+ */
+spi_chipsel_type spi_chipsel[] =
+{
+	spi_chip_select
+};
+int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
+#endif	/* CONFIG_SOFT_SPI */
 
 

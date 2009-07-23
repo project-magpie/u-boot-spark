@@ -26,7 +26,10 @@ include $(TOPDIR)/config.mk
 LIB	= lib$(CPU).a
 
 START	= start.o
-OBJS	= cpu.o interrupts.o usb.o cmd_pmb.o ecc.o stm-nand.o cmd_copybbt.o sata-init.o sata-probe.o
+OBJS	= cpu.o interrupts.o usb.o cmd_pmb.o
+OBJS	+= ecc.o stm-nand.o cmd_copybbt.o	# NAND
+OBJS	+= sata-init.o sata-probe.o		# SATA
+OBJS	+= spi.o				# SPI
 SOBJS	=
 
 all:	.depend $(START) $(LIB)

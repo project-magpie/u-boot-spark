@@ -251,7 +251,7 @@
  * FLASH organization
  */
 
-/* Choose if we want FLASH Support (NAND &/or NOR devices)
+/* Choose if we want FLASH Support (SPI, NAND &/or NOR devices)
  * With the PDK7105 combination, we may use *both*
  * NOR and NAND flash, at the same time, if we want.
  *
@@ -260,6 +260,7 @@
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
 #define CONFIG_CMD_FLASH	/* define for NOR flash */
 #define CONFIG_CMD_NAND		/* define for NAND flash */
+#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
 
 /*-----------------------------------------------------------------------
  * NOR FLASH organization
@@ -345,6 +346,33 @@
 	 */
 #	define CFG_NAND_ENV_OFFSET (CFG_MONITOR_LEN + 0x0)	/* immediately after u-boot.bin */
 #endif	/* CONFIG_CMD_NAND */
+
+/*-----------------------------------------------------------------------
+ * SPI SERIAL FLASH organization
+ */
+
+/*
+ *	Name	Manuf	Device
+ *	-----	-----	------
+ *	US3	ST	M25P64
+ */
+#if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
+#	define CONFIG_SPI_FLASH_ST		/* ST M25Pxx (US3) */
+#	define CONFIG_SPI			/* enable the SPI driver */
+#	define CONFIG_CMD_SPI			/* SPI serial bus command support */
+#	define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
+#	define CFG_I2C_FRAM			/* to minimize performance degradation */
+#	undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
+#	define CONFIG_SOFT_SPI			/* Use "bit-banging" PIO (not the SSC) */
+#endif	/* CONFIG_SPI_FLASH */
+
+#if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
+#	define SPI_SCL(val)	do { stx7105_spi_scl((val)); } while (0)
+#	define SPI_SDA(val)	do { stx7105_spi_sda((val)); } while (0)
+#	define SPI_DELAY	do { udelay(1); } while (0)	/* QQQ: only 500 kHz ??? */
+#	define SPI_READ		stx7105_spi_read()
+#endif	/* CONFIG_SOFT_SPI */
+
 
 /*-----------------------------------------------------------------------
  * Address, size, & location of U-boot's Environment Sector
