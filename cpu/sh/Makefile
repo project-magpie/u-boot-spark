@@ -29,7 +29,7 @@ START	= start.o
 OBJS	= cpu.o interrupts.o usb.o cmd_pmb.o
 OBJS	+= ecc.o stm-nand.o cmd_copybbt.o	# NAND
 OBJS	+= sata-init.o sata-probe.o		# SATA
-OBJS	+= spi.o				# SPI
+OBJS	+= spi.o env_eeprom.o			# SPI
 SOBJS	=
 
 all:	.depend $(START) $(LIB)

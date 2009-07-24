@@ -45,6 +45,14 @@
 
 
 /*-----------------------------------------------------------------------
+ * Are we booting directly from a SPI Serial Flash device ?
+ * If so, then define the "CFG_BOOT_FROM_SPI" macro,
+ * otherwise (e.g. for NOR/NAND Flash booting), do not define it.
+ */
+#undef CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
+
+
+/*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
@@ -72,6 +80,7 @@
 
 #define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
 
+#define CFG_EMI_SPI_BASE	0xA0000000	/* SPI Serial FLASH in SPIBOOT-mode */
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
@@ -141,10 +150,10 @@
 /* choose which ST ASC UART to use */
 #if 1
 	/* 9-pin D-type connector on STi7105-SDK-SB daughter board */
-#	define CFG_STM_ASC_BASE		0xfd032000ul	/* UART2 = AS0 */
+#	define CFG_STM_ASC_BASE		ST40_ASC2_REGS_BASE	/* UART #2 */
 #else
 	/* JN5, 6-way connector - QQQ NOT TESTED */
-#	define CFG_STM_ASC_BASE		0xfd033000ul	/* UART3 = AS1 */
+#	define CFG_STM_ASC_BASE		ST40_ASC3_REGS_BASE	/* UART #3 */
 #endif
 
 /*---------------------------------------------------------------
@@ -380,13 +389,16 @@
 
 #define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
-#ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
+#if 1 && defined(CONFIG_CMD_FLASH)		/* NOR flash present ? */
 #	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
-#elif defined(CONFIG_CMD_NAND)			/* NAND flash present ? */
+#elif 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
+#elif 1 && defined(CONFIG_SPI_FLASH)		/* SPI serial flash present ? */
+#	define CFG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
+#	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #else
 #	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #endif	/* CONFIG_CMD_NAND */

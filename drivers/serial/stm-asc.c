@@ -20,6 +20,7 @@
 #include "asm/termbits.h"
 #include "asm/io.h"
 #include "asm/pio.h"
+#include "asm/socregs.h"
 
 #define CS7		0000040
 #define CS8		0000060
