@@ -42,11 +42,26 @@
  *
  * Sometimes (during initialization) we access the SPI via the
  * SPIBOOT mode controller, other times (post-initialization)
- * we access the SPI serial flash via the SSC.
+ * we access the SPI serial flash via the SSC (or PIOs).
  * This file tries to take care of dealing with the
  * duality aspects of all this.
+ *
+ * If CFG_BOOT_FROM_SPI is defined, then we assume we are booting
+ * from SPI serial flash, using the SoC's SPIBOOT mode, to re-map
+ * the serial flash to 0xA0000000 in the EMI space. Otherwise,
+ * we assume we are *not* booting using the SoC's SPIBOOT mode,
+ * in which case we need to use either the SSC or PIO to talk
+ * to the SPI serial flash.
+ * The main difference in usage, is the environment variables
+ * will always be honoured if CFG_BOOT_FROM_SPI is defined,
+ * whereas, if CFG_BOOT_FROM_SPI is not defined, then
+ * the environment variables will only be honoured *after* the
+ * SPI has been initialized (i.e. after serial initialization).
+ * Hence, "baudrate" may not be honoured if the environment is
+ * stored in SPI, unless CFG_BOOT_FROM_SPI is also defined.
  */
-#if defined(CFG_ENV_IS_IN_EEPROM) && defined(CFG_BOOT_FROM_SPI)
+
+#if defined(CFG_ENV_IS_IN_EEPROM)
 
 #include <command.h>
 #include <environment.h>
@@ -62,6 +77,7 @@ extern uchar (*env_get_char)(int);
 extern uchar env_get_char_memory (int index);
 
 
+#if defined(CFG_BOOT_FROM_SPI)
 	/*
 	 * The following function will read a 32-bit value
 	 * from the serial flash, via the SPIBOOT controller,
@@ -87,62 +103,8 @@ static inline uchar spiboot_get_byte(const int index)
 }
 
 
-extern uchar env_get_char_spec (int index)
-{
-	uchar c;
-
-	if ( (env_ptr==NULL) ||
-	     (gd->env_addr != (ulong)&(env_ptr->data)) )
-	{
-		/*
-		 * Not relocated the environment yet.
-		 * So the SPI is not yet initialized, so use the SPI-BOOT
-		 * controller to read the environment directly via the EMI.
-		 */
-		c = spiboot_get_byte(CFG_ENV_OFFSET + index);
-	}
-	else
-	{
-		/*
-		 * else, serial flash accessed via SSC, so
-		 * we can need to use the normal SPI interface
-		 * to talk to the serial flash device.
-		 */
-		eeprom_read (CFG_DEF_EEPROM_ADDR,
-			     CFG_ENV_OFFSET+index+offsetof(env_t,data),
-			     &c, 1);
-	}
-
-	return (c);
-}
-
-
-extern void env_relocate_spec (void)
-{
-	const uchar * const from = (uchar*)(CFG_EMI_SPI_BASE + CFG_ENV_OFFSET);
-
-#if 0
-	printf("\nQQQ: relocating %u bytes from %p to %p ...\n\n",
-		CFG_ENV_SIZE, from, env_ptr);
-#endif
-	memcpy( (uchar*)env_ptr, from, CFG_ENV_SIZE);
-}
-
-
-extern int saveenv(void)
-{
-	return eeprom_write (CFG_DEF_EEPROM_ADDR,
-			     CFG_ENV_OFFSET,
-			     (uchar *)env_ptr,
-			     CFG_ENV_SIZE);
-}
-
-
 /************************************************************************
  * Initialize Environment use
- *
- * We are still running from ROM, so data use is limited
- * Use a (moderately small) buffer on the stack
  *
  * Note: as we are using SPIBOOT mode to read the serial flash,
  * then we need to perform 32-bit accesses only. Hence, we loop
@@ -184,8 +146,125 @@ extern int env_init(void)
 
 	return (0);
 }
+#endif	/* CFG_BOOT_FROM_SPI */
 
 
-#endif /* CFG_ENV_IS_IN_EEPROM && CFG_BOOT_FROM_SPI */
+/************************************************************************
+ * Initialize Environment use
+ *
+ * Note: for this case, we are storing the environment
+ * in SPI serial flash - but we are *not* booting from SPI
+ * serial flash, so we can not obtain the proper environment
+ * until we have probed for the SPI serial flash - which we do later.
+ * So, we initially just "fake" the environment by pretending
+ * that there is not one!
+ */
+#if !defined(CFG_BOOT_FROM_SPI)
+extern int env_init(void)
+{
+	gd->env_addr  = 0;
+	gd->env_valid = 0;	/* no valid environment */
+
+	return (0);
+}
+
+/*
+ * The following function is performed to initialize
+ * the environment *after* the SPI driver has been
+ * initialized.
+ */
+extern int env_init_after_spi_done(void)
+{
+	ulong crc, len, new;
+	unsigned off;
+	uchar buf[64];
+
+	/* read old CRC */
+	eeprom_read (CFG_DEF_EEPROM_ADDR,
+		     CFG_ENV_OFFSET+offsetof(env_t,crc),
+		     (uchar *)&crc, sizeof(ulong));
+
+	new = 0;
+	len = ENV_SIZE;
+	off = offsetof(env_t,data);
+	while (len > 0) {
+		int n = (len > sizeof(buf)) ? sizeof(buf) : len;
+
+		eeprom_read (CFG_DEF_EEPROM_ADDR, CFG_ENV_OFFSET+off, buf, n);
+		new = crc32 (new, buf, n);
+		len -= n;
+		off += n;
+	}
+
+	if (crc == new) {
+		gd->env_addr  = offsetof(env_t,data);
+		gd->env_valid = 1;
+	} else {
+		gd->env_addr  = 0;
+		gd->env_valid = 0;
+	}
+
+	return (0);
+}
+#endif	/* !CFG_BOOT_FROM_SPI */
+
+
+extern uchar env_get_char_spec (int index)
+{
+	uchar c;
+
+#if defined(CFG_BOOT_FROM_SPI)
+	if ( (env_ptr==NULL) ||
+	     (gd->env_addr != (ulong)&(env_ptr->data)) )
+	{
+		/*
+		 * Not relocated the environment yet.
+		 * So the SPI is not yet initialized, so use the SPI-BOOT
+		 * controller to read the environment directly via the EMI.
+		 */
+		c = spiboot_get_byte(CFG_ENV_OFFSET + index);
+	}
+	else
+#endif	/* CFG_BOOT_FROM_SPI */
+	{
+		/*
+		 * Serial flash accessible via SSC or PIO, so
+		 * we can need to use the 'normal' SPI interfaces
+		 * to talk to the SPI serial flash device.
+		 */
+		eeprom_read (CFG_DEF_EEPROM_ADDR,
+			     CFG_ENV_OFFSET+index+offsetof(env_t,data),
+			     &c, 1);
+	}
+
+	return (c);
+}
+
+
+extern void env_relocate_spec (void)
+{
+#if defined(CFG_BOOT_FROM_SPI)
+	const uchar * const from = (uchar*)(CFG_EMI_SPI_BASE + CFG_ENV_OFFSET);
+	memcpy( (uchar*)env_ptr, from, CFG_ENV_SIZE);
+#else
+	eeprom_read (
+		CFG_DEF_EEPROM_ADDR,
+		CFG_ENV_OFFSET,
+		(uchar *)env_ptr,
+		CFG_ENV_SIZE);
+#endif	/* CFG_BOOT_FROM_SPI */
+}
+
+
+extern int saveenv(void)
+{
+	return eeprom_write (CFG_DEF_EEPROM_ADDR,
+			     CFG_ENV_OFFSET,
+			     (uchar *)env_ptr,
+			     CFG_ENV_SIZE);
+}
+
+
+#endif	/* CFG_ENV_IS_IN_EEPROM */
 
 

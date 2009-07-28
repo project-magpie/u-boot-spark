@@ -66,6 +66,7 @@ extern int soc_init (void); 	/* Detect/set SOC settings  */
 extern int board_init (void);   /* Set up board             */
 extern int timer_init (void);
 extern int checkboard (void);   /* Give info about board    */
+extern int env_init_after_spi_done (void);
 
 static void mem_malloc_init (void)
 {
@@ -238,15 +239,25 @@ void start_sh4boot (void)
 
 #if defined(CONFIG_CMD_NAND)
 	puts ("NAND:  ");
-	nand_init();		/* go init the NAND */
+	nand_init ();		/* go init the NAND */
 #endif
+
+#if defined(CONFIG_SPI) && !defined(CFG_BOOT_FROM_SPI)
+	/* This needs to be done *before* env_relocate(). */
+	puts ("SPI:  ");
+	spi_init ();		/* go init the SPI */
+#if defined(CFG_ENV_IS_IN_EEPROM)
+	env_init_after_spi_done ();
+#endif	/* CFG_ENV_IS_IN_EEPROM */
+#endif	/* defined(CONFIG_SPI) */
 
 	/* Allocate environment function pointers etc. */
 	env_relocate ();
 
-#if defined(CONFIG_SPI)
+#if defined(CONFIG_SPI) && defined(CFG_BOOT_FROM_SPI)
 	/* This needs to be done *after* env_relocate(). */
-	spi_init();		/* go init the SPI */
+	puts ("SPI:  ");
+	spi_init ();		/* go init the SPI */
 #endif	/* defined(CONFIG_SPI) */
 
 	/* board MAC address */
