@@ -64,7 +64,7 @@ extern nand_info_t nand_info[];
 extern uchar default_environment[];
 extern int default_environment_size;
 
-char * env_name_spec = "NAND";
+char * env_name_spec = "NAND Flash";
 
 
 #ifdef ENV_IS_EMBEDDED

@@ -396,6 +396,10 @@
 #elif 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
+#	if CFG_ENV_SIZE < 0x20000		/* needs to be a multiple of block-size */
+#		undef CFG_ENV_SIZE		/* give it just one large-page block */
+#		define CFG_ENV_SIZE	0x20000	/* 128 KiB of environment data */
+#	endif /* if CFG_ENV_SIZE < 0x20000 */
 #elif 1 && defined(CONFIG_SPI_FLASH)		/* SPI serial flash present ? */
 #	define CFG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
