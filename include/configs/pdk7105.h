@@ -51,17 +51,21 @@
  */
 #undef CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
 
-
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
 
-#ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSC with JE2 */
+#if defined(CFG_BOOT_FROM_SPI)		/* we are booting from SPI, so *DO* swap CSA and CSC with JE2 */
+#define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (32MiB) */
+#define CFG_EMI_NAND_BASE	0xA6000000	/* CSC: NAND Flash, Physical 0x06000000 (8MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
+#elif defined(CFG_BOOT_FROM_NAND)	/* we are booting from NAND, so *DO* swap CSA and CSC with JE2 */
 #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (32MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
-#else		/* else, do *NOT* swap CSA and CSC using JE2 */
+#else					/* else, do *NOT* swap CSA and CSC using JE2 */
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NAND_BASE	0xA6000000	/* CSC: NAND Flash, Physical 0x06000000 (8MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 2 }		/* NAND is on Chip Select CSC */
@@ -80,7 +84,6 @@
 
 #define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
 
-#define CFG_EMI_SPI_BASE	0xA0000000	/* SPI Serial FLASH in SPIBOOT-mode */
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */

@@ -242,23 +242,16 @@ void start_sh4boot (void)
 	nand_init ();		/* go init the NAND */
 #endif
 
-#if defined(CONFIG_SPI) && !defined(CFG_BOOT_FROM_SPI)
-	/* This needs to be done *before* env_relocate(). */
+#if defined(CONFIG_SPI)
 	puts ("SPI:  ");
 	spi_init ();		/* go init the SPI */
-#if defined(CFG_ENV_IS_IN_EEPROM)
+#if defined(CFG_ENV_IS_IN_EEPROM) && !defined(CFG_BOOT_FROM_SPI)
 	env_init_after_spi_done ();
-#endif	/* CFG_ENV_IS_IN_EEPROM */
+#endif
 #endif	/* defined(CONFIG_SPI) */
 
 	/* Allocate environment function pointers etc. */
 	env_relocate ();
-
-#if defined(CONFIG_SPI) && defined(CFG_BOOT_FROM_SPI)
-	/* This needs to be done *after* env_relocate(). */
-	puts ("SPI:  ");
-	spi_init ();		/* go init the SPI */
-#endif	/* defined(CONFIG_SPI) */
 
 	/* board MAC address */
 	s = getenv ("ethaddr");

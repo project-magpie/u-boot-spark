@@ -125,28 +125,26 @@ skipped_signature:
 	 * then the following pokes are required/recommended to be
 	 * done early, when using the EMI's SPIBOOT mode controller.
 	 */
-#ifdef CFG_BOOT_FROM_SPI
+#if defined(CFG_BOOT_FROM_SPI)
 config_spiboot_controller:
 	MOV_CONST32_R0 ST40_EMI_SPI_REGS_BASE
 	mov	r0, r1
+
+	MOV_CONST32_R0 0x00020011	/* *ST40_EMI_SPI_CONFIGDATA = 0x00020010|ST */
+	mov.l	r0, @(ST40_EMI_SPI_CONFIGDATA-ST40_EMI_SPI_REGS_BASE,r1)
+
+#if 1
+	/* For serial flash we use FAST_READ */
+	mov	#2, r0			/* *ST40_EMI_SPI_MODESELECT = FAST_READ */
+#else
+	mov	#3, r0			/* *ST40_EMI_SPI_MODESELECT = CONTIG_MODE|FAST_READ */
+#endif
+	mov.l	r0, @(ST40_EMI_SPI_MODESELECT-ST40_EMI_SPI_REGS_BASE,r1)
+
 	/* Slow (divide) the SPI clock down to improve reliability. */
 	mov	#4, r0			/* *ST40_EMI_SPI_CLOCKDIV = 4 */
 	mov.l	r0, @(ST40_EMI_SPI_CLOCKDIV-ST40_EMI_SPI_REGS_BASE,r1)
-#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
-	MOV_CONST32_R0 0x000200a1	/* *ST40_EMI_SPI_CONFIGDATA = 0x000200a0|ST */
-	mov.l	r0, @(ST40_EMI_SPI_CONFIGDATA-ST40_EMI_SPI_REGS_BASE,r1)
-	/* For ST serial flash we use CONTIG_MODE and FAST_READ */
-	mov	#3, r0			/* *ST40_EMI_SPI_MODESELECT = CONTIG_MODE|FAST_READ */
-	mov.l	r0, @(ST40_EMI_SPI_MODESELECT-ST40_EMI_SPI_REGS_BASE,r1)
-#elif defined(CONFIG_SPI_FLASH_ATMEL)
-	MOV_CONST32_R0 0x000200a4	/* *ST40_EMI_SPI_CONFIGDATA = 0x000200a0|ATMEL */
-	mov.l	r0, @(ST40_EMI_SPI_CONFIGDATA-ST40_EMI_SPI_REGS_BASE,r1)
-	/* For ATMEL serial flash we use OLD_MODE and Normal (read) mode */
-	mov	#0, r0			/* *ST40_EMI_SPI_MODESELECT = 0 */
-	mov.l	r0, @(ST40_EMI_SPI_MODESELECT-ST40_EMI_SPI_REGS_BASE,r1)
-#else
-#warning Not configuring SPI_MODESELECT or SPI_CONFIGDATA registers!
-#endif	/* if defined(CONFIG_SPI_FLASH_xxx) */
+
 #endif	/* CFG_BOOT_FROM_SPI */
 
 
