@@ -125,6 +125,7 @@
 #define CFG_STM_SPI_DEVICE_VAL	0x00u		/* Binary x00xxxxx */
 
 #define OP_READ_STATUS		0x05u		/* Read Status Register */
+#define OP_WRITE_STATUS		0x01u		/* Write Status Register */
 #define OP_READ_DEVID		0x9fu		/* Read ID */
 #define OP_READ_ARRAY		0x03u		/* Read Data Bytes */
 #define OP_WREN			0x06u		/* Write Enable */
@@ -132,6 +133,7 @@
 #define OP_PP			0x02u		/* Page Program */
 
 #define SR_WIP			(1u<<0)		/* Status Register Write In Progress bit */
+#define SR_BP_MASK		0x1c		/* Block Protect Bits (BP[2:0]) */
 
 #elif defined(CONFIG_SPI_FLASH_MXIC)	/******************************/
 
@@ -142,6 +144,7 @@
 #define CFG_STM_SPI_DEVICE_VAL	0x00u		/* Binary xxxxxxxx */
 
 #define OP_READ_STATUS		0x05u		/* Read Status Register */
+#define OP_WRITE_STATUS		0x01u		/* Write Status Register */
 #define OP_READ_DEVID		0x9fu		/* Read ID */
 #define OP_READ_ARRAY		0x03u		/* Read Data Bytes */
 #define OP_WREN			0x06u		/* Write Enable */
@@ -149,6 +152,7 @@
 #define OP_PP			0x02u		/* Page Program */
 
 #define SR_WIP			(1u<<0)		/* Status Register Write In Progress bit */
+#define SR_BP_MASK		0x3c		/* Block Protect Bits (BP[3:0]) */
 
 #else					/******************************/
 
@@ -530,6 +534,46 @@ static int spi_probe_serial_flash(
 		pageSize,		/* in bytes */
 		eraseSize);		/* in bytes */
 #endif
+
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+	/* is the device in a write protected mode ? */
+	if (status & SR_BP_MASK)	/* BPx != 0 ? */
+	{
+		printf( "warning: "
+			"SPI device may be write-protected (status=0x%02x)\n",
+			status);
+#if 0	/* do we want to un-lock it, if we can ? */
+{
+	unsigned char enable[1] = { OP_WREN };
+	unsigned char unlock[2] = { OP_WRITE_STATUS, 0x00 };
+
+	/* let the user know we are trying to un-lock it */
+	printf("info: unlocking SPI ...\n");
+
+	/* issue a WRITE ENABLE (WREN) command */
+	spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
+
+	/* issue a WRITE Status Register (WRSR) command */
+	spi_xfer(chipsel, sizeof(unlock)*8, unlock, NULL);
+
+	/* give it some time to clear the non-volatile flags */
+	udelay(2 * 1000);	/* 2 ms */
+
+	/* re-read (and display) the updated status register */
+	status = spi_read_status(chipsel);
+	if (status & SR_BP_MASK)	/* BPx != 0 ? */
+	{	/* we MAY have succeeded, but we needed a longer delay! */
+		printf("warning:            ... FAILED! (status=0x%02x)\n",
+			status);
+	}
+	else
+	{	/* the delay was long enough, and we succeeded. */
+		printf("info:               ... succeeded.\n");
+	}
+}
+#endif	/* unlock it */
+	}
+#endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_MXIC */
 
 	return 0;
 }
