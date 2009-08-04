@@ -36,6 +36,24 @@
 /* This should really be replaced with something which uses bd->...	*/
 #define P_CLOCK_RATE	87500000	/* clock rate for CSP		*/
 
+
+/*-----------------------------------------------------------------------
+ *	Jumper settings to select between the SoC's 3 boot-modes:
+ *		a) boot from NOR flash
+ *		b) boot from NAND flash
+ *		c) boot from SPI serial flash
+ *
+ *	With the LED display panel facing the user:
+ *
+ *	Jumper	Location	NOR	NAND	SPI
+ *	------	--------	---	----	---
+ *	JE6	top-most	EAST	EAST	WEST
+ *	JE5	below JE6	EAST	WEST	EAST
+ *	JE3	left-side	NORTH	SOUTH	SOUTH
+ *	JE2	right-side	SOUTH	NORTH	NORTH
+ */
+
+
 /*-----------------------------------------------------------------------
  * Are we booting directly from a NAND Flash device ?
  * If so, then define the "CFG_BOOT_FROM_NAND" macro,
@@ -50,6 +68,7 @@
  * otherwise (e.g. for NOR/NAND Flash booting), do not define it.
  */
 #undef CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
+
 
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
