@@ -161,19 +161,33 @@ static void configPIO(void)
 	unsigned long sysconf;
 
 	/* Setup PIO of ASC device */
-	SET_PIO_ASC(PIO_PORT(4), 0, 1, 2, 3);  /* UART2 - AS0 */
-	SET_PIO_ASC(PIO_PORT(5), 0, 1, 3, 2);  /* UART3 - AS1 */
+#if CFG_STM_ASC_BASE == ST40_ASC0_REGS_BASE	/* UART #0 */
+	SET_PIO_ASC(PIO_PORT(0), 0, 1, 4, 3);  /* UART0 */
+#elif CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE	/* UART #2 */
+	SET_PIO_ASC(PIO_PORT(4), 0, 1, 2, 3);  /* UART2 */
+#elif CFG_STM_ASC_BASE == ST40_ASC3_REGS_BASE	/* UART #3 */
+	SET_PIO_ASC(PIO_PORT(5), 0, 1, 3, 2);  /* UART3 */
+#else
+#error Unsure which UART to configure!
+#endif	/* CFG_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
 
-	/* Setup PIO for FLASH_WP# (Active-Low WriteProtect) */
-	SET_PIO_PIN(PIO_PORT(6), 4, STPIO_OUT);
-
+#if CFG_STM_ASC_BASE == ST40_ASC0_REGS_BASE	/* UART #0 */
+	/* Route UART0 via PIO0 for TX, RX, CTS & RTS */
+	sysconf = *STX7105_SYSCONF_SYS_CFG19;
+	/* PIO0[0] CFG19[16,8,0]   AltFunction = 4 */
+	/* PIO0[1] CFG19[17,9,1]   AltFunction = 4 */
+	/* PIO0[3] CFG19[19,11,3]  AltFunction = 4 */
+	/* PIO0[4] CFG19[20,12,4]  AltFunction = 4 */
+	sysconf &= ~0x1b1b1bul;	/* 7,7,0,7,7 */
+	sysconf |=  0x001b1bul;	/* 3,3,0,3,3 */
+	*STX7105_SYSCONF_SYS_CFG19 = sysconf;
+#elif CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE	/* UART #2 */
 	/* Select UART2 via PIO4 */
 	sysconf = *STX7105_SYSCONF_SYS_CFG07;
 	/* CFG07[1] = UART2_RXD_SRC_SELECT = 0 */
 	/* CFG07[2] = UART2_CTS_SRC_SELECT = 0 */
 	sysconf &= ~(1ul<<2 | 1ul<<1);
 	*STX7105_SYSCONF_SYS_CFG07 = sysconf;
-
 	/* Route UART2 via PIO4 for TX, RX, CTS & RTS */
 	sysconf = *STX7105_SYSCONF_SYS_CFG34;
 	/* PIO4[0] CFG34[8,0]   AltFunction = 3 */
@@ -183,7 +197,7 @@ static void configPIO(void)
 	sysconf &= ~0x0f0ful;	/* 3,3,3,3 */
 	sysconf |=  0x0f00ul;	/* 2,2,2,2 */
 	*STX7105_SYSCONF_SYS_CFG34 = sysconf;
-
+#elif CFG_STM_ASC_BASE == ST40_ASC3_REGS_BASE	/* UART #3 */
 	/* Route UART3 via PIO5 for TX, RX, CTS & RTS */
 	sysconf = *STX7105_SYSCONF_SYS_CFG35;
 	/* PIO5[0] CFG35[8,0]   AltFunction = 3 */
@@ -193,6 +207,12 @@ static void configPIO(void)
 	sysconf &= ~0x0f0ful;	/* 3,3,3,3 */
 	sysconf |=  0x000ful;	/* 1,1,1,1 */
 	*STX7105_SYSCONF_SYS_CFG35 = sysconf;
+#else
+#error Unsure which UART to configure!
+#endif	/* CFG_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
+
+	/* Setup PIO for FLASH_WP# (Active-Low WriteProtect) */
+	SET_PIO_PIN(PIO_PORT(6), 4, STPIO_OUT);
 
 	/* Configure & Reset the Ethernet PHY */
 	configEthernet();

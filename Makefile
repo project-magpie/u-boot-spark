@@ -2781,6 +2781,17 @@ pdk7105se_config :		unconfig
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/pdk7105/config.tmp)
 	@./mkconfig -a pdk7105 sh sh pdk7105 "" stx7105
 
+ipidtv7105_config \
+ipidtv7105se_config :		unconfig
+	@ >include/config.h
+	@echo "#define CONFIG_SH_STX7105    1" >>include/config.h
+	@echo "#define CONFIG_SH_IPIDTV7105 1" >>include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE    1" >>include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/pdk7105/config.tmp)
+	@./mkconfig -a ipidtv7105 sh sh pdk7105 "" stx7105
+
 mb704_config \
 mb704se_config :		unconfig
 	@ >include/config.h
