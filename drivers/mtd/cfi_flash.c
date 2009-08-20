@@ -936,6 +936,19 @@ static void flash_write_cmd (flash_info_t * info, flash_sect_t sect, uint offset
 	volatile cfiptr_t addr;
 	cfiword_t cword;
 
+	/*
+	 *	We need to ensure that sizeof(cword) >= info->portwidth,
+	 *	otherwise, flash_make_cmd() will scribble over memory
+	 *	it should not! This results in a stack corruption,
+	 *	and madness follows...	Sean McGoogan 2009-08-20.
+	 */
+	if ( info->portwidth > sizeof(cword) ) {
+		printf("ERROR: %s() ignoring write request (info->portwidth=%u)\n",
+			__FUNCTION__,
+			info->portwidth);
+		return;
+	}
+
 	addr.cp = flash_make_addr (info, sect, offset);
 	flash_make_cmd (info, cmd, &cword);
 	switch (info->portwidth) {
