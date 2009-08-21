@@ -208,18 +208,22 @@
 #define MII_ADVERTISE			0x04		/* AN Advertisement Control Register */
 #define MII_LPA				0x05		/* AN Link Partner Ability Register */
 //#define MII_EXPANSION			0x06		/* AN Expansion Register */
+#define MII_GBCR			0x09		/* 1000BASE-T Control Register */
+//#define MII_GBSR			0x0A		/* 1000BASE-T Status Register */
 
 /* Basic Mode Control Register defines */
-//#define BMCR_SPEED1000		0x0040		/* MSB of Speed (1000) */
 //#define BMCR_CTST			0x0080		/* Collision Test */
-//#define BMCR_FULLDPLX			0x0100		/* Full Duplex */
+#define BMCR_FULLDPLX			0x0100		/* Full Duplex */
 #define BMCR_ANRESTART			0x0200		/* Auto-Negotiation Restart */
 //#define BMCR_ISOLATE			0x0400		/* Disconnect from the MII */
 //#define BMCR_PDOWN			0x0800		/* Power-down */
 #define BMCR_ANENABLE			0x1000		/* Enable Auto-Negotiation */
-//#define BMCR_SPEED100			0x2000		/* Select 100Mbps */
 #define BMCR_LOOPBACK			0x4000		/* Enable Loop-back Mode */
 //#define BMCR_RESET			0x8000		/* Software Reset */
+#define BMCR_SPEED1000			0x0040		/* Select 1000Mbps */
+#define BMCR_SPEED100			0x2000		/* Select 100Mbps */
+#define BMCR_SPEED10			0x0000		/* Select 10Mbps */
+#define BMCR_SPEED_MASK			(BMCR_SPEED100|BMCR_SPEED1000)
 
 /* Basic Mode Status Register defines */
 //#define BMSR_ERCAP			0x0001		/* Extended Capabilities Registers */
@@ -260,6 +264,10 @@
 //#define LPA_NPAGE			0x8000		/* Next Page Capable */
 //#define LPA_DUPLEX			(LPA_10FULL | LPA_100FULL)
 //#define LPA_100			(LPA_100FULL | LPA_100HALF | LPA_100BASE4)
+
+/* 1000BASE-T Control Register defines */
+#define GBCR_1000HALF			0x0100		/* Try for 1000Mbps half-duplex */
+#define GBCR_1000FULL			0x0200		/* Try for 1000Mbps full-duplex */
 
 
 /*----------------------------------------------------------------------------
