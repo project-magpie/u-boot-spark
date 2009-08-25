@@ -310,7 +310,7 @@ extern void stx7105_spi_sda(const int val)
 extern unsigned char stx7105_spi_read(void)
 {
 	const int pin = 3;	/* PIO15[3] = SPI_DIN */
-	return STPIO_GET_PIN(15, pin);
+	return STPIO_GET_PIN(PIO_PORT(15), pin);
 }
 
 /*

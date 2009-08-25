@@ -1,5 +1,5 @@
 /*
- * (C) Copyright STMicroelectronics 2005, 2008
+ * (C) Copyright STMicroelectronics 2005, 2008, 2009
  * Andy Stugres, <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -83,8 +83,8 @@ do {								\
 		(PIO_ADDR) + STPIO_POUT_OFFSET +		\
 		((V)? STPIO_SET_OFFSET : STPIO_CLEAR_OFFSET));	\
 } while (0)
-#define STPIO_GET_PIN(PORT, PIN)				\
-	((readl(PIO_PORT(PORT)+STPIO_PIN_OFFSET)>>(PIN))&0x01)
+#define STPIO_GET_PIN(PIO_ADDR, PIN)				\
+	((readl((PIO_ADDR)+STPIO_PIN_OFFSET)>>(PIN))&0x01)
 
 #define SET_PIO_ASC_OUTDIR(PIO_ADDR, TX, RX, CTS, RTS, OUTDIR)	\
 do {								\

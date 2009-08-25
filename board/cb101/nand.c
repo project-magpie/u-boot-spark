@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2006 DENX Software Engineering
- * (C) Copyright 2008 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2009 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -71,7 +71,7 @@ static void cb101_hwcontrol(struct mtd_info *mtdinfo, int cmd)
  */
 static int cb101_device_ready(struct mtd_info *mtd)
 {
-	int ret = STPIO_GET_PIN(2,7);
+	int ret = STPIO_GET_PIN(PIO_PORT(2), 7);
 	return ret;
 }
 
