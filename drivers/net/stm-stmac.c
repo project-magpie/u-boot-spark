@@ -171,6 +171,12 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define IP1001_PHY_ID		0x02430d90u
 #define IP1001_PHY_ID_MASK	0xfffffff0u
 
+#elif defined(CONFIG_STMAC_78Q2123)	/* TERIDIAN 78Q2123 */
+
+/* TERIDIAN 78Q2123 phy identifier values */
+#define TERIDIAN_PHY_ID		0x000e7230u
+#define TERIDIAN_PHY_ID_MASK	0xfffffff0u
+
 #else
 #error Need to define which PHY to use
 #endif
@@ -263,13 +269,12 @@ static unsigned int stmac_phy_check_speed (int phy_addr)
 /* Automatically gets and returns the PHY device */
 static unsigned int stmac_phy_get_addr (void)
 {
-	unsigned int i;
+	unsigned int i, id;
 
 	for (i = 0; i < 32; i++) {
-		unsigned int id1, id2, id;
 		unsigned int phyaddr = (i + 1u) % 32u;
-		id1 = stmac_mii_read (phyaddr, MII_PHYSID1);
-		id2 = stmac_mii_read (phyaddr, MII_PHYSID2);
+		unsigned int id1 = stmac_mii_read (phyaddr, MII_PHYSID1);
+		unsigned int id2 = stmac_mii_read (phyaddr, MII_PHYSID2);
 		id  = (id1 << 16) | (id2);
 		/* Make sure it is a valid (known) identifier */
 #if defined(CONFIG_STMAC_STE10XP)
@@ -300,10 +305,17 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "IC+ IP1001 found\n");
 			return phyaddr;
 		}
+#elif defined(CONFIG_STMAC_78Q2123)
+		if ((id & TERIDIAN_PHY_ID_MASK) == TERIDIAN_PHY_ID) {
+			printf (STMAC "TERIDIAN 78Q2123 found\n");
+			return phyaddr;
+		}
+#else
+#error Need to define which PHY to use
 #endif	/* CONFIG_STMAC_STE10XP */
 	}
 
-	printf (STMAC "Unable to find a PHY (unknown ID?)\n");
+	printf (STMAC "Unable to find a known PHY (ID=0x%08x)\n", id);
 	return (-1);
 }
 
@@ -331,18 +343,20 @@ static int stmac_phy_init (void)
 	value = stmac_mii_read (eth_phy_addr, PHY_SUP_REG);
 #elif defined(CONFIG_STMAC_KSZ8041FTL)
 	/* The Micrel KSZ8041FTL does not appear to support
-	 * reading the H/W PHY address from any register.
-	 * So, we bypass the following test.
-	 */
+	 * reading the H/W PHY address from any register.  */
+#	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #elif defined(CONFIG_STMAC_IP1001)
 	/* The IC+ IP1001 does not appear to support
-	 * reading the H/W PHY address from any register.
-	 * So, we bypass the following test.
-	 */
+	 * reading the H/W PHY address from any register.  */
+#	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
+#elif defined(CONFIG_STMAC_78Q2123)
+	/* The TERIDIAN 78Q2123 does not appear to support
+	 * reading the H/W PHY address from any register.  */
+#	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #else
-#error Need to define PHY
+#error Need to define which PHY to use
 #endif
-#if !defined(CONFIG_STMAC_KSZ8041FTL) && !defined(CONFIG_STMAC_IP1001)
+#if !defined(CONFIG_STMAC_BYPASS_ADDR_MISMATCH)
 	value = (value & PHY_ADDR_MSK) >> PHY_ADDR_SHIFT;
 	if (value != eth_phy_addr) {
 		printf (STMAC "PHY address mismatch with hardware (hw %d != %d)\n",

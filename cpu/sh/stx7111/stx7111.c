@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2009 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -31,6 +31,7 @@
 #include <asm/pio.h>
 #include <asm/stbus.h>
 #include <ata.h>
+#include <spi.h>
 
 #define PIO_BASE  ST40_PIO0_REGS_BASE
 
@@ -42,7 +43,7 @@ static void stx7111_clocks(void)
 	/*
 	 * FIXME
 	 * Gross hack to get the serial port working.
-	 * See the defintion of PCLK in drivers/stm-asc.c
+	 * See the definition of PCLK in drivers/stm-asc.c
 	 * for where this is used.
 	 */
 	bd->bi_emifrq = 100;
@@ -65,10 +66,8 @@ extern int stmac_default_pbl(void)
 
 extern void stmac_set_mac_speed(int speed)
 {
-	/* QQQ: check this code is actually correct for the 7111 */
 	unsigned long sysconf = *STX7111_SYSCONF_SYS_CFG07;
 
-//	printf("QQQ: %s(speed=%u)\n", __FUNCTION__, speed); /* QQQ - DELETE */
 	/* MAC_SPEED_SEL = 0|1 */
 	if (speed == 100)
 		sysconf |= MAC_SPEED_SEL;
@@ -96,7 +95,7 @@ static void stmac_eth_hw_setup(void)
 	else
 		sysconf &= ~PHY_CLK_EXT;
 
-	/* Default GMII/MII slection */
+	/* Default GMII/MII selection */
 	sysconf &= ~PHY_INTF_SEL_MASK;
 	sysconf |= ((sel<<24) & PHY_INTF_SEL_MASK);
 
@@ -143,7 +142,7 @@ extern void stx7111_usb_init(void)
 	/* Work around for USB over-current detection chip being
 	 * active low, and the 7111 being active high.
 	 * Note this is an undocumented bit, which apparently enables
-	 * an inverter on the overcurrent signal.
+	 * an inverter on the over-current signal.
 	 */
 	reg = readl(STX7111_SYSCONF_SYS_CFG06);
 	reg |= 1ul<<29;
@@ -188,4 +187,72 @@ extern void stx7111_usb_init(void)
 }
 
 #endif /* defined(CONFIG_USB_OHCI_NEW) */
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI)
+
+#if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
+extern void stx7111_spi_scl(const int val)
+{
+	const int pin = 0;	/* PIO2[0] = SPI_CLK */
+	STPIO_SET_PIN(PIO_PORT(2), pin, val ? 1 : 0);
+}
+
+extern void stx7111_spi_sda(const int val)
+{
+	const int pin = 1;	/* PIO2[1] = SPI_DOUT */
+	STPIO_SET_PIN(PIO_PORT(2), pin, val ? 1 : 0);
+}
+
+extern unsigned char stx7111_spi_read(void)
+{
+	const int pin = 2;	/* PIO2[2] = SPI_DIN */
+	return STPIO_GET_PIN(PIO_PORT(2), pin);
+}
+#else
+#error Still to impliment SPI via SSC for the STx7111.
+#endif	/* CONFIG_SOFT_SPI */
+
+/*
+ * assert or de-assert the SPI Chip Select line.
+ *
+ *	input: cs == true, assert CS, else deassert CS
+ *
+ * this is used for both S/W bit-banging, and H/W SSC.
+ */
+static void spi_chip_select(const int cs)
+{
+	const int pin = 7;	/* PIO6[7] = SPI_NOTCS */
+
+	if (cs)
+	{	/* assert SPI CSn */
+		STPIO_SET_PIN(PIO_PORT(6), pin, 0);
+	}
+	else
+	{	/* DE-assert SPI CSn */
+		STPIO_SET_PIN(PIO_PORT(6), pin, 1);
+	}
+
+	if (cs)
+	{	/* wait 250ns for CSn assert to propagate  */
+		udelay(1);	/* QQQ: can we make this shorter ? */
+	}
+}
+
+/*
+ * The SPI command uses this table of functions for controlling the SPI
+ * chip selects: it calls the appropriate function to control the SPI
+ * chip selects.
+ */
+spi_chipsel_type spi_chipsel[] =
+{
+	spi_chip_select
+};
+int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
+
+#endif	/* CONFIG_SPI */
+
 

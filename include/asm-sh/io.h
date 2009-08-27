@@ -56,6 +56,7 @@
        defined(CONFIG_SH_HMS1)		|| \
        defined(CONFIG_SH_MB519)		|| \
        defined(CONFIG_SH_MB618)		|| \
+       defined(CONFIG_SH_HDK7111)	|| \
        defined(CONFIG_SH_MB628)		|| \
        defined(CONFIG_SH_MB671)		|| \
        defined(CONFIG_SH_MB680)		|| \

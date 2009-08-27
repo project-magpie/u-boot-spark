@@ -60,5 +60,9 @@ extern void		stx7105_spi_scl(const int val);
 extern void		stx7105_spi_sda(const int val);
 extern unsigned char	stx7105_spi_read(void);
 
+extern void		stx7111_spi_scl(const int val);
+extern void		stx7111_spi_sda(const int val);
+extern unsigned char	stx7111_spi_read(void);
+
 #endif	/* _SOC_H_ */
 

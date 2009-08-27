@@ -676,6 +676,8 @@ LIST_sh="		\
 	mb519se		\
 	mb618		\
 	mb618se		\
+	hdk7111		\
+	hdk7111se	\
 	mb671		\
 	mb671se		\
 	mb680		\
