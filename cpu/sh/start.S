@@ -290,10 +290,12 @@ set_pmb:
 	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	#endif
-	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR/NAND FLASH UN-cached */
-	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR/NAND FLASH UN-cached */
-	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR/NAND FLASH CACHED */
-	SH4_SET_PMB 7 0xa9 0x01  16		/* NOR/NAND FLASH CACHED */
+	SH4_SET_PMB 4 0xa0 0x00  64 0 0 1	/* NOR/NAND/SPI FLASH UN-cached */
+	SH4_SET_PMB 5 0xa8 0x00  64		/* NOR/NAND/SPI FLASH CACHED */
+	SH4_SET_PMB 6 0xa4 0x04  16 0 0 1	/* NOR/NAND     FLASH UN-cached */
+	SH4_SET_PMB 7 0xa5 0x05  16 0 0 1	/* NOR/NAND     FLASH UN-cached */
+	SH4_SET_PMB 8 0xac 0x04  16		/* NOR/NAND     FLASH CACHED */
+	SH4_SET_PMB 9 0xad 0x05  16		/* NOR/NAND     FLASH CACHED */
 #elif defined(CONFIG_SH_STX7141) && defined(CONFIG_SH_MB628)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI UN-cached */
