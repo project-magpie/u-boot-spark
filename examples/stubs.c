@@ -155,20 +155,18 @@ gd_t *global_data;
 /*
  * r13 holds the pointer to the global_data. r0 is a call-clobbered.
  */
-#define EXPORT_FUNC(x)				\
-do {						\
-	int o;					\
-	asm volatile (				\
-	".globl " #x "\n"			\
-	#x ":");				\
-	o=offsetof(gd_t, jt);			\
-	asm volatile (				\
-		"mov.l	@(%0, r13), r0\n"	\
-	"	mov.l	@(r0, %1), r0\n"	\
-	"	jmp	@r0\n"			\
-	"	nop\n"				\
-	: "+z"(o) : "r"(XF_ ## x * sizeof(void *))) ; \
-} while (0);
+#define EXPORT_FUNC(x)                               \
+     asm volatile (                                  \
+             "       .align  2\n"                    \
+             "       .globl " #x "\n" #x ":\n"       \
+             "mov	%0, r0\n"		     \
+             "mov.l	@(r0, r13), r1\n"	     \
+             "mov	%1, r0\n"	             \
+             "mov.l	@(r0, r1), r0\n"	     \
+             "jmp       @r0\n"                       \
+             "nop\n"		                     \
+             : : "i"(offsetof(gd_t, jt)), "i"(XF_ ## x * sizeof(void *)): \
+               "r0","r1","r13");
 #else
 #error stubs definition missing for this architecture
 #endif
