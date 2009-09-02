@@ -153,20 +153,23 @@ gd_t *global_data;
 		: "r8");
 #elif defined(CONFIG_SH4)
 /*
- * r13 holds the pointer to the global_data. r0 is a call-clobbered.
+ * r13 holds the pointer to the global_data (read-only).
+ * r0 & r1 are call-clobbered (clobbered).
  */
-#define EXPORT_FUNC(x)                               \
-     asm volatile (                                  \
-             "       .align  2\n"                    \
-             "       .globl " #x "\n" #x ":\n"       \
-             "mov	%0, r0\n"		     \
-             "mov.l	@(r0, r13), r1\n"	     \
-             "mov	%1, r0\n"	             \
-             "mov.l	@(r0, r1), r0\n"	     \
-             "jmp       @r0\n"                       \
-             "nop\n"		                     \
-             : : "i"(offsetof(gd_t, jt)), "i"(XF_ ## x * sizeof(void *)): \
-               "r0","r1","r13");
+#define EXPORT_FUNC(x)				\
+	asm volatile (				\
+"	.globl " #x "\n"			\
+#x ":\n"					\
+"	mov	%[jt], r0\n"			\
+"	mov.l	@(r0, r13), r1\n"		\
+"	mov	%[func], r0\n"			\
+"	mov.l	@(r0, r1), r0\n"		\
+"	jmp	@r0\n"				\
+"	  nop\n"				\
+	: /* No outputs */			\
+	: [jt]   "i"(offsetof(gd_t, jt)),	\
+	  [func] "i"(XF_ ## x * sizeof(void *))	\
+	: "r0", "r1");
 #else
 #error stubs definition missing for this architecture
 #endif
