@@ -68,6 +68,9 @@ extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 #include <dataflash.h>
 #endif
 
+#if defined(CONFIG_SH4)
+#include <asm/addrspace.h>
+#endif	/* CONFIG_SH4 */
 /*
  * Some systems (for example LWMON) have very short watchdog periods;
  * we must make sure to split long operations like memmove() or
@@ -345,6 +348,61 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		break;
 	case IH_COMP_GZIP:
 		printf ("   Uncompressing %s ... ", name);
+#if defined(CONFIG_SH4)
+{
+		const uchar * const isizep =		/* pointer to ISIZE */
+			(uchar *)data + ntohl(hdr->ih_size) - 4;
+		const ulong isize =			/* ISIZE (gzip's Input Size) */
+			(ulong)(isizep[0]) << 0*8 |	/* i.e. the ORIGINAL UN-compressed size */
+			(ulong)(isizep[1]) << 1*8 |
+			(ulong)(isizep[2]) << 2*8 |
+			(ulong)(isizep[3]) << 3*8;
+		const ulong Cload = data;		/* compressed load address */
+		const ulong Csize = ntohl(hdr->ih_size);/* compressed size */
+		const ulong Cend  = Cload + Csize - 1;	/* compressed end address */
+		const ulong Uload = ntohl(hdr->ih_load);/* un-compressed load address */
+		const ulong Usize = isize;		/* un-compressed size */
+		const ulong Uend  = Uload + Usize - 1;	/* un-compressed end address */
+
+#if !defined(CONFIG_SH_SE_MODE)
+		/* assert ( IS_IN_P1_REGION(Uload) ); */
+		if ( (Uload < P1SEG) || (Uend >= P2SEG) )
+		{
+			printf ("\nwarning: Uncompressing to non-P1 region (0x%08x..0x%08x)\n",
+				Uload, Uend);
+			/* just a warning, so carry on! */
+		}
+#endif	/* CONFIG_SH_SE_MODE */
+
+		/* assert (Uload >= CFG_SDRAM_BASE); */
+		if ( PHYSADDR(Uload) < PHYSADDR(CFG_SDRAM_BASE) )
+		{
+			printf ("\nERROR: Uncompressed image (0x%08x) is below RAM (0x%08x)\n",
+				Uload,
+				CFG_SDRAM_BASE);
+			return 1;	/* unable to proceed */
+		}
+
+		/* assert (Uend < CFG_MEMTEST_END); */
+		if ( PHYSADDR(Uend) >= PHYSADDR(CFG_MEMTEST_END) )
+		{
+			printf ("\nERROR: Uncompressed image (0x%08x) is beyond safe RAM (0x%08x)\n",
+				Uend,
+				CFG_MEMTEST_END);
+			return 1;	/* unable to proceed */
+		}
+
+		/* assert ( (Cload > Uend) || (Uload > Cend) ); */
+		if ( !((PHYSADDR(Cload) > PHYSADDR(Uend)) || (PHYSADDR(Uload) > PHYSADDR(Cend))) )
+		{
+			printf ("\nERROR: Overlapping images (0x%08x..0x%08x) and (0x%08x..0x%08x)\n",
+				Cload, Cend,
+				Uload, Uend);
+			return 1;	/* unable to proceed */
+		}
+		unc_len = Usize;	/* we now know that it will fit okay */
+}
+#endif	/* CONFIG_SH4 */
 		if (gunzip ((void *)ntohl(hdr->ih_load), unc_len,
 			    (uchar *)data, &len) != 0) {
 			puts ("GUNZIP ERROR - must RESET board to recover\n");
