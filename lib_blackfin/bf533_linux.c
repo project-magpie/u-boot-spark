@@ -30,7 +30,7 @@
 #include <common.h>
 #include <command.h>
 #include <image.h>
-#include <zlib.h>
+#include <u-boot/zlib.h>
 #include <asm/byteorder.h>
 
 #define	LINUX_MAX_ENVS		256

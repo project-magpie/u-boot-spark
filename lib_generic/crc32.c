@@ -12,7 +12,7 @@
 #include <common.h>
 #endif
 
-#include "zlib.h"
+#include "u-boot/zlib.h"
 
 #define local static
 #define ZEXPORT	/* empty */

@@ -23,7 +23,7 @@
 #include <common.h>
 #include <malloc.h>
 #include <watchdog.h>
-#include <zlib.h>
+#include <u-boot/zlib.h>
 
 #if defined(CONFIG_CMD_JFFS2)
 
