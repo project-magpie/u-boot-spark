@@ -38,14 +38,16 @@ COBJS-y += ldiv.o
 COBJS-y += sha1.o
 COBJS-y += string.o
 COBJS-y += vsprintf.o
-COBJS-y += zlib.o
 
 COBJS	:= $(COBJS-y)
 SRCS 	:= $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
+OBJS	+= $(addprefix $(obj),zlib.o)
 
 $(LIB):	$(obj).depend $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
+zlib.o: zlib.c
+	$(CC) $(CFLAGS) -O2 -c -o $@ $<
 
 #########################################################################
 
