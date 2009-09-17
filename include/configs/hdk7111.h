@@ -229,7 +229,7 @@
  */
 
 #define CFG_HUSH_PARSER		1
-#define CFG_AUTO_COMPLETE	1
+#define CONFIG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
 #define CFG_PROMPT		"HDK7111> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
