@@ -4,6 +4,10 @@
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
+ * (C) Copyright 2004 STMicroelectronics.
+ *
+ * Andy Sturges <andy.sturges@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *

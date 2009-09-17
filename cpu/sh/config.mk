@@ -29,5 +29,4 @@
 PLATFORM_CPPFLAGS += -m4-nofpu -U__sh3__ -D__SH4__=1
 
 # all SH (ST40) CPUs will use the same linker script file
-LDSCRIPT := $(TOPDIR)/cpu/$(CPU)/u-boot.lds
-
+LDSCRIPT := $(SRCTREE)/cpu/$(CPU)/u-boot.lds
