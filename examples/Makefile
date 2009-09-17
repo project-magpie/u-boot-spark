@@ -62,7 +62,7 @@ LOAD_ADDR = 0x00000000
 endif
 
 ifeq ($(ARCH),sh)
-include $(TOPDIR)/include/autoconf.mk
+include $(OBJTREE)/include/autoconf.mk
 LOAD_ADDR = $(CFG_SDRAM_BASE)
 endif
 

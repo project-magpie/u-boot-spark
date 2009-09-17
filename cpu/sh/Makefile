@@ -23,25 +23,29 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= lib$(CPU).a
+LIB	= $(obj)lib$(CPU).a
 
 START	= start.o
-OBJS	= cpu.o interrupts.o usb.o cmd_pmb.o
-OBJS	+= ecc.o stm-nand.o cmd_copybbt.o	# NAND
-OBJS	+= sata-init.o sata-probe.o		# SATA
-OBJS	+= spi.o env_eeprom.o			# SPI
+COBJS	= cpu.o interrupts.o usb.o cmd_pmb.o
+COBJS	+= ecc.o stm-nand.o cmd_copybbt.o	# NAND
+COBJS	+= sata-init.o sata-probe.o		# SATA
+COBJS	+= spi.o env_eeprom.o			# SPI
 SOBJS	=
 
-all:	.depend $(START) $(LIB)
+SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))
+START	:= $(addprefix $(obj),$(START))
 
-$(LIB):	$(OBJS) $(SOBJS)
-	$(AR) crv $@ $(OBJS) $(SOBJS)
+all:	$(obj).depend $(START) $(LIB)
+
+$(LIB):	$(OBJS)
+	$(AR) $(ARFLAGS) $@ $(OBJS)
 
 #########################################################################
 
-.depend:	Makefile $(START:.o=.S) $(OBJS:.o=.c)
-		$(CC) -M $(CFLAGS) $(START:.o=.S) $(OBJS:.o=.c) > $@
+# defines $(obj).depend target
+include $(SRCTREE)/rules.mk
 
-sinclude .depend
+sinclude $(obj).depend
 
 #########################################################################
