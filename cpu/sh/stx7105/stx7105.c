@@ -204,18 +204,14 @@ int soc_init(void)
 
 
 #if defined(CONFIG_USB_OHCI_NEW)
-extern void stx7105_usb_init(void)
+extern int stx7105_usb_init(int port, int over_current, int power_ctrl)
 {
 	unsigned long reg;
 	const unsigned char oc_pins[2]    = {4, 6};	/* PIO4 */
 	const unsigned char power_pins[2] = {5, 7};	/* PIO4 */
-#if CFG_USB_BASE == CFG_USB0_BASE
-	const size_t port = 0;
-#elif CFG_USB_BASE == CFG_USB1_BASE
-	const size_t port = 1;
-#else
-#error Unknown USB Host Controller Base Address
-#endif
+
+	if (port >= sizeof(oc_pins))	/* invalid port number ? */
+		return -1;		/* failed to initialize! */
 
 	/* Power on the USB */
 	reg = readl(STX7105_SYSCONF_SYS_CFG32);
@@ -227,38 +223,44 @@ extern void stx7105_usb_init(void)
 	reg &= ~(1ul<<(6+port));
 	writel(reg, STX7105_SYSCONF_SYS_CFG32);
 
-	/* USB overcurrent enable */
-	reg = readl(STX7105_SYSCONF_SYS_CFG04);
-	/* USB0_PRT_OVCURR_POL = 0 = Active Low */
-	reg &= ~(1ul<<(3+port));
-	/* USBn_PRT_OVCURR_IN = 0 = PIO4[oc_pins[port]] */
-	reg &= ~(1ul<<(5+port));
-	/* CFG_USBn_OVRCURR_ENABLE = 1 = OC Enabled */
-	reg |= 1ul<<(11+port);
-	writel(reg, STX7105_SYSCONF_SYS_CFG04);
+	if (over_current) {
+		/* USB overcurrent enable */
+		reg = readl(STX7105_SYSCONF_SYS_CFG04);
+		/* USB0_PRT_OVCURR_POL = 0 = Active Low */
+		reg &= ~(1ul<<(3+port));
+		/* USBn_PRT_OVCURR_IN = 0 = PIO4[oc_pins[port]] */
+		reg &= ~(1ul<<(5+port));
+		/* CFG_USBn_OVRCURR_ENABLE = 1 = OC Enabled */
+		reg |= 1ul<<(11+port);
+		writel(reg, STX7105_SYSCONF_SYS_CFG04);
 
-	/* Route USBn OC Routing via PIO4[oc_pins[port]] */
-	reg = *STX7105_SYSCONF_SYS_CFG34;
-	/* PIO4[oc_pins[port]] CFG34[8+oc_pins[port],oc_pins[port]] = Alternate4 */
-	reg &= ~(0x0101ul<<(oc_pins[port]));	/* Mask=3 */
-	reg |=   0x0101ul<<(oc_pins[port]);	/* OR=3 */
-	*STX7105_SYSCONF_SYS_CFG34 = reg;
-	/* set PIO directionality, for OC as IN */
-	SET_PIO_PIN(PIO_PORT(4), oc_pins[port], STPIO_IN);
+		/* Route USBn OC Routing via PIO4[oc_pins[port]] */
+		reg = readl(STX7105_SYSCONF_SYS_CFG34);
+		/* PIO4[oc_pins[port]] CFG34[8+oc_pins[port],oc_pins[port]] = Alternate4 */
+		reg &= ~(0x0101ul<<(oc_pins[port]));	/* Mask=3 */
+		reg |=   0x0101ul<<(oc_pins[port]);	/* OR=3 */
+		writel(reg, STX7105_SYSCONF_SYS_CFG34);
+		/* set PIO directionality, for OC as IN */
+		SET_PIO_PIN(PIO_PORT(4), oc_pins[port], STPIO_IN);
+	}
 
-	/* Route USBn POWER Routing via PIO4[power_pins[port]] */
-	reg = *STX7105_SYSCONF_SYS_CFG34;
-	/* PIO4[power_pins[port]] CFG34[8+power_pins[port],power_pins[port]] = Alternate4 */
-	reg &= ~(0x0101ul<<(power_pins[port]));	/* Mask=3 */
-	reg |=   0x0101ul<<(power_pins[port]);	/* OR=3 */
-	*STX7105_SYSCONF_SYS_CFG34 = reg;
-	/* set PIO directionality, for POWER as ALT_OUT */
-	SET_PIO_PIN(PIO_PORT(4), power_pins[port], STPIO_ALT_OUT);
+	if (power_ctrl) {
+		/* Route USBn POWER Routing via PIO4[power_pins[port]] */
+		reg = readl(STX7105_SYSCONF_SYS_CFG34);
+		/* PIO4[power_pins[port]] CFG34[8+power_pins[port],power_pins[port]] = Alternate4 */
+		reg &= ~(0x0101ul<<(power_pins[port]));	/* Mask=3 */
+		reg |=   0x0101ul<<(power_pins[port]);	/* OR=3 */
+		writel(reg, STX7105_SYSCONF_SYS_CFG34);
+		/* set PIO directionality, for POWER as ALT_OUT */
+		SET_PIO_PIN(PIO_PORT(4), power_pins[port], STPIO_ALT_OUT);
+	}
 
 	/* start the USB Wrapper Host Controller */
 	ST40_start_host_control(
 		USB_FLAGS_STRAP_8BIT |
 		USB_FLAGS_STBUS_CONFIG_THRESHOLD128);
+
+	return 0;
 }
 
 #endif /* defined(CONFIG_USB_OHCI_NEW) */

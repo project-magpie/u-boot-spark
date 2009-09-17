@@ -207,6 +207,9 @@
 #	define CFG_USB0_BASE			0xfe100000	/* upper */
 #	define CFG_USB1_BASE			0xfea00000	/* lower */
 #	define CFG_USB_BASE			CFG_USB0_BASE
+#	define CONFIG_SH_STX_STX7105_USB_PORT0		/* enable Port #0 */
+#	define CONFIG_SH_STX_STX7105_USB_OC	1	/* use overcurrent */
+#	define CONFIG_SH_STX_STX7105_USB_PW	1	/* use power control */
 #	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1

@@ -36,7 +36,7 @@ extern void stb7100_usb_init(void);
 #elif defined(CONFIG_SH_STX5197)
 extern void stx5197_usb_init(void);
 #elif defined(CONFIG_SH_STX7105)
-extern void stx7105_usb_init(void);
+extern int stx7105_usb_init(int port, int over_current, int power_ctrl);
 #elif defined(CONFIG_SH_STX7111)
 extern void stx7111_usb_init(void);
 #elif defined(CONFIG_SH_STX7141)
@@ -56,7 +56,16 @@ extern int usb_cpu_init(void)
 #elif defined(CONFIG_SH_STX5197)
 	stx5197_usb_init();
 #elif defined(CONFIG_SH_STX7105)
-	stx7105_usb_init();
+#ifdef CONFIG_SH_STX_STX7105_USB_PORT0
+	stx7105_usb_init(0,
+			 CONFIG_SH_STX_STX7105_USB_OC,
+			 CONFIG_SH_STX_STX7105_USB_PW);
+#endif
+#ifdef CONFIG_SH_STX_STX7105_USB_PORT1
+	stx7105_usb_init(1,
+			 CONFIG_SH_STX_STX7105_USB_OC,
+			 CONFIG_SH_STX_STX7105_USB_PW);
+#endif
 #elif defined(CONFIG_SH_STX7111)
 	stx7111_usb_init();
 #elif defined(CONFIG_SH_STX7141)
