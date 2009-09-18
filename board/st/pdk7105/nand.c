@@ -22,16 +22,11 @@
  */
 
 #include <common.h>
-
-
-#if defined(CONFIG_CMD_NAND)
-
 #include <nand.h>
 #include <asm/io.h>
 #include <asm/pio.h>
 #include <asm/stx7105reg.h>
 #include <asm/stm-nand.h>
-
 
 /*
  * hardware specific access to control-lines for "bit-banging".
@@ -123,8 +118,3 @@ extern int board_nand_init(struct nand_chip *nand)
 
 	return 0;
 }
-
-
-#endif	/* CONFIG_CMD_NAND */
-
-
