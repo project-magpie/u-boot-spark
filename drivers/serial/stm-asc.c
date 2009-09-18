@@ -21,6 +21,7 @@
 #include "asm/io.h"
 #include "asm/pio.h"
 #include "asm/socregs.h"
+#include "asm/clk.h"
 
 #define CS7		0000040
 #define CS8		0000060
@@ -85,7 +86,7 @@
 /*---- Values for the BAUDRATE Register -----------------------*/
 
 #if defined(__SH4__)
-#define PCLK			(gd->bd->bi_emifrq*1000000)
+#define PCLK			(get_peripheral_clk_rate())
 #define BAUDRATE_VAL_M0(bps)	(PCLK / (16 * (bps)))
 #define BAUDRATE_VAL_M1(bps)	((((bps * (1 << 14))+ (1<<13)) / (PCLK/(1 << 6))))
 #else	/* !defined(__SH4__) */

@@ -27,6 +27,7 @@
 #include <asm/socregs.h>
 #include <asm/io.h>
 #include <spi.h>
+#include <asm/clk.h>
 
 
 /**********************************************************************/
@@ -594,7 +595,7 @@ extern void spi_init(void)
 	unsigned long reg;
 	const unsigned long bits_per_word = 8;	/* one word == 8-bits */
 	const unsigned long mode = CFG_STM_SPI_MODE /* | SPI_LOOP */;
-	const unsigned long fcomms = gd->bd->bi_emifrq*1000*1000;
+	const unsigned long fcomms = get_peripheral_clk_rate();
 	const unsigned long hz = CFG_STM_SPI_FREQUENCY;
 	      unsigned long sscbrg = fcomms/(2*hz);
 

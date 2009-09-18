@@ -38,7 +38,7 @@
 #define INPUT_CLOCK_RATE 30
 #endif
 
-#define P_CLOCK_RATE	66000000	/* clock rate for CSP		*/
+#define CONFIG_SYS_CLK_FREQ	66000000	/* clock rate for CSP		*/
 
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
@@ -241,7 +241,7 @@
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
 #define CFG_MAXARGS		16		/* max number of command args	*/
-#define CFG_HZ			(P_CLOCK_RATE/1024) /* HZ for timer ticks	*/
+#define CFG_HZ			(CONFIG_SYS_CLK_FREQ/1024) /* HZ for timer ticks	*/
 #define CFG_LOAD_ADDR		CFG_SDRAM_BASE	/* default load address		*/
 #define CFG_BOOTMAPSZ		(16 << 20)	/* initial linux memory size	*/
 #define CONFIG_BOOTDELAY	10		/* default delay before executing bootcmd */
