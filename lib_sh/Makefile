@@ -27,10 +27,11 @@ LIB	= $(obj)lib$(ARCH).a
 
 SOBJS	= memchr.o memcpy.o memmove.o memset.o strlen.o cacheops.o div64.o
 
-COBJS	= board.o sh_linux.o time.o io_generic.o udivdi3.o sconsole.o
+COBJS-y = board.o sh_linux.o time.o io_generic.o udivdi3.o sconsole.o
+COBJS-$(CONFIG_CMD_STTESTS) += cmd_sttests.o st_mtests.o
 
-SRCS 	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
+SRCS 	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
+OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
 
 $(LIB):	$(obj).depend $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
