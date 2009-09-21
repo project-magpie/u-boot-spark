@@ -1,8 +1,16 @@
 /*
- * (C) Copyright 2004,2009 STMicroelectronics.
+ * (C) Copyright 2009
+ * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
  *
+ * (C) Copyright 2004,2009 STMicroelectronics.
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
+ *
+ * (C) Copyright 2007-2008
+ * Nobobuhiro Iwamatsu <iwamatsu@nigauri.org>
+ *
+ * (C) Copyright 2003
+ * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -25,62 +33,114 @@
 
 #include <common.h>
 #include <asm/socregs.h>
+#include <div64.h>
+#include <asm/processor.h>
+#include <asm/clk.h>
+#include <asm/io.h>
 
-#define TMU_TICKS_PER_SEC CFG_HZ
-#define TMU_START0 0x01
 #define TMU_MAX_COUNTER (~0UL)
-#define TMU_INPUT 0x0006
 
-#define TMU_OFF() *SH4_TMU_TSTR = 0;
-#define TMU_ON() *SH4_TMU_TSTR = *SH4_TMU_TSTR | 1;
-#define TMU_CLEAR() *SH4_TMU_TCOR0 = TMU_MAX_COUNTER; *SH4_TMU_TCNT0 = TMU_MAX_COUNTER;
-#define TMU_SET(v) *SH4_TMU_TCNT0 = (v ^ TMU_MAX_COUNTER);
-#define TMU_GET()  (*SH4_TMU_TCNT0 ^ TMU_MAX_COUNTER)
+static ulong timer_freq;
 
-/* RTC clock not connected on this board use pclock */
+static inline unsigned long long tick_to_time(unsigned long long tick)
+{
+	tick *= CFG_HZ;
+	do_div(tick, timer_freq);
+
+	return tick;
+}
+
+static inline unsigned long long usec_to_tick(unsigned long long usec)
+{
+	usec *= timer_freq;
+	do_div(usec, 1000000);
+
+	return usec;
+}
+
+static void tmu_timer_start (unsigned int timer)
+{
+	if (timer > 2)
+		return;
+	writeb(readb(TSTR) | (1 << timer), TSTR);
+}
+
+static void tmu_timer_stop (unsigned int timer)
+{
+	if (timer > 2)
+		return;
+	writeb(readb(TSTR) & ~(1 << timer), TSTR);
+}
+
 int timer_init (void)
 {
-	TMU_OFF ();
-	/* Take clock from PCLOCK/1024 */
-	*SH4_TMU_TCR0 = *SH4_TMU_TCR0 & 0xfff8;
-	*SH4_TMU_TCR0 = *SH4_TMU_TCR0 | 0x4;
-	*SH4_TMU_TCOR0 = TMU_MAX_COUNTER;
-	TMU_ON ();
+	/* Divide clock by TMU_CLK_DIVIDER */
+	u16 bit = 0;
+
+	switch (TMU_CLK_DIVIDER) {
+	case 1024:
+		bit = 4;
+		break;
+	case 256:
+		bit = 3;
+		break;
+	case 64:
+		bit = 2;
+		break;
+	case 16:
+		bit = 1;
+		break;
+	case 4:
+	default:
+		break;
+	}
+	writew(readw(TCR0) | bit, TCR0);
+
+	/* Clock frequency calc */
+	timer_freq = get_tmu0_clk_rate() >> ((bit + 1) * 2);
+
+	tmu_timer_stop(0);
+	tmu_timer_start(0);
+
 	return 0;
 }
-void reset_timer (void)
-{
-	TMU_OFF ();
-	TMU_CLEAR ();
-	TMU_ON ();
-}
 
-ulong get_timer (ulong base)
+unsigned long long get_ticks (void)
 {
-  ulong now = TMU_GET();
-	return ((int)now - base) < 0 ? (TMU_MAX_COUNTER - (base - now)) : (now - base);
-}
-
-void set_timer (ulong t)
-{
-	TMU_SET (t);
+	return 0 - readl(TCNT0);
 }
 
 void udelay (unsigned long usec)
 {
-  ulong tmo;
-  ulong start = TMU_GET ();
-  if (usec > 1000000)
-    tmo = ((usec/100000) * CFG_HZ) / 10;
-  else if (usec > 1000)
-    tmo = ((usec/100) * CFG_HZ) / 10000;
-  else
-    tmo = (usec * CFG_HZ) / 1000000;
-  while (get_timer(start) < tmo)
-		/*NOP*/;
+	unsigned long long tmp;
+	ulong tmo;
+
+	tmo = usec_to_tick(usec);
+	tmp = get_ticks() + tmo;	/* get current timestamp */
+
+	while (get_ticks() < tmp)	/* loop till event */
+		 /*NOP*/;
 }
 
-ulong get_tbclk (void)
+unsigned long get_timer (unsigned long base)
 {
-	return CFG_HZ;
+	/* return msec */
+	return tick_to_time(get_ticks()) - base;
+}
+
+void set_timer (unsigned long t)
+{
+	writel((0 - t), TCNT0);
+}
+
+void reset_timer (void)
+{
+	tmu_timer_stop(0);
+	set_timer (0);
+	tmu_timer_start(0);
+}
+
+unsigned long get_tbclk (void)
+{
+	return timer_freq;
 }
