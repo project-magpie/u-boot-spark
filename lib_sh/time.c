@@ -112,14 +112,19 @@ unsigned long long get_ticks (void)
 
 void udelay (unsigned long usec)
 {
-	unsigned long long tmp;
-	ulong tmo;
+	const u64 delta = usec_to_tick(usec);	/* offset time to wait */
+	const u64 start = get_ticks();		/* get timestamp on entry */
+	u64 tmp = start + delta;		/* calculate end timestamp */
 
-	tmo = usec_to_tick(usec);
-	tmp = get_ticks() + tmo;	/* get current timestamp */
+	if (tmp > TMU_MAX_COUNTER)		/* overflows 32-bits ? */
+	{
+		while (get_ticks() >= start)	/* loop till overflowed */
+			/*NOP*/;
+		tmp &= TMU_MAX_COUNTER;		/* mask off upper 32-bits */
+	}
 
-	while (get_ticks() < tmp)	/* loop till event */
-		 /*NOP*/;
+	while (get_ticks() < tmp)		/* loop till event */
+		/*NOP*/;
 }
 
 unsigned long get_timer (unsigned long base)
@@ -130,14 +135,15 @@ unsigned long get_timer (unsigned long base)
 
 void set_timer (unsigned long t)
 {
+	/* Note: timer must be STOPPED to update it */
+	tmu_timer_stop(0);
 	writel((0 - t), TCNT0);
+	tmu_timer_start(0);
 }
 
 void reset_timer (void)
 {
-	tmu_timer_stop(0);
 	set_timer (0);
-	tmu_timer_start(0);
 }
 
 unsigned long get_tbclk (void)
