@@ -40,6 +40,10 @@
 
 #define TMU_MAX_COUNTER (~0UL)
 
+#if !defined(TMU_CLK_DIVIDER)
+#define TMU_CLK_DIVIDER		4	/* Clock divided by 4 is FASTEST */
+#endif	/* TMU_CLK_DIVIDER */
+
 static ulong timer_freq;
 
 static inline unsigned long long tick_to_time(unsigned long long tick)
@@ -110,11 +114,13 @@ unsigned long long get_ticks (void)
 	return 0 - readl(TCNT0);
 }
 
-void udelay (unsigned long usec)
+static inline void tick_delay (const unsigned long long delta)
 {
-	const u64 delta = usec_to_tick(usec);	/* offset time to wait */
 	const u64 start = get_ticks();		/* get timestamp on entry */
 	u64 tmp = start + delta;		/* calculate end timestamp */
+
+	if (delta == 0)				/* zero delay ? */
+		tmp++;				/* minimum of ONE tick */
 
 	if (tmp > TMU_MAX_COUNTER)		/* overflows 32-bits ? */
 	{
@@ -125,6 +131,22 @@ void udelay (unsigned long usec)
 
 	while (get_ticks() < tmp)		/* loop till event */
 		/*NOP*/;
+}
+
+void udelay (unsigned long usec)		/* delay in micro-seconds */
+{
+	u64 delta = usec_to_tick(usec);		/* time to wait */
+
+	tick_delay (delta);			/* wait ... */
+}
+
+void ndelay (unsigned long nsec)		/* delay in nano-seconds */
+{
+	u64 delta = usec_to_tick(nsec);		/* time to wait */
+
+	delta /= 1000ull;			/* remember: nsec not usec ! */
+
+	tick_delay (delta);			/* wait ... */
 }
 
 unsigned long get_timer (unsigned long base)
