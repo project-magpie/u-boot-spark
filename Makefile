@@ -2746,7 +2746,7 @@ hdk7111se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7111/config.tmp)
-	@./mkconfig -a hdk7111 sh sh hdk7111 st stx7111
+	@$(MKCONFIG) -a hdk7111 sh sh hdk7111 st stx7111
 
 mb628_config \
 mb628se_config :		unconfig
@@ -2801,7 +2801,7 @@ ipidtv7105se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE    1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/pdk7105/config.tmp)
-	@./mkconfig -a ipidtv7105 sh sh pdk7105 st stx7105
+	@$(MKCONFIG) -a ipidtv7105 sh sh pdk7105 st stx7105
 
 mb704_config \
 mb704se_config :		unconfig
@@ -2812,7 +2812,7 @@ mb704se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/st/mb704/config.tmp)
-	@./mkconfig -a mb704 sh sh mb704 st stx5197
+	@$(MKCONFIG) -a mb704 sh sh mb704 st stx5197
 
 5197cab_config \
 5197cabse_config :		unconfig
@@ -2823,7 +2823,7 @@ mb704se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/st/5197cab/config.tmp)
-	@./mkconfig -a 5197cab sh sh 5197cab st stx5197
+	@$(MKCONFIG) -a 5197cab sh sh 5197cab st stx5197
 
 cb101_config \
 cb101se_config :		unconfig
