@@ -22,10 +22,6 @@
  */
 
 #include <common.h>
-
-
-#if defined(CONFIG_CMD_NAND)
-
 #include <nand.h>
 #include <asm/io.h>
 #include <asm/pio.h>
@@ -89,5 +85,3 @@ extern int board_nand_init(struct nand_chip *nand)
 	nand->options = NAND_NO_AUTOINCR;
 	return 0;
 }
-#endif	/* CONFIG_CMD_NAND */
-
