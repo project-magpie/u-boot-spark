@@ -270,6 +270,7 @@ set_pmb:
 	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	#endif
+	SH4_SET_PMB 4 0xa0 0x00  64 0 0 1	/* FLASH UN-cached */
 #elif defined(CONFIG_SH_STX7111) && defined(CONFIG_SH_MB618)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI UN-cached */

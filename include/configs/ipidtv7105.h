@@ -40,7 +40,6 @@
  * otherwise (e.g. NOR/SPI Flash booting), do not define it.
  */
 #undef CFG_BOOT_FROM_NAND		/* define to build a NAND-bootable image */
-#define CFG_BOOT_FROM_NAND	/* QQQ: define until boot-from-SPI is working */
 
 
 /*-----------------------------------------------------------------------
@@ -57,14 +56,15 @@
  */
 
 #if defined(CFG_BOOT_FROM_SPI)		/* we are booting from SPI serial flash */
-/* QQQ: Note, need access to a modified board to verify the SPI configuration */
-#error QQQ: to add boot-from-SPI configuration!
+#define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #elif defined(CFG_BOOT_FROM_NAND)	/* we are booting from NAND */
 #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #else
-#define CFG_EMI_NAND_BASE	0xA6000000	/* CSC: NAND Flash, Physical 0x06000000 (8MiB) */
-#define CFG_NAND_FLEX_CSn_MAP	{ 2 }		/* NAND is on Chip Select CSC */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #endif /* CFG_BOOT_FROM_NAND */
 
 #ifdef CONFIG_SH_SE_MODE
