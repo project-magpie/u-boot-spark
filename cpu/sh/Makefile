@@ -38,6 +38,9 @@ START	:= $(addprefix $(obj),$(START))
 
 all:	$(obj).depend $(START) $(LIB)
 
+$(obj)stm-nand.o: stm-nand.c
+	$(CC) $(CFLAGS) -m4 -c -o $@ $<
+
 $(LIB):	$(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 
@@ -49,3 +52,4 @@ include $(SRCTREE)/rules.mk
 sinclude $(obj).depend
 
 #########################################################################
+

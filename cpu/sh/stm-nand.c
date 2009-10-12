@@ -33,6 +33,7 @@
 #include <asm/st40reg.h>
 #include <asm/io.h>
 #include <asm/socregs.h>
+#include <asm/cache.h>
 
 
 #define isprint(x)	( ((x)>=0x20u) && ((x)<0x7fu) )
@@ -219,6 +220,58 @@ static struct stm_nand_flex_controller {
 	uint8_t			*buf;		/* Bounce buffer for non-aligned xfers */
 } flex;
 
+
+/*
+ * In FLEX-mode, we can either read from the Flex-mode data
+ * register (ST40_EMI_NAND_FLEX_DATA), over the STBus with either
+ * a 4-byte read (LD4) or a 32-byte read (LD32) bus opcode.
+ * Using the LD32 bus opcode amortises the cost of the bus
+ * latency over 32-bytes, instead of only 4 bytes, so one can
+ * achieve a higher throughput, using the LD32 bus opcode.
+ *
+ * However, in order to realize this potential improvement, one
+ * needs to access the ST40_EMI_NAND_FLEX_DATA via the CPU's operand
+ * (data) caches. This in turn requires a TLB (or PMB) address
+ * translation to be configured and enabled.
+ *
+ * The following macros are used to configure the TLB to map
+ * the ST40_EMI_NAND_FLEX_DATA into a P3 (cachable + translatable)
+ * virtual address, so we can utilize the LD32 opcode.
+ *
+ * The implementation will create a single (read-only) 1KiB TLB
+ * mapping, including ST40_EMI_NAND_FLEX_DATA to 0xC0000000.
+ */
+#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
+#define ST40_MMU_PTEH	0xFF000000	/* Page Table Entry High register */
+#define ST40_MMU_PTEL	0xFF000004	/* Page Table Entry Low register */
+#define ST40_MMU_MMUCR	0xFF000010	/* MMU Control Register */
+
+#define PTEH_ASID	0		/* ASID to use (any 8-bit number) */
+
+#define PTEL_WT		(1ul<<0)	/* Write-through bit */
+#define PTEL_SH		(1ul<<1)	/* Private page or Shared page */
+#define PTEL_D		(1ul<<2)	/* Dirty bit */
+#define PTEL_C		(1ul<<3)	/* Cacheability bit */
+#define PTEL_SZ_1K	(0ul<<4)	/* Page size of 1 KiB */
+#define PTEL_SZ_4K	(1ul<<4)	/* Page size of 4 KiB */
+#define PTEL_SZ_64K	(8ul<<4)	/* Page size of 64 KiB */
+#define PTEL_SZ_1M	(9ul<<4)	/* Page size of 1 MiB */
+#define PTEL_PR_READ	(0ul<<5)	/* Privileged-mode can READ */
+#define PTEL_PR_WRITE	(1ul<<5)	/* Privileged-mode can READ+WRITE */
+#define PTEL_V		(1ul<<8)	/* Validity Bit */
+#define PTEL_UB		(1ul<<9)	/* Unbuffered write control bit */
+
+#define MMUCR_AT	(1ul<<0)	/* Address Translation bit */
+#define MMUCR_TI	(1ul<<2)	/* TLB Invalidate bit */
+
+#define PAGE_MASK	(~0x3fful)	/* 1 KiB Page */
+#define ASID_MASK	(0xfful)	/* 8 bit ASID */
+
+static volatile u32 * const mmucr_p = (u32*)ST40_MMU_MMUCR;
+
+static volatile u32 * const cache =
+	(u32*)(0xC0000000ul | ((u32)ST40_EMI_NAND_FLEX_DATA & ~PAGE_MASK));
+#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
 
 #endif /* CFG_NAND_FLEX_MODE */
 
@@ -727,6 +780,22 @@ extern void stm_flex_select_chip(
 {
 	struct nand_chip * const chip = mtd->priv;
 	struct stm_nand_flex_device * data = chip->priv;
+#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
+	volatile u32 * const pteh_p  = (u32*)ST40_MMU_PTEH;
+	volatile u32 * const ptel_p  = (u32*)ST40_MMU_PTEL;
+	const u32 pteh =
+		((u32)cache & PAGE_MASK)			|
+		(PTEH_ASID & ASID_MASK);
+	const u32 ptel =
+		((u32)ST40_EMI_NAND_FLEX_DATA & PAGE_MASK)	|
+		PTEL_V						|
+#if 0
+		PTEL_PR_WRITE | PTEL_D	/* if we use OCBI */	|
+#endif
+		PTEL_SZ_1K					|
+		PTEL_C						|
+		PTEL_SH;
+#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
 
 #if DEBUG_FLEX
 	printf("\t\t\t\t---- SELECT = %2d ----\n", chipnr);
@@ -747,6 +816,13 @@ extern void stm_flex_select_chip(
 			printf("ERROR: Unable to allocate memory for a bounce buffer\n");
 			BUG();
 		}
+		/* initialize the TLB mapping if configured */
+#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
+		*mmucr_p |= MMUCR_TI;	/* invalidate the TLBs */
+		*pteh_p = pteh;
+		*ptel_p = ptel;
+		asm volatile ("ldtlb");	/* define 1 TLB mapping */
+#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
 		flex.initialized   = 1;			/* initialization done */
 	}
 
@@ -965,11 +1041,120 @@ extern void stm_flex_read_buf(
 #endif
 	*ST40_EMI_NAND_FLEX_DATA_RD_CFG = reg;
 
+#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
+	/*
+	 * Note, we only use the optimized cached TLB mapping,
+	 * if the amount of data to be copied is an exact
+	 * multiple of the length of a cache line.
+	 */
+	if ((len % DCACHE_LINESZ) == 0)	/* whole multiples of cache lines ? */
+	{
+		*mmucr_p |= MMUCR_AT;	/* enable Address Translation */
+		asm volatile ("nop");	/* wait a few cycles after enabling AT */
+		asm volatile ("nop");
+		asm volatile ("nop");
+		asm volatile ("nop");
+
+#if 0	/* QQQ - DELETE */
+		/* copy the data (from NAND), one CACHE-LINE at a time ... */
+		if (((u32)p) % DCACHE_LINESZ == 0ul)	/* cache aligned ? */
+		{
+			register u32 src32;
+			register u32 dst32 = (u32)p;
+			register double temp0 asm("dr0");
+			register double temp1 asm("dr2");
+			register double temp2 asm("dr4");
+			register double temp3 asm("dr6");
+
+#define PUT_FPSCR(F)	asm volatile ("lds %0, fpscr"	: : "r"(F))
+#define OCBP(LINE)	asm volatile ("ocbp @%0"	: : "r"(LINE))
+#define PREF(LINE)	asm volatile ("pref @%0"	: : "r"(LINE))
+#define ALLOC(LINE)	asm volatile ("movca.l r0, @%0"	: : "r"(LINE))
+
+			OCBP(cache);
+			PREF(cache);
+			PUT_FPSCR(1<<20);	/* FPSCR.SZ=1 */
+
+			for(i=0; i<len; )
+			{
+				src32 = (u32)cache;
+				asm volatile ("fmov @%0+,%1"	: "+r"(src32),"=d"(temp0));
+				asm volatile ("fmov @%0+,%1"	: "+r"(src32),"=d"(temp1));
+				asm volatile ("fmov @%0+,%1"	: "+r"(src32),"=d"(temp2));
+				asm volatile ("fmov @%0+,%1"	: "+r"(src32),"=d"(temp3));
+
+				OCBP(cache);
+
+				i += DCACHE_LINESZ;
+
+				if (i<len)
+				{
+//QQQ					PREF(cache);
+				}
+
+				ALLOC(dst32);
+				asm volatile ("fmov %1,@%0"	: : "r"(dst32),"d"(temp0) : "memory" );
+				dst32+=8;
+				asm volatile ("fmov %1,@%0"	: : "r"(dst32),"d"(temp1) : "memory" );
+				dst32+=8;
+				asm volatile ("fmov %1,@%0"	: : "r"(dst32),"d"(temp2) : "memory" );
+				dst32+=8;
+				asm volatile ("fmov %1,@%0"	: : "r"(dst32),"d"(temp3) : "memory" );
+				dst32+=8;
+			}
+		}
+		else	/* destination is *not* cache-aligned */
+#endif	/* QQQ - DELETE */
+		{
+			for(i=0; i<len/4; i+=DCACHE_LINESZ/4)
+			{
+				asm volatile ("ocbp @%0" : : "r"(cache));
+				p[i+0] = cache[0];
+				p[i+1] = cache[1];
+				p[i+2] = cache[2];
+				p[i+3] = cache[3];
+				p[i+4] = cache[4];
+				p[i+5] = cache[5];
+				p[i+6] = cache[6];
+				p[i+7] = cache[7];
+			}
+		}
+#if 0					/* QQQ - DELETE */
+		if (++done_init < 8)
+		{
+			int j;
+			printf("READ BUF\tlen=%u,\tpass=%u\n",len, done_init);
+			for (i=0; i<len; i+=16)
+			{
+				for (j=0; j<16; j++)
+					printf("%02x ", buf[i+j]);
+				printf("\n");
+			}
+			printf("\n");
+		}
+#endif					/* QQQ - DELETE */
+		/* finally, disable Address Translation */
+		*mmucr_p &= ~MMUCR_AT;
+	}
+	else
+	{
+		/* let the user know we are *not* using the TLB */
+		printf("warning: Not using cached copy in %s() for len=%u\n",
+			__FUNCTION__,
+			len);
+		/* copy the data (from NAND) as 4-byte words ... */
+		for(i=0; i<len/4; i++)
+		{
+			p[i] = *ST40_EMI_NAND_FLEX_DATA;
+		}
+	}
+#else	/* CONFIG_SH_NAND_USES_CACHED_READS */
 	/* copy the data (from NAND) as 4-byte words ... */
 	for(i=0; i<len/4; i++)
 	{
 		p[i] = *ST40_EMI_NAND_FLEX_DATA;
 	}
+#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
 
 	/* copy back into user-supplied buffer, if it was unaligned */
 	if ((void*)p != (void*)buf)
