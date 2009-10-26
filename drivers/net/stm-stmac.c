@@ -159,11 +159,11 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define PHY_ADDR_MSK		0x001f	/* PHY Address Mask */
 #define PHY_ADDR_SHIFT		0	/* PHY Address Mask */
 
-#elif defined(CONFIG_STMAC_KSZ8041FTL)	/* Micrel KSZ8041FTL */
+#elif defined(CONFIG_STMAC_KSZ8041)	/* Micrel KSZ8041 */
 
-/* Micrel KSZ8041FTL phy identifier values */
-#define KSZ8041FTL_PHY_ID	0x00221512u
-#define KSZ8041FTL_PHY_ID_MASK	0x01ffffffu
+/* Micrel KSZ8041 phy identifier values */
+#define KSZ8041_PHY_ID		0x00221512u
+#define KSZ8041_PHY_ID_MASK	0x01ffffffu
 
 #elif defined(CONFIG_STMAC_IP1001)	/* IC+ IP1001 */
 
@@ -295,9 +295,9 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "NS DP83865 found\n");
 			return phyaddr;
 		}
-#elif defined(CONFIG_STMAC_KSZ8041FTL)
-		if ((id & KSZ8041FTL_PHY_ID_MASK) == KSZ8041FTL_PHY_ID) {
-			printf (STMAC "KSZ8041FTL found\n");
+#elif defined(CONFIG_STMAC_KSZ8041)
+		if ((id & KSZ8041_PHY_ID_MASK) == KSZ8041_PHY_ID) {
+			printf (STMAC "Micrel KSZ8041 found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_IP1001)
@@ -341,8 +341,8 @@ static int stmac_phy_init (void)
 	value = stmac_mii_read (eth_phy_addr, SPECIAL_MODE_REG);
 #elif defined(CONFIG_STMAC_DP83865)
 	value = stmac_mii_read (eth_phy_addr, PHY_SUP_REG);
-#elif defined(CONFIG_STMAC_KSZ8041FTL)
-	/* The Micrel KSZ8041FTL does not appear to support
+#elif defined(CONFIG_STMAC_KSZ8041)
+	/* The Micrel KSZ8041 does not appear to support
 	 * reading the H/W PHY address from any register.  */
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #elif defined(CONFIG_STMAC_IP1001)

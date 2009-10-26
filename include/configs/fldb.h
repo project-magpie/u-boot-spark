@@ -56,29 +56,35 @@
  */
 
 #if defined(CFG_BOOT_FROM_SPI)		/* we are booting from SPI serial flash */
-#define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
+//QQQ #define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (32MiB) */
+//QQQ #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (32MiB) */
+//QQQ #define CFG_EMI_NAND_BASE	0xA2000000	/* CSB: NAND Flash, Physical 0x02000000 (32MiB) */
+//QQQ #define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
 #elif defined(CFG_BOOT_FROM_NAND)	/* we are booting from NAND */
-#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
+//QQQ #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (32MiB) */
+//QQQ #define CFG_EMI_NOR_BASE	0xA2000000	/* CSB: NOR Flash,  Physical 0x02000000 (32MiB) */
+//QQQ #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #else
-#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
+#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (32MiB) */
+#define CFG_EMI_NAND_BASE	0xA2000000	/* CSB: NAND Flash, Physical 0x02000000 (32MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
 #endif /* CFG_BOOT_FROM_NAND */
 
 #ifdef CONFIG_SH_SE_MODE
+#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH (uncached) via PMB */
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
 #define CFG_SDRAM_BASE		0x80000000      /* LMI    Cached addr via PMB */
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
 #define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
 #else
+#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH in P2 region */
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI SDRAM */
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
+#define CFG_MONITOR_BASE        CFG_FLASH_BASE
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128 KiB */
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
@@ -92,12 +98,34 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD ipidtv7105
+#define BOARD fldb
+
+#if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
+#	define MONITOR_SECTORS	"1:0"		/* 1 sector */
+#elif CFG_MONITOR_LEN == 0x00010000		/* 64 KiB */
+#	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
+#elif CFG_MONITOR_LEN == 0x00018000		/* 96 KiB */
+#	define MONITOR_SECTORS	"1:0-2"		/* 3 sectors */
+#elif CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
+#	define MONITOR_SECTORS	"1:0-3"		/* 4 sectors */
+#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
+#	define MONITOR_SECTORS	"1:0-4"		/* 5 sectors */
+#else						/* unknown */
+#	error "Unable to determine sectors for monitor"
+#endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 		"board=" XSTR(BOARD) "\0" \
+		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
 		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
-		"load_addr=" XSTR(CFG_LOAD_ADDR) "\0"
+		"monitor_sec=" MONITOR_SECTORS "\0" \
+		"load_addr=" XSTR(CFG_LOAD_ADDR) "\0" \
+		"unprot=" \
+		  "protect off $monitor_sec\0" \
+		"update=" \
+		  "erase $monitor_sec;" \
+		  "cp.b $load_addr $monitor_base $monitor_len;" \
+		  "protect on $monitor_sec\0"
 
 /*--------------------------------------------------------------
  * Command line configuration.
@@ -128,12 +156,15 @@
 #endif
 
 /* choose which ST ASC UART to use */
-#if 1
-	/* 9-pin D-type connector on debug board - CN8 (next to RJ-45) */
-#	define CFG_STM_ASC_BASE		ST40_ASC0_REGS_BASE	/* UART #0 */
+#if 0
+	/* 9-pin D-type connector - On Extension Connector */
+#	define CFG_STM_ASC_BASE		ST40_ASC0_REGS_BASE	/* UART #1 */
+#elif 1
+	/* 9-pin D-type connector - CNB1 (next to RJ-45) */
+#	define CFG_STM_ASC_BASE		ST40_ASC1_REGS_BASE	/* UART #2 */
 #else
-	/* 9-pin D-type connector on debug board - CN7 */
-#	define CFG_STM_ASC_BASE		ST40_ASC3_REGS_BASE	/* UART #3 */
+	/* 9-pin D-type connector - CNB4 (nearer to FLI7510) */
+#	define CFG_STM_ASC_BASE		ST40_ASC2_REGS_BASE	/* UART #3 */
 #endif
 
 /*---------------------------------------------------------------
@@ -141,10 +172,8 @@
  */
 
 /*
- * There are 2 options for ethernet, both use the on-chip ST-GMAC.
- * The choice in PHYs are:
- *    The on-board Micrel KSZ8041FTL
- *    External PHY connected via the MII off-board 15x2 header.
+ * There is 1 option for ethernet, using the on-chip ST-GMAC,
+ * with the on-board Micrel KSZ8041NL PHY.
  */
 
 /* are we using the internal ST GMAC device ? */
@@ -155,8 +184,8 @@
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC_BASE	0xfd110000ul	/* MAC = STM GMAC0 */
-#	define CONFIG_STMAC_KSZ8041			/* PHY = Micrel KSZ8041FTL */
+#	define CFG_STM_STMAC_BASE	0xfd920000ul	/* MAC = STM GMAC0 */
+#	define CONFIG_STMAC_KSZ8041			/* PHY = Micrel KSZ8041NL */
 #else
 #	undef CONFIG_CMD_NET		/* undefine if no networking at all */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
@@ -172,7 +201,7 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_SH_STB7100_USB
+//#define CONFIG_SH_STB7100_USB
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
@@ -180,36 +209,12 @@
 #	define CONFIG_USB_OHCI_NEW
 #	define CONFIG_USB_STORAGE
 #	define CFG_USB_OHCI_CPU_INIT
-#	define CFG_USB0_BASE			0xfe100000	/* CN10 upper slot */
-#	define CFG_USB1_BASE			0xfea00000	/* CN10 lower slot */
-#	define CFG_USB_BASE			CFG_USB0_BASE
-#	define CONFIG_SH_STX_STX7105_USB_PORT0		/* enable Port #0 */
-#	define CONFIG_SH_STX_STX7105_USB_OC	1	/* use overcurrent */
-#	define CONFIG_SH_STX_STX7105_USB_PW	1	/* use power control */
+#	define CFG_USB_BASE			0xfda00000
 #	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
 #	define LITTLEENDIAN
 #endif	/* ifdef CONFIG_SH_STB7100_USB */
-
-/*---------------------------------------------------------------
- * SATA driver config
- */
-
-/* SATA works on cut 3.x of the STx7105 (just one port) */
-/* Choose if we want to use a SATA HDD */
-//#define CONFIG_SH_STM_SATA
-
-#ifdef CONFIG_SH_STM_SATA
-#	define CONFIG_CMD_IDE				/* enable "ide" command set */
-#	define CFG_ATA_BASE_ADDR	0xfe209000	/* E-SATA connector */
-#	define CFG_ATA_IDE0_OFFSET	0x800		/* Host Controller */
-#	define CFG_ATA_REG_OFFSET	0x0
-#	define CFG_ATA_DATA_OFFSET	0x0
-#	define CFG_ATA_STRIDE		0x4
-#	define CFG_IDE_MAXBUS		1
-#	define CFG_IDE_MAXDEVICE	1
-#endif	/* CONFIG_SH_STM_SATA */
 
 #if defined(CONFIG_SH_STM_SATA) ||	\
     defined(CONFIG_SH_STB7100_USB)
@@ -226,7 +231,7 @@
 #define CFG_HUSH_PARSER		1
 #define CONFIG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"IPIDTV7105> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"FLDB> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
@@ -243,18 +248,40 @@
  * FLASH organization
  */
 
-/* Choose if we want FLASH Support (SPI and/or NAND) */
-#define CONFIG_CMD_NAND		/* define for NAND flash */
-#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
-
-/*
- * Note: by default CONFIG_CMD_FLASH & CONFIG_CMD_IMLS are both
- * defined in config_cmd_default.h.
- * However if we do not have any NOR flash, then un-define them.
+/* Choose if we want FLASH Support (SPI, NAND &/or NOR devices)
+ *
+ * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
  */
-#undef CONFIG_CMD_FLASH		/* NOR-flash specific */
-#undef CONFIG_CMD_IMLS		/* NOR-flash specific */
-#define CFG_NO_FLASH		/* NOR-flash specific */
+#undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
+#define CONFIG_CMD_FLASH	/* define for NOR flash */
+#define CONFIG_CMD_NAND		/* define for NAND flash */
+//QQQ#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
+
+/*-----------------------------------------------------------------------
+ * NOR FLASH organization
+ */
+
+/* Numonyx PC28F256P33BF: 32 MiB NOR FLASH, 259 sectors */
+#ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
+#	define CFG_FLASH_CFI_DRIVER
+#	define CFG_FLASH_CFI
+#	define CONFIG_FLASH_PROTECT_SINGLE_CELL
+#	define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/
+#	define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
+#	define CFG_MAX_FLASH_SECT	259	/* max number of sectors on one chip	*/
+#	define CFG_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
+#	define MTDPARTS_NOR						\
+	"physmap-flash:"	/* First NOR flash device */		\
+		"256k(U-Boot)"		/* first partition */		\
+		",128k(Environment)"					\
+		",4M(Kernel)"						\
+		",-(RestOfNor0)"	/* last partition */
+#	define MTDIDS_NOR						\
+	"nor0=physmap-flash"	/* First NOR flash device */
+#else
+#	undef CONFIG_CMD_IMLS			/* NOR-flash specific */
+#	define CFG_NO_FLASH			/* NOR-flash specific */
+#endif	/* CONFIG_CMD_FLASH */
 
 /*-----------------------------------------------------------------------
  * NAND FLASH organization
@@ -319,9 +346,9 @@
  */
 
 /*
- *	Name	Manuf	Device
- *	-----	-----	------
- *	U33	ST	M25P32
+ *	Name		Manuf	Device
+ *	-----		-----	------
+ *	UD9/UB13	Numonyx	M25PX64
  */
 #if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
 #	define CONFIG_SPI_FLASH_ST		/* ST M25Pxx (US3) */
@@ -347,7 +374,11 @@
 
 #define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
-#if 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
+#if 1 && defined(CONFIG_CMD_FLASH)		/* NOR flash present ? */
+#	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
+#	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
+#	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
+#elif 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
 #	if CFG_ENV_SIZE < 0x20000		/* needs to be a multiple of block-size */
@@ -365,17 +396,30 @@
  * JFFS2 + MTD Partition support
  */
 
-#if 0 && defined(CONFIG_CMD_NAND)
+#if 1 && (defined(CONFIG_CMD_FLASH) || defined(CONFIG_CMD_NAND))
 #	define CONFIG_CMD_JFFS2			/* enable JFFS2 support */
 #endif
 
 #if defined(CONFIG_CMD_JFFS2)
 #	define CONFIG_JFFS2_CMDLINE		/* mtdparts command line support */
 #	define CONFIG_JFFS2_NAND		/* JFFS2 support on NAND Flash */
-#	if defined(CONFIG_CMD_NAND)		/* Only NAND flash devices */
+#	if defined(CONFIG_CMD_FLASH) && defined(CONFIG_CMD_NAND) /* Both NOR + NAND */
+#		define MTDPARTS_DEFAULT						\
+		"mtdparts="							\
+			MTDPARTS_NOR	/* NOR flash devices */			\
+			";"		/* delimiter */				\
+			MTDPARTS_NAND	/* NAND flash devices */
+#		define MTDIDS_DEFAULT						\
+			MTDIDS_NOR	/* NOR flash devices */			\
+			","		/* delimiter */				\
+			MTDIDS_NAND	/* NAND flash devices */
+#	elif defined(CONFIG_CMD_FLASH)		/* Only NOR flash devices */
+#		define MTDPARTS_DEFAULT	"mtdparts=" MTDPARTS_NOR
+#		define MTDIDS_DEFAULT	MTDIDS_NOR
+#	elif defined(CONFIG_CMD_NAND)		/* Only NAND flash devices */
 #		define MTDPARTS_DEFAULT	"mtdparts=" MTDPARTS_NAND
 #		define MTDIDS_DEFAULT	MTDIDS_NAND
-#	endif	/* defined(CONFIG_CMD_NAND) */
+#	endif	/* defined(CONFIG_CMD_FLASH) && defined(CONFIG_CMD_NAND) */
 #endif	/* CONFIG_CMD_JFFS2 */
 
 #endif	/* __CONFIG_H */

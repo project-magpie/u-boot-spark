@@ -57,7 +57,8 @@ typedef struct bd_info
 	defined(CONFIG_SH_STX7105) ||	\
 	defined(CONFIG_SH_STX7111) ||	\
 	defined(CONFIG_SH_STX7141) ||	\
-	defined(CONFIG_SH_STX7200)
+	defined(CONFIG_SH_STX7200) ||	\
+	defined(CONFIG_SH_FLI7510)
 	unsigned long bi_devid;
 	unsigned long bi_emifrq;
 #endif
