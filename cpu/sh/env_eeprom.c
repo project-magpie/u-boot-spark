@@ -243,16 +243,11 @@ extern uchar env_get_char_spec (int index)
 
 extern void env_relocate_spec (void)
 {
-#if defined(CFG_BOOT_FROM_SPI)
-	const uchar * const from = (uchar*)(CFG_EMI_SPI_BASE + CFG_ENV_OFFSET);
-	memcpy( (uchar*)env_ptr, from, CFG_ENV_SIZE);
-#else
 	eeprom_read (
 		CFG_DEF_EEPROM_ADDR,
 		CFG_ENV_OFFSET,
 		(uchar *)env_ptr,
 		CFG_ENV_SIZE);
-#endif	/* CFG_BOOT_FROM_SPI */
 }
 
 
