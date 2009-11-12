@@ -220,9 +220,25 @@ static int read_nand_cached(u32 off, u32 size, u_char *buf)
 			if (nand_read(&nand_info[id->num], nand_cache_off,
 						&retlen, nand_cache) != 0 ||
 					retlen != NAND_CACHE_SIZE) {
+				/*
+				 * If the NAND read failed, then that was probably
+				 * because we were trying to read from a bad block.
+				 * By default, this code would issue a diagnostic
+				 * and carry on regardless. This can result in
+				 * the code subsequently de-referencing a NULL
+				 * pointer, where madness and insanity lives ...
+				 * The following alternative solution it to make
+				 * the bad block "look" like a normal erased page,
+				 * by filling the buffer with 0xFF bytes instead.
+				 *	Sean McGoogan <Sean.McGoogan@st.com>
+				 */
+#if 1	/* fix up bad blocks */
+				memset(nand_cache, 0xffu, NAND_CACHE_SIZE);
+#else	/* fix up bad blocks */
 				printf("read_nand_cached: error reading nand off %#x size %d bytes\n",
 						nand_cache_off, NAND_CACHE_SIZE);
 				return -1;
+#endif	/* fix up bad blocks */
 			}
 #endif
 		}
