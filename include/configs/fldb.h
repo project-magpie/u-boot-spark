@@ -34,6 +34,20 @@
 #define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 
 
+/*
+ *	The MODE switches (SWB1) need to be set appropriately,
+ *	depending where we are booting from:
+ *
+ * 	SWB1-x	MODE		NOR	NAND	SPI
+ * 	------	----		---	----	---
+ *	SW-6	MODE_5		off	off	ON
+ *	SW-5	MODE_4		off	ON	off
+ *	SW-4	MODE_3		off	off	ON
+ *	SW-3	MODE_2		off	ON	off
+ *
+ *		MODE[5:2]	0000	0101	1010
+ */
+
 /*-----------------------------------------------------------------------
  * Are we booting directly from a NAND Flash device ?
  * If so, then define the "CFG_BOOT_FROM_NAND" macro,
@@ -49,21 +63,20 @@
  */
 #undef CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
 
-
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
 
 #if defined(CFG_BOOT_FROM_SPI)		/* we are booting from SPI serial flash */
-//QQQ #define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (32MiB) */
-//QQQ #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (32MiB) */
-//QQQ #define CFG_EMI_NAND_BASE	0xA2000000	/* CSB: NAND Flash, Physical 0x02000000 (32MiB) */
-//QQQ #define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
+#define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (32MiB) */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (32MiB) */
+#define CFG_EMI_NOR_BASE	0xA2000000	/* CSB: NOR Flash,  Physical 0x02000000 (32MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #elif defined(CFG_BOOT_FROM_NAND)	/* we are booting from NAND */
-//QQQ #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (32MiB) */
-//QQQ #define CFG_EMI_NOR_BASE	0xA2000000	/* CSB: NOR Flash,  Physical 0x02000000 (32MiB) */
-//QQQ #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (32MiB) */
+#define CFG_EMI_NOR_BASE	0xA2000000	/* CSB: NOR Flash,  Physical 0x02000000 (32MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #else
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (32MiB) */
 #define CFG_EMI_NAND_BASE	0xA2000000	/* CSB: NAND Flash, Physical 0x02000000 (32MiB) */
