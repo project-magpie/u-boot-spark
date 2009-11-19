@@ -367,51 +367,60 @@ switch (ovrcur_mode) {
 /**********************************************************************/
 
 
+#if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
+extern void fli7510_spi_scl(const int val)
+{
+	const int pin = 2;	/* PIO17[2] = SPI_CLK */
+	STPIO_SET_PIN(PIO_PORT(17), pin, val ? 1 : 0);
+}
+
+extern void fli7510_spi_sda(const int val)
+{
+	const int pin = 3;	/* PIO17[3] = SPI_MOSI */
+	STPIO_SET_PIN(PIO_PORT(17), pin, val ? 1 : 0);
+}
+
+extern unsigned char fli7510_spi_read(void)
+{
+	const int pin = 5;	/* PIO17[5] = SPI_MISO */
+	return STPIO_GET_PIN(PIO_PORT(17), pin);
+}
+
 /*
  * assert or de-assert the SPI Chip Select line.
  *
  *	input: cs == true, assert CS, else deassert CS
  */
-#if defined(CONFIG_SPI) && !defined(CONFIG_SOFT_SPI)
 static void spi_chip_select(const int cs)
 {
-#if 0	/* QQQ - DELETE */
-	unsigned long reg;
-
-	reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
+	const int pin = 4;	/* PIO17[4] = SPI_CSN */
 
 	if (cs)
-	{	/* assert SPI CS */
-		reg &= ~(1ul<<13);	/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 0 [13] */
+	{	/* assert SPI CSn */
+		STPIO_SET_PIN(PIO_PORT(17), pin, 0);
 	}
 	else
-	{	/* DE-assert SPI CS */
-		reg |= 1ul<<13;		/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 1 [13] */
+	{	/* DE-assert SPI CSn */
+		STPIO_SET_PIN(PIO_PORT(17), pin, 1);
 	}
-
-	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;
 
 	if (cs)
-	{	/* wait 250ns for CS assert to propagate  */
+	{	/* wait 250ns for CSn assert to propagate  */
 		udelay(1);	/* QQQ: can we make this shorter ? */
 	}
-#endif	/* QQQ - DELETE */
 }
-
 
 /*
  * The SPI command uses this table of functions for controlling the SPI
  * chip selects: it calls the appropriate function to control the SPI
  * chip selects.
  */
-#if 0	/* QQQ - DELETE */
 spi_chipsel_type spi_chipsel[] =
 {
 	spi_chip_select
 };
 int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
-#endif	/* QQQ - DELETE */
-#endif	/* CONFIG_SPI && !defined(CONFIG_SOFT_SPI) */
+#endif	/* CONFIG_SOFT_SPI */
 
 
 /**********************************************************************/

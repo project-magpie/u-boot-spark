@@ -80,6 +80,10 @@ extern void		stx7111_spi_scl(const int val);
 extern void		stx7111_spi_sda(const int val);
 extern unsigned char	stx7111_spi_read(void);
 
+extern void		fli7510_spi_scl(const int val);
+extern void		fli7510_spi_sda(const int val);
+extern unsigned char	fli7510_spi_read(void);
+
 
 /*
  * USB data types

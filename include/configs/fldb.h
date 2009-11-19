@@ -255,7 +255,7 @@
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
 #define CONFIG_CMD_FLASH	/* define for NOR flash */
 #define CONFIG_CMD_NAND		/* define for NAND flash */
-//QQQ#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
+#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
 
 /*-----------------------------------------------------------------------
  * NOR FLASH organization
@@ -348,10 +348,10 @@
 /*
  *	Name		Manuf	Device
  *	-----		-----	------
- *	UD9/UB13	Numonyx	M25PX64
+ *	UD9/UD13	Numonyx	M25PX64
  */
 #if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
-#	define CONFIG_SPI_FLASH_ST		/* ST M25Pxx (US3) */
+#	define CONFIG_SPI_FLASH_ST		/* ST M25PXxx */
 #	define CONFIG_SPI			/* enable the SPI driver */
 #	define CONFIG_CMD_SPI			/* SPI serial bus command support */
 #	define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
@@ -361,10 +361,10 @@
 #endif	/* CONFIG_SPI_FLASH */
 
 #if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
-#	define SPI_SCL(val)	do { stx7105_spi_scl((val)); } while (0)
-#	define SPI_SDA(val)	do { stx7105_spi_sda((val)); } while (0)
+#	define SPI_SCL(val)	do { fli7510_spi_scl((val)); } while (0)
+#	define SPI_SDA(val)	do { fli7510_spi_sda((val)); } while (0)
 #	define SPI_DELAY	do { udelay(1); } while (0)	/* QQQ: only 500 kHz ??? */
-#	define SPI_READ		stx7105_spi_read()
+#	define SPI_READ		fli7510_spi_read()
 #endif	/* CONFIG_SOFT_SPI */
 
 
