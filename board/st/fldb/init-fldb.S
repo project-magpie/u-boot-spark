@@ -2,11 +2,6 @@
 #include "../../../cpu/sh/init_ram.S"
 
 /*
- * This is derived from STMicroelectronics gnu toolchain example:
- *   sh-superh-elf/examples/os21/romdynamic/memory_mb704.S
- */
-
-/*
  * The poke table is a series of long words, in the format
  *
  *	opcode, address, operand, ...
@@ -56,26 +51,6 @@ __memory_setup_table:
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
 #include "fli7510.romgen"
-
-
-#ifdef CONFIG_SH_SE_MODE
-#if 0	/* QQQ - DELETE */
-	/*
-	 * Note that we also manually need to move the LMI base addresses to
-	 * their 32-bit SE mode locations as defined in the datasheet and change the
-	 * 'upper bound addresses' (in row attribute registers) for the LMIs.
-	 * CTRL_M.LMI_MEM_BASE_ADDR_SIG = 0x40 [11:4]
-	 */
-	UPDATE32(STX5197_HD_CONF_MON_CONFIG_CONTROL_M, 0xfffff00f, (0x40 << 4))
-
-	/*
-	 * Change LMI upper bound addresses
-	 * Upper LMI addr = 0x40000000 + 64MiB = 0x44000000
-	 */
-	UPDATE32(ST40_LMI_SDRA0_0(), 0x001fffff, 0x44000000)
-	UPDATE32(ST40_LMI_SDRA1_0(), 0x001fffff, 0x44000000)
-#endif	/* QQQ - DELETE */
-#endif	/* CONFIG_SH_SE_MODE */
 
 	END_MARKER
 
