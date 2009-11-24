@@ -40,7 +40,7 @@ __memory_setup_table:
 	 * to an STMC2 (note: currently it must be version 2) and then
 	 * executing the following command (redirecting the output):
 	 *
-	 * host% romgen --target-connect --show-comment <stmc2>:fldb_gpd201:st40host
+	 * host% romgen --target-connect --show-comment <stmc2>:fldb_gpd201:st40host,boot_companions=0
 	 *
 	 * Where "<stmc2>" should be replaced with the IP address
 	 * (or the DNS name) of the STMC2 box.  Also the "fldb_gpd201" should
@@ -51,6 +51,26 @@ __memory_setup_table:
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
 #include "fli7510.romgen"
+
+
+#if 1	/* QQQ - DELETE once the targetpack sets up the EMI properly */
+POKE32(0xfd100860, 0x00000002)		/* st40_emi_regs.EMI_BANK_ENABLE */
+POKE32(0xfd100800, 0x00000000)		/* st40_emi_regs.EMI_BANK0_BASEADDRESS */
+POKE32(0xfd100810, 0x00000008)		/* st40_emi_regs.EMI_BANK1_BASEADDRESS */
+POKE32(0xfd100820, 0x00000010)		/* st40_emi_regs.EMI_BANK2_BASEADDRESS */
+POKE32(0xfd100830, 0x00000014)		/* st40_emi_regs.EMI_BANK3_BASEADDRESS */
+POKE32(0xfd100840, 0x0000001c)		/* st40_emi_regs.EMI_BANK4_BASEADDRESS */
+
+POKE32(0xfd100100, 0x001126d1)		/* st40_emi_regs.EMI_BANK0_EMICONFIGDATA0 */
+POKE32(0xfd100108, 0x8d200000)		/* st40_emi_regs.EMI_BANK0_EMICONFIGDATA1 */
+POKE32(0xfd100110, 0x9a200000)		/* st40_emi_regs.EMI_BANK0_EMICONFIGDATA2 */
+POKE32(0xfd100118, 0x0400021d)		/* st40_emi_regs.EMI_BANK0_EMICONFIGDATA3 */
+
+POKE32(0xfd100140, 0x001126d1)		/* st40_emi_regs.EMI_BANK1_EMICONFIGDATA0 */
+POKE32(0xfd100148, 0x8d200000)		/* st40_emi_regs.EMI_BANK1_EMICONFIGDATA1 */
+POKE32(0xfd100150, 0x9a200000)		/* st40_emi_regs.EMI_BANK1_EMICONFIGDATA2 */
+POKE32(0xfd100158, 0x0400021d)		/* st40_emi_regs.EMI_BANK1_EMICONFIGDATA3 */
+#endif	/* QQQ - DELETE once the targetpack sets up the EMI properly */
 
 	END_MARKER
 
