@@ -162,8 +162,8 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #elif defined(CONFIG_STMAC_KSZ8041FTL)	/* Micrel KSZ8041FTL */
 
 /* Micrel KSZ8041FTL phy identifier values */
-#define KSZ8041FTL_PHY_ID	0x00221512u
-#define KSZ8041FTL_PHY_ID_MASK	0x01ffffffu
+#define KSZ8041FTL_PHY_ID	0x00221512u /* 1512 = A3, 1513 = A4 */
+#define KSZ8041FTL_PHY_ID_MASK	0xfffffffeu
 
 #elif defined(CONFIG_STMAC_IP1001)	/* IC+ IP1001 */
 
