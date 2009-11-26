@@ -107,5 +107,16 @@ extern void stx7200_usb_init(void);
 extern void fli7105_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode);
 
 
+/*
+ * Software "bit-banging" functions for I2C accesses.
+ */
+extern void		stx7105_i2c_scl(const int val);
+extern void		stx7105_i2c_sda(const int val);
+extern int		stx7105_i2c_read(void);
+
+extern void		fli7510_i2c_scl(const int val);
+extern void		fli7510_i2c_sda(const int val);
+extern int		fli7510_i2c_read(void);
+
 #endif	/* _SOC_H_ */
 
