@@ -39,6 +39,12 @@
 #ifdef CONFIG_LPC2292
 #include <asm/arch/hardware.h>
 #endif
+#ifdef CONFIG_SH4
+#include <asm/io.h>
+#include <asm/pio.h>
+#include <asm/socregs.h>
+#include <asm/soc.h>
+#endif
 #include <i2c.h>
 
 #if defined(CONFIG_SOFT_I2C)

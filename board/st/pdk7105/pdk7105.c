@@ -28,6 +28,7 @@
 #include <asm/stx7105reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
+#include <i2c.h>
 
 
 void flashWriteEnable(void)
@@ -156,6 +157,79 @@ static void configSpi(void)
 }
 #endif	/* CONFIG_SPI */
 
+
+#if defined(CONFIG_SOFT_I2C)
+static void configI2c(void)
+{
+	/*
+	 * The I2C busses are routed as follows:
+	 *
+	 *	Bus	  SCL		  SDA
+	 *	---	  ---		  ---
+	 *	 A	PIO2[2]		PIO2[3]
+	 *	 B	PIO2[5]		PIO2[6]		Used only for SPI
+	 *	 C	PIO3[4]		PIO3[5]
+	 *	 D	PIO3[6]		PIO3[7]
+	 */
+#if defined(CONFIG_I2C_BUS_A)			/* Use I2C Bus "A" */
+	SET_PIO_PIN(PIO_PORT(2),2,STPIO_BIDIR);	/* I2C_SCLA */
+	SET_PIO_PIN(PIO_PORT(2),3,STPIO_BIDIR);	/* I2C_SDAA */
+#elif defined(CONFIG_I2C_BUS_C)			/* Use I2C Bus "C" */
+	SET_PIO_PIN(PIO_PORT(3),4,STPIO_BIDIR);	/* I2C_SCLC */
+	SET_PIO_PIN(PIO_PORT(3),5,STPIO_BIDIR);	/* I2C_SDAC */
+#elif defined(CONFIG_I2C_BUS_D)			/* Use I2C Bus "D" */
+	SET_PIO_PIN(PIO_PORT(3),6,STPIO_BIDIR);	/* I2C_SCLD */
+	SET_PIO_PIN(PIO_PORT(3),7,STPIO_BIDIR);	/* I2C_SDAD */
+#else
+#error Unknown I2C Bus!
+#endif
+}
+
+extern void stx7105_i2c_scl(const int val)
+{
+#if defined(CONFIG_I2C_BUS_A)			/* Use I2C Bus "A" */
+	STPIO_SET_PIN(PIO_PORT(2), 2, (val) ? 1 : 0);
+#elif defined(CONFIG_I2C_BUS_C)			/* Use I2C Bus "C" */
+	STPIO_SET_PIN(PIO_PORT(3), 4, (val) ? 1 : 0);
+#elif defined(CONFIG_I2C_BUS_D)			/* Use I2C Bus "D" */
+	STPIO_SET_PIN(PIO_PORT(3), 6, (val) ? 1 : 0);
+#endif
+}
+
+extern void stx7105_i2c_sda(const int val)
+{
+#if defined(CONFIG_I2C_BUS_A)			/* Use I2C Bus "A" */
+	STPIO_SET_PIN(PIO_PORT(2), 3, (val) ? 1 : 0);
+#elif defined(CONFIG_I2C_BUS_C)			/* Use I2C Bus "C" */
+	STPIO_SET_PIN(PIO_PORT(3), 5, (val) ? 1 : 0);
+#elif defined(CONFIG_I2C_BUS_D)			/* Use I2C Bus "D" */
+	STPIO_SET_PIN(PIO_PORT(3), 7, (val) ? 1 : 0);
+#endif
+}
+
+extern int stx7105_i2c_read(void)
+{
+#if defined(CONFIG_I2C_BUS_A)			/* Use I2C Bus "A" */
+	return STPIO_GET_PIN(PIO_PORT(2), 3);
+#elif defined(CONFIG_I2C_BUS_C)			/* Use I2C Bus "C" */
+	return STPIO_GET_PIN(PIO_PORT(3), 5);
+#elif defined(CONFIG_I2C_BUS_D)			/* Use I2C Bus "D" */
+	return STPIO_GET_PIN(PIO_PORT(3), 7);
+#endif
+}
+#endif	/* CONFIG_SOFT_I2C */
+
+#if defined(CONFIG_I2C_CMD_TREE)
+extern unsigned int i2c_get_bus_speed(void)
+{
+	return CFG_I2C_SPEED;
+}
+extern int i2c_set_bus_speed(unsigned int speed)
+{
+	return -1;
+}
+#endif	/* CONFIG_I2C_CMD_TREE */
+
 static void configPIO(void)
 {
 	unsigned long sysconf;
@@ -221,6 +295,11 @@ static void configPIO(void)
 	/* Configure for SPI Serial Flash */
 	configSpi();
 #endif	/* CONFIG_SPI */
+
+#if defined(CONFIG_SOFT_I2C)
+	/* Configuration for the I2C bus */
+	configI2c();
+#endif	/* CONFIG_SOFT_I2C */
 }
 
 extern int board_init(void)

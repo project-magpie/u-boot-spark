@@ -64,5 +64,12 @@ extern void		stx7111_spi_scl(const int val);
 extern void		stx7111_spi_sda(const int val);
 extern unsigned char	stx7111_spi_read(void);
 
+/*
+ * Software "bit-banging" functions for I2C accesses.
+ */
+extern void		stx7105_i2c_scl(const int val);
+extern void		stx7105_i2c_sda(const int val);
+extern int		stx7105_i2c_read(void);
+
 #endif	/* _SOC_H_ */
 
