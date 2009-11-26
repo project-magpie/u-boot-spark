@@ -2847,15 +2847,11 @@ cb102se_config :		unconfig
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/cb102/config.tmp)
 	@$(MKCONFIG) -a cb102 sh sh cb102 st stx7200
 
-fldb_config \
 fldbse_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/fldb
 	@echo "#define CONFIG_SH_FLI7510   1" >>$(obj)include/config.h
 	@echo "#define CONFIG_SH_FLDB      1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/fldb/config.tmp)
+	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h
 	@$(MKCONFIG) -a fldb sh sh fldb st fli7510
 
 

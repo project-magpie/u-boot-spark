@@ -47,7 +47,7 @@ __memory_setup_table:
 	 * substituted if you have a custom target-pack connect command.
 	 *
 	 * Note: The connect command used with "romgen", should connect
-	 * only in 29-bit mode - even if U-Boot will be built for 32-bit mode.
+	 * only in 29-bit mode - even though U-Boot will be built for 32-bit mode.
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
 #include "fli7510.romgen"
