@@ -231,6 +231,7 @@
 #define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
 #define CFG_I2C_FRAM			/* to minimize performance degradation */
 #undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
+#define CFG_STM_SPI_SSC_BASE	ST40_SSC0_REGS_BASE	/* SPI is on SSC #0 */
 
 /*
  *	NOTE: To use the Atmel AT45DB321D serial flash for booting,

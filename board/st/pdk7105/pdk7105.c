@@ -121,38 +121,78 @@ static void configEthernet(void)
 #if defined(CONFIG_SPI)
 static void configSpi(void)
 {
-#if defined(CONFIG_SOFT_SPI)
-	/* Configure SPI Serial Flash for PIO "bit-banging" */
+#if !defined(CONFIG_SOFT_SPI)
+	unsigned long sysconf;
+#endif	/* CONFIG_SOFT_SPI */
 
-#if 1
 	/*
 	 * On the PDK-7105 board, the following 4 pairs of PIO
-	 * pins are connected together with a 3K3 resistor.
+	 * pins are each connected together with a 3K3 resistor.
 	 *
-	 *	SPI_CLK  PIO15[0] <-> PIO2[5] COM_CLK
-	 *	SPI_DOUT PIO15[1] <-> PIO2[6] COM_DOUT
-	 *	SPI_NOCS PIO15[2] <-> PIO2[4] COM_NOTCS
-	 *	SPI_DIN  PIO15[3] <-> PIO2[7] COM_DIN
+	 *	SPI_NOTCS PIO15[2] <-> PIO2[4] COM_NOTCS
+	 *	SPI_CLK   PIO15[0] <-> PIO2[5] COM_CLK
+	 *	SPI_DOUT  PIO15[1] <-> PIO2[6] COM_DOUT
+	 *	SPI_DIN   PIO15[3] <-> PIO2[7] COM_DIN
 	 *
-	 * To minimise drive "contention", we may set
-	 * associated pins on PIO2 to be simple inputs.
+	 * To minimise drive "contention", we may set associated
+	 * pins on the "other" PIO bank to be simple inputs.
 	 */
-	SET_PIO_PIN(PIO_PORT(2),4,STPIO_IN);	/* COM_NOTCS */
+#if defined(CONFIG_SOFT_SPI)
 	SET_PIO_PIN(PIO_PORT(2),5,STPIO_IN);	/* COM_CLK */
 	SET_PIO_PIN(PIO_PORT(2),6,STPIO_IN);	/* COM_DOUT */
 	SET_PIO_PIN(PIO_PORT(2),7,STPIO_IN);	/* COM_DIN */
+#else
+	SET_PIO_PIN(PIO_PORT(15),0,STPIO_IN);	/* SPI_CLK */
+	SET_PIO_PIN(PIO_PORT(15),1,STPIO_IN);	/* SPI_DOUT */
+	SET_PIO_PIN(PIO_PORT(15),3,STPIO_IN);	/* SPI_DIN */
+#endif	/* CONFIG_SOFT_SPI */
+
+	/*
+	 * Because of the above resistors, we can control
+	 * the CSn line, *either* through PIO15[2] or PIO2[4].
+	 * This decision is orthogonal to whither we are
+	 * using the H/W SSC, or the S/W PIO bit-banging.
+	 * So, for simplicity, we will use exclusively
+	 * use PIO15[2] for both choices.
+	 */
+#if 1	/* Use PIO15[2] for SPI CSn */
+	SET_PIO_PIN(PIO_PORT(2),4,STPIO_IN);	/* COM_NOTCS */
+	SET_PIO_PIN(PIO_PORT(15),2,STPIO_OUT);	/* SPI_NOTCS */
+	STPIO_SET_PIN(PIO_PORT(15), 2, 1);	/* deassert SPI_NOTCS */
+#else	/* Use PIO2[4] for SPI CSn */
+	SET_PIO_PIN(PIO_PORT(15),2,STPIO_IN);	/* SPI_NOTCS */
+	SET_PIO_PIN(PIO_PORT(2),4,STPIO_OUT);	/* COM_NOTCS */
+	STPIO_SET_PIN(PIO_PORT(2), 4, 1);	/* deassert COM_NOTCS */
 #endif
 
-	/* SPI is on PIO15:[3:0] */
+#if defined(CONFIG_SOFT_SPI)	/* Configure SPI Serial Flash for PIO "bit-banging" */
+	/* SPI is on PIO15[3:0] */
 	SET_PIO_PIN(PIO_PORT(15),3,STPIO_IN);	/* SPI_DIN */
 	SET_PIO_PIN(PIO_PORT(15),0,STPIO_OUT);	/* SPI_CLK */
 	SET_PIO_PIN(PIO_PORT(15),1,STPIO_OUT);	/* SPI_DOUT */
-	SET_PIO_PIN(PIO_PORT(15),2,STPIO_OUT);	/* SPI_NOCS */
 
 	/* drive outputs with sensible initial values */
-	STPIO_SET_PIN(PIO_PORT(15), 2, 1);	/* deassert SPI_NOCS */
 	STPIO_SET_PIN(PIO_PORT(15), 0, 1);	/* assert SPI_CLK */
 	STPIO_SET_PIN(PIO_PORT(15), 1, 0);	/* deassert SPI_DOUT */
+#else	/* Configure SPI Serial Flash for the H/W SSC */
+	/* Set PIO2_ALTFOP to AltFunction #3 (SSC) */
+	sysconf = *STX7105_SYSCONF_SYS_CFG21;
+	/* PIO2[5] CFG21[13,5]  AltFunction = 3 */
+	/* PIO2[6] CFG21[14,6]  AltFunction = 3 */
+	/* PIO2[7] CFG21[15,7]  AltFunction = 3 */
+	sysconf &= ~0xe0e0ul;	/* 3,3,3,0,0,0,0,0 */
+	sysconf |=  0xe000ul;	/* 2,2,2,0,0,0,0,0 */
+	*STX7105_SYSCONF_SYS_CFG21 = sysconf;
+
+	/* SPI is on PIO2[7:5] */
+	SET_PIO_PIN(PIO_PORT(2),7,STPIO_IN);		/* COM_DIN */
+	SET_PIO_PIN(PIO_PORT(2),5,STPIO_ALT_OUT);	/* COM_CLK */
+	SET_PIO_PIN(PIO_PORT(2),6,STPIO_ALT_OUT);	/* COM_DOUT */
+
+	/* route MRST to PIO2[7], for SSC #1 */
+	sysconf = *STX7105_SYSCONF_SYS_CFG16;
+	sysconf |= (1u<<3);	/* CFG16[3] = SSC1_MRST_IN_SEL = 1 */
+	*STX7105_SYSCONF_SYS_CFG16 = sysconf;
 #endif	/* CONFIG_SOFT_SPI */
 }
 #endif	/* CONFIG_SPI */

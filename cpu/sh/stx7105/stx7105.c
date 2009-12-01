@@ -300,6 +300,8 @@ extern void stx7105_configure_sata(void)
 #endif	/* CONFIG_SH_STM_SATA */
 
 
+#if defined(CONFIG_SPI)
+
 #if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
 extern void stx7105_spi_scl(const int val)
 {
@@ -318,6 +320,7 @@ extern unsigned char stx7105_spi_read(void)
 	const int pin = 3;	/* PIO15[3] = SPI_DIN */
 	return STPIO_GET_PIN(PIO_PORT(15), pin);
 }
+#endif	/* CONFIG_SOFT_SPI */
 
 /*
  * assert or de-assert the SPI Chip Select line.
@@ -353,6 +356,6 @@ spi_chipsel_type spi_chipsel[] =
 	spi_chip_select
 };
 int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
-#endif	/* CONFIG_SOFT_SPI */
 
+#endif	/* CONFIG_SPI */
 
