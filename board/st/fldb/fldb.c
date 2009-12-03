@@ -76,17 +76,23 @@ static void configSpi(void)
 	sysconf &= ~(1ul<<13);
 	writel(sysconf, CFG_COMMS_CONFIG_2);
 
-#if defined(CONFIG_SOFT_SPI)
-	/* Configure SPI Serial Flash for PIO "bit-banging" */
-
-	/* SPI is on PIO17[5:0] */
+	/*
+	 *	For both S/W "bit-banging" and H/W SSC, the SPI is on PIO17[5:0].
+	 *	Now, we set up the PIO pins correctly.
+	 */
 	SET_PIO_PIN(PIO_PORT(17),5,STPIO_IN);	/* SPI_MISO */
+	SET_PIO_PIN(PIO_PORT(17),4,STPIO_OUT);	/* SPI_CSN */
+#if defined(CONFIG_SOFT_SPI)	/* Configure SPI Serial Flash for PIO "bit-banging" */
 	SET_PIO_PIN(PIO_PORT(17),2,STPIO_OUT);	/* SPI_CLK */
 	SET_PIO_PIN(PIO_PORT(17),3,STPIO_OUT);	/* SPI_MOSI */
-	SET_PIO_PIN(PIO_PORT(17),4,STPIO_OUT);	/* SPI_CSN */
+#else	/* Configure SPI Serial Flash for the H/W SSC */
+	SET_PIO_PIN(PIO_PORT(17),2,STPIO_ALT_OUT);/* SPI_CLK */
+	SET_PIO_PIN(PIO_PORT(17),3,STPIO_ALT_OUT);/* SPI_MOSI */
+#endif	/* CONFIG_SOFT_SPI */
 
-	/* drive outputs with sensible initial values */
+	/* drive (non-SSC) outputs with sensible initial values */
 	STPIO_SET_PIN(PIO_PORT(17), 4, 1);	/* deassert SPI_CSN */
+#if defined(CONFIG_SOFT_SPI)
 	STPIO_SET_PIN(PIO_PORT(17), 2, 1);	/* assert SPI_CLK */
 	STPIO_SET_PIN(PIO_PORT(17), 3, 0);	/* deassert SPI_MOSI */
 #endif	/* CONFIG_SOFT_SPI */

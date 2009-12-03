@@ -367,6 +367,8 @@ switch (ovrcur_mode) {
 /**********************************************************************/
 
 
+#if defined(CONFIG_SPI)
+
 #if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
 extern void fli7510_spi_scl(const int val)
 {
@@ -385,6 +387,7 @@ extern unsigned char fli7510_spi_read(void)
 	const int pin = 5;	/* PIO17[5] = SPI_MISO */
 	return STPIO_GET_PIN(PIO_PORT(17), pin);
 }
+#endif	/* CONFIG_SOFT_SPI */
 
 /*
  * assert or de-assert the SPI Chip Select line.
@@ -420,7 +423,8 @@ spi_chipsel_type spi_chipsel[] =
 	spi_chip_select
 };
 int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
-#endif	/* CONFIG_SOFT_SPI */
+
+#endif	/* CONFIG_SPI */
 
 
 /**********************************************************************/

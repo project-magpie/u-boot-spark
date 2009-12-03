@@ -101,7 +101,9 @@
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 /* For Atmel AT45DB321D Serial Flash */
 #define CFG_STM_SPI_MODE	SPI_MODE_3
-#define CFG_STM_SPI_FREQUENCY	(10*1000*1000)	/* 10 MHz */
+#if !defined(CFG_STM_SPI_FREQUENCY)
+#  define CFG_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
+#endif	/* CFG_STM_SPI_FREQUENCY */
 #define CFG_STM_SPI_DEVICE_MASK	0x3cu		/* Mask Bits [5:2] */
 #define CFG_STM_SPI_DEVICE_VAL	0x34u		/* Binary xx1101xx */
 
@@ -121,7 +123,9 @@
 
 /* For ST M25Pxx Serial Flash */
 #define CFG_STM_SPI_MODE	SPI_MODE_3
-#define CFG_STM_SPI_FREQUENCY	(10*1000*1000)	/* 10 MHz */
+#if !defined(CFG_STM_SPI_FREQUENCY)
+#  define CFG_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
+#endif	/* CFG_STM_SPI_FREQUENCY */
 #define CFG_STM_SPI_DEVICE_MASK	0x60u		/* Mask Bits [6:5] */
 #define CFG_STM_SPI_DEVICE_VAL	0x00u		/* Binary x00xxxxx */
 
@@ -141,7 +145,9 @@
 
 /* For Macronix MX25Lxxx Serial Flash */
 #define CFG_STM_SPI_MODE	SPI_MODE_3
-#define CFG_STM_SPI_FREQUENCY	(10*1000*1000)	/* 10 MHz */
+#if !defined(CFG_STM_SPI_FREQUENCY)
+#  define CFG_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
+#endif	/* CFG_STM_SPI_FREQUENCY */
 #define CFG_STM_SPI_DEVICE_MASK	0x00u		/* Mask Bits */
 #define CFG_STM_SPI_DEVICE_VAL	0x00u		/* Binary xxxxxxxx */
 
@@ -166,12 +172,17 @@
 /**********************************************************************/
 
 
-#if !defined(CONFIG_SOFT_SPI)		/* Use SSC for SPI */
-#define CFG_STM_SPI_SSC_BASE	ST40_SSC0_REGS_BASE	/* SSC #0 */
+#if !defined(CONFIG_SOFT_SPI)		/* Use the H/W SSC */
+
+#if !defined(CFG_STM_SPI_SSC_BASE)
+#error Please define CFG_STM_SPI_SSC_BASE (e.g. ST40_SSC0_REGS_BASE)
+#endif
+
 static const unsigned long ssc = CFG_STM_SPI_SSC_BASE;	/* SSC base */
 
 #define ssc_write(offset, value)	writel((value), (ssc)+(offset))
 #define ssc_read(offset)		readl((ssc)+(offset))
+
 #endif	/* CONFIG_SOFT_SPI */
 
 
