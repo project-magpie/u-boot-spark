@@ -39,6 +39,8 @@
 #	include <asm/stx7141reg.h>
 #elif defined(CONFIG_SH_STX7200)
 #	include <asm/stx7200reg.h>
+#elif defined(CONFIG_SH_FLI7510)
+#	include <asm/fli7510reg.h>
 #else
 #	error Missing Device Definitions!
 #endif

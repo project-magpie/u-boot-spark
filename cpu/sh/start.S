@@ -73,7 +73,7 @@ skip_signature:
 	 */
 	.balign 0x80, 0x00		/* starts 128 bytes into "Block Zero" */
 preamble_signature_pattern:
-	bytes 0x00 0x3f			/* 64-bytes: 0x00, 0x01, ..., 0x3f */
+	BYTES 0x00 0x3f			/* 64-bytes: 0x00, 0x01, ..., 0x3f */
 
 #if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
 	/*
@@ -354,6 +354,14 @@ set_pmb:
 	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 7 0xa9 0x01  16		/* NOR FLASH CACHED */
+#elif defined(CONFIG_SH_FLI7510) && defined(CONFIG_SH_FLDB)
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 UN-cached */
+	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#error Need to configure PMBs properly when more than 128MiB.
+	#endif
+	SH4_SET_PMB 4 0xa0 0x00  64 0 0 1	/* NOR/NAND FLASH UN-cached */
+	SH4_SET_PMB 5 0xa8 0x00  64		/* NOR/NAND FLASH CACHED */
 #else
 	#error Do not know which board/chip we are using for PMB setup.
 #endif	/* defined(CONFIG_SH_STB7100) */

@@ -28,17 +28,33 @@
 
 
 /*
- *	common call-back functions for STMAC.
+ * STMAC data types
+ */
+enum fli7510_ethernet_mode
+{
+	fli7510_ethernet_mii,
+	fli7510_ethernet_gmii,
+	fli7510_ethernet_rmii,
+	fli7510_ethernet_reverse_mii
+};
+
+
+/*
+ * common call-back functions for STMAC.
  */
 extern int  stmac_default_pbl (void);
 extern void stmac_set_mac_speed (int speed);
 
 
 /*
- *	functions for the STx7200 SoC device.
+ * STMAC initialization functions.
  */
 extern void stx7200_configure_ethernet (
 	int mac, int rmii, int ext_clk, int phy_bus);
+extern void fli7510_configure_ethernet(
+	const enum fli7510_ethernet_mode mode,
+	const int ext_clk,
+	const int phy_bus);
 
 
 /*
@@ -54,6 +70,28 @@ extern void stx7200_configure_sata(void);
 
 
 /*
+ * USB data types
+ */
+enum fli7510_usb_ovrcur_mode {
+	fli7510_usb_ovrcur_disabled,
+	fli7510_usb_ovrcur_active_high,
+	fli7510_usb_ovrcur_active_low,
+};
+
+
+/*
+ * USB initialization functions.
+ */
+extern void stb7100_usb_init(void);
+extern void stx5197_usb_init(void);
+extern int  stx7105_usb_init(int port, int over_current, int power_ctrl);
+extern void stx7111_usb_init(void);
+extern void stx7141_usb_init(void);
+extern void stx7200_usb_init(void);
+extern void fli7105_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode);
+
+
+/*
  * Software "bit-banging" functions for SPI accesses.
  */
 extern void		stx7105_spi_scl(const int val);
@@ -64,12 +102,22 @@ extern void		stx7111_spi_scl(const int val);
 extern void		stx7111_spi_sda(const int val);
 extern unsigned char	stx7111_spi_read(void);
 
+extern void		fli7510_spi_scl(const int val);
+extern void		fli7510_spi_sda(const int val);
+extern unsigned char	fli7510_spi_read(void);
+
+
 /*
  * Software "bit-banging" functions for I2C accesses.
  */
 extern void		stx7105_i2c_scl(const int val);
 extern void		stx7105_i2c_sda(const int val);
 extern int		stx7105_i2c_read(void);
+
+extern void		fli7510_i2c_scl(const int val);
+extern void		fli7510_i2c_sda(const int val);
+extern int		fli7510_i2c_read(void);
+
 
 #endif	/* _SOC_H_ */
 

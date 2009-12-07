@@ -46,6 +46,8 @@
 #define STPIO_SET_OFFSET	0x4
 #define STPIO_CLEAR_OFFSET	0x8
 
+#define STPIO_NO_PIN		0xff	/* No pin specified */
+
 #if defined(CONFIG_SH_STB7100)
 #define PIO_PORT_SIZE		0x1000					/* QQQ - DELETE */
 #define PIO_PORT(n)		( ((n)*PIO_PORT_SIZE) + PIO_BASE)	/* QQQ - DELETE */
@@ -53,9 +55,10 @@
 #define PIO_PORT(n)		( ST40_PIO ## n ## _REGS_BASE )
 #endif	/* CONFIG_SH_STB7100 */
 
-#define PIN_C0(PIN, DIR)	((((DIR) & 0x1)!=0) << (PIN))
-#define PIN_C1(PIN, DIR)	((((DIR) & 0x2)!=0) << (PIN))
-#define PIN_C2(PIN, DIR)	((((DIR) & 0x4)!=0) << (PIN))
+#define PIN_CX(PIN, DIR, X)	(((PIN)==STPIO_NO_PIN) ? 0 : (((DIR) & (X))!=0) << (PIN))
+#define PIN_C0(PIN, DIR)	PIN_CX((PIN), (DIR), 0x01)
+#define PIN_C1(PIN, DIR)	PIN_CX((PIN), (DIR), 0x02)
+#define PIN_C2(PIN, DIR)	PIN_CX((PIN), (DIR), 0x04)
 
 #define CLEAR_PIN_C0(PIN, DIR)	((((DIR) & 0x1)==0) << (PIN))
 #define CLEAR_PIN_C1(PIN, DIR)	((((DIR) & 0x2)==0) << (PIN))

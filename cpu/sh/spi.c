@@ -97,11 +97,12 @@
 
 /**********************************************************************/
 
+
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 /* For Atmel AT45DB321D Serial Flash */
 #define CFG_STM_SPI_MODE	SPI_MODE_3
 #if !defined(CFG_STM_SPI_FREQUENCY)
-#  define CFG_STM_SPI_FREQUENCY	(10*1000*1000)	/* 10 MHz */
+#  define CFG_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
 #endif	/* CFG_STM_SPI_FREQUENCY */
 #define CFG_STM_SPI_DEVICE_MASK	0x3cu		/* Mask Bits [5:2] */
 #define CFG_STM_SPI_DEVICE_VAL	0x34u		/* Binary xx1101xx */
@@ -123,7 +124,7 @@
 /* For ST M25Pxx Serial Flash */
 #define CFG_STM_SPI_MODE	SPI_MODE_3
 #if !defined(CFG_STM_SPI_FREQUENCY)
-#  define CFG_STM_SPI_FREQUENCY	(10*1000*1000)	/* 10 MHz */
+#  define CFG_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
 #endif	/* CFG_STM_SPI_FREQUENCY */
 #define CFG_STM_SPI_DEVICE_MASK	0x60u		/* Mask Bits [6:5] */
 #define CFG_STM_SPI_DEVICE_VAL	0x00u		/* Binary x00xxxxx */
@@ -134,6 +135,7 @@
 #define OP_READ_ARRAY		0x03u		/* Read Data Bytes */
 #define OP_WREN			0x06u		/* Write Enable */
 #define OP_SE			0xD8u		/* Sector Erase */
+#define OP_SSE			0x20u		/* Sub-Sector Erase, for M25PXxx */
 #define OP_PP			0x02u		/* Page Program */
 
 #define SR_WIP			(1u<<0)		/* Status Register Write In Progress bit */
@@ -144,7 +146,7 @@
 /* For Macronix MX25Lxxx Serial Flash */
 #define CFG_STM_SPI_MODE	SPI_MODE_3
 #if !defined(CFG_STM_SPI_FREQUENCY)
-#  define CFG_STM_SPI_FREQUENCY	(10*1000*1000)	/* 10 MHz */
+#  define CFG_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
 #endif	/* CFG_STM_SPI_FREQUENCY */
 #define CFG_STM_SPI_DEVICE_MASK	0x00u		/* Mask Bits */
 #define CFG_STM_SPI_DEVICE_VAL	0x00u		/* Binary xxxxxxxx */
@@ -192,6 +194,9 @@ static unsigned eraseSize;	/* smallest supported erase size */
 static unsigned deviceSize;	/* Size of the device in Bytes */
 static const char * deviceName;	/* Name of the device */
 
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+static unsigned char op_erase = OP_SE;	/* erase command opcode to use */
+#endif
 
 /**********************************************************************/
 
@@ -463,44 +468,79 @@ static int spi_probe_serial_flash(
 #elif defined(CONFIG_SPI_FLASH_ST)
 
 	if (
-		(devid[1] != 0x20u)	||	/* Manufacturer ID */
-		(devid[2] != 0x20u)	||	/* Memory Type */
+		(devid[1] == 0x20u)	&&	/* Manufacturer ID */
+		(devid[2] == 0x20u)	&&	/* Memory Type */
 		(				/* Memory Capacity */
-			(devid[3] != 0x14u) &&	/* M25P80 */
-			(devid[3] != 0x15u) &&	/* M25P16 */
-			(devid[3] != 0x16u) &&	/* M25P32 */
-			(devid[3] != 0x17u) &&	/* M25P64 */
-			(devid[3] != 0x18u)	/* M25P128 */
+			(devid[3] == 0x14u) ||	/* M25P80 */
+			(devid[3] == 0x15u) ||	/* M25P16 */
+			(devid[3] == 0x16u) ||	/* M25P32 */
+			(devid[3] == 0x17u) ||	/* M25P64 */
+			(devid[3] == 0x18u)	/* M25P128 */
 		)
 	   )
+	{
+		pageSize   = 256u;
+		eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
+		deviceSize = 1u<<devid[3];		/* Memory Capacity */
+		if (devid[3] == 0x14u)
+		{
+			deviceName = "ST M25P80";	/* 8 Mbit == 1 MiB */
+		}
+		else if (devid[3] == 0x15u)
+		{
+			deviceName = "ST M25P16";	/* 16 Mbit == 2 MiB */
+		}
+		else if (devid[3] == 0x16u)
+		{
+			deviceName = "ST M25P32";	/* 32 Mbit == 4 MiB */
+		}
+		else if (devid[3] == 0x17u)
+		{
+			deviceName = "ST M25P64";	/* 64 Mbit == 8 MiB */
+		}
+		else if (devid[3] == 0x18u)
+		{
+			deviceName = "ST M25P128";	/* 128 Mbit == 16 MiB */
+			eraseSize = 256u<<10;		/* 256 KiB, 1024 pages/sector */
+		}
+	}
+	else if (
+		(devid[1] == 0x20u)	&&	/* Manufacturer ID */
+		(devid[2] == 0x71u)	&&	/* Memory Type */
+		(				/* Memory Capacity */
+			(devid[3] == 0x14u) ||	/* M25PX80 */
+			(devid[3] == 0x15u) ||	/* M25PX16 */
+			(devid[3] == 0x16u) ||	/* M25PX32 */
+			(devid[3] == 0x17u)	/* M25PX64 */
+		)
+	   )
+	{
+		pageSize   = 256u;
+		eraseSize  = 4u<<10;			/* 4 KiB, 16 pages/sub-sector */
+		op_erase   = OP_SSE;			/* use SSE (4KiB) for erase */
+		deviceSize = 1u<<devid[3];		/* Memory Capacity */
+		if (devid[3] == 0x14u)
+		{
+			deviceName = "ST M25PX80";	/* 8 Mbit == 1 MiB */
+		}
+		else if (devid[3] == 0x15u)
+		{
+			deviceName = "ST M25PX16";	/* 16 Mbit == 2 MiB */
+		}
+		else if (devid[3] == 0x16u)
+		{
+			deviceName = "ST M25PX32";	/* 32 Mbit == 4 MiB */
+		}
+		else if (devid[3] == 0x17u)
+		{
+			deviceName = "ST M25PX64";	/* 64 Mbit == 8 MiB */
+		}
+	}
+	else
 	{
 		printf("ERROR: Unknown SPI Device detected, devid = 0x%02x, 0x%02x, 0x%02x\n",
 			devid[1], devid[2], devid[3]);
 		return -1;
-	}
-	pageSize   = 256u;
-	eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
-	deviceSize = 1u<<devid[3];		/* Memory Capacity */
-	if (devid[3] == 0x14u)
-	{
-		deviceName = "ST M25P80";	/* 8 Mbit == 1 MiB */
-	}
-	else if (devid[3] == 0x15u)
-	{
-		deviceName = "ST M25P16";	/* 16 Mbit == 2 MiB */
-	}
-	else if (devid[3] == 0x16u)
-	{
-		deviceName = "ST M25P32";	/* 32 Mbit == 4 MiB */
-	}
-	else if (devid[3] == 0x17u)
-	{
-		deviceName = "ST M25P64";	/* 64 Mbit == 8 MiB */
-	}
-	else if (devid[3] == 0x18u)
-	{
-		deviceName = "ST M25P128";	/* 128 Mbit == 16 MiB */
-		eraseSize = 256u<<10;		/* 256 KiB, 1024 pages/sector */
 	}
 
 #elif defined(CONFIG_SPI_FLASH_MXIC)
@@ -870,7 +910,7 @@ static void my_spi_write(
 #endif
 	unsigned char enable[1] = { OP_WREN };
 	unsigned char erase[4] = {
-		OP_SE,
+		op_erase,
 		(sector>>16) & 0xffu,
 		(sector>>8)  & 0xffu,
 		(sector>>0)  & 0xffu,

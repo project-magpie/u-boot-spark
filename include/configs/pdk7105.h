@@ -195,7 +195,7 @@
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #	define CFG_STM_STMAC_BASE	0xfd110000ul	/* MAC = STM GMAC0 */
-#	define CONFIG_STMAC_KSZ8041FTL			/* PHY = Micrel KSZ8041FTL */
+#	define CONFIG_STMAC_KSZ8041			/* PHY = Micrel KSZ8041FTL */
 #else
 #	undef CONFIG_CMD_NET		/* undefine if no networking at all */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */

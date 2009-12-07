@@ -26,26 +26,11 @@
 #include <command.h>
 #include <asm/stbus.h>
 #include <asm/io.h>
+#include <asm/soc.h>
 
 
 #define mdelay(n) ({unsigned long msec=(n); while (msec--) udelay(1000);})
 
-
-#if defined(CONFIG_SH_STB7100)
-extern void stb7100_usb_init(void);
-#elif defined(CONFIG_SH_STX5197)
-extern void stx5197_usb_init(void);
-#elif defined(CONFIG_SH_STX7105)
-extern int stx7105_usb_init(int port, int over_current, int power_ctrl);
-#elif defined(CONFIG_SH_STX7111)
-extern void stx7111_usb_init(void);
-#elif defined(CONFIG_SH_STX7141)
-extern void stx7141_usb_init(void);
-#elif defined(CONFIG_SH_STX7200)
-extern void stx7200_usb_init(void);
-#else
-#error Missing Device Definitions!
-#endif
 
 #if defined(CONFIG_USB_OHCI_NEW) && defined(CFG_USB_OHCI_CPU_INIT)
 
@@ -72,6 +57,10 @@ extern int usb_cpu_init(void)
 	stx7141_usb_init();
 #elif defined(CONFIG_SH_STX7200)
 	stx7200_usb_init();
+#elif defined(CONFIG_SH_FLI7510)
+	fli7105_usb_init (fli7510_usb_ovrcur_active_low);
+#else
+#error Missing Device Definitions!
 #endif
 	return 0;
 }

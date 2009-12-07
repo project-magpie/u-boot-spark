@@ -34,6 +34,20 @@
 #define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 
 
+/*
+ *	The MODE switches (SWB1) need to be set appropriately,
+ *	depending where we are booting from:
+ *
+ * 	SWB1-x	MODE		NOR	NAND	SPI
+ * 	------	----		---	----	---
+ *	SW-6	MODE_5		off	off	ON
+ *	SW-5	MODE_4		off	ON	off
+ *	SW-4	MODE_3		off	off	ON
+ *	SW-3	MODE_2		off	ON	off
+ *
+ *		MODE[5:2]	0000	0101	1010
+ */
+
 /*-----------------------------------------------------------------------
  * Are we booting directly from a NAND Flash device ?
  * If so, then define the "CFG_BOOT_FROM_NAND" macro,
@@ -49,36 +63,41 @@
  */
 #undef CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
 
-
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
 
 #if defined(CFG_BOOT_FROM_SPI)		/* we are booting from SPI serial flash */
-#define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (32MiB) */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (32MiB) */
+#define CFG_EMI_NOR_BASE	0xA2000000	/* CSB: NOR Flash,  Physical 0x02000000 (32MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #elif defined(CFG_BOOT_FROM_NAND)	/* we are booting from NAND */
-#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (32MiB) */
+#define CFG_EMI_NOR_BASE	0xA2000000	/* CSB: NOR Flash,  Physical 0x02000000 (32MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #else
-#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
+#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (32MiB) */
+#define CFG_EMI_NAND_BASE	0xA2000000	/* CSB: NAND Flash, Physical 0x02000000 (32MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
 #endif /* CFG_BOOT_FROM_NAND */
 
 #ifdef CONFIG_SH_SE_MODE
+#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH (uncached) via PMB */
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
 #define CFG_SDRAM_BASE		0x80000000      /* LMI    Cached addr via PMB */
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
 #define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
 #else
+#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH in P2 region */
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI SDRAM */
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
+#define CFG_MONITOR_BASE        CFG_FLASH_BASE
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128 KiB */
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
@@ -92,12 +111,34 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD ipidtv7105
+#define BOARD fldb
+
+#if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
+#	define MONITOR_SECTORS	"1:0"		/* 1 sector */
+#elif CFG_MONITOR_LEN == 0x00010000		/* 64 KiB */
+#	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
+#elif CFG_MONITOR_LEN == 0x00018000		/* 96 KiB */
+#	define MONITOR_SECTORS	"1:0-2"		/* 3 sectors */
+#elif CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
+#	define MONITOR_SECTORS	"1:0-3"		/* 4 sectors */
+#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
+#	define MONITOR_SECTORS	"1:0-4"		/* 5 sectors */
+#else						/* unknown */
+#	error "Unable to determine sectors for monitor"
+#endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 		"board=" XSTR(BOARD) "\0" \
+		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
 		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
-		"load_addr=" XSTR(CFG_LOAD_ADDR) "\0"
+		"monitor_sec=" MONITOR_SECTORS "\0" \
+		"load_addr=" XSTR(CFG_LOAD_ADDR) "\0" \
+		"unprot=" \
+		  "protect off $monitor_sec\0" \
+		"update=" \
+		  "erase $monitor_sec;" \
+		  "cp.b $load_addr $monitor_base $monitor_len;" \
+		  "protect on $monitor_sec\0"
 
 /*--------------------------------------------------------------
  * Command line configuration.
@@ -128,12 +169,15 @@
 #endif
 
 /* choose which ST ASC UART to use */
-#if 1
-	/* 9-pin D-type connector on debug board - CN8 (next to RJ-45) */
-#	define CFG_STM_ASC_BASE		ST40_ASC0_REGS_BASE	/* UART #0 */
+#if 0
+	/* 9-pin D-type connector - On Extension Connector */
+#	define CFG_STM_ASC_BASE		ST40_ASC0_REGS_BASE	/* UART #1 */
+#elif 1
+	/* 9-pin D-type connector - CNB1 (next to RJ-45) */
+#	define CFG_STM_ASC_BASE		ST40_ASC1_REGS_BASE	/* UART #2 */
 #else
-	/* 9-pin D-type connector on debug board - CN7 */
-#	define CFG_STM_ASC_BASE		ST40_ASC3_REGS_BASE	/* UART #3 */
+	/* 9-pin D-type connector - CNB4 (nearer to FLI7510) */
+#	define CFG_STM_ASC_BASE		ST40_ASC2_REGS_BASE	/* UART #3 */
 #endif
 
 /*---------------------------------------------------------------
@@ -141,10 +185,8 @@
  */
 
 /*
- * There are 2 options for ethernet, both use the on-chip ST-GMAC.
- * The choice in PHYs are:
- *    The on-board Micrel KSZ8041FTL
- *    External PHY connected via the MII off-board 15x2 header.
+ * There is 1 option for ethernet, using the on-chip ST-GMAC,
+ * with the on-board Micrel KSZ8041NL PHY.
  */
 
 /* are we using the internal ST GMAC device ? */
@@ -155,8 +197,8 @@
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC_BASE	0xfd110000ul	/* MAC = STM GMAC0 */
-#	define CONFIG_STMAC_KSZ8041			/* PHY = Micrel KSZ8041FTL */
+#	define CFG_STM_STMAC_BASE	0xfd920000ul	/* MAC = STM GMAC0 */
+#	define CONFIG_STMAC_KSZ8041			/* PHY = Micrel KSZ8041NL */
 #else
 #	undef CONFIG_CMD_NET		/* undefine if no networking at all */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
@@ -172,7 +214,7 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_SH_STB7100_USB
+//#define CONFIG_SH_STB7100_USB
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
@@ -180,36 +222,12 @@
 #	define CONFIG_USB_OHCI_NEW
 #	define CONFIG_USB_STORAGE
 #	define CFG_USB_OHCI_CPU_INIT
-#	define CFG_USB0_BASE			0xfe100000	/* CN10 upper slot */
-#	define CFG_USB1_BASE			0xfea00000	/* CN10 lower slot */
-#	define CFG_USB_BASE			CFG_USB0_BASE
-#	define CONFIG_SH_STX_STX7105_USB_PORT0		/* enable Port #0 */
-#	define CONFIG_SH_STX_STX7105_USB_OC	1	/* use overcurrent */
-#	define CONFIG_SH_STX_STX7105_USB_PW	1	/* use power control */
+#	define CFG_USB_BASE			0xfda00000
 #	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
 #	define LITTLEENDIAN
 #endif	/* ifdef CONFIG_SH_STB7100_USB */
-
-/*---------------------------------------------------------------
- * SATA driver config
- */
-
-/* SATA works on cut 3.x of the STx7105 (just one port) */
-/* Choose if we want to use a SATA HDD */
-//#define CONFIG_SH_STM_SATA
-
-#ifdef CONFIG_SH_STM_SATA
-#	define CONFIG_CMD_IDE				/* enable "ide" command set */
-#	define CFG_ATA_BASE_ADDR	0xfe209000	/* E-SATA connector */
-#	define CFG_ATA_IDE0_OFFSET	0x800		/* Host Controller */
-#	define CFG_ATA_REG_OFFSET	0x0
-#	define CFG_ATA_DATA_OFFSET	0x0
-#	define CFG_ATA_STRIDE		0x4
-#	define CFG_IDE_MAXBUS		1
-#	define CFG_IDE_MAXDEVICE	1
-#endif	/* CONFIG_SH_STM_SATA */
 
 #if defined(CONFIG_SH_STM_SATA) ||	\
     defined(CONFIG_SH_STB7100_USB)
@@ -226,7 +244,7 @@
 #define CFG_HUSH_PARSER		1
 #define CONFIG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"IPIDTV7105> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"FLDB> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
@@ -243,18 +261,40 @@
  * FLASH organization
  */
 
-/* Choose if we want FLASH Support (SPI and/or NAND) */
+/* Choose if we want FLASH Support (SPI, NAND &/or NOR devices)
+ *
+ * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
+ */
+#undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
+#define CONFIG_CMD_FLASH	/* define for NOR flash */
 #define CONFIG_CMD_NAND		/* define for NAND flash */
 #define CONFIG_SPI_FLASH	/* define for SPI serial flash */
 
-/*
- * Note: by default CONFIG_CMD_FLASH & CONFIG_CMD_IMLS are both
- * defined in config_cmd_default.h.
- * However if we do not have any NOR flash, then un-define them.
+/*-----------------------------------------------------------------------
+ * NOR FLASH organization
  */
-#undef CONFIG_CMD_FLASH		/* NOR-flash specific */
-#undef CONFIG_CMD_IMLS		/* NOR-flash specific */
-#define CFG_NO_FLASH		/* NOR-flash specific */
+
+/* Numonyx PC28F256P33BF: 32 MiB NOR FLASH, 259 sectors */
+#ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
+#	define CFG_FLASH_CFI_DRIVER
+#	define CFG_FLASH_CFI
+#	define CONFIG_FLASH_PROTECT_SINGLE_CELL
+#	define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/
+#	define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
+#	define CFG_MAX_FLASH_SECT	259	/* max number of sectors on one chip	*/
+#	define CFG_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
+#	define MTDPARTS_NOR						\
+	"physmap-flash:"	/* First NOR flash device */		\
+		"256k(U-Boot)"		/* first partition */		\
+		",128k(Environment)"					\
+		",4M(Kernel)"						\
+		",-(RestOfNor0)"	/* last partition */
+#	define MTDIDS_NOR						\
+	"nor0=physmap-flash"	/* First NOR flash device */
+#else
+#	undef CONFIG_CMD_IMLS			/* NOR-flash specific */
+#	define CFG_NO_FLASH			/* NOR-flash specific */
+#endif	/* CONFIG_CMD_FLASH */
 
 /*-----------------------------------------------------------------------
  * NAND FLASH organization
@@ -319,26 +359,36 @@
  */
 
 /*
- *	Name	Manuf	Device
- *	-----	-----	------
- *	U33	ST	M25P32
+ *	Name		Manuf	Device
+ *	-----		-----	------
+ *	UD9/UD13	Numonyx	M25PX64
  */
 #if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
-#	define CONFIG_SPI_FLASH_ST		/* ST M25Pxx (US3) */
+#	define CONFIG_SPI_FLASH_ST		/* ST M25PXxx */
 #	define CONFIG_SPI			/* enable the SPI driver */
 #	define CONFIG_CMD_SPI			/* SPI serial bus command support */
 #	define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
 #	define CFG_I2C_FRAM			/* to minimize performance degradation */
 #	undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
-#	define CONFIG_SOFT_SPI			/* Use "bit-banging" PIO (not the SSC) */
-#endif	/* CONFIG_SPI_FLASH */
+
+	/* choose either the H/W SSC, or S/W "bit-banging" */
+#if 1
+#	define CONFIG_SOFT_SPI			/* Use S/W "bit-banging" PIO (not the SSC) */
+#else
+#	undef CONFIG_SOFT_SPI			/* Use H/W SSC (not S/W "bit-banging" PIO) */
+#endif
 
 #if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
-#	define SPI_SCL(val)	do { stx7105_spi_scl((val)); } while (0)
-#	define SPI_SDA(val)	do { stx7105_spi_sda((val)); } while (0)
+#	define SPI_SCL(val)	do { fli7510_spi_scl((val)); } while (0)
+#	define SPI_SDA(val)	do { fli7510_spi_sda((val)); } while (0)
 #	define SPI_DELAY	do { udelay(1); } while (0)	/* QQQ: only 500 kHz ??? */
-#	define SPI_READ		stx7105_spi_read()
+#	define SPI_READ		fli7510_spi_read()
+#else
+#	define CFG_STM_SPI_SSC_BASE	0xfdb44000		/* SSC #4 */
+#	define CFG_STM_SPI_FREQUENCY	(7*1000*1000)		/* 7.14 MHz */
 #endif	/* CONFIG_SOFT_SPI */
+
+#endif	/* CONFIG_SPI_FLASH */
 
 
 /*-----------------------------------------------------------------------
@@ -347,7 +397,11 @@
 
 #define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
-#if 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
+#if 1 && defined(CONFIG_CMD_FLASH)		/* NOR flash present ? */
+#	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
+#	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
+#	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
+#elif 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
 #	if CFG_ENV_SIZE < 0x20000		/* needs to be a multiple of block-size */
@@ -365,17 +419,87 @@
  * JFFS2 + MTD Partition support
  */
 
-#if 0 && defined(CONFIG_CMD_NAND)
+#if 1 && (defined(CONFIG_CMD_FLASH) || defined(CONFIG_CMD_NAND))
 #	define CONFIG_CMD_JFFS2			/* enable JFFS2 support */
 #endif
 
 #if defined(CONFIG_CMD_JFFS2)
 #	define CONFIG_JFFS2_CMDLINE		/* mtdparts command line support */
 #	define CONFIG_JFFS2_NAND		/* JFFS2 support on NAND Flash */
-#	if defined(CONFIG_CMD_NAND)		/* Only NAND flash devices */
+#	if defined(CONFIG_CMD_FLASH) && defined(CONFIG_CMD_NAND) /* Both NOR + NAND */
+#		define MTDPARTS_DEFAULT						\
+		"mtdparts="							\
+			MTDPARTS_NOR	/* NOR flash devices */			\
+			";"		/* delimiter */				\
+			MTDPARTS_NAND	/* NAND flash devices */
+#		define MTDIDS_DEFAULT						\
+			MTDIDS_NOR	/* NOR flash devices */			\
+			","		/* delimiter */				\
+			MTDIDS_NAND	/* NAND flash devices */
+#	elif defined(CONFIG_CMD_FLASH)		/* Only NOR flash devices */
+#		define MTDPARTS_DEFAULT	"mtdparts=" MTDPARTS_NOR
+#		define MTDIDS_DEFAULT	MTDIDS_NOR
+#	elif defined(CONFIG_CMD_NAND)		/* Only NAND flash devices */
 #		define MTDPARTS_DEFAULT	"mtdparts=" MTDPARTS_NAND
 #		define MTDIDS_DEFAULT	MTDIDS_NAND
-#	endif	/* defined(CONFIG_CMD_NAND) */
+#	endif	/* defined(CONFIG_CMD_FLASH) && defined(CONFIG_CMD_NAND) */
 #endif	/* CONFIG_CMD_JFFS2 */
+
+
+/*----------------------------------------------------------------------
+ * I2C configuration
+ */
+
+#define CONFIG_CMD_I2C				/* do we want I2C support ? */
+
+#if defined(CONFIG_CMD_I2C)
+#	define CONFIG_I2C_BUS_2			/* Use I2C Bus "2" */
+#	define CONFIG_I2C_CMD_TREE		/* use a "i2c" root command */
+#	define CFG_I2C_SLAVE		0x7F	/* I2C slave address	*/	/* QQQ - TO CHECK */
+#	define CONFIG_SOFT_I2C			/* I2C with S/W bit-banging	*/
+#	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
+#	define I2C_ACTIVE			/* open-drain, nothing to do */
+#	define I2C_TRISTATE			/* open-drain, nothing to do */
+#	define I2C_SCL(val)		do { fli7510_i2c_scl((val)); } while (0)
+#	define I2C_SDA(val)		do { fli7510_i2c_sda((val)); } while (0)
+#	define I2C_READ			fli7510_i2c_read()
+
+	/*
+	 * The "BOGOS" for NDELAY() may be calibrated using the
+	 * following code fragment, and measuring (using an oscilloscope)
+	 * the frequency of the I2C SCL pin, and adjusting
+	 * NDELAY_BOGOS, until the SCL is approximately 100 kHz.
+	 * (100kHz has a period of 5us + 5us).
+	 *
+	 *	printf("just toggling I2C SCL (100kHz frequency) ...\n");
+	 *	while (1)
+	 *	{
+	 *		I2C_SCL(1); NDELAY(5000);
+	 *		I2C_SCL(0); NDELAY(5000);
+	 *	}
+	 */
+#	define NDELAY_BOGOS		22	/* Empirical measurement for 1ns */
+#	define NDELAY(ns)						\
+		do {							\
+			const unsigned n_bogo = NDELAY_BOGOS;		\
+			const unsigned n_ticks = 			\
+				((ns)<n_bogo) ? 1u : (ns)/n_bogo;	\
+			volatile unsigned n_count;			\
+			for(n_count=0; n_count<n_ticks; n_count++)	\
+				;	/* do nothing */		\
+		} while(0)
+
+	/*
+	 * Note there are 4 * I2C_DELAY per I2C clock cycle
+	 * So, 400 kHz requires an I2C delay of 625 ns.
+	 * However, this calculation only works if the S/W
+	 * overhead in I2C bit-banging is negligible - which it is not!
+	 * So, in practice, either I2C_DELAY or CFG_I2C_SPEED will be lower.
+	 * The higher the clock frequency, the greater the difference.
+	 * Empirical measurement/adjustment is recommended.
+	 */
+#	define CFG_I2C_SPEED	400000				/* I2C speed (Hz) */
+#	define I2C_DELAY	do { NDELAY(625); } while (0)	/* 625 ns */
+#endif	/* CONFIG_CMD_I2C */
 
 #endif	/* __CONFIG_H */
