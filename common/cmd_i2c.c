@@ -954,7 +954,7 @@ U_BOOT_CMD(
 #if defined(CONFIG_I2C_MULTI_BUS)
 	"dev [dev] - show or set current I2C bus\n"
 #endif  /* CONFIG_I2C_MULTI_BUS */
-	"i2c speed [speed] - show or set I2C bus speed\n"
+	"speed [speed] - show or set I2C bus speed\n"
 	"i2c md chip address[.0, .1, .2] [# of objects] - read from I2C device\n"
 	"i2c mm chip address[.0, .1, .2] - write to I2C device (auto-incrementing)\n"
 	"i2c mw chip address[.0, .1, .2] value [count] - write to I2C device (fill)\n"
