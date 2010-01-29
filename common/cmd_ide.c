@@ -2,6 +2,9 @@
  * (C) Copyright 2000-2005
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
+ * (C) Copyright 2010 STMicroelectronics.
+ * Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -1084,6 +1087,7 @@ static void ide_ident (block_dev_desc_t *dev_desc)
 	int mode, cycle_time;
 #endif
 	int device;
+retry:
 	device=dev_desc->dev;
 	printf ("  Device %d: ", device);
 
@@ -1173,6 +1177,35 @@ static void ide_ident (block_dev_desc_t *dev_desc)
 #endif
 
 	input_swap_data (device, iobuf, ATA_SECTORWORDS);
+
+	debug ("info: IDENTIFY DEVICE has word[0] = 0x%04x\n", iop->config);
+	debug ("info: IDENTIFY DEVICE has word[2] = 0x%04x\n", iop->reserved2);
+	if (iop->config & 1<<2)	/* word[0],bit[2] == "Response Incomplete" */
+	{
+		printf ("\nwarning: IDENTIFY DEVICE command was INcomplete!\n");
+	}
+
+	switch (iop->reserved2)	/* check word[2] */
+	{
+		case 0x37c8:	/* IDENTIFY DEVICE command is INcomplete */
+		case 0x738c:	/* IDENTIFY DEVICE command is complete */
+			printf ("warning: device is spun-down!\n");
+				/* device is spun down, so spin it up */
+			printf ("info: trying to spin up the device ...\n");
+				/* enable Power-Up in Standby Feature */
+			ide_outb (device, ATA_DEV_HD, ATA_LBA | ATA_DEVICE(device));
+			ide_outb (device, ATA_FEATURES, 0x07);
+			ide_outb (device, ATA_COMMAND, ATA_CMD_SETF);
+			ide_wait (device, IDE_SPIN_UP_TIME_OUT);	/* may take up to 5 sec */
+			goto retry;
+			break;
+		case 0x8c73:	/* IDENTIFY DEVICE command is INcomplete */
+		case 0xc837:	/* IDENTIFY DEVICE command is complete */
+			debug ("info: device is already spun-up\n");
+			break;
+		default:
+			printf ("error: word[2] has a 'reserved' value!\n");
+	}
 
 	ident_cpy ((unsigned char*)dev_desc->revision, iop->fw_rev, sizeof(dev_desc->revision));
 	ident_cpy ((unsigned char*)dev_desc->vendor, iop->model, sizeof(dev_desc->vendor));
