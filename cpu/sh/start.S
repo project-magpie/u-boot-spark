@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2009 STMicroelectronics.
+ * (C) Copyright 2004-2010 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -142,7 +142,12 @@ config_spiboot_controller:
 	mov.l	r0, @(ST40_EMI_SPI_MODESELECT-ST40_EMI_SPI_REGS_BASE,r1)
 
 	/* Slow (divide) the SPI clock down to improve reliability. */
+	/* Note: for the Freeman FLDB, diving by 4 fails to boot! */
+#if defined(CONFIG_SH_FLI7510)
+	mov	#6, r0			/* *ST40_EMI_SPI_CLOCKDIV = 6 */
+#else
 	mov	#4, r0			/* *ST40_EMI_SPI_CLOCKDIV = 4 */
+#endif
 	mov.l	r0, @(ST40_EMI_SPI_CLOCKDIV-ST40_EMI_SPI_REGS_BASE,r1)
 
 #endif	/* CFG_BOOT_FROM_SPI */
