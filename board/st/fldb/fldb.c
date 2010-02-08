@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009 STMicroelectronics.
+ * (C) Copyright 2009-2010 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -182,11 +182,6 @@ extern int board_init (void)
 	fli7510_configure_ethernet (fli7510_ethernet_mii, 0, 0);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
-#if defined(CONFIG_SPI)
-	/* Configure for SPI Serial Flash */
-	configSpi();
-#endif	/* CONFIG_SPI */
-
 #if defined(CONFIG_SOFT_I2C)
 	/* Configuration for the I2C bus */
 	configI2c();
@@ -205,6 +200,16 @@ extern int checkboard (void)
 		"  [29-bit mode]"
 #endif
 		"\n");
+
+#if defined(CONFIG_SPI)
+	/*
+	 * Configure for the SPI Serial Flash.
+	 * Note: for CFG_BOOT_FROM_SPI + CFG_ENV_IS_IN_EEPROM, this
+	 * needs to be done after env_init(), hence it is done
+	 * here, and not in board_init().
+	 */
+	configSpi();
+#endif	/* CONFIG_SPI */
 
 	return 0;
 }
