@@ -54,6 +54,7 @@ typedef struct bd_info
 	unsigned long bi_lmifrq;
 #endif
 #if	defined(CONFIG_SH_STX5197) ||	\
+	defined(CONFIG_SH_STX5206) ||	\
 	defined(CONFIG_SH_STX7105) ||	\
 	defined(CONFIG_SH_STX7111) ||	\
 	defined(CONFIG_SH_STX7141) ||	\

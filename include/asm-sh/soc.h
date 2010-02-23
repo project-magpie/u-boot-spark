@@ -37,6 +37,13 @@ enum fli7510_ethernet_mode
 	fli7510_ethernet_rmii,
 	fli7510_ethernet_reverse_mii
 };
+enum stx5206_ethernet_mode
+{
+	stx5206_ethernet_mii,
+	stx5206_ethernet_rmii,
+	stx5206_ethernet_reverse_mii
+};
+
 
 
 /*
@@ -53,6 +60,10 @@ extern void stx7200_configure_ethernet (
 	int mac, int rmii, int ext_clk, int phy_bus);
 extern void fli7510_configure_ethernet(
 	const enum fli7510_ethernet_mode mode,
+	const int ext_clk,
+	const int phy_bus);
+extern void stx5206_configure_ethernet(
+	const enum stx5206_ethernet_mode mode,
 	const int ext_clk,
 	const int phy_bus);
 
@@ -84,6 +95,7 @@ enum fli7510_usb_ovrcur_mode {
  */
 extern void stb7100_usb_init(void);
 extern void stx5197_usb_init(void);
+extern void stx5206_usb_init(void);
 extern int  stx7105_usb_init(int port, int over_current, int power_ctrl);
 extern void stx7111_usb_init(void);
 extern void stx7141_usb_init(void);

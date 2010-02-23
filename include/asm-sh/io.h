@@ -66,7 +66,8 @@
        defined(CONFIG_SH_5197CAB)	|| \
        defined(CONFIG_SH_CB101)		|| \
        defined(CONFIG_SH_CB102)		|| \
-       defined(CONFIG_SH_FLI7510)
+       defined(CONFIG_SH_FLI7510)	|| \
+       defined(CONFIG_SH_MB796)
 #  include "asm/io_stb1eval.h"
 #else
 #  error "What system is this?"

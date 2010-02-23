@@ -230,6 +230,16 @@ set_pmb:
 	SH4_SET_PMB 0 0x80 0x40  64 0 0 1	/* LMI-Sys UN-cached */
 	SH4_SET_PMB 2 0x90 0x40  64 0 0 1	/* LMI-Sys UN-cached */
 	SH4_SET_PMB 4 0xa0 0x00 128 0 0 1	/* SPI Flash (in SPIBOOT mode) UN-cached */
+#elif defined(CONFIG_SH_STX5206) && defined(CONFIG_SH_MB796)
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
+	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
+	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
+	#endif
+	SH4_SET_PMB 4 0xa0 0x00  64 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 5 0xa4 0x04  16 0 0 1	/* NAND FLASH + EPLD UN-cached */
+	SH4_SET_PMB 6 0xa8 0x00  64		/* NOR FLASH CACHED */
 #elif defined(CONFIG_SH_STX7105) && defined(CONFIG_SH_MB680)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */

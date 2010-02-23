@@ -40,6 +40,8 @@ extern int usb_cpu_init(void)
 	stb7100_usb_init();
 #elif defined(CONFIG_SH_STX5197)
 	stx5197_usb_init();
+#elif defined(CONFIG_SH_STX5206)
+	stx5206_usb_init();
 #elif defined(CONFIG_SH_STX7105)
 #ifdef CONFIG_SH_STX_STX7105_USB_PORT0
 	stx7105_usb_init(0,

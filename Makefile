@@ -2854,6 +2854,21 @@ fldbse_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h
 	@$(MKCONFIG) -a fldb sh sh fldb st fli7510
 
+# QQQ following should have "TEXT_BASE = 0x8FF00000" for SE mode.
+# QQQ However, the current TargetPacks only define the PMB
+# QQQ for the first 128MiB region of RAM.
+# QQQ Hence, we need the targetpacks to be updated first!
+mb796_config \
+mb796se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/mb796
+	@echo "#define CONFIG_SH_STX5206   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_MB796     1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb796/config.tmp)
+	@$(MKCONFIG) -a mb796 sh sh mb796 st stx5206
+
 
 #========================================================================
 # STMicroelectronics ST200

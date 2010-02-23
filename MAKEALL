@@ -682,6 +682,8 @@ LIST_sh="		\
 	mb671se		\
 	mb680		\
 	mb680se		\
+	mb796		\
+	mb796se		\
 	pdk7105		\
 	pdk7105se	\
 	ipidtv7105	\

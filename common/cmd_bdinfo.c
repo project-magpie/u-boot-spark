@@ -323,6 +323,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #elif defined(CONFIG_SH_STX5197)
 	if (STX5197_DEVICEID_5197(bd->bi_devid))
 		printf ("\nSTx5197 version %ld.x", STX5197_DEVICEID_CUT(bd->bi_devid));
+#elif defined(CONFIG_SH_STX5206)
+	if (STX5206_DEVICEID_5206(bd->bi_devid))
+		printf ("\nSTx5206/STx5289 version %ld.x", STX5206_DEVICEID_CUT(bd->bi_devid));
 #elif defined(CONFIG_SH_STX7105)
 	if (STX7105_DEVICEID_7105(bd->bi_devid))
 		printf ("\nSTx7105 version %ld.x", STX7105_DEVICEID_CUT(bd->bi_devid));
