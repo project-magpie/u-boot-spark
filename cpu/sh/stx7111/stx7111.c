@@ -212,7 +212,7 @@ extern unsigned char stx7111_spi_read(void)
 	const int pin = 2;	/* PIO2[2] = SPI_DIN */
 	return STPIO_GET_PIN(PIO_PORT(2), pin);
 }
-#else
+#elif defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 #error Still to impliment SPI via SSC for the STx7111.
 #endif	/* CONFIG_SOFT_SPI */
 

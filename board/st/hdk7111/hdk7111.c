@@ -69,7 +69,7 @@ static void configSpi(void)
 	STPIO_SET_PIN(PIO_PORT(6), 7, 1);	/* deassert SPI_NOCS */
 	STPIO_SET_PIN(PIO_PORT(2), 0, 1);	/* assert SPI_CLK */
 	STPIO_SET_PIN(PIO_PORT(2), 1, 0);	/* deassert SPI_DOUT */
-#else
+#elif defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 #error Still to impliment SPI via SSC for the STx7111.
 #endif	/* CONFIG_SOFT_SPI */
 }
