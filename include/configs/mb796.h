@@ -246,7 +246,7 @@
  * FLASH organization
  */
 
-/* Choose if we want FLASH Support (NAND &/or NOR devices)
+/* Choose if we want FLASH Support (NAND, NOR & SPI devices)
  * With the MB796 + MB705 combination, we may use *both*
  * NOR and NAND flash, at the same time, if we want.
  *
@@ -255,6 +255,7 @@
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
 #define CONFIG_CMD_FLASH	/* define for NOR flash */
 #define CONFIG_CMD_NAND		/* define for NAND flash */
+#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
 
 /*-----------------------------------------------------------------------
  * NOR FLASH organization
@@ -359,6 +360,28 @@
 #	define CFG_NAND_SKIP_BLOCK_SIZE		(16<<10)/* Block Size = 16 KiB */
 #	define CFG_NAND_SKIP_BLOCK_COUNT	16	/* entries in the array */
 #endif /* CFG_BOOT_FROM_NAND */
+
+/*-----------------------------------------------------------------------
+ * SPI SERIAL FLASH organization
+ */
+
+/*
+ *	Name	Manuf	Device
+ *	-----	-----	------
+ *	IC27	ST	M25P32	(on MB705 Peripheral Board)
+ */
+#if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
+#	define CONFIG_SPI_FLASH_ST		/* ST M25Pxx (IC27) */
+#	define CONFIG_SPI			/* enable the SPI driver */
+//#	define CONFIG_CMD_SPI			/* SPI serial bus command support - NOT with FSM! */
+#	define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
+#	define CFG_I2C_FRAM			/* to minimize performance degradation */
+#	undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
+
+	/* Can only use H/W FSM SPI Controller (not H/W SSC, nor S/W "bit-banging") */
+#	define CONFIG_STM_FSM_SPI		/* Use the H/W FSM for SPI */
+#	define CFG_STM_SPI_FSM_BASE	0xfe702000	/* FSM SPI Controller Base */
+#endif	/* CONFIG_SPI_FLASH */
 
 /*-----------------------------------------------------------------------
  * Address, size, & location of U-boot's Environment Sector

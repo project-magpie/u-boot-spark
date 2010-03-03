@@ -29,6 +29,7 @@
 #include <spi.h>
 #include <asm/clk.h>
 #include <asm/spi-commands.h>
+#include "stm_spi_fsm.h"
 
 
 /**********************************************************************/
@@ -325,6 +326,10 @@ extern int spi_xfer(
 static unsigned int spi_read_status(
 	spi_chipsel_type const chipsel)
 {
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* return the status byte read */
+	return fsm_read_status();
+#else	/* CONFIG_STM_FSM_SPI */
 	unsigned char data[2] = { OP_READ_STATUS, 0x00 };
 
 	/* issue the Status Register Read command */
@@ -332,6 +337,7 @@ static unsigned int spi_read_status(
 
 	/* return the status byte read */
 	return data[1];
+#endif	/* CONFIG_STM_FSM_SPI */
 }
 
 
@@ -344,7 +350,7 @@ static unsigned int spi_read_status(
  * input:   none
  * returns: none
  */
-static void spi_wait_till_ready(
+extern void spi_wait_till_ready(
 	spi_chipsel_type const chipsel)
 {
 #if defined(CONFIG_SPI_FLASH_ATMEL)
@@ -390,7 +396,15 @@ static int spi_probe_serial_flash(
 	 * if we get here, then we think we may have a SPI
 	 * device, so now check it is the correct one!
 	 */
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/*
+	 * Note: devid[0] is assumed to the be OP_READ_DEVID.
+	 * Hence, devid[1] needs to be the FIRST JEDEC byte retrieved.
+	 */
+	fsm_read_jedec(sizeof(devid)-1u, &devid[1]);
+#else	/* CONFIG_STM_FSM_SPI */
 	spi_xfer(chipsel, sizeof(devid)*8, devid, devid);
+#endif	/* CONFIG_STM_FSM_SPI */
 
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 
@@ -581,14 +595,24 @@ static int spi_probe_serial_flash(
 
 
 /*
- * initialise the SSC to talk to the slave SPI device.
+ * initialise the H/W to talk to the slave SPI device.
  */
 extern void spi_init(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
+#elif defined(CONFIG_STM_FSM_SPI)
+	spi_chipsel_type const chipsel = NULL;	/* FSM only support one device */
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
+
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* initialize the H/W FSM SPI Controller. */
+	fsm_init();
+#else	/* CONFIG_STM_FSM_SPI */
 
 #if defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
+	/* initialize the H/W SSC for SPI. */
 	unsigned long reg;
 	const unsigned long bits_per_word = 8;	/* one word == 8-bits */
 	const unsigned long mode = CFG_STM_SPI_MODE /* | SPI_LOOP */;
@@ -666,6 +690,7 @@ extern void spi_init(void)
 	/* clear the status register */
 	(void)ssc_read(SSC_RBUF);
 #endif	/* CONFIG_STM_SSC_SPI */
+#endif	/* CONFIG_STM_FSM_SPI */
 
 	/* now probe the serial flash, to ensure it is the correct one */
 	spi_probe_serial_flash(chipsel);
@@ -728,11 +753,13 @@ extern ssize_t spi_read (
 	uchar * const buffer,
 	const int len)
 {
-	int i;
 	const unsigned long start = get_binary_offset(addr,alen);
 	const unsigned long offset = get_dataflash_offset(start);
 	const unsigned long last   = start + len - 1ul;
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
+	int i;
 	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 	if (len < 1) return len;
 	if (last >= deviceSize)	/* Out of range ? */
@@ -741,6 +768,10 @@ extern ssize_t spi_read (
 			deviceSize-1ul);
 		return 0;
 	}
+
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	fsm_read(buffer, len, offset);
+#else	/* CONFIG_STM_FSM_SPI */
 
 	/* assert SPI CS */
 	(*chipsel)(1);
@@ -770,6 +801,7 @@ extern ssize_t spi_read (
 
 	/* de-assert SPI CS */
 	(*chipsel)(0);
+#endif	/* CONFIG_STM_FSM_SPI */
 
 	return len;
 }
@@ -785,6 +817,9 @@ static void my_spi_write(
 	unsigned long len)
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 {
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+#error ATMEL Serial Flash not yet supported with FSM SPI Controller!
+#else	/* CONFIG_STM_FSM_SPI */
 	const unsigned long offset = get_dataflash_offset(address);
 	size_t i;
 
@@ -839,6 +874,7 @@ static void my_spi_write(
 
 	/* now wait until the programming has completed ... */
 	spi_wait_till_ready(chipsel);
+#endif	/* CONFIG_STM_FSM_SPI */
 }
 #elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
 {
@@ -853,6 +889,7 @@ static void my_spi_write(
 #elif defined(CONFIG_SPI_FLASH_MXIC)
 	unsigned char buff[4<<10];	/* maximum of 4 KiB erase size */
 #endif
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 	unsigned char enable[1] = { OP_WREN };
 	unsigned char erase[4] = {
 		op_erase,
@@ -860,6 +897,7 @@ static void my_spi_write(
 		(sector>>8)  & 0xffu,
 		(sector>>0)  & 0xffu,
 	};
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 #if 0	/* QQQ - DELETE */
 	printf("%s():\t buffer=0x%08x, len=%-5u  0x%06x..0x%06x\n",
@@ -897,11 +935,16 @@ static void my_spi_write(
 		ptr = buffer;	/* use original buffer */
 	}
 
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* erase ONE sector (using comand op_erase) */
+	fsm_erase_sector(sector, op_erase);
+#else	/* CONFIG_STM_FSM_SPI */
 	/* issue a WRITE ENABLE (WREN) command */
 	spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
 
 	/* issue a Sector Erase command */
 	spi_xfer(chipsel, sizeof(erase)*8, erase, NULL);
+#endif	/* CONFIG_STM_FSM_SPI */
 
 	/* now wait until the erase has completed ... */
 	spi_wait_till_ready(chipsel);
@@ -909,6 +952,11 @@ static void my_spi_write(
 	/* now program each page in turn ... */
 	for (page_base=sector,page=0u; page<pages; page++)
 	{
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* program one page */
+	fsm_write(ptr, pageSize, page_base);
+	ptr += pageSize;
+#else	/* CONFIG_STM_FSM_SPI */
 		/* issue a WRITE ENABLE (WREN) command */
 		spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
 
@@ -931,6 +979,7 @@ static void my_spi_write(
 
 		/* de-assert SPI CS */
 		(*chipsel)(0);
+#endif	/* CONFIG_STM_FSM_SPI */
 
 		/* now wait until the programming has completed ... */
 		spi_wait_till_ready(chipsel);
@@ -960,7 +1009,11 @@ extern ssize_t spi_write (
 	const unsigned long byte   = first % eraseSize;
 	      unsigned long ptr    = first;
 	unsigned written = 0;		/* amount written between two dots */
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
+#elif defined(CONFIG_STM_FSM_SPI)
+	spi_chipsel_type const chipsel = NULL;	/* FSM only support one device */
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 	if (len < 1) return len;
 	if (last >= deviceSize)	/* Out of range ? */
