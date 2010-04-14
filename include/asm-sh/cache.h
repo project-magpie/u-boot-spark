@@ -33,6 +33,9 @@
 #	error Unknown CPU
 #endif
 
+
+#ifndef __ASSEMBLER__
+
 extern void sh_cache_set_op(unsigned long);
 extern void sh_cache_clear_op(unsigned long);
 
@@ -42,5 +45,7 @@ extern void sh_enable_data_caches(void);
 
 /* following stores if the data caches currently on */
 extern int sh_data_caches_on;
+
+#endif	/* __ASSEMBLER__ */
 
 #endif /* __ASM_SH_CACHE_H */

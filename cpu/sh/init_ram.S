@@ -28,6 +28,7 @@
 #include "asm/regdef.h"
 #include "asm/asmdefs.h"
 #include "asm/linkage.h"
+#include "asm/cache.h"
 
 /*
  *	NOTE:	 ALL THIS CODE MUST BE PIC !!!!
@@ -66,9 +67,14 @@ ENTRY(init_ram)
 	and	r3, r1			/* convert to a P1 addresses */
 	and	r3, r2
 
+	/*
+	 * Load the entire poke table into the operand cache.
+	 * We just need to load one word per cache line.
+	 */
 	mov	r1, r0			/* R0 = scratch data ptr */
-1:	mov.l	@r0+, r4		/* Load poke table in D$ */
-	cmp/eq	r0, r2
+1:	mov.l	@r0, r4			/* read one word per cache line */
+	add	#DCACHE_LINESZ, r0	/* next cache line */
+	cmp/hi	r2, r0			/* done ? */
 	bf	1b
 
 	/*
@@ -113,7 +119,6 @@ p2_to_p1_mask:		.long ~0x20000000
 #	include "asm/old-pokeloop.h"
 #	include "../../../cpu/sh/old-pokeloop.S"
 #else
-#	info QQQ -- using NEW poke loop interpreter --- DELETE ME
 #	include "asm/pokeloop.h"
 #	include "../../../cpu/sh/pokeloop.S"
 #endif	/* CONFIG_SH_OLD_POKE_LOOP_PARADIGM */
