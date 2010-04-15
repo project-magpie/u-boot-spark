@@ -14,7 +14,7 @@
  * generate contemporary poke tables. The latest generation
  * targetpacks may be incompatible with the old interpreter.
  */
-#define CONFIG_SH_OLD_POKE_LOOP_PARADIGM	/* QQQ - DELETE */
+#undef CONFIG_SH_OLD_POKE_LOOP_PARADIGM
 
 
 #include "asm/stx7105reg.h"
@@ -26,6 +26,18 @@
 	.balign 32
 
 __memory_setup_table:
+
+	/*
+	 * Magic sequence to configure the ClockGenA switch control to
+	 * reset values.  These do not appear to be correctly reset on
+	 * a WDT reset, so we explicitly do it here.
+	 * For further details, please see:
+	 *	https://bugzilla.stlinux.com/show_bug.cgi?id=5536#c38
+	 */
+		/* CLOCKGEN A CKGA_CLKOPSRC_SWITCH_CFG  reset=0 */
+	POKE32(0xfe213014, 0x00000000)
+		/* CLOCKGEN A CKGA_CLKOPSRC_SWITCH_CFG2 reset=0 */
+	POKE32(0xfe213024, 0x00000000)
 
 	/*
 	 * include the appropriate set of "GDB pokes", (usually) generated
