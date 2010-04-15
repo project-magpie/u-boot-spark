@@ -117,10 +117,10 @@ p2_to_p1_mask:		.long ~0x20000000
 
 #if defined(CONFIG_SH_OLD_POKE_LOOP_PARADIGM)
 #	include "asm/old-pokeloop.h"
-#	include "../../../cpu/sh/old-pokeloop.S"
+#	include "old-pokeloop.S"
 #else
 #	include "asm/pokeloop.h"
-#	include "../../../cpu/sh/pokeloop.S"
+#	include "pokeloop.S"
 #endif	/* CONFIG_SH_OLD_POKE_LOOP_PARADIGM */
 
 
