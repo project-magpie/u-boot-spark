@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics.
+ * (C) Copyright 2008-2010 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -33,55 +33,43 @@
 #define PIO_BASE  0xfd020000	/* Base of PIO block in COMMs block */
 
 
-/* following are the offsets in the EMI functions EPLD (IC21),
- * in the STB Peripheral board (MB705)*/
+#if defined(CONFIG_SH_MB705)
+	/*
+	 * More recent EPLD versions have the EPLD in EMI space,
+	 * using CSCn (EMI Bank #2), nominally at physical 0x04800000.
+	 */
+#if !defined(CFG_EPLD_PHYSICAL_BASE)
+#	define CFG_EPLD_PHYSICAL_BASE	0x04800000	/* CSCn (EMI Bank #2) */
+#endif /* CFG_EPLD_PHYSICAL_BASE */
+	/* map the physical address to UN-cached virtual address */
+#if !defined(CFG_EPLD_BASE)
+#	define CFG_EPLD_BASE		( 0xa0000000 | (CFG_EPLD_PHYSICAL_BASE) )
+#endif /* CFG_EPLD_BASE */
+	/*
+	 * following are the offsets within the EMI EPLD (IC21),
+	 * for the MB705 Peripheral board.
+	 */
 #define EPLD_IDENT		0x00	/* EPLD Identifier Register */
 #define EPLD_TEST		0x02	/* EPLD Test Register */
 #define EPLD_SWITCH		0x04	/* EPLD Switch Register */
 #define EPLD_MISC		0x0a	/* Miscellaneous Control Register */
-
-#ifdef CONFIG_SH_SE_MODE
-#define EPLD_BASE		0xb7000000	/* Phys 0x07000000 */
-#else
-#define EPLD_BASE		0xa7000000	/* EMI Bank E */
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_SH_MB705 */
 
 
+#if defined(CONFIG_SH_MB705)
 static inline void epld_write(unsigned long value, unsigned long offset)
 {
 	/* 16-bit write to EPLD registers */
-	writew(value, EPLD_BASE + offset);
+	writew(value, CFG_EPLD_BASE + offset);
 }
 
 static inline unsigned long epld_read(unsigned long offset)
 {
 	/* 16-bit read from EPLD registers */
-	return readw(EPLD_BASE + offset);
+	return readw(CFG_EPLD_BASE + offset);
 }
 
-void flashWriteEnable(void)
-{
-	unsigned short epld_reg;
-
-	/* Enable Vpp for writing to flash */
-	epld_reg = epld_read(EPLD_MISC);
-	epld_reg |= 1u << 3;	/* NandFlashWP = MISC[3] = 1 */
-	epld_reg |= 1u << 2;	/* NorFlashVpp = MISC[2] = 1 */
-	epld_write(epld_reg, EPLD_MISC);
-}
-
-void flashWriteDisable(void)
-{
-	unsigned short epld_reg;
-
-	/* Disable Vpp for writing to flash */
-	epld_reg = epld_read(EPLD_MISC);
-	epld_reg &= ~(1u << 3);	/* NandFlashWP = MISC[3] = 0 */
-	epld_reg &= ~(1u << 2);	/* NorFlashVpp = MISC[2] = 0 */
-	epld_write(epld_reg, EPLD_MISC);
-}
-
-static int mb680_init_epld(void)
+static int mb705_init_epld(void)
 {
 	const unsigned short test_value = 0x1234u;
 	unsigned short epld_reg;
@@ -109,6 +97,33 @@ static int mb680_init_epld(void)
 
 	/* return a "success" result */
 	return 0;
+}
+#endif	/* CONFIG_SH_MB705 */
+
+void flashWriteEnable(void)
+{
+#if defined(CONFIG_SH_MB705)
+	unsigned short epld_reg;
+
+	/* Enable Vpp for writing to flash */
+	epld_reg = epld_read(EPLD_MISC);
+	epld_reg |= 1u << 3;	/* NandFlashWP = MISC[3] = 1 */
+	epld_reg |= 1u << 2;	/* NorFlashVpp = MISC[2] = 1 */
+	epld_write(epld_reg, EPLD_MISC);
+#endif	/* CONFIG_SH_MB705 */
+}
+
+void flashWriteDisable(void)
+{
+#if defined(CONFIG_SH_MB705)
+	unsigned short epld_reg;
+
+	/* Disable Vpp for writing to flash */
+	epld_reg = epld_read(EPLD_MISC);
+	epld_reg &= ~(1u << 3);	/* NandFlashWP = MISC[3] = 0 */
+	epld_reg &= ~(1u << 2);	/* NorFlashVpp = MISC[2] = 0 */
+	epld_write(epld_reg, EPLD_MISC);
+#endif	/* CONFIG_SH_MB705 */
 }
 
 #ifdef CONFIG_STMAC_LAN8700
@@ -194,10 +209,12 @@ int checkboard (void)
 #endif
 		"\n");
 
+#if defined(CONFIG_SH_MB705)
 	/*
-	 * initialize the EPLD.
+	 * initialize the EPLD on the MB705.
 	 */
-	mb680_init_epld();
+	mb705_init_epld();
+#endif	/* CONFIG_SH_MB705 */
 
 #if 0	/* QQQ - DELETE */
 {

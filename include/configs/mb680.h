@@ -35,6 +35,14 @@
 
 
 /*-----------------------------------------------------------------------
+ * Define the following macro only if the MB680 CPU board
+ * will be mated with a MB705 peripheral board.
+ */
+#undef  CONFIG_SH_MB705		/* MB680 withOUT a MB705 */
+#define CONFIG_SH_MB705		/* MB680 + MB705 */
+
+
+/*-----------------------------------------------------------------------
  * Are we booting directly from a NAND Flash device ?
  * If so, then define the "CFG_BOOT_FROM_NAND" macro,
  * otherwise (e.g. NOR/SPI Flash booting), do not define it.
