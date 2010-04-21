@@ -42,6 +42,25 @@ extern void flashWriteDisable(void)
 	/* Nothing to do! */
 }
 
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+static void phy_reset(void)
+{
+#if CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE	/* MAC = STM GMAC#1 */
+	/* Reset the on-board IC+ IP1001 PHY (U51) */
+	SET_PIO_PIN(PIO_PORT(5), 3, STPIO_OUT);
+
+	STPIO_SET_PIN(PIO_PORT(5), 3, 1);
+	udelay(10);
+
+	STPIO_SET_PIN(PIO_PORT(5), 3, 0);
+	udelay(50);
+
+	STPIO_SET_PIN(PIO_PORT(5), 3, 1);
+	udelay(10);
+#endif
+}
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+
 static void configPIO(void)
 {
 	unsigned long sysconf;
@@ -66,6 +85,18 @@ static void configPIO(void)
 extern int board_init(void)
 {
 	configPIO();
+
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	phy_reset();	/* Reset the PHY */
+#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE	/* MAC = STM GMAC#0 */
+	/* QQQ TODO: No H/W provided to test this! */
+	stx7141_configure_ethernet(0, 0, 0, 0);
+#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE	/* MAC = STM GMAC#1 */
+	stx7141_configure_ethernet(1, 0, 0, 1);
+#else
+#error Unknown GMAC Base address encountered!
+#endif
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 #if defined(CONFIG_SH_STM_SATA)
 	stx7141_configure_sata ();

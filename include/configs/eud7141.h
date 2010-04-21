@@ -133,10 +133,10 @@
  */
 
 /*
- * There are 2 options for ethernet, both use the on-chip ST-GMAC.
+ * There are 2 options for ethernet, both use the on-chip ST-GMACs.
  * The choice in PHYs are:
- *    The on-board SMSC LAN8700
- *    External PHY connected via the MII off-board connector.
+ *    The on-board IC+ IP1001 (U51) with GMAC #1
+ *    External PHY connected via the MII off-board connector (J19) with GMAC #0.
  */
 
 /* are we using the internal ST GMAC device ? */
@@ -147,8 +147,24 @@
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC_BASE	 0xfd110000ul	/* MAC = STM GMAC0 */
-#	define CONFIG_STMAC_LAN8700			/* PHY = SMSC LAN8700 */
+#	define CFG_STM_STMAC0_BASE	 0xfd110000ul		/* MAC = STM GMAC#0 */
+#	define CFG_STM_STMAC1_BASE	 0xfd118000ul		/* MAC = STM GMAC#1 */
+#if 1
+#	define CFG_STM_STMAC_BASE	 CFG_STM_STMAC1_BASE	/* MAC = STM GMAC#1       */
+#	define CONFIG_STMAC_IP1001				/* PHY = IC+ IP1001 (U51) */
+#else
+	/*
+	 * Note: The use of GMAC #0 with an off-board PHY
+	 * has *not* been tested, as no suitable H/W was
+	 * provided to use with the supplied 7141EUD board.
+	 * The GMAC #0 functionally is provided only on a
+	 * "best-endeavours" basis. Also, phy_reset() will
+	 * need to be modified to reset the external PHY!
+	 */
+#	define CFG_STM_STMAC_BASE	 CFG_STM_STMAC0_BASE	/* MAC = STM GMAC#0 */
+#	error Need to specify which PHY is connected to GMAC0
+#	define CONFIG_STMAC_<QQQ>	 ???			/* PHY = External on J19 */
+#endif
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user
