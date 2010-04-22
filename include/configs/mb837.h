@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics.
+ * (C) Copyright 2008-2010 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -33,13 +33,29 @@
 #define CONFIG_SH4	1		/* This is an SH4 CPU		*/
 #define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 
+	/*
+	 * Define the following macro only if the MB837 CPU board
+	 * will be mated with a MB705 peripheral board.
+	 */
+#undef  CONFIG_SH_MB705		/* MB837 withOUT a MB705 */
+#define CONFIG_SH_MB705		/* MB837 + MB705 */
+
 
 /*-----------------------------------------------------------------------
- * Define the following macro only if the MB680 CPU board
- * will be mated with a MB705 peripheral board.
+ *	Switch settings to select between the SoC's main 3 boot-modes:
+ *		a) boot from 16-bit NOR flash
+ *		b) boot from NAND flash		QQQ - TO DO
+ *		c) boot from SPI serial flash
+ *
+ *	All these are on SW2, on the edge of the board.
+ *
+ *	Switch	NOR	NAND	SPI
+ *	------	---	----	---
+ *	SW2-1	 ON	???	off
+ *	SW2-2	off	???	 ON
+ *	SW2-3	 ON	???	off
+ *	SW2-4	off	???	 ON
  */
-#undef  CONFIG_SH_MB705		/* MB680 withOUT a MB705 */
-#define CONFIG_SH_MB705		/* MB680 + MB705 */
 
 
 /*-----------------------------------------------------------------------
@@ -82,7 +98,7 @@
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI SDRAM */
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
@@ -99,7 +115,7 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD mb680
+#define BOARD mb837
 
 #if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
@@ -156,11 +172,11 @@
 #	define CONFIG_STM_DTF_SERIAL	/* use DTF over JTAG */
 #endif
 
-/* choose which ST ASC UART to use */
+/* choose which ST ASC UART to use (on MB705 Peripheral Board) */
 #if 1
-#	define CFG_STM_ASC_BASE		0xfd032000ul	/* UART2 = AS0 */
+#	define CFG_STM_ASC_BASE		ST40_ASC2_REGS_BASE	/* COM0 lower connector */
 #else
-#	define CFG_STM_ASC_BASE		0xfd033000ul	/* UART3 = AS1 */
+#	define CFG_STM_ASC_BASE		ST40_ASC3_REGS_BASE	/* COM1 upper connector */
 #endif
 
 /*---------------------------------------------------------------
@@ -202,7 +218,7 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_SH_STB7100_USB
+//QQQ #define CONFIG_SH_STB7100_USB
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
@@ -256,7 +272,7 @@
 #define CFG_HUSH_PARSER		1
 #define CONFIG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"MB680> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"MB837> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
@@ -274,7 +290,7 @@
  */
 
 /* Choose if we want FLASH Support (NAND &/or NOR devices)
- * With the MB680 + MB705 combination, we may use *both*
+ * With the MB837 + MB705 combination, we may use *both*
  * NOR and NAND flash, at the same time, if we want.
  *
  * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h

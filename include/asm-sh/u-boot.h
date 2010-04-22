@@ -55,6 +55,7 @@ typedef struct bd_info
 #endif
 #if	defined(CONFIG_SH_STX5197) ||	\
 	defined(CONFIG_SH_STX7105) ||	\
+	defined(CONFIG_SH_STX7108) ||	\
 	defined(CONFIG_SH_STX7111) ||	\
 	defined(CONFIG_SH_STX7141) ||	\
 	defined(CONFIG_SH_STX7200) ||	\
