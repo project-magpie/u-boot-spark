@@ -147,7 +147,7 @@
  */
 
 /* are we using the internal ST GMAC device ? */
-#define CONFIG_DRIVER_NET_STM_GMAC
+//#define CONFIG_DRIVER_NET_STM_GMAC
 
 /*
  * Select the appropriate base address for the GMAC.
@@ -156,6 +156,8 @@
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #	define CFG_STM_STMAC_BASE	 0xfd110000ul	/* MAC = STM GMAC0 */
 #	define CONFIG_STMAC_LAN8700			/* PHY = SMSC LAN8700 */
+#else
+#	undef CONFIG_CMD_NET				/* No networking! */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user
