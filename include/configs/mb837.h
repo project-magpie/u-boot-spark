@@ -44,17 +44,19 @@
 /*-----------------------------------------------------------------------
  *	Switch settings to select between the SoC's main 3 boot-modes:
  *		a) boot from 16-bit NOR flash
- *		b) boot from NAND flash		QQQ - TO DO
+ *		b) boot from 8-bit NAND flash, small-page, long address
  *		c) boot from SPI serial flash
  *
- *	All these are on SW2, on the edge of the board.
+ *	Four of these setting are on SW2, on the edge of the CPU board,
+ *	Note: One of these is on the MB705 peripheral board!
  *
- *	Switch	NOR	NAND	SPI
- *	------	---	----	---
- *	SW2-1	 ON	???	off
- *	SW2-2	off	???	 ON
- *	SW2-3	 ON	???	off
- *	SW2-4	off	???	 ON
+ *	Board	Switch	NOR	NAND	SPI
+ *	-----	------	---	----	---
+ *	MB837	SW2-1	 ON	 ON	off
+ *	MB837	SW2-2	off	 ON	 ON
+ *	MB837	SW2-3	 ON	off	off
+ *	MB837	SW2-4	off	 ON	 ON
+ *	MB705	SW8-1	 ON	off	QQQ
  */
 
 
@@ -72,12 +74,12 @@
  */
 
 #ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
-		/*
-		 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
-		 * If so, then who takes responsibility for this???
-		 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
-		 * Should U-Boot read SW8(1) on the MB705, and do something?
-		 */
+	/*
+	 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
+	 * If so, then who takes responsibility for this???
+	 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
+	 * Should U-Boot read SW8(1) on the MB705, and do something?
+	 */
 #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
@@ -409,11 +411,11 @@
 
 #define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
-#ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
+#if 1 && defined(CONFIG_CMD_FLASH)		/* NOR flash present ? */
 #	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
-#elif defined(CONFIG_CMD_NAND)			/* NAND flash present ? */
+#elif 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
 #else
