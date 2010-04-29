@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2008.
+ * Copyright (C) STMicroelectronics Ltd. 2008-2010
  *
  * All rights reserved.
  */
@@ -168,6 +168,12 @@
 #ifndef ST40_PIO16_REGS_BASE
 #define ST40_PIO16_REGS_BASE (STX7141_T1_PIO_REGS_BASE + 0x00008000)
 #endif
+
+#define ST40_PIO_BASE(x)					\
+	(((x) < 8)						\
+		? (ST40_PIO1_REGS_BASE+(0x1000*((x)-1)))	\
+		: (ST40_PIO8_REGS_BASE+(0x1000*((x)-8))))
+
 
 #ifndef ST40_ASC0_REGS_BASE
 #define ST40_ASC0_REGS_BASE (STX7141_COMMS_BASE + 0x00030000)

@@ -17,7 +17,7 @@
 #define CONFIG_SH_OLD_POKE_LOOP_PARADIGM	/* QQQ - DELETE */
 
 
-#include "asm/fli7510reg.h"
+#include "asm/stx7141reg.h"
 #include "../../../cpu/sh/init_ram.S"
 
 
@@ -27,7 +27,6 @@
 
 __memory_setup_table:
 
-
 	/*
 	 * include the appropriate set of "GDB pokes", (usually) generated
 	 * using the "romgen" utility, from a known good target-pack.
@@ -36,17 +35,31 @@ __memory_setup_table:
 	 * to an STMC2 (note: currently it must be version 2) and then
 	 * executing the following command (redirecting the output):
 	 *
-	 * host% romgen --target-connect --show-comment <stmc2>:fldb_gpd201:st40host,boot_companions=0
+	 * host% romgen --target-connect --show-comment <stmc2>:eud7141:estb
 	 *
 	 * Where "<stmc2>" should be replaced with the IP address
-	 * (or the DNS name) of the STMC2 box.  Also the "fldb_gpd201" should
+	 * (or the DNS name) of the STMC2 box.  Also the "eud7141" should
 	 * substituted if you have a custom target-pack connect command.
 	 *
 	 * Note: The connect command used with "romgen", should connect
-	 * only in 29-bit mode - even though U-Boot will be built for 32-bit mode.
+	 * only in 29-bit mode - even if U-Boot will be built for 32-bit mode.
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
-#include "fli7510.romgen"
+#include "eud7141.romgen"
+
+#ifdef CONFIG_SH_SE_MODE
+	/*
+	 * Note that we also manually need to move the LMI0 and LMI1 base addresses to
+	 * their 32-bit SE mode locations as defined in the datasheet and change the
+	 * 'upper bound addresses' (in row attribute registers) for the LMIs.
+	 */
+	UPDATE32(STX7141_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
+	UPDATE32(STX7141_SYSCONF_SYS_CFG39, 0xFFFFFF00, 0x00000080)
+	UPDATE32(ST40_LMI_SDRA0_0(0), 0x001FFFFF, 0x48000000)
+	UPDATE32(ST40_LMI_SDRA1_0(0), 0x001FFFFF, 0x48000000)
+	UPDATE32(ST40_LMI_SDRA0_0(1), 0x001FFFFF, 0x88000000)
+	UPDATE32(ST40_LMI_SDRA1_0(1), 0x001FFFFF, 0x88000000)
+#endif	/* CONFIG_SH_SE_MODE */
 
 	END_MARKER
 

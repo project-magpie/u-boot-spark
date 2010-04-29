@@ -1,7 +1,6 @@
 #
-# (C) Copyright 2004-2010
-# Andy Sturges, STMicroelectronics, andy.sturges@st.com
-# Sean McGoogan STMicroelectronics, <Sean.McGoogan@st.com>
+# (C) Copyright 2008-2010 STMicroelectronics.
+# Sean McGoogan <Sean.McGoogan@st.com>
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -22,12 +21,23 @@
 # MA 02111-1307 USA
 #
 
-# Update this for each release.
-# The SPEC file will automatically substitute the date
-# for actual build number, in the following identifier.
-# Regular Expression for string is:
-# 	"stm[2-9][0-9]-[2-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]"
-SH_IDENT_STRING="\"stm23-2010-04-29\""
+#
+# EUD7141 board:
+#
+#	Valid values for TEXT_BASE are:
+#
+#	0x93F00000	29-bit mode (Traditional Mode)
+#	0x87F00000	32-bit mode (Space-Enhancement Mode)
+#
+# Note:	Alternative definitions of TEXT_BASE are put into
+#	'config.tmp' from the top-level 'Makefile'.
+#
 
-PLATFORM_CPPFLAGS += -DCONFIG_SH4 -D__SH4__ -DCONFIG_IDENT_STRING=$(SH_IDENT_STRING)
-PLATFORM_LDFLAGS  += -n
+sinclude $(OBJTREE)/board/$(BOARDDIR)/config.tmp
+
+ifndef TEXT_BASE
+# Installs at eSTB BASE + 127 MiB in P1 (cachable)
+TEXT_BASE = 0x93f00000
+endif
+
+PLATFORM_LDFLAGS +=

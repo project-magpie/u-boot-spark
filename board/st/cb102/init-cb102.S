@@ -1,12 +1,3 @@
-
-#include "asm/stx7200reg.h"
-#include "../../../cpu/sh/init_ram.S"
-
-/*
- * This is derived from STMicroelectronics gnu toolchain example:
- *   sh-superh-elf/examples/os21/romdynamic/memory_mb671.S
- */
-
 /*
  * The poke table is a series of long words, in the format
  *
@@ -15,22 +6,19 @@
  * An opcode of 0 marks the table end
  */
 
-#ifndef CONFIG_STM_NEW_POKE_TABLE_PARADIGM
+
 /*
- * For compatibility with old poke table code, we define some of the
- * new names, to map onto the old names. Ultimately, the old poke table
- * code will be updated to the "new order", and we can just delete
- * the following mappings.
+ * Only define the following if you want to use the "old"
+ * poke loop table interpreter. This should *not* be
+ * defined if you are now using the "romgen" tool to
+ * generate contemporary poke tables. The latest generation
+ * targetpacks may be incompatible with the old interpreter.
  */
-#define POKE8(A, VAL)				POKE_CHAR(A, VAL)
-#define POKE16(A, VAL)				POKE_SHORT(A, VAL)
-#define POKE32(A, VAL)				POKE_LONG(A, VAL)
-#define OR32(A, VAL)				OR_LONG(A, VAL)
-#define UPDATE32(A, AND, OR)			UPDATE_LONG(A, AND, OR)
-#define POKE_UPDATE32(A1, A2, AND, SHIFT, OR)	POKE_UPDATE_LONG(A1, A2, AND, SHIFT, OR)
-#define WHILE_NE32(A, AND, VAL)			WHILE_NE(A, AND, VAL)
-#define DELAY(VAL)				/* do nothing */
-#endif /* CONFIG_STM_NEW_POKE_TABLE_PARADIGM */
+#define CONFIG_SH_OLD_POKE_LOOP_PARADIGM	/* QQQ - DELETE */
+
+
+#include "asm/stx7200reg.h"
+#include "../../../cpu/sh/init_ram.S"
 
 
 	.section .data.init, "a"
@@ -128,14 +116,14 @@ __memory_setup_table:
 	UPDATE32(STX7200_SYSCONF_SYS_CFG11, 0xffffefff, 0)
 
 	/* Wait for CLOCKGENA PLL1 to lock... */
-#ifdef CONFIG_STM_NEW_POKE_TABLE_PARADIGM
+#if !defined(CONFIG_SH_OLD_POKE_LOOP_PARADIGM)
 	IF_EQ32(1, STX7200_SYSCONF_DEVICEID_0, 0x0fffffff, 0x0d437041)
 	  WHILE_NE32(STX7200_SYSCONF_SYS_STA03, 0x00000001, 1)
 	ELSE(1)
 	  /* On cut 1 polarity inverted on lock bit */
 	  WHILE_NE32(STX7200_SYSCONF_SYS_STA03, 0x00000001, 0)
 	ENDIF(1)
-#else /* CONFIG_STM_NEW_POKE_TABLE_PARADIGM */
+#else /* CONFIG_SH_OLD_POKE_LOOP_PARADIGM */
 	IF_DEVID(STX7200_CUT1)
 	  /* On cut 1 polarity inverted on lock bit */
 	  WHILE_NE32(STX7200_SYSCONF_SYS_STA03, 0x00000001, 0)
@@ -143,7 +131,7 @@ __memory_setup_table:
 	IF_DEVID(STX7200_CUT2)
 	  WHILE_NE32(STX7200_SYSCONF_SYS_STA03, 0x00000001, 1)
 	ENDIF
-#endif /* CONFIG_STM_NEW_POKE_TABLE_PARADIGM */
+#endif /* CONFIG_SH_OLD_POKE_LOOP_PARADIGM */
 
 	/* ----- STx7200 Sysconf ----- */
 

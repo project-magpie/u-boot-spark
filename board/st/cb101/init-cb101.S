@@ -1,12 +1,3 @@
-
-#include "asm/stx7200reg.h"
-#include "../../../cpu/sh/init_ram.S"
-
-/*
- * This is derived from STMicroelectronics gnu toolchain example:
- *   sh-superh-elf/examples/os21/romdynamic/memory_mb519.S
- */
-
 /*
  * The poke table is a series of long words, in the format
  *
@@ -14,6 +5,20 @@
  *
  * An opcode of 0 marks the table end
  */
+
+
+/*
+ * Only define the following if you want to use the "old"
+ * poke loop table interpreter. This should *not* be
+ * defined if you are now using the "romgen" tool to
+ * generate contemporary poke tables. The latest generation
+ * targetpacks may be incompatible with the old interpreter.
+ */
+#define CONFIG_SH_OLD_POKE_LOOP_PARADIGM	/* QQQ - DELETE */
+
+
+#include "asm/stx7200reg.h"
+#include "../../../cpu/sh/init_ram.S"
 
 
 	.section .data.init, "a"

@@ -323,6 +323,15 @@ set_pmb:
 	SH4_SET_PMB 6 0xa8 0x00  16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 7 0xa9 0x01  16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 8 0xb5 0x05  16 0 0 1	/* EPLD UN-cached */
+#elif defined(CONFIG_SH_STX7141) && defined(CONFIG_SH_EUD7141)
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI UN-cached */
+	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#error Need to configure PMBs properly when more than 128MiB.
+	#endif
+	SH4_SET_PMB 4 0xa0 0x00  64 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 5 0xa8 0x00  64		/* NOR FLASH CACHED */
+	SH4_SET_PMB 6 0xa4 0x04  16 0 0 1	/* NAND FLASH UN-cached */
 #elif defined(CONFIG_SH_STX7200) && defined(CONFIG_SH_MB519)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 UN-cached */

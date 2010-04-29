@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics.
+ * (C) Copyright 2008-2010 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -56,14 +56,19 @@ extern void stmac_set_mac_speed (int speed);
 /*
  * STMAC initialization functions.
  */
+extern void stx5206_configure_ethernet(
+	const enum stx5206_ethernet_mode mode,
+	const int ext_clk,
+	const int phy_bus);
+extern void stx7141_configure_ethernet(
+	const int port,
+	const int reverse_mii,
+	const int mode,
+	const int phy_bus);
 extern void stx7200_configure_ethernet (
 	int mac, int rmii, int ext_clk, int phy_bus);
 extern void fli7510_configure_ethernet(
 	const enum fli7510_ethernet_mode mode,
-	const int ext_clk,
-	const int phy_bus);
-extern void stx5206_configure_ethernet(
-	const enum stx5206_ethernet_mode mode,
 	const int ext_clk,
 	const int phy_bus);
 

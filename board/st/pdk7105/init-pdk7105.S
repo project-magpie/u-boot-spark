@@ -1,11 +1,3 @@
-#include "asm/stx7105reg.h"
-#include "../../../cpu/sh/init_ram.S"
-
-/*
- * This is derived from STMicroelectronics gnu toolchain example:
- *   sh-superh-elf/examples/os21/romdynamic/memory_mb680.S
- */
-
 /*
  * The poke table is a series of long words, in the format
  *
@@ -14,20 +6,19 @@
  * An opcode of 0 marks the table end
  */
 
+
 /*
- * For compatibility with old poke table code, we define some of the
- * new names, to map onto the old names. Ultimately, the old poke table
- * code will be updated to the "new order", and we can just delete
- * the following mappings.
+ * Only define the following if you want to use the "old"
+ * poke loop table interpreter. This should *not* be
+ * defined if you are now using the "romgen" tool to
+ * generate contemporary poke tables. The latest generation
+ * targetpacks may be incompatible with the old interpreter.
  */
-#define POKE8(A, VAL)				POKE_CHAR(A, VAL)
-#define POKE16(A, VAL)				POKE_SHORT(A, VAL)
-#define POKE32(A, VAL)				POKE_LONG(A, VAL)
-#define OR32(A, VAL)				OR_LONG(A, VAL)
-#define UPDATE32(A, AND, OR)			UPDATE_LONG(A, AND, OR)
-#define POKE_UPDATE32(A1, A2, AND, SHIFT, OR)	POKE_UPDATE_LONG(A1, A2, AND, SHIFT, OR)
-#define WHILE_NE32(A, AND, VAL)			WHILE_NE(A, AND, VAL)
-#define DELAY(VAL)				/* do nothing */
+#undef CONFIG_SH_OLD_POKE_LOOP_PARADIGM
+
+
+#include "asm/stx7105reg.h"
+#include "../../../cpu/sh/init_ram.S"
 
 
 	.section .data.init, "a"
@@ -35,6 +26,18 @@
 	.balign 32
 
 __memory_setup_table:
+
+	/*
+	 * Magic sequence to configure the ClockGenA switch control to
+	 * reset values.  These do not appear to be correctly reset on
+	 * a WDT reset, so we explicitly do it here.
+	 * For further details, please see:
+	 *	https://bugzilla.stlinux.com/show_bug.cgi?id=5536#c38
+	 */
+		/* CLOCKGEN A CKGA_CLKOPSRC_SWITCH_CFG  reset=0 */
+	POKE32(0xfe213014, 0x00000000)
+		/* CLOCKGEN A CKGA_CLKOPSRC_SWITCH_CFG2 reset=0 */
+	POKE32(0xfe213024, 0x00000000)
 
 	/*
 	 * include the appropriate set of "GDB pokes", (usually) generated

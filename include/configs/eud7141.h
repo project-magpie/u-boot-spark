@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics.
+ * (C) Copyright 2008-2010 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -35,54 +35,29 @@
 
 
 /*-----------------------------------------------------------------------
- * Define the following macro only if the MB680 CPU board
- * will be mated with a MB705 peripheral board.
- */
-#undef  CONFIG_SH_MB705		/* MB680 withOUT a MB705 */
-#define CONFIG_SH_MB705		/* MB680 + MB705 */
-
-
-/*-----------------------------------------------------------------------
- * Are we booting directly from a NAND Flash device ?
- * If so, then define the "CFG_BOOT_FROM_NAND" macro,
- * otherwise (e.g. NOR/SPI Flash booting), do not define it.
- */
-#undef CFG_BOOT_FROM_NAND		/* define to build a NAND-bootable image */
-
-
-/*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
+ *
+ * See board/mb628/config.mk for details of the memory map.
  */
 
-#ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
-		/*
-		 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
-		 * If so, then who takes responsibility for this???
-		 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
-		 * Should U-Boot read SW8(1) on the MB705, and do something?
-		 */
-#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
-#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
-#else		/* else, do *NOT* swap CSA and CSB in EPLD */
+/* QQQ: The following assumes boot-from-NOR */
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
-#define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
-#endif /* CFG_BOOT_FROM_NAND */
+#define CFG_EMI_NAND_BASE	0xA4800000	/* CSC: NAND Flash, Physical 0x04400000 (8MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 2 }		/* NAND is on Chip Select CSC */
 
 #ifdef CONFIG_SH_SE_MODE
-#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH (uncached) via PMB */
+#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* FLASH (uncached) via PMB */
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
 #define CFG_SDRAM_BASE		0x80000000      /* LMI    Cached addr via PMB */
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
 #define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
 #else
-#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH in P2 region */
+#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* FLASH in P2 region */
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI SDRAM */
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
@@ -99,18 +74,12 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD mb680
+#define BOARD eud7141
 
-#if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
+#if CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
-#elif CFG_MONITOR_LEN == 0x00010000		/* 64 KiB */
-#	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
-#elif CFG_MONITOR_LEN == 0x00018000		/* 96 KiB */
-#	define MONITOR_SECTORS	"1:0-2"		/* 3 sectors */
-#elif CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
-#	define MONITOR_SECTORS	"1:0-3"		/* 4 sectors */
 #elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
-#	define MONITOR_SECTORS	"1:0-4"		/* 5 sectors */
+#	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
 #else						/* unknown */
 #	error "Unable to determine sectors for monitor"
 #endif
@@ -156,23 +125,18 @@
 #	define CONFIG_STM_DTF_SERIAL	/* use DTF over JTAG */
 #endif
 
-/* choose which ST ASC UART to use */
-#if 1
-#	define CFG_STM_ASC_BASE		0xfd032000ul	/* UART2 = AS0 */
-#else
-#	define CFG_STM_ASC_BASE		0xfd033000ul	/* UART3 = AS1 */
-#endif
+/* choose which ST ASC UART to use - there is only one! */
+#define CFG_STM_ASC_BASE		0xfd032000	/* ASC2 */
 
 /*---------------------------------------------------------------
  * Ethernet driver config
  */
 
 /*
- * There are 3 options for ethernet, all use the on-chip ST-GMAC.
+ * There are 2 options for ethernet, both use the on-chip ST-GMACs.
  * The choice in PHYs are:
- *    The on-board Nat Semi DP83865	(only on Rev A, B)
- *    The on-board SMSC LAN8700		(only on Rev C)		(NOW the DEFAULT)
- *    External PHY connected via the MII off-board connector.
+ *    The on-board IC+ IP1001 (U51) with GMAC #1
+ *    External PHY connected via the MII off-board connector (J19) with GMAC #0.
  */
 
 /* are we using the internal ST GMAC device ? */
@@ -183,11 +147,23 @@
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC_BASE	 0xfd110000ul	/* MAC = STM GMAC0 */
-#if 0							/* Choose NS or SMSC PHY */
-#	define CONFIG_STMAC_DP83865	/* Rev A,B */	/* PHY = NS DP83865 */
+#	define CFG_STM_STMAC0_BASE	 0xfd110000ul		/* MAC = STM GMAC#0 */
+#	define CFG_STM_STMAC1_BASE	 0xfd118000ul		/* MAC = STM GMAC#1 */
+#if 1
+#	define CFG_STM_STMAC_BASE	 CFG_STM_STMAC1_BASE	/* MAC = STM GMAC#1       */
+#	define CONFIG_STMAC_IP1001				/* PHY = IC+ IP1001 (U51) */
 #else
-#	define CONFIG_STMAC_LAN8700	/* Rev C */	/* PHY = SMSC LAN8700 */
+	/*
+	 * Note: The use of GMAC #0 with an off-board PHY
+	 * has *not* been tested, as no suitable H/W was
+	 * provided to use with the supplied 7141EUD board.
+	 * The GMAC #0 functionally is provided only on a
+	 * "best-endeavours" basis. Also, phy_reset() will
+	 * need to be modified to reset the external PHY!
+	 */
+#	define CFG_STM_STMAC_BASE	 CFG_STM_STMAC0_BASE	/* MAC = STM GMAC#0 */
+#	error Need to specify which PHY is connected to GMAC0
+#	define CONFIG_STMAC_<QQQ>	 ???			/* PHY = External on J19 */
 #endif
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
@@ -202,7 +178,7 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_SH_STB7100_USB
+//QQQ	#define CONFIG_SH_STB7100_USB
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
@@ -210,12 +186,7 @@
 #	define CONFIG_USB_OHCI_NEW
 #	define CONFIG_USB_STORAGE
 #	define CFG_USB_OHCI_CPU_INIT
-#	define CFG_USB0_BASE			0xfe100000	/* upper */
-#	define CFG_USB1_BASE			0xfea00000	/* lower */
-#	define CFG_USB_BASE			CFG_USB0_BASE
-#	define CONFIG_SH_STX_STX7105_USB_PORT0		/* enable Port #0 */
-#	define CONFIG_SH_STX_STX7105_USB_OC	1	/* use overcurrent */
-#	define CONFIG_SH_STX_STX7105_USB_PW	1	/* use power control */
+#	define CFG_USB_BASE			0xfe100000
 #	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
@@ -226,7 +197,7 @@
  * SATA driver config
  */
 
-/* SATA works on cut 3.x of the STx7105 (just one port) */
+/* SATA works on cut 2.x of the STx7141 (just one port) */
 /* Choose if we want to use a SATA HDD */
 //#define CONFIG_SH_STM_SATA
 
@@ -256,7 +227,7 @@
 #define CFG_HUSH_PARSER		1
 #define CONFIG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"MB680> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"EUD7141> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
@@ -274,12 +245,12 @@
  */
 
 /* Choose if we want FLASH Support (NAND &/or NOR devices)
- * With the MB680 + MB705 combination, we may use *both*
- * NOR and NAND flash, at the same time, if we want.
+ * We may use *both* NOR and NAND flash, at the same time, if we want.
  *
  * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
  */
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
+
 #define CONFIG_CMD_FLASH	/* define for NOR flash */
 #define CONFIG_CMD_NAND		/* define for NAND flash */
 
@@ -287,14 +258,14 @@
  * NOR FLASH organization
  */
 
-/* M58LT256: 32MiB 259 blocks, 128 KiB block size */
+/* 29GL01GP: 128MiB 1024 blocks, 128 KiB block size */
 #ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
 #	define CFG_FLASH_CFI_DRIVER
 #	define CFG_FLASH_CFI
 #	define CONFIG_FLASH_PROTECT_SINGLE_CELL
 #	define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/
 #	define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
-#	define CFG_MAX_FLASH_SECT	259	/* max number of sectors on one chip	*/
+#	define CFG_MAX_FLASH_SECT	1024	/* max number of sectors on one chip	*/
 #	define CFG_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
 #	define MTDPARTS_NOR						\
 	"physmap-flash:"	/* First NOR flash device */		\
@@ -309,23 +280,25 @@
 #	define CFG_NO_FLASH			/* NOR-flash specific */
 #endif	/* CONFIG_CMD_FLASH */
 
+
+
 /*-----------------------------------------------------------------------
  * NAND FLASH organization
  */
 
-/* NAND512W3A: 64MiB  8-bit, 4096 Blocks (16KiB+512B) of 32 Pages (512+16) */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CFG_MAX_NAND_DEVICE	1
 #	define NAND_MAX_CHIPS		CFG_MAX_NAND_DEVICE
 #	define CFG_NAND0_BASE		CFG_EMI_NAND_BASE
 #	define CFG_NAND_BASE_LIST	{ CFG_NAND0_BASE }
-#	define MTDPARTS_NAND						\
+#define MTDPARTS_DEFAULT						\
+	"mtdparts="							\
 	"gen_nand.1:"		/* First NAND flash device */		\
-		"128k(env-nand0)"	/* first partition */		\
-		",4M(kernel-nand0)"					\
-		",32M(root-nand0)"					\
-		",-(RestOfNand0)"	/* last partition */
-#	define MTDIDS_NAND						\
+		"128k(Environment)"	/* first partition */		\
+		",4M(Kernel)"						\
+		",32M(rootfs)"						\
+		",-(RestOfNand)"	/* last partition */
+#define MTDIDS_DEFAULT							\
 	"nand0=gen_nand.1"	/* First NAND flash device */
 
 	/*
@@ -368,24 +341,6 @@
 #	define CFG_NAND_ENV_OFFSET (CFG_MONITOR_LEN + 0x0)	/* immediately after u-boot.bin */
 #endif	/* CONFIG_CMD_NAND */
 
-#if 1 && defined(CFG_BOOT_FROM_NAND)		/* we are booting from NAND */
-	/*
-	 * If we want to store "u-boot.bin" in NAND flash starting at
-	 * physical block #0, but there are Bad Blocks in the first
-	 * few blocks that we need to "skip" over, then we need
-	 * to define CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING to allow
-	 * skipping of these bad blocks for u-boot to relocate itself.
-	 * In addition, we also need to tell U-boot the block size,
-	 * and provide it a local abridged copy of the master Bad Block
-	 * Table (BBT), which must also be stored in physical block #0
-	 * - see "cpu/sh/start.S" for details.
-	 * Also, CFG_NAND_SKIP_BLOCK_COUNT defines the number of blocks
-	 * stored in the abridged copy of the master BBT.
-	 */
-#	define CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING	/* define for skipping */
-#	define CFG_NAND_SKIP_BLOCK_SIZE		(16<<10)/* Block Size = 16 KiB */
-#	define CFG_NAND_SKIP_BLOCK_COUNT	16	/* entries in the array */
-#endif /* CFG_BOOT_FROM_NAND */
 
 /*-----------------------------------------------------------------------
  * Address, size, & location of U-boot's Environment Sector
@@ -393,19 +348,23 @@
 
 #define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
-#ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
+#if 1 && defined(CONFIG_CMD_FLASH)		/* NOR flash present ? */
 #	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
-#elif defined(CONFIG_CMD_NAND)			/* NAND flash present ? */
+#elif 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
+#	if CFG_ENV_SIZE < 0x20000		/* needs to be a multiple of block-size */
+#		undef CFG_ENV_SIZE		/* give it just one large-page block */
+#		define CFG_ENV_SIZE	0x20000	/* 128 KiB of environment data */
+#	endif /* if CFG_ENV_SIZE < 0x20000 */
 #else
 #	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #endif	/* CONFIG_CMD_NAND */
 
 /*----------------------------------------------------------------------
- * JFFS2 + MTD Partition support
+ * JFFS2 support
  */
 
 #if 1 && (defined(CONFIG_CMD_FLASH) || defined(CONFIG_CMD_NAND))
@@ -413,25 +372,11 @@
 #endif
 
 #if defined(CONFIG_CMD_JFFS2)
+#	ifdef CONFIG_CMD_NAND			/* NAND flash present ? */
+#		define CONFIG_JFFS2_NAND	/* JFFS2 support on NAND Flash */
+#	endif	/* CONFIG_CMD_NAND */
 #	define CONFIG_JFFS2_CMDLINE		/* mtdparts command line support */
-#	define CONFIG_JFFS2_NAND		/* JFFS2 support on NAND Flash */
-#	if defined(CONFIG_CMD_FLASH) && defined(CONFIG_CMD_NAND) /* Both NOR + NAND */
-#		define MTDPARTS_DEFAULT						\
-		"mtdparts="							\
-			MTDPARTS_NOR	/* NOR flash devices */			\
-			";"		/* delimiter */				\
-			MTDPARTS_NAND	/* NAND flash devices */
-#		define MTDIDS_DEFAULT						\
-			MTDIDS_NOR	/* NOR flash devices */			\
-			","		/* delimiter */				\
-			MTDIDS_NAND	/* NAND flash devices */
-#	elif defined(CONFIG_CMD_FLASH)		/* Only NOR flash devices */
-#		define MTDPARTS_DEFAULT	"mtdparts=" MTDPARTS_NOR
-#		define MTDIDS_DEFAULT	MTDIDS_NOR
-#	elif defined(CONFIG_CMD_NAND)		/* Only NAND flash devices */
-#		define MTDPARTS_DEFAULT	"mtdparts=" MTDPARTS_NAND
-#		define MTDIDS_DEFAULT	MTDIDS_NAND
-#	endif	/* defined(CONFIG_CMD_FLASH) && defined(CONFIG_CMD_NAND) */
 #endif	/* CONFIG_CMD_JFFS2 */
+
 
 #endif	/* __CONFIG_H */
