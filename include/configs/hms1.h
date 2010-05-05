@@ -1,7 +1,8 @@
 /*
- * (C) Copyright 2004 STMicroelectronics.
+ * (C) Copyright 2004,2010 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -42,7 +43,11 @@
  */
 
 #define CFG_SDRAM_BASE		0x84000000      /* SDRAM in P1 region         */
-#define CFG_SDRAM_SIZE		0x08000000
+#if defined(CONFIG_SH_HMS1_128)
+#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB */
+#else
+#define CFG_SDRAM_SIZE		0x04000000	/* 64 MiB */
+#endif	/* CONFIG_SH_HMS1_128 */
 #define CFG_FLASH_BASE		0xA0000000
 #define CFG_RESET_ADDRESS	0xA0000000
 

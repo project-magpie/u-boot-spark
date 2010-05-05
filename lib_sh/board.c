@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2009 STMicroelectronics.
+ * (C) Copyright 2004-2010 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -39,6 +39,19 @@
 #endif
 #include <asm/socregs.h>
 #include <asm/st40reg.h>
+
+
+/*
+ * The "mtest" command will totally trash the system, if the address
+ * U-Boot is running from (starting at TEXT_BASE) is included the
+ * range of memory we are testing. We ensure here that the "default"
+ * range that "mtest" uses is not stupid!
+ * This is done only as a compile-time test.
+ */
+#if (TEXT_BASE >= CFG_MEMTEST_START) && (TEXT_BASE < CFG_MEMTEST_END)
+#error "mtest" will fail when CFG_MEMTEST_START < TEXT_BASE < CFG_MEMTEST_END!
+#endif
+
 
 extern ulong _uboot_end_data;
 extern ulong _uboot_end;

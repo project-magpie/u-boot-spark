@@ -2708,11 +2708,13 @@ mb448_config :		unconfig
 
 hms1_config \
 hms1_128_config :		unconfig
-	@mkdir -p $(obj)include
+	@mkdir -p $(obj)include $(obj)board/st/hms1
 	@echo "#define CONFIG_SH_STB7100   1" >>$(obj)include/config.h
 	@echo "#define CONFIG_SH_HMS1      1" >>$(obj)include/config.h
 	$(if $(findstring 128,$@), \
 	@echo "#define CONFIG_SH_HMS1_128  1" >>$(obj)include/config.h)
+	$(if $(findstring 128,$@), \
+	@echo "TEXT_BASE = 0x8BF00000" >$(obj)board/st/hms1/config.tmp)
 	@$(MKCONFIG) -a hms1 sh sh hms1 st stb7100
 
 mb519_config \
