@@ -81,7 +81,12 @@
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
+	/* in 32-bit mode, default TargetPack's PMB setup is only 128 MiB of RAM! */
+#if defined(CONFIG_SH_SE_MODE) && (TEXT_BASE < 0x8FF00000)
+#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI SDRAM */
+#else
 #define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
+#endif
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE

@@ -35,7 +35,7 @@ __memory_setup_table:
 	 * to an STMC2 (note: currently it must be version 2) and then
 	 * executing the following command (redirecting the output):
 	 *
-	 * host% romgen --target-connect --show-comment <stmc2>:mb796stx5206:st40
+	 * host% romgen --show-comment <stmc2>:mb796stx5206:st40,boot_companions=0
 	 *
 	 * Where "<stmc2>" should be replaced with the IP address
 	 * (or the DNS name) of the STMC2 box.  Also the "mb796stx5206" should
@@ -45,23 +45,20 @@ __memory_setup_table:
 	 * only in 29-bit mode - even if U-Boot will be built for 32-bit mode.
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
-#ifdef QQQ	/* QQQ - DELETE */
 #include "mb796-stx5206.romgen"
-#endif		/* QQQ - DELETE */
 
 #ifdef CONFIG_SH_SE_MODE
-#warning QQQ - to do board/st/mb796/init-mb796.S
 	/*
 	 * Note that we also manually need to move the LMI base addresses to
 	 * their 32-bit SE mode locations as defined in the datasheet and change the
 	 * 'upper bound addresses' (in row attribute registers) for the LMIs.
 	 */
-//	UPDATE32(STX7105_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
+	UPDATE32(STX5206_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
 	/* Change LMI upper bound addresses
-	 # Upper LMI addr=0x40000000 + 256MiB=0x50000000
+	 * Upper LMI addr=0x40000000 + 256MiB=0x50000000
 	 */
-//	UPDATE32(ST40_LMI_SDRA0_0(), 0x001FFFFF, 0x50000000)
-//	UPDATE32(ST40_LMI_SDRA1_0(), 0x001FFFFF, 0x50000000)
+	UPDATE32(ST40_LMI_SDRA0_0(), 0x001FFFFF, 0x50000000)
+	UPDATE32(ST40_LMI_SDRA1_0(), 0x001FFFFF, 0x50000000)
 #endif	/* CONFIG_SH_SE_MODE */
 
 	END_MARKER
