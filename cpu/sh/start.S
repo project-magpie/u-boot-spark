@@ -237,9 +237,19 @@ set_pmb:
 	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	#endif
-	SH4_SET_PMB 4 0xa0 0x00  64 0 0 1	/* NOR FLASH UN-cached */
-	SH4_SET_PMB 5 0xa4 0x04  16 0 0 1	/* NAND FLASH + EPLD UN-cached */
-	SH4_SET_PMB 6 0xa8 0x00  64		/* NOR FLASH CACHED */
+	#ifdef CFG_BOOT_FROM_NAND /* booting from NAND, so CSA and CSB swapped in EPLD */
+	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NAND FLASH UN-cached */
+	SH4_SET_PMB 5 0xa4 0x04  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 6 0xa5 0x05  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 7 0xa8 0x04  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB 8 0xa9 0x05  16		/* NOR FLASH CACHED */
+	#else	/* else, CSA and CSB are not swapped in EPLD */
+	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 5 0xa1 0x01  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 6 0xa4 0x04  16 0 0 1	/* NAND FLASH UN-cached */
+	SH4_SET_PMB 7 0xa8 0x00  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB 8 0xa9 0x01  16		/* NOR FLASH CACHED */
+	#endif	/* CFG_BOOT_FROM_NAND */
 #elif defined(CONFIG_SH_STX7105) && defined(CONFIG_SH_MB680)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */

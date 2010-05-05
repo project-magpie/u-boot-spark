@@ -42,6 +42,28 @@
 
 
 /*-----------------------------------------------------------------------
+ *	Switch settings to select between the SoC's main 3 boot-modes:
+ *		a) boot from 16-bit NOR flash
+ *		b) boot from 8-bit NAND flash, small-page, long address
+ *		c) boot from SPI serial flash
+ *
+ *	These setting are on SW2 and SW3 on the CPU board,
+ *	Note: One of these is on the MB705 peripheral board!
+ *
+ *	Board	Switch	NOR	NAND	SPI	Mode
+ *	-----	------	---	----	---	----
+ *	MB796	SW2-4	  x	 ON	qqq	mode[10]
+ *	MB796	SW2-3	  x	 ON	qqq	mode[11]
+ *	MB796	SW2-2	 ON	off	qqq	mode[13]
+ *	MB796	SW3-4	 ON	 ON	qqq	mode[14]
+ *	MB796	SW2-1	 ON	off	qqq	mode[15]
+ *	MB796	SW3-1	 ON	 ON	qqq	mode[16]
+ *
+ *	MB705	SW8-1	 ON	off	qqq	CS routing
+ */
+
+
+/*-----------------------------------------------------------------------
  * Are we booting directly from a NAND Flash device ?
  * If so, then define the "CFG_BOOT_FROM_NAND" macro,
  * otherwise (e.g. NOR/SPI Flash booting), do not define it.
@@ -55,15 +77,15 @@
  */
 
 #ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
-		/*
-		 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
-		 * If so, then who takes responsibility for this???
-		 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
-		 * Should U-Boot read SW8(1) on the MB705, and do something?
-		 */
-//QQQ #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-//QQQ #define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
-//QQQ #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
+	/*
+	 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
+	 * If so, then who takes responsibility for this???
+	 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
+	 * Should U-Boot read SW8(1) on the MB705, and do something?
+	 */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #else		/* else, do *NOT* swap CSA and CSB in EPLD */
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
@@ -347,7 +369,7 @@
 #	define CFG_NAND_ENV_OFFSET (CFG_MONITOR_LEN + 0x0)	/* immediately after u-boot.bin */
 #endif	/* CONFIG_CMD_NAND */
 
-#if 1 && defined(CFG_BOOT_FROM_NAND)		/* we are booting from NAND */
+#if 0 && defined(CFG_BOOT_FROM_NAND)		/* we are booting from NAND */
 	/*
 	 * If we want to store "u-boot.bin" in NAND flash starting at
 	 * physical block #0, but there are Bad Blocks in the first
