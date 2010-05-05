@@ -40,8 +40,28 @@
 #include <asm/socregs.h>
 #include <asm/st40reg.h>
 
-
 /*
+ * Currently, there are several macros which define where SDRAM
+ * starts, how big it is, and where various things in RAM are located.
+ * Unfortunately, it is possible to define these different
+ * macros such that the overall set is mutually inconsistent!
+ * In the future, it should be a goal to define only TWO of these
+ * macros, and derive all the others automatically. To this end
+ * the following code will issue compile-time diagnostics, if
+ * the proposed derivations would fail!
+ *
+ * The two essential macros to be defined:
+ *	CFG_SDRAM_BASE, CFG_SDRAM_SIZE
+ *
+ * Derived Macros:
+ * 	CFG_LOAD_ADDR       = CFG_SDRAM_BASE
+ *	CFG_MEMTEST_START   = CFG_SDRAM_BASE
+ *	CFG_MEMTEST_END     = CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 3MiB
+ *	TEXT_BASE           = CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 1MiB
+ *	CFG_SE_SDRAM_WINDOW = CFG_SDRAM_SIZE - 1
+ *
+ *	Note: The 3 MiB figure above should be confirmed!
+ *
  * The "mtest" command will totally trash the system, if the address
  * U-Boot is running from (starting at TEXT_BASE) is included the
  * range of memory we are testing. We ensure here that the "default"
@@ -49,8 +69,32 @@
  * This is done only as a compile-time test.
  */
 #if (TEXT_BASE >= CFG_MEMTEST_START) && (TEXT_BASE < CFG_MEMTEST_END)
-#error "mtest" will fail when CFG_MEMTEST_START < TEXT_BASE < CFG_MEMTEST_END!
+#	warning "mtest" will fail when CFG_MEMTEST_START < TEXT_BASE < CFG_MEMTEST_END!
 #endif
+
+#if CFG_LOAD_ADDR != CFG_SDRAM_BASE
+#	warning CFG_LOAD_ADDR != CFG_SDRAM_BASE
+#endif
+
+#if CFG_MEMTEST_START != CFG_SDRAM_BASE
+#	warning CFG_MEMTEST_START != CFG_SDRAM_BASE
+#endif
+
+#if CFG_MEMTEST_END != (CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (3 << 20))
+#	warning CFG_MEMTEST_END != CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 3MiB
+#endif
+
+#if TEXT_BASE != (CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (1 << 20))
+#	warning TEXT_BASE != CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 1MiB
+#endif
+
+#if defined(CONFIG_SH_SE_MODE)	/* only in 32-bit mode */
+#   if !defined(CFG_SE_SDRAM_WINDOW)
+#	warning CFG_SE_SDRAM_WINDOW is not defined in 32-bit mode
+#   elif CFG_SE_SDRAM_WINDOW != (CFG_SDRAM_SIZE - 1)
+#	warning CFG_SE_SDRAM_WINDOW != CFG_SDRAM_SIZE - 1
+#   endif
+#endif	/* CONFIG_SH_SE_MODE */
 
 
 extern ulong _uboot_end_data;
