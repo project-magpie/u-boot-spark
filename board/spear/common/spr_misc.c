@@ -38,6 +38,10 @@
 DECLARE_GLOBAL_DATA_PTR;
 static struct chip_data chip_data;
 
+#if defined(CONFIG_CMD_NET)
+static int i2c_read_mac(uchar *buffer);
+#endif
+
 int dram_init(void)
 {
 	struct xloader_table *xloader_tb =
@@ -166,6 +170,7 @@ int spear_board_init(ulong mach_type)
 	return 0;
 }
 
+#if defined(CONFIG_CMD_NET)
 static int i2c_read_mac(uchar *buffer)
 {
 	u8 buf[2];
@@ -205,15 +210,17 @@ static int write_mac(uchar *mac)
 	puts("I2C EEPROM writing failed \n");
 	return -1;
 }
+#endif
 
 int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	void (*sram_setfreq) (unsigned int, unsigned int);
 	struct chip_data *chip = &chip_data;
+	unsigned int frequency;
+
+#if defined(CONFIG_CMD_NET)
 	unsigned char mac[6];
-	unsigned int reg, frequency;
-	char *s, *e;
-	char i2c_mac[20];
+#endif
 
 	if ((argc > 3) || (argc < 2)) {
 		cmd_usage(cmdtp);
@@ -244,9 +251,12 @@ int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		}
 
 		return 0;
+
+#if defined(CONFIG_CMD_NET)
 	} else if (!strcmp(argv[1], "ethaddr")) {
 
-		s = argv[2];
+		u32 reg;
+		char *e, *s = argv[2];
 		for (reg = 0; reg < 6; ++reg) {
 			mac[reg] = s ? simple_strtoul(s, &e, 16) : 0;
 			if (s)
@@ -255,6 +265,7 @@ int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		write_mac(mac);
 
 		return 0;
+#endif
 	} else if (!strcmp(argv[1], "print")) {
 
 		if (chip->cpufreq == -1)
@@ -274,13 +285,13 @@ int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		else
 			printf("DDR Type    = Not Known\n");
 
+#if defined(CONFIG_CMD_NET)
 		if (!i2c_read_mac(mac)) {
-			sprintf(i2c_mac, "%pM", mac);
-			printf("Ethaddr (from i2c mem) = %s\n", i2c_mac);
+			printf("Ethaddr (from i2c mem) = %pM\n", mac);
 		} else {
 			printf("Ethaddr (from i2c mem) = Not set\n");
 		}
-
+#endif
 		printf("Xloader Rev = %s\n", chip->version);
 
 		return 0;
@@ -293,4 +304,7 @@ int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(chip_config, 3, 1, do_chip_config,
 	   "configure chip",
 	   "chip_config cpufreq/ddrfreq frequency\n"
+#if defined(CONFIG_CMD_NET)
+	   "chip_config ethaddr XX:XX:XX:XX:XX:XX\n"
+#endif
 	   "chip_config print");
