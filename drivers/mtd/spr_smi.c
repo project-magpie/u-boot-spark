@@ -58,13 +58,15 @@ static struct flash_dev flash_ids[] = {
  *
  * Wait until TFF is set in status register
  */
-static void smi_wait_xfer_finish(int timeout)
+static int smi_wait_xfer_finish(int timeout)
 {
-	while (timeout--) {
+	do {
 		if (readl(&smicntl->smi_sr) & TFF)
-			break;
+			return 0;
 		udelay(1000);
-	}
+	} while (timeout--);
+
+	return -1;
 }
 
 /*
@@ -82,7 +84,9 @@ static unsigned int smi_read_id(flash_info_t *info, int banknum)
 	writel(READ_ID, &smicntl->smi_tr);
 	writel((banknum << BANKSEL_SHIFT) | SEND | TX_LEN_1 | RX_LEN_3,
 	       &smicntl->smi_cr2);
-	smi_wait_xfer_finish(XFER_FINISH_TOUT);
+
+	if (smi_wait_xfer_finish(XFER_FINISH_TOUT))
+		return -EIO;
 
 	value = (readl(&smicntl->smi_rr) & 0x00FFFFFF);
 
@@ -104,11 +108,17 @@ static ulong flash_get_size(ulong base, int banknum)
 {
 	flash_info_t *info = &flash_info[banknum];
 	struct flash_dev *dev;
-	unsigned int value;
+	int value;
 	unsigned int density;
 	int i;
 
 	value = smi_read_id(info, banknum);
+
+	if (value < 0) {
+		printf("Flash id could not be read\n");
+		return 0;
+	}
+
 	density = (value >> 16) & 0xff;
 
 	for (i = 0, dev = &flash_ids[0]; dev->density != 0x0;
@@ -136,7 +146,7 @@ static ulong flash_get_size(ulong base, int banknum)
  * This routine will get the status register of the flash chip present at the
  * given bank
  */
-static unsigned int smi_read_sr(int bank)
+static int smi_read_sr(int bank)
 {
 	u32 ctrlreg1;
 
@@ -150,7 +160,8 @@ static unsigned int smi_read_sr(int bank)
 	/* Performing a RSR instruction in HW mode */
 	writel((bank << BANKSEL_SHIFT) | RD_STATUS_REG, &smicntl->smi_cr2);
 
-	smi_wait_xfer_finish(XFER_FINISH_TOUT);
+	if (smi_wait_xfer_finish(XFER_FINISH_TOUT))
+		return -1;
 
 	/* Restore the CTRL REG1 state */
 	writel(ctrlreg1, &smicntl->smi_cr1);
@@ -169,13 +180,11 @@ static unsigned int smi_read_sr(int bank)
  */
 static int smi_wait_till_ready(int bank, int timeout)
 {
-	int count;
-	unsigned int sr;
+	int sr;
 
 	/* One chip guarantees max 5 msec wait here after page writes,
 	   but potentially three seconds (!) after page erase. */
-	for (count = 0; count < timeout; count++) {
-
+	do {
 		sr = smi_read_sr(bank);
 		if (sr < 0)
 			break;
@@ -184,7 +193,8 @@ static int smi_wait_till_ready(int bank, int timeout)
 
 		/* Try again after 1m-sec */
 		udelay(1000);
-	}
+	} while (timeout--);
+
 	printf("SMI controller is still in wait, timeout=%d\n", timeout);
 	return -EIO;
 }
@@ -200,6 +210,7 @@ static int smi_write_enable(int bank)
 {
 	u32 ctrlreg1;
 	int timeout = WMODE_TOUT;
+	int sr;
 
 	/* Store the CTRL REG1 state */
 	ctrlreg1 = readl(&smicntl->smi_cr1);
@@ -210,19 +221,22 @@ static int smi_write_enable(int bank)
 	/* Give the Flash, Write Enable command */
 	writel((bank << BANKSEL_SHIFT) | WE, &smicntl->smi_cr2);
 
-	smi_wait_xfer_finish(XFER_FINISH_TOUT);
+	if (smi_wait_xfer_finish(XFER_FINISH_TOUT))
+		return -1;
 
 	/* Restore the CTRL REG1 state */
 	writel(ctrlreg1, &smicntl->smi_cr1);
 
-	while (timeout--) {
-		if (smi_read_sr(bank) & (1 << (bank + WM_SHIFT)))
+	do {
+		sr = smi_read_sr(bank);
+		if (sr < 0)
 			break;
-		udelay(1000);
-	}
+		else if (sr & (1 << (bank + WM_SHIFT)))
+			return 0;
 
-	if (timeout)
-		return 0;
+		/* Try again after 1m-sec */
+		udelay(1000);
+	} while (timeout--);
 
 	return -1;
 }
@@ -291,7 +305,8 @@ static int smi_sector_erase(flash_info_t *info, unsigned int sector)
 		writel(instruction, &smicntl->smi_tr);
 		writel((bank << BANKSEL_SHIFT) | SEND | TX_LEN_4,
 		       &smicntl->smi_cr2);
-		smi_wait_xfer_finish(XFER_FINISH_TOUT);
+		if (smi_wait_xfer_finish(XFER_FINISH_TOUT))
+			return -EIO;
 
 		if (smi_wait_till_ready(bank, CONFIG_SYS_FLASH_ERASE_TOUT))
 			return -EBUSY;
