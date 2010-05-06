@@ -52,14 +52,17 @@
  *
  *	Board	Switch	NOR	NAND	SPI	Mode
  *	-----	------	---	----	---	----
- *	MB796	SW2-4	  x	 ON	qqq	mode[10]
- *	MB796	SW2-3	  x	 ON	qqq	mode[11]
- *	MB796	SW2-2	 ON	off	qqq	mode[13]
- *	MB796	SW3-4	 ON	 ON	qqq	mode[14]
- *	MB796	SW2-1	 ON	off	qqq	mode[15]
- *	MB796	SW3-1	 ON	 ON	qqq	mode[16]
+ *	MB796	SW2-4	  X	 ON	  X	mode[10]
+ *	MB796	SW2-3	  X	 ON	  X	mode[11]
+ *	MB796	SW3-3	  X	  X	off	mode[12]
+ *	MB796	SW2-2	 ON	off	  X	mode[13]
+ *	MB796	SW3-4	 ON	 ON	 ON	mode[14]
+ *	MB796	SW2-1	 ON	off	 ON	mode[15]
+ *	MB796	SW3-1	 ON	 ON	off	mode[16]
  *
- *	MB705	SW8-1	 ON	off	qqq	CS routing
+ *	MB705	SW8-1	 ON	off	off	CS routing
+ *
+ *	Note: "X" denotes don't care (i.e. either ON or OFF)
  */
 
 
@@ -72,11 +75,24 @@
 
 
 /*-----------------------------------------------------------------------
+ * Are we booting directly from a SPI Serial Flash device ?
+ * If so, then define the "CFG_BOOT_FROM_SPI" macro,
+ * otherwise (e.g. for NOR/NAND Flash booting), do not define it.
+ */
+#undef CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
+
+
+/*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
 
-#ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
+#if defined(CFG_BOOT_FROM_SPI)		/* we are booting from SPI, so *DO* swap CSA and CSB in EPLD */
+#define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSB */
+#elif defined(CFG_BOOT_FROM_NAND)	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
 	/*
 	 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
 	 * If so, then who takes responsibility for this???

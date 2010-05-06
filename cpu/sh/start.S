@@ -142,8 +142,8 @@ config_spiboot_controller:
 	mov.l	r0, @(ST40_EMI_SPI_MODESELECT-ST40_EMI_SPI_REGS_BASE,r1)
 
 	/* Slow (divide) the SPI clock down to improve reliability. */
-	/* Note: for the Freeman FLDB, diving by 4 fails to boot! */
-#if defined(CONFIG_SH_FLI7510)
+	/* Note: for some (?) FSM SPI controllers, diving by 4 fails to boot! */
+#if defined(CONFIG_SH_FLI7510) || defined(CONFIG_SH_STX5206)
 	mov	#6, r0			/* *ST40_EMI_SPI_CLOCKDIV = 6 */
 #else
 	mov	#4, r0			/* *ST40_EMI_SPI_CLOCKDIV = 4 */
@@ -237,7 +237,8 @@ set_pmb:
 	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	#endif
-	#ifdef CFG_BOOT_FROM_NAND /* booting from NAND, so CSA and CSB swapped in EPLD */
+	#if defined(CFG_BOOT_FROM_NAND) || defined(CFG_BOOT_FROM_SPI)
+		/* booting from NAND or SPI, so CSA and CSB swapped in EPLD */
 	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 5 0xa4 0x04  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 6 0xa5 0x05  16 0 0 1	/* NOR FLASH UN-cached */
