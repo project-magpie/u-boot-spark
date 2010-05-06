@@ -25,7 +25,8 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(SOC).a
 
-COBJS	:= reset.o \
+COBJS	:= cpu.o \
+	   reset.o \
 	   timer.o
 SOBJS	:=
 
