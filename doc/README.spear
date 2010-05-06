@@ -6,9 +6,10 @@ SPEAr600 is also known as SPEArPlus and SPEAr300 is also known as SPEArBasic
 The SPEAr SoC family embeds a customizable logic that can be programmed
 one-time by a customer at silicon mask level (i.e. not at runtime!).
 
-U-Boot supports four SoCs: SPEAr600, SPEAr3xx
+U-Boot supports five spear SoCs: SPEAr600, SPEAr3xx, SPEAr1300
 
-All 4 SoCs (SPEAr3xx and SPEAr600) share common peripherals.
+4 SoCs (SPEAr3xx and SPEAr600) share common peripherals. SPEAr1300 is based on
+ARM CortexA9 core and other peripherals are common
 
 1. ARM926ejs core based (sp600 has two cores, the 2nd handled only in Linux)
 2. FastEthernet (sp600 has Gbit version, but same controller - GMAC)
@@ -29,6 +30,7 @@ u-boot is currently not supporting all peripeharls (just a few as listed below).
 4. EMI (Parallel NOR interface)
 4. I2C
 5. UART
+6. Network
 
 Build options
 	make spear600_config
@@ -54,6 +56,11 @@ Build options
 	make spear320_nand_config
 	make spear320_usbtty_config
 	make spear320_usbtty_nand_config
+
+	make spear1300_config
+	make spear1300_nand_config
+	make spear1300_usbtty_config
+	make spear1300_usbtty_nand_config
 
 Further options
 	make FLASH=PNOR (supported by SPEAr310 and SPEAr320)
