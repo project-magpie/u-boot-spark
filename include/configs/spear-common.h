@@ -36,14 +36,16 @@
 #define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
 
 /* USBD driver configuration */
-#define CONFIG_SPEARUDC
+#define CONFIG_DW_UDC
 #define CONFIG_USB_DEVICE
 #define CONFIG_USB_TTY
 
 #define CONFIG_USBD_PRODUCT_NAME		"SPEAr SoC"
 #define CONFIG_USBD_MANUFACTURER		"ST Microelectronics"
 
+#if defined(CONFIG_USB_TTY)
 #define CONFIG_EXTRA_ENV_USBTTY			"usbtty=cdc_acm\0"
+#endif
 
 /* I2C driver configuration */
 #define CONFIG_HARD_I2C
