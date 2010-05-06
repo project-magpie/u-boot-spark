@@ -3044,12 +3044,24 @@ smdk2410_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm920t smdk2410 samsung s3c24x0
 
 spear300_config \
+spear300_nand_config \
+spear300_usbtty_config \
+spear300_usbtty_nand_config \
 spear310_config \
-spear320_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx arm arm926ejs $(@:_config=) spear spear
+spear310_nand_config \
+spear310_usbtty_config \
+spear310_usbtty_nand_config \
+spear320_config \
+spear320_nand_config \
+spear320_usbtty_config \
+spear320_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs $(@:_config=) spear spear
 
-spear600_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear6xx arm arm926ejs $(@:_config=) spear spear
+spear600_config \
+spear600_nand_config \
+spear600_usbtty_config \
+spear600_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear6xx_evb arm arm926ejs $(@:_config=) spear spear
 
 suen3_config:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs km_arm keymile kirkwood
