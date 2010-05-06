@@ -57,7 +57,6 @@
 
 /* Timer, HZ specific defines */
 #define CONFIG_SYS_HZ				(1000)
-#define CONFIG_SYS_HZ_CLOCK			(8300000)
 
 /* Flash configuration */
 #if defined(CONFIG_FLASH_PNOR)
