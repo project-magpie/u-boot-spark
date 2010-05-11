@@ -108,20 +108,24 @@ extern void stx5206_configure_ethernet(
 	const int phy_bus)
 {
 	unsigned int phy_sel, enmii;
+	unsigned long phy_clk_rate;
 	unsigned long sysconf;
 
 	switch (mode) {
 	case stx5206_ethernet_mii:
 		phy_sel = 0x0;
 		enmii = 1;
+		phy_clk_rate = 25000000;	/* 25 MHz */
 		break;
 	case stx5206_ethernet_rmii:
 		phy_sel = 0x4;
 		enmii = 1;
+		phy_clk_rate = 50000000;	/* 50 MHz */
 		break;
 	case stx5206_ethernet_reverse_mii:
 		phy_sel = 0x0;
 		enmii = 0;
+		phy_clk_rate = 25000000;	/* 25 MHz */
 		break;
 	default:
 		BUG();
@@ -149,15 +153,22 @@ extern void stx5206_configure_ethernet(
 	SET_SYSCONF_BIT(sysconf, enmii, ENMII);
 	writel(sysconf, STX5206_SYSCONF_SYS_CFG07);
 
-#if 0	//QQQ: what about setting the PHY clock frequency ???
 	/* Set PHY clock frequency (if used) */
 	if (!ext_clk)
 	{
-		struct clk *phy_clk = clk_get(NULL, "CLKA_ETH_PHY");
-		BUG_ON(!phy_clk);
-		clk_set_rate(phy_clk, phy_clk_rate);
-	}
+		if (phy_clk_rate == 25000000)	/* 25 MHz */
+		{
+			/* CLKGENA.CLK_DIV_LS[13] = CLK_ETHERNET_PHY = 25 MHz */
+			writel(17, STX5206_CLOCKGENA_PLL0LS_DIV13_CFG);
+		}
+#if 0		/* QQQ: Need to check this! */
+		else				/* 50 MHz */
+		{
+			/* CLKGENA.CLK_DIV_LS[13] = CLK_ETHERNET_PHY = 50 MHz */
+			writel(8, STX5206_CLOCKGENA_PLL0LS_DIV13_CFG);
+		}
 #endif
+	}
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 

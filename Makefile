@@ -2883,6 +2883,18 @@ mb796se_config :		unconfig
 	@$(MKCONFIG) -a mb796 sh sh mb796 st stx5206
 
 
+hdk5289_config \
+hdk5289se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/hdk5289
+	@echo "#define CONFIG_SH_STX5206   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_HDK5289   1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk5289/config.tmp)
+	@$(MKCONFIG) -a hdk5289 sh sh hdk5289 st stx5206
+
+
 #========================================================================
 # STMicroelectronics ST200
 #========================================================================

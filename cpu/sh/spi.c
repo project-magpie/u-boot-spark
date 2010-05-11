@@ -136,7 +136,7 @@ static unsigned eraseSize;	/* smallest supported erase size */
 static unsigned deviceSize;	/* Size of the device in Bytes */
 static const char * deviceName;	/* Name of the device */
 
-#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 static unsigned char op_erase = OP_SE;	/* erase command opcode to use */
 #endif
 
@@ -356,7 +356,7 @@ extern void spi_wait_till_ready(
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 	while (!(spi_read_status(chipsel) & SR_READY))
 		;	/* do nothing */
-#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 	while (spi_read_status(chipsel) & SR_WIP)
 		;	/* do nothing */
 #else
@@ -534,6 +534,48 @@ static int spi_probe_serial_flash(
 		deviceName = "MXIC MX25L12855E";/* 128 Mbit == 16 MiB */
 	}
 
+#elif defined(CONFIG_SPI_FLASH_WINBOND)
+
+	if (
+		(devid[1] != 0xefu)	||	/* Manufacturer ID */
+		(devid[2] != 0x40u)	||	/* Memory Type */
+		(				/* Memory Capacity */
+			(devid[3] != 0x14u) &&	/* W25Q80V */
+			(devid[3] != 0x15u) &&	/* W25Q16V */
+			(devid[3] != 0x16u) &&	/* W25Q32V */
+			(devid[3] != 0x17u) &&	/* W25Q64V */
+			(devid[3] != 0x18u)	/* W25Q128V */
+		)
+	   )
+	{
+		printf("ERROR: Unknown SPI Device detected, devid = 0x%02x, 0x%02x, 0x%02x\n",
+			devid[1], devid[2], devid[3]);
+		return -1;
+	}
+	pageSize   = 256u;
+	eraseSize  = 4u<<10;			/* 4 KiB, 16 pages/sector */
+	deviceSize = 1u<<devid[3];		/* Memory Capacity */
+	if (devid[3] == 0x14u)
+	{
+		deviceName = "Winbond W25Q80V";	/*  8 Mbit == 1 MiB */
+	}
+	else if (devid[3] == 0x15u)
+	{
+		deviceName = "Winbond W25Q16V";	/* 16 Mbit == 2 MiB */
+	}
+	else if (devid[3] == 0x16u)
+	{
+		deviceName = "Winbond W25Q32V";	/* 32 Mbit == 4 MiB */
+	}
+	else if (devid[3] == 0x17u)
+	{
+		deviceName = "Winbond W25Q64V";	/* 64 Mbit == 8 MiB */
+	}
+	else if (devid[3] == 0x18u)
+	{
+		deviceName = "Winbond W25Q128V";/* 128 Mbit == 16 MiB */
+	}
+
 #else
 #error Please specify which SPI Serial Flash is being used
 #endif	/* defined(CONFIG_STM_SPI_xxxxxx) */
@@ -547,7 +589,7 @@ static int spi_probe_serial_flash(
 		eraseSize);		/* in bytes */
 #endif
 
-#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 	/* is the device in a write protected mode ? */
 	if (status & SR_BP_MASK)	/* BPx != 0 ? */
 	{
@@ -585,7 +627,7 @@ static int spi_probe_serial_flash(
 }
 #endif	/* unlock it */
 	}
-#endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_MXIC */
+#endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_MXIC || defined(CONFIG_SPI_FLASH_WINBOND) */
 
 	return 0;
 }
@@ -876,7 +918,7 @@ static void my_spi_write(
 	spi_wait_till_ready(chipsel);
 #endif	/* CONFIG_STM_FSM_SPI */
 }
-#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 {
 	const unsigned pages       = eraseSize / pageSize;
 	const unsigned long sector = (address / eraseSize) * eraseSize;
@@ -886,7 +928,7 @@ static void my_spi_write(
 	const uchar * ptr;
 #if defined(CONFIG_SPI_FLASH_ST)
 	unsigned char buff[256<<10];	/* maximum of 256 KiB erase size */
-#elif defined(CONFIG_SPI_FLASH_MXIC)
+#elif defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 	unsigned char buff[4<<10];	/* maximum of 4 KiB erase size */
 #endif
 #if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)

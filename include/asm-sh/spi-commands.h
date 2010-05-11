@@ -98,6 +98,29 @@
 #define SR_BP_MASK		0x3c		/* Block Protect Bits (BP[3:0]) */
 
 
+#elif defined(CONFIG_SPI_FLASH_WINBOND)	/******************************/
+
+
+/* For Winbond W25Q32V Serial Flash */
+#define CFG_STM_SPI_MODE	SPI_MODE_3
+#if !defined(CFG_STM_SPI_FREQUENCY)
+#  define CFG_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
+#endif	/* CFG_STM_SPI_FREQUENCY */
+#define CFG_STM_SPI_DEVICE_MASK	0x00u		/* Mask Bits */
+#define CFG_STM_SPI_DEVICE_VAL	0x00u		/* Binary xxxxxxxx */
+
+#define OP_READ_STATUS		0x05u		/* Read Status Register */
+#define OP_WRITE_STATUS		0x01u		/* Write Status Register */
+#define OP_READ_DEVID		0x9fu		/* Read ID */
+#define OP_READ_ARRAY		0x03u		/* Read Data Bytes */
+#define OP_WREN			0x06u		/* Write Enable */
+#define OP_SE			0x20u		/* Sector Erase */
+#define OP_PP			0x02u		/* Page Program */
+
+#define SR_WIP			(1u<<0)		/* Status Register Write In Progress bit */
+#define SR_BP_MASK		0x1c		/* Block Protect Bits (BP[2:0]) */
+
+
 #else					/******************************/
 
 #error Please specify which SPI Serial Flash is being used

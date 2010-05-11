@@ -126,6 +126,8 @@
  * STx5206 control registers
  */
 
+/* Clock Generator control registers (STx5206 variant) */
+#define STX5206_CLOCKGENA_PLL0LS_DIV13_CFG	SH4_DWORD_REG(STX5206_CLOCKGENA_REGS_BASE + 0xa34)
 
 /* System configuration registers (STx5206 variant) */
 #define STX5206_SYSCONF_DEVICEID_0		SH4_DWORD_REG(STX5206_SYSCONF_REGS_BASE + 0x0000)
