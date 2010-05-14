@@ -2700,6 +2700,25 @@ mb442se_30_128_config : 	unconfig
 	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/st/mb442/config.tmp)
 	@$(MKCONFIG) -a mb442 sh sh mb442 st stb7100
 
+hmp7100_config \
+hmp7100_128_config \
+hmp7100se_config \
+hmp7100se_128_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/hmp7100
+	@echo "#define CONFIG_SH_STB7100     1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_HMP7100     1" >>$(obj)include/config.h
+	$(if $(findstring 128,$@), \
+	@echo "#define CONFIG_SH_HMP7100_128 1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE     1" >>$(obj)include/config.h)
+	$(if $(findstring se_config,$@), \
+	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/st/hmp7100/config.tmp)
+	$(if $(findstring se_128,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hmp7100/config.tmp)
+	$(if $(findstring 7100_128,$@), \
+	@echo "TEXT_BASE = 0x8BF00000" >$(obj)board/st/hmp7100/config.tmp)
+	@$(MKCONFIG) -a hmp7100 sh sh hmp7100 st stb7100
+
 mb448_config :		unconfig
 	@mkdir -p $(obj)include
 	@echo "#define CONFIG_SH_STB7100   1" >>$(obj)include/config.h

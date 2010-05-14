@@ -86,7 +86,7 @@
 #ifdef __SH4__
 #if defined(CONFIG_SH_SE_MODE)
 #	define PHYSICAL_ADDR(addr)	\
-	((__u32)(addr) ? ((0x1ffffffful&(__u32)(addr))|0x40000000ul) : 0ul)
+	((__u32)(addr) ? ((0x1ffffffful&(__u32)(addr))|(CFG_SE_PHYSICAL_BASE)) : 0ul)
 #else
 #	define PHYSICAL_ADDR(addr)	( 0x1ffffffful & (__u32)(addr) )
 #endif	/* CONFIG_SH_SE_MODE */

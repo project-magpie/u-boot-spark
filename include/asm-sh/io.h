@@ -52,6 +52,7 @@
 
 #if defined(CONFIG_SH_MB411)		|| \
        defined(CONFIG_SH_MB442)		|| \
+       defined(CONFIG_SH_HMP7100)	|| \
        defined(CONFIG_SH_MB448)		|| \
        defined(CONFIG_SH_HMS1)		|| \
        defined(CONFIG_SH_MB519)		|| \

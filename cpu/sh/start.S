@@ -211,17 +211,30 @@ invalidate_pmb:
 
 	/* set up the new PMB entries we want to use */
 set_pmb:
-#if defined(CONFIG_SH_STB7100)
-	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI-Sys UN-cached */
-	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI-Sys UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
-	#error Need to configure PMBs properly when more than 128MiB.
+#if defined(CONFIG_SH_STB7100) && defined(CONFIG_SH_HMP7100) && defined(CONFIG_SH_STB7109_CUT2)
+	SH4_SET_PMB 0 0x80 0x04  64 0 0 1	/* LMI-Sys UN-cached */
+	SH4_SET_PMB 2 0x90 0x04  64 0 0 1	/* LMI-Sys UN-cached */
+	#if (CFG_SDRAM_SIZE > (64<<20)) || CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#error Need to configure PMBs properly when more than 64MiB.
 	#endif
 	SH4_SET_PMB 4 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5 0xa8 0x00  16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 6 0xb2 0x02  16 0 0 1	/* OFF-chip  Peripherals UN-cached */
 	SH4_SET_PMB 7 0xb8 0x18  64 0 0 1	/* ON-chip   Peripherals UN-cached */
 	SH4_SET_PMB 8 0xbc 0x1c  64 0 0 1	/* ST40 core Peripherals UN-cached */
+#elif defined(CONFIG_SH_STB7100)
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI-Sys UN-cached */
+	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI-Sys UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#error Need to configure PMBs properly when more than 128MiB.
+	#endif
+	SH4_SET_PMB  4 0xa0 0x00  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB  5 0xa1 0x01  16 0 0 1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB  6 0xa8 0x00  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB  7 0xa9 0x01  16		/* NOR FLASH CACHED */
+	SH4_SET_PMB  8 0xb2 0x02  16 0 0 1	/* OFF-chip  Peripherals UN-cached */
+	SH4_SET_PMB  9 0xb8 0x18  64 0 0 1	/* ON-chip   Peripherals UN-cached */
+	SH4_SET_PMB 10 0xbc 0x1c  64 0 0 1	/* ST40 core Peripherals UN-cached */
 #elif defined(CONFIG_SH_STX5197) && defined(CONFIG_SH_MB704)
 	SH4_SET_PMB 0 0x80 0x40  64 0 0 1	/* LMI-Sys UN-cached */
 	SH4_SET_PMB 2 0x90 0x40  64 0 0 1	/* LMI-Sys UN-cached */
