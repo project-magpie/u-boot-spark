@@ -88,21 +88,45 @@ int do_eeprom ( cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 		if (strcmp (argv[1], "read") == 0) {
 			int rcode;
+#if defined(CONFIG_MEASURE_TIME)
+			ulong duration;			/* measured time in ms */
+#endif	/* CONFIG_MEASURE_TIME */
 
 			printf (fmt, dev_addr, argv[1], addr, off, cnt);
 
+#if defined(CONFIG_MEASURE_TIME)
+			set_timer(0);			/* start measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 			rcode = eeprom_read (dev_addr, off, (uchar *) addr, cnt);
+#if defined(CONFIG_MEASURE_TIME)
+			duration = get_timer(0);	/* stop measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 
 			puts ("done\n");
+#if defined(CONFIG_MEASURE_TIME)
+			PRINT_MEASURED_TRANSFER_RATE(cnt, duration);
+#endif	/* CONFIG_MEASURE_TIME */
 			return rcode;
 		} else if (strcmp (argv[1], "write") == 0) {
 			int rcode;
+#if defined(CONFIG_MEASURE_TIME)
+			ulong duration;			/* measured time in ms */
+#endif	/* CONFIG_MEASURE_TIME */
 
 			printf (fmt, dev_addr, argv[1], addr, off, cnt);
 
+#if defined(CONFIG_MEASURE_TIME)
+			set_timer(0);			/* start measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 			rcode = eeprom_write (dev_addr, off, (uchar *) addr, cnt);
+#if defined(CONFIG_MEASURE_TIME)
+			duration = get_timer(0);	/* stop measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 
 			puts ("done\n");
+#if defined(CONFIG_MEASURE_TIME)
+			PRINT_MEASURED_TRANSFER_RATE(cnt, duration);
+#endif	/* CONFIG_MEASURE_TIME */
 			return rcode;
 		}
 	}
