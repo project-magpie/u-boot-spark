@@ -282,16 +282,20 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 #include "asm/socregs.h"
 
+#if !defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+#define CONFIG_CMD_BDI_DUMP_EMI_BANKS 1
+#endif
+
 int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	DECLARE_GLOBAL_DATA_PTR;
-#if defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+#if CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	#define MAX_EMI_BANKS	6	/* Maximum of 6 EMI Banks */
 	const u32 emi_base = 0xa0000000u;
 	u32 base[MAX_EMI_BANKS+1];	/* Base address for each bank */
 	u32 enabled;			/* number of enabled EMI banks */
 #endif	/* CONFIG_CMD_BDI_DUMP_EMI_BANKS */
-#if defined(CONFIG_CMD_NET) || defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+#if defined(CONFIG_CMD_NET) || CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	unsigned int i;
 #endif
 	bd_t *bd = gd->bd;
@@ -367,7 +371,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	print_mhz ("EMI",		bd->bi_emifrq);
 #endif	/* CONFIG_SH_STB7100 */
 
-#if defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+#if CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	enabled = *ST40_EMI_BANK_ENABLE;
 	printf("#EMI Banks  = %u\n", enabled);
 	if (enabled > MAX_EMI_BANKS)
