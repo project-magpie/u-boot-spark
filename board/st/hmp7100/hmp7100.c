@@ -93,6 +93,21 @@ extern int board_init(void)
 #endif
 #endif
 
+	/*
+	 * On some HMP7100 boards, the NOR flash for CSAn (EMI Bank #0)
+	 * has been increased to 32MiB. However, the default TargetPacks
+	 * only provide a region of 16MiB for all of CSAn.
+	 * The following will set sizeof(EMI Bank #0) == 32 MiB,
+	 * hence allowing all of the NOR flash to be accessed.
+	 *
+	 * It should be noted, that this will have the side-effect
+	 * of logically disabling CSBn, as EMI Bank #0 will now
+	 * occlude EMI Bank #1.
+	 *
+	 * See https://bugzilla.stlinux.com/show_bug.cgi?id=9065#c27
+	 */
+	*ST40_EMI_BANK1_BASEADDRESS = 0x8;
+
 	return 0;
 }
 
