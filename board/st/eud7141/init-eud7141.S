@@ -52,11 +52,13 @@ __memory_setup_table:
 	 * Note that we also manually need to move the LMI0 and LMI1 base addresses to
 	 * their 32-bit SE mode locations as defined in the datasheet and change the
 	 * 'upper bound addresses' (in row attribute registers) for the LMIs.
+	 * For LMI #0, we have 256MiB (UBA = 0x40000000 + 256MiB = 0x50000000).
+	 * For LMI #1, we have 128MiB (UBA = 0x80000000 + 128MiB = 0x88000000).
 	 */
 	UPDATE32(STX7141_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
 	UPDATE32(STX7141_SYSCONF_SYS_CFG39, 0xFFFFFF00, 0x00000080)
-	UPDATE32(ST40_LMI_SDRA0_0(0), 0x001FFFFF, 0x48000000)
-	UPDATE32(ST40_LMI_SDRA1_0(0), 0x001FFFFF, 0x48000000)
+	UPDATE32(ST40_LMI_SDRA0_0(0), 0x001FFFFF, 0x50000000)
+	UPDATE32(ST40_LMI_SDRA1_0(0), 0x001FFFFF, 0x50000000)
 	UPDATE32(ST40_LMI_SDRA0_0(1), 0x001FFFFF, 0x88000000)
 	UPDATE32(ST40_LMI_SDRA1_0(1), 0x001FFFFF, 0x88000000)
 #endif	/* CONFIG_SH_SE_MODE */
