@@ -287,40 +287,24 @@ extern void fli7510_configure_ethernet(
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 
-#if defined(CONFIG_USB_OHCI_NEW) && 0	/* QQQ: still to debug this! */
+#if defined(CONFIG_USB_OHCI_NEW)
 extern void fli7105_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode)
 {
 	unsigned long sysconf;
 
-	printf("QQQ: entered %s(ovrcur_mode=%u)\n", __FUNCTION__, ovrcur_mode);	/* QQQ - DELETE */
-	printf("QQQ: on entry: CFG_COMMS_CONFIG_1 = 0x%08x\n", readl(CFG_COMMS_CONFIG_1));
-
-#if 0
-	/* CFG_COMMS_CONFIG_1[8 ] = usb_powerdown_req */
-	sysconf = readl(CFG_COMMS_CONFIG_1);
-	SET_SYSCONF_BIT(sysconf, 0, USB_POWERDOWN_REQ);
-	writel(sysconf, CFG_COMMS_CONFIG_1);
-#endif
-
-switch (ovrcur_mode) {
+	switch (ovrcur_mode) {
 	case fli7510_usb_ovrcur_disabled:
-	//	sc = sysconf_claim(CFG_COMMS_CONFIG_1, 12, 12, "usba_enable_pad_override");
-	//	sysconf_write(sc, 1);
 		/* CFG_COMMS_CONFIG_1[12] = usba_enable_pad_override */
 		sysconf = readl(CFG_COMMS_CONFIG_1);
 		SET_SYSCONF_BIT(sysconf, 1, USBA_ENABLE_PAD_OVERRIDE);
 		writel(sysconf, CFG_COMMS_CONFIG_1);
 
-	//	sc = sysconf_claim(CFG_COMMS_CONFIG_1, 13, 13, "usba_ovrcur");
-	//	sysconf_write(sc, 1);
 		/* CFG_COMMS_CONFIG_1[13] = usba_ovrcur */
 		sysconf = readl(CFG_COMMS_CONFIG_1);
 		SET_SYSCONF_BIT(sysconf, 1, USBA_OVRCUR);
 		writel(sysconf, CFG_COMMS_CONFIG_1);
 		break;
 	default:
-	//	sc = sysconf_claim(CFG_COMMS_CONFIG_1, 12, 12, "usba_enable_pad_override");
-	//	sysconf_write(sc, 0);
 		/* CFG_COMMS_CONFIG_1[12] = usba_enable_pad_override */
 		sysconf = readl(CFG_COMMS_CONFIG_1);
 		SET_SYSCONF_BIT(sysconf, 0, USBA_ENABLE_PAD_OVERRIDE);
@@ -329,15 +313,11 @@ switch (ovrcur_mode) {
 		/* CFG_COMMS_CONFIG_1[11] = usba_ovrcur_polarity */
 		switch (ovrcur_mode) {
 		case fli7510_usb_ovrcur_active_high:
-	//		sc = sysconf_claim(CFG_COMMS_CONFIG_1, 11, 11, "usba_ovrcur_polarity");
-	//		sysconf_write(sc, 0);
 			sysconf = readl(CFG_COMMS_CONFIG_1);
 			SET_SYSCONF_BIT(sysconf, 0, USBA_OVRCUR_POLARITY);
 			writel(sysconf, CFG_COMMS_CONFIG_1);
 			break;
 		case fli7510_usb_ovrcur_active_low:
-	//		sc = sysconf_claim(CFG_COMMS_CONFIG_1, 11, 11, "usba_ovrcur_polarity");
-	//		sysconf_write(sc, 1);
 			sysconf = readl(CFG_COMMS_CONFIG_1);
 			SET_SYSCONF_BIT(sysconf, 1, USBA_OVRCUR_POLARITY);
 			writel(sysconf, CFG_COMMS_CONFIG_1);
@@ -349,8 +329,7 @@ switch (ovrcur_mode) {
 		break;
 	}
 
-//	stpio_request_pin(27, 1, "USB_A_OVRCUR", STPIO_IN);
-//	stpio_request_pin(27, 2, "USB_A_PWREN", STPIO_ALT_OUT);
+	/* now route the PIOs corectly */
 	SET_PIO_PIN(ST40_PIO_BASE(27), 1, STPIO_IN);		/* USB_A_OVRCUR */
 	SET_PIO_PIN(ST40_PIO_BASE(27), 2, STPIO_ALT_OUT);	/* USB_A_PWREN */
 
@@ -359,7 +338,6 @@ switch (ovrcur_mode) {
 		USB_FLAGS_STRAP_16BIT		|
 		USB_FLAGS_STRAP_PLL		|
 		USB_FLAGS_STBUS_CONFIG_THRESHOLD256);
-	printf("QQQ: on exit : CFG_COMMS_CONFIG_1 = 0x%08x\n", readl(CFG_COMMS_CONFIG_1));
 }
 #endif /* defined(CONFIG_USB_OHCI_NEW) */
 

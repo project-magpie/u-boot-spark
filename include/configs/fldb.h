@@ -214,7 +214,7 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-//#define CONFIG_SH_STB7100_USB
+#define CONFIG_SH_STB7100_USB
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
