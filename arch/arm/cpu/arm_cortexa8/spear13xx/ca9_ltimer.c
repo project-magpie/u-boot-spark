@@ -2,8 +2,6 @@
  * (C) Copyright 2010
  * Vipin Kumar, ST Micoelectronics, vipin.kumar@st.com.
  *
- * Based on arch/arm/cpu/arm926ejs/spear/timer.c
- *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -26,30 +24,30 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/spr_gpt.h>
-#include <asm/arch/spr_misc.h>
+#include <asm/arch/ca9_ltimer.h>
 
-#define GPT_TICKS	(CONFIG_SPEAR_HZ_CLOCK / (1 << prescaler))
-#define GPT_RESOLUTION	(GPT_TICKS / CONFIG_SPEAR_HZ)
-#define READ_TIMER()	(readl(&gpt_regs_p->count) & GPT_FREE_RUNNING)
+#define PRESCALER	PRESCALER_249
+#define TIMER_TICKS	(CONFIG_SPEARCA9_HZ_CLK / (PRESCALER + 1))
+#define TIMER_RES	(TIMER_TICKS / CONFIG_SYS_HZ)
+#define READ_TIMER()	readl(&ca9_timer_p->count)
 
-static struct gpt_regs *const gpt_regs_p =
-    (struct gpt_regs *)CONFIG_SPEAR_TIMERBASE;
+static struct ca9_timer_regs *const ca9_timer_p =
+    (struct ca9_timer_regs *)CONFIG_SPEAR_CA9TMR_BASE;
 
 static ulong timestamp;
 static ulong lastdec;
-static const u32 prescaler = GPT_PRESCALER_16;
 
 int timer_init(void)
 {
 	/* disable timers */
-	writel(prescaler | GPT_MODE_AUTO_RELOAD, &gpt_regs_p->control);
+	writel((PRESCALER << 8) | AUTO_RELOAD, &ca9_timer_p->control);
 
 	/* load value for free running */
-	writel(GPT_FREE_RUNNING, &gpt_regs_p->compare);
+	writel(FREE_RUNNING, &ca9_timer_p->load);
 
 	/* auto reload, start timer */
-	writel(readl(&gpt_regs_p->control) | GPT_ENABLE, &gpt_regs_p->control);
+	writel(readl(&ca9_timer_p->control) | TIMER_ENABLE,
+			&ca9_timer_p->control);
 
 	reset_timer_masked();
 
@@ -67,7 +65,7 @@ void reset_timer(void)
 
 ulong get_timer(ulong base)
 {
-	return (get_timer_masked() / GPT_RESOLUTION) - base;
+	return (get_timer_masked() / TIMER_RES) - base;
 }
 
 void set_timer(ulong t)
@@ -79,7 +77,7 @@ void __udelay(unsigned long usec)
 {
 	ulong tmo;
 	ulong start = get_timer_masked();
-	ulong ticks_in_ten_us = GPT_TICKS / (1000 * 100);
+	ulong ticks_in_ten_us = TIMER_TICKS / (1000 * 100);
 	ulong rndoff;
 
 	rndoff = (usec % 10) ? 1 : 0;
@@ -102,12 +100,12 @@ ulong get_timer_masked(void)
 {
 	ulong now = READ_TIMER();
 
-	if (now >= lastdec) {
+	if (now <= lastdec) {
 		/* normal mode */
-		timestamp += now - lastdec;
+		timestamp += lastdec - now;
 	} else {
 		/* we have an overflow ... */
-		timestamp += now + GPT_FREE_RUNNING - lastdec;
+		timestamp += lastdec + FREE_RUNNING - now;
 	}
 	lastdec = now;
 
@@ -134,5 +132,5 @@ unsigned long long get_ticks(void)
  */
 ulong get_tbclk(void)
 {
-	return CONFIG_SPEAR_HZ;
+	return CONFIG_SYS_HZ;
 }

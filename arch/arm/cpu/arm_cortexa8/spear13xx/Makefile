@@ -28,9 +28,9 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(SOC).a
 
-COBJS	+= timer.o
-COBJS	+= reset.o
+COBJS	+= ca9_ltimer.o
 COBJS	+= cpu.o
+COBJS	+= reset.o
 
 SOBJS	= cache.o
 
