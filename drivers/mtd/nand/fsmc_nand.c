@@ -274,13 +274,14 @@ static int fsmc_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
 	uint8_t *p = buf;
 	uint8_t *ecc_calc = chip->buffers->ecccalc;
 	uint8_t *ecc_code = chip->buffers->ecccode;
-	int off, len;
+	int off, len, group = 0;
 	/*
 	 * ecc_oob is intentionally taken as u16. In 16bit devices, we end up
 	 * reading 14 bytes (7 words) from oob. The local array is to maintain
 	 * word alignment
 	 */
 	uint16_t ecc_oob[7];
+	uint8_t *oob = (uint8_t *)&ecc_oob[0];
 
 	for (i = 0, s = 0; s < eccsteps; s++, i += eccbytes, p += eccsize) {
 
@@ -289,8 +290,9 @@ static int fsmc_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
 		chip->read_buf(mtd, p, eccsize);
 
 		for (j = 0; j < eccbytes;) {
-			off = fsmc_eccpl.eccplace[s].offset;
-			len = fsmc_eccpl.eccplace[s].length;
+			off = fsmc_eccpl.eccplace[group].offset;
+			len = fsmc_eccpl.eccplace[group].length;
+			group++;
 
 			/*
 			 * length is intentionally kept a higher multiple of 2
@@ -299,7 +301,7 @@ static int fsmc_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
 			 */
 			len = roundup(len, 2);
 			chip->cmdfunc(mtd, NAND_CMD_READOOB, off, page);
-			chip->read_buf(mtd, (uint8_t *)&ecc_oob[j], len);
+			chip->read_buf(mtd, oob + j, len);
 			j += len;
 		}
 
