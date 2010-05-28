@@ -171,8 +171,10 @@
 #endif
 
 #define CONFIG_BOOTARGS_NFS			"root=/dev/nfs ip=dhcp " \
-						"console=ttyS0 init=/bin/sh"
-#define CONFIG_BOOTARGS				"console=ttyS0 mem=128M "  \
+						"console=ttyAMA0,115200 " \
+						"init=/bin/sh"
+#define CONFIG_BOOTARGS				"console=ttyAMA0,115200 "
+						"mem=128M "  \
 						"root="CONFIG_FSMTDBLK \
 						"rootfstype=jffs2"
 
