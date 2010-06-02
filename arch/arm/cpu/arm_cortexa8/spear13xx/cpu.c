@@ -96,6 +96,39 @@ int arch_cpu_init(void)
 	/* Enable filtering */
 	writel(0x2, CONFIG_SPEAR_CORTEXBASE + 0x00);
 
+#ifdef CONFIG_SPEAR1300_ISSUE_101435
+	{
+		u32	tmp_var;
+
+		/*
+		 * WRKD the UHC problem (issue #101435)
+		 *
+		 * Bit2 in MISC sys_sw_res reg is used to
+		 * discriminate whether we are coming from a power-on
+		 * reset or not.
+		 */
+		tmp_var = readl(&misc_p->sys_sw_res);
+		if ((tmp_var & 0x4) == 0) {
+			/* Enable UHC1 and UHC2 clocks) */
+			tmp_var = readl(&misc_p->perip1_clk_enb);
+			writel(tmp_var | 0x600, &misc_p->perip1_clk_enb);
+
+			/* Wait few cycles */
+			for (tmp_var = 0; tmp_var < 0x10000; tmp_var++)
+				;
+
+			/* Reset the system */
+			writel(0x1, &misc_p->sys_sw_res);
+			while (1)
+				;
+		} else {
+			/* Clear the RESET condition. */
+			writel(0x2, &misc_p->sys_sw_res);
+		}
+
+	}
+#endif
+
 	return 0;
 }
 #endif

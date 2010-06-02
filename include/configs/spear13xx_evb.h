@@ -39,6 +39,9 @@
 #define CONFIG_ENV_IS_IN_FLASH			1
 #endif
 
+/* Solve issue #101435 - UHC blocks the BUSMATRIX */
+#define CONFIG_SPEAR1300_ISSUE_101435 1
+
 /* Ethernet configuration */
 #define CONFIG_MII
 #define CONFIG_DESIGNWARE_ETH
