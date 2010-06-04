@@ -3046,22 +3046,26 @@ smdk2410_config	:	unconfig
 spear300_config \
 spear300_nand_config \
 spear300_usbtty_config \
-spear300_usbtty_nand_config \
+spear300_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs spear300 spear spear
+
 spear310_config \
 spear310_nand_config \
 spear310_usbtty_config \
-spear310_usbtty_nand_config \
+spear310_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs spear310 spear spear
+
 spear320_config \
 spear320_nand_config \
 spear320_usbtty_config \
 spear320_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs $(@:_config=) spear spear
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs spear320 spear spear
 
 spear600_config \
 spear600_nand_config \
 spear600_usbtty_config \
 spear600_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear6xx_evb arm arm926ejs $(@:_config=) spear spear
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear6xx_evb arm arm926ejs spear600 spear spear
 
 spear1300_config \
 spear1300_nand_config \
