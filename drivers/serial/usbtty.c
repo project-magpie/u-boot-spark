@@ -132,6 +132,19 @@ static struct usb_device_descriptor device_descriptor = {
 };
 
 
+#if defined(CONFIG_USBD_HS)
+static struct usb_qualifier_descriptor qualifier_descriptor = {
+	.bLength = sizeof(struct usb_qualifier_descriptor),
+	.bDescriptorType =	USB_DT_QUAL,
+	.bcdUSB =		cpu_to_le16(USB_BCD_VERSION),
+	.bDeviceClass =		COMMUNICATIONS_DEVICE_CLASS,
+	.bDeviceSubClass =	0x00,
+	.bDeviceProtocol =	0x00,
+	.bMaxPacketSize0 =	EP0_MAX_PACKET_SIZE,
+	.bNumConfigurations =	NUM_CONFIGS
+};
+#endif
+
 /*
  * Static CDC ACM specific descriptors
  */
@@ -219,7 +232,11 @@ static struct acm_config_desc acm_configuration_descriptors[NUM_CONFIGS] = {
 			.bmAttributes		= USB_ENDPOINT_XFER_INT,
 			.wMaxPacketSize
 				= cpu_to_le16(CONFIG_USBD_SERIAL_INT_PKTSIZE),
+#if defined(CONFIG_USBD_HS)
+			.bInterval		= 0x0C,
+#else
 			.bInterval		= 0xFF,
+#endif
 		},
 
 		/* Interface 2 */
@@ -246,7 +263,7 @@ static struct acm_config_desc acm_configuration_descriptors[NUM_CONFIGS] = {
 					USB_ENDPOINT_XFER_BULK,
 				.wMaxPacketSize		=
 					cpu_to_le16(CONFIG_USBD_SERIAL_BULK_PKTSIZE),
-				.bInterval		= 0xFF,
+				.bInterval		= 0x0,
 			},
 			{
 				.bLength		=
@@ -257,7 +274,7 @@ static struct acm_config_desc acm_configuration_descriptors[NUM_CONFIGS] = {
 					USB_ENDPOINT_XFER_BULK,
 				.wMaxPacketSize		=
 					cpu_to_le16(CONFIG_USBD_SERIAL_BULK_PKTSIZE),
-				.bInterval		= 0xFF,
+				.bInterval		= 0x00,
 			},
 		},
 	},
@@ -325,7 +342,7 @@ gserial_configuration_descriptors[NUM_CONFIGS] ={
 				.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 				.wMaxPacketSize =
 					cpu_to_le16(CONFIG_USBD_SERIAL_OUT_PKTSIZE),
-				.bInterval=		0xFF,
+				.bInterval =		0x00,
 			},
 			{
 				.bLength =
@@ -335,7 +352,7 @@ gserial_configuration_descriptors[NUM_CONFIGS] ={
 				.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 				.wMaxPacketSize =
 					cpu_to_le16(CONFIG_USBD_SERIAL_IN_PKTSIZE),
-				.bInterval =		0xFF,
+				.bInterval =		0x00,
 			},
 			{
 				.bLength =
@@ -345,7 +362,11 @@ gserial_configuration_descriptors[NUM_CONFIGS] ={
 				.bmAttributes =		USB_ENDPOINT_XFER_INT,
 				.wMaxPacketSize =
 					cpu_to_le16(CONFIG_USBD_SERIAL_INT_PKTSIZE),
+#if defined(CONFIG_USBD_HS)
+				.bInterval =		0x0C,
+#else
 				.bInterval =		0xFF,
+#endif
 			},
 		},
 	},
@@ -634,6 +655,9 @@ static void usbtty_init_instances (void)
 	memset (device_instance, 0, sizeof (struct usb_device_instance));
 	device_instance->device_state = STATE_INIT;
 	device_instance->device_descriptor = &device_descriptor;
+#if defined(CONFIG_USBD_HS)
+	device_instance->qualifier_descriptor = &qualifier_descriptor;
+#endif
 	device_instance->event = usbtty_event_handler;
 	device_instance->cdc_recv_setup = usbtty_cdc_setup;
 	device_instance->bus = bus_instance;
@@ -749,6 +773,10 @@ static void usbtty_init_terminal_type(short type)
 			device_descriptor.idProduct =
 				cpu_to_le16(CONFIG_USBD_PRODUCTID_CDCACM);
 
+#if defined(CONFIG_USBD_HS)
+			qualifier_descriptor.bDeviceClass =
+				COMMUNICATIONS_DEVICE_CLASS;
+#endif
 			/* Assign endpoint indices */
 			tx_endpoint = ACM_TX_ENDPOINT;
 			rx_endpoint = ACM_RX_ENDPOINT;
@@ -777,7 +805,9 @@ static void usbtty_init_terminal_type(short type)
 			device_descriptor.bDeviceClass = 0xFF;
 			device_descriptor.idProduct =
 				cpu_to_le16(CONFIG_USBD_PRODUCTID_GSERIAL);
-
+#if defined(CONFIG_USBD_HS)
+			qualifier_descriptor.bDeviceClass = 0xFF;
+#endif
 			/* Assign endpoint indices */
 			tx_endpoint = GSERIAL_TX_ENDPOINT;
 			rx_endpoint = GSERIAL_RX_ENDPOINT;
@@ -930,6 +960,9 @@ static int usbtty_configured (void)
 static void usbtty_event_handler (struct usb_device_instance *device,
 				  usb_device_event_t event, int data)
 {
+#if defined(CONFIG_USBD_HS)
+	int i;
+#endif
 	switch (event) {
 	case DEVICE_RESET:
 	case DEVICE_BUS_INACTIVE:
@@ -940,6 +973,29 @@ static void usbtty_event_handler (struct usb_device_instance *device,
 		break;
 
 	case DEVICE_ADDRESS_ASSIGNED:
+#if defined(CONFIG_USBD_HS)
+		/*
+		 * is_usbd_high_speed routine needs to be defined by
+		 * specific gadget driver
+		 * It returns TRUE if device enumerates at High speed
+		 * Retuns FALSE otherwise
+		 */
+		for (i = 1; i <= NUM_ENDPOINTS; i++) {
+			if (((ep_descriptor_ptrs[i - 1]->bmAttributes &
+			      USB_ENDPOINT_XFERTYPE_MASK) ==
+			      USB_ENDPOINT_XFER_BULK)
+			    && is_usbd_high_speed()) {
+
+				ep_descriptor_ptrs[i - 1]->wMaxPacketSize =
+					CONFIG_USBD_SERIAL_BULK_HS_PKTSIZE;
+			}
+
+			endpoint_instance[i].tx_packetSize =
+				ep_descriptor_ptrs[i - 1]->wMaxPacketSize;
+			endpoint_instance[i].rcv_packetSize =
+				ep_descriptor_ptrs[i - 1]->wMaxPacketSize;
+		}
+#endif
 		usbtty_init_endpoints ();
 
 	default:
