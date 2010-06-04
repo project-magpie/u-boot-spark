@@ -310,8 +310,8 @@ struct misc_regs {
 #define PHY_IF_RGMII				(1 << 4)
 #define PHY_IF_RMII				(4 << 4)
 #define GMII_SYNT_ENB				(1 << 3)
-#define CLK_SEL_PAD				(0 << 0)
-#define CLK_SEL_PLL2				(1 << 0)
-#define CLK_SEL_OSCI3				(2 << 0)
+#define CLK_SEL_PAD				(0 << 1)
+#define CLK_SEL_PLL2				(1 << 1)
+#define CLK_SEL_OSCI3				(2 << 1)
 
 #endif
