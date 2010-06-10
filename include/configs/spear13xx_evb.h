@@ -39,8 +39,10 @@
 #define CONFIG_ENV_IS_IN_FLASH			1
 #endif
 
+#if !defined(CONFIG_SPEAR_USBTTY)
 /* Solve issue #101435 - UHC blocks the BUSMATRIX */
-#define CONFIG_SPEAR1300_ISSUE_101435 1
+#define CONFIG_SPEAR1300_ISSUE_101435		1
+#endif
 
 /* Ethernet configuration */
 #define CONFIG_MII
