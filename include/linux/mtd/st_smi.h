@@ -112,4 +112,6 @@ struct flash_dev {
 #define XFER_FINISH_TOUT	15	/* xfer finish timeout(in ms) */
 #define WMODE_TOUT		15	/* write enable timeout(in ms) */
 
+extern void smi_init(void);
+
 #endif

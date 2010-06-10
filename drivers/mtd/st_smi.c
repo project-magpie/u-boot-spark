@@ -24,10 +24,10 @@
 #include <common.h>
 #include <flash.h>
 #include <linux/err.h>
+#include <linux/mtd/st_smi.h>
 
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
-#include "st_smi.h"
 
 #if !defined(CONFIG_SYS_NO_FLASH)
 
@@ -246,7 +246,7 @@ static int smi_write_enable(int bank)
  *
  * SMI initialization routine. Sets SMI control register1.
  */
-static void smi_init(void)
+void smi_init(void)
 {
 	/* Setting the fast mode values. SMI working at 166/4 = 41.5 MHz */
 	writel(HOLD1 | FAST_MODE | BANK_EN | DSEL_TIME | PRESCAL4,

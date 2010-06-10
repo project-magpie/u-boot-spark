@@ -25,6 +25,7 @@
 #include <netdev.h>
 #include <nand.h>
 #include <asm/io.h>
+#include <linux/mtd/st_smi.h>
 #include <linux/mtd/fsmc_nand.h>
 #include <asm/arch/hardware.h>
 
@@ -35,6 +36,9 @@ int board_init(void)
 	gd->bd->bi_arch_number = MACH_TYPE_SPEAR1300;
 	gd->bd->bi_boot_params = CONFIG_BOOT_PARAMS_ADDR;
 
+#if defined(CONFIG_ST_SMI)
+	smi_init();
+#endif
 	return 0;
 }
 

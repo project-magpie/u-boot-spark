@@ -25,6 +25,7 @@
 #include <command.h>
 #include <i2c.h>
 #include <net.h>
+#include <linux/mtd/st_smi.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/spr_emi.h>
@@ -164,6 +165,9 @@ int spear_board_init(ulong mach_type)
 		       sizeof(chip->version));
 	}
 
+#if defined(CONFIG_ST_SMI)
+	smi_init();
+#endif
 #ifdef CONFIG_SPEAR_EMI
 	spear_emi_init();
 #endif
