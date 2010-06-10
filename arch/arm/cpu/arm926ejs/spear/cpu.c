@@ -35,6 +35,12 @@ int arch_cpu_init(void)
 
 	periph1_clken = readl(&misc_p->periph1_clken);
 
+#if defined(CONFIG_SPEAR3XX)
+	periph1_clken |= MISC_GPT2ENB;
+#elif defined(CONFIG_SPEAR600)
+	periph1_clken |= MISC_GPT3ENB;
+#endif
+
 #if defined(CONFIG_PL011_SERIAL)
 	periph1_clken |= MISC_UART0ENB;
 #endif
