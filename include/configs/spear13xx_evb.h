@@ -129,6 +129,7 @@
 #define CONFIG_BOOTDELAY			1
 #endif
 
+#define CONFIG_ENV_OVERWRITE
 /*
  * Environment placing
  */
