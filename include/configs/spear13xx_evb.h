@@ -44,6 +44,7 @@
 #define CONFIG_SPEAR1300_ISSUE_101435		1
 #endif
 
+#if !defined(CONFIG_SPEAR_USBTTY)
 /* Ethernet configuration */
 #define CONFIG_MII
 #define CONFIG_DESIGNWARE_ETH
@@ -52,6 +53,7 @@
 #define CONFIG_DW_SEARCH_PHY			1
 #define CONFIG_DW0_PHY				1
 #define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
+#endif
 
 /* USBD driver configuration */
 #define CONFIG_DW_UDC
@@ -111,13 +113,21 @@
 #define CONFIG_CMD_NAND
 #define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_RUN
+
+#if !defined(CONFIG_SPEAR_USBTTY)
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
+#endif
 
 /* This must be included AFTER the definition of CONFIG_COMMANDS (if any) */
 #include <config_cmd_default.h>
+
+#if defined(CONFIG_SPEAR_USBTTY)
+#undef CONFIG_CMD_NET
+#undef CONFIG_CMD_NFS
+#endif
 
 /*
  * Default Environment Varible definitions

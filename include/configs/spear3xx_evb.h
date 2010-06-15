@@ -51,6 +51,7 @@
 
 #include <configs/spear-common.h>
 
+#if !defined(CONFIG_SPEAR_USBTTY)
 /* Ethernet driver configuration */
 #define CONFIG_DW_ALTDESCRIPTOR			1
 
@@ -65,6 +66,7 @@
 #define CONFIG_MACB				1
 #define CONFIG_MACB0_PHY			0x01
 
+#endif
 #endif
 
 /* Serial Configuration (PL011) */
