@@ -421,6 +421,14 @@ set_pmb:
 	#endif
 	SH4_SET_PMB 4 0xa0 0x00  64 0 0 1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5 0xa8 0x00  64		/* NOR/NAND FLASH CACHED */
+#elif defined(CONFIG_SH_FLI7540) && defined(CONFIG_SH_FUDB)
+	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 UN-cached */
+	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#error Need to configure PMBs properly when more than 128MiB.
+	#endif
+	SH4_SET_PMB 4 0xa0 0x00  64 0 0 1	/* NOR/NAND FLASH UN-cached */
+	SH4_SET_PMB 5 0xa8 0x00  64		/* NOR/NAND FLASH CACHED */
 #else
 	#error Do not know which board/chip we are using for PMB setup.
 #endif	/* defined(CONFIG_SH_STB7100) */

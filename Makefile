@@ -2886,6 +2886,13 @@ fldbse_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h
 	@$(MKCONFIG) -a fldb sh sh fldb st fli7510
 
+fudbse_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/fudb
+	@echo "#define CONFIG_SH_FLI7540   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_FUDB      1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h
+	@$(MKCONFIG) -a fudb sh sh fudb st fli7540
+
 # QQQ following should have "TEXT_BASE = 0x8FF00000" for SE mode.
 # QQQ However, the current TargetPacks only define the PMB
 # QQQ for the first 128MiB region of RAM.

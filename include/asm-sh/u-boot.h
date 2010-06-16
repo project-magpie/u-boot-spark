@@ -1,7 +1,7 @@
 /*
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, <wd@denx.de>
- * (C) Copyright 2004-2009 STMicroelectronics.
+ * (C) Copyright 2004-2010 STMicroelectronics.
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -59,7 +59,8 @@ typedef struct bd_info
 	defined(CONFIG_SH_STX7111) ||	\
 	defined(CONFIG_SH_STX7141) ||	\
 	defined(CONFIG_SH_STX7200) ||	\
-	defined(CONFIG_SH_FLI7510)
+	defined(CONFIG_SH_FLI7510) ||	\
+	defined(CONFIG_SH_FLI7540)
 	unsigned long bi_devid;
 	unsigned long bi_emifrq;
 #endif

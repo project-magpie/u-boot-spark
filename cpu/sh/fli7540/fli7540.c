@@ -26,7 +26,7 @@
 #include <common.h>
 #include <command.h>
 #include <asm/soc.h>
-#include <asm/fli7510reg.h>
+#include <asm/fli7540reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
 #include <asm/stbus.h>
@@ -65,10 +65,9 @@
 	} while (0)
 
 
+#define USB_XTAL_VALID		1	/* CFG_SPARE_1[1]            = USB_xtal_valid */
+
 #define USB_POWERDOWN_REQ	8	/* CFG_COMMS_CONFIG_1[8 ]    = usb_powerdown_req */
-#define USBA_OVRCUR_POLARITY	11	/* CFG_COMMS_CONFIG_1[11]    = usba_ovrcur_polarity */
-#define USBA_ENABLE_PAD_OVERRIDE 12	/* CFG_COMMS_CONFIG_1[12]    = usba_enable_pad_override */
-#define USBA_OVRCUR		13	/* CFG_COMMS_CONFIG_1[13]    = usba_ovrcur */
 #define CONF_PIO24_ALTERNATE	17	/* CFG_COMMS_CONFIG_1[18:17] = conf_pio24_alternate */
 
 #define GMAC_MII_ENABLE		8	/* CFG_COMMS_CONFIG_2[8]     = gmac_mii_enable */
@@ -78,7 +77,7 @@
 #define PHY_INTF_SEL		26	/* CFG_COMMS_CONFIG_2[28:26] = phy_intf_sel */
 
 
-static void fli7510_clocks(void)
+static void fli7540_clocks(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
 	bd_t *bd = gd->bd;
@@ -95,11 +94,11 @@ static void fli7510_clocks(void)
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 
-struct fli7510_gmac_pin {
+struct fli7540_gmac_pin {
 	unsigned char port, pin, dir;
 };
 
-static struct fli7510_gmac_pin fli7510_gmac_mii_pins[] = {
+static struct fli7540_gmac_pin fli7540_gmac_mii_pins[] = {
 	{ 18, 5, },			/* PHYCLK */
 	{ 18, 0, STPIO_ALT_OUT },	/* MDC */
 	{ 18, 1, STPIO_IN },		/* COL */
@@ -111,7 +110,7 @@ static struct fli7510_gmac_pin fli7510_gmac_mii_pins[] = {
 	{ 20, 2, STPIO_ALT_OUT },	/* TXD[2] */
 	{ 20, 3, STPIO_ALT_OUT },	/* TXD[3] */
 	{ 20, 4, STPIO_ALT_OUT },	/* TXEN */
-	{ 20, 6, STPIO_IN },		/* TXCLK */
+	{ 20, 5, STPIO_IN },		/* TXCLK */
 	{ 21, 0, STPIO_IN },		/* RXD[0] */
 	{ 21, 1, STPIO_IN },		/* RXD[1] */
 	{ 21, 2, STPIO_IN },		/* RXD[2] */
@@ -121,7 +120,7 @@ static struct fli7510_gmac_pin fli7510_gmac_mii_pins[] = {
 	{ 21, 6, STPIO_IN },		/* RXCLK */
 };
 
-static struct fli7510_gmac_pin fli7510_gmac_gmii_pins[] = {
+static struct fli7540_gmac_pin fli7540_gmac_gmii_pins[] = {
 	{ 18, 5, },			/* PHYCLK */
 	{ 18, 0, STPIO_ALT_OUT },	/* MDC */
 	{ 18, 1, STPIO_IN },		/* COL */
@@ -137,7 +136,7 @@ static struct fli7510_gmac_pin fli7510_gmac_gmii_pins[] = {
 	{ 24, 6, STPIO_ALT_OUT },	/* TXD[6] */
 	{ 24, 7, STPIO_ALT_OUT },	/* TXD[7] */
 	{ 20, 4, STPIO_ALT_OUT },	/* TXEN */
-	{ 20, 6, STPIO_IN },		/* TXCLK */
+	{ 20, 5, STPIO_IN },		/* TXCLK */
 	{ 21, 0, STPIO_IN },		/* RXD[0] */
 	{ 21, 1, STPIO_IN },		/* RXD[1] */
 	{ 21, 2, STPIO_IN },		/* RXD[2] */
@@ -151,7 +150,7 @@ static struct fli7510_gmac_pin fli7510_gmac_gmii_pins[] = {
 	{ 21, 6, STPIO_IN },		/* RXCLK */
 };
 
-static struct fli7510_gmac_pin fli7510_gmac_rmii_pins[] = {
+static struct fli7540_gmac_pin fli7540_gmac_rmii_pins[] = {
 	{ 18, 5, },			/* PHYCLK */
 	{ 18, 0, STPIO_ALT_OUT },	/* MDC */
 	{ 18, 3, STPIO_IN },		/* MDINT */
@@ -165,7 +164,7 @@ static struct fli7510_gmac_pin fli7510_gmac_rmii_pins[] = {
 	{ 21, 5, STPIO_IN },		/* RX_ER */
 };
 
-static struct fli7510_gmac_pin fli7510_gmac_reverse_mii_pins[] = {
+static struct fli7540_gmac_pin fli7540_gmac_reverse_mii_pins[] = {
 	{ 18, 5, },			/* PHYCLK */
 	{ 18, 0, STPIO_IN },		/* MDC */
 	{ 18, 1, STPIO_ALT_OUT },	/* COL */
@@ -177,7 +176,7 @@ static struct fli7510_gmac_pin fli7510_gmac_reverse_mii_pins[] = {
 	{ 20, 2, STPIO_ALT_OUT },	/* TXD[2] */
 	{ 20, 3, STPIO_ALT_OUT },	/* TXD[3] */
 	{ 20, 4, STPIO_ALT_OUT },	/* TXEN */
-	{ 20, 6, STPIO_IN },		/* TXCLK */
+	{ 20, 5, STPIO_IN },		/* TXCLK */
 	{ 21, 0, STPIO_IN },		/* RXD[0] */
 	{ 21, 1, STPIO_IN },		/* RXD[1] */
 	{ 21, 2, STPIO_IN },		/* RXD[2] */
@@ -207,12 +206,12 @@ extern void stmac_set_mac_speed(const int speed)
 	/*
 	 * ETH GMAC PIO configuration
 	 */
-extern void fli7510_configure_ethernet(
-	const enum fli7510_ethernet_mode mode,
+extern void fli7540_configure_ethernet(
+	const enum fli7540_ethernet_mode mode,
 	const int ext_clk,
 	const int phy_bus)
 {
-	struct fli7510_gmac_pin *pins;
+	struct fli7540_gmac_pin *pins;
 	int pins_num;
 	unsigned char phy_sel, enmii;
 	int i;
@@ -225,34 +224,34 @@ extern void fli7510_configure_ethernet(
 	writel(sysconf, CFG_COMMS_CONFIG_2);
 
 	switch (mode) {
-	case fli7510_ethernet_mii:
+	case fli7540_ethernet_mii:
 		phy_sel = 0;
 		enmii = 1;
-		pins = fli7510_gmac_mii_pins;
-		pins_num = ARRAY_SIZE(fli7510_gmac_mii_pins);
+		pins = fli7540_gmac_mii_pins;
+		pins_num = ARRAY_SIZE(fli7540_gmac_mii_pins);
 		break;
-	case fli7510_ethernet_rmii:
+	case fli7540_ethernet_rmii:
 		phy_sel = 4;
 		enmii = 1;
-		pins = fli7510_gmac_rmii_pins;
-		pins_num = ARRAY_SIZE(fli7510_gmac_rmii_pins);
+		pins = fli7540_gmac_rmii_pins;
+		pins_num = ARRAY_SIZE(fli7540_gmac_rmii_pins);
 		break;
-	case fli7510_ethernet_gmii:
+	case fli7540_ethernet_gmii:
 		phy_sel = 0;
 		enmii = 1;
-		pins = fli7510_gmac_gmii_pins;
-		pins_num = ARRAY_SIZE(fli7510_gmac_gmii_pins);
+		pins = fli7540_gmac_gmii_pins;
+		pins_num = ARRAY_SIZE(fli7540_gmac_gmii_pins);
 		/* CFG_COMMS_CONFIG_1[18:17] = conf_pio24_alternate */
 		sysconf = readl(CFG_COMMS_CONFIG_1);
 		sysconf &= ~(0x3ul<<CONF_PIO24_ALTERNATE);
 		sysconf |= (0x2ul<<CONF_PIO24_ALTERNATE);
 		writel(sysconf, CFG_COMMS_CONFIG_1);
 		break;
-	case fli7510_ethernet_reverse_mii:
+	case fli7540_ethernet_reverse_mii:
 		phy_sel = 0;
 		enmii = 0;
-		pins = fli7510_gmac_reverse_mii_pins;
-		pins_num = ARRAY_SIZE(fli7510_gmac_reverse_mii_pins);
+		pins = fli7540_gmac_reverse_mii_pins;
+		pins_num = ARRAY_SIZE(fli7540_gmac_reverse_mii_pins);
 		break;
 	default:
 		BUG();
@@ -288,38 +287,93 @@ extern void fli7510_configure_ethernet(
 
 
 #if defined(CONFIG_USB_OHCI_NEW)
-extern void fli7510_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode)
+extern void fli7540_usb_init(
+	const int port,
+	const enum fli7540_usb_ovrcur_mode ovrcur_mode)
 {
+	static int xtal_initialized;
+	int clken, rstn;
+	int override, ovrcur, polarity;
 	unsigned long sysconf;
 
-	switch (ovrcur_mode) {
-	case fli7510_usb_ovrcur_disabled:
-		/* CFG_COMMS_CONFIG_1[12] = usba_enable_pad_override */
+	if (!xtal_initialized++)
+	{
+		sysconf = readl(CFG_SPARE_1);
+#if defined(CONFIG_SH_FLI7510)
+		SET_SYSCONF_BIT(sysconf, 0, USB_XTAL_VALID);
+#else
+		SET_SYSCONF_BIT(sysconf, 1, USB_XTAL_VALID);
+#endif	/* CONFIG_SH_FLI7510 */
+		writel(sysconf, CFG_SPARE_1);
+	}
+
+	switch (port) {
+	case 0:
+		clken = 21;
+		rstn = 23;
+		override = 12;
+		ovrcur = 13;
+		polarity = 11;
+#if defined(CONFIG_SH_FLI7510)
+		SET_PIO_PIN(ST40_PIO_BASE(27), 1, STPIO_IN);		/* USB_A_OVRCUR */
+		SET_PIO_PIN(ST40_PIO_BASE(27), 2, STPIO_ALT_OUT);	/* USB_A_PWREN */
+#else
+		SET_PIO_PIN(ST40_PIO_BASE(26), 3, STPIO_IN);		/* USB_A_OVRCUR */
+		SET_PIO_PIN(ST40_PIO_BASE(26), 4, STPIO_ALT_OUT);	/* USB_A_PWREN */
+#endif	/* CONFIG_SH_FLI7510 */
+
+		break;
+	case 1:
+		clken = 22;
+		rstn = 24;
+		override = 15;
+		ovrcur = 16;
+		polarity = 14;
+		SET_PIO_PIN(ST40_PIO_BASE(26), 5, STPIO_IN);		/* USB_C_OVRCUR */
+		SET_PIO_PIN(ST40_PIO_BASE(26), 6, STPIO_ALT_OUT);	/* USB_C_PWREN */
+		break;
+	default:
+		BUG();
+		return;
+	}
+
+#if !defined(CONFIG_SH_FLI7510)
+	sysconf = readl(CFG_COMMS_CONFIG_1);
+		/* CFG_COMMS_CONFIG_1[22,21] = conf_usb_clk_en */
+	SET_SYSCONF_BIT(sysconf, 1, clken);
+		/* CFG_COMMS_CONFIG_1[24,23] = conf_usb_rst_n */
+	SET_SYSCONF_BIT(sysconf, 1, rstn);
+	writel(sysconf, CFG_COMMS_CONFIG_1);
+#endif	/* CONFIG_SH_FLI7510 */
+
+switch (ovrcur_mode) {
+	case fli7540_usb_ovrcur_disabled:
+		/* CFG_COMMS_CONFIG_1[12,15] = usbX_enable_pad_override */
 		sysconf = readl(CFG_COMMS_CONFIG_1);
-		SET_SYSCONF_BIT(sysconf, 1, USBA_ENABLE_PAD_OVERRIDE);
+		SET_SYSCONF_BIT(sysconf, 1, override);
 		writel(sysconf, CFG_COMMS_CONFIG_1);
 
-		/* CFG_COMMS_CONFIG_1[13] = usba_ovrcur */
+		/* CFG_COMMS_CONFIG_1[13,16] = usbX_ovrcur */
 		sysconf = readl(CFG_COMMS_CONFIG_1);
-		SET_SYSCONF_BIT(sysconf, 1, USBA_OVRCUR);
+		SET_SYSCONF_BIT(sysconf, 1, ovrcur);
 		writel(sysconf, CFG_COMMS_CONFIG_1);
 		break;
 	default:
-		/* CFG_COMMS_CONFIG_1[12] = usba_enable_pad_override */
+		/* CFG_COMMS_CONFIG_1[12,15] = usbX_enable_pad_override */
 		sysconf = readl(CFG_COMMS_CONFIG_1);
-		SET_SYSCONF_BIT(sysconf, 0, USBA_ENABLE_PAD_OVERRIDE);
+		SET_SYSCONF_BIT(sysconf, 0, override);
 		writel(sysconf, CFG_COMMS_CONFIG_1);
 
-		/* CFG_COMMS_CONFIG_1[11] = usba_ovrcur_polarity */
+		/* CFG_COMMS_CONFIG_1[11,14] = usbX_ovrcur_polarity */
 		switch (ovrcur_mode) {
-		case fli7510_usb_ovrcur_active_high:
+		case fli7540_usb_ovrcur_active_high:
 			sysconf = readl(CFG_COMMS_CONFIG_1);
-			SET_SYSCONF_BIT(sysconf, 0, USBA_OVRCUR_POLARITY);
+			SET_SYSCONF_BIT(sysconf, 0, polarity);
 			writel(sysconf, CFG_COMMS_CONFIG_1);
 			break;
-		case fli7510_usb_ovrcur_active_low:
+		case fli7540_usb_ovrcur_active_low:
 			sysconf = readl(CFG_COMMS_CONFIG_1);
-			SET_SYSCONF_BIT(sysconf, 1, USBA_OVRCUR_POLARITY);
+			SET_SYSCONF_BIT(sysconf, 1, polarity);
 			writel(sysconf, CFG_COMMS_CONFIG_1);
 			break;
 		default:
@@ -329,15 +383,11 @@ extern void fli7510_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode)
 		break;
 	}
 
-	/* now route the PIOs corectly */
-	SET_PIO_PIN(ST40_PIO_BASE(27), 1, STPIO_IN);		/* USB_A_OVRCUR */
-	SET_PIO_PIN(ST40_PIO_BASE(27), 2, STPIO_ALT_OUT);	/* USB_A_PWREN */
-
 	/* start the USB Wrapper Host Controller */
 	ST40_start_host_control(
-		USB_FLAGS_STRAP_16BIT		|
+		USB_FLAGS_STRAP_8BIT		|
 		USB_FLAGS_STRAP_PLL		|
-		USB_FLAGS_STBUS_CONFIG_THRESHOLD256);
+		USB_FLAGS_STBUS_CONFIG_THRESHOLD128);
 }
 #endif /* defined(CONFIG_USB_OHCI_NEW) */
 
@@ -348,22 +398,22 @@ extern void fli7510_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode)
 #if defined(CONFIG_SPI)
 
 #if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
-extern void fli7510_spi_scl(const int val)
+extern void fli7540_spi_scl(const int val)
 {
-	const int pin = 2;	/* PIO17[2] = SPI_CLK */
-	STPIO_SET_PIN(PIO_PORT(17), pin, val ? 1 : 0);
+	const int pin = 2;	/* PIO21[2] = SPI_CLK */
+	STPIO_SET_PIN(PIO_PORT(21), pin, val ? 1 : 0);
 }
 
-extern void fli7510_spi_sda(const int val)
+extern void fli7540_spi_sda(const int val)
 {
-	const int pin = 3;	/* PIO17[3] = SPI_MOSI */
-	STPIO_SET_PIN(PIO_PORT(17), pin, val ? 1 : 0);
+	const int pin = 3;	/* PIO21[3] = SPI_MOSI */
+	STPIO_SET_PIN(PIO_PORT(21), pin, val ? 1 : 0);
 }
 
-extern unsigned char fli7510_spi_read(void)
+extern unsigned char fli7540_spi_read(void)
 {
-	const int pin = 5;	/* PIO17[5] = SPI_MISO */
-	return STPIO_GET_PIN(PIO_PORT(17), pin);
+	const int pin = 5;	/* PIO20[5] = SPI_MISO */
+	return STPIO_GET_PIN(PIO_PORT(20), pin);
 }
 #endif	/* CONFIG_SOFT_SPI */
 
@@ -374,15 +424,15 @@ extern unsigned char fli7510_spi_read(void)
  */
 static void spi_chip_select(const int cs)
 {
-	const int pin = 4;	/* PIO17[4] = SPI_CSN */
+	const int pin = 2;	/* PIO20[2] = SPI_CSN */
 
 	if (cs)
 	{	/* assert SPI CSn */
-		STPIO_SET_PIN(PIO_PORT(17), pin, 0);
+		STPIO_SET_PIN(PIO_PORT(20), pin, 0);
 	}
 	else
 	{	/* DE-assert SPI CSn */
-		STPIO_SET_PIN(PIO_PORT(17), pin, 1);
+		STPIO_SET_PIN(PIO_PORT(20), pin, 1);
 	}
 
 	if (cs)
@@ -413,7 +463,7 @@ extern int soc_init(void)
 	DECLARE_GLOBAL_DATA_PTR;
 	bd_t *bd = gd->bd;
 
-	fli7510_clocks();
+	fli7540_clocks();
 
 	/* obtain the chip cut + device id */
 	bd->bi_devid = readl(CFG_DEVICE_ID);

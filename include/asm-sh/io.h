@@ -69,6 +69,7 @@
        defined(CONFIG_SH_CB101)		|| \
        defined(CONFIG_SH_CB102)		|| \
        defined(CONFIG_SH_FLI7510)	|| \
+       defined(CONFIG_SH_FLI7540)	|| \
        defined(CONFIG_SH_MB796)		|| \
        defined(CONFIG_SH_HDK5289)
 #  include "asm/io_stb1eval.h"

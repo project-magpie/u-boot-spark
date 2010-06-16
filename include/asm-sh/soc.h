@@ -37,6 +37,13 @@ enum fli7510_ethernet_mode
 	fli7510_ethernet_rmii,
 	fli7510_ethernet_reverse_mii
 };
+enum fli7540_ethernet_mode
+{
+	fli7540_ethernet_mii,
+	fli7540_ethernet_gmii,
+	fli7540_ethernet_rmii,
+	fli7540_ethernet_reverse_mii
+};
 enum stx5206_ethernet_mode
 {
 	stx5206_ethernet_mii,
@@ -71,6 +78,10 @@ extern void fli7510_configure_ethernet(
 	const enum fli7510_ethernet_mode mode,
 	const int ext_clk,
 	const int phy_bus);
+extern void fli7540_configure_ethernet(
+	const enum fli7540_ethernet_mode mode,
+	const int ext_clk,
+	const int phy_bus);
 
 
 /*
@@ -93,6 +104,11 @@ enum fli7510_usb_ovrcur_mode {
 	fli7510_usb_ovrcur_active_high,
 	fli7510_usb_ovrcur_active_low,
 };
+enum fli7540_usb_ovrcur_mode {
+	fli7540_usb_ovrcur_disabled,
+	fli7540_usb_ovrcur_active_high,
+	fli7540_usb_ovrcur_active_low,
+};
 
 
 /*
@@ -105,7 +121,8 @@ extern int  stx7105_usb_init(int port, int over_current, int power_ctrl);
 extern void stx7111_usb_init(void);
 extern void stx7141_usb_init(void);
 extern void stx7200_usb_init(void);
-extern void fli7105_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode);
+extern void fli7510_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode);
+extern void fli7540_usb_init(const int port, const enum fli7540_usb_ovrcur_mode ovrcur_mode);
 
 
 /*
@@ -123,6 +140,10 @@ extern void		fli7510_spi_scl(const int val);
 extern void		fli7510_spi_sda(const int val);
 extern unsigned char	fli7510_spi_read(void);
 
+extern void		fli7540_spi_scl(const int val);
+extern void		fli7540_spi_sda(const int val);
+extern unsigned char	fli7540_spi_read(void);
+
 
 /*
  * Software "bit-banging" functions for I2C accesses.
@@ -134,6 +155,10 @@ extern int		stx7105_i2c_read(void);
 extern void		fli7510_i2c_scl(const int val);
 extern void		fli7510_i2c_sda(const int val);
 extern int		fli7510_i2c_read(void);
+
+extern void		fli7540_i2c_scl(const int val);
+extern void		fli7540_i2c_sda(const int val);
+extern int		fli7540_i2c_read(void);
 
 
 #endif	/* _SOC_H_ */

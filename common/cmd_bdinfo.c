@@ -2,7 +2,7 @@
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * (C) Copyright 2009 STMicroelectronics.
+ * (C) Copyright 2009-2010 STMicroelectronics.
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -345,6 +345,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #elif defined(CONFIG_SH_FLI7510)
 	if (FLI7510_DEVICEID_7510(bd->bi_devid))
 		printf ("\nFLI7510 version %ld.x", FLI7510_DEVICEID_CUT(bd->bi_devid));
+#elif defined(CONFIG_SH_FLI7540)
+	if (FLI7540_DEVICEID_7540(bd->bi_devid))
+		printf ("\nFLI7540 version %ld.x", FLI7540_DEVICEID_CUT(bd->bi_devid));
 #else
 #error Missing Device Definitions!
 #endif
