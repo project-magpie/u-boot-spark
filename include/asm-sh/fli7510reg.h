@@ -165,13 +165,13 @@
 /*----------------------------------------------------------------------------*/
 
 /* Device ID values, masks & predicates */
-#define FLI7510_DEVID_7510_VAL		0x23c
+#define FLI7510_DEVID_7510_VAL		0x23c	/* for cut 0.x */
 #define FLI7510_DEVID_ID_SHIFT		12
 #define FLI7510_DEVID_ID_MASK		0x3ff
 #define FLI7510_DEVID_CUT_SHIFT		28
 #define FLI7510_DEVID_CUT_MASK		0xf
 
 #define FLI7510_DEVICEID_7510(ID) ((((ID) >> FLI7510_DEVID_ID_SHIFT) & FLI7510_DEVID_ID_MASK) == FLI7510_DEVID_7510_VAL)
-#define FLI7510_DEVICEID_CUT(ID)  ((((ID) >> FLI7510_DEVID_CUT_SHIFT) & FLI7510_DEVID_CUT_MASK) + 1)
+#define FLI7510_DEVICEID_CUT(ID)  ((((ID) >> FLI7510_DEVID_CUT_SHIFT) & FLI7510_DEVID_CUT_MASK) + 0)
 
 #endif /* __FLI7510REG_H */
