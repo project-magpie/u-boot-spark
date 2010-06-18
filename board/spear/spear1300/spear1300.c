@@ -82,11 +82,11 @@ int board_nand_init(struct nand_chip *nand)
 #if defined(CONFIG_CMD_NET)
 int board_eth_init(bd_t *bis)
 {
-	/*
-	 * Board specific ethernet initialization comes here. eg. gmac clock
-	 * configuration etc
-	 */
-
-	return designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY);
+	int ret = 0;
+#if defined(CONFIG_DESIGNWARE_ETH)
+	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY) >= 0)
+		ret++;
+#endif
+	return ret;
 }
 #endif
