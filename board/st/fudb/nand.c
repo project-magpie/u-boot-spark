@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2006 DENX Software Engineering
- * (C) Copyright 2008-2009 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2010 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -25,53 +25,8 @@
 #include <nand.h>
 #include <asm/io.h>
 #include <asm/pio.h>
-#include <asm/fli7510reg.h>
+#include <asm/fli7540reg.h>
 #include <asm/stm-nand.h>
-
-/*
- * hardware specific access to control-lines for "bit-banging".
- *	CL -> Emi_Addr(17)
- *	AL -> Emi_Addr(18)
- *	nCE is handled by EMI (not s/w controlable)
- */
-#ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
-static void fudb_hwcontrol(struct mtd_info *mtdinfo, int cmd)
-{
-	struct nand_chip* this = (struct nand_chip *)(mtdinfo->priv);
-
-	switch(cmd) {
-
-	case NAND_CTL_SETCLE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W | (1u << 17));
-		break;
-
-	case NAND_CTL_CLRCLE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W & ~(1u << 17));
-		break;
-
-	case NAND_CTL_SETALE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W | (1u << 18));
-		break;
-
-	case NAND_CTL_CLRALE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W & ~(1u << 18));
-		break;
-	}
-}
-#endif /* CFG_NAND_FLEX_MODE */
-
-
-/*
- * hardware specific access to the Ready/not_Busy signal.
- * Signal is routed through the EMI NAND Controller block.
- */
-#ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
-static int fudb_device_ready(struct mtd_info *mtd)
-{
-	/* extract bit 1: status of RBn pin on boot bank */
-	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
-}
-#endif /* CFG_NAND_FLEX_MODE */
 
 
 /*
@@ -92,12 +47,12 @@ static int fudb_device_ready(struct mtd_info *mtd)
  * Members with a "?" were not set in the merged testing-NAND branch,
  * so they are not set here either.
  */
+#ifdef CFG_NAND_FLEX_MODE	/* for STM "flex-mode" (c.f. "bit-banging") */
 extern int board_nand_init(struct nand_chip *nand)
 {
 	nand->eccmode       = NAND_ECC_SOFT;
 	nand->options       = NAND_NO_AUTOINCR;
 
-#ifdef CFG_NAND_FLEX_MODE	/* for STM "flex-mode" (c.f. "bit-banging") */
 	nand->select_chip   = stm_flex_select_chip;
 	nand->dev_ready     = stm_flex_device_ready;
 	nand->hwcontrol     = stm_flex_hwcontrol;
@@ -105,10 +60,6 @@ extern int board_nand_init(struct nand_chip *nand)
 	nand->write_byte    = stm_flex_write_byte;
 	nand->read_buf      = stm_flex_read_buf;
 	nand->write_buf     = stm_flex_write_buf;
-#else				/* for "bit-banging" (c.f. STM "flex-mode")  */
-	nand->dev_ready     = fudb_device_ready;
-	nand->hwcontrol     = fudb_hwcontrol;
-#endif /* CFG_NAND_FLEX_MODE */
 
 #if 1
 	/* Enable the following to use a Bad Block Table (BBT) */
@@ -118,3 +69,8 @@ extern int board_nand_init(struct nand_chip *nand)
 
 	return 0;
 }
+#else
+#error It is not possible to use bit-banging with NAND on the Freeman Ultra Development Board.
+#endif /* CFG_NAND_FLEX_MODE */
+
+

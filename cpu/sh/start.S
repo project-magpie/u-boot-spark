@@ -143,7 +143,7 @@ config_spiboot_controller:
 
 	/* Slow (divide) the SPI clock down to improve reliability. */
 	/* Note: for some (?) FSM SPI controllers, diving by 4 fails to boot! */
-#if defined(CONFIG_SH_FLI7510) || defined(CONFIG_SH_STX5206)
+#if defined(CONFIG_SH_FLI7510) || defined(CONFIG_SH_FLI7540) || defined(CONFIG_SH_STX5206)
 	mov	#6, r0			/* *ST40_EMI_SPI_CLOCKDIV = 6 */
 #else
 	mov	#4, r0			/* *ST40_EMI_SPI_CLOCKDIV = 4 */

@@ -252,6 +252,10 @@
 
 /*-----------------------------------------------------------------------
  * NAND FLASH organization
+ *
+ * Only the FLEX controller can control the ALE and CLE signal.
+ * As a result, it is *not* possible to use "bit-banging" to talk
+ * to the NAND, hence the H/W FLEX controller must be used.
  */
 
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
@@ -275,8 +279,8 @@
 	 *	b) FLEX-mode (only supported means for boot-from-NAND)
 	 * If CFG_NAND_FLEX_MODE is defined, then FLEX-mode will be
 	 * used, otherwise, "bit-banging" will be used.
+	 * Note: see above - do *not* undef this!
 	 */
-/* QQQ - still need to #undef the following and test NAND bit-banging */
 #	define CFG_NAND_FLEX_MODE	/* define to use NAND FLEX-MODE */
 
 	/*
