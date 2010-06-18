@@ -1,6 +1,6 @@
 #
-# (C) Copyright 2000-2004
-# Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+# (C) Copyright 2010
+# Vipin Kumar, ST Microelectronics <vipin.kumar@st.com>
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -21,31 +21,8 @@
 # MA 02111-1307 USA
 #
 
-include $(TOPDIR)/config.mk
-
-LIB	= $(obj)lib$(BOARD).a
-
-COBJS	:= spear1300.o
-SOBJS	:=
-
-SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS))
-SOBJS	:= $(addprefix $(obj),$(SOBJS))
-
-$(LIB):	$(obj).depend $(OBJS) $(SOBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS) $(SOBJS)
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
-
 #########################################################################
 
-# defines $(obj).depend target
-include $(SRCTREE)/rules.mk
+TEXT_BASE = 0x00700000
 
-sinclude $(obj).depend
-
-#########################################################################
+ALL += $(obj)u-boot.img
