@@ -1,6 +1,7 @@
 #
-# (C) Copyright 2005
+# (C) Copyright 2005, 2010
 # Andy Sturges (andy.sturges@st.com)
+# Sean McGoogan <Sean.McGoogan@st.com>
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -24,7 +25,20 @@
 #
 # HMS1 board
 #
+#	Valid values for TEXT_BASE are:
+#
+#	0x87F00000	29-bit mode +  64 MiB of SDRAM
+#	0x8BF00000	29-bit mode + 128 MiB of SDRAM
+#
+# Note:	Alternative definitions of TEXT_BASE are put into
+#	'config.tmp' from the top-level 'Makefile'.
+#
 
-# Installs at SDRAM BASE  + 31M in cache region
-TEXT_BASE = 0x86F00000
+sinclude $(OBJTREE)/board/$(BOARDDIR)/config.tmp
+
+ifndef TEXT_BASE
+# Installs at SDRAM BASE  + 63M in P1 (cachable)
+TEXT_BASE = 0x87F00000
+endif
+
 PLATFORM_LDFLAGS +=

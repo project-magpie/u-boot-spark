@@ -85,7 +85,7 @@ static void configSpi(void)
 #if defined(CONFIG_SOFT_SPI)	/* Configure SPI Serial Flash for PIO "bit-banging" */
 	SET_PIO_PIN(PIO_PORT(17),2,STPIO_OUT);	/* SPI_CLK */
 	SET_PIO_PIN(PIO_PORT(17),3,STPIO_OUT);	/* SPI_MOSI */
-#else	/* Configure SPI Serial Flash for the H/W SSC */
+#elif defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 	SET_PIO_PIN(PIO_PORT(17),2,STPIO_ALT_OUT);/* SPI_CLK */
 	SET_PIO_PIN(PIO_PORT(17),3,STPIO_ALT_OUT);/* SPI_MOSI */
 #endif	/* CONFIG_SOFT_SPI */

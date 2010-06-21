@@ -245,11 +245,15 @@
 #endif
 
 #define CONFIG_SPI			/* enable the SPI driver */
+#define CONFIG_STM_SSC_SPI		/* Use the H/W SSC for SPI */
 #define CONFIG_CMD_SPI			/* SPI serial bus command support */
 #define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
 #define CFG_I2C_FRAM			/* to minimize performance degradation */
 #undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
-#define CFG_STM_SPI_SSC_BASE	ST40_SSC0_REGS_BASE	/* SPI is on SSC #0 */
+
+#if defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
+#	define CFG_STM_SPI_SSC_BASE	ST40_SSC0_REGS_BASE	/* SPI is on SSC #0 */
+#endif	/* defined(CONFIG_STM_SSC_SPI) */
 
 /*
  *	NOTE: To use the Atmel AT45DB321D serial flash for booting,

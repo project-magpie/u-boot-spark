@@ -214,7 +214,7 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-//#define CONFIG_SH_STB7100_USB
+#define CONFIG_SH_STB7100_USB
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
@@ -375,7 +375,7 @@
 #if 1
 #	define CONFIG_SOFT_SPI			/* Use S/W "bit-banging" PIO (not the SSC) */
 #else
-#	undef CONFIG_SOFT_SPI			/* Use H/W SSC (not S/W "bit-banging" PIO) */
+#	define CONFIG_STM_SSC_SPI		/* Use H/W SSC (not S/W "bit-banging" PIO) */
 #endif
 
 #if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
@@ -383,7 +383,7 @@
 #	define SPI_SDA(val)	do { fli7510_spi_sda((val)); } while (0)
 #	define SPI_DELAY	do { udelay(1); } while (0)	/* QQQ: only 500 kHz ??? */
 #	define SPI_READ		fli7510_spi_read()
-#else
+#elif defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 #	define CFG_STM_SPI_SSC_BASE	0xfdb44000		/* SSC #4 */
 #	define CFG_STM_SPI_FREQUENCY	(7*1000*1000)		/* 7.14 MHz */
 #endif	/* CONFIG_SOFT_SPI */

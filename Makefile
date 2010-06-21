@@ -2700,6 +2700,25 @@ mb442se_30_128_config : 	unconfig
 	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/st/mb442/config.tmp)
 	@$(MKCONFIG) -a mb442 sh sh mb442 st stb7100
 
+hmp7100_config \
+hmp7100_128_config \
+hmp7100se_config \
+hmp7100se_128_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/hmp7100
+	@echo "#define CONFIG_SH_STB7100     1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_HMP7100     1" >>$(obj)include/config.h
+	$(if $(findstring 128,$@), \
+	@echo "#define CONFIG_SH_HMP7100_128 1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE     1" >>$(obj)include/config.h)
+	$(if $(findstring se_config,$@), \
+	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/st/hmp7100/config.tmp)
+	$(if $(findstring se_128,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hmp7100/config.tmp)
+	$(if $(findstring 7100_128,$@), \
+	@echo "TEXT_BASE = 0x8BF00000" >$(obj)board/st/hmp7100/config.tmp)
+	@$(MKCONFIG) -a hmp7100 sh sh hmp7100 st stb7100
+
 mb448_config :		unconfig
 	@mkdir -p $(obj)include
 	@echo "#define CONFIG_SH_STB7100   1" >>$(obj)include/config.h
@@ -2708,11 +2727,13 @@ mb448_config :		unconfig
 
 hms1_config \
 hms1_128_config :		unconfig
-	@mkdir -p $(obj)include
+	@mkdir -p $(obj)include $(obj)board/st/hms1
 	@echo "#define CONFIG_SH_STB7100   1" >>$(obj)include/config.h
 	@echo "#define CONFIG_SH_HMS1      1" >>$(obj)include/config.h
 	$(if $(findstring 128,$@), \
 	@echo "#define CONFIG_SH_HMS1_128  1" >>$(obj)include/config.h)
+	$(if $(findstring 128,$@), \
+	@echo "TEXT_BASE = 0x8BF00000" >$(obj)board/st/hms1/config.tmp)
 	@$(MKCONFIG) -a hms1 sh sh hms1 st stb7100
 
 mb519_config \
@@ -2874,6 +2895,40 @@ fldbse_config :		unconfig
 	@echo "#define CONFIG_SH_FLDB      1" >>$(obj)include/config.h
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h
 	@$(MKCONFIG) -a fldb sh sh fldb st fli7510
+
+fudbse_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/fudb
+	@echo "#define CONFIG_SH_FLI7540   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_FUDB      1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h
+	@$(MKCONFIG) -a fudb sh sh fudb st fli7540
+
+# QQQ following should have "TEXT_BASE = 0x8FF00000" for SE mode.
+# QQQ However, the current TargetPacks only define the PMB
+# QQQ for the first 128MiB region of RAM.
+# QQQ Hence, we need the targetpacks to be updated first!
+mb796_config \
+mb796se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/mb796
+	@echo "#define CONFIG_SH_STX5206   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_MB796     1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb796/config.tmp)
+	@$(MKCONFIG) -a mb796 sh sh mb796 st stx5206
+
+
+hdk5289_config \
+hdk5289se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/hdk5289
+	@echo "#define CONFIG_SH_STX5206   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_HDK5289   1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk5289/config.tmp)
+	@$(MKCONFIG) -a hdk5289 sh sh hdk5289 st stx5206
 
 
 #========================================================================

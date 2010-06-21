@@ -158,7 +158,7 @@ extern void stx5197_usb_init(void)
  *
  *	input: cs == true, assert CS, else deassert CS
  */
-#if defined(CONFIG_SPI) && !defined(CONFIG_SOFT_SPI)
+#if defined(CONFIG_SPI) && defined(CONFIG_STM_SSC_SPI)
 static void spi_chip_select(const int cs)
 {
 	unsigned long reg;
@@ -193,7 +193,7 @@ spi_chipsel_type spi_chipsel[] =
 	spi_chip_select
 };
 int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
-#endif	/* CONFIG_SPI && !defined(CONFIG_SOFT_SPI) */
+#endif	/* CONFIG_SPI && defined(CONFIG_STM_SSC_SPI) */
 
 
 /**********************************************************************/

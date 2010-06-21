@@ -29,7 +29,7 @@ START	= start.o
 COBJS	= cpu.o interrupts.o usb.o cmd_pmb.o
 COBJS	+= ecc.o stm-nand.o cmd_copybbt.o	# NAND
 COBJS	+= sata-init.o sata-probe.o		# SATA
-COBJS	+= spi.o env_eeprom.o			# SPI
+COBJS	+= spi.o stm_spi_fsm.o env_eeprom.o	# SPI
 SOBJS	=
 
 SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)

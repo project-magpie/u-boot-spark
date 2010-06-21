@@ -121,9 +121,9 @@ static void configEthernet(void)
 #if defined(CONFIG_SPI)
 static void configSpi(void)
 {
-#if !defined(CONFIG_SOFT_SPI)
+#if defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 	unsigned long sysconf;
-#endif	/* CONFIG_SOFT_SPI */
+#endif	/* CONFIG_STM_SSC_SPI */
 
 	/*
 	 * On the PDK-7105 board, the following 4 pairs of PIO
@@ -141,7 +141,7 @@ static void configSpi(void)
 	SET_PIO_PIN(PIO_PORT(2),5,STPIO_IN);	/* COM_CLK */
 	SET_PIO_PIN(PIO_PORT(2),6,STPIO_IN);	/* COM_DOUT */
 	SET_PIO_PIN(PIO_PORT(2),7,STPIO_IN);	/* COM_DIN */
-#else
+#elif defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 	SET_PIO_PIN(PIO_PORT(15),0,STPIO_IN);	/* SPI_CLK */
 	SET_PIO_PIN(PIO_PORT(15),1,STPIO_IN);	/* SPI_DOUT */
 	SET_PIO_PIN(PIO_PORT(15),3,STPIO_IN);	/* SPI_DIN */
@@ -174,7 +174,7 @@ static void configSpi(void)
 	/* drive outputs with sensible initial values */
 	STPIO_SET_PIN(PIO_PORT(15), 0, 1);	/* assert SPI_CLK */
 	STPIO_SET_PIN(PIO_PORT(15), 1, 0);	/* deassert SPI_DOUT */
-#else	/* Configure SPI Serial Flash for the H/W SSC */
+#elif defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 	/* Set PIO2_ALTFOP to AltFunction #3 (SSC) */
 	sysconf = *STX7105_SYSCONF_SYS_CFG21;
 	/* PIO2[5] CFG21[13,5]  AltFunction = 3 */

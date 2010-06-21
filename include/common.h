@@ -663,4 +663,22 @@ void inline show_boot_progress (int val);
 #error Read section CONFIG_SKIP_LOWLEVEL_INIT in README.
 #endif
 
+/*
+ * For instrumenting read/write times (e.g. FLASH):
+ *
+ *	void PRINT_MEASURED_TRANSFER_RATE(bytes, ms);
+ *		bytes = number of bytes transfered
+ *		ms    = elapsed time in ms
+ */
+#if defined(CONFIG_MEASURE_TIME) && !defined(PRINT_MEASURED_TRANSFER_RATE)
+#define PRINT_MEASURED_TRANSFER_RATE(bytes, ms)					\
+do {										\
+    if ((ms) != 0)								\
+	printf("info: %lu bytes (%lu MiB) in %lu.%03lu sec => %lu KiB/sec\n",	\
+		(bytes), (bytes)>>20,						\
+		(ms)/1000, (ms)%1000,						\
+		(((bytes)>>10)*1000)/(ms));					\
+} while (0)
+#endif /* CONFIG_MEASURE_TIME */
+
 #endif	/* __COMMON_H_ */

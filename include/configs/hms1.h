@@ -1,7 +1,8 @@
 /*
- * (C) Copyright 2004 STMicroelectronics.
+ * (C) Copyright 2004,2010 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -42,7 +43,11 @@
  */
 
 #define CFG_SDRAM_BASE		0x84000000      /* SDRAM in P1 region         */
-#define CFG_SDRAM_SIZE		0x08000000
+#if defined(CONFIG_SH_HMS1_128)
+#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB */
+#else
+#define CFG_SDRAM_SIZE		0x04000000	/* 64 MiB */
+#endif	/* CONFIG_SH_HMS1_128 */
 #define CFG_FLASH_BASE		0xA0000000
 #define CFG_RESET_ADDRESS	0xA0000000
 
@@ -53,7 +58,7 @@
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
 
 #define CFG_MEMTEST_START	CFG_SDRAM_BASE
-#define CFG_MEMTEST_END		(CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (2 << 20))
+#define CFG_MEMTEST_END		(CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (3 << 20))
 
 #define CONFIG_BAUDRATE		115200
 #define CFG_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2004-2009
+ * Copyright (C) STMicroelectronics Ltd. 2004-2010
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -31,6 +31,8 @@
 #	include <asm/stb7100reg.h>
 #elif defined(CONFIG_SH_STX5197)
 #	include <asm/stx5197reg.h>
+#elif defined(CONFIG_SH_STX5206)
+#	include <asm/stx5206reg.h>
 #elif defined(CONFIG_SH_STX7105)
 #	include <asm/stx7105reg.h>
 #elif defined(CONFIG_SH_STX7108)
@@ -43,6 +45,8 @@
 #	include <asm/stx7200reg.h>
 #elif defined(CONFIG_SH_FLI7510)
 #	include <asm/fli7510reg.h>
+#elif defined(CONFIG_SH_FLI7540)
+#	include <asm/fli7540reg.h>
 #else
 #	error Missing Device Definitions!
 #endif

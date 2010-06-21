@@ -75,7 +75,34 @@ static struct devrequest setup_packet;
 char usb_started; /* flag for the started/stopped USB status */
 
 /**********************************************************************
- * some forward declerations...
+ * The following macro, if TRUE will slow down the
+ * device enumeration, to allow some devices to be
+ * properly enumerated, by waiting up to 15sec to
+ * allow the device to "settle".
+ * For further details see:
+ * https://bugzilla.stlinux.com/show_bug.cgi?id=8941
+ *
+ * Special thanks to Richard Marsh of Marsh Consulting Limited
+ * for providing the basis of this fix in usb_hub_configure().
+ */
+#if !defined(CFG_USB_DODGY_DEVICES_SUPPORT)
+#	define CFG_USB_DODGY_DEVICES_SUPPORT	1
+#endif	/* CFG_USB_DODGY_DEVICES_SUPPORT */
+
+#if CFG_USB_DODGY_DEVICES_SUPPORT
+#if !defined(CFG_USB_DODGY_DEVICES_INITIAL_DELAY)
+#	define CFG_USB_DODGY_DEVICES_INITIAL_DELAY	500	/* in ms */
+#endif	/* CFG_USB_DODGY_DEVICES_INITIAL_DELAY */
+#if !defined(CFG_USB_DODGY_DEVICES_LOOP_DELAY)
+#	define CFG_USB_DODGY_DEVICES_LOOP_DELAY		100	/* in ms */
+#endif	/* CFG_USB_DODGY_DEVICES_LOOP_DELAY */
+#if !defined(CFG_USB_DODGY_DEVICES_MAX_DELAY)
+#	define CFG_USB_DODGY_DEVICES_MAX_DELAY		15000	/* in ms */
+#endif	/* CFG_USB_DODGY_DEVICES_MAX_DELAY */
+#endif	/* CFG_USB_DODGY_DEVICES_SUPPORT */
+
+/**********************************************************************
+ * some forward declarations...
  */
 void usb_scan_devices(void);
 
@@ -404,7 +431,7 @@ int usb_clear_halt(struct usb_device *dev, int pipe)
 int usb_get_descriptor(struct usb_device *dev, unsigned char type, unsigned char index, void *buf, int size)
 {
 	int res;
- 	res = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
+	res = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
 			USB_REQ_GET_DESCRIPTOR, USB_DIR_IN,
 			(type << 8) + index, 0,
 			buf, size, USB_CNTL_TIMEOUT);
@@ -416,7 +443,7 @@ int usb_get_descriptor(struct usb_device *dev, unsigned char type, unsigned char
  */
 int usb_get_configuration_no(struct usb_device *dev,unsigned char *buffer,int cfgno)
 {
- 	int result;
+	int result;
 	unsigned int tmp;
 	struct usb_config_descriptor *config;
 
@@ -1184,6 +1211,66 @@ int usb_hub_configure(struct usb_device *dev)
 	USB_HUB_PRINTF("%sover-current condition exists\n",
 		(swap_16(hubsts->wHubStatus) & HUB_STATUS_OVERCURRENT) ? "" : "no ");
 	usb_hub_power_on(hub);
+
+#if CFG_USB_DODGY_DEVICES_SUPPORT
+	// Some USB devices take an unknown amount of time before they can be enumerated
+	int t = CFG_USB_DODGY_DEVICES_MAX_DELAY;// this is how long we will wait for
+					// a USB device to become connected (CCS + CSC)
+	int ndevready = 0;		// number of devices connected
+	int ndevin    = 0;		// number of devices detected
+	char devin[USB_MAXCHILDREN];	// array of connected devices
+	char devready[USB_MAXCHILDREN];	// array of devices ready
+	struct usb_port_status portsts;
+	unsigned short portstatus, portchange;
+
+	// Initialize device flags
+	for (i = 0; i < USB_MAXCHILDREN; i++)
+	{
+		devin[i]    = 0;
+		devready[i] = 0;
+	}
+
+	// Initial delay to enable devices to power up (CCS)
+	wait_ms (CFG_USB_DODGY_DEVICES_INITIAL_DELAY);
+
+	// Detect and wait for devices
+	do {
+		// Wait - before looking for USB devices connected and ready to enumerate
+		if (t != CFG_USB_DODGY_DEVICES_MAX_DELAY)
+		{
+			wait_ms (CFG_USB_DODGY_DEVICES_LOOP_DELAY);
+			t -= CFG_USB_DODGY_DEVICES_LOOP_DELAY;
+		}
+		// Check each port in turn
+		for (i = 0; i < dev->maxchild; i++)
+		{
+			if (usb_get_port_status(dev, i + 1, &portsts) < 0)
+			{
+				USB_HUB_PRINTF("get_port_status failed\n");
+			}
+			portstatus = swap_16(portsts.wPortStatus);
+			portchange = swap_16(portsts.wPortChange);
+			// Device connected -> hcRhPortStatus::CCS
+			// (see section 7.4.4 of OpenHCI specification)
+			if ((portchange & USB_PORT_STAT_C_CONNECTION) && (devin[i] == 0))
+			{
+				ndevin++;
+				devin[i] = 1;
+			}
+			// Device connected & ready -> hcRhPortStatus::CSC
+			// (see section 7.4.4 of OpenHCI specification)
+			if ((portstatus & USB_PORT_STAT_CONNECTION) &&
+			   (portchange & USB_PORT_STAT_C_CONNECTION) && (devready[i] == 0))
+			{
+				ndevready++;
+				devready[i] = 1;
+			}
+			USB_HUB_PRINTF ("%d:%x %x\n", i+1, portstatus, portchange);
+		}
+	} while ( (t > 0) && (ndevready < ndevin) );
+	USB_HUB_PRINTF ("A total of %d devices (out of %d) were ready\n", ndevready, ndevin);
+#endif	/* CFG_USB_DODGY_DEVICES_SUPPORT */
+
 	for (i = 0; i < dev->maxchild; i++) {
 		struct usb_port_status portsts;
 		unsigned short portstatus, portchange;

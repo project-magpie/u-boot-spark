@@ -2,7 +2,7 @@
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * (C) Copyright 2009 STMicroelectronics.
+ * (C) Copyright 2009-2010 STMicroelectronics.
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -282,16 +282,20 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 #include "asm/socregs.h"
 
+#if !defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+#define CONFIG_CMD_BDI_DUMP_EMI_BANKS 1
+#endif
+
 int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	DECLARE_GLOBAL_DATA_PTR;
-#if defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+#if CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	#define MAX_EMI_BANKS	6	/* Maximum of 6 EMI Banks */
 	const u32 emi_base = 0xa0000000u;
 	u32 base[MAX_EMI_BANKS+1];	/* Base address for each bank */
 	u32 enabled;			/* number of enabled EMI banks */
 #endif	/* CONFIG_CMD_BDI_DUMP_EMI_BANKS */
-#if defined(CONFIG_CMD_NET) || defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+#if defined(CONFIG_CMD_NET) || CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	unsigned int i;
 #endif
 	bd_t *bd = gd->bd;
@@ -323,6 +327,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #elif defined(CONFIG_SH_STX5197)
 	if (STX5197_DEVICEID_5197(bd->bi_devid))
 		printf ("\nSTx5197 version %ld.x", STX5197_DEVICEID_CUT(bd->bi_devid));
+#elif defined(CONFIG_SH_STX5206)
+	if (STX5206_DEVICEID_5206(bd->bi_devid))
+		printf ("\nSTx5206/STx5289 version %ld.x", STX5206_DEVICEID_CUT(bd->bi_devid));
 #elif defined(CONFIG_SH_STX7105)
 	if (STX7105_DEVICEID_7105(bd->bi_devid))
 		printf ("\nSTx7105 version %ld.x", STX7105_DEVICEID_CUT(bd->bi_devid));
@@ -341,6 +348,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #elif defined(CONFIG_SH_FLI7510)
 	if (FLI7510_DEVICEID_7510(bd->bi_devid))
 		printf ("\nFLI7510 version %ld.x", FLI7510_DEVICEID_CUT(bd->bi_devid));
+#elif defined(CONFIG_SH_FLI7540)
+	if (FLI7540_DEVICEID_7540(bd->bi_devid))
+		printf ("\nFLI7540 version %ld.x", FLI7540_DEVICEID_CUT(bd->bi_devid));
 #else
 #error Missing Device Definitions!
 #endif
@@ -367,7 +377,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	print_mhz ("EMI",		bd->bi_emifrq);
 #endif	/* CONFIG_SH_STB7100 */
 
-#if defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
+#if CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	enabled = *ST40_EMI_BANK_ENABLE;
 	printf("#EMI Banks  = %u\n", enabled);
 	if (enabled > MAX_EMI_BANKS)

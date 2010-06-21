@@ -52,6 +52,7 @@
 
 #if defined(CONFIG_SH_MB411)		|| \
        defined(CONFIG_SH_MB442)		|| \
+       defined(CONFIG_SH_HMP7100)	|| \
        defined(CONFIG_SH_MB448)		|| \
        defined(CONFIG_SH_HMS1)		|| \
        defined(CONFIG_SH_MB519)		|| \
@@ -68,7 +69,10 @@
        defined(CONFIG_SH_CB101)		|| \
        defined(CONFIG_SH_CB102)		|| \
        defined(CONFIG_SH_MB837)		|| \
-       defined(CONFIG_SH_FLI7510)	
+       defined(CONFIG_SH_FLI7510)	|| \
+       defined(CONFIG_SH_FLI7540)	|| \
+       defined(CONFIG_SH_MB796)		|| \
+       defined(CONFIG_SH_HDK5289)
 #  include "asm/io_stb1eval.h"
 #else
 #  error "What system is this?"

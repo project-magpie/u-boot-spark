@@ -311,6 +311,9 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	/* read write */
 	if (strncmp(cmd, "read", 4) == 0 || strncmp(cmd, "write", 5) == 0) {
 		int read;
+#if defined(CONFIG_MEASURE_TIME)
+		ulong duration;			/* measured time in ms */
+#endif	/* CONFIG_MEASURE_TIME */
 
 		if (argc < 4)
 			goto usage;
@@ -333,7 +336,13 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 				opts.length	= size;
 				opts.offset	= off;
 				opts.quiet      = quiet;
+#if defined(CONFIG_MEASURE_TIME)
+				set_timer(0);			/* start measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 				ret = nand_read_opts(nand, &opts);
+#if defined(CONFIG_MEASURE_TIME)
+				duration = get_timer(0);	/* stop measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 			} else {
 				/* write */
 				nand_write_options_t opts;
@@ -345,18 +354,33 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 				opts.pad	= 1;
 				opts.blockalign = 1;
 				opts.quiet      = quiet;
+#if defined(CONFIG_MEASURE_TIME)
+				set_timer(0);			/* start measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 				ret = nand_write_opts(nand, &opts);
+#if defined(CONFIG_MEASURE_TIME)
+				duration = get_timer(0);	/* stop measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 			}
 		} else {
+#if defined(CONFIG_MEASURE_TIME)
+			set_timer(0);				/* start measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 			if (read)
 				ret = nand_read(nand, off, &size, (u_char *)addr);
 			else
 				ret = nand_write(nand, off, &size, (u_char *)addr);
+#if defined(CONFIG_MEASURE_TIME)
+			duration = get_timer(0);		/* stop measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 		}
 
 		printf(" %d bytes %s: %s\n", size,
 		       read ? "read" : "written", ret ? "ERROR" : "OK");
 
+#if defined(CONFIG_MEASURE_TIME)
+		PRINT_MEASURED_TRANSFER_RATE(size, duration);
+#endif	/* CONFIG_MEASURE_TIME */
 		return ret == 0 ? 0 : 1;
 	}
 

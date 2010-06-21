@@ -670,6 +670,10 @@ LIST_sh="		\
 	mb442se_30	\
 	mb442se_27_128	\
 	mb442se_30_128	\
+	hmp7100		\
+	hmp7100_128	\
+	hmp7100se	\
+	hmp7100se_128	\
 	hms1		\
 	hms1_128	\
 	mb519		\
@@ -682,6 +686,10 @@ LIST_sh="		\
 	mb671se		\
 	mb680		\
 	mb680se		\
+	mb796		\
+	mb796se		\
+	hdk5289		\
+	hdk5289se	\
 	pdk7105		\
 	pdk7105se	\
 	ipidtv7105	\
@@ -695,6 +703,7 @@ LIST_sh="		\
 	cb102		\
 	cb102se		\
 	fldbse		\
+	fudbse		\
 	mb628		\
 	mb628se		\
 	eud7141		\

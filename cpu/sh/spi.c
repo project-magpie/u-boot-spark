@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007,2009 STMicroelectronics.
+ * (C) Copyright 2007,2009-2010 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -28,6 +28,8 @@
 #include <asm/io.h>
 #include <spi.h>
 #include <asm/clk.h>
+#include <asm/spi-commands.h>
+#include "stm_spi_fsm.h"
 
 
 /**********************************************************************/
@@ -39,7 +41,27 @@
 /**********************************************************************/
 
 
-#if !defined(CONFIG_SOFT_SPI)			/* Use SSC for SPI */
+/*
+ * Ensure that of the following 3 macros *exactly* one is defined:
+ *	CONFIG_SOFT_SPI		- S/W Bit-Banging
+ *	CONFIG_STM_SSC_SPI	- H/W using STM's SSC
+ *	CONFIG_STM_FSM_SPI	- H/W using STM's FSM SPI Controller
+ */
+#if !defined(CONFIG_SOFT_SPI) && !defined(CONFIG_STM_SSC_SPI) && !defined(CONFIG_STM_FSM_SPI)
+#error One of CONFIG_SOFT_SPI, CONFIG_STM_SSC_SPI or CONFIG_STM_FSM_SPI must be defined!
+#endif
+
+#if (	(defined(CONFIG_SOFT_SPI) && defined(CONFIG_STM_SSC_SPI))		||	\
+	(defined(CONFIG_SOFT_SPI) && defined(CONFIG_STM_FSM_SPI))		||	\
+	(defined(CONFIG_STM_FSM_SPI) && defined(CONFIG_STM_SSC_SPI))	)
+#error No more than one of CONFIG_SOFT_SPI, CONFIG_STM_SSC_SPI or CONFIG_STM_FSM_SPI may be defined!
+#endif
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 /* SSC Baud Rate Generator Register */
 #define SSC_BRG			0x0000
 
@@ -76,6 +98,7 @@
 /* SSC I2C Control Register */
 #define SSC_I2C			0x0018
 
+/* SPI phase/polarity modes */
 #define SPI_CPHA		0x01		/* clock phase */
 #define SPI_CPOL		0x02		/* clock polarity */
 #define SPI_LSB_FIRST		0x08		/* endianness */
@@ -86,7 +109,17 @@
 #define SPI_MODE_2		(SPI_CPOL|0)
 #define SPI_MODE_3		(SPI_CPOL|SPI_CPHA)
 
-#endif	/* CONFIG_SOFT_SPI */
+/* SPI Controller's Base Address */
+#if !defined(CFG_STM_SPI_SSC_BASE)
+#error Please define CFG_STM_SPI_SSC_BASE (e.g. ST40_SSC0_REGS_BASE)
+#endif
+static const unsigned long ssc = CFG_STM_SPI_SSC_BASE;	/* SSC base */
+
+/* SPI Controller Register's Accessors */
+#define ssc_write(offset, value)	writel((value), (ssc)+(offset))
+#define ssc_read(offset)		readl((ssc)+(offset))
+
+#endif	/* CONFIG_STM_SSC_SPI */
 
 
 /**********************************************************************/
@@ -98,103 +131,12 @@
 /**********************************************************************/
 
 
-#if defined(CONFIG_SPI_FLASH_ATMEL)
-/* For Atmel AT45DB321D Serial Flash */
-#define CFG_STM_SPI_MODE	SPI_MODE_3
-#if !defined(CFG_STM_SPI_FREQUENCY)
-#  define CFG_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
-#endif	/* CFG_STM_SPI_FREQUENCY */
-#define CFG_STM_SPI_DEVICE_MASK	0x3cu		/* Mask Bits [5:2] */
-#define CFG_STM_SPI_DEVICE_VAL	0x34u		/* Binary xx1101xx */
-
-#define OP_READ_STATUS		0xd7u		/* Status Register Read */
-#define OP_READ_DEVID		0x9fu		/* Manufacturer & Device ID Read */
-//#define OP_READ_ARRAY		0xe8u		/* Continuous Array Read */
-//#define OP_READ_ARRAY		0x0bu		/* Continuous Array Read */
-#define OP_READ_ARRAY		0x03u		/* Continuous Array Read */
-#define OP_WRITE_VIA_BUFFER1	0x82u		/* Main Memory Page Program via Buffer 1 */
-#define OP_WRITE_VIA_BUFFER2	0x85u		/* Main Memory Page Program via Buffer 2 */
-#define OP_PAGE_TO_BUFFER1	0x53u		/* Main Memory Page to Buffer 1 Transfer */
-#define OP_PAGE_TO_BUFFER2	0x55u		/* Main Memory Page to Buffer 2 Transfer */
-
-#define SR_READY		(1u<<7)		/* Status Register Read/nBusy bit */
-
-#elif defined(CONFIG_SPI_FLASH_ST)	/******************************/
-
-/* For ST M25Pxx Serial Flash */
-#define CFG_STM_SPI_MODE	SPI_MODE_3
-#if !defined(CFG_STM_SPI_FREQUENCY)
-#  define CFG_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
-#endif	/* CFG_STM_SPI_FREQUENCY */
-#define CFG_STM_SPI_DEVICE_MASK	0x60u		/* Mask Bits [6:5] */
-#define CFG_STM_SPI_DEVICE_VAL	0x00u		/* Binary x00xxxxx */
-
-#define OP_READ_STATUS		0x05u		/* Read Status Register */
-#define OP_WRITE_STATUS		0x01u		/* Write Status Register */
-#define OP_READ_DEVID		0x9fu		/* Read ID */
-#define OP_READ_ARRAY		0x03u		/* Read Data Bytes */
-#define OP_WREN			0x06u		/* Write Enable */
-#define OP_SE			0xD8u		/* Sector Erase */
-#define OP_SSE			0x20u		/* Sub-Sector Erase, for M25PXxx */
-#define OP_PP			0x02u		/* Page Program */
-
-#define SR_WIP			(1u<<0)		/* Status Register Write In Progress bit */
-#define SR_BP_MASK		0x1c		/* Block Protect Bits (BP[2:0]) */
-
-#elif defined(CONFIG_SPI_FLASH_MXIC)	/******************************/
-
-/* For Macronix MX25Lxxx Serial Flash */
-#define CFG_STM_SPI_MODE	SPI_MODE_3
-#if !defined(CFG_STM_SPI_FREQUENCY)
-#  define CFG_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
-#endif	/* CFG_STM_SPI_FREQUENCY */
-#define CFG_STM_SPI_DEVICE_MASK	0x00u		/* Mask Bits */
-#define CFG_STM_SPI_DEVICE_VAL	0x00u		/* Binary xxxxxxxx */
-
-#define OP_READ_STATUS		0x05u		/* Read Status Register */
-#define OP_WRITE_STATUS		0x01u		/* Write Status Register */
-#define OP_READ_DEVID		0x9fu		/* Read ID */
-#define OP_READ_ARRAY		0x03u		/* Read Data Bytes */
-#define OP_WREN			0x06u		/* Write Enable */
-#define OP_SE			0x20u		/* Sector Erase */
-#define OP_PP			0x02u		/* Page Program */
-
-#define SR_WIP			(1u<<0)		/* Status Register Write In Progress bit */
-#define SR_BP_MASK		0x3c		/* Block Protect Bits (BP[3:0]) */
-
-#else					/******************************/
-
-#error Please specify which SPI Serial Flash is being used
-
-#endif	/* defined(CONFIG_STM_SPI_xxxxxx) */
-
-
-/**********************************************************************/
-
-
-#if !defined(CONFIG_SOFT_SPI)		/* Use the H/W SSC */
-
-#if !defined(CFG_STM_SPI_SSC_BASE)
-#error Please define CFG_STM_SPI_SSC_BASE (e.g. ST40_SSC0_REGS_BASE)
-#endif
-
-static const unsigned long ssc = CFG_STM_SPI_SSC_BASE;	/* SSC base */
-
-#define ssc_write(offset, value)	writel((value), (ssc)+(offset))
-#define ssc_read(offset)		readl((ssc)+(offset))
-
-#endif	/* CONFIG_SOFT_SPI */
-
-
-/**********************************************************************/
-
-
 static unsigned pageSize;	/* 256, 512 or 528 bytes per page ? */
 static unsigned eraseSize;	/* smallest supported erase size */
 static unsigned deviceSize;	/* Size of the device in Bytes */
 static const char * deviceName;	/* Name of the device */
 
-#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 static unsigned char op_erase = OP_SE;	/* erase command opcode to use */
 #endif
 
@@ -254,6 +196,7 @@ static void hexdump(
  * It is the caller's responsibility to ensure that the
  * chip select (SPI_NOTCS) is correctly asserted.
  */
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 static unsigned int spi_xfer_one_word(const unsigned int out)
 {
 	unsigned int in = 0;
@@ -272,7 +215,7 @@ static unsigned int spi_xfer_one_word(const unsigned int out)
 		in <<= 1;		/* shift */
 		in |= SPI_READ;		/* get next bit from SPI_DIN */
 	}
-#else					/* Use SSC for SPI */
+#elif defined(CONFIG_STM_SSC_SPI)	/* Use the H/W SSC for SPI */
 	/* write out data 'out' */
 	ssc_write(SSC_TBUF, out);
 
@@ -289,6 +232,7 @@ static unsigned int spi_xfer_one_word(const unsigned int out)
 	/* return exchanged data */
 	return in;
 }
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 
 /**********************************************************************/
@@ -307,6 +251,7 @@ static unsigned int spi_xfer_one_word(const unsigned int out)
  *
  *	Note: 'din' may be NULL if caller does not need to see it.
  */
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 extern int spi_xfer(
 	spi_chipsel_type const chipsel,
 	const int bitlen,
@@ -366,6 +311,7 @@ extern int spi_xfer(
 
 	return 0;	/* success */
 }
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 
 /**********************************************************************/
@@ -380,6 +326,10 @@ extern int spi_xfer(
 static unsigned int spi_read_status(
 	spi_chipsel_type const chipsel)
 {
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* return the status byte read */
+	return fsm_read_status();
+#else	/* CONFIG_STM_FSM_SPI */
 	unsigned char data[2] = { OP_READ_STATUS, 0x00 };
 
 	/* issue the Status Register Read command */
@@ -387,6 +337,7 @@ static unsigned int spi_read_status(
 
 	/* return the status byte read */
 	return data[1];
+#endif	/* CONFIG_STM_FSM_SPI */
 }
 
 
@@ -399,13 +350,13 @@ static unsigned int spi_read_status(
  * input:   none
  * returns: none
  */
-static void spi_wait_till_ready(
+extern void spi_wait_till_ready(
 	spi_chipsel_type const chipsel)
 {
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 	while (!(spi_read_status(chipsel) & SR_READY))
 		;	/* do nothing */
-#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 	while (spi_read_status(chipsel) & SR_WIP)
 		;	/* do nothing */
 #else
@@ -445,7 +396,15 @@ static int spi_probe_serial_flash(
 	 * if we get here, then we think we may have a SPI
 	 * device, so now check it is the correct one!
 	 */
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/*
+	 * Note: devid[0] is assumed to the be OP_READ_DEVID.
+	 * Hence, devid[1] needs to be the FIRST JEDEC byte retrieved.
+	 */
+	fsm_read_jedec(sizeof(devid)-1u, &devid[1]);
+#else	/* CONFIG_STM_FSM_SPI */
 	spi_xfer(chipsel, sizeof(devid)*8, devid, devid);
+#endif	/* CONFIG_STM_FSM_SPI */
 
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 
@@ -575,6 +534,48 @@ static int spi_probe_serial_flash(
 		deviceName = "MXIC MX25L12855E";/* 128 Mbit == 16 MiB */
 	}
 
+#elif defined(CONFIG_SPI_FLASH_WINBOND)
+
+	if (
+		(devid[1] != 0xefu)	||	/* Manufacturer ID */
+		(devid[2] != 0x40u)	||	/* Memory Type */
+		(				/* Memory Capacity */
+			(devid[3] != 0x14u) &&	/* W25Q80V */
+			(devid[3] != 0x15u) &&	/* W25Q16V */
+			(devid[3] != 0x16u) &&	/* W25Q32V */
+			(devid[3] != 0x17u) &&	/* W25Q64V */
+			(devid[3] != 0x18u)	/* W25Q128V */
+		)
+	   )
+	{
+		printf("ERROR: Unknown SPI Device detected, devid = 0x%02x, 0x%02x, 0x%02x\n",
+			devid[1], devid[2], devid[3]);
+		return -1;
+	}
+	pageSize   = 256u;
+	eraseSize  = 4u<<10;			/* 4 KiB, 16 pages/sector */
+	deviceSize = 1u<<devid[3];		/* Memory Capacity */
+	if (devid[3] == 0x14u)
+	{
+		deviceName = "Winbond W25Q80V";	/*  8 Mbit == 1 MiB */
+	}
+	else if (devid[3] == 0x15u)
+	{
+		deviceName = "Winbond W25Q16V";	/* 16 Mbit == 2 MiB */
+	}
+	else if (devid[3] == 0x16u)
+	{
+		deviceName = "Winbond W25Q32V";	/* 32 Mbit == 4 MiB */
+	}
+	else if (devid[3] == 0x17u)
+	{
+		deviceName = "Winbond W25Q64V";	/* 64 Mbit == 8 MiB */
+	}
+	else if (devid[3] == 0x18u)
+	{
+		deviceName = "Winbond W25Q128V";/* 128 Mbit == 16 MiB */
+	}
+
 #else
 #error Please specify which SPI Serial Flash is being used
 #endif	/* defined(CONFIG_STM_SPI_xxxxxx) */
@@ -588,7 +589,7 @@ static int spi_probe_serial_flash(
 		eraseSize);		/* in bytes */
 #endif
 
-#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 	/* is the device in a write protected mode ? */
 	if (status & SR_BP_MASK)	/* BPx != 0 ? */
 	{
@@ -626,7 +627,7 @@ static int spi_probe_serial_flash(
 }
 #endif	/* unlock it */
 	}
-#endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_MXIC */
+#endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_MXIC || defined(CONFIG_SPI_FLASH_WINBOND) */
 
 	return 0;
 }
@@ -636,14 +637,24 @@ static int spi_probe_serial_flash(
 
 
 /*
- * initialise the SSC to talk to the slave SPI device.
+ * initialise the H/W to talk to the slave SPI device.
  */
 extern void spi_init(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
+#elif defined(CONFIG_STM_FSM_SPI)
+	spi_chipsel_type const chipsel = NULL;	/* FSM only support one device */
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
-#if !defined(CONFIG_SOFT_SPI)			/* Use SSC for SPI */
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* initialize the H/W FSM SPI Controller. */
+	fsm_init();
+#else	/* CONFIG_STM_FSM_SPI */
+
+#if defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
+	/* initialize the H/W SSC for SPI. */
 	unsigned long reg;
 	const unsigned long bits_per_word = 8;	/* one word == 8-bits */
 	const unsigned long mode = CFG_STM_SPI_MODE /* | SPI_LOOP */;
@@ -658,12 +669,12 @@ extern void spi_init(void)
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;
 #endif	/* CONFIG_SH_STX5197 */
 
-#endif	/* CONFIG_SOFT_SPI */
+#endif	/* CONFIG_STM_SSC_SPI */
 
 	/* de-assert SPI CS */
 	(*chipsel)(0);
 
-#if !defined(CONFIG_SOFT_SPI)			/* Use SSC for SPI */
+#if defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 	/* program the SSC's Baud-Rate Generator */
 	if ((sscbrg < 0x07u) || (sscbrg > (0x1u << 16)))
 	{
@@ -720,7 +731,8 @@ extern void spi_init(void)
 
 	/* clear the status register */
 	(void)ssc_read(SSC_RBUF);
-#endif	/* CONFIG_SOFT_SPI */
+#endif	/* CONFIG_STM_SSC_SPI */
+#endif	/* CONFIG_STM_FSM_SPI */
 
 	/* now probe the serial flash, to ensure it is the correct one */
 	spi_probe_serial_flash(chipsel);
@@ -783,11 +795,13 @@ extern ssize_t spi_read (
 	uchar * const buffer,
 	const int len)
 {
-	int i;
 	const unsigned long start = get_binary_offset(addr,alen);
 	const unsigned long offset = get_dataflash_offset(start);
 	const unsigned long last   = start + len - 1ul;
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
+	int i;
 	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 	if (len < 1) return len;
 	if (last >= deviceSize)	/* Out of range ? */
@@ -796,6 +810,10 @@ extern ssize_t spi_read (
 			deviceSize-1ul);
 		return 0;
 	}
+
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	fsm_read(buffer, len, offset);
+#else	/* CONFIG_STM_FSM_SPI */
 
 	/* assert SPI CS */
 	(*chipsel)(1);
@@ -825,6 +843,7 @@ extern ssize_t spi_read (
 
 	/* de-assert SPI CS */
 	(*chipsel)(0);
+#endif	/* CONFIG_STM_FSM_SPI */
 
 	return len;
 }
@@ -840,6 +859,9 @@ static void my_spi_write(
 	unsigned long len)
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 {
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+#error ATMEL Serial Flash not yet supported with FSM SPI Controller!
+#else	/* CONFIG_STM_FSM_SPI */
 	const unsigned long offset = get_dataflash_offset(address);
 	size_t i;
 
@@ -894,8 +916,9 @@ static void my_spi_write(
 
 	/* now wait until the programming has completed ... */
 	spi_wait_till_ready(chipsel);
+#endif	/* CONFIG_STM_FSM_SPI */
 }
-#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC)
+#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 {
 	const unsigned pages       = eraseSize / pageSize;
 	const unsigned long sector = (address / eraseSize) * eraseSize;
@@ -905,9 +928,10 @@ static void my_spi_write(
 	const uchar * ptr;
 #if defined(CONFIG_SPI_FLASH_ST)
 	unsigned char buff[256<<10];	/* maximum of 256 KiB erase size */
-#elif defined(CONFIG_SPI_FLASH_MXIC)
+#elif defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 	unsigned char buff[4<<10];	/* maximum of 4 KiB erase size */
 #endif
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 	unsigned char enable[1] = { OP_WREN };
 	unsigned char erase[4] = {
 		op_erase,
@@ -915,6 +939,7 @@ static void my_spi_write(
 		(sector>>8)  & 0xffu,
 		(sector>>0)  & 0xffu,
 	};
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 #if 0	/* QQQ - DELETE */
 	printf("%s():\t buffer=0x%08x, len=%-5u  0x%06x..0x%06x\n",
@@ -952,11 +977,16 @@ static void my_spi_write(
 		ptr = buffer;	/* use original buffer */
 	}
 
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* erase ONE sector (using comand op_erase) */
+	fsm_erase_sector(sector, op_erase);
+#else	/* CONFIG_STM_FSM_SPI */
 	/* issue a WRITE ENABLE (WREN) command */
 	spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
 
 	/* issue a Sector Erase command */
 	spi_xfer(chipsel, sizeof(erase)*8, erase, NULL);
+#endif	/* CONFIG_STM_FSM_SPI */
 
 	/* now wait until the erase has completed ... */
 	spi_wait_till_ready(chipsel);
@@ -964,6 +994,11 @@ static void my_spi_write(
 	/* now program each page in turn ... */
 	for (page_base=sector,page=0u; page<pages; page++)
 	{
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* program one page */
+	fsm_write(ptr, pageSize, page_base);
+	ptr += pageSize;
+#else	/* CONFIG_STM_FSM_SPI */
 		/* issue a WRITE ENABLE (WREN) command */
 		spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
 
@@ -986,6 +1021,7 @@ static void my_spi_write(
 
 		/* de-assert SPI CS */
 		(*chipsel)(0);
+#endif	/* CONFIG_STM_FSM_SPI */
 
 		/* now wait until the programming has completed ... */
 		spi_wait_till_ready(chipsel);
@@ -1015,7 +1051,11 @@ extern ssize_t spi_write (
 	const unsigned long byte   = first % eraseSize;
 	      unsigned long ptr    = first;
 	unsigned written = 0;		/* amount written between two dots */
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
+#elif defined(CONFIG_STM_FSM_SPI)
+	spi_chipsel_type const chipsel = NULL;	/* FSM only support one device */
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 	if (len < 1) return len;
 	if (last >= deviceSize)	/* Out of range ? */

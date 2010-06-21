@@ -359,6 +359,10 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	ulong	addr, dest, count;
 	int	size;
+#if defined(CONFIG_MEASURE_TIME)
+	ulong duration;			/* measured time in ms */
+	ulong num_bytes;		/* total number of bytes to copy */
+#endif	/* CONFIG_MEASURE_TIME */
 
 	if (argc != 4) {
 		printf ("Usage:\n%s\n", cmdtp->usage);
@@ -383,6 +387,9 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		return 1;
 	}
 
+#if defined(CONFIG_MEASURE_TIME)
+	num_bytes = count*size;		/* total number of bytes to copy */
+#endif	/* CONFIG_MEASURE_TIME */
 #ifndef CFG_NO_FLASH
 	/* check if we are copying to Flash */
 	if ( (addr2info(dest) != NULL)
@@ -394,12 +401,21 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 		puts ("Copy to Flash\n");
 
+#if defined(CONFIG_MEASURE_TIME)
+		set_timer(0);			/* start measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 		rc = flash_write ((char *)addr, dest, count*size);
+#if defined(CONFIG_MEASURE_TIME)
+		duration = get_timer(0);	/* stop measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 		if (rc != 0) {
 			flash_perror (rc);
 			return (1);
 		}
 		puts (" done\n");
+#if defined(CONFIG_MEASURE_TIME)
+		PRINT_MEASURED_TRANSFER_RATE(num_bytes, duration);
+#endif	/* CONFIG_MEASURE_TIME */
 		return 0;
 	}
 #endif
@@ -478,6 +494,9 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 #endif
 
+#if defined(CONFIG_MEASURE_TIME)
+	set_timer(0);			/* start measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 	while (count-- > 0) {
 		if (size == 4)
 			*((ulong  *)dest) = *((ulong  *)addr);
@@ -488,6 +507,10 @@ int do_mem_cp ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		addr += size;
 		dest += size;
 	}
+#if defined(CONFIG_MEASURE_TIME)
+	duration = get_timer(0);	/* stop measuring */
+	PRINT_MEASURED_TRANSFER_RATE(num_bytes, duration);
+#endif	/* CONFIG_MEASURE_TIME */
 	return 0;
 }
 

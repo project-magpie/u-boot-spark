@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009 STMicroelectronics Limited
+ * Copyright (C) 2007-2010 STMicroelectronics Limited
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -40,6 +40,8 @@ extern int usb_cpu_init(void)
 	stb7100_usb_init();
 #elif defined(CONFIG_SH_STX5197)
 	stx5197_usb_init();
+#elif defined(CONFIG_SH_STX5206)
+	stx5206_usb_init();
 #elif defined(CONFIG_SH_STX7105)
 #ifdef CONFIG_SH_STX_STX7105_USB_PORT0
 	stx7105_usb_init(0,
@@ -58,7 +60,13 @@ extern int usb_cpu_init(void)
 #elif defined(CONFIG_SH_STX7200)
 	stx7200_usb_init();
 #elif defined(CONFIG_SH_FLI7510)
-	fli7105_usb_init (fli7510_usb_ovrcur_active_low);
+	fli7510_usb_init (fli7510_usb_ovrcur_active_low);
+#elif defined(CONFIG_SH_FLI7540)
+#if CFG_USB_BASE == CFG_USB_A_BASE	/* USB #1 */
+	fli7540_usb_init (0, fli7540_usb_ovrcur_active_low);
+#elif CFG_USB_BASE == CFG_USB_C_BASE	/* USB #2 */
+	fli7540_usb_init (1, fli7540_usb_ovrcur_active_low);
+#endif	/* CFG_USB_BASE ... */
 #else
 #error Missing Device Definitions!
 #endif

@@ -498,11 +498,17 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 static int stmac_miiphy_read (char *devname, unsigned char addr, unsigned char reg, unsigned short *value)
 {
 	*value = stmac_mii_read (addr, reg);
+#if 0
+	printf("QQQ: %s(addr=%u, reg=%u) --> value=0x%04x)\n", __FUNCTION__, addr, reg, *value);
+#endif
 	return 0;
 }
 
 static int stmac_miiphy_write (char *devname, unsigned char addr, unsigned char reg, unsigned short value)
 {
+#if 0
+	printf("QQQ: %s(addr=%u, reg=%u, value=0x%04x)\n", __FUNCTION__, addr, reg, value);
+#endif
 	stmac_mii_write (addr, reg, value);
 	return 0;
 }
