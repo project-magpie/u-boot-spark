@@ -50,7 +50,7 @@ int arch_cpu_init(void)
 #endif
 
 #if defined(CONFIG_DESIGNWARE_ETH)
-	writel(PHY_IF_GMII | CLK_SEL_OSCI3, &misc_p->gmac_clk_cfg);
+	writel(PHY_IF_GMII | CLK_SEL_PLL2, &misc_p->gmac_clk_cfg);
 	perip1_clk_enb |= GETH_CLKEN;
 #endif
 
