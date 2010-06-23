@@ -40,8 +40,7 @@ static struct fsmc_regs *const fsmc_regs_p =
  * correct 1 bit in 512 bytes
  */
 
-#if defined(CONFIG_SYS_FSMC_NAND_LP)
-static struct nand_ecclayout fsmc_ecc4_layout = {
+static struct nand_ecclayout fsmc_ecc4_lp_layout = {
 	.eccbytes = 104,
 	.eccpos = {  2,   3,   4,   5,   6,   7,   8,
 		9,  10,  11,  12,  13,  14,
@@ -81,7 +80,7 @@ static struct nand_ecclayout fsmc_ecc4_layout = {
  * read ecc bytes consecutive to data bytes. This way is similar to
  * oobfree structure maintained already in u-boot nand driver
  */
-static struct fsmc_eccplace fsmc_eccpl = {
+static struct fsmc_eccplace fsmc_eccpl_lp = {
 	.eccplace = {
 		{.offset = 2, .length = 13},
 		{.offset = 18, .length = 13},
@@ -94,8 +93,7 @@ static struct fsmc_eccplace fsmc_eccpl = {
 	}
 };
 
-#elif defined(CONFIG_SYS_FSMC_NAND_SP)
-static struct nand_ecclayout fsmc_ecc4_layout = {
+static struct nand_ecclayout fsmc_ecc4_sp_layout = {
 	.eccbytes = 13,
 	.eccpos = { 0,  1,  2,  3,  6,  7, 8,
 		9, 10, 11, 12, 13, 14
@@ -105,16 +103,12 @@ static struct nand_ecclayout fsmc_ecc4_layout = {
 	}
 };
 
-static struct fsmc_eccplace fsmc_eccpl = {
+static struct fsmc_eccplace fsmc_eccpl_sp = {
 	.eccplace = {
 		    {.offset = 0, .length = 4},
 		    {.offset = 6, .length = 9}
 		    }
 };
-
-#else
-#error Please define one of CONFIG_SYS_FSMC_NAND_SP or CONFIG_SYS_FSMC_NAND_LP
-#endif
 
 static struct nand_ecclayout fsmc_ecc1_layout = {
 	.eccbytes = 24,
@@ -268,6 +262,7 @@ void fsmc_enable_hwecc(struct mtd_info *mtd, int mode)
 static int fsmc_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
 				 uint8_t *buf, int page)
 {
+	struct fsmc_eccplace *fsmc_eccpl;
 	int i, j, s, stat, eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
 	int eccsteps = chip->ecc.steps;
@@ -283,6 +278,12 @@ static int fsmc_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
 	uint16_t ecc_oob[7];
 	uint8_t *oob = (uint8_t *)&ecc_oob[0];
 
+	/* Differentiate between small and large page ecc place definitions */
+	if (mtd->writesize == 512)
+		fsmc_eccpl = &fsmc_eccpl_sp;
+	else
+		fsmc_eccpl = &fsmc_eccpl_lp;
+
 	for (i = 0, s = 0; s < eccsteps; s++, i += eccbytes, p += eccsize) {
 
 		chip->cmdfunc(mtd, NAND_CMD_READ0, s * eccsize, page);
@@ -290,8 +291,8 @@ static int fsmc_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
 		chip->read_buf(mtd, p, eccsize);
 
 		for (j = 0; j < eccbytes;) {
-			off = fsmc_eccpl.eccplace[group].offset;
-			len = fsmc_eccpl.eccplace[group].length;
+			off = fsmc_eccpl->eccplace[group].offset;
+			len = fsmc_eccpl->eccplace[group].length;
 			group++;
 
 			/*
@@ -320,10 +321,13 @@ static int fsmc_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
 
 int fsmc_nand_init(struct nand_chip *nand)
 {
+	static int chip_nr;
+	struct mtd_info *mtd;
 	u32 peripid2 = readl(&fsmc_regs_p->peripid2);
 
 	fsmc_version = (peripid2 >> FSMC_REVISION_SHFT) &
 		       FSMC_REVISION_MSK;
+
 #if defined(CONFIG_SYS_FSMC_NAND_16BIT)
 	writel(FSMC_DEVWID_16 | FSMC_DEVTYPE_NAND | FSMC_ENABLE | FSMC_WAITON,
 	       &fsmc_regs_p->pc);
@@ -350,12 +354,23 @@ int fsmc_nand_init(struct nand_chip *nand)
 	nand->ecc.hwctl = fsmc_enable_hwecc;
 	nand->cmd_ctrl = fsmc_nand_hwcontrol;
 
+	mtd = &nand_info[chip_nr++];
+	mtd->priv = nand;
+
+	/* Detect NAND chips */
+	if (nand_scan_ident(mtd, 1))
+		return -ENXIO;
+
 	switch (fsmc_version) {
 	case FSMC_VER8:
 		nand->ecc.bytes = 13;
-		nand->ecc.layout = &fsmc_ecc4_layout;
 		nand->ecc.correct = fsmc_correct_data;
 		nand->ecc.read_page = fsmc_read_page_hwecc;
+		if (mtd->writesize == 512)
+			nand->ecc.layout = &fsmc_ecc4_sp_layout;
+		else
+			nand->ecc.layout = &fsmc_ecc4_lp_layout;
+
 		break;
 	default:
 		nand->ecc.bytes = 3;

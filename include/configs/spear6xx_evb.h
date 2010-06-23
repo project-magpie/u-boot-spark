@@ -49,7 +49,6 @@
 						(void *)CONFIG_SYS_SERIAL1 }
 
 /* NAND flash configuration */
-#define CONFIG_SYS_FSMC_NAND_SP			1
 #define CONFIG_SYS_FSMC_NAND_8BIT		1
 #define CONFIG_SYS_NAND_BASE			(0xD2000000)
 

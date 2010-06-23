@@ -146,7 +146,6 @@
 #endif
 
 /* NAND flash configuration */
-#define CONFIG_SYS_FSMC_NAND_SP			1
 #define CONFIG_SYS_FSMC_NAND_8BIT		1
 
 #if defined(CONFIG_SPEAR300)
