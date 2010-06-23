@@ -328,6 +328,8 @@ int fsmc_nand_init(struct nand_chip *nand)
 	fsmc_version = (peripid2 >> FSMC_REVISION_SHFT) &
 		       FSMC_REVISION_MSK;
 
+	writel(readl(&fsmc_regs_p->ctrl) | FSMC_WP, &fsmc_regs_p->ctrl);
+
 #if defined(CONFIG_SYS_FSMC_NAND_16BIT)
 	writel(FSMC_DEVWID_16 | FSMC_DEVTYPE_NAND | FSMC_ENABLE | FSMC_WAITON,
 	       &fsmc_regs_p->pc);

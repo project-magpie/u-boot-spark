@@ -25,7 +25,8 @@
 #define __FSMC_NAND_H__
 
 struct fsmc_regs {
-	u8 reserved_1[0x40];
+	u32 ctrl;			/* 0x00 */
+	u8 reserved_1[0x40 - 0x04];
 	u32 pc;				/* 0x40 */
 	u32 sts;			/* 0x44 */
 	u32 comm;			/* 0x48 */
@@ -44,6 +45,9 @@ struct fsmc_regs {
 	u32 pcellid2;			/* 0xff8 */
 	u32 pcellid3;			/* 0xffc */
 };
+
+/* ctrl register definitions */
+#define FSMC_WP			(1 << 7)
 
 /* pc register definitions */
 #define FSMC_RESET		(1 << 0)
