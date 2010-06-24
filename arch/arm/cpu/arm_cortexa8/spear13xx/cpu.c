@@ -83,19 +83,6 @@ int arch_cpu_init(void)
 	writel(perip1_clk_enb, &misc_p->perip1_clk_enb);
 	writel(perip2_clk_enb, &misc_p->perip2_clk_enb);
 
-	/*
-	 * Limit the A9SM ports as a workaround for avoiding simultanous
-	 * accesses at ICM level.
-	 * A9SM port0 access -> all - (port1 access)
-	 * A9SM port1 access -> 0 - 0x8000000 (128MB) (Half the physical DDR on
-	 * eval board)
-	 */
-	writel(0x0, CONFIG_SPEAR_CORTEXBASE + 0x40);
-	writel(0x8000000, CONFIG_SPEAR_CORTEXBASE + 0x44);
-
-	/* Enable filtering */
-	writel(0x2, CONFIG_SPEAR_CORTEXBASE + 0x00);
-
 #ifdef CONFIG_SPEAR1300_ISSUE_101435
 	{
 		u32	tmp_var;
@@ -128,7 +115,6 @@ int arch_cpu_init(void)
 
 	}
 #endif
-
 	return 0;
 }
 #endif
