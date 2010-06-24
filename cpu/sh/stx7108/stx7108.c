@@ -3,6 +3,7 @@
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
+ * Pawel Moll <pawel.moll@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -30,8 +31,17 @@
 #include <asm/io.h>
 #include <asm/pio.h>
 #include <asm/stbus.h>
+#include <asm/sysconf.h>
 #include <ata.h>
 #include <spi.h>
+
+#undef  BUG_ON
+#define BUG_ON(condition) do { if ((condition)!=0) BUG(); } while(0)
+
+#define ARRAY_SIZE(x)		(sizeof(x) / sizeof((x)[0]))
+
+#define TRUE			1
+#define FALSE			0
 
 
 static void stx7108_clocks(void)
@@ -48,170 +58,557 @@ static void stx7108_clocks(void)
 	bd->bi_emifrq = 100;
 }
 
+
+/*
+ * PIO alternative Function selector
+ */
+static void stx7108_pioalt_select(const int port, const int pin, const int alt)
+{
+	int num;
+	unsigned long sysconf, *sysconfReg;
+
+#if 0
+	printf("%s(port=%d, pin=%d, alt=%d)\n", __func__, port, pin, alt);
+	BUG_ON(pin < 0 || pin > 7);
+	BUG_ON(alt < 0 || alt > 5);
+#endif
+
+	if (alt == 0) BUG();		/* we do *not* handle this case here! */
+
+	switch (port)
+	{
+	case 0 ... 14:
+		num = port;		/* in Bank #2 */
+		sysconfReg = (unsigned long*)STX7108_BANK2_SYSGFG(num);
+		break;
+	case 15 ... 26:
+		num = port - 15;	/* in Bank #4 */
+		sysconfReg = (unsigned long*)STX7108_BANK4_SYSGFG(num);
+		break;
+	default:
+		BUG();
+		return;
+	}
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BITS(sysconf, TRUE, pin*4,(pin*4)+3, alt,alt);
+	writel(sysconf, sysconfReg);
+}
+
+/* Pad configuration */
+
+struct stx7108_pioalt_pad_cfg {
+	int oe:2;
+	int pu:2;
+	int od:2;
+};
+
+static const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_in = {
+	.oe = 0,
+	.pu = 0,
+	.od = 0,
+};
+#define IN (&stx7108_pioalt_pad_in)
+
+static const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_out = {
+	.oe = 1,
+	.pu = 0,
+	.od = 0,
+};
+#define OUT (&stx7108_pioalt_pad_out)
+
+static const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_od = {
+	.oe = 1,
+	.pu = 0,
+	.od = 1,
+};
+#define OD (&stx7108_pioalt_pad_od)
+
+static const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_bidir = {
+	.oe = -1,
+	.pu = 0,
+	.od = 0,
+};
+#define BIDIR (&stx7108_pioalt_pad_bidir)
+
+static void stx7108_pioalt_pad(int port, const int pin,
+		const struct stx7108_pioalt_pad_cfg * const cfg)
+{
+	int num, bit;
+	unsigned long sysconf, *sysconfReg;
+
+#if 0
+	printf("%s(port=%d, pin=%d, oe=%d, pu=%d, od=%d)\n", __func__, port, pin, cfg->oe, cfg->pu, cfg->od);
+	BUG_ON(pin < 0 || pin > 7);
+	BUG_ON(!cfg);
+#endif
+
+	switch (port)
+	{
+	case 0 ... 14:
+		num = 15 + (port / 4);	/* in Bank #2 */
+		sysconfReg = (unsigned long*)STX7108_BANK2_SYSGFG(num);
+		break;
+	case 15 ... 26:
+		port -= 15;
+		num = 12 + (port / 4);	/* in Bank #4 */
+		sysconfReg = (unsigned long*)STX7108_BANK4_SYSGFG(num);
+		break;
+	default:
+		BUG();
+		return;
+	}
+
+	bit = ((port * 8) + pin) % 32;
+
+		/* set the "Output Enable" pad control */
+	if (cfg->oe >= 0)
+	{
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->oe, bit);
+		writel(sysconf, sysconfReg);
+	}
+
+	sysconfReg += 4;	/* skip 4 syscfg registers */
+
+		/* set the "Pull Up" pad control */
+	if (cfg->pu >= 0)
+	{
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->pu, bit);
+		writel(sysconf, sysconfReg);
+	}
+
+	sysconfReg += 4;	/* skip another 4 syscfg registers */
+
+		/* set the "Open Drain Enable" pad control */
+	if (cfg->od >= 0)
+	{
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->od, bit);
+		writel(sysconf, sysconfReg);
+	}
+}
+
+/* PIO retiming setup */
+
+/* Structure aligned to the "STi7108 Generic Retime Padlogic
+ * Application Note" SPEC */
+struct stx7108_pioalt_retime_cfg {
+	int retime:2;
+	int clk1notclk0:2;
+	int clknotdata:2;
+	int double_edge:2;
+	int invertclk:2;
+	int delay_input:2;
+};
+
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 
-#define ETHERNET_INTERFACE_ON	(1ul<<16)
-#define EXT_MDIO		(1ul<<17)
-#define RMII_MODE		(1ul<<18)
-#define PHY_CLK_EXT		(1ul<<19)
-#define MAC_SPEED_SEL           (1ul<<20)
-#define PHY_INTF_SEL_MASK	(0x3ul<<25)
-#define ENMII			(1ul<<27)
-/* Remaining bits define pad functions, default appears to work */
+static void stx7108_pioalt_retime(const int port, const int pin,
+		const struct stx7108_pioalt_retime_cfg * const cfg)
+{
+	int num;
+	unsigned long sysconf, *sysconfReg;
+
+#if 0
+	printf("%s(port=%d, pin=%d, retime=%d, clk1notclk0=%d, "
+			"clknotdata=%d, double_edge=%d, invertclk=%d, "
+			"delay_input=%d)\n", __func__, port, pin,
+			cfg->retime, cfg->clk1notclk0, cfg->clknotdata,
+			cfg->double_edge, cfg->invertclk, cfg->delay_input
+			);
+	BUG_ON(pin < 0 || pin > 7);
+#endif
+
+	switch (port)
+	{
+	case 0 ... 14:
+		switch (port)
+		{
+		case 1:
+			num = 32;
+			break;
+		case 6 ... 14:
+			num = 34 + ((port - 6) * 2);
+			break;
+		default:
+			BUG();
+			return;
+		}
+		sysconfReg = (unsigned long*)STX7108_BANK2_SYSGFG(num);
+		break;
+	case 15 ... 23:
+		num = 48 + ((port - 15) * 2);
+		sysconfReg = (unsigned long*)STX7108_BANK4_SYSGFG(num);
+		break;
+	default:
+		BUG();
+		return;
+	}
+
+	sysconfReg += 0;	/* use retime configuration register #0 */
+
+	if (cfg->clk1notclk0 >= 0)
+	{
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->clk1notclk0, 0 + pin);
+		writel(sysconf, sysconfReg);
+	}
+
+	if (cfg->clknotdata >= 0)
+	{
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->clknotdata, 8 + pin);
+		writel(sysconf, sysconfReg);
+	}
+
+	if (cfg->delay_input >= 0)
+	{
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->delay_input, 16 + pin);
+		writel(sysconf, sysconfReg);
+	}
+
+	if (cfg->double_edge >= 0)
+	{
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->double_edge, 24+ pin);
+		writel(sysconf, sysconfReg);
+	}
+
+	sysconfReg += 1;	/* use retime configuration register #1 */
+
+	if (cfg->invertclk >= 0)
+	{
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->invertclk, 0 + pin);
+		writel(sysconf, sysconfReg);
+	}
+
+	if (cfg->retime >= 0)
+	{
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->retime, 8 + pin);
+		writel(sysconf, sysconfReg);
+	}
+}
+
+struct stx7108_gmac_pin {
+	struct {
+		unsigned char port, pin, alt;
+	} pio[2];
+	enum { BYPASS = 1, CLOCK, PHY_CLOCK, DATA, DGTX } type;
+	const struct stx7108_pioalt_pad_cfg *dir;
+};
+
+static struct stx7108_gmac_pin stx7108_gmac_mii_pins[] = {
+	{ { { 9, 3, 1 }, { 15, 5, 2 } }, PHY_CLOCK, },		/* PHYCLK */
+	{ { { 6, 0, 1 }, { 16, 0, 2 } }, DATA, OUT},		/* TXD[0] */
+	{ { { 6, 1, 1 }, { 16, 1, 2 } }, DATA, OUT },		/* TXD[1] */
+	{ { { 6, 2, 1 }, { 16, 2, 2 } }, DATA, OUT },		/* TXD[2] */
+	{ { { 6, 3, 1 }, { 16, 3, 2 } }, DATA, OUT },		/* TXD[3] */
+	{ { { 7, 0, 1 }, { 17, 1, 2 } }, DATA, OUT },		/* TXER */
+	{ { { 7, 1, 1 }, { 15, 7, 2 } }, DATA, OUT },		/* TXEN */
+	{ { { 7, 2, 1 }, { 17, 0, 2 } }, CLOCK, IN },		/* TXCLK */
+	{ { { 7, 3, 1 }, { 17, 3, 2 } }, BYPASS, IN },		/* COL */
+	{ { { 7, 4, 1 }, { 17, 4, 2 } }, BYPASS, BIDIR },	/* MDIO */
+	{ { { 7, 5, 1 }, { 17, 5, 2 } }, CLOCK, OUT },		/* MDC */
+	{ { { 7, 6, 1 }, { 17, 2, 2 } }, BYPASS, IN },		/* CRS */
+	{ { { 7, 7, 1 }, { 15, 6, 2 } }, BYPASS, IN },		/* MDINT */
+	{ { { 8, 0, 1 }, { 18, 0, 2 } }, DATA, IN },		/* RXD[0] */
+	{ { { 8, 1, 1 }, { 18, 1, 2 } }, DATA, IN },		/* RXD[1] */
+	{ { { 8, 2, 1 }, { 18, 2, 2 } }, DATA, IN },		/* RXD[2] */
+	{ { { 8, 3, 1 }, { 18, 3, 2 } }, DATA, IN },		/* RXD[3] */
+	{ { { 9, 0, 1 }, { 17, 6, 2 } }, DATA, IN },		/* RXDV */
+	{ { { 9, 1, 1 }, { 17, 7, 2 } }, DATA, IN },		/* RX_ER */
+	{ { { 9, 2, 1 }, { 19, 0, 2 } }, CLOCK, IN },		/* RXCLK */
+};
+
+static struct stx7108_gmac_pin stx7108_gmac_gmii_pins[] = {
+	{ { { 9, 3, 1 }, { 15, 5, 2 } }, PHY_CLOCK, },		/* PHYCLK */
+	{ { { 6, 0, 1 }, { 16, 0, 2 } }, DATA, OUT },		/* TXD[0] */
+	{ { { 6, 1, 1 }, { 16, 1, 2 } }, DATA, OUT },		/* TXD[1] */
+	{ { { 6, 2, 1 }, { 16, 2, 2 } }, DATA, OUT },		/* TXD[2] */
+	{ { { 6, 3, 1 }, { 16, 3, 2 } }, DATA, OUT },		/* TXD[3] */
+	{ { { 6, 4, 1 }, { 16, 4, 2 } }, DATA, OUT },		/* TXD[4] */
+	{ { { 6, 5, 1 }, { 16, 5, 2 } }, DATA, OUT },		/* TXD[5] */
+	{ { { 6, 6, 1 }, { 16, 6, 2 } }, DATA, OUT },		/* TXD[6] */
+	{ { { 6, 7, 1 }, { 16, 7, 2 } }, DATA, OUT },		/* TXD[7] */
+	{ { { 7, 0, 1 }, { 17, 1, 2 } }, DATA, OUT },		/* TXER */
+	{ { { 7, 1, 1 }, { 15, 7, 2 } }, DATA, OUT },		/* TXEN */
+	{ { { 7, 2, 1 }, { 17, 0, 2 } }, CLOCK, IN },		/* TXCLK */
+	{ { { 7, 3, 1 }, { 17, 3, 2 } }, BYPASS, IN },		/* COL */
+	{ { { 7, 4, 1 }, { 17, 4, 2 } }, BYPASS, BIDIR },	/* MDIO */
+	{ { { 7, 5, 1 }, { 17, 5, 2 } }, CLOCK, OUT },		/* MDC */
+	{ { { 7, 6, 1 }, { 17, 2, 2 } }, BYPASS, IN },		/* CRS */
+	{ { { 7, 7, 1 }, { 15, 6, 2 } }, BYPASS, IN },		/* MDINT */
+	{ { { 8, 0, 1 }, { 18, 0, 2 } }, DATA, IN }, 		/* RXD[0] */
+	{ { { 8, 1, 1 }, { 18, 1, 2 } }, DATA, IN }, 		/* RXD[1] */
+	{ { { 8, 2, 1 }, { 18, 2, 2 } }, DATA, IN }, 		/* RXD[2] */
+	{ { { 8, 3, 1 }, { 18, 3, 2 } }, DATA, IN }, 		/* RXD[3] */
+	{ { { 8, 4, 1 }, { 18, 4, 2 } }, DATA, IN }, 		/* RXD[4] */
+	{ { { 8, 5, 1 }, { 18, 5, 2 } }, DATA, IN }, 		/* RXD[5] */
+	{ { { 8, 6, 1 }, { 18, 6, 2 } }, DATA, IN }, 		/* RXD[6] */
+	{ { { 8, 7, 1 }, { 18, 7, 2 } }, DATA, IN }, 		/* RXD[7] */
+	{ { { 9, 0, 1 }, { 17, 6, 2 } }, DATA, IN },		/* RXDV */
+	{ { { 9, 1, 1 }, { 17, 7, 2 } }, DATA, IN },		/* RX_ER */
+	{ { { 9, 2, 1 }, { 19, 0, 2 } }, CLOCK, IN  },		/* RXCLK */
+};
+
+static struct stx7108_gmac_pin stx7108_gmac_gmii_gtx_pins[] = {
+	{ { { 9, 3, 3 }, { 15, 5, 4 } }, PHY_CLOCK, },		/* PHYCLK */
+	{ { { 6, 0, 1 }, { 16, 0, 2 } }, DATA, OUT },		/* TXD[0] */
+	{ { { 6, 1, 1 }, { 16, 1, 2 } }, DATA, OUT },		/* TXD[1] */
+	{ { { 6, 2, 1 }, { 16, 2, 2 } }, DATA, OUT },		/* TXD[2] */
+	{ { { 6, 3, 1 }, { 16, 3, 2 } }, DATA, OUT },		/* TXD[3] */
+	{ { { 6, 4, 1 }, { 16, 4, 2 } }, DGTX, OUT },		/* TXD[4] */
+	{ { { 6, 5, 1 }, { 16, 5, 2 } }, DGTX, OUT },		/* TXD[5] */
+	{ { { 6, 6, 1 }, { 16, 6, 2 } }, DGTX, OUT },		/* TXD[6] */
+	{ { { 6, 7, 1 }, { 16, 7, 2 } }, DGTX, OUT },		/* TXD[7] */
+	{ { { 7, 0, 1 }, { 17, 1, 2 } }, DATA, OUT },		/* TXER */
+	{ { { 7, 1, 1 }, { 15, 7, 2 } }, DATA, OUT },		/* TXEN */
+	{ { { 7, 2, 1 }, { 17, 0, 2 } }, CLOCK, IN },		/* TXCLK */
+	{ { { 7, 3, 1 }, { 17, 3, 2 } }, BYPASS, IN },		/* COL */
+	{ { { 7, 4, 1 }, { 17, 4, 2 } }, BYPASS, BIDIR },	/* MDIO */
+	{ { { 7, 5, 1 }, { 17, 5, 2 } }, CLOCK, OUT },		/* MDC */
+	{ { { 7, 6, 1 }, { 17, 2, 2 } }, BYPASS, IN },		/* CRS */
+	{ { { 7, 7, 1 }, { 15, 6, 2 } }, BYPASS, IN },		/* MDINT */
+	{ { { 8, 0, 1 }, { 18, 0, 2 } }, DATA, IN }, 		/* RXD[0] */
+	{ { { 8, 1, 1 }, { 18, 1, 2 } }, DATA, IN }, 		/* RXD[1] */
+	{ { { 8, 2, 1 }, { 18, 2, 2 } }, DATA, IN }, 		/* RXD[2] */
+	{ { { 8, 3, 1 }, { 18, 3, 2 } }, DATA, IN }, 		/* RXD[3] */
+	{ { { 8, 4, 1 }, { 18, 4, 2 } }, DGTX, IN }, 		/* RXD[4] */
+	{ { { 8, 5, 1 }, { 18, 5, 2 } }, DGTX, IN }, 		/* RXD[5] */
+	{ { { 8, 6, 1 }, { 18, 6, 2 } }, DGTX, IN }, 		/* RXD[6] */
+	{ { { 8, 7, 1 }, { 18, 7, 2 } }, DGTX, IN }, 		/* RXD[7] */
+	{ { { 9, 0, 1 }, { 17, 6, 2 } }, DATA, IN },		/* RXDV */
+	{ { { 9, 1, 1 }, { 17, 7, 2 } }, DATA, IN },		/* RX_ER */
+	{ { { 9, 2, 1 }, { 19, 0, 2 } }, CLOCK, IN  },		/* RXCLK */
+};
+
+/* At the time of writing the suggested retime configuration for
+ * MII pads in RMII mode was "BYPASS"... */
+static struct stx7108_gmac_pin stx7108_gmac_rmii_pins[] = {
+	{ { { 9, 3, 2 }, { 15, 5, 3 } }, BYPASS, },		/* PHYCLK */
+	{ { { 6, 0, 1 }, { 16, 0, 2 } }, BYPASS, OUT },		/* TXD[0] */
+	{ { { 6, 1, 1 }, { 16, 1, 2 } }, BYPASS, OUT },		/* TXD[1] */
+	{ { { 7, 0, 1 }, { 17, 1, 2 } }, BYPASS, OUT },		/* TXER */
+	{ { { 7, 1, 1 }, { 15, 7, 2 } }, BYPASS, OUT },		/* TXEN */
+	{ { { 7, 4, 1 }, { 17, 4, 2 } }, BYPASS, BIDIR },	/* MDIO */
+	{ { { 7, 5, 1 }, { 17, 5, 2 } }, BYPASS, OUT },		/* MDC */
+	{ { { 7, 7, 1 }, { 15, 6, 2 } }, BYPASS, IN  },		/* MDINT */
+	{ { { 8, 0, 1 }, { 18, 0, 2 } }, BYPASS, IN  },		/* RXD[0] */
+	{ { { 8, 1, 1 }, { 18, 1, 2 } }, BYPASS, IN  },		/* RXD[1] */
+	{ { { 9, 0, 1 }, { 17, 6, 2 } }, BYPASS, IN  },		/* RXDV */
+	{ { { 9, 1, 1 }, { 17, 7, 2 } }, BYPASS, IN  },		/* RX_ER */
+};
+
+static struct stx7108_gmac_pin stx7108_gmac_reverse_mii_pins[] = {
+	{ { { 9, 3, 1 }, { 15, 5, 2 } }, PHY_CLOCK, },		/* PHYCLK */
+	{ { { 6, 0, 1 }, { 16, 0, 2 } }, DATA, OUT },		/* TXD[-1] */
+	{ { { 6, 1, 1 }, { 16, 1, 2 } }, DATA, OUT },		/* TXD[1] */
+	{ { { 6, 2, 1 }, { 16, 2, 2 } }, DATA, OUT },		/* TXD[2] */
+	{ { { 6, 3, 1 }, { 16, 3, 2 } }, DATA, OUT },		/* TXD[3] */
+	{ { { 7, 0, 1 }, { 17, 1, 2 } }, DATA, OUT },		/* TXER */
+	{ { { 7, 1, 1 }, { 15, 7, 2 } }, DATA, OUT },		/* TXEN */
+	{ { { 7, 2, 1 }, { 17, 0, 2 } }, CLOCK, IN },		/* TXCLK */
+	{ { { 7, 3, 2 }, { 17, 3, 3 } }, BYPASS, OUT },		/* COL */
+	{ { { 7, 4, 1 }, { 17, 4, 2 } }, BYPASS, BIDIR },	/* MDIO */
+	{ { { 7, 5, 2 }, { 17, 5, 3 } }, CLOCK, IN },		/* MDC */
+	{ { { 7, 6, 2 }, { 17, 2, 3 } }, BYPASS, OUT },		/* CRS */
+	{ { { 7, 7, 1 }, { 15, 6, 2 } }, BYPASS, IN },		/* MDINT */
+	{ { { 8, 0, 1 }, { 18, 0, 2 } }, DATA, IN },		/* RXD[0] */
+	{ { { 8, 1, 1 }, { 18, 1, 2 } }, DATA, IN },		/* RXD[1] */
+	{ { { 8, 2, 1 }, { 18, 2, 2 } }, DATA, IN },		/* RXD[2] */
+	{ { { 8, 3, 1 }, { 18, 3, 2 } }, DATA, IN },		/* RXD[3] */
+	{ { { 9, 0, 1 }, { 17, 6, 2 } }, DATA, IN },		/* RXDV */
+	{ { { 9, 1, 1 }, { 17, 7, 2 } }, DATA, IN },		/* RX_ER */
+	{ { { 9, 2, 1 }, { 19, 0, 2 } }, CLOCK, IN },		/* RXCLK */
+};
+
+#define MAC_SPEED_SEL		1	/* [1:1] */
+#define PHY_SEL			2,4	/* [4:2] */
+#define ENMII			5	/* [5:5] */
+
+#define ENABLE_GMAC		0	/* [0:0] */
 
 extern int stmac_default_pbl(void)
 {
-#ifdef QQQ	/* QQQ - DELETE */
-	return 8;
-#endif		/* QQQ - DELETE */
+	return 32;
 }
+
+#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0 */
+#	define STX7108_MII_SYSGFG(x)	(STX7108_BANK2_SYSGFG(x))
+#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1 */
+#	define STX7108_MII_SYSGFG(x)	(STX7108_BANK4_SYSGFG(x))
+#else
+#error Unknown base address for the STM GMAC
+#endif
 
 extern void stmac_set_mac_speed(int speed)
 {
-#ifdef QQQ	/* QQQ - DELETE */
-	unsigned long sysconf = *STX7105_SYSCONF_SYS_CFG07;
+#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0 */
+	unsigned long * const sysconfReg = (void*)STX7108_MII_SYSGFG(27);
+#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1 */
+	unsigned long * const sysconfReg = (void*)STX7108_MII_SYSGFG(23);
+#else
+#error Unknown base address for the STM GMAC
+#endif
+	unsigned long sysconf = *sysconfReg;
 
-	/* MAC_SPEED_SEL = 0|1 */
-	if (speed == 100)
-		sysconf |= MAC_SPEED_SEL;
-	else if (speed == 10)
-		sysconf &= ~MAC_SPEED_SEL;
+	/* MIIx_MAC_SPEED_SEL = 0|1 */
+	SET_SYSCONF_BIT(sysconf, (speed==100), MAC_SPEED_SEL);
 
-	*STX7105_SYSCONF_SYS_CFG07 = sysconf;
-#endif		/* QQQ - DELETE */
+	*sysconfReg = sysconf;
 }
 
 /* ETH MAC pad configuration */
-static void stmac_eth_hw_setup( int reverse_mii, int rmii_mode, int mode,
-				int ext_mdio, int ext_clk, int phy_bus)
+extern void stx7108_configure_ethernet(
+	const int port,
+	const struct stx7108_ethernet_config * const config)
 {
-#ifdef QQQ	/* QQQ - DELETE */
 	unsigned long sysconf;
 
-	sysconf = *STX7105_SYSCONF_SYS_CFG07;
-	/* Ethernet ON */
-	sysconf |= (ETHERNET_INTERFACE_ON);
-	/* MII M-DIO select: 1: miim_dio from external input, 0: from GMAC */
-	if (ext_mdio)
-		sysconf |= (EXT_MDIO);
-	else
-		sysconf &= ~(EXT_MDIO);
-	/* RMII pin multiplexing: 0: MII interface active, 1: RMII interface */
-	/* cut 1: This register was not connected, so only MII available */
-	if (rmii_mode)
-		sysconf |= (RMII_MODE);
-	else
-		sysconf &= ~(RMII_MODE);
-	/*
-	 * PHY EXT CLOCK: 0: provided by STx7105; 1: external
-	 * cut 1: sysconf7[19], however this was not connected, so only
-	 * input supported.
-	 * cut 2: direction now based on PIO direction, so this code removed.
-	 */
-	/* Default GMII/MII selection */
-	sysconf &= ~(PHY_INTF_SEL_MASK);
-	sysconf |= ((mode&3ul)<<25);
-	/* MII mode */
-	if (reverse_mii)
-		sysconf &= ~(ENMII);
-	else
-		sysconf |= (ENMII);
-	*STX7105_SYSCONF_SYS_CFG07 = sysconf;
+	int sc_regnum;
+	struct stx7108_gmac_pin *pins;
+	int pins_num;
+	unsigned char phy_sel, enmii;
+	int i;
 
-	/* Pin configuration... */
+	switch (port) {
+	case 0:
+		sc_regnum = 27;
+		/* ENABLE_GMAC0 */
+		sysconf = *STX7108_MII_SYSGFG(53);
+		SET_SYSCONF_BIT(sysconf, TRUE, ENABLE_GMAC);
+		*STX7108_MII_SYSGFG(53) = sysconf;
+		break;
+	case 1:
+		sc_regnum = 23;
+		/* ENABLE_GMAC1 */
+		sysconf = *STX7108_MII_SYSGFG(67);
+		SET_SYSCONF_BIT(sysconf, TRUE, ENABLE_GMAC);
+		*STX7108_MII_SYSGFG(67) = sysconf;
+		break;
+	default:
+		BUG();
+		return;
+	};
 
-	/* PIO7[4] CFG37[8+4,4] = Alternate1 = MIIRX_DV/MII_EXCRS */
-	/* PIO7[5] CFG37[8+5,5] = Alternate1 = MIIRX_ER/MII_EXCOL */
-	/* PIO7[6] CFG37[8+6,6] = Alternate1 = MIITXD[0] */
-	/* PIO7[7] CFG37[8+7,7] = Alternate1 = MIITXD[1] */
-	sysconf = *STX7105_SYSCONF_SYS_CFG37;
-	sysconf &= ~(0xf0f0ul);	/* Mask=3,3,3,3 */
-	sysconf |=   0x0000ul;	/* OR  =0,0,0,0 */
-	*STX7105_SYSCONF_SYS_CFG37 = sysconf;
-	SET_PIO_PIN(PIO_PORT(7), 4, STPIO_IN);
-	SET_PIO_PIN(PIO_PORT(7), 5, STPIO_IN);
-	SET_PIO_PIN(PIO_PORT(7), 6, STPIO_ALT_OUT);
-	SET_PIO_PIN(PIO_PORT(7), 7, STPIO_ALT_OUT);
+	switch (config->mode) {
+	case stx7108_ethernet_mode_mii:
+		phy_sel = 0;
+		enmii = 1;
+		pins = stx7108_gmac_mii_pins;
+		pins_num = ARRAY_SIZE(stx7108_gmac_mii_pins);
+		break;
+	case stx7108_ethernet_mode_rmii:
+		phy_sel = 4;
+		enmii = 1;
+		pins = stx7108_gmac_rmii_pins;
+		pins_num = ARRAY_SIZE(stx7108_gmac_rmii_pins);
+		break;
+	case stx7108_ethernet_mode_gmii:
+		phy_sel = 0;
+		enmii = 1;
+		pins = stx7108_gmac_gmii_pins;
+		pins_num = ARRAY_SIZE(stx7108_gmac_gmii_pins);
+		break;
+	case stx7108_ethernet_mode_gmii_gtx:
+		phy_sel = 0;
+		enmii = 1;
+		pins = stx7108_gmac_gmii_gtx_pins;
+		pins_num = ARRAY_SIZE(stx7108_gmac_gmii_gtx_pins);
+		break;
+	case stx7108_ethernet_mode_reverse_mii:
+		phy_sel = 0;
+		enmii = 0;
+		pins = stx7108_gmac_reverse_mii_pins;
+		pins_num = ARRAY_SIZE(stx7108_gmac_reverse_mii_pins);
+		break;
+	default:
+		BUG();
+		return;
+	}
 
-	/* PIO8[0] CFG46[8+0,0] = Alternate1 = MIITXD[2] */
-	/* PIO8[1] CFG46[8+1,1] = Alternate1 = MIITXD[3] */
-	/* PIO8[2] CFG46[8+2,2] = Alternate1 = MIITX_EN */
-	/* PIO8[3] CFG46[8+3,3] = Alternate1 = MIIMDIO */
-	/* PIO8[4] CFG46[8+4,4] = Alternate1 = MIIMDC */
-	/* PIO8[5] CFG46[8+5,5] = Alternate1 = MIIRXCLK */
-	/* PIO8[6] CFG46[8+6,6] = Alternate1 = MIIRXD[0] */
-	/* PIO8[7] CFG46[8+7,7] = Alternate1 = MIIRXD[1] */
-	sysconf = *STX7105_SYSCONF_SYS_CFG46;
-	sysconf &= ~(0xfffful);	/* Mask=3,3,3,3,3,3,3,3 */
-	sysconf |=   0x0000ul;	/* OR  =0,0,0,0,0,0,0,0 */
-	*STX7105_SYSCONF_SYS_CFG46 = sysconf;
-	SET_PIO_PIN(PIO_PORT(8), 0, STPIO_ALT_OUT);
-	SET_PIO_PIN(PIO_PORT(8), 1, STPIO_ALT_OUT);
-	SET_PIO_PIN(PIO_PORT(8), 2, STPIO_ALT_OUT);
-	SET_PIO_PIN(PIO_PORT(8), 3, STPIO_ALT_BIDIR);
-	SET_PIO_PIN(PIO_PORT(8), 4, STPIO_ALT_OUT);
-	SET_PIO_PIN(PIO_PORT(8), 5, STPIO_IN);
-	SET_PIO_PIN(PIO_PORT(8), 6, STPIO_IN);
-	SET_PIO_PIN(PIO_PORT(8), 7, STPIO_IN);
+	/* MIIx_PHY_SEL */
+	sysconf = *STX7108_MII_SYSGFG(sc_regnum);
+	SET_SYSCONF_BITS(sysconf, TRUE, 2,4, phy_sel,phy_sel);
+	*STX7108_MII_SYSGFG(sc_regnum) = sysconf;
 
-	/* PIO9[0] CFG47[8+0,0] = Alternate1 = MIIRXD[2] */
-	/* PIO9[1] CFG47[8+1,1] = Alternate1 = MIIRXD[3] */
-	/* PIO9[2] CFG47[8+2,2] = Alternate1 = MIITXCLK */
-	/* PIO9[3] CFG47[8+3,3] = Alternate1 = MIICOL */
-	/* PIO9[4] CFG47[8+4,4] = Alternate1 = MIICRS */
-	/* PIO9[5] CFG47[8+5,5] = Alternate1 = MIIPHYCLK */
-	/* PIO9[6] CFG47[8+6,6] = Alternate1 = MIIMDINT */
-	sysconf = *STX7105_SYSCONF_SYS_CFG47;
-	sysconf &= ~(0x7f7ful);	/* Mask=3,3,3,3,3,3,3 */
-	sysconf |=   0x0000ul;	/* OR  =0,0,0,0,0,0,0 */
-	*STX7105_SYSCONF_SYS_CFG47 = sysconf;
-	SET_PIO_PIN(PIO_PORT(9), 0, STPIO_IN);
-	SET_PIO_PIN(PIO_PORT(9), 1, STPIO_IN);
-	SET_PIO_PIN(PIO_PORT(9), 2, STPIO_IN);
-	SET_PIO_PIN(PIO_PORT(9), 3, STPIO_IN);
-	SET_PIO_PIN(PIO_PORT(9), 4, STPIO_IN);
-	/* MIIPHYCLK */
-	/* Not implemented in cut 1 (DDTS GNBvd69906) - clock never output */
-	/* In cut 2 PIO direction used to control input or output. */
-	if (ext_clk)
-		SET_PIO_PIN(PIO_PORT(9), 5, STPIO_IN);
-	else
-		SET_PIO_PIN(PIO_PORT(9), 5, STPIO_ALT_OUT);
-	SET_PIO_PIN(PIO_PORT(9), 6, STPIO_IN);
-#endif		/* QQQ - DELETE */
+	/* ENMIIx */
+	sysconf = *STX7108_MII_SYSGFG(sc_regnum);
+	SET_SYSCONF_BIT(sysconf, enmii, ENMII);
+	*STX7108_MII_SYSGFG(sc_regnum) = sysconf;
+
+	pins[0].dir = config->ext_clk ? IN : OUT;
+
+	for (i = 0; i < pins_num; i++) {
+		const struct stx7108_gmac_pin *pin = &pins[i];
+		int portno = pin->pio[port].port;
+		int pinno = pin->pio[port].pin;
+		struct stx7108_pioalt_retime_cfg retime_cfg = {
+			-1, -1, -1, -1, -1, -1 /* -1 means "do not set */
+		};
+
+		stx7108_pioalt_select(portno, pinno, pin->pio[port].alt);
+
+		stx7108_pioalt_pad(portno, pinno, pin->dir);
+
+		switch (pin->type) {
+		case BYPASS:
+			retime_cfg.clknotdata = 0;
+			retime_cfg.retime = 0;
+			break;
+		case CLOCK:
+			retime_cfg.clknotdata = 1;
+			retime_cfg.clk1notclk0 = port;
+			break;
+		case PHY_CLOCK:
+			retime_cfg.clknotdata = 1;
+			if (config->mode == stx7108_ethernet_mode_gmii_gtx) {
+				retime_cfg.clk1notclk0 = 1;
+				retime_cfg.double_edge = 0;
+			} else {
+				retime_cfg.clk1notclk0 = 0;
+			}
+			break;
+		case DGTX: /* extra configuration for GMII (GTK CLK) */
+			if (port == 1) {
+				retime_cfg.retime = 1;
+				retime_cfg.clk1notclk0 = 1;
+				retime_cfg.double_edge = 0;
+				retime_cfg.clknotdata = 0;
+			} else {
+				retime_cfg.retime = 1;
+				retime_cfg.clk1notclk0 = 0;
+				retime_cfg.double_edge = 0;
+				retime_cfg.clknotdata = 0;
+			}
+			break;
+		case DATA:
+			retime_cfg.clknotdata = 0;
+			retime_cfg.retime = 1;
+			retime_cfg.clk1notclk0 = port;
+			break;
+		default:
+			BUG();
+			break;
+		}
+		stx7108_pioalt_retime(portno, pinno, &retime_cfg);
+	}
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
-int soc_init(void)
+extern int soc_init(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
 	bd_t *bd = gd->bd;
 
 	stx7108_clocks();
 
-#ifdef QQQ	/* QQQ - DELETE */
-#ifdef CONFIG_DRIVER_NET_STM_GMAC
-#ifdef CONFIG_SYS_STM_GMAC_NOT_EXT_CLK
-	stmac_eth_hw_setup (0, 0, 0, 0, 0, 0);
-#else
-	stmac_eth_hw_setup (0, 0, 0, 0, 1, 0);
-#endif
-#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
-#endif		/* QQQ - DELETE */
-
 	bd->bi_devid = *STX7108_SYSCONF_DEVICEID_0;
-
-	/*
-	 * Make sure the reset period is shorter than WDT time-out,
-	 * and that the reset loop-back chain is *not* bypassed.
-	 *	SYS_CFG09[29]    = long_reset_mode
-	 *	SYS_CFG09[28:27] = cpu_rst_out_bypass(1:0)
-	 *	SYS_CFG09[25:0]  = ResetOut_period
-	 */
-#ifdef QQQ	/* QQQ - DELETE */
-//QQQ	*STX7105_SYSCONF_SYS_CFG09 = (*STX7105_SYSCONF_SYS_CFG09 & 0xF7000000) | 0x000A8C;
-	*STX7105_SYSCONF_SYS_CFG09 = (*STX7105_SYSCONF_SYS_CFG09 & 0xF4000000ul) | 0x000A8Cul;
-#endif		/* QQQ - DELETE */
 
 	return 0;
 }

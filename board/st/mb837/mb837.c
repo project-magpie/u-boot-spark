@@ -30,6 +30,29 @@
 #include <asm/pio.h>
 
 
+	/*
+	 * WARNING!  WARNING!  WARNING!  WARNING!  WARNING!
+	 * ------------------------------------------------
+	 *
+	 * The ethernet PHYs may be reset by one of two mechanisms:
+	 *
+	 *	a) the EPLD on the MB705 peripheral board
+	 *
+	 *	b) via the PCF8575 (IC12) PIO Extender.
+	 *
+	 * This code does *not* (currently) make any attempt to
+	 * reset the PHYs, but relies on the MB705 to reset the
+	 * PHYs on power-on, which (thus far) demonstrably works well!
+	 *
+	 * If an MB705 is *not* connected, then additional work
+	 * is required, including fitting J14-A, and J14-B.
+	 * We currently just issue a diagnostic to warn about this ...
+	 */
+#if !defined(CONFIG_SH_MB705)
+#warning Ethernet PHYs not reset without a MB705 present!
+#endif
+
+
 #if defined(CONFIG_SH_MB705)
 	/*
 	 * More recent EPLD versions have the EPLD in EMI space,
@@ -123,30 +146,10 @@ void flashWriteDisable(void)
 #endif	/* CONFIG_SH_MB705 */
 }
 
-#ifdef QQQ	/* QQQ - DELETE */
-#ifdef CONFIG_STMAC_LAN8700
-static void phy_reset(void)
-{
-	/* Reset the SMSC LAN8700 PHY */
-	STPIO_SET_PIN(PIO_PORT(5), 5, 1);
-	STPIO_SET_PIN(PIO_PORT(11), 2, 1);
-	udelay(1);
-	STPIO_SET_PIN(PIO_PORT(5), 5, 0);
-	udelay(100);
-	STPIO_SET_PIN(PIO_PORT(5), 5, 1);
-	udelay(1);
-	STPIO_SET_PIN(PIO_PORT(11), 2, 0);
-}
-#endif	/* CONFIG_STMAC_LAN8700 */
-#endif		/* QQQ - DELETE */
-
 
 static void configPIO(void)
 {
 	unsigned long sysconf;
-
-/* QQQ move the following somewhere better! */
-#define STX7108_BANK2_SYSGFG(x)	SH4_DWORD_REG(STX7108_SYSCONF_BANK2_BASE + (x)*0x4)
 
 	/* Setup PIOs for ASC device */
 
@@ -192,32 +195,33 @@ static void configPIO(void)
 #else	/* CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE */
 #error Unknown ASC port selected!
 #endif	/* CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE */
-
-#ifdef QQQ	/* QQQ - DELETE */
-#ifdef CONFIG_STMAC_LAN8700
-	/* Configure SMSC LAN8700 PHY Reset signals */
-	SET_PIO_PIN(PIO_PORT(5), 5, STPIO_OUT);
-	SET_PIO_PIN(PIO_PORT(11), 2, STPIO_OUT);
-#endif	/* CONFIG_STMAC_LAN8700 */
-#endif		/* QQQ - DELETE */
 }
 
 extern int board_init(void)
 {
 	configPIO();
 
-	/* Reset the PHY */
-#ifdef QQQ	/* QQQ - DELETE */
-#ifdef CONFIG_STMAC_LAN8700
-	phy_reset();
-#endif	/* CONFIG_STMAC_LAN8700 */
-#endif		/* QQQ - DELETE */
-
 #ifdef QQQ	/* QQQ - DELETE */
 #if defined(CONFIG_SH_STM_SATA)
 	stx7105_configure_sata ();
 #endif	/* CONFIG_SH_STM_SATA */
 #endif		/* QQQ - DELETE */
+
+#ifdef CONFIG_DRIVER_NET_STM_GMAC	
+#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0, on CN18 */
+	stx7108_configure_ethernet(0, &(struct stx7108_ethernet_config) {
+			.mode = stx7108_ethernet_mode_mii,
+			.ext_clk = 1,
+			.phy_bus = 0, });
+#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1, on CN19 */
+	stx7108_configure_ethernet(1, &(struct stx7108_ethernet_config) {
+			.mode = stx7108_ethernet_mode_mii,
+			.ext_clk = 1,
+			.phy_bus = 1, });
+#else
+#error Unknown base address for the STM GMAC
+#endif
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 	return 0;
 }
@@ -238,20 +242,6 @@ int checkboard (void)
 	 */
 	mb705_init_epld();
 #endif	/* CONFIG_SH_MB705 */
-
-#if 0	/* QQQ - DELETE */
-{
-const unsigned long nand_reg = *ST40_EMI_NAND_VERSION_REG;
-const unsigned long epld_reg = epld_read(EPLD_SWITCH);
-	printf ("*ST40_EMI_NAND_VERSION_REG = %u.%u.%u\n",
-		(nand_reg>>8)&0x0ful,
-		(nand_reg>>4)&0x0ful,
-		(nand_reg>>0)&0x0ful);
-	printf("*EPLD_SWITCH = 0x%08x  -->  boot-from-%s\n",
-		epld_reg,
-		(epld_reg & (1ul<<8)) ? "NAND" : "NOR");
-}
-#endif	/* QQQ - DELETE */
 
 	return 0;
 }
