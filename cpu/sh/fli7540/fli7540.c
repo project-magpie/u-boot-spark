@@ -30,39 +30,12 @@
 #include <asm/io.h>
 #include <asm/pio.h>
 #include <asm/stbus.h>
+#include <asm/sysconf.h>
 #include <ata.h>
 #include <spi.h>
 
 
 #define ARRAY_SIZE(x)		(sizeof(x) / sizeof((x)[0]))
-
-#define SET_SYSCONF_BIT(reg,flag,bit)			\
-	do {						\
-		if (flag)				\
-		{	/* set bit 'bit' */		\
-			reg |= (1ul<<(bit));		\
-		}					\
-		else					\
-		{	/* clear bit 'bit' */		\
-			reg &= ~(1ul<<(bit));		\
-		}					\
-	} while (0)
-
-#define SET_SYSCONF_BITS(reg,flag,first,last,yes,no)	\
-	do {						\
-		const unsigned long _mask = 		\
-			(1ul<<((last)-(first)+1))-1ul;	\
-		/* clear all bits in 'first':'last' */	\
-		reg &= ~(_mask<<(first));		\
-		if (flag)				\
-		{	/* set 'yes' in first:last */	\
-			reg |= ((yes)<<(first));	\
-		}					\
-		else					\
-		{	/* set 'no' in first:last */	\
-			reg |= ((no)<<(first));		\
-		}					\
-	} while (0)
 
 
 #define USB_XTAL_VALID		1	/* CFG_SPARE_1[1]            = USB_xtal_valid */
