@@ -174,7 +174,7 @@
 
 #define CONFIG_ENV_OFFSET			0x60000
 #define CONFIG_ENV_RANGE			0x10000
-#define CONFIG_FSMTDBLK				"/dev/mtdblock8 "
+#define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
 
 #define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
 						"0x80000 0x4C0000; " \
