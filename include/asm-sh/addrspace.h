@@ -70,8 +70,23 @@
 #define P2SEGADDR(a)	(((unsigned long)(a)&CFG_SE_SDRAM_WINDOW)|CFG_SE_UNACHED_BASE)
 	/*
 	 *	Convert VIRTUAL address to a PHYSICAL one.
+	 *	Our normal convention is that SDRAM is mapped in PMB virtual
+	 *	space between 0x80000000..0x9fffffff. Hence, we wish to map virtual
+	 *	addresses in this range to the appropriate physical address in
+	 *	SDRAM, which we assume is determined by the SDRAM window + base.
+	 *	For *all* other addresses, we assume they are *not* in SDRAM,
+	 *	and hence, we do not map them at all!
+	 *	Note: to do this 'properly', then we would need to loop round
+	 *	all the PMB slots to decode each PMB slot, and the match on the
+	 *	correct one. In practice, the above should suffice!
 	 */
-#define PHYSADDR(a)	(((unsigned long)(a)&CFG_SE_SDRAM_WINDOW)|CFG_SE_PHYSICAL_BASE)
+#define PHYSADDR(a)								\
+(										\
+	/* SDRAM is 0x80 to 0x9F, just check the top 3 bits */			\
+	(((unsigned long)(a)&0xE0000000ul)==0x80000000ul)		?	\
+	(((unsigned long)(a)&CFG_SE_SDRAM_WINDOW)|CFG_SE_PHYSICAL_BASE)	:	\
+	((unsigned long)(a))							\
+)
 #endif	/* CONFIG_SH_SE_MODE */
 
 #endif /* __ASM_SH_ADDRSPACE_H */

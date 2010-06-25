@@ -392,6 +392,14 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			return 1;	/* unable to proceed */
 		}
 
+#if 0
+		printf ("info: Cload = 0x%8x<n\n", PHYSADDR(Cload));
+		printf ("info: Cend  = 0x%8x<n\n", PHYSADDR(Cend) );
+		printf ("info: Uload = 0x%8x<n\n", PHYSADDR(Uload));
+		printf ("info: Uend  = 0x%8x<n\n", PHYSADDR(Uend) );
+		printf ("info: Cload > Uend = %d\n", PHYSADDR(Cload) > PHYSADDR(Uend) );
+		printf ("info: Uload > Cend = %d\n", PHYSADDR(Uload) > PHYSADDR(Cend) );
+#endif
 		/* assert ( (Cload > Uend) || (Uload > Cend) ); */
 		if ( !((PHYSADDR(Cload) > PHYSADDR(Uend)) || (PHYSADDR(Uload) > PHYSADDR(Cend))) )
 		{
