@@ -147,54 +147,36 @@ void flashWriteDisable(void)
 }
 
 
+#define PIOALT(port, pin, alt, dir)			\
+do							\
+{							\
+	stx7108_pioalt_select((port), (pin), (alt));	\
+	stx7108_pioalt_pad((port), (pin), (dir));	\
+} while(0)
+
 static void configPIO(void)
 {
-	unsigned long sysconf;
-
 	/* Setup PIOs for ASC device */
 
 #if CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE
-	/* Route UART2 via PIO14 for TX, RX, CTS & RTS */
-	sysconf = *STX7108_BANK2_SYSGFG(14);
-	/* PIO14[4] CFG14[17,16] AltFunction = 1 = UART2-TX */
-	/* PIO14[5] CFG14[21,20] AltFunction = 1 = UART2-RX */
-	/* PIO14[6] CFG14[25,24] AltFunction = 1 = UART2-RTS */
-	/* PIO14[7] CFG14[28,28] AltFunction = 1 = UART2-CTS */
-	sysconf &= ~0x13330000ul;	/* 1,3,3,3,0,0,0,0 */
-	sysconf |=  0x11110000ul;	/* 1,1,1,1,0,0,0,0 */
-	*STX7108_BANK2_SYSGFG(14)= sysconf;
 
-	sysconf = *STX7108_BANK2_SYSGFG(18);
-	/* PIO14[4] CFG18[20]=1 Output Enable for UART2-TX */
-	/* PIO14[5] CFG18[21]=0 Output Enable for UART2-RX */
-	/* PIO14[6] CFG18[22]=1 Output Enable for UART2-RTS */
-	/* PIO14[7] CFG18[23]=0 Output Enable for UART2-CTS */
-	sysconf &= ~( 1ul<<23 | 1ul<<22 | 1ul<<21 | 1ul<<20 );
-	sysconf |=  ( 0ul<<23 | 1ul<<22 | 0ul<<21 | 1ul<<20 );
-	*STX7108_BANK2_SYSGFG(18) = sysconf;
+	/* Route UART2 via PIO14 for TX, RX, CTS & RTS (Alternative #1) */
+	PIOALT(14, 4, 1, &stx7108_pioalt_pad_out);	/* UART2-TX */
+	PIOALT(14, 5, 1, &stx7108_pioalt_pad_in);	/* UART2-RX */
+	PIOALT(14, 6, 1, &stx7108_pioalt_pad_out);	/* UART2-RTS */
+	PIOALT(14, 7, 1, &stx7108_pioalt_pad_in);	/* UART2-CTS */
 
-	sysconf = *STX7108_BANK2_SYSGFG(22);
-	/* PIO14[4] CFG22[20]=0 Pull Up Pad for UART2-TX */
-	/* PIO14[5] CFG22[21]=0 Pull Up Pad for UART2-RX */
-	/* PIO14[6] CFG22[22]=0 Pull Up Pad for UART2-RTS */
-	/* PIO14[7] CFG22[23]=0 Pull Up Pad for UART2-CTS */
-	sysconf &= ~( 1ul<<23 | 1ul<<22 | 1ul<<21 | 1ul<<20 );
-	*STX7108_BANK2_SYSGFG(22) = sysconf;
+#elif CFG_STM_ASC_BASE == ST40_ASC3_REGS_BASE
 
-	sysconf = *STX7108_BANK2_SYSGFG(26);
-	/* PIO14[4] CFG26[20]=0 Open Drain pad for UART2-TX */
-	/* PIO14[5] CFG26[21]=0 Open Drain pad for UART2-RX */
-	/* PIO14[6] CFG26[22]=0 Open Drain pad for UART2-RTS */
-	/* PIO14[7] CFG26[23]=0 Open Drain pad for UART2-CTS */
-	sysconf &= ~( 1ul<<23 | 1ul<<22 | 1ul<<21 | 1ul<<20 );
-	*STX7108_BANK2_SYSGFG(26) = sysconf;
-#elif CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE
+	/* Route UART3 via PIO21 for TX, RX, CTS & RTS (Alternative #2) */
+	PIOALT(21, 0, 2, &stx7108_pioalt_pad_out);	/* UART3-TX */
+	PIOALT(21, 1, 2, &stx7108_pioalt_pad_in);	/* UART3-RX */
+	PIOALT(21, 3, 2, &stx7108_pioalt_pad_out);	/* UART3-RTS */
+	PIOALT(21, 4, 2, &stx7108_pioalt_pad_in);	/* UART3-CTS */
 
-#error QQQ - TO DO!
-
-#else	/* CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE */
+#else
 #error Unknown ASC port selected!
-#endif	/* CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE */
+#endif	/* CFG_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
 }
 
 extern int board_init(void)

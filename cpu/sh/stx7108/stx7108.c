@@ -62,7 +62,7 @@ static void stx7108_clocks(void)
 /*
  * PIO alternative Function selector
  */
-static void stx7108_pioalt_select(const int port, const int pin, const int alt)
+extern void stx7108_pioalt_select(const int port, const int pin, const int alt)
 {
 	int num;
 	unsigned long sysconf, *sysconfReg;
@@ -97,41 +97,35 @@ static void stx7108_pioalt_select(const int port, const int pin, const int alt)
 
 /* Pad configuration */
 
-struct stx7108_pioalt_pad_cfg {
-	int oe:2;
-	int pu:2;
-	int od:2;
-};
-
-static const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_in = {
+const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_in = {
 	.oe = 0,
 	.pu = 0,
 	.od = 0,
 };
 #define IN (&stx7108_pioalt_pad_in)
 
-static const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_out = {
+const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_out = {
 	.oe = 1,
 	.pu = 0,
 	.od = 0,
 };
 #define OUT (&stx7108_pioalt_pad_out)
 
-static const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_od = {
+const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_od = {
 	.oe = 1,
 	.pu = 0,
 	.od = 1,
 };
 #define OD (&stx7108_pioalt_pad_od)
 
-static const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_bidir = {
+const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_bidir = {
 	.oe = -1,
 	.pu = 0,
 	.od = 0,
 };
 #define BIDIR (&stx7108_pioalt_pad_bidir)
 
-static void stx7108_pioalt_pad(int port, const int pin,
+void stx7108_pioalt_pad(int port, const int pin,
 		const struct stx7108_pioalt_pad_cfg * const cfg)
 {
 	int num, bit;
