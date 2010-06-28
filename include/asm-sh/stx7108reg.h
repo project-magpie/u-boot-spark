@@ -177,6 +177,20 @@
 #define ST40_PIO26_REGS_BASE	0xfe721000
 #endif
 
+#define ST40_PIO_BASE(x)					\
+	(							\
+		((x) < 10)					\
+		? (ST40_PIO0_REGS_BASE +(0x1000*(x)))		\
+		:						\
+		((x) < 15)					\
+		? (ST40_PIO10_REGS_BASE+(0x1000*((x)-10)))	\
+		:						\
+		((x) < 25)					\
+		? (ST40_PIO15_REGS_BASE+(0x1000*((x)-15)))	\
+		:						\
+		(ST40_PIO25_REGS_BASE+(0x1000*((x)-25)))	\
+	)
+
 /*----------------------------------------------------------------------------*/
 
 /* STx7108 System Configuration "accessors" */

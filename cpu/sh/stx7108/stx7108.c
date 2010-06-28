@@ -705,8 +705,121 @@ extern void stx7108_configure_sata(void)
 #endif	/* CONFIG_SH_STM_SATA */
 
 
-#if defined(CONFIG_SPI)
+#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C)
+struct ssc_pios
+{
+	struct
+	{
+		char port;
+		char pin;
+	}	pio[3];
+};
+static const struct ssc_pios ssc_pios[7] =
+{
+	{ { /* SSC0 */
+		{ 1, 6 }, /* SCLK */
+		{ 1, 7 }, /* MTSR */
+		{ 2, 0 }, /* MRST */
+	} }, { { /* SSC1 */
+		{ 9, 6 }, /* SCLK */
+		{ 9, 7 }, /* MTSR */
+		{ 9, 5 }, /* MRST */
+	} }, { { /* SSC2 */
+#if 1
+		{ 1, 3 }, /* SCLK */	/* Variant A */
+		{ 1, 4 }, /* MTSR */
+		{ 1, 5 }, /* MRST */
+#else
+		{ 14, 4 }, /* SCLK */	/* Variant B */
+		{ 14, 5 }, /* MTSR */
+		{ 14, 6 }, /* MRST */
+#endif
+	} }, { { /* SSC3 */
+		{ 5, 2 }, /* SCLK */
+		{ 5, 3 }, /* MTSR */
+		{ 5, 4 }, /* MRST */
+	} }, { { /* SSC4 */
+		{ 13, 6 }, /* SCLK */
+		{ 13, 7 }, /* MTSR */
+		{ 14, 0 }, /* MRST */
+	} }, { { /* SSC5 */
+		{ 5, 6 }, /* SCLK */
+		{ 5, 7 }, /* MTSR */
+		{ 5, 5 }, /* MRST */
+	} }, { { /* SSC6 */
+		{ 15, 2 }, /* SCLK */
+		{ 15, 3 }, /* MTSR */
+		{ 15, 4 }, /* MRST */
+	} },
+};
+// static const int stx7108_ssc_alt_funcs[] = { 2, 1, 2, 2, 1, 2, 1 };
 
+
+extern void stx7108_configure_i2c(void)
+{
+	/*
+	 * The I2C busses are routed as follows:
+	 *
+	 *	Bus	  SCL		  SDA
+	 *	---	  ---		  ---
+	 *	 0	PIO1[6]		PIO1[7]		SSC #0
+	 *	 1	PIO9[6]		PIO9[7]		SSC #1
+	 *	 2	PIO1[3]		PIO1[4]		SSC #2, Variant A
+	 *	 2	PIO14[4]	PIO14[5]	SSC #2, Variant B
+	 *	 3	PIO5[2]		PIO5[3]		SSC #3
+	 *	 4	PIO13[6]	PIO13[7]	SSC #4
+	 *	 5	PIO5[6]		PIO5[7]		SSC #5
+	 *	 6	PIO15[2]	PIO15[3]	SSC #6
+	 */
+	const int scl_port = ssc_pios[CONFIG_I2C_BUS].pio[0].port;
+	const int scl_pin  = ssc_pios[CONFIG_I2C_BUS].pio[0].pin;
+	const int sda_port = ssc_pios[CONFIG_I2C_BUS].pio[1].port;
+	const int sda_pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
+
+	if (CONFIG_I2C_BUS >= ARRAY_SIZE(ssc_pios)) BUG();
+
+	SET_PIO_PIN(ST40_PIO_BASE(scl_port), scl_pin, STPIO_BIDIR);	/* I2C_SCL */
+	SET_PIO_PIN(ST40_PIO_BASE(sda_port), sda_pin, STPIO_BIDIR);	/* I2C_SDA */
+}
+
+extern void stx7108_i2c_scl(const int val)
+{
+	/* SSC's SCLK == I2C's SCL */
+	const int port = ssc_pios[CONFIG_I2C_BUS].pio[0].port;
+	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[0].pin;
+	STPIO_SET_PIN(ST40_PIO_BASE(port), pin, (val) ? 1 : 0);
+}
+
+extern void stx7108_i2c_sda(const int val)
+{
+	/* SSC's MTSR == I2C's SDA */
+	const int port = ssc_pios[CONFIG_I2C_BUS].pio[1].port;
+	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
+	STPIO_SET_PIN(ST40_PIO_BASE(port), pin, (val) ? 1 : 0);
+}
+
+extern int stx7108_i2c_read(void)
+{
+	/* SSC's MTSR == I2C's SDA */
+	const int port = ssc_pios[CONFIG_I2C_BUS].pio[1].port;
+	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
+	return STPIO_GET_PIN(ST40_PIO_BASE(port), pin);
+}
+#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C) */
+
+#if defined(CONFIG_I2C_CMD_TREE)
+extern unsigned int i2c_get_bus_speed(void)
+{
+	return CFG_I2C_SPEED;
+}
+extern int i2c_set_bus_speed(unsigned int speed)
+{
+	return -1;
+}
+#endif	/* CONFIG_I2C_CMD_TREE */
+
+
+#if defined(CONFIG_SPI)
 #ifdef QQQ	/* QQQ - DELETE */
 #if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
 extern void stx7108_spi_scl(const int val)

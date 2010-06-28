@@ -205,6 +205,10 @@ extern int board_init(void)
 #endif
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
+#if defined(CONFIG_CMD_I2C)
+	stx7108_configure_i2c();
+#endif	/* CONFIG_CMD_I2C */
+
 	return 0;
 }
 

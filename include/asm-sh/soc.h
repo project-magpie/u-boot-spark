@@ -188,11 +188,21 @@ extern unsigned char	fli7540_spi_read(void);
 
 
 /*
+ * I2C initialization functions.
+ */
+extern void		stx7108_configure_i2c(void);
+
+
+/*
  * Software "bit-banging" functions for I2C accesses.
  */
 extern void		stx7105_i2c_scl(const int val);
 extern void		stx7105_i2c_sda(const int val);
 extern int		stx7105_i2c_read(void);
+
+extern void		stx7108_i2c_scl(const int val);
+extern void		stx7108_i2c_sda(const int val);
+extern int		stx7108_i2c_read(void);
 
 extern void		fli7510_i2c_scl(const int val);
 extern void		fli7510_i2c_sda(const int val);
