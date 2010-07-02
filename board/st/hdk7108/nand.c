@@ -36,7 +36,7 @@
  *	nCE is handled by EMI (not s/w controlable)
  */
 #ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
-static void mb837_hwcontrol(struct mtd_info *mtdinfo, int cmd)
+static void hdk7108_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 {
 	struct nand_chip* this = (struct nand_chip *)(mtdinfo->priv);
 
@@ -67,7 +67,7 @@ static void mb837_hwcontrol(struct mtd_info *mtdinfo, int cmd)
  * Signal is routed through the EMI NAND Controller block.
  */
 #ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
-static int mb837_device_ready(struct mtd_info *mtd)
+static int hdk7108_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
 	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
@@ -107,8 +107,8 @@ extern int board_nand_init(struct nand_chip *nand)
 	nand->read_buf      = stm_flex_read_buf;
 	nand->write_buf     = stm_flex_write_buf;
 #else				/* for "bit-banging" (c.f. STM "flex-mode")  */
-	nand->dev_ready     = mb837_device_ready;
-	nand->hwcontrol     = mb837_hwcontrol;
+	nand->dev_ready     = hdk7108_device_ready;
+	nand->hwcontrol     = hdk7108_hwcontrol;
 #endif /* CFG_NAND_FLEX_MODE */
 
 #if 1

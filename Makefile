@@ -2845,6 +2845,16 @@ mb837se_config :		unconfig
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb837/config.tmp)
 	@$(MKCONFIG) -a mb837 sh sh mb837 st stx7108
 
+hdk7108se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/hdk7108
+	@echo "#define CONFIG_SH_STX7108    1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_HDK7108      1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE    1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk7108/config.tmp)
+	@$(MKCONFIG) -a hdk7108 sh sh hdk7108 st stx7108
+
 mb704_config \
 mb704se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/mb704

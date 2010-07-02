@@ -290,6 +290,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	DECLARE_GLOBAL_DATA_PTR;
 #if CONFIG_CMD_BDI_DUMP_EMI_BANKS
+	#if !defined(ST40_EMI_SIZE)
+	#define ST40_EMI_SIZE	(128 << 20)	/* EMI is usually 128 MiB */
+	#endif	/* ST40_EMI_SIZE */
 	#define MAX_EMI_BANKS	6	/* Maximum of 6 EMI Banks */
 	const u32 emi_base = 0xa0000000u;
 	u32 base[MAX_EMI_BANKS+1];	/* Base address for each bank */
@@ -397,7 +400,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		base[i] = emi_base + (start << (22));
 	}
 	/* last valid bank occupies all remaining space */
-	base[i] = emi_base + (128u << (20));	/* total size of EMI is 128MiB */
+	base[i] = emi_base + ST40_EMI_SIZE;	/* total size of EMI is usually 128MiB */
 
 	/*
 	 * Print out the ranges of each bank.

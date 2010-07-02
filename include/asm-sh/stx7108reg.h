@@ -58,6 +58,10 @@
 #define ST40_EMI_REGS_BASE		0xfe900000
 #endif
 
+#ifndef ST40_EMI_SIZE			/* total addressable size of EMI */
+#define ST40_EMI_SIZE			(256 << 20)	/* 256 MiB */
+#endif
+
 /* System Architecture Volume 4: I/O Devices */
 #ifndef ST40_PIO0_REGS_BASE
 #define ST40_PIO0_REGS_BASE (STX7108_COMMS_BASE + 0x00020000)
