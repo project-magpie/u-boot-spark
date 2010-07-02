@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics.
+ * (C) Copyright 2008-2010 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -33,13 +33,31 @@
 #define CONFIG_SH4	1		/* This is an SH4 CPU		*/
 #define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 
+	/*
+	 * Define the following macro only if the MB837 CPU board
+	 * will be mated with a MB705 peripheral board.
+	 */
+#undef  CONFIG_SH_MB705		/* MB837 withOUT a MB705 */
+#define CONFIG_SH_MB705		/* MB837 + MB705 */
+
 
 /*-----------------------------------------------------------------------
- * Define the following macro only if the MB680 CPU board
- * will be mated with a MB705 peripheral board.
+ *	Switch settings to select between the SoC's main 3 boot-modes:
+ *		a) boot from 16-bit NOR flash
+ *		b) boot from 8-bit NAND flash, small-page, long address
+ *		c) boot from SPI serial flash
+ *
+ *	Four of these setting are on SW2, on the edge of the CPU board,
+ *	Note: One of these is on the MB705 peripheral board!
+ *
+ *	Board	Switch	NOR	NAND	SPI
+ *	-----	------	---	----	---
+ *	MB837	SW2-1	 ON	 ON	off
+ *	MB837	SW2-2	off	 ON	 ON
+ *	MB837	SW2-3	 ON	off	off
+ *	MB837	SW2-4	off	 ON	 ON
+ *	MB705	SW8-1	 ON	off	QQQ
  */
-#undef  CONFIG_SH_MB705		/* MB680 withOUT a MB705 */
-#define CONFIG_SH_MB705		/* MB680 + MB705 */
 
 
 /*-----------------------------------------------------------------------
@@ -56,12 +74,12 @@
  */
 
 #ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
-		/*
-		 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
-		 * If so, then who takes responsibility for this???
-		 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
-		 * Should U-Boot read SW8(1) on the MB705, and do something?
-		 */
+	/*
+	 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
+	 * If so, then who takes responsibility for this???
+	 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
+	 * Should U-Boot read SW8(1) on the MB705, and do something?
+	 */
 #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
@@ -82,7 +100,7 @@
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI SDRAM */
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
@@ -99,7 +117,7 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD mb680
+#define BOARD mb837
 
 #if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
@@ -156,11 +174,11 @@
 #	define CONFIG_STM_DTF_SERIAL	/* use DTF over JTAG */
 #endif
 
-/* choose which ST ASC UART to use */
+/* choose which ST ASC UART to use (on MB705 Peripheral Board) */
 #if 1
-#	define CFG_STM_ASC_BASE		0xfd032000ul	/* UART2 = AS0 */
+#	define CFG_STM_ASC_BASE		ST40_ASC2_REGS_BASE	/* COM0 lower connector */
 #else
-#	define CFG_STM_ASC_BASE		0xfd033000ul	/* UART3 = AS1 */
+#	define CFG_STM_ASC_BASE		ST40_ASC3_REGS_BASE	/* COM1 upper connector */
 #endif
 
 /*---------------------------------------------------------------
@@ -168,11 +186,9 @@
  */
 
 /*
- * There are 3 options for ethernet, all use the on-chip ST-GMAC.
- * The choice in PHYs are:
- *    The on-board Nat Semi DP83865	(only on Rev A, B)
- *    The on-board SMSC LAN8700		(only on Rev C)		(NOW the DEFAULT)
- *    External PHY connected via the MII off-board connector.
+ * There are 2 on-chip ST-GMACs (MII0 on CN18, MII1 on CN19).
+ * A daughter-board with a PHY may be connected to either connector.
+ * We assume a MB859 (with a IC+ IP1001 PHY) is used on MII0 (CN18).
  */
 
 /* are we using the internal ST GMAC device ? */
@@ -183,12 +199,10 @@
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC_BASE	 0xfd110000ul	/* MAC = STM GMAC0 */
-#if 0							/* Choose NS or SMSC PHY */
-#	define CONFIG_STMAC_DP83865	/* Rev A,B */	/* PHY = NS DP83865 */
-#else
-#	define CONFIG_STMAC_LAN8700	/* Rev C */	/* PHY = SMSC LAN8700 */
-#endif
+#	define CFG_STM_STMAC0_BASE	0xfda88000ul	/* MII #0 (CN18) */
+#	define CFG_STM_STMAC1_BASE	0xfe730000ul	/* MII #1 (CN19) */
+#	define CFG_STM_STMAC_BASE	CFG_STM_STMAC0_BASE
+#	define CONFIG_STMAC_IP1001	/* IC+ IP1001, on MB859 */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user
@@ -202,7 +216,7 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_SH_STB7100_USB
+//QQQ #define CONFIG_SH_STB7100_USB
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
@@ -256,7 +270,7 @@
 #define CFG_HUSH_PARSER		1
 #define CONFIG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"MB680> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"MB837> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
@@ -274,7 +288,7 @@
  */
 
 /* Choose if we want FLASH Support (NAND &/or NOR devices)
- * With the MB680 + MB705 combination, we may use *both*
+ * With the MB837 + MB705 combination, we may use *both*
  * NOR and NAND flash, at the same time, if we want.
  *
  * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
@@ -393,11 +407,11 @@
 
 #define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
-#ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
+#if 1 && defined(CONFIG_CMD_FLASH)		/* NOR flash present ? */
 #	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
-#elif defined(CONFIG_CMD_NAND)			/* NAND flash present ? */
+#elif 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
 #else
@@ -433,5 +447,62 @@
 #		define MTDIDS_DEFAULT	MTDIDS_NAND
 #	endif	/* defined(CONFIG_CMD_FLASH) && defined(CONFIG_CMD_NAND) */
 #endif	/* CONFIG_CMD_JFFS2 */
+
+
+/*----------------------------------------------------------------------
+ * I2C configuration
+ */
+
+#define CONFIG_CMD_I2C				/* do we want I2C support ? */
+
+#if defined(CONFIG_CMD_I2C)
+#	define CONFIG_I2C_BUS		2	/* Use I2C Bus associated with SSC #2 */
+#	define CONFIG_I2C_CMD_TREE		/* use a "i2c" root command */
+#	define CFG_I2C_SLAVE		0x7F	/* I2C slave address	*/	/* QQQ - TO CHECK */
+#	define CONFIG_SOFT_I2C			/* I2C with S/W bit-banging	*/
+#	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
+#	define I2C_ACTIVE			/* open-drain, nothing to do */
+#	define I2C_TRISTATE			/* open-drain, nothing to do */
+#	define I2C_SCL(val)		do { stx7108_i2c_scl((val)); } while (0)
+#	define I2C_SDA(val)		do { stx7108_i2c_sda((val)); } while (0)
+#	define I2C_READ			stx7108_i2c_read()
+
+	/*
+	 * The "BOGOS" for NDELAY() may be calibrated using the
+	 * following code fragment, and measuring (using an oscilloscope)
+	 * the frequency of the I2C SCL pin, and adjusting
+	 * NDELAY_BOGOS, until the SCL is approximately 100 kHz.
+	 * (100kHz has a period of 5us + 5us).
+	 *
+	 *	printf("just toggling I2C SCL (100kHz frequency) ...\n");
+	 *	while (1)
+	 *	{
+	 *		I2C_SCL(1); NDELAY(5000);
+	 *		I2C_SCL(0); NDELAY(5000);
+	 *	}
+	 */
+#	define NDELAY_BOGOS		20	/* Empirical measurement for 1ns on MB837A */
+#	define NDELAY(ns)						\
+		do {							\
+			const unsigned n_bogo = NDELAY_BOGOS;		\
+			const unsigned n_ticks = 			\
+				((ns)<n_bogo) ? 1u : (ns)/n_bogo;	\
+			volatile unsigned n_count;			\
+			for(n_count=0; n_count<n_ticks; n_count++)	\
+				;	/* do nothing */		\
+		} while(0)
+
+	/*
+	 * Note there are 4 * I2C_DELAY per I2C clock cycle
+	 * So, 400 kHz requires an I2C delay of 625 ns.
+	 * However, this calculation only works if the S/W
+	 * overhead in I2C bit-banging is negligible - which it is not!
+	 * So, in practice, either I2C_DELAY or CFG_I2C_SPEED will be lower.
+	 * The higher the clock frequency, the greater the difference.
+	 * Empirical measurement/adjustment is recommended.
+	 */
+#	define CFG_I2C_SPEED	400000				/* I2C speed (Hz) */
+#	define I2C_DELAY	do { NDELAY(625); } while (0)	/* 625 ns */
+#endif	/* CONFIG_CMD_I2C */
 
 #endif	/* __CONFIG_H */

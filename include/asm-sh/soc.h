@@ -28,6 +28,34 @@
 
 
 /*
+ * PIO data types
+ */
+struct stx7108_pioalt_pad_cfg
+{
+	int oe:2;
+	int pu:2;
+	int od:2;
+};
+extern const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_in;
+extern const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_out;
+extern const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_od;
+extern const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_bidir;
+
+
+/*
+ * PIO initialization functions
+ */
+extern void stx7108_pioalt_pad(
+	int port,
+	const int pin,
+	const struct stx7108_pioalt_pad_cfg * const cfg);
+extern void stx7108_pioalt_select(
+	const int port,
+	const int pin,
+	const int alt);
+
+
+/*
  * STMAC data types
  */
 enum fli7510_ethernet_mode
@@ -50,7 +78,18 @@ enum stx5206_ethernet_mode
 	stx5206_ethernet_rmii,
 	stx5206_ethernet_reverse_mii
 };
-
+struct stx7108_ethernet_config
+{
+	enum {
+		stx7108_ethernet_mode_mii,
+		stx7108_ethernet_mode_gmii,
+		stx7108_ethernet_mode_gmii_gtx,
+		stx7108_ethernet_mode_rmii,
+		stx7108_ethernet_mode_reverse_mii
+	} mode;
+	int ext_clk;
+	int phy_bus;
+};
 
 
 /*
@@ -67,6 +106,9 @@ extern void stx5206_configure_ethernet(
 	const enum stx5206_ethernet_mode mode,
 	const int ext_clk,
 	const int phy_bus);
+extern void stx7108_configure_ethernet(
+	const int port,
+	const struct stx7108_ethernet_config * const config);
 extern void stx7141_configure_ethernet(
 	const int port,
 	const int reverse_mii,
@@ -146,11 +188,21 @@ extern unsigned char	fli7540_spi_read(void);
 
 
 /*
+ * I2C initialization functions.
+ */
+extern void		stx7108_configure_i2c(void);
+
+
+/*
  * Software "bit-banging" functions for I2C accesses.
  */
 extern void		stx7105_i2c_scl(const int val);
 extern void		stx7105_i2c_sda(const int val);
 extern int		stx7105_i2c_read(void);
+
+extern void		stx7108_i2c_scl(const int val);
+extern void		stx7108_i2c_sda(const int val);
+extern int		stx7108_i2c_read(void);
 
 extern void		fli7510_i2c_scl(const int val);
 extern void		fli7510_i2c_sda(const int val);

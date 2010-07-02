@@ -35,6 +35,8 @@
 #	include <asm/stx5206reg.h>
 #elif defined(CONFIG_SH_STX7105)
 #	include <asm/stx7105reg.h>
+#elif defined(CONFIG_SH_STX7108)
+#	include <asm/stx7108reg.h>
 #elif defined(CONFIG_SH_STX7111)
 #	include <asm/stx7111reg.h>
 #elif defined(CONFIG_SH_STX7141)

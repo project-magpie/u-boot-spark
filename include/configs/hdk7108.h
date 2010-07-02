@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics.
+ * (C) Copyright 2008-2010 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -35,11 +35,23 @@
 
 
 /*-----------------------------------------------------------------------
- * Define the following macro only if the MB680 CPU board
- * will be mated with a MB705 peripheral board.
+ *	Switch settings to select between the SoC's main 3 boot-modes:
+ *		a) boot from 16-bit NOR flash
+ *		b) boot from 8-bit NAND flash, small-page, long address
+ *		c) boot from SPI serial flash
+ *
+ *	Jumper	NOR	NAND	SPI
+ *	------	---	----	---
+ *	JF2	1-2	2-3	qqq		FLASH_CS#
+ *	JF3	1-2	2-3	qqq		NAND_CS#
+ *	JH4-2	 ON	 ON	off		MODE[5]
+ *	JH4-1	off	off	 ON		MODE[4]
+ *	JH2-2	 ON	 ON	off		MODE[3]
+ *	JH2-1	off	 ON	 ON		MODE[2]
+ *
+ *	For boot-from-NOR, both JF2 and JF3 switches closer to CPU.
+ *	For boot-from-NAND, both JF2 and JF3 switches closer to SCART.
  */
-#undef  CONFIG_SH_MB705		/* MB680 withOUT a MB705 */
-#define CONFIG_SH_MB705		/* MB680 + MB705 */
 
 
 /*-----------------------------------------------------------------------
@@ -55,19 +67,13 @@
  * Assume we run out of uncached memory for the moment
  */
 
-#ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
-		/*
-		 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
-		 * If so, then who takes responsibility for this???
-		 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
-		 * Should U-Boot read SW8(1) on the MB705, and do something?
-		 */
-#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
+#ifdef CFG_BOOT_FROM_NAND	/* we are booting from NAND */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (128iB) */
+#define CFG_EMI_NOR_BASE	0xA8000000	/* CSB: NOR Flash,  Physical 0x08000000 (8MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
-#else		/* else, do *NOT* swap CSA and CSB in EPLD */
-#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
+#else				/* we are booting from NOR */
+#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (128MiB) */
+#define CFG_EMI_NAND_BASE	0xA8000000	/* CSB: NAND Flash, Physical 0x08000000 (8MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
 #endif /* CFG_BOOT_FROM_NAND */
 
@@ -82,7 +88,7 @@
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI SDRAM */
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
@@ -99,18 +105,12 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD mb680
+#define BOARD hdk7108
 
-#if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
+#if CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
-#elif CFG_MONITOR_LEN == 0x00010000		/* 64 KiB */
+#elif CFG_MONITOR_LEN == 0x00040000		/* 245 KiB */
 #	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
-#elif CFG_MONITOR_LEN == 0x00018000		/* 96 KiB */
-#	define MONITOR_SECTORS	"1:0-2"		/* 3 sectors */
-#elif CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
-#	define MONITOR_SECTORS	"1:0-3"		/* 4 sectors */
-#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
-#	define MONITOR_SECTORS	"1:0-4"		/* 5 sectors */
 #else						/* unknown */
 #	error "Unable to determine sectors for monitor"
 #endif
@@ -158,9 +158,9 @@
 
 /* choose which ST ASC UART to use */
 #if 1
-#	define CFG_STM_ASC_BASE		0xfd032000ul	/* UART2 = AS0 */
+#	define CFG_STM_ASC_BASE		ST40_ASC3_REGS_BASE	/* JL3, on-board DB9 */
 #else
-#	define CFG_STM_ASC_BASE		0xfd033000ul	/* UART3 = AS1 */
+#	define CFG_STM_ASC_BASE		ST40_ASC1_REGS_BASE	/* JK1/JB4 off-board */
 #endif
 
 /*---------------------------------------------------------------
@@ -168,11 +168,11 @@
  */
 
 /*
- * There are 3 options for ethernet, all use the on-chip ST-GMAC.
- * The choice in PHYs are:
- *    The on-board Nat Semi DP83865	(only on Rev A, B)
- *    The on-board SMSC LAN8700		(only on Rev C)		(NOW the DEFAULT)
- *    External PHY connected via the MII off-board connector.
+ * There are 2 on-chip ST-GMACs.
+ *
+ *	GMAC #0 is connected to MII(2x22) (JP2), for a off-board PHY
+ *
+ *	GMAC #1 is connected to a on-board IC+ IP1001 PHY (UP1)
  */
 
 /* are we using the internal ST GMAC device ? */
@@ -183,12 +183,15 @@
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC_BASE	 0xfd110000ul	/* MAC = STM GMAC0 */
-#if 0							/* Choose NS or SMSC PHY */
-#	define CONFIG_STMAC_DP83865	/* Rev A,B */	/* PHY = NS DP83865 */
-#else
-#	define CONFIG_STMAC_LAN8700	/* Rev C */	/* PHY = SMSC LAN8700 */
-#endif
+#	define CFG_STM_STMAC0_BASE	0xfda88000ul	/* MII #0 (off-board, JP2) */
+#	define CFG_STM_STMAC1_BASE	0xfe730000ul	/* MII #1 (on-board, IC+ IP1001) */
+#	if 1
+#		define CFG_STM_STMAC_BASE	CFG_STM_STMAC1_BASE
+#		define CONFIG_STMAC_IP1001	/* IC+ IP1001 (UP1) */
+#	else
+#		define CFG_STM_STMAC_BASE	CFG_STM_STMAC0_BASE
+#		define CONFIG_STMAC_xxx		/* NOTE: users need to specify this! */
+#	endif
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user
@@ -202,7 +205,7 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_SH_STB7100_USB
+//QQQ #define CONFIG_SH_STB7100_USB
 
 #ifdef CONFIG_SH_STB7100_USB
 #	define CONFIG_CMD_USB
@@ -256,7 +259,7 @@
 #define CFG_HUSH_PARSER		1
 #define CONFIG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"MB680> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"HDK7108> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
@@ -274,7 +277,7 @@
  */
 
 /* Choose if we want FLASH Support (NAND &/or NOR devices)
- * With the MB680 + MB705 combination, we may use *both*
+ * With the MB837 + MB705 combination, we may use *both*
  * NOR and NAND flash, at the same time, if we want.
  *
  * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
@@ -287,14 +290,14 @@
  * NOR FLASH organization
  */
 
-/* M58LT256: 32MiB 259 blocks, 128 KiB block size */
+/* PC28Fxxx: 128MiB 1024 blocks, 128KiB block size */
 #ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
 #	define CFG_FLASH_CFI_DRIVER
 #	define CFG_FLASH_CFI
 #	define CONFIG_FLASH_PROTECT_SINGLE_CELL
 #	define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/
 #	define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
-#	define CFG_MAX_FLASH_SECT	259	/* max number of sectors on one chip	*/
+#	define CFG_MAX_FLASH_SECT	1024	/* max number of sectors on one chip	*/
 #	define CFG_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
 #	define MTDPARTS_NOR						\
 	"physmap-flash:"	/* First NOR flash device */		\
@@ -313,7 +316,7 @@
  * NAND FLASH organization
  */
 
-/* NAND512W3A: 64MiB  8-bit, 4096 Blocks (16KiB+512B) of 32 Pages (512+16) */
+/* NAND01GW3B: 1GiB  8-bit, large page (128KiB) */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CFG_MAX_NAND_DEVICE	1
 #	define NAND_MAX_CHIPS		CFG_MAX_NAND_DEVICE
@@ -383,8 +386,8 @@
 	 * stored in the abridged copy of the master BBT.
 	 */
 #	define CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING	/* define for skipping */
-#	define CFG_NAND_SKIP_BLOCK_SIZE		(16<<10)/* Block Size = 16 KiB */
-#	define CFG_NAND_SKIP_BLOCK_COUNT	16	/* entries in the array */
+#	define CFG_NAND_SKIP_BLOCK_SIZE		(128<<10)/* Block Size = 128 KiB */
+#	define CFG_NAND_SKIP_BLOCK_COUNT	8	/* entries in the array */
 #endif /* CFG_BOOT_FROM_NAND */
 
 /*-----------------------------------------------------------------------
@@ -393,13 +396,17 @@
 
 #define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
-#ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
+#if 1 && defined(CONFIG_CMD_FLASH)		/* NOR flash present ? */
 #	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
-#elif defined(CONFIG_CMD_NAND)			/* NAND flash present ? */
+#elif 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
+#	if CFG_ENV_SIZE < 0x20000		/* needs to be a multiple of block-size */
+#		undef CFG_ENV_SIZE		/* give it just one large-page block */
+#		define CFG_ENV_SIZE	0x20000	/* 128 KiB of environment data */
+#	endif /* if CFG_ENV_SIZE < 0x20000 */
 #else
 #	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #endif	/* CONFIG_CMD_NAND */
@@ -433,5 +440,62 @@
 #		define MTDIDS_DEFAULT	MTDIDS_NAND
 #	endif	/* defined(CONFIG_CMD_FLASH) && defined(CONFIG_CMD_NAND) */
 #endif	/* CONFIG_CMD_JFFS2 */
+
+
+/*----------------------------------------------------------------------
+ * I2C configuration
+ */
+
+#define CONFIG_CMD_I2C				/* do we want I2C support ? */
+
+#if defined(CONFIG_CMD_I2C)
+#	define CONFIG_I2C_BUS		5	/* Use I2C Bus associated with SSC #5 */
+#	define CONFIG_I2C_CMD_TREE		/* use a "i2c" root command */
+#	define CFG_I2C_SLAVE		0x7F	/* I2C slave address	*/	/* QQQ - TO CHECK */
+#	define CONFIG_SOFT_I2C			/* I2C with S/W bit-banging	*/
+#	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
+#	define I2C_ACTIVE			/* open-drain, nothing to do */
+#	define I2C_TRISTATE			/* open-drain, nothing to do */
+#	define I2C_SCL(val)		do { stx7108_i2c_scl((val)); } while (0)
+#	define I2C_SDA(val)		do { stx7108_i2c_sda((val)); } while (0)
+#	define I2C_READ			stx7108_i2c_read()
+
+	/*
+	 * The "BOGOS" for NDELAY() may be calibrated using the
+	 * following code fragment, and measuring (using an oscilloscope)
+	 * the frequency of the I2C SCL pin, and adjusting
+	 * NDELAY_BOGOS, until the SCL is approximately 100 kHz.
+	 * (100kHz has a period of 5us + 5us).
+	 *
+	 *	printf("just toggling I2C SCL (100kHz frequency) ...\n");
+	 *	while (1)
+	 *	{
+	 *		I2C_SCL(1); NDELAY(5000);
+	 *		I2C_SCL(0); NDELAY(5000);
+	 *	}
+	 */
+#	define NDELAY_BOGOS		20	/* Empirical measurement for 1ns on MB837A */
+#	define NDELAY(ns)						\
+		do {							\
+			const unsigned n_bogo = NDELAY_BOGOS;		\
+			const unsigned n_ticks = 			\
+				((ns)<n_bogo) ? 1u : (ns)/n_bogo;	\
+			volatile unsigned n_count;			\
+			for(n_count=0; n_count<n_ticks; n_count++)	\
+				;	/* do nothing */		\
+		} while(0)
+
+	/*
+	 * Note there are 4 * I2C_DELAY per I2C clock cycle
+	 * So, 400 kHz requires an I2C delay of 625 ns.
+	 * However, this calculation only works if the S/W
+	 * overhead in I2C bit-banging is negligible - which it is not!
+	 * So, in practice, either I2C_DELAY or CFG_I2C_SPEED will be lower.
+	 * The higher the clock frequency, the greater the difference.
+	 * Empirical measurement/adjustment is recommended.
+	 */
+#	define CFG_I2C_SPEED	400000				/* I2C speed (Hz) */
+#	define I2C_DELAY	do { NDELAY(625); } while (0)	/* 625 ns */
+#endif	/* CONFIG_CMD_I2C */
 
 #endif	/* __CONFIG_H */
