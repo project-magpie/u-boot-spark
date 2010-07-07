@@ -209,6 +209,31 @@ extern int board_init(void)
 	stx7108_configure_i2c();
 #endif	/* CONFIG_CMD_I2C */
 
+	/*
+	 * For accessing the EPLD (on EMI Bank #2 (CSnC)), we need to
+	 * elongate the rising CSn time, otherwise we risk the FET switches
+	 * not being enabled for long enough.
+	 * Failure to do this correctly, can result in the
+	 * mb705_init_epld() function failing to pass the TEST.
+	 *
+	 * The following is (now) known to work:
+	 *
+	 *	set CSE2_TIME_WRITE = 0x1  [19:16] (rising-edge of CSn)
+	 *
+	 * Note with CSE2_TIME_WRITE=0x0, or CSE2_TIME_WRITE=0x2
+	 * then, the EPLD *write* can fail, and this is
+	 * (bizarrely) a function of the PC's offset in the I$!
+	 *
+	 * An alternative solution may be to enable the FET switches
+	 * permanently, by setting J5A and J5B as follows:
+	 * 	J5A: remove	(default is 2-3)
+	 * 	J5B: 1-2	(default is 2-3)
+	 */
+#if 1
+	*ST40_EMI_BANK2_EMICONFIGDATA2 &= ~(0xfu << 16);
+	*ST40_EMI_BANK2_EMICONFIGDATA2 |=  (0x1u << 16);
+#endif
+
 	return 0;
 }
 
