@@ -604,6 +604,9 @@ extern int soc_init(void)
 
 	bd->bi_devid = *STX7108_SYSCONF_DEVICEID_0;
 
+	/* Make sure reset period is shorter than WDT time-out */
+	*STX7108_BANK0_SYSGFG(14) = 3000;	/* about 100 us */
+
 	return 0;
 }
 
