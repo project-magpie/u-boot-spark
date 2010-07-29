@@ -79,7 +79,7 @@ static void configPIO(void)
 	 * Configure the Ethernet PHY Reset signal
 	 *	PIO15[4] == POWER_ON_ETH (a.k.a. ETH_RESET)
 	 */
-	SET_PIO_PIN(PIO_PORT(15), 4, STPIO_OUT);
+	SET_PIO_PIN(ST40_PIO_BASE(15), 4, STPIO_OUT);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 	/*
@@ -87,8 +87,8 @@ static void configPIO(void)
 	 * controlled by the following PIO line...
 	 *	PIO5[0] == POWER_ON
 	 */
-	SET_PIO_PIN(PIO_PORT(5), 0, STPIO_OUT);
-	STPIO_SET_PIN(PIO_PORT(5), 0, 1);
+	SET_PIO_PIN(ST40_PIO_BASE(5), 0, STPIO_OUT);
+	STPIO_SET_PIN(ST40_PIO_BASE(5), 0, 1);
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -100,9 +100,9 @@ static void phy_reset(void)
 	 *
 	 *	PIO15[4] = POWER_ON_ETH (a.k.a. ETH_RESET)
 	 */
-	STPIO_SET_PIN(PIO_PORT(15), 4, 0);
+	STPIO_SET_PIN(ST40_PIO_BASE(15), 4, 0);
 	udelay(10000);				/* 10 ms */
-	STPIO_SET_PIN(PIO_PORT(15), 4, 1);
+	STPIO_SET_PIN(ST40_PIO_BASE(15), 4, 1);
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 

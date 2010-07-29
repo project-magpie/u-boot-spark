@@ -2862,7 +2862,7 @@ mb903se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_SH_SE_MODE    1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb903/config.tmp)
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb903/config.tmp)
 	@$(MKCONFIG) -a mb903 sh sh mb903 st stx7108
 
 mb704_config \

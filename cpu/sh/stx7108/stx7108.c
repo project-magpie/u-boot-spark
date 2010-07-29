@@ -73,8 +73,6 @@ extern void stx7108_pioalt_select(const int port, const int pin, const int alt)
 	BUG_ON(alt < 0 || alt > 5);
 #endif
 
-	if (alt == 0) BUG();		/* we do *not* handle this case here! */
-
 	switch (port)
 	{
 	case 0 ... 14:
@@ -650,7 +648,7 @@ extern int stx7108_usb_init(int port, int over_current, int power_ctrl)
 		reg |=   0x0101ul<<(oc_pins[port]);	/* OR=3 */
 		writel(reg, STX7105_SYSCONF_SYS_CFG34);
 		/* set PIO directionality, for OC as IN */
-		SET_PIO_PIN(PIO_PORT(4), oc_pins[port], STPIO_IN);
+		SET_PIO_PIN(ST40_PIO_BASE(4), oc_pins[port], STPIO_IN);
 	}
 
 	if (power_ctrl) {
@@ -661,7 +659,7 @@ extern int stx7108_usb_init(int port, int over_current, int power_ctrl)
 		reg |=   0x0101ul<<(power_pins[port]);	/* OR=3 */
 		writel(reg, STX7105_SYSCONF_SYS_CFG34);
 		/* set PIO directionality, for POWER as ALT_OUT */
-		SET_PIO_PIN(PIO_PORT(4), power_pins[port], STPIO_ALT_OUT);
+		SET_PIO_PIN(ST40_PIO_BASE(4), power_pins[port], STPIO_ALT_OUT);
 	}
 
 	/* start the USB Wrapper Host Controller */
@@ -823,24 +821,51 @@ extern int i2c_set_bus_speed(unsigned int speed)
 
 
 #if defined(CONFIG_SPI)
-#ifdef QQQ	/* QQQ - DELETE */
+extern void stx7108_configure_spi(void)
+{
+	/*
+	 *	We set up the PIO pins correctly for SPI
+	 */
+
+#if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
+	/* route PIO (alternate #0) */
+	stx7108_pioalt_select(2, 1, 0);			/* SPI_MISO */
+	stx7108_pioalt_select(2, 0, 0);			/* SPI_MOSI */
+	stx7108_pioalt_select(1, 7, 0);			/* SPI_notCS */
+	stx7108_pioalt_select(1, 6, 0);			/* SPI_CLK */
+
+	/* set PIO directionality */
+	SET_PIO_PIN(ST40_PIO_BASE(2), 1, STPIO_IN);	/* SPI_MISO */
+	SET_PIO_PIN(ST40_PIO_BASE(2), 0, STPIO_OUT);	/* SPI_MOSI */
+	SET_PIO_PIN(ST40_PIO_BASE(1), 7, STPIO_OUT);	/* SPI_notCS */
+	SET_PIO_PIN(ST40_PIO_BASE(1), 6, STPIO_OUT);	/* SPI_CLK */
+
+	/* drive outputs with sensible initial values */
+	STPIO_SET_PIN(ST40_PIO_BASE(2), 0, 0);		/* deassert SPI_MOSI */
+	STPIO_SET_PIN(ST40_PIO_BASE(1), 7, 1);		/* deassert SPI_notCS */
+	STPIO_SET_PIN(ST40_PIO_BASE(1), 6, 1);		/* assert SPI_CLK */
+#else
+#error Currently only S/W bit-banging for SPI is supported.
+#endif	/* CONFIG_SOFT_SPI */
+}
+
 #if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
 extern void stx7108_spi_scl(const int val)
 {
-	const int pin = 0;	/* PIO15[0] = SPI_CLK */
-	STPIO_SET_PIN(PIO_PORT(15), pin, val ? 1 : 0);
+	const int pin = 6;	/* PIO1[6] = SPI_CLK */
+	STPIO_SET_PIN(ST40_PIO_BASE(1), pin, val ? 1 : 0);
 }
 
 extern void stx7108_spi_sda(const int val)
 {
-	const int pin = 1;	/* PIO15[1] = SPI_DOUT */
-	STPIO_SET_PIN(PIO_PORT(15), pin, val ? 1 : 0);
+	const int pin = 0;	/* PIO2[0] = SPI_MOSI */
+	STPIO_SET_PIN(ST40_PIO_BASE(2), pin, val ? 1 : 0);
 }
 
 extern unsigned char stx7108_spi_read(void)
 {
-	const int pin = 3;	/* PIO15[3] = SPI_DIN */
-	return STPIO_GET_PIN(PIO_PORT(15), pin);
+	const int pin = 1;	/* PIO2[1] = SPI_MISO */
+	return STPIO_GET_PIN(ST40_PIO_BASE(2), pin);
 }
 #endif	/* CONFIG_SOFT_SPI */
 
@@ -851,15 +876,15 @@ extern unsigned char stx7108_spi_read(void)
  */
 static void spi_chip_select(const int cs)
 {
-	const int pin = 2;	/* PIO15[2] = SPI_NOTCS */
+	const int pin = 7;	/* PIO1[7] = SPI_notCS */
 
 	if (cs)
 	{	/* assert SPI CSn */
-		STPIO_SET_PIN(PIO_PORT(15), pin, 0);
+		STPIO_SET_PIN(ST40_PIO_BASE(1), pin, 0);
 	}
 	else
 	{	/* DE-assert SPI CSn */
-		STPIO_SET_PIN(PIO_PORT(15), pin, 1);
+		STPIO_SET_PIN(ST40_PIO_BASE(1), pin, 1);
 	}
 
 	if (cs)
@@ -879,6 +904,5 @@ spi_chipsel_type spi_chipsel[] =
 };
 int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
 
-#endif		/* QQQ - DELETE */
 #endif	/* CONFIG_SPI */
 

@@ -343,10 +343,16 @@ set_pmb:
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
 	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
-	#error Need to configure PMBs properly when more than 128MiB.
+	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
+	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	#endif
-	SH4_SET_PMB 4 0xa0 0x00  128 0 0 1	/* NOR FLASH UN-cached */
+	#if !defined(CFG_BOOT_FROM_SPI)
+	SH4_SET_PMB 4 0xa0 0x00  128 0 0 1	/* NOR FLASH UN-cached (lower 64MiB) */
 	SH4_SET_PMB 5 0xb0 0x00  128		/* NOR FLASH CACHED */
+	#else
+	SH4_SET_PMB 4 0xa0 0x08  128 0 0 1	/* NOR FLASH UN-cached (upper 64MiB) */
+	SH4_SET_PMB 5 0xb0 0x08  128		/* NOR FLASH CACHED */
+	#endif	/* CFG_BOOT_FROM_SPI */
 #elif defined(CONFIG_SH_STX7108) && defined(CONFIG_SH_HDK7108)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */

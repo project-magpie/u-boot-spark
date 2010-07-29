@@ -168,11 +168,21 @@ extern void fli7540_usb_init(const int port, const enum fli7540_usb_ovrcur_mode 
 
 
 /*
+ * SPI initialization functions.
+ */
+extern void		stx7108_configure_spi(void);
+
+
+/*
  * Software "bit-banging" functions for SPI accesses.
  */
 extern void		stx7105_spi_scl(const int val);
 extern void		stx7105_spi_sda(const int val);
 extern unsigned char	stx7105_spi_read(void);
+
+extern void		stx7108_spi_scl(const int val);
+extern void		stx7108_spi_sda(const int val);
+extern unsigned char	stx7108_spi_read(void);
 
 extern void		stx7111_spi_scl(const int val);
 extern void		stx7111_spi_sda(const int val);

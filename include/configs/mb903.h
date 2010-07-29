@@ -51,11 +51,25 @@
 
 
 /*-----------------------------------------------------------------------
+ * Are we booting directly from a SPI Serial Flash device ?
+ * If so, then define the "CFG_BOOT_FROM_SPI" macro,
+ * otherwise (e.g. for NOR Flash booting), do not define it.
+ *
+ * Note: when in boot-from-SPI, the lower 64MiB of the NOR
+ * flash is inaccessible, only the upper 64MiB is accessible.
+ */
+#undef CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
+
+
+/*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
 
-#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (128MiB) */
+#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 */
+#if defined(CFG_BOOT_FROM_SPI)			/* we are booting from SPI serial flash */
+#define CFG_EMI_SPI_BASE	0xA0000000	/* EMI Bank #0: SPI Flash,  Physical 0x00000000 */
+#endif /* CFG_BOOT_FROM_SPI */
 
 #ifdef CONFIG_SH_SE_MODE
 #define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH (uncached) via PMB */
@@ -68,7 +82,7 @@
 #define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI SDRAM */
+#define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MONITOR_BASE        CFG_FLASH_BASE
@@ -96,12 +110,6 @@
 #endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-/* QQQ */	"ethaddr=AA:00:00:41:30:21"			"\0" \
-/* QQQ */	"ipaddr=10.65.48.33"				"\0" \
-/* QQQ */	"netmask=255.255.252.0"				"\0" \
-/* QQQ */	"serverip=10.65.48.38"				"\0" \
-/* QQQ */	"nfs=nfs $load_addr /export/u-boot.bin"		"\0" \
-/* QQQ */	"nor=run nfs ; run unprot ; run update"		"\0" \
 		"board=" XSTR(BOARD) "\0" \
 		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
 		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
@@ -261,12 +269,15 @@
  */
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
 #define CONFIG_CMD_FLASH	/* define for NOR flash */
+#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
 
 /*-----------------------------------------------------------------------
  * NOR FLASH organization
  */
 
-/* S29GL01GP: 128MiB 1024 blocks, 128KiB block size */
+/* S29GL01GP: 128MiB 1024 blocks, 128KiB block size
+ * Note: in boot-from-SPI, only the upper 64MiB is accessible!
+ */
 #ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
 #	define CFG_FLASH_CFI_DRIVER
 #	define CFG_FLASH_CFI
@@ -290,6 +301,34 @@
 
 
 /*-----------------------------------------------------------------------
+ * SPI SERIAL FLASH organization
+ */
+
+/*
+ *	Name		Manuf	Device
+ *	-----		-----	------
+ *	U48		Numonyx	M25P128
+ */
+#if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
+#	define CONFIG_SPI_FLASH_ST		/* ST M25Pxx */
+#	define CONFIG_SPI			/* enable the SPI driver */
+#	define CONFIG_CMD_SPI			/* SPI serial bus command support */
+#	define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
+#	define CFG_I2C_FRAM			/* to minimize performance degradation */
+#	undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
+#	define CONFIG_SOFT_SPI			/* Use S/W "bit-banging" PIO (not the SSC) */
+
+#if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
+#	define SPI_SCL(val)	do { stx7108_spi_scl((val)); } while (0)
+#	define SPI_SDA(val)	do { stx7108_spi_sda((val)); } while (0)
+#	define SPI_DELAY	do { udelay(1); } while (0)	/* QQQ: only 500 kHz ??? */
+#	define SPI_READ		stx7108_spi_read()
+#endif	/* CONFIG_SOFT_SPI */
+
+#endif	/* CONFIG_SPI_FLASH */
+
+
+/*-----------------------------------------------------------------------
  * Address, size, & location of U-boot's Environment Sector
  */
 
@@ -299,6 +338,9 @@
 #	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
+#elif 1 && defined(CONFIG_SPI_FLASH)		/* SPI serial flash present ? */
+#	define CFG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
+#	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #else
 #	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #endif	/* CONFIG_CMD_FLASH */

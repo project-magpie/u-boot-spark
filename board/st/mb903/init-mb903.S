@@ -35,10 +35,10 @@ __memory_setup_table:
 	 * to an STMC2 (note: currently it must be version 2) and then
 	 * executing the following command (redirecting the output):
 	 *
-	 * host% romgen --show-comment <stmc2>:hdk7108stx7108:host
+	 * host% romgen --show-comment <stmc2>:mb903stx7108:host,boot_companions=0
 	 *
 	 * Where "<stmc2>" should be replaced with the IP address
-	 * (or the DNS name) of the STMC2 box.  Also the "hdk7108stx7108" should
+	 * (or the DNS name) of the STMC2 box.  Also the "mb903stx7108" should
 	 * substituted if you have a custom target-pack connect command.
 	 *
 	 * At the time of writing this (July 2010) the output from "romgen"

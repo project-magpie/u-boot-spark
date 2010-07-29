@@ -77,7 +77,7 @@ static void configPIO(void)
 	 *	PIO20[0] == GMII0_notRESET
 	 *	PIO15[4] == GMII1_notRESET
 	 */
-	SET_PIO_PIN(PIO_PORT(15), 4, STPIO_OUT);
+	SET_PIO_PIN(ST40_PIO_BASE(15), 4, STPIO_OUT);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 }
 
@@ -89,11 +89,12 @@ static void phy_reset(void)
 	 *	PIO20[0] == GMII0_notRESET
 	 *	PIO15[4] == GMII1_notRESET
 	 */
-	STPIO_SET_PIN(PIO_PORT(15), 4, 0);
+	STPIO_SET_PIN(ST40_PIO_BASE(15), 4, 0);
 	udelay(10000);				/* 10 ms */
-	STPIO_SET_PIN(PIO_PORT(15), 4, 1);
+	STPIO_SET_PIN(ST40_PIO_BASE(15), 4, 1);
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+
 
 extern int board_init(void)
 {
@@ -140,6 +141,16 @@ int checkboard (void)
 		"  [29-bit mode]"
 #endif
 		"\n");
+
+#if defined(CONFIG_SPI)
+	/*
+	 * Configure for the SPI Serial Flash.
+	 * Note: for CFG_BOOT_FROM_SPI + CFG_ENV_IS_IN_EEPROM, this
+	 * needs to be done after env_init(), hence it is done
+	 * here, and not in board_init().
+	 */
+	stx7108_configure_spi();
+#endif	/* CONFIG_SPI */
 
 	return 0;
 }
