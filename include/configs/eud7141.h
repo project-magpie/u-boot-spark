@@ -361,6 +361,7 @@
 #	endif /* if CFG_ENV_SIZE < 0x20000 */
 #else
 #	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
+#	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
 #endif	/* CONFIG_CMD_NAND */
 
 /*----------------------------------------------------------------------

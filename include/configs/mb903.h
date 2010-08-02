@@ -343,6 +343,7 @@
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #else
 #	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
+#	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
 #endif	/* CONFIG_CMD_FLASH */
 
 /*----------------------------------------------------------------------

@@ -303,12 +303,15 @@
  * Addresss, size, & location of U-boot's Environment Sector
  */
 
-#ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
+#if 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CFG_ENV_IS_IN_NAND		/* enviroment in NAND flash */
 #	define CFG_ENV_OFFSET	0		/* begining of NAND flash */
-#else
+#elif 1 && defined(CONFIG_CMD_FLASH)
 #	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
 #	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* After u-boot.bin */
+#else
+#	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
+#	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
 #endif	/* CONFIG_CMD_NAND */
 #define CFG_ENV_ADDR		(CFG_FLASH_BASE + CFG_ENV_OFFSET)
 #define CFG_ENV_SIZE		0x10000

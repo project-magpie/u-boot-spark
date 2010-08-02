@@ -416,6 +416,7 @@
 #	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
 #else
 #	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
+#	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
 #endif	/* CONFIG_CMD_NAND */
 
 /*----------------------------------------------------------------------
