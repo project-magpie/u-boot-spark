@@ -381,17 +381,13 @@ void hang (void)
 static void sh_reset (void) __attribute__ ((noreturn));
 static void sh_reset (void)
 {
-#if 1
+#if defined(CONFIG_CPU_SUBTYPE_SH4_2XX)		/* SH4-200 series */
 	/*
 	 * We will use the on-chip watchdog timer to force a
 	 * power-on-reset of the device.
 	 * A power-on-reset is required to guarantee all SH4-200 cores
 	 * will reset back into 29-bit mode, if they were in SE mode.
-	 * However, on SH4-300 series parts, issuing a TRAP instruction
-	 * with SR.BL=1 is sufficient. However, we will use a "one size fits
-	 * all" solution here, and use the watchdog for all SH parts.
 	 */
-
 		/* WTCNT          = FF	counter to overflow next tick */
 	*ST40_CPG_WTCNT = 0x5AFF;
 
@@ -403,19 +399,23 @@ static void sh_reset (void)
 		/* WTCSR.RSTS     = 0	enable power-on reset */
 		/* WTCSR.CKS[2:0] = 2	clock division ratio 1:128 */
 		/* NOTE: we need CKS to be big enough to allow
-		 * U-boot to disable the watchdog, AFTER the reset,
+		 * U-Boot to disable the watchdog, AFTER the reset,
 		 * otherwise, we enter an infinite-loop of resetting! */
 	*ST40_CPG_WTCSR = 0xA5C2;
-
-	/* wait for H/W reset to kick in ... */
-	for (;;);
-#else
+#elif defined(CONFIG_CPU_SUBTYPE_SH4_3XX)	/* SH4-300 series */
+	/*
+	 * However, on SH4-300 series parts, issuing a TRAP instruction
+	 * with SR.BL=1 should always be sufficient.
+	 */
 	ulong sr;
 	asm ("stc sr, %0":"=r" (sr));
-	sr |= (1 << 28);	/* set block bit */
+	sr |= (1 << 28);	/* set block bit, SR.BL=1 */
 	asm ("ldc %0, sr": :"r" (sr));
 	asm volatile ("trapa #0");
 #endif
+
+	/* wait for H/W reset to kick in ... */
+	for (;;);
 }
 
 
