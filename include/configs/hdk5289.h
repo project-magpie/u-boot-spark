@@ -37,13 +37,25 @@
 /*-----------------------------------------------------------------------
  *	Switch settings to select between the SoC's main 3 boot-modes:
  *		a) boot from 16-bit NOR flash
- *		b) boot from 8-bit NAND flash, small-page, long address
+ *		b) boot from 8-bit NAND flash, large-page, long address
  *		c) boot from SPI serial flash
  *
- *	Board	Switch	NOR	NAND	SPI	Mode
- *	-----	------	---	----	---	----
+ *	Switch	NOR	NAND	SPI	Mode
+ *	------	---	----	---	----
+ *	JE1-2	X	ON	X	MODE[11]
+ *	JE1-1	X	off	X	MODE[10]
+ *
+ *	JE2-2	ON	off	X	MODE[13]
+ *	JE2-1	X	X	off	MODE[12]
+ *
+ *	JE3-2	ON	off	ON	MODE[16]
+ *	JE3-1	ON	ON	off	MODE[15]
+ *
+ *	JH1	NORTH	SOUTH	SOUTH	Swap CSA and CSB
  *
  *	Note: "X" denotes don't care (i.e. either ON or OFF)
+ *
+ *	Note: "NORTH" and "SOUTH" denotes board orientation with LEDs facing user.
  */
 
 
@@ -68,21 +80,15 @@
  * Assume we run out of uncached memory for the moment
  */
 
-#if defined(CFG_BOOT_FROM_SPI)		/* we are booting from SPI, so *DO* swap CSA and CSB in EPLD */
-//QQQ #define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (64MiB) */
-//QQQ #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-//QQQ #define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
-//QQQ #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSB */
-#elif defined(CFG_BOOT_FROM_NAND)	/* we are booting from NAND, so *DO* swap CSA and CSB in EPLD */
-	/*
-	 * QQQ: do we want to make sizeof(CSA) = 8MiB, and sizeof(CSB) = 64MiB ?
-	 * If so, then who takes responsibility for this???
-	 * Is this implicit in the GDB pokes, or explicit in U-Boot's init code?
-	 * Should U-Boot read SW8(1) on the MB705, and do something?
-	 */
-//QQQ #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-//QQQ #define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
-//QQQ #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
+#if defined(CFG_BOOT_FROM_SPI)		/* we are booting from SPI, so *DO* swap CSA and CSB */
+#define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSB */
+#elif defined(CFG_BOOT_FROM_NAND)	/* we are booting from NAND, so *DO* swap CSA and CSB */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #else		/* else, do *NOT* swap CSA and CSB in EPLD */
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
@@ -392,7 +398,6 @@
 #if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
 #	define CONFIG_SPI_FLASH_WINBOND		/* Winbond W25Q64V (UG1) */
 #	define CONFIG_SPI			/* enable the SPI driver */
-//#	define CONFIG_CMD_SPI			/* SPI serial bus command support - NOT with FSM! */
 #	define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
 #	define CFG_I2C_FRAM			/* to minimize performance degradation */
 #	undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
@@ -400,6 +405,7 @@
 	/* Can only use H/W FSM SPI Controller (not H/W SSC, nor S/W "bit-banging") */
 #	define CONFIG_STM_FSM_SPI		/* Use the H/W FSM for SPI */
 #	define CFG_STM_SPI_FSM_BASE	0xfe702000	/* FSM SPI Controller Base */
+#	undef CONFIG_CMD_SPI			/* SPI serial bus command support - NOT with FSM! */
 #endif	/* CONFIG_SPI_FLASH */
 
 /*-----------------------------------------------------------------------

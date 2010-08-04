@@ -27,7 +27,6 @@
 
 __memory_setup_table:
 
-#ifdef QQQ	/* QQQ - DELETE */
 	/*
 	 * include the appropriate set of "GDB pokes", (usually) generated
 	 * using the "romgen" utility, from a known good target-pack.
@@ -36,10 +35,10 @@ __memory_setup_table:
 	 * to an STMC2 (note: currently it must be version 2) and then
 	 * executing the following command (redirecting the output):
 	 *
-	 * host% romgen --show-comment <stmc2>:mb796stx5206:st40,boot_companions=0
+	 * host% romgen --show-comment --target-connect <stmc2>:hdk5289stx5206:st40,boot_companions=0
 	 *
 	 * Where "<stmc2>" should be replaced with the IP address
-	 * (or the DNS name) of the STMC2 box.  Also the "mb796stx5206" should
+	 * (or the DNS name) of the STMC2 box.  Also the "hdk5289stx5206" should
 	 * substituted if you have a custom target-pack connect command.
 	 *
 	 * Note: The connect command used with "romgen", should connect
@@ -61,7 +60,6 @@ __memory_setup_table:
 	UPDATE32(ST40_LMI_SDRA0_0(), 0x001FFFFF, 0x50000000)
 	UPDATE32(ST40_LMI_SDRA1_0(), 0x001FFFFF, 0x50000000)
 #endif	/* CONFIG_SH_SE_MODE */
-#endif		/* QQQ - DELETE */
 
 	END_MARKER
 
