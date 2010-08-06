@@ -117,6 +117,9 @@
 #ifndef ECC_H
 #define ECC_H
 
+/* Parity look up table (number of ones in a byte) */
+extern const unsigned char ecc_bit_count_table[256];
+
 /* The ECC algorithms support three different data sizes. */
 enum ecc_size
 {

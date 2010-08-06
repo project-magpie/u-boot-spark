@@ -67,7 +67,7 @@ static const unsigned char byte_parity_table[] =   /* Parity look up table */
   0x35, 0x1E, 0x18, 0x33, 0x06, 0x2D, 0x2B, 0x00
 };
 
-static const unsigned char  bit_count_table[] =   /* Parity look up table */
+const unsigned char  ecc_bit_count_table[256] =   /* Parity look up table */
 {
   0, 1, 1, 2, 1, 2, 2, 3,
   1, 2, 2, 3, 2, 3, 3, 4,
@@ -287,16 +287,16 @@ enum ecc_check ecc_correct(unsigned char* p_data,
        0xAA = 10101010
        0x55 = 01010101
      */
-    bit_cnt02  = bit_count_table[ ((ecc_xor[0] & 0xAA) >> 1) ^ (ecc_xor[0] & 0x55) ];
-    bit_cnt02 += bit_count_table[ ((ecc_xor[1] & 0xAA) >> 1) ^ (ecc_xor[1] & 0x55) ];
-    bit_cnt02 += bit_count_table[ ((ecc_xor[2] & 0xAA) >> 1) ^ (ecc_xor[2] & 0x55) ];
+    bit_cnt02  = ecc_bit_count_table[ ((ecc_xor[0] & 0xAA) >> 1) ^ (ecc_xor[0] & 0x55) ];
+    bit_cnt02 += ecc_bit_count_table[ ((ecc_xor[1] & 0xAA) >> 1) ^ (ecc_xor[1] & 0x55) ];
+    bit_cnt02 += ecc_bit_count_table[ ((ecc_xor[2] & 0xAA) >> 1) ^ (ecc_xor[2] & 0x55) ];
   }
   else
   {
     /* Counts the number of bits set in ecc code */
-    bit_cnt02  = bit_count_table[ ecc_xor[0] ];
-    bit_cnt02 += bit_count_table[ ecc_xor[1] ];
-    bit_cnt02 += bit_count_table[ ecc_xor[2] ];
+    bit_cnt02  = ecc_bit_count_table[ ecc_xor[0] ];
+    bit_cnt02 += ecc_bit_count_table[ ecc_xor[1] ];
+    bit_cnt02 += ecc_bit_count_table[ ecc_xor[2] ];
   }
 
   if (bit_cnt02 == error_bit_count)
