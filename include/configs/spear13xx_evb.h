@@ -103,6 +103,17 @@
 #define CONFIG_PL01x_PORTS			{(void *)CONFIG_SYS_SERIAL0}
 
 /*
+ * USB/EHCI
+ */
+#define CONFIG_CMD_USB				/* Enable USB Commands */
+#define CONFIG_USB_EHCI				/* Enable EHCI USB support */
+#define CONFIG_USB_EHCI_SPEAR
+#define CONFIG_CMD_FAT
+#define CONFIG_USB_STORAGE
+#define CONFIG_DOS_PARTITION
+#define CONFIG_ISO_PARTITION
+
+/*
  * NAND FLASH Configuration
  */
 #define CONFIG_NAND_FSMC			1

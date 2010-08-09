@@ -58,6 +58,10 @@ int arch_cpu_init(void)
 	perip1_clk_enb |= UDC_UPD_CLKEN;
 #endif
 
+#if defined(CONFIG_USB_EHCI_SPEAR)
+	perip1_clk_enb |= UHC1_CLKEN;
+#endif
+
 #if defined(CONFIG_DW_I2C)
 	perip1_clk_enb |= I2C_CLKEN;
 #endif
