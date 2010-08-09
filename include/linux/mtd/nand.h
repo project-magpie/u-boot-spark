@@ -460,6 +460,9 @@ struct nand_bbt_descr {
 #define NAND_BBT_SAVECONTENT	0x00002000
 /* Search good / bad pattern on the first and the second page */
 #define NAND_BBT_SCAN2NDPAGE	0x00004000
+/* Handle STMicroelectronics H/W ECC schemes (boot-mode, AFM4) */
+#define NAND_BBT_SCANSTMBOOTECC	0x00010000
+#define NAND_BBT_SCANSTMAFMECC	0x00020000
 
 /* The maximum number of blocks to scan for a bbt */
 #define NAND_BBT_SCAN_MAXBLOCKS 4

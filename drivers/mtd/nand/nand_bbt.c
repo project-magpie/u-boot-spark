@@ -63,6 +63,10 @@
 
 #include <asm/errno.h>
 
+#if defined(CONFIG_SH4) && defined(CFG_NAND_ECC_HW3_128)
+#include <asm-sh/ecc.h>
+#endif	/* CONFIG_SH4 && CFG_NAND_ECC_HW3_128 */
+
 /**
  * check_pattern - [GENERIC] check if a pattern is in the buffer
  * @buf:	the buffer to search
@@ -93,7 +97,7 @@ static int check_pattern (uint8_t *buf, int len, int paglen, struct nand_bbt_des
 	/* Compare the pattern */
 	for (i = 0; i < td->len; i++) {
 		if (p[i] != td->pattern[i])
-			return -1;
+			goto check_failed;
 	}
 
 	p += td->len;
@@ -105,6 +109,28 @@ static int check_pattern (uint8_t *buf, int len, int paglen, struct nand_bbt_des
 		}
 	}
 	return 0;
+
+check_failed:
+#if defined(CONFIG_SH4) && defined(CFG_NAND_ECC_HW3_128)
+	if (td->options & NAND_BBT_SCANSTMBOOTECC)	/* is it "Boot-Mode+B" (3+1/128) ? */
+	{	/* Check for STM boot-mode ECC... */
+		const int ooblen = (td->offs == 5) ? 16 : 64;
+		int e = 0;
+		for (i = 3; i < ooblen; i += 4)
+		{
+			e += ecc_bit_count_table[p[i] ^ 'B'];
+		}
+		/* Tolerate a single bit-error across all the 'B' markers in one page */
+		if (e <= 1)
+		{
+#if 0
+			printf("info: page recognised as good \"Boot-Mode+B\" (e=%u)\n", e);
+#endif
+			return 0;	/* treat as a "good" match */
+		}
+	}
+#endif	/* CONFIG_SH4 && CFG_NAND_ECC_HW3_128 */
+	return -1;	/* patterns failed to match! */
 }
 
 /**
@@ -590,8 +616,13 @@ static int nand_memory_bbt (struct mtd_info *mtd, struct nand_bbt_descr *bd)
 {
 	struct nand_chip *this = mtd->priv;
 
-	/* Ensure that we only scan for the pattern and nothing else */
-	bd->options = 0;
+	/*
+	 * Ensure that we only scan for the pattern and nothing else.
+	 * Although, we also permit a block to be recognised as "good"
+	 * even if the bad block marker says otherwise, *if* it matches
+	 * one of other known "special" OOB signatures.
+	 */
+	bd->options &= NAND_BBT_SCANSTMBOOTECC|NAND_BBT_SCANSTMAFMECC;
 	create_bbt (mtd, this->data_buf, bd, -1);
 	return 0;
 }

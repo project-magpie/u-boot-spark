@@ -90,7 +90,7 @@ struct region_info_user {
 #define MEMSETBADBLOCK		_IOW('M', 12, loff_t)
 
 #define MTD_NANDECC_MAX_OOBFREE	16	/* 16 for STMicroelectronics STi7xxx */
-#define MTD_NANDECC_MAX_ECCPOS	48	/* 48 for STMicroelectronics STi7xxx */
+#define MTD_NANDECC_MAX_ECCPOS	64	/* 64 for STMicroelectronics "Boot-Mode+B" (3+1/128) */
 struct nand_oobinfo {
 	uint32_t useecc;
 	uint32_t eccbytes;

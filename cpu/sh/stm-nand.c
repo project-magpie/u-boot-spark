@@ -43,6 +43,13 @@
 #define VERBOSE_ECC		0	/* Enable for verbose ECC information  */
 
 
+#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
+#if !defined(CFG_STM_NAND_BOOT_MODE_ECC_WITH_B)
+#	define CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	1	/* Enable 'B' tagging */
+#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#endif	/* CFG_NAND_ECC_HW3_128 */
+
+
 /*
  * Define the bad/good block scan pattern which are used while scanning
  * the NAND device for any factory marked good/bad blocks.
@@ -80,41 +87,73 @@ struct nand_bbt_descr stm_nand_badblock_pattern_64 = {
 	/* for SMALL-page devices */
 static struct nand_oobinfo stm_nand_oobinfo_16 = {
 	.useecc = MTD_NANDECC_AUTOPLACE,
-	.eccbytes = 12,
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+	.eccbytes = 16,			/* 16 out of 16 bytes = 100% of OOB */
 	.eccpos = {
-		 0,  1,  2,	/* ECC for 1st 128-byte record */
-		 4,  5,  6,	/* ECC for 2nd 128-byte record */
-		 8,  9, 10,	/* ECC for 3rd 128-byte record */
-		12, 13, 14},	/* ECC for 4th 128-byte record */
-	.oobfree = { {3, 1}, {7, 1}, {11, 1}, {15, 1} }
+		 0,  1,  2,  3,		/* 128-byte Record 0: ECC0, ECC1, ECC2, 'B' */
+		 4,  5,  6,  7,		/* 128-byte Record 1: ECC0, ECC1, ECC2, 'B' */
+		 8,  9, 10, 11,		/* 128-byte Record 2: ECC0, ECC1, ECC2, 'B' */
+		12, 13, 14, 15},	/* 128-byte Record 3: ECC0, ECC1, ECC2, 'B' */
+	.oobfree = { {0, 0} }		/* No free space in OOB! */
+#else	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+	.eccbytes = 12,			/* 12 out of 16 bytes = 75% of OOB */
+	.eccpos = {
+		 0,  1,  2,		/* 128-byte Record 0: ECC0, ECC1, ECC2 */
+		 4,  5,  6,		/* 128-byte Record 1: ECC0, ECC1, ECC2 */
+		 8,  9, 10,		/* 128-byte Record 2: ECC0, ECC1, ECC2 */
+		12, 13, 14}		/* 128-byte Record 3: ECC0, ECC1, ECC2 */
+	.oobfree = { {3, 1}, {7, 1}, {11, 1}, {15, 1} }	/* 4 free bytes in the OOB */
+#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
 };
 
 	/* for LARGE-page devices */
 static struct nand_oobinfo stm_nand_oobinfo_64 = {
 	.useecc = MTD_NANDECC_AUTOPLACE,
-	.eccbytes = 48,
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+	.eccbytes = 64,			/* 64 out of 64 bytes = 100% of OOB */
 	.eccpos = {
-		 0,  1,  2,	/* ECC for  1st 128-byte record */
-		 4,  5,  6,	/* ECC for  2nd 128-byte record */
-		 8,  9, 10,	/* ECC for  3rd 128-byte record */
-		12, 13, 14,	/* ECC for  4th 128-byte record */
-		16, 17, 18,	/* ECC for  5th 128-byte record */
-		20, 21, 22,	/* ECC for  6th 128-byte record */
-		24, 25, 26,	/* ECC for  7th 128-byte record */
-		28, 29, 30,	/* ECC for  8th 128-byte record */
-		32, 33, 34,	/* ECC for  9th 128-byte record */
-		36, 37, 38,	/* ECC for 10th 128-byte record */
-		40, 41, 42,	/* ECC for 11th 128-byte record */
-		44, 45, 46,	/* ECC for 12th 128-byte record */
-		48, 49, 50,	/* ECC for 13th 128-byte record */
-		52, 53, 54,	/* ECC for 14th 128-byte record */
-		56, 57, 58,	/* ECC for 15th 128-byte record */
-		60, 61, 62},	/* ECC for 16th 128-byte record */
+		 0,  1,  2,  3,		/* 128-byte Record  0: ECC0, ECC1, ECC2, 'B' */
+		 4,  5,  6,  7,		/* 128-byte Record  1: ECC0, ECC1, ECC2, 'B' */
+		 8,  9, 10, 11,		/* 128-byte Record  2: ECC0, ECC1, ECC2, 'B' */
+		12, 13, 14, 15,		/* 128-byte Record  3: ECC0, ECC1, ECC2, 'B' */
+		16, 17, 18, 19,		/* 128-byte Record  4: ECC0, ECC1, ECC2, 'B' */
+		20, 21, 22, 23,		/* 128-byte Record  5: ECC0, ECC1, ECC2, 'B' */
+		24, 25, 26, 27,		/* 128-byte Record  6: ECC0, ECC1, ECC2, 'B' */
+		28, 29, 30, 31,		/* 128-byte Record  7: ECC0, ECC1, ECC2, 'B' */
+		32, 33, 34, 35,		/* 128-byte Record  8: ECC0, ECC1, ECC2, 'B' */
+		36, 37, 38, 39,		/* 128-byte Record  9: ECC0, ECC1, ECC2, 'B' */
+		40, 41, 42, 43,		/* 128-byte Record 10: ECC0, ECC1, ECC2, 'B' */
+		44, 45, 46, 47,		/* 128-byte Record 11: ECC0, ECC1, ECC2, 'B' */
+		48, 49, 50, 51,		/* 128-byte Record 12: ECC0, ECC1, ECC2, 'B' */
+		52, 53, 54, 55,		/* 128-byte Record 13: ECC0, ECC1, ECC2, 'B' */
+		56, 57, 58, 59,		/* 128-byte Record 14: ECC0, ECC1, ECC2, 'B' */
+		60, 61, 62, 63},	/* 128-byte Record 15: ECC0, ECC1, ECC2, 'B' */
+	.oobfree = { {0, 0} }		/* No free space in OOB! */
+#else	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+	.eccbytes = 48,			/* 48 out of 64 bytes = 75% of OOB */
+	.eccpos = {
+		 0,  1,  2,		/* 128-byte Record  0: ECC0, ECC1, ECC2 */
+		 4,  5,  6,		/* 128-byte Record  1: ECC0, ECC1, ECC2 */
+		 8,  9, 10,		/* 128-byte Record  2: ECC0, ECC1, ECC2 */
+		12, 13, 14,		/* 128-byte Record  3: ECC0, ECC1, ECC2 */
+		16, 17, 18,		/* 128-byte Record  4: ECC0, ECC1, ECC2 */
+		20, 21, 22,		/* 128-byte Record  5: ECC0, ECC1, ECC2 */
+		24, 25, 26,		/* 128-byte Record  6: ECC0, ECC1, ECC2 */
+		28, 29, 30,		/* 128-byte Record  7: ECC0, ECC1, ECC2 */
+		32, 33, 34,		/* 128-byte Record  8: ECC0, ECC1, ECC2 */
+		36, 37, 38,		/* 128-byte Record  9: ECC0, ECC1, ECC2 */
+		40, 41, 42,		/* 128-byte Record 10: ECC0, ECC1, ECC2 */
+		44, 45, 46,		/* 128-byte Record 11: ECC0, ECC1, ECC2 */
+		48, 49, 50,		/* 128-byte Record 12: ECC0, ECC1, ECC2 */
+		52, 53, 54,		/* 128-byte Record 13: ECC0, ECC1, ECC2 */
+		56, 57, 58,		/* 128-byte Record 14: ECC0, ECC1, ECC2 */
+		60, 61, 62},		/* 128-byte Record 15: ECC0, ECC1, ECC2 */
 	.oobfree = {
 		{ 3, 1}, { 7, 1}, {11, 1}, {15, 1},
 		{19, 1}, {23, 1}, {27, 1}, {31, 1},
 		{35, 1}, {39, 1}, {43, 1}, {47, 1},
-		{51, 1}, {55, 1}, {59, 1}, {63, 1} },
+		{51, 1}, {55, 1}, {59, 1}, {63, 1} }	/* 16 free bytes in the OOB */
+#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
 };
 
 
@@ -145,6 +184,7 @@ struct stm_mtd_nand_ecc
 	{
 		int			eccmode;
 		int			eccsize;
+		int			eccbytes;	/* for ECC + ID tags */
 		int			eccsteps;
 		struct nand_oobinfo	*autooob;
 		int (*calculate_ecc)(struct mtd_info *, const u_char *, u_char *);
@@ -287,6 +327,19 @@ extern int stm_nand_default_bbt (struct mtd_info *mtd)
 	else
 		this->badblock_pattern = &stm_nand_badblock_pattern_16;	/* SMALL-page */
 
+	/*
+	 * For the "boot-mode+B" ECC (i.e. 3+1/128), then we wish to
+	 * be compatible with the way linux scans NAND devices.
+	 * So, we do not want to scan all pages, nor all the in-band data!
+	 * Play with the options to make it so...
+	 */
+#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+	this->badblock_pattern->options &= ~(NAND_BBT_SCANEMPTY|NAND_BBT_SCANALLPAGES);
+	this->badblock_pattern->options |= NAND_BBT_SCANSTMBOOTECC;
+#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#endif	/* CFG_NAND_ECC_HW3_128 */
+
 	/* now call the generic BBT function */
 	return nand_default_bbt (mtd);
 }
@@ -317,6 +370,9 @@ extern int stm_nand_calculate_ecc (
 		ecc_code[0] = 'B';
 		ecc_code[1] = 'A';
 		ecc_code[2] = 'D';
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+		ecc_code[3] = 'B';	/* append ASCII 'B', for Boot-mode */
+#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
 		return -1;	/* Note: caller ignores this value! */
 	}
 	else
@@ -326,6 +382,9 @@ extern int stm_nand_calculate_ecc (
 		ecc_code[0] = computed_ecc.byte[0];
 		ecc_code[1] = computed_ecc.byte[1];
 		ecc_code[2] = computed_ecc.byte[2];
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+		ecc_code[3] = 'B';	/* append ASCII 'B', for Boot-mode */
+#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
 	}
 
 	return 0;
@@ -434,6 +493,7 @@ static void initialize_ecc_diffs (
 	/* fill in "default_ecc" from the current "live" (default) structures */
 	default_ecc.nand.eccmode	= this->eccmode;
 	default_ecc.nand.eccsize	= this->eccsize;
+	default_ecc.nand.eccbytes	= this->eccbytes;
 	default_ecc.nand.eccsteps	= this->eccsteps;
 	default_ecc.nand.autooob	= this->autooob;
 	default_ecc.nand.calculate_ecc	= this->calculate_ecc;
@@ -445,6 +505,11 @@ static void initialize_ecc_diffs (
 	/* fill in "special_ecc" for our special "hybrid" ECC paradigm */
 	special_ecc.nand.eccmode	= NAND_ECC_HW3_128;
 	special_ecc.nand.eccsize	= 128;
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+	special_ecc.nand.eccbytes	= 3 + 1;	/* ECC 3+1/128, '+1' for 'B' */
+#else	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+	special_ecc.nand.eccbytes	= 3;		/* ECC 3/128 */
+#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
 	special_ecc.nand.eccsteps	= mtd->oobblock / special_ecc.nand.eccsize;
 	special_ecc.nand.autooob	= autooob;
 	special_ecc.nand.calculate_ecc	= stm_nand_calculate_ecc;
@@ -472,6 +537,7 @@ static void set_ecc_diffs (
 
 	this->eccmode		= diffs->nand.eccmode;
 	this->eccsize		= diffs->nand.eccsize;
+	this->eccbytes		= diffs->nand.eccbytes;
 	this->eccsteps		= diffs->nand.eccsteps;
 	this->autooob		= diffs->nand.autooob;
 	this->calculate_ecc	= diffs->nand.calculate_ecc;
