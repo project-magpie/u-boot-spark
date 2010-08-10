@@ -43,11 +43,12 @@
 #define VERBOSE_ECC		0	/* Enable for verbose ECC information  */
 
 
-#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
 #if !defined(CFG_STM_NAND_BOOT_MODE_ECC_WITH_B)
 #	define CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	1	/* Enable 'B' tagging */
 #endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
-#endif	/* CFG_NAND_ECC_HW3_128 */
+#if !defined(CFG_STM_NAND_AFM4_ECC_WITH_AFM)
+#	define CFG_STM_NAND_AFM4_ECC_WITH_AFM		1	/* Enable "AFM" tagging */
+#endif	/* CFG_STM_NAND_AFM4_ECC_WITH_AFM */
 
 
 /*
@@ -328,17 +329,21 @@ extern int stm_nand_default_bbt (struct mtd_info *mtd)
 		this->badblock_pattern = &stm_nand_badblock_pattern_16;	/* SMALL-page */
 
 	/*
-	 * For the "boot-mode+B" ECC (i.e. 3+1/128), then we wish to
+	 * For the "boot-mode+B" ECC (i.e. 3+1/128) scheme, and for
+	 * the "AFM4" ECC (i.e. 4+3/512) scheme, then we wish to
 	 * be compatible with the way linux scans NAND devices.
 	 * So, we do not want to scan all pages, nor all the in-band data!
 	 * Play with the options to make it so...
 	 */
-#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B || CFG_STM_NAND_AFM4_ECC_WITH_AFM
 	this->badblock_pattern->options &= ~(NAND_BBT_SCANEMPTY|NAND_BBT_SCANALLPAGES);
+#endif
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	/* Additional "B" tag in OOB ? */
 	this->badblock_pattern->options |= NAND_BBT_SCANSTMBOOTECC;
-#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
-#endif	/* CFG_NAND_ECC_HW3_128 */
+#endif
+#if CFG_STM_NAND_AFM4_ECC_WITH_AFM	/* Additional "AFM" tag in OOB ? */
+	this->badblock_pattern->options |= NAND_BBT_SCANSTMAFMECC;
+#endif
 
 	/* now call the generic BBT function */
 	return nand_default_bbt (mtd);

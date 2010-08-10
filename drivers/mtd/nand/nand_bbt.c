@@ -63,9 +63,9 @@
 
 #include <asm/errno.h>
 
-#if defined(CONFIG_SH4) && defined(CFG_NAND_ECC_HW3_128)
+#if defined(CONFIG_SH4)
 #include <asm-sh/ecc.h>
-#endif	/* CONFIG_SH4 && CFG_NAND_ECC_HW3_128 */
+#endif	/* CONFIG_SH4 */
 
 /**
  * check_pattern - [GENERIC] check if a pattern is in the buffer
@@ -111,7 +111,7 @@ static int check_pattern (uint8_t *buf, int len, int paglen, struct nand_bbt_des
 	return 0;
 
 check_failed:
-#if defined(CONFIG_SH4) && defined(CFG_NAND_ECC_HW3_128)
+#if defined(CONFIG_SH4)
 	if (td->options & NAND_BBT_SCANSTMBOOTECC)	/* is it "Boot-Mode+B" (3+1/128) ? */
 	{	/* Check for STM "Boot-Mode+B" ECC... */
 		int e = 0;
@@ -128,7 +128,25 @@ check_failed:
 			return 0;	/* treat as a "good" match */
 		}
 	}
-#endif	/* CONFIG_SH4 && CFG_NAND_ECC_HW3_128 */
+	if (td->options & NAND_BBT_SCANSTMAFMECC)	/* is it "AFM4" (4+3/512) ? */
+	{	/* Check for STM "AFM4" ECC... */
+		int e = 0;
+		for (i = paglen+3; i < len; i += 16)
+		{	/* check: OOB[n*16+3:n*16+5] == "AFM", for n=0,1,2,... */
+			e += ecc_bit_count_table[buf[i+0] ^ 'A'];
+			e += ecc_bit_count_table[buf[i+1] ^ 'F'];
+			e += ecc_bit_count_table[buf[i+2] ^ 'M'];
+		}
+		/* Tolerate a single bit-error across all the "AFM" markers in one page */
+		if (e <= 1)
+		{
+#if 0
+			printf("info: page recognised as good \"AFM4\" (e=%u)\n", e);
+#endif
+			return 0;	/* treat as a "good" match */
+		}
+	}
+#endif	/* CONFIG_SH4 */
 	return -1;	/* patterns failed to match! */
 }
 
