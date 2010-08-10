@@ -113,12 +113,11 @@ static int check_pattern (uint8_t *buf, int len, int paglen, struct nand_bbt_des
 check_failed:
 #if defined(CONFIG_SH4) && defined(CFG_NAND_ECC_HW3_128)
 	if (td->options & NAND_BBT_SCANSTMBOOTECC)	/* is it "Boot-Mode+B" (3+1/128) ? */
-	{	/* Check for STM boot-mode ECC... */
-		const int ooblen = (td->offs == 5) ? 16 : 64;
+	{	/* Check for STM "Boot-Mode+B" ECC... */
 		int e = 0;
-		for (i = 3; i < ooblen; i += 4)
-		{
-			e += ecc_bit_count_table[p[i] ^ 'B'];
+		for (i = paglen+3; i < len; i += 4)
+		{	/* check: OOB[n*4+3] == 'B', for n=0,1,2,... */
+			e += ecc_bit_count_table[buf[i] ^ 'B'];
 		}
 		/* Tolerate a single bit-error across all the 'B' markers in one page */
 		if (e <= 1)
