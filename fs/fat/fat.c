@@ -5,6 +5,7 @@
  *
  * 2002-07-28 - rjones@nexus-tech.net - ported to ppcboot v1.1.6
  * 2003-03-10 - kharris@nexus-tech.net - ported to uboot
+ * 2010-08-11 - Sean.McGoogan@st.com - added invalid_cluster()
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -32,6 +33,32 @@
 #include <part.h>
 
 #if defined(CONFIG_CMD_FAT)
+
+
+/*
+ * return TRUE if cluster number is "invalid", i.e.
+ * out of range for "normal" data clusters.
+ * Note, the upper range depends on the FAT size (12,16,32).
+ */
+static inline int
+invalid_cluster(const fsdata * const mydata, const __u32 cluster)
+{
+	int result;
+
+	result = cluster <= 0x00000001ul ||
+		 cluster >= ((mydata->fatsize==32) ? 0x0ffffff0ul :
+			     (mydata->fatsize==16) ? 0x0000fff0ul :
+			     /* else, for FAT12 */   0x00000ff0ul);
+
+#if 0
+	printf("info: with FAT%2u, cluster=0x%06x is %s\n",
+		mydata->fatsize,
+		cluster,
+		result ? "INVALID!!!" : "okay.");
+#endif
+
+	return result;
+}
 
 /*
  * Convert a string to lowercase.
@@ -357,7 +384,7 @@ get_contents(fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
 			newclust = get_fatent(mydata, endclust);
 			if((newclust -1)!=endclust)
 				goto getit;
-			if (newclust <= 0x0001 || newclust >= 0xfff0) {
+			if (invalid_cluster(mydata, newclust)) {
 				FAT_DPRINT("curclust: 0x%x\n", newclust);
 				FAT_DPRINT("Invalid FAT entry\n");
 				return gotsize;
@@ -392,7 +419,7 @@ getit:
 		filesize -= actsize;
 		buffer += actsize;
 		curclust = get_fatent(mydata, endclust);
-		if (curclust <= 0x0001 || curclust >= 0xfff0) {
+		if (invalid_cluster(mydata, curclust)) {
 			FAT_DPRINT("curclust: 0x%x\n", curclust);
 			FAT_ERROR("Invalid FAT entry\n");
 			return gotsize;
@@ -464,7 +491,7 @@ get_vfatname(fsdata *mydata, int curclust, __u8 *cluster,
 
 		slotptr--;
 		curclust = get_fatent(mydata, curclust);
-		if (curclust <= 0x0001 || curclust >= 0xfff0) {
+		if (invalid_cluster(mydata, curclust)) {
 			FAT_DPRINT("curclust: 0x%x\n", curclust);
 			FAT_ERROR("Invalid FAT entry\n");
 			return -1;
@@ -657,7 +684,7 @@ static dir_entry *get_dentfromdir (fsdata * mydata, int startsect,
 	    return retdent;
 	}
 	curclust = get_fatent (mydata, curclust);
-	if (curclust <= 0x0001 || curclust >= 0xfff0) {
+	if (invalid_cluster(mydata, curclust)) {
 	    FAT_DPRINT ("curclust: 0x%x\n", curclust);
 	    FAT_ERROR ("Invalid FAT entry\n");
 	    return NULL;
