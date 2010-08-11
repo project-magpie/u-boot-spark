@@ -80,6 +80,23 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 	int (*nand_block_bad_old)(struct mtd_info *, loff_t, int) = NULL;
 	const char *mtd_device = meminfo->name;
 
+	/*
+	 * it is best (to minimise confusion) if the erase length
+	 * and the erase start addresses *ARE* both explicitly
+	 * aligned by the user to the erase block boundary.
+	 * It saves the user erasing more than he expected!
+	 */
+	if (opts->length % meminfo->erasesize) {
+		printf("ERROR: erase length is not block aligned (0x%x)\n",
+			meminfo->erasesize);
+		return -1;
+	}
+	if (opts->offset % meminfo->erasesize) {
+		printf("ERROR: erase address is not block aligned (0x%x)\n",
+			meminfo->erasesize);
+		return -1;
+	}
+
 	memset(&erase, 0, sizeof(erase));
 
 	erase.mtd = meminfo;
