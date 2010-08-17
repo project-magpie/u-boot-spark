@@ -30,6 +30,7 @@
 #include <asm/sh4reg.h>
 #include <asm/addrspace.h>
 #include <asm/pmb.h>
+#include <asm/soc.h>
 
 #ifdef CONFIG_SHOW_BOOT_PROGRESS
 # include <status_led.h>
@@ -291,6 +292,34 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 
 	/* Invalidate both instruction and data caches */
 	sh_cache_set_op(SH4_CCR_OCI|SH4_CCR_ICI);
+
+#if 0
+	/*
+	 * In order to measure boot-times reasonably accurately,
+	 * it is desirable to toggle some pin/signal to indicate
+	 * that the period we wish to measure has started and
+	 * terminated. We can then attach some probes from a
+	 * digital oscilloscope (or logic analyser) and measure
+	 * the time between the two transitions.
+	 *
+	 * In the case of measuring the time for U-Boot from "reset"
+	 * to "ready to pass control to linux", then *now* would be a
+	 * good opportunity to toggle a PIO pin to indicate that
+	 * we can stop measuring time. We ideally want to do this
+	 * before we irretrievably "damage" the PMB configuration.
+	 *
+	 * In this case, we call stmac_phy_reset() before retuning
+	 * to the caller. It should be noted that although we are calling
+	 * stmac_phy_reset(), our intention is *not* to reset the PHY,
+	 * but it is purely to effect a transition on a pin that we can
+	 * easily add a probe to. The fact that the PHY has been reset
+	 * is just be a benign by-product of this "signalling" mechanism.
+	 */
+	stmac_phy_reset();
+	printf("info: Not passing control to linux "
+		"- just called stmac_phy_reset() instead!\n");
+	return;
+#endif
 
 #ifdef CONFIG_SH_SE_MODE
 	/*
