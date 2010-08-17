@@ -44,7 +44,7 @@ void flashWriteDisable(void)
 
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-static void phy_reset(void)
+extern void stmac_phy_reset(void)
 {
 	/*
 	 * Reset the Ethernet PHY.
@@ -100,7 +100,7 @@ extern int board_init(void)
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/* Reset the PHY */
-	phy_reset();
+	stmac_phy_reset();
 
 	stx5206_configure_ethernet(stx5206_ethernet_mii, 0, 0);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */

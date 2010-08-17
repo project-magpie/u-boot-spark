@@ -43,7 +43,7 @@ extern void flashWriteDisable(void)
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-static void phy_reset(void)
+extern void stmac_phy_reset(void)
 {
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE	/* MAC = STM GMAC#1 */
 	/* Reset the on-board IC+ IP1001 PHY (U51) */
@@ -87,7 +87,7 @@ extern int board_init(void)
 	configPIO();
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-	phy_reset();	/* Reset the PHY */
+	stmac_phy_reset();	/* Reset the PHY */
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE	/* MAC = STM GMAC#0 */
 	/* QQQ TODO: No H/W provided to test this! */
 	stx7141_configure_ethernet(0, 0, 0, 0);

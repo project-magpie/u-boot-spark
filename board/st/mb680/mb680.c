@@ -127,7 +127,7 @@ void flashWriteDisable(void)
 }
 
 #ifdef CONFIG_STMAC_LAN8700
-static void phy_reset(void)
+extern void stmac_phy_reset(void)
 {
 	/* Reset the SMSC LAN8700 PHY */
 	STPIO_SET_PIN(PIO_PORT(5), 5, 1);
@@ -189,7 +189,7 @@ extern int board_init(void)
 
 	/* Reset the PHY */
 #ifdef CONFIG_STMAC_LAN8700
-	phy_reset();
+	stmac_phy_reset();
 #endif	/* CONFIG_STMAC_LAN8700 */
 
 #if defined(CONFIG_SH_STM_SATA)

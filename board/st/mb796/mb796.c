@@ -125,7 +125,7 @@ void flashWriteDisable(void)
 
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-static void phy_reset(void)
+extern void stmac_phy_reset(void)
 {
 	/*
 	 * Reset the Ethernet PHY.
@@ -200,7 +200,7 @@ extern int board_init(void)
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/* Reset the PHY */
-	phy_reset();
+	stmac_phy_reset();
 
 	/*
 	 * The following works, with the jumpers connected as:
