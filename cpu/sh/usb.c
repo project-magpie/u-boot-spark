@@ -53,6 +53,14 @@ extern int usb_cpu_init(void)
 			 CONFIG_SH_STX_STX7105_USB_OC,
 			 CONFIG_SH_STX_STX7105_USB_PW);
 #endif
+#elif defined(CONFIG_SH_STX7108)
+#if CFG_USB_BASE == CFG_USB0_BASE	/* USB #0 */
+	stx7108_usb_init(0);
+#elif CFG_USB_BASE == CFG_USB1_BASE	/* USB #1 */
+	stx7108_usb_init(1);
+#elif CFG_USB_BASE == CFG_USB2_BASE	/* USB #2 */
+	stx7108_usb_init(2);
+#endif
 #elif defined(CONFIG_SH_STX7111)
 	stx7111_usb_init();
 #elif defined(CONFIG_SH_STX7141)

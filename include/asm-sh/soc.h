@@ -161,6 +161,7 @@ extern void stb7100_usb_init(void);
 extern void stx5197_usb_init(void);
 extern void stx5206_usb_init(void);
 extern int  stx7105_usb_init(int port, int over_current, int power_ctrl);
+extern int  stx7108_usb_init(const int port);
 extern void stx7111_usb_init(void);
 extern void stx7141_usb_init(void);
 extern void stx7200_usb_init(void);

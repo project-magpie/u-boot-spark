@@ -77,11 +77,11 @@ extern void stx7108_pioalt_select(const int port, const int pin, const int alt)
 	{
 	case 0 ... 14:
 		num = port;		/* in Bank #2 */
-		sysconfReg = (unsigned long*)STX7108_BANK2_SYSGFG(num);
+		sysconfReg = (unsigned long*)STX7108_BANK2_SYSCFG(num);
 		break;
 	case 15 ... 26:
 		num = port - 15;	/* in Bank #4 */
-		sysconfReg = (unsigned long*)STX7108_BANK4_SYSGFG(num);
+		sysconfReg = (unsigned long*)STX7108_BANK4_SYSCFG(num);
 		break;
 	default:
 		BUG();
@@ -139,12 +139,12 @@ void stx7108_pioalt_pad(int port, const int pin,
 	{
 	case 0 ... 14:
 		num = 15 + (port / 4);	/* in Bank #2 */
-		sysconfReg = (unsigned long*)STX7108_BANK2_SYSGFG(num);
+		sysconfReg = (unsigned long*)STX7108_BANK2_SYSCFG(num);
 		break;
 	case 15 ... 26:
 		port -= 15;
 		num = 12 + (port / 4);	/* in Bank #4 */
-		sysconfReg = (unsigned long*)STX7108_BANK4_SYSGFG(num);
+		sysconfReg = (unsigned long*)STX7108_BANK4_SYSCFG(num);
 		break;
 	default:
 		BUG();
@@ -228,11 +228,11 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 			BUG();
 			return;
 		}
-		sysconfReg = (unsigned long*)STX7108_BANK2_SYSGFG(num);
+		sysconfReg = (unsigned long*)STX7108_BANK2_SYSCFG(num);
 		break;
 	case 15 ... 23:
 		num = 48 + ((port - 15) * 2);
-		sysconfReg = (unsigned long*)STX7108_BANK4_SYSGFG(num);
+		sysconfReg = (unsigned long*)STX7108_BANK4_SYSCFG(num);
 		break;
 	default:
 		BUG();
@@ -431,9 +431,9 @@ extern int stmac_default_pbl(void)
 }
 
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0 */
-#	define STX7108_MII_SYSGFG(x)	(STX7108_BANK2_SYSGFG(x))
+#	define STX7108_MII_SYSGFG(x)	(STX7108_BANK2_SYSCFG(x))
 #elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1 */
-#	define STX7108_MII_SYSGFG(x)	(STX7108_BANK4_SYSGFG(x))
+#	define STX7108_MII_SYSGFG(x)	(STX7108_BANK4_SYSCFG(x))
 #else
 #error Unknown base address for the STM GMAC
 #endif
@@ -603,72 +603,88 @@ extern int soc_init(void)
 	bd->bi_devid = *STX7108_SYSCONF_DEVICEID_0;
 
 	/* Make sure reset period is shorter than WDT time-out */
-	*STX7108_BANK0_SYSGFG(14) = 3000;	/* about 100 us */
+	*STX7108_BANK0_SYSCFG(14) = 3000;	/* about 100 us */
 
 	return 0;
 }
 
 
 #if defined(CONFIG_USB_OHCI_NEW)
-extern int stx7108_usb_init(int port, int over_current, int power_ctrl)
+extern int stx7108_usb_init(const int port)
 {
-#ifdef QQQ	/* QQQ - DELETE */
-	unsigned long reg;
-	const unsigned char oc_pins[2]    = {4, 6};	/* PIO4 */
-	const unsigned char power_pins[2] = {5, 7};	/* PIO4 */
+	DECLARE_GLOBAL_DATA_PTR;
+	bd_t *bd = gd->bd;
+	static int initialized = 0;
+	unsigned int flags;
+	const struct {
+		struct {
+			unsigned char port, pin, alt;
+		} oc, pwr;
+	} usb_pins[] = {
+		{ .oc = { 23, 6, 1 }, .pwr = { 23, 7, 1 } },
+		{ .oc = { 24, 0, 1 }, .pwr = { 24, 1, 1 } },
+		{ .oc = { 24, 2, 1 }, .pwr = { 24, 3, 1 } },
+	};
 
-	if (port >= sizeof(oc_pins))	/* invalid port number ? */
+	if (port < 0 || port >= 3)	/* invalid port number ? */
 		return -1;		/* failed to initialize! */
 
-	/* Power on the USB */
-	reg = readl(STX7105_SYSCONF_SYS_CFG32);
-	/* Power up USB host controller */
-	/* USBn_HC_POWER_DOWN_REQ = 0 = Powered Up */
-	reg &= ~(1ul<<(4+port));
-	/* Power up USB PHY */
-	/* USBn_PHY_POWER_DOWN_REQ = 0 = Powered Up */
-	reg &= ~(1ul<<(6+port));
-	writel(reg, STX7105_SYSCONF_SYS_CFG32);
-
-	if (over_current) {
-		/* USB overcurrent enable */
-		reg = readl(STX7105_SYSCONF_SYS_CFG04);
-		/* USB0_PRT_OVCURR_POL = 0 = Active Low */
-		reg &= ~(1ul<<(3+port));
-		/* USBn_PRT_OVCURR_IN = 0 = PIO4[oc_pins[port]] */
-		reg &= ~(1ul<<(5+port));
-		/* CFG_USBn_OVRCURR_ENABLE = 1 = OC Enabled */
-		reg |= 1ul<<(11+port);
-		writel(reg, STX7105_SYSCONF_SYS_CFG04);
-
-		/* Route USBn OC Routing via PIO4[oc_pins[port]] */
-		reg = readl(STX7105_SYSCONF_SYS_CFG34);
-		/* PIO4[oc_pins[port]] CFG34[8+oc_pins[port],oc_pins[port]] = Alternate4 */
-		reg &= ~(0x0101ul<<(oc_pins[port]));	/* Mask=3 */
-		reg |=   0x0101ul<<(oc_pins[port]);	/* OR=3 */
-		writel(reg, STX7105_SYSCONF_SYS_CFG34);
-		/* set PIO directionality, for OC as IN */
-		SET_PIO_PIN(ST40_PIO_BASE(4), oc_pins[port], STPIO_IN);
+	if (!initialized)		/* first time ? */
+	{	/* set USB2TRIPPHY_OSCIOK = 1 */
+		unsigned long * const sysconfReg = (unsigned long*)STX7108_BANK4_SYSCFG(44);
+		unsigned long sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, TRUE, 6);
+		writel(sysconf, sysconfReg);
+		initialized = 1;	/* do this just once */
 	}
 
-	if (power_ctrl) {
-		/* Route USBn POWER Routing via PIO4[power_pins[port]] */
-		reg = readl(STX7105_SYSCONF_SYS_CFG34);
-		/* PIO4[power_pins[port]] CFG34[8+power_pins[port],power_pins[port]] = Alternate4 */
-		reg &= ~(0x0101ul<<(power_pins[port]));	/* Mask=3 */
-		reg |=   0x0101ul<<(power_pins[port]);	/* OR=3 */
-		writel(reg, STX7105_SYSCONF_SYS_CFG34);
-		/* set PIO directionality, for POWER as ALT_OUT */
-		SET_PIO_PIN(ST40_PIO_BASE(4), power_pins[port], STPIO_ALT_OUT);
+	/* Power up the USB port, i.e. set USB_x_POWERDOWN_REQ = 0 */
+	{
+		unsigned long * const sysconfReg = (unsigned long*)STX7108_BANK4_SYSCFG(46);
+		unsigned long sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, FALSE, port);
+		writel(sysconf, sysconfReg);
 	}
+	/* wait until USBx_PWR_DWN_GRANT == 0 */
+	while (*STX7108_BANK4_SYSSTS(2) & (1u<<port))
+		;	/* just wait ... */
+
+	/* route the USB power enable (output) signal */
+	stx7108_pioalt_select(usb_pins[port].pwr.port,
+			    usb_pins[port].pwr.pin,
+			    usb_pins[port].pwr.alt);
+	stx7108_pioalt_pad(usb_pins[port].pwr.port,
+			  usb_pins[port].pwr.pin, OUT);
+
+	/* route the USB over-current (input) signal */
+	stx7108_pioalt_select(usb_pins[port].oc.port,
+			    usb_pins[port].oc.pin,
+			    usb_pins[port].oc.alt);
+	stx7108_pioalt_pad(usb_pins[port].oc.port,
+			  usb_pins[port].oc.pin, IN);
 
 	/* start the USB Wrapper Host Controller */
-	ST40_start_host_control(
-		USB_FLAGS_STRAP_8BIT |
-		USB_FLAGS_STBUS_CONFIG_THRESHOLD128);
+#if 1	/* QQQ - DELETE */
+	flags = USB_FLAGS_STRAP_8BIT | USB_FLAGS_STBUS_CONFIG_THRESHOLD128;
+#else	/* QQQ - DELETE */
+	if (STX7108_DEVICEID_CUT(bd->bi_devid) < 2)
+	{		/* for cut 1.x */
+		flags = USB_FLAGS_STRAP_8BIT |
+			USB_FLAGS_STBUS_CONFIG_OPCODE_LD64_ST64 |
+			USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_1 |
+			USB_FLAGS_STBUS_CONFIG_THRESHOLD_64;
+	}
+	else
+	{		/* for cut 2.x */
+		flags = USB_FLAGS_STRAP_8BIT |
+			USB_FLAGS_STBUS_CONFIG_OPCODE_LD64_ST64 |
+			USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_2 |
+			USB_FLAGS_STBUS_CONFIG_THRESHOLD_128;
+	}
+#endif	/* QQQ - DELETE */
+	ST40_start_host_control(flags);
 
 	return 0;
-#endif		/* QQQ - DELETE */
 }
 
 #endif /* defined(CONFIG_USB_OHCI_NEW) */
