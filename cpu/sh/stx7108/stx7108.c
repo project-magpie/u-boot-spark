@@ -612,8 +612,8 @@ extern int soc_init(void)
 #if defined(CONFIG_USB_OHCI_NEW)
 extern int stx7108_usb_init(const int port)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+//QQQ	DECLARE_GLOBAL_DATA_PTR;
+//QQQ	bd_t *bd = gd->bd;
 	static int initialized = 0;
 	unsigned int flags;
 	const struct {
