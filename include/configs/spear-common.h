@@ -38,6 +38,7 @@
 #endif
 
 /* USBD driver configuration */
+#if defined(CONFIG_SPEAR_USBTTY)
 #define CONFIG_DW_UDC
 #define CONFIG_USB_DEVICE
 #define CONFIG_USBD_HS
@@ -48,6 +49,7 @@
 
 #if defined(CONFIG_USB_TTY)
 #define CONFIG_EXTRA_ENV_USBTTY			"usbtty=cdc_acm\0"
+#endif
 #endif
 
 /* I2C driver configuration */
@@ -221,7 +223,9 @@
 #define CONFIG_SYS_CONSOLE_INFO_QUIET		1
 #define CONFIG_SYS_64BIT_VSPRINTF		1
 
+#if defined(CONFIG_SPEAR_USBTTY)
 #define CONFIG_EXTRA_ENV_SETTINGS		CONFIG_EXTRA_ENV_USBTTY
+#endif
 
 /* Stack sizes */
 #define CONFIG_STACKSIZE			(128*1024)

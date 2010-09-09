@@ -61,6 +61,7 @@
 #endif
 
 /* USBD driver configuration */
+#if defined(CONFIG_SPEAR_USBTTY)
 #define CONFIG_DW_UDC
 #define CONFIG_USB_DEVICE
 #define CONFIG_USBD_HS
@@ -70,6 +71,7 @@
 #define CONFIG_USBD_MANUFACTURER		"ST Microelectronics"
 
 #define CONFIG_EXTRA_ENV_USBTTY			"usbtty=cdc_acm\0"
+#endif
 
 /* Timer, HZ specific defines */
 #define CONFIG_SYS_HZ				(1000)
@@ -226,7 +228,9 @@
 #define CONFIG_SYS_CONSOLE_INFO_QUIET		1
 #define CONFIG_SYS_64BIT_VSPRINTF		1
 
+#if defined(CONFIG_SPEAR_USBTTY)
 #define CONFIG_EXTRA_ENV_SETTINGS		CONFIG_EXTRA_ENV_USBTTY
+#endif
 
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS			1
