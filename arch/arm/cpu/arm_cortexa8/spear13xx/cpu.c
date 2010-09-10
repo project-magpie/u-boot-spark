@@ -130,6 +130,8 @@ int print_cpuinfo(void)
 	printf("CPU:   SPEAr1300\n");
 #elif defined(CONFIG_SPEAR1310)
 	printf("CPU:   SPEAr1310\n");
+#elif defined(CONFIG_SPEAR900)
+	printf("CPU:   SPEAr900\n");
 #endif
 	return 0;
 }

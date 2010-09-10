@@ -34,6 +34,12 @@
 #define CONFIG_SPEAR1310			1
 #endif
 
+#if defined(CONFIG_MK_spear900)
+#define CONFIG_SPEAR13XX			1
+#define CONFIG_SPEAR900			1
+#endif
+
+
 #if defined(CONFIG_MK_usbtty)
 #define CONFIG_SPEAR_USBTTY			1
 #endif
