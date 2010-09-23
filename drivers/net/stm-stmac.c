@@ -149,6 +149,16 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define PHY_ADDR_MSK		0x001f	/* PHY Address Mask */
 #define PHY_ADDR_SHIFT		0	/* PHY Address Mask */
 
+#elif defined(CONFIG_STMAC_LAN8710)	/* SMSC LAN8710/20 */
+
+/* SMSC LAN8710 phy identifier values */
+#define LAN8710_PHY_ID		0x0007c0f0u
+#define LAN8710_PHY_ID_MASK	0xfffffff0u
+
+#define SPECIAL_MODE_REG	0x12	/* Special Modes Register */
+#define PHY_ADDR_MSK		0x001f	/* PHY Address Mask */
+#define PHY_ADDR_SHIFT		0	/* PHY Address Mask */
+
 #elif defined(CONFIG_STMAC_DP83865)	/* Nat Semi DP83865 */
 
 /* Nat Semi DP83865 phy identifier values */
@@ -290,6 +300,11 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "SMSC LAN8700 found\n");
 			return phyaddr;
 		}
+#elif defined(CONFIG_STMAC_LAN8710)
+		if ((id & LAN8710_PHY_ID_MASK) == LAN8710_PHY_ID) {
+			printf (STMAC "SMSC LAN8710/20 found\n");
+			return phyaddr;
+		}
 #elif defined(CONFIG_STMAC_DP83865)
 		if ((id & DP83865_PHY_ID_MASK) == DP83865_PHY_ID) {
 			printf (STMAC "NS DP83865 found\n");
@@ -337,7 +352,7 @@ static int stmac_phy_init (void)
 	/* test for H/W address disagreement with the assigned address */
 #if defined(CONFIG_STMAC_STE10XP)
 	value = stmac_mii_read (eth_phy_addr, MII_XMC);
-#elif defined(CONFIG_STMAC_LAN8700)
+#elif defined(CONFIG_STMAC_LAN8700) || defined(CONFIG_STMAC_LAN8710)
 	value = stmac_mii_read (eth_phy_addr, SPECIAL_MODE_REG);
 #elif defined(CONFIG_STMAC_DP83865)
 	value = stmac_mii_read (eth_phy_addr, PHY_SUP_REG);
