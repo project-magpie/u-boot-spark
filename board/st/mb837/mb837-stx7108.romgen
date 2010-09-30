@@ -1,5 +1,5 @@
 /*
-This file was automatically generated on Mon 22 Mar 10 at 15:03:36 by user mcgoogans, host hoiho.bri.st.com using romgen R1.4.0 with the ST TargetPack mb837stx7108 using the option --target-connect with the ST Micro Connect hesiod-hti
+This file was automatically generated on Tue 28 Sep 10 at 18:31:56 by user mcgoogan, host hoiho using romgen R1.5.0 with the ST TargetPack mb837stx7108
 
 TargetPack files used:
 /opt/STM/STLinux-2.3/host/stmc/targetpack/boards/mb837stx7108/mb837stx7108.py
@@ -17,8 +17,10 @@ TargetPack files used:
 /opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st40_pmb_data_array_regs.xml
 /opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st40_pmb_regs.py
 /opt/STM/STLinux-2.3/host/stmc/targetpack/debug/tapmux.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/peripherals/convertor.py
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/peripherals/st40_emi_regs.xml
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/peripherals/tapmux.py
+/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/clk_common.py
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/l2_cache_regs.xml
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/st40_ddr3mixer_regs.xml
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/st40_ddr3pctl_regs.xml
@@ -29,15 +31,78 @@ TargetPack files used:
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/stx7108_clockgenb_regs.xml
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/stx7108_ddrdbg.py
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/stx7108_design.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/stx7108_interco_init.py
+/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/stx7108_spi_regs.xml
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/stx7108_sysconf_0_regs.xml
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/stx7108_sysconf_1_regs.xml
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/stx7108_sysconf_2_regs.xml
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/stx7108_sysconf_3_regs.xml
 /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7108/stx7108_sysconf_4_regs.xml
-/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/tap/__init__.py
-/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/tap/jtag.py
+/opt/STM/STLinux-2.3/host/stmc/targetpack/utilities/tap/__init__.py
+/opt/STM/STLinux-2.3/host/stmc/targetpack/utilities/tap/jtag.py
 /opt/STM/STLinux-2.3/host/stmc/targetpack/utilities/utilities.py
 */
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+IF_EQ32(1, 0xfde20000, 0xf0000000, 0x00000000)
+
+
+/*
+stx7108_spi_regs.SPI_CLOCKDIV
+*/
+  POKE32(0xfe902010, 0x00000006)
+
+
+/*
+stx7108_spi_regs.SPI_CONFIGDATA
+*/
+  POKE32(0xfe902020, 0x00020011)
+
+
+/*
+stx7108_spi_regs.SPI_STATUSMODECHANGE
+*/
+  WHILE_NE32(0xfe902028, 0x00000001, 0x00000001)
+
+
+/*
+stx7108_spi_regs.SPI_MODESELECT
+*/
+  POKE32(0xfe902018, 0x00000003)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+ELSE(1)
+
+
+/*
+stx7108_spi_regs.SPI_CLOCKDIV
+*/
+  POKE32(0xfe902010, 0x00000002)
+
+
+/*
+stx7108_spi_regs.SPI_CONFIGDATA
+*/
+  POKE32(0xfe902020, 0x00020011)
+
+
+/*
+stx7108_spi_regs.SPI_STATUSMODECHANGE
+*/
+  WHILE_NE32(0xfe902028, 0x00000001, 0x00000001)
+
+
+/*
+stx7108_spi_regs.SPI_MODESELECT
+*/
+  POKE32(0xfe902018, 0x00000005)
+ENDIF(1)
 
 
 /*
@@ -55,19 +120,7 @@ POKE32(0xfde98024, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
-/* PEEK(0xfde98000) (used target peek value 0x80003203) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
-*/
 OR32(0xfde98000, 0x00100000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_POWER_CFG
-*/
-/* PEEK(0xfde98010) (used target peek value 0x00000000) */
 
 
 /*
@@ -79,19 +132,7 @@ OR32(0xfde98010, 0x00000001)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
-/* PEEK(0xfde98000) (used target peek value 0x00183203) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
-*/
 UPDATE32(0xfde98000, 0xfff80000, 0x00003203)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_POWER_CFG
-*/
-/* PEEK(0xfde98010) (used target peek value 0x00000001) */
 
 
 /*
@@ -103,19 +144,7 @@ UPDATE32(0xfde98010, 0xfffffffe, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
-/* PEEK(0xfde98000) (used target peek value 0x80103203) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
-*/
 WHILE_NE32(0xfde98000, 0x80000000, 0x80000000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
-*/
-/* PEEK(0xfde98000) (used target peek value 0x80103203) */
 
 
 /*
@@ -127,19 +156,7 @@ UPDATE32(0xfde98000, 0xffefffff, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
-/* PEEK(0xfde98004) (used target peek value 0x80004a05) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
-*/
 OR32(0xfde98004, 0x00100000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_POWER_CFG
-*/
-/* PEEK(0xfde98010) (used target peek value 0x00000000) */
 
 
 /*
@@ -151,19 +168,7 @@ OR32(0xfde98010, 0x00000002)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
-/* PEEK(0xfde98004) (used target peek value 0x00184a05) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
-*/
-UPDATE32(0xfde98004, 0xfff80000, 0x00018709)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_POWER_CFG
-*/
-/* PEEK(0xfde98010) (used target peek value 0x00000002) */
+UPDATE32(0xfde98004, 0xfff80000, 0x00000f02)
 
 
 /*
@@ -175,32 +180,21 @@ UPDATE32(0xfde98010, 0xfffffffd, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
-/* PEEK(0xfde98004) (used target peek value 0x80118709) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
-*/
 WHILE_NE32(0xfde98004, 0x80000000, 0x80000000)
 
 
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
-/* PEEK(0xfde98004) (used target peek value 0x80118709) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
-*/
 UPDATE32(0xfde98004, 0xffefffff, 0x00000000)
-POKE32(0xfde98908, 0x00000004)
+POKE32(0xfde98904, 0x00000004)
 
 
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfde98014) (used target peek value 0x00000000) */
+UPDATE32(0xfde98014, 0xfffffff3, 0x00000004)
+POKE32(0xfde98908, 0x00000004)
 
 
 /*
@@ -213,20 +207,8 @@ POKE32(0xfde9890c, 0x00000003)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfde98014) (used target peek value 0x00000010) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfde98014, 0xffffff3f, 0x00000040)
 POKE32(0xfde98a10, 0x00000000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfde98014) (used target peek value 0x00000050) */
 
 
 /*
@@ -239,20 +221,8 @@ POKE32(0xfde98a14, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfde98014) (used target peek value 0x00000150) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfde98014, 0xfffff3ff, 0x00000400)
 POKE32(0xfde98b18, 0x00000000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfde98014) (used target peek value 0x00000550) */
 
 
 /*
@@ -265,20 +235,8 @@ POKE32(0xfde98a1c, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfde98014) (used target peek value 0x00002550) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfde98014, 0xffff3fff, 0x00004000)
 POKE32(0xfde98a20, 0x00000000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfde98014) (used target peek value 0x00006550) */
 
 
 /*
@@ -291,20 +249,8 @@ POKE32(0xfde98a24, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfde98014) (used target peek value 0x00016550) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfde98014, 0xfff3ffff, 0x00040000)
 POKE32(0xfde98a28, 0x00000004)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfde98014) (used target peek value 0x00056550) */
 
 
 /*
@@ -317,20 +263,8 @@ POKE32(0xfde98a2c, 0x0000000e)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfde98014) (used target peek value 0x00156550) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfde98014, 0xff3fffff, 0x00400000)
 POKE32(0xfde98a30, 0x00000004)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfde98014) (used target peek value 0x00556550) */
 
 
 /*
@@ -343,20 +277,8 @@ POKE32(0xfde98a34, 0x00000009)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfde98014) (used target peek value 0x01556550) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfde98014, 0xf3ffffff, 0x04000000)
 POKE32(0xfde98b38, 0x00000011)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfde98014) (used target peek value 0x05556550) */
 
 
 /*
@@ -369,12 +291,6 @@ POKE32(0xfde98a3c, 0x00000004)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfde98014) (used target peek value 0x25556550) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfde98014, 0x3fffffff, 0x40000000)
 POKE32(0xfde98b40, 0x00000000)
 
@@ -382,26 +298,34 @@ POKE32(0xfde98b40, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
-/* PEEK(0xfde98024) (used target peek value 0x00000000) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
-*/
 UPDATE32(0xfde98024, 0xfffffffc, 0x00000002)
-POKE32(0xfde98b44, 0x00000001)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+IF_EQ32(1, 0xfde20000, 0xf0000000, 0x00000000)
+  POKE32(0xfde98b44, 0x00000001)
 
 
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
-/* PEEK(0xfde98024) (used target peek value 0x00000002) */
+  UPDATE32(0xfde98024, 0xfffffff3, 0x00000008)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+ELSE(1)
+  POKE32(0xfde98a44, 0x00000001)
 
 
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
-UPDATE32(0xfde98024, 0xfffffff3, 0x00000008)
+  UPDATE32(0xfde98024, 0xfffffff3, 0x00000004)
+ENDIF(1)
 
 
 /*
@@ -419,19 +343,7 @@ POKE32(0xfdab8024, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
-/* PEEK(0xfdab8000) (used target peek value 0x80003203) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
-*/
 OR32(0xfdab8000, 0x00100000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_POWER_CFG
-*/
-/* PEEK(0xfdab8010) (used target peek value 0x00000000) */
 
 
 /*
@@ -443,19 +355,7 @@ OR32(0xfdab8010, 0x00000001)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
-/* PEEK(0xfdab8000) (used target peek value 0x00183203) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
-*/
-UPDATE32(0xfdab8000, 0xfff80000, 0x00004e07)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_POWER_CFG
-*/
-/* PEEK(0xfdab8010) (used target peek value 0x00000001) */
+UPDATE32(0xfdab8000, 0xfff80000, 0x00000b01)
 
 
 /*
@@ -467,19 +367,7 @@ UPDATE32(0xfdab8010, 0xfffffffe, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
-/* PEEK(0xfdab8000) (used target peek value 0x80104e07) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
-*/
 WHILE_NE32(0xfdab8000, 0x80000000, 0x80000000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL0_CFG
-*/
-/* PEEK(0xfdab8000) (used target peek value 0x80104e07) */
 
 
 /*
@@ -491,19 +379,7 @@ UPDATE32(0xfdab8000, 0xffefffff, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
-/* PEEK(0xfdab8004) (used target peek value 0x80004a05) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
-*/
 OR32(0xfdab8004, 0x00100000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_POWER_CFG
-*/
-/* PEEK(0xfdab8010) (used target peek value 0x00000000) */
 
 
 /*
@@ -515,19 +391,7 @@ OR32(0xfdab8010, 0x00000002)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
-/* PEEK(0xfdab8004) (used target peek value 0x00184a05) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
-*/
 UPDATE32(0xfdab8004, 0xfff80000, 0x00002803)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_POWER_CFG
-*/
-/* PEEK(0xfdab8010) (used target peek value 0x00000002) */
 
 
 /*
@@ -539,19 +403,7 @@ UPDATE32(0xfdab8010, 0xfffffffd, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
-/* PEEK(0xfdab8004) (used target peek value 0x80102803) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
-*/
 WHILE_NE32(0xfdab8004, 0x80000000, 0x80000000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_PLL1_CFG
-*/
-/* PEEK(0xfdab8004) (used target peek value 0x80102803) */
 
 
 /*
@@ -564,20 +416,8 @@ POKE32(0xfdab8b04, 0x00000001)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfdab8014) (used target peek value 0x00000000) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfdab8014, 0xfffffff3, 0x00000008)
 POKE32(0xfdab8b08, 0x00000001)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfdab8014) (used target peek value 0x00000008) */
 
 
 /*
@@ -590,20 +430,8 @@ POKE32(0xfdab8b0c, 0x00000001)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfdab8014) (used target peek value 0x00000028) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfdab8014, 0xffffff3f, 0x00000080)
 POKE32(0xfdab8a10, 0x00000000)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfdab8014) (used target peek value 0x000000a8) */
 
 
 /*
@@ -616,20 +444,15 @@ POKE32(0xfdab8b14, 0x00000003)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfdab8014) (used target peek value 0x000001a8) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfdab8014, 0xfffff3ff, 0x00000800)
-POKE32(0xfdab8b1c, 0x00000002)
+POKE32(0xfdab8b18, 0x00000002)
 
 
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfdab8014) (used target peek value 0x000009a8) */
+UPDATE32(0xfdab8014, 0xffffcfff, 0x00002000)
+POKE32(0xfdab8b1c, 0x00000002)
 
 
 /*
@@ -642,20 +465,8 @@ POKE32(0xfdab8b20, 0x00000003)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfdab8014) (used target peek value 0x000089a8) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfdab8014, 0xfffcffff, 0x00020000)
 POKE32(0xfdab8b24, 0x00000003)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfdab8014) (used target peek value 0x000289a8) */
 
 
 /*
@@ -668,20 +479,8 @@ POKE32(0xfdab8b28, 0x0000001f)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfdab8014) (used target peek value 0x000a89a8) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfdab8014, 0xffcfffff, 0x00200000)
 POKE32(0xfdab8b2c, 0x00000007)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfdab8014) (used target peek value 0x002a89a8) */
 
 
 /*
@@ -694,20 +493,8 @@ POKE32(0xfdab8b30, 0x00000007)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfdab8014) (used target peek value 0x00aa89a8) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfdab8014, 0xfcffffff, 0x02000000)
 POKE32(0xfdab8b34, 0x00000007)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfdab8014) (used target peek value 0x02aa89a8) */
 
 
 /*
@@ -720,20 +507,8 @@ POKE32(0xfdab8a38, 0x00000000)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfdab8014) (used target peek value 0x0aaa89a8) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
 UPDATE32(0xfdab8014, 0xcfffffff, 0x10000000)
 POKE32(0xfdab8b3c, 0x00000003)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
-*/
-/* PEEK(0xfdab8014) (used target peek value 0x1aaa89a8) */
 
 
 /*
@@ -746,20 +521,8 @@ POKE32(0xfdab8b40, 0x0000000f)
 /*
 stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
-/* PEEK(0xfdab8024) (used target peek value 0x00000000) */
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
-*/
 UPDATE32(0xfdab8024, 0xfffffffc, 0x00000002)
 POKE32(0xfdab8b44, 0x00000003)
-
-
-/*
-stx7108_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
-*/
-/* PEEK(0xfdab8024) (used target peek value 0x00000002) */
 
 
 /*
@@ -817,95 +580,64 @@ POKE32(0xfd546010, 0x0000c1a0)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_STATUS_0
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
 */
-IF_GT32(1, 0xfde20000, 0xf0000000, 0x00000000)
+IF_EQ32(1, 0xfde20000, 0xf0000000, 0x00000000)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_4
+stx7108_sysconf_1_regs.SYSTEM_CONFIG4
 */
   UPDATE32(0xfde2004c, 0xfffffffe, 0x00000000)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_4
+stx7108_sysconf_1_regs.SYSTEM_CONFIG4
 */
-  UPDATE32(0xfde2004c, 0xfe0000ff, 0x02200200)
+  UPDATE32(0xfde2004c, 0xfe0000ff, 0x00040100)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_4
+stx7108_sysconf_1_regs.SYSTEM_CONFIG4
 */
   OR32(0xfde2004c, 0x00000001)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_STATUS_5
+stx7108_sysconf_1_regs.SYSTEM_STATUS5
 */
   WHILE_NE32(0xfde20014, 0x00000001, 0x00000001)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_STATUS_0
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
 */
 ELSE(1)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_4
+stx7108_sysconf_1_regs.SYSTEM_CONFIG4
 */
   UPDATE32(0xfde2004c, 0xfffffffe, 0x00000000)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_4
+stx7108_sysconf_1_regs.SYSTEM_CONFIG4
 */
-  UPDATE32(0xfde2004c, 0xfe0000ff, 0x02200200)
+  UPDATE32(0xfde2004c, 0xfe0000ff, 0x01850f00)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_4
+stx7108_sysconf_1_regs.SYSTEM_CONFIG4
 */
   OR32(0xfde2004c, 0x00000001)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_STATUS_5
+stx7108_sysconf_1_regs.SYSTEM_STATUS5
 */
   WHILE_NE32(0xfde20014, 0x00000001, 0x00000001)
 ENDIF(1)
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_STATUS_0
-*/
-/* PEEK(0xfde20000) (used target peek value 0x0d443041) */
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_4
-*/
-/* PEEK(0xfde2004c) (used target peek value 0x01850ff7) */
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_4
-*/
-/* PEEK(0xfde2004c) (used target peek value 0x01850ff6) */
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_4
-*/
-/* PEEK(0xfde2004c) (used target peek value 0x022002f6) */
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_STATUS_5
-*/
-/* PEEK(0xfde20014) (used target peek value 0x00000001) */
-POKE32(0x10008000, 0x00000000)
 
 
 /*
@@ -1047,41 +779,30 @@ POKE32(0xfe900028, 0x00000010)
 
 
 /*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_12
-*/
-/* PEEK(0xfde30028) (used target peek value 0xffffffff) */
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_12
+stx7108_sysconf_0_regs.SYSTEM_CONFIG12
 */
 UPDATE32(0xfde30028, 0xfffffffd, 0x00000000)
-DELAY(100000)
+DELAY(45000000)
 
 
 /*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_12
-*/
-/* PEEK(0xfde30028) (used target peek value 0xfffffffd) */
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_12
+stx7108_sysconf_0_regs.SYSTEM_CONFIG12
 */
 OR32(0xfde30028, 0x00000002)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_18
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
 */
-/* PEEK(0xfde20084) (used target peek value 0x00000000) */
+IF_EQ32(1, 0xfde20000, 0xf0000000, 0x00000000)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_18
+stx7108_sysconf_1_regs.SYSTEM_CONFIG18
 */
-OR32(0xfde20084, 0x00000003)
-DELAY(10000)
+  OR32(0xfde20084, 0x00000003)
+ENDIF(1)
+DELAY(4500000)
 
 
 /*
@@ -1093,7 +814,7 @@ POKE32(0xfde52030, 0x00500040)
 /*
 st40_ddr3mixer_regs.DDR3MIXER_DDR_PARAMETER
 */
-POKE32(0xfde52038, 0x33220e29)
+POKE32(0xfde52038, 0x23220e29)
 
 
 /*
@@ -1123,7 +844,7 @@ POKE32(0xfde52028, 0xfffffc00)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_TOGCNT1U
 */
-POKE32(0xfde500c0, 0x000000f0)
+POKE32(0xfde500c0, 0x0000010a)
 
 
 /*
@@ -1135,20 +856,14 @@ POKE32(0xfde500c4, 0x000000c8)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_TOGCNT100N
 */
-POKE32(0xfde500cc, 0x00000018)
+POKE32(0xfde500cc, 0x0000001a)
 
 
 /*
 st40_ddr3pctl_regs.DDR3PCTL_TRSTH
 */
 POKE32(0xfde500c8, 0x000001f4)
-DELAY(10000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PGSR0
-*/
-/* PEEK(0xfde50410) (used target peek value 0x00000027) */
+DELAY(4500000)
 
 
 /*
@@ -1160,19 +875,7 @@ WHILE_NE32(0xfde50410, 0x00000027, 0x00000027)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde50484) (used target peek value 0x00010000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde50484, 0x00010000, 0x00010000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_DXCCR
-*/
-/* PEEK(0xfde50434) (used target peek value 0x00001884) */
 
 
 /*
@@ -1184,37 +887,51 @@ OR32(0xfde50434, 0x00000001)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_PHYIOCRV1
 */
-/* PEEK(0xfde5031c) (used target peek value 0x00002105) */
+POKE32(0xfde5031c, 0x00004301)
 
 
 /*
-st40_ddr3pctl_regs.DDR3PCTL_PHYIOCRV1
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
 */
-UPDATE32(0xfde5031c, 0xfffffffb, 0x00000000)
+IF_GT32(1, 0xfde20000, 0xf0000000, 0x00000000)
+
+
+/*
+st40_ddr3pctl_regs.DDR3PCTL_ODTCFG1
+*/
+  POKE32(0xfde500bc, 0x06060200)
+ENDIF(1)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+IF_EQ32(1, 0xfde20000, 0xf0000000, 0x00000000)
 
 
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde50484) (used target peek value 0x00010000) */
+  POKE32(0xfde50484, 0xbfd80002)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+ELSE(1)
 
 
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-OR32(0xfde50484, 0xbfd80002)
+  POKE32(0xfde50484, 0xa5580002)
+ENDIF(1)
 
 
 /*
 st40_ddr3pctl_regs.DDR3PCTL_POWCTL
 */
 POKE32(0xfde50044, 0x00000001)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_POWSTAT
-*/
-/* PEEK(0xfde50048) (used target peek value 0x00000003) */
 
 
 /*
@@ -1248,6 +965,19 @@ POKE32(0xfde50090, 0x00111111)
 
 
 /*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+IF_GT32(1, 0xfde20000, 0xf0000000, 0x00000000)
+
+
+/*
+st40_ddr3phy_regs.DDR3PHY_PUB_SLCR
+*/
+  POKE32(0xfde504ac, 0x00111100)
+ENDIF(1)
+
+
+/*
 st40_ddr3pctl_regs.DDR3PCTL_TREFI
 */
 POKE32(0xfde500d0, 0x0000004e)
@@ -1274,7 +1004,7 @@ POKE32(0xfde500dc, 0x00000008)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_TRTW
 */
-POKE32(0xfde500e0, 0x00000006)
+POKE32(0xfde500e0, 0x00000002)
 
 
 /*
@@ -1370,7 +1100,7 @@ POKE32(0xfde5011c, 0x00000000)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_TDQS
 */
-POKE32(0xfde50120, 0x00000004)
+POKE32(0xfde50120, 0x00000003)
 
 
 /*
@@ -1418,19 +1148,7 @@ POKE32(0xfde50040, 0x07100000)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-/* PEEK(0xfde50040) (used target peek value 0x07100000) */
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
 OR32(0xfde50040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde50040) (used target peek value 0x07100000) */
 
 
 /*
@@ -1442,25 +1160,13 @@ WHILE_NE32(0xfde50040, 0x80000000, 0x00000000)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-POKE32(0xfde50040, 0x00140083)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde50040) (used target peek value 0x00140083) */
+POKE32(0xfde50040, 0x00144083)
 
 
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
 OR32(0xfde50040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde50040) (used target peek value 0x00140083) */
 
 
 /*
@@ -1478,19 +1184,7 @@ POKE32(0xfde50040, 0x00160003)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-/* PEEK(0xfde50040) (used target peek value 0x00160003) */
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
 OR32(0xfde50040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde50040) (used target peek value 0x00160003) */
 
 
 /*
@@ -1502,25 +1196,13 @@ WHILE_NE32(0xfde50040, 0x80000000, 0x00000000)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-POKE32(0xfde50040, 0x00120043)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde50040) (used target peek value 0x00120043) */
+POKE32(0xfde50040, 0x00120003)
 
 
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
 OR32(0xfde50040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde50040) (used target peek value 0x00120043) */
 
 
 /*
@@ -1538,19 +1220,7 @@ POKE32(0xfde50040, 0x00109403)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-/* PEEK(0xfde50040) (used target peek value 0x00109403) */
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
 OR32(0xfde50040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde50040) (used target peek value 0x00109403) */
 
 
 /*
@@ -1568,19 +1238,7 @@ POKE32(0xfde50040, 0x00100005)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-/* PEEK(0xfde50040) (used target peek value 0x00100005) */
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
 OR32(0xfde50040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde50040) (used target peek value 0x00100005) */
 
 
 /*
@@ -1598,19 +1256,7 @@ POKE32(0xfde50004, 0x00000001)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_STAT
 */
-/* PEEK(0xfde50008) (used target peek value 0x00000001) */
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_STAT
-*/
 WHILE_NE32(0xfde50008, 0x00000007, 0x00000001)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde50484) (used target peek value 0xbfd90002) */
 
 
 /*
@@ -1622,19 +1268,7 @@ UPDATE32(0xfde50484, 0xfffffffd, 0x00000000)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde50484) (used target peek value 0xbfd90000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 OR32(0xfde50484, 0x00020000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde50484) (used target peek value 0xffff0000) */
 
 
 /*
@@ -1646,19 +1280,7 @@ WHILE_NE32(0xfde50484, 0x00020000, 0x00020000)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde50484) (used target peek value 0xffff0000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde50484, 0x00040000, 0x00040000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde50484) (used target peek value 0xffff0000) */
 
 
 /*
@@ -1670,19 +1292,7 @@ WHILE_NE32(0xfde50484, 0x00080000, 0x00080000)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde50484) (used target peek value 0xffff0000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde50484, 0x00200000, 0x00200000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde50484) (used target peek value 0xffff0000) */
 
 
 /*
@@ -1694,19 +1304,7 @@ WHILE_NE32(0xfde50484, 0x00400000, 0x00400000)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde50484) (used target peek value 0xffff0000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde50484, 0x01000000, 0x01000000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde50484) (used target peek value 0xffff0000) */
 
 
 /*
@@ -1718,31 +1316,13 @@ WHILE_NE32(0xfde50484, 0x02000000, 0x02000000)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde50484) (used target peek value 0xffff0000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde50484, 0x08000000, 0x08000000)
 
 
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde50484) (used target peek value 0xffff0000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde50484, 0x10000000, 0x10000000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde50484) (used target peek value 0xffff0000) */
 
 
 /*
@@ -1764,15 +1344,15 @@ POKE32(0xfde50320, 0x00000003)
 
 
 /*
-st40_ddr3pctl_regs.DDR3PCTL_SCTL
+st40_ddr3pctl_regs.DDR3PCTL_PVTTUPDWAIT
 */
-POKE32(0xfde50004, 0x00000002)
+POKE32(0xfde50324, 0x00000003)
 
 
 /*
-st40_ddr3pctl_regs.DDR3PCTL_STAT
+st40_ddr3pctl_regs.DDR3PCTL_SCTL
 */
-/* PEEK(0xfde50008) (used target peek value 0x00000003) */
+POKE32(0xfde50004, 0x00000002)
 
 
 /*
@@ -1782,41 +1362,30 @@ WHILE_NE32(0xfde50008, 0x00000007, 0x00000003)
 
 
 /*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_12
-*/
-/* PEEK(0xfde30028) (used target peek value 0xffffffff) */
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_12
+stx7108_sysconf_0_regs.SYSTEM_CONFIG12
 */
 UPDATE32(0xfde30028, 0xfffffffb, 0x00000000)
-DELAY(100000)
+DELAY(45000000)
 
 
 /*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_12
-*/
-/* PEEK(0xfde30028) (used target peek value 0xfffffffb) */
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_12
+stx7108_sysconf_0_regs.SYSTEM_CONFIG12
 */
 OR32(0xfde30028, 0x00000004)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_18
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
 */
-/* PEEK(0xfde20084) (used target peek value 0x00000003) */
+IF_EQ32(1, 0xfde20000, 0xf0000000, 0x00000000)
 
 
 /*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_18
+stx7108_sysconf_1_regs.SYSTEM_CONFIG18
 */
-OR32(0xfde20084, 0x00000003)
-DELAY(10000)
+  OR32(0xfde20084, 0x00000003)
+ENDIF(1)
+DELAY(4500000)
 
 
 /*
@@ -1828,7 +1397,7 @@ POKE32(0xfde72030, 0x00900080)
 /*
 st40_ddr3mixer_regs.DDR3MIXER_DDR_PARAMETER
 */
-POKE32(0xfde72038, 0x33220e29)
+POKE32(0xfde72038, 0x23220e29)
 
 
 /*
@@ -1858,7 +1427,7 @@ POKE32(0xfde72028, 0xfffffc00)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_TOGCNT1U
 */
-POKE32(0xfde700c0, 0x000000f0)
+POKE32(0xfde700c0, 0x0000010a)
 
 
 /*
@@ -1870,20 +1439,14 @@ POKE32(0xfde700c4, 0x000000c8)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_TOGCNT100N
 */
-POKE32(0xfde700cc, 0x00000018)
+POKE32(0xfde700cc, 0x0000001a)
 
 
 /*
 st40_ddr3pctl_regs.DDR3PCTL_TRSTH
 */
 POKE32(0xfde700c8, 0x000001f4)
-DELAY(10000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PGSR0
-*/
-/* PEEK(0xfde70410) (used target peek value 0x00000027) */
+DELAY(4500000)
 
 
 /*
@@ -1895,19 +1458,7 @@ WHILE_NE32(0xfde70410, 0x00000027, 0x00000027)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde70484) (used target peek value 0x00010000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde70484, 0x00010000, 0x00010000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_DXCCR
-*/
-/* PEEK(0xfde70434) (used target peek value 0x00001884) */
 
 
 /*
@@ -1919,37 +1470,51 @@ OR32(0xfde70434, 0x00000001)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_PHYIOCRV1
 */
-/* PEEK(0xfde7031c) (used target peek value 0x00002105) */
+POKE32(0xfde7031c, 0x00004301)
 
 
 /*
-st40_ddr3pctl_regs.DDR3PCTL_PHYIOCRV1
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
 */
-UPDATE32(0xfde7031c, 0xfffffffb, 0x00000000)
+IF_GT32(1, 0xfde20000, 0xf0000000, 0x00000000)
+
+
+/*
+st40_ddr3pctl_regs.DDR3PCTL_ODTCFG1
+*/
+  POKE32(0xfde700bc, 0x06060200)
+ENDIF(1)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+IF_EQ32(1, 0xfde20000, 0xf0000000, 0x00000000)
 
 
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde70484) (used target peek value 0x00010000) */
+  POKE32(0xfde70484, 0xbfd80002)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+ELSE(1)
 
 
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-OR32(0xfde70484, 0xbfd80002)
+  POKE32(0xfde70484, 0xa5580002)
+ENDIF(1)
 
 
 /*
 st40_ddr3pctl_regs.DDR3PCTL_POWCTL
 */
 POKE32(0xfde70044, 0x00000001)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_POWSTAT
-*/
-/* PEEK(0xfde70048) (used target peek value 0x00000003) */
 
 
 /*
@@ -1983,6 +1548,19 @@ POKE32(0xfde70090, 0x00111111)
 
 
 /*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+IF_GT32(1, 0xfde20000, 0xf0000000, 0x00000000)
+
+
+/*
+st40_ddr3phy_regs.DDR3PHY_PUB_SLCR
+*/
+  POKE32(0xfde704ac, 0x00111100)
+ENDIF(1)
+
+
+/*
 st40_ddr3pctl_regs.DDR3PCTL_TREFI
 */
 POKE32(0xfde700d0, 0x0000004e)
@@ -2009,7 +1587,7 @@ POKE32(0xfde700dc, 0x00000008)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_TRTW
 */
-POKE32(0xfde700e0, 0x00000006)
+POKE32(0xfde700e0, 0x00000002)
 
 
 /*
@@ -2105,7 +1683,7 @@ POKE32(0xfde7011c, 0x00000000)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_TDQS
 */
-POKE32(0xfde70120, 0x00000004)
+POKE32(0xfde70120, 0x00000003)
 
 
 /*
@@ -2153,19 +1731,7 @@ POKE32(0xfde70040, 0x07100000)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-/* PEEK(0xfde70040) (used target peek value 0x07100000) */
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
 OR32(0xfde70040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde70040) (used target peek value 0x07100000) */
 
 
 /*
@@ -2177,25 +1743,13 @@ WHILE_NE32(0xfde70040, 0x80000000, 0x00000000)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-POKE32(0xfde70040, 0x00140083)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde70040) (used target peek value 0x00140083) */
+POKE32(0xfde70040, 0x00144083)
 
 
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
 OR32(0xfde70040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde70040) (used target peek value 0x00140083) */
 
 
 /*
@@ -2213,19 +1767,7 @@ POKE32(0xfde70040, 0x00160003)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-/* PEEK(0xfde70040) (used target peek value 0x00160003) */
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
 OR32(0xfde70040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde70040) (used target peek value 0x00160003) */
 
 
 /*
@@ -2237,25 +1779,13 @@ WHILE_NE32(0xfde70040, 0x80000000, 0x00000000)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-POKE32(0xfde70040, 0x00120043)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde70040) (used target peek value 0x00120043) */
+POKE32(0xfde70040, 0x00120003)
 
 
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
 OR32(0xfde70040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde70040) (used target peek value 0x00120043) */
 
 
 /*
@@ -2273,19 +1803,7 @@ POKE32(0xfde70040, 0x00109403)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-/* PEEK(0xfde70040) (used target peek value 0x00109403) */
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
 OR32(0xfde70040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde70040) (used target peek value 0x00109403) */
 
 
 /*
@@ -2303,19 +1821,7 @@ POKE32(0xfde70040, 0x00100005)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_MCMD
 */
-/* PEEK(0xfde70040) (used target peek value 0x00100005) */
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
 OR32(0xfde70040, 0x80000000)
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_MCMD
-*/
-/* PEEK(0xfde70040) (used target peek value 0x00100005) */
 
 
 /*
@@ -2333,19 +1839,7 @@ POKE32(0xfde70004, 0x00000001)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_STAT
 */
-/* PEEK(0xfde70008) (used target peek value 0x00000001) */
-
-
-/*
-st40_ddr3pctl_regs.DDR3PCTL_STAT
-*/
 WHILE_NE32(0xfde70008, 0x00000007, 0x00000001)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde70484) (used target peek value 0xbfd90002) */
 
 
 /*
@@ -2357,19 +1851,7 @@ UPDATE32(0xfde70484, 0xfffffffd, 0x00000000)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde70484) (used target peek value 0xbfd90000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 OR32(0xfde70484, 0x00020000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde70484) (used target peek value 0xffff0000) */
 
 
 /*
@@ -2381,19 +1863,7 @@ WHILE_NE32(0xfde70484, 0x00020000, 0x00020000)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde70484) (used target peek value 0xffff0000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde70484, 0x00040000, 0x00040000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde70484) (used target peek value 0xffff0000) */
 
 
 /*
@@ -2405,19 +1875,7 @@ WHILE_NE32(0xfde70484, 0x00080000, 0x00080000)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde70484) (used target peek value 0xffff0000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde70484, 0x00200000, 0x00200000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde70484) (used target peek value 0xffff0000) */
 
 
 /*
@@ -2429,19 +1887,7 @@ WHILE_NE32(0xfde70484, 0x00400000, 0x00400000)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde70484) (used target peek value 0xffff0000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde70484, 0x01000000, 0x01000000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde70484) (used target peek value 0xffff0000) */
 
 
 /*
@@ -2453,31 +1899,13 @@ WHILE_NE32(0xfde70484, 0x02000000, 0x02000000)
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde70484) (used target peek value 0xffff0000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde70484, 0x08000000, 0x08000000)
 
 
 /*
 st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-/* PEEK(0xfde70484) (used target peek value 0xffff0000) */
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
 WHILE_NE32(0xfde70484, 0x10000000, 0x10000000)
-
-
-/*
-st40_ddr3phy_regs.DDR3PHY_PUB_SMCTL
-*/
-/* PEEK(0xfde70484) (used target peek value 0xffff0000) */
 
 
 /*
@@ -2499,6 +1927,12 @@ POKE32(0xfde70320, 0x00000003)
 
 
 /*
+st40_ddr3pctl_regs.DDR3PCTL_PVTTUPDWAIT
+*/
+POKE32(0xfde70324, 0x00000003)
+
+
+/*
 st40_ddr3pctl_regs.DDR3PCTL_SCTL
 */
 POKE32(0xfde70004, 0x00000002)
@@ -2507,244 +1941,291 @@ POKE32(0xfde70004, 0x00000002)
 /*
 st40_ddr3pctl_regs.DDR3PCTL_STAT
 */
-/* PEEK(0xfde70008) (used target peek value 0x00000003) */
+WHILE_NE32(0xfde70008, 0x00000007, 0x00000003)
+IF_EQ32(1, 0xfde20000, 0xf0000000, 0x00000000)
+  UPDATE32(0xfdea3a00, 0x00000000, 0x0a0d0b0c)
+  UPDATE32(0xfdea3a0c, 0x0000ffff, 0x0b0c0000)
+  UPDATE32(0xfdea3a10, 0xffff0000, 0x00000a0d)
+  UPDATE32(0xfd2e1004, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd2e1008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd2e100c, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd2e1010, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd2e1014, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd2e1018, 0x0000ffff, 0x00060000)
+  UPDATE32(0xfd2e3004, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd2e3008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd2e300c, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd2e3010, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd2e3014, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd2e3018, 0x0000ffff, 0x00060000)
+  UPDATE32(0xfd544010, 0xfc00ff00, 0x000600a3)
+  UPDATE32(0xfd5440b0, 0xfc00ff00, 0x000600a3)
+  UPDATE32(0xfe76b0fc, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfd5450ec, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd5450f0, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfd5450f4, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd5450f8, 0xfffffff8, 0x00000002)
+  UPDATE32(0xfd5450fc, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd5451ec, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd5451f0, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfd5451f4, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd5451f8, 0xfffffff8, 0x00000002)
+  UPDATE32(0xfd5451fc, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd5452ec, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd5452f0, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfd5452f4, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd5452f8, 0xfffffff8, 0x00000002)
+  UPDATE32(0xfd5452fc, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd5453ec, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd5453f0, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfd5453f4, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd5453f8, 0xfffffff8, 0x00000002)
+  UPDATE32(0xfd5453fc, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd5454ec, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd5454f0, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfd5454f4, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd5454f8, 0xfffffff8, 0x00000002)
+  UPDATE32(0xfd5454fc, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd545efc, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfde00030, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfde00034, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfde00038, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfde0004c, 0xfffffc00, 0x00000000)
+  UPDATE32(0xfde00050, 0xfffffc00, 0x00000000)
+  UPDATE32(0xfde00108, 0x1fffffff, 0xa0000000)
+  UPDATE32(0xfde0010c, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfde00110, 0xfff8f8f8, 0x00010202)
+  UPDATE32(0xfde00114, 0xfff8f8f8, 0x00000000)
+  UPDATE32(0xfde20044, 0xfffffffc, 0x00000000)
+  UPDATE32(0xfdabeb04, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfdabeb08, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfdabeb0c, 0x0000fff8, 0x00000000)
+  UPDATE32(0xfdabeb10, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfdabeb24, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfdabeb28, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfdabeb2c, 0x0000fff8, 0x00000000)
+  UPDATE32(0xfdabeb30, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfdabeb44, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfdabeb48, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfdabeb4c, 0x0000fff8, 0x00000000)
+  UPDATE32(0xfdabeb50, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfdabeb84, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfdabeb88, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfdabeb8c, 0x0000fff8, 0x00000000)
+  UPDATE32(0xfdabeb90, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd002024, 0xfff01fff, 0x0003c000)
+  UPDATE32(0xfd003024, 0xfff01fff, 0x0003c000)
+  UPDATE32(0xfd004024, 0xfff01fff, 0x0003c000)
+  IF_EQ32(2, 0xfe7000b8, 0x00000001, 0x00000000)
+    UPDATE32(0xfe0fff04, 0xffc00000, 0x00264006)
+  ENDIF(2)
+  IF_EQ32(2, 0xfe7000b8, 0x00000002, 0x00000000)
+    UPDATE32(0xfe1fff04, 0xffc00000, 0x00264006)
+  ENDIF(2)
+  IF_EQ32(2, 0xfe7000b8, 0x00000004, 0x00000000)
+    UPDATE32(0xfe2fff04, 0xffc00000, 0x00264006)
+  ENDIF(2)
+  IF_EQ32(2, 0xfda500d4, 0x00000001, 0x00000001)
+    UPDATE32(0xfda8f000, 0xffd00000, 0x00264006)
+    UPDATE32(0xfda89000, 0xfffec0ff, 0x00000800)
+  ENDIF(2)
+  IF_EQ32(2, 0xfe70010c, 0x00000001, 0x00000001)
+    UPDATE32(0xfe737000, 0xffd00000, 0x00264006)
+    UPDATE32(0xfe731000, 0xfffec0ff, 0x00000800)
+  ENDIF(2)
+  IF_EQ32(2, 0xfda50078, 0x00000004, 0x00000000)
+    UPDATE32(0xfdaa9744, 0xffd00000, 0x00264006)
+  ENDIF(2)
+  UPDATE32(0xfe768000, 0xffffffe8, 0x00000004)
+  UPDATE32(0xfe768004, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfe768008, 0xfffffff0, 0x00000001)
+  IF_EQ32(2, 0xfe7000b8, 0x00000010, 0x00000000)
+    UPDATE32(0xfe769000, 0xffffffe8, 0x00000004)
+    UPDATE32(0xfe769004, 0xfffffff0, 0x00000001)
+    UPDATE32(0xfe769008, 0xfffffff0, 0x00000001)
+  ENDIF(2)
+  UPDATE32(0xfd62a000, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd62a004, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd62a008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd62a00c, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd62a010, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd628000, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd628004, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd628008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd62800c, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd628010, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd6aa000, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd6aa004, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd6aa008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd6aa00c, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd6aa010, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd6a8000, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd6a8004, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd6a8008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd6a800c, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd6a8010, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfda40c18, 0xfffffff0, 0x00000002)
+  UPDATE32(0xfde52048, 0x00000000, 0x40404040)
+  UPDATE32(0xfde72048, 0x00000000, 0x40404040)
+ELSE(1)
+  UPDATE32(0xfdea3a00, 0x00000000, 0x0a0d0b0c)
+  UPDATE32(0xfdea3a10, 0x00000000, 0x0a0d0b0c)
+  UPDATE32(0xfd2e1004, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd2e1008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd2e100c, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd2e1010, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd2e1014, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd2e1018, 0x0000ffff, 0x00060000)
+  UPDATE32(0xfd2e3004, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd2e3008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd2e300c, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd2e3010, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd2e3014, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd2e3018, 0x0000ffff, 0x00060000)
+  UPDATE32(0xfd544010, 0xfc00ff00, 0x000600a3)
+  UPDATE32(0xfd5440b0, 0xfc00ff00, 0x000600a3)
+  UPDATE32(0xfe76b0fc, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfd5450ec, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd5450f0, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd5450f4, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd5450f8, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd5450fc, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd5451ec, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd5451f0, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd5451f4, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd5451f8, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd5451fc, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd5452ec, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd5452f0, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd5452f4, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd5452f8, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd5452fc, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd5453ec, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd5453f0, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd5453f4, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd5453f8, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd5453fc, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd5454ec, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd5454f0, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd5454f4, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd5454f8, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd5454fc, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd545efc, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfde00030, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfde00034, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfde00038, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfde0004c, 0xfffffc00, 0x00000000)
+  UPDATE32(0xfde00050, 0xfffffc00, 0x00000000)
+  UPDATE32(0xfde00108, 0x1fffffff, 0xa0000000)
+  UPDATE32(0xfde0010c, 0xfffffff8, 0x00000005)
+  UPDATE32(0xfde00110, 0xfff8f8f8, 0x00010202)
+  UPDATE32(0xfde00114, 0xfff8f8f8, 0x00000000)
+  UPDATE32(0xfde20044, 0xfffffffc, 0x00000000)
+  UPDATE32(0xfdabeb04, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfdabeb08, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfdabeb0c, 0x0000fff8, 0x00000000)
+  UPDATE32(0xfdabeb10, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfdabeb24, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfdabeb28, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfdabeb2c, 0x0000fff8, 0x00000000)
+  UPDATE32(0xfdabeb30, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfdabeb44, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfdabeb48, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfdabeb4c, 0x0000fff8, 0x00000000)
+  UPDATE32(0xfdabeb50, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfdabeb84, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfdabeb88, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfdabeb8c, 0x0000fff8, 0x00000000)
+  UPDATE32(0xfdabeb90, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd002024, 0xfff01fff, 0x0003c000)
+  UPDATE32(0xfd003024, 0xfff01fff, 0x0003c000)
+  UPDATE32(0xfd004024, 0xfff01fff, 0x0003c000)
+  IF_EQ32(2, 0xfe7000b8, 0x00000001, 0x00000000)
+    UPDATE32(0xfe0fff04, 0xffc00000, 0x00264207)
+  ENDIF(2)
+  IF_EQ32(2, 0xfe7000b8, 0x00000002, 0x00000000)
+    UPDATE32(0xfe1fff04, 0xffc00000, 0x00264207)
+  ENDIF(2)
+  IF_EQ32(2, 0xfe7000b8, 0x00000004, 0x00000000)
+    UPDATE32(0xfe2fff04, 0xffc00000, 0x00264207)
+  ENDIF(2)
+  IF_EQ32(2, 0xfda500d4, 0x00000001, 0x00000001)
+    UPDATE32(0xfda8f000, 0xffd00000, 0x00264207)
+    UPDATE32(0xfda89000, 0xfffec0ff, 0x00000800)
+  ENDIF(2)
+  IF_EQ32(2, 0xfe70010c, 0x00000001, 0x00000001)
+    UPDATE32(0xfe737000, 0xffd00000, 0x00264207)
+    UPDATE32(0xfe731000, 0xfffec0ff, 0x00000800)
+  ENDIF(2)
+  IF_EQ32(2, 0xfda50078, 0x00000004, 0x00000000)
+    UPDATE32(0xfdaa9744, 0xffd00000, 0x00264207)
+  ENDIF(2)
+  IF_EQ32(2, 0xfe700110, 0x00000002, 0x00000000)
+    UPDATE32(0xfe772348, 0xffd00000, 0x00264207)
+  ENDIF(2)
+  UPDATE32(0xfe768000, 0xffffffe8, 0x00000004)
+  UPDATE32(0xfe768004, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfe768008, 0xfffffff0, 0x00000001)
+  IF_EQ32(2, 0xfe700110, 0x00000002, 0x00000002)
+    UPDATE32(0xfe769000, 0xffffffe8, 0x00000004)
+    UPDATE32(0xfe769004, 0xfffffff0, 0x00000001)
+    UPDATE32(0xfe769008, 0xfffffff0, 0x00000001)
+  ENDIF(2)
+  UPDATE32(0xfd62a000, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd62a004, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd62a008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd62a00c, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd62a010, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd628000, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd628004, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd628008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd62800c, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd628010, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd6aa000, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd6aa004, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd6aa008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd6aa00c, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd6aa010, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfd6a8000, 0xfffffff0, 0x00000001)
+  UPDATE32(0xfd6a8004, 0xfffffff8, 0x00000006)
+  UPDATE32(0xfd6a8008, 0xfffffff8, 0x00000003)
+  UPDATE32(0xfd6a800c, 0xfffffff8, 0x00000001)
+  UPDATE32(0xfd6a8010, 0xfffffff8, 0x00000000)
+  UPDATE32(0xfda40c18, 0xfffffff0, 0x00000002)
+  UPDATE32(0xfde52048, 0x00000000, 0x40404040)
+  UPDATE32(0xfde72048, 0x00000000, 0x40404040)
+ENDIF(1)
 
 
 /*
-st40_ddr3pctl_regs.DDR3PCTL_STAT
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
 */
-WHILE_NE32(0xfde70008, 0x00000007, 0x00000003)
-/* PEEK(0xfdea3a00) (used target peek value 0x0a0b0c0d) */
-UPDATE32(0xfdea3a00, 0x00000000, 0x0a0d0b0c)
-/* PEEK(0xfd2e0004) (used target peek value 0x00000000) */
-UPDATE32(0xfd2e0004, 0xfffffff0, 0x00000001)
-/* PEEK(0xfd2e0008) (used target peek value 0x00000000) */
-UPDATE32(0xfd2e0008, 0xfffffff8, 0x00000003)
-/* PEEK(0xfd2e000c) (used target peek value 0x00000000) */
-UPDATE32(0xfd2e000c, 0xfffffff8, 0x00000006)
-/* PEEK(0xfd2e0010) (used target peek value 0x00000000) */
-UPDATE32(0xfd2e0010, 0xfffffff8, 0x00000001)
-/* PEEK(0xfd2e0014) (used target peek value 0x00000000) */
-UPDATE32(0xfd2e0014, 0xfffffff8, 0x00000000)
-/* PEEK(0xfd2e0018) (used target peek value 0x00000000) */
-UPDATE32(0xfd2e0018, 0x0000ffff, 0x00000000)
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfd544010, 0xffff5f1c, 0x000000a3)
+IF_EQ32(1, 0xfde20000, 0xf0000000, 0x00000000)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_CONFIG1
+*/
+  UPDATE32(0xfde20040, 0xffffc0ff, 0x00001000)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_CONFIG0
+*/
+  OR32(0xfde2003c, 0x00000002)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_STATUS0
+*/
+ELSE(1)
+
+
+/*
+stx7108_sysconf_1_regs.SYSTEM_CONFIG0
+*/
+  OR32(0xfde2003c, 0x00010000)
 ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x00000060) */
-/* PEEK(0xfd544010) (used target peek value 0x00000060) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfd5440b0, 0xffffff00, 0x000000a3)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfd5440b0) (used target peek value 0x00000060) */
-/* PEEK(0xfe76b0fc) (used target peek value 0x00000000) */
-UPDATE32(0xfe76b0fc, 0xfffffff8, 0x00000005)
-/* PEEK(0xfd5450ec) (used target peek value 0x00000000) */
-UPDATE32(0xfd5450ec, 0xfffffff0, 0x00000001)
-/* PEEK(0xfd5450f0) (used target peek value 0x00000000) */
-UPDATE32(0xfd5450f0, 0xfffffff8, 0x00000005)
-/* PEEK(0xfd5450f4) (used target peek value 0x00000000) */
-UPDATE32(0xfd5450f4, 0xfffffff8, 0x00000003)
-/* PEEK(0xfd5450f8) (used target peek value 0x00000000) */
-UPDATE32(0xfd5450f8, 0xfffffff8, 0x00000002)
-/* PEEK(0xfd5450fc) (used target peek value 0x00000000) */
-UPDATE32(0xfd5450fc, 0xfffffff8, 0x00000000)
-/* PEEK(0xfd5451ec) (used target peek value 0x00000000) */
-UPDATE32(0xfd5451ec, 0xfffffff0, 0x00000001)
-/* PEEK(0xfd5451f0) (used target peek value 0x00000000) */
-UPDATE32(0xfd5451f0, 0xfffffff8, 0x00000005)
-/* PEEK(0xfd5451f4) (used target peek value 0x00000000) */
-UPDATE32(0xfd5451f4, 0xfffffff8, 0x00000003)
-/* PEEK(0xfd5451f8) (used target peek value 0x00000000) */
-UPDATE32(0xfd5451f8, 0xfffffff8, 0x00000002)
-/* PEEK(0xfd5451fc) (used target peek value 0x00000000) */
-UPDATE32(0xfd5451fc, 0xfffffff8, 0x00000000)
-/* PEEK(0xfd5452ec) (used target peek value 0x00000000) */
-UPDATE32(0xfd5452ec, 0xfffffff0, 0x00000001)
-/* PEEK(0xfd5452f0) (used target peek value 0x00000000) */
-UPDATE32(0xfd5452f0, 0xfffffff8, 0x00000005)
-/* PEEK(0xfd5452f4) (used target peek value 0x00000000) */
-UPDATE32(0xfd5452f4, 0xfffffff8, 0x00000003)
-/* PEEK(0xfd5452f8) (used target peek value 0x00000000) */
-UPDATE32(0xfd5452f8, 0xfffffff8, 0x00000002)
-/* PEEK(0xfd5452fc) (used target peek value 0x00000000) */
-UPDATE32(0xfd5452fc, 0xfffffff8, 0x00000000)
-/* PEEK(0xfd5453ec) (used target peek value 0x00000000) */
-UPDATE32(0xfd5453ec, 0xfffffff0, 0x00000001)
-/* PEEK(0xfd5453f0) (used target peek value 0x00000000) */
-UPDATE32(0xfd5453f0, 0xfffffff8, 0x00000005)
-/* PEEK(0xfd5453f4) (used target peek value 0x00000000) */
-UPDATE32(0xfd5453f4, 0xfffffff8, 0x00000003)
-/* PEEK(0xfd5453f8) (used target peek value 0x00000000) */
-UPDATE32(0xfd5453f8, 0xfffffff8, 0x00000002)
-/* PEEK(0xfd5453fc) (used target peek value 0x00000000) */
-UPDATE32(0xfd5453fc, 0xfffffff8, 0x00000000)
-/* PEEK(0xfd545efc) (used target peek value 0x00000000) */
-UPDATE32(0xfd545efc, 0xfffffff8, 0x00000005)
-/* PEEK(0xfde00030) (used target peek value 0x00000005) */
-UPDATE32(0xfde00030, 0xfffffff8, 0x00000006)
-/* PEEK(0xfde00034) (used target peek value 0x00000000) */
-UPDATE32(0xfde00034, 0xfffffff8, 0x00000001)
-/* PEEK(0xfde00038) (used target peek value 0x00000003) */
-UPDATE32(0xfde00038, 0xfffffff8, 0x00000000)
-/* PEEK(0xfde0004c) (used target peek value 0x00000000) */
-UPDATE32(0xfde0004c, 0xfffffc00, 0x00000000)
-/* PEEK(0xfde00050) (used target peek value 0x00000000) */
-UPDATE32(0xfde00050, 0xfffffc00, 0x00000000)
-/* PEEK(0xfde00108) (used target peek value 0xe0000081) */
-UPDATE32(0xfde00108, 0x1fffffff, 0xa0000000)
-/* PEEK(0xfde0010c) (used target peek value 0x00000005) */
-UPDATE32(0xfde0010c, 0xfffffff8, 0x00000005)
-/* PEEK(0xfde00110) (used target peek value 0x00000000) */
-UPDATE32(0xfde00110, 0xfff8f8f8, 0x00010202)
-/* PEEK(0xfde00114) (used target peek value 0x00010303) */
-UPDATE32(0xfde00114, 0xfff8f8f8, 0x00000000)
-/* PEEK(0xfde20044) (used target peek value 0x00000000) */
-UPDATE32(0xfde20044, 0xfffffffc, 0x00000000)
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0004, 0xfffffff8, 0x00000006)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0004) (used target peek value 0x01000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0008, 0xfffffff8, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0008) (used target peek value 0x80100000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab000c, 0x0000fff8, 0x00000000)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab000c) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0010, 0xfffffff0, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0010) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0024, 0xfffffff8, 0x00000006)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0024) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0028, 0xfffffff8, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0028) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab002c, 0x0000fff8, 0x00000000)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab002c) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00002000)
-  UPDATE32(0xfdab002c, 0x0000fff8, 0x00000002)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0030, 0xfffffff0, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0030) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00002000)
-  UPDATE32(0xfdab0030, 0xfffffff0, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0044, 0xfffffff8, 0x00000006)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0044) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0048, 0xfffffff8, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0048) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab004c, 0x0000fff8, 0x00000000)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab004c) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00002000)
-  UPDATE32(0xfdab004c, 0x0000fff8, 0x00000003)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0050, 0xfffffff0, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0050) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00002000)
-  UPDATE32(0xfdab0050, 0xfffffff0, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0084, 0xfffffff8, 0x00000006)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0084) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0088, 0xfffffff8, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0088) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab008c, 0x0000fff8, 0x00000000)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab008c) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00002000)
-  UPDATE32(0xfdab008c, 0x0000fff8, 0x00000002)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00000000)
-  UPDATE32(0xfdab0090, 0xfffffff0, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfdab0090) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfd544010, 0x00002000, 0x00002000)
-  UPDATE32(0xfdab0090, 0xfffffff0, 0x00000001)
-ENDIF(1)
-/* PEEK(0xfd544010) (used target peek value 0x000000a3) */
-/* PEEK(0xfd002024) (used target peek value 0x00000000) */
-UPDATE32(0xfd002024, 0xfff01fff, 0x0003c000)
-/* PEEK(0xfd003024) (used target peek value 0x00000000) */
-UPDATE32(0xfd003024, 0xfff01fff, 0x0003c000)
-/* PEEK(0xfd004024) (used target peek value 0x00000000) */
-UPDATE32(0xfd004024, 0xfff01fff, 0x0003c000)
-IF_EQ32(1, 0xfe7000b8, 0x00000001, 0x00000000)
-  UPDATE32(0xfe0fff04, 0xffc00000, 0x00264207)
-ENDIF(1)
-/* PEEK(0xfe7000b8) (used target peek value 0x00000006) */
-/* PEEK(0xfe0fff04) (used target peek value 0x0002c007) */
-IF_EQ32(1, 0xfe7000b8, 0x00000002, 0x00000000)
-  UPDATE32(0xfe1fff04, 0xffc00000, 0x00264207)
-ENDIF(1)
-/* PEEK(0xfe7000b8) (used target peek value 0x00000006) */
-IF_EQ32(1, 0xfe7000b8, 0x00000004, 0x00000000)
-  UPDATE32(0xfe2fff04, 0xffc00000, 0x00264207)
-ENDIF(1)
-/* PEEK(0xfe7000b8) (used target peek value 0x00000006) */
-IF_EQ32(1, 0xfda500d4, 0x00000001, 0x00000001)
-  UPDATE32(0xfda8f000, 0xffd00000, 0x0026c207)
-ENDIF(1)
-/* PEEK(0xfda500d4) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfda500d4, 0x00000001, 0x00000001)
-  UPDATE32(0xfda89000, 0xfffec0ff, 0x00000800)
-ENDIF(1)
-/* PEEK(0xfda500d4) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfe70010c, 0x00000001, 0x00000001)
-  UPDATE32(0xfe737000, 0xffd00000, 0x0026c207)
-ENDIF(1)
-/* PEEK(0xfe70010c) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfe70010c, 0x00000001, 0x00000001)
-  UPDATE32(0xfe731000, 0xfffec0ff, 0x00000800)
-ENDIF(1)
-/* PEEK(0xfe70010c) (used target peek value 0x00000000) */
-IF_EQ32(1, 0xfda50078, 0x00000004, 0x00000000)
-  UPDATE32(0xfdaa9744, 0xffd00000, 0x0026c207)
-ENDIF(1)
-/* PEEK(0xfda50078) (used target peek value 0x00000006) */
 
 
 #if 0		/* added by Sean McGoogan <Sean.McGoogan@st.com> */
@@ -2955,19 +2436,37 @@ POKE32(0xf7100000, 0x40000188)
 /*
 st40_pmb_addr_array_regs.PMB_ADDR_ARRAY_ENTRY1
 */
-POKE32(0xf6100100, 0xa0000000)
+POKE32(0xf6100100, 0x88000000)
 
 
 /*
 st40_pmb_data_array_regs.PMB_DATA_ARRAY_ENTRY1
 */
-POKE32(0xf7100100, 0x80000188)
+POKE32(0xf7100100, 0x48000188)
 
 
 /*
-st40_ccn_regs.CCN_MMUCR
+st40_pmb_addr_array_regs.PMB_ADDR_ARRAY_ENTRY2
 */
-/* PEEK(0xff000010) (used target peek value 0x00000000) */
+POKE32(0xf6100200, 0xa0000000)
+
+
+/*
+st40_pmb_data_array_regs.PMB_DATA_ARRAY_ENTRY2
+*/
+POKE32(0xf7100200, 0x80000188)
+
+
+/*
+st40_pmb_addr_array_regs.PMB_ADDR_ARRAY_ENTRY3
+*/
+POKE32(0xf6100300, 0xa8000000)
+
+
+/*
+st40_pmb_data_array_regs.PMB_DATA_ARRAY_ENTRY3
+*/
+POKE32(0xf7100300, 0x88000188)
 
 
 /*
@@ -2999,112 +2498,4 @@ st40_ccn_regs.CCN_PASCR
 */
   UPDATE32(0xff000070, 0x7fffffff, 0x80000000)
 ENDIF(1)
-
-
-/*
-st40_ccn_regs.CCN_MMUCR
-*/
-/* PEEK(0xff000010) (used target peek value 0x00000000) */
-
-
-/*
-st40_ccn_regs.CCN_PASCR
-*/
-/* PEEK(0xff000070) (used target peek value 0x00000000) */
-
-
-/*
-st40_ccn_regs.CCN_CCR
-*/
-POKE32(0xff00001c, 0x8000090d)
 #endif	/* added by Sean McGoogan <Sean.McGoogan@st.com> */
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_1
-*/
-/* PEEK(0xfde30008) (used target peek value 0x00000002) */
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_1
-*/
-OR32(0xfde30008, 0x00000002)
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_3
-*/
-/* PEEK(0xfde20048) (used target peek value 0x00003010) */
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_3
-*/
-OR32(0xfde20048, 0x00000800)
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_3
-*/
-/* PEEK(0xfde20048) (used target peek value 0x00003810) */
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_3
-*/
-OR32(0xfde20048, 0x00000400)
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_0
-*/
-/* PEEK(0xfde30004) (used target peek value 0x0000000d) */
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_0
-*/
-OR32(0xfde30004, 0x00000002)
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_3
-*/
-/* PEEK(0xfde20048) (used target peek value 0x00003c10) */
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_3
-*/
-UPDATE32(0xfde20048, 0xfffff7ff, 0x00000000)
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_3
-*/
-/* PEEK(0xfde20048) (used target peek value 0x00003410) */
-
-
-/*
-stx7108_sysconf_1_regs.SYSCONF_1_SYSTEM_CONFIG_3
-*/
-UPDATE32(0xfde20048, 0xfffffbff, 0x00000000)
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_6
-*/
-POKE32(0xfde3001c, 0xfec04000)
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_0
-*/
-/* PEEK(0xfde30004) (used target peek value 0x0000000f) */
-
-
-/*
-stx7108_sysconf_0_regs.SYSCONF_0_SYSTEM_CONFIG_0
-*/
-OR32(0xfde30004, 0x00000010)
