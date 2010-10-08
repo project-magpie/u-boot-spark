@@ -2422,6 +2422,11 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 	}
 
 	if (!nand_flash_ids[i].name) {
+#if 1		/* QQQ - DELETE */
+		/* dump out some of the interesting data we probed */
+		printf ("Unknown NAND (Manufacturer=0x%02X, DeviceID=0x%02X)\n",
+			nand_maf_id, nand_dev_id);
+#endif		/* QQQ - DELETE */
 #ifndef CFG_NAND_QUIET_TEST
 		printk (KERN_WARNING "No NAND device found!!!\n");
 #endif
