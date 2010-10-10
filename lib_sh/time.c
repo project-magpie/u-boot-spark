@@ -151,8 +151,21 @@ void ndelay (unsigned long nsec)		/* delay in nano-seconds */
 
 unsigned long get_timer (unsigned long base)
 {
-	/* return msec */
-	return tick_to_time(get_ticks()) - base;
+	const unsigned long now = (unsigned long)tick_to_time(get_ticks());
+	unsigned long result;
+
+	if (now < base)		/* have we over-flowed ? */
+	{
+		result = (unsigned long)tick_to_time(TMU_MAX_COUNTER) - base;
+		result += now + 1u;
+	}
+	else			/* we have not over-flowed */
+	{
+		result = now - base;
+	}
+
+	/* return delta (in msec) from 'now' w.r.t. 'base' */
+	return result;
 }
 
 void set_timer (unsigned long t)
