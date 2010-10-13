@@ -482,9 +482,15 @@ set_pmb:
 #else
 	#error Do not know which board/chip we are using for PMB setup.
 #endif	/* defined(CONFIG_SH_STB7100) */
+
+	/* invalidate the ITLB, in case GDB put a 512 MiB page in slot #0 */
+invalidate_itlb:
+	MOV_CONST32_R0 SH4_CCN_MMUCR
+	mov	#(SH4_MMUCR_TI), r1
+	mov.l	r1, @r0			/* MMUCR.TI = 1 */
 #endif	/* CONFIG_SH_SE_MODE */
 
-concider_hyperspace:
+consider_hyperspace:
 	cmp/pl	r8			/* Are we in correct place already ? */
 	bt	hyperspace
 
