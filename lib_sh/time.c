@@ -117,20 +117,24 @@ unsigned long long get_ticks (void)
 static inline void tick_delay (const unsigned long long delta)
 {
 	const u64 start = get_ticks();		/* get timestamp on entry */
-	u64 tmp = start + delta;		/* calculate end timestamp */
+	u64 end = start + delta;		/* calculate end timestamp */
 
 	if (delta == 0)				/* zero delay ? */
-		tmp++;				/* minimum of ONE tick */
+		end++;				/* minimum of ONE tick */
 
-	if (tmp > TMU_MAX_COUNTER)		/* overflows 32-bits ? */
+	if (end > TMU_MAX_COUNTER)		/* overflows 32-bits ? */
 	{
 		while (get_ticks() >= start)	/* loop till overflowed */
 			/*NOP*/;
-		tmp &= TMU_MAX_COUNTER;		/* mask off upper 32-bits */
+		end &= TMU_MAX_COUNTER;		/* mask off upper 32-bits */
+		while (get_ticks() < end)	/* loop till event */
+			/*NOP*/;
 	}
-
-	while (get_ticks() < tmp)		/* loop till event */
-		/*NOP*/;
+	else					/* no overflow */
+	{
+		while ( (get_ticks() >= start) && (get_ticks() < end) )
+			/*NOP*/;
+	}
 }
 
 void udelay (unsigned long usec)		/* delay in micro-seconds */
