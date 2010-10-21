@@ -76,8 +76,9 @@
 #define CONFIG_USBD_PRODUCT_NAME		"SPEAr SoC"
 #define CONFIG_USBD_MANUFACTURER		"ST Microelectronics"
 
-#define CONFIG_EXTRA_ENV_USBTTY			"usbtty=cdc_acm\0"
 #endif
+
+#define CONFIG_EXTRA_ENV_USBTTY			"usbtty=cdc_acm\0"
 
 /* Timer, HZ specific defines */
 #define CONFIG_SYS_HZ				(1000)
@@ -234,9 +235,7 @@
 #define CONFIG_SYS_CONSOLE_INFO_QUIET		1
 #define CONFIG_SYS_64BIT_VSPRINTF		1
 
-#if defined(CONFIG_SPEAR_USBTTY)
 #define CONFIG_EXTRA_ENV_SETTINGS		CONFIG_EXTRA_ENV_USBTTY
-#endif
 
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS			1

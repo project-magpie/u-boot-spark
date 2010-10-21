@@ -47,10 +47,9 @@
 #define CONFIG_USBD_PRODUCT_NAME		"SPEAr SoC"
 #define CONFIG_USBD_MANUFACTURER		"ST Microelectronics"
 
-#if defined(CONFIG_USB_TTY)
+#endif
+
 #define CONFIG_EXTRA_ENV_USBTTY			"usbtty=cdc_acm\0"
-#endif
-#endif
 
 /* I2C driver configuration */
 #define CONFIG_HARD_I2C
@@ -223,9 +222,7 @@
 #define CONFIG_SYS_CONSOLE_INFO_QUIET		1
 #define CONFIG_SYS_64BIT_VSPRINTF		1
 
-#if defined(CONFIG_SPEAR_USBTTY)
 #define CONFIG_EXTRA_ENV_SETTINGS		CONFIG_EXTRA_ENV_USBTTY
-#endif
 
 /* Stack sizes */
 #define CONFIG_STACKSIZE			(128*1024)
