@@ -1,7 +1,7 @@
 /*
  * STM SATA initialization
  *
- * Copyright (C) 2005-2009 STMicroelectronics Limited
+ * Copyright (C) 2005-2010 STMicroelectronics Limited
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -76,6 +76,7 @@
 #define SATA_DBTSR				(SATA_AHBHOST_BASE + 0x074)
 #define SATA_PHYCR				(SATA_AHBHOST_BASE + 0x088)
 #define SATA_VERSIONR				(SATA_AHBHOST_BASE + 0x0f8)
+#define SATA_INTPR				(SATA_AHBHOST_BASE + 0x078)
 
 /* AHB DMA controller */
 #define DMAC_COMP_VERSION			(SATA_AHBDMA_BASE + 0x3fc)
@@ -150,8 +151,22 @@ extern int stm_sata_probe(void)
 	udelay(1000);			/* 1 ms  -  a guess */
 	writel(0x300, SATA_SCR2);	/* phy wake/clear reset */
 
+	/* For HDD detection issue */
+	timeout = 25;			/* 2.5 ms */
+	do
+	{
+		udelay(100);		/* 100 us */
+		t = readl(SATA_SCR1);
+		/* Wait till COMWAKE detected? */
+		if (t & 0x40000)	/* bit #18, DIAG_W */
+			break;
+	} while (--timeout);
+
+	/* now, deassert the deserializer reset */
+	stm_sata_miphy_deassert_des_reset();
+
 	/* wait for phy to become ready, if necessary */
-	timeout = 25;
+	timeout = 25;			/* 5 sec */
 	do
 	{
 		udelay(200000);		/* 200 ms */

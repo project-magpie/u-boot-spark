@@ -1,7 +1,7 @@
 /*
  * STM SATA initialization
  *
- * Copyright (C) 2007,2009 STMicroelectronics Limited
+ * Copyright (C) 2007,2009-2010 STMicroelectronics Limited
  * Author: Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -29,12 +29,15 @@
 #if defined(CONFIG_SH_STX7105)		/* Cut 3.x (or later) */
 #define SYS_STA00	STX7105_SYSCONF_SYS_STA00
 #define SYS_CFG33	STX7105_SYSCONF_SYS_CFG33
+#define soft_jtag_en	(1<<6)
 #elif defined(CONFIG_SH_STX7141)	/* Cut 2.x (or later) */
 #define SYS_STA00	STX7141_SYSCONF_SYS_STA00
 #define SYS_CFG33	STX7141_SYSCONF_SYS_CFG33
+#define soft_jtag_en	(0<<6)		/* STx7141 has this bit inverted */
 #elif defined(CONFIG_SH_STX7200)	/* Cut 3.x (or later) */
 #define SYS_STA00	STX7200_SYSCONF_SYS_STA00
 #define SYS_CFG33	STX7200_SYSCONF_SYS_CFG33
+#define soft_jtag_en	(1<<6)
 #else
 #	error Missing Device Definitions!
 #endif
@@ -44,7 +47,6 @@
 #define sata_tdo	(1<<1)
 
 /* sysconf config 33 */
-#define soft_jtag_en	(1<<6)
 #define tms_sata_en	(1<<5)
 #define trstn_sata	(1<<4)
 #define tdi_high	(1<<1)
@@ -351,8 +353,8 @@ extern void stm_sata_miphy_init(void)
 	/* Release Rx_Clock on first I-DLL phase on macro1 */
 	SATA_JTAG_DR_Write_MIPHY(sc, 0x72, 0x00);
 
-	/* Deassert deserializer reset */
-	SATA_JTAG_DR_Write_MIPHY(sc, 0x00, 0x00);
+	/* Assert deserializer reset */
+	SATA_JTAG_DR_Write_MIPHY(sc, 0x00, 0x10);
 	/* des_bit_lock_en is set */
 	SATA_JTAG_DR_Write_MIPHY(sc, 0x02, 0x08);
 
@@ -360,6 +362,13 @@ extern void stm_sata_miphy_init(void)
 	SATA_JTAG_DR_Write_MIPHY(sc, 0x86, 0x61);
 }
 
+extern void stm_sata_miphy_deassert_des_reset(void)
+{
+	const sysconf_field sc = (sysconf_field)SYS_CFG33;	/* SYS_CFG33[6:0] */
+
+	/* Deassert deserializer reset */
+	SATA_JTAG_DR_Write_MIPHY(sc, 0x00, 0x00);
+}
 
 #endif	/* CONFIG_SH_STM_SATA */
 

@@ -131,6 +131,7 @@ extern void fli7540_configure_ethernet(
  * SATA initialization functions.
  */
 extern void stm_sata_miphy_init(void);
+extern void stm_sata_miphy_deassert_des_reset(void);
 extern int  stm_sata_probe(void);
 
 extern void stb7100_sata_init(void);
