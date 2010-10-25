@@ -31,8 +31,18 @@
 #include <asm/arch/spr_defs.h>
 #include <asm/arch/spr_misc.h>
 
+#define PLGPIO_SEL_36	0xb3000028
+#define PLGPIO_IO_36	0xb3000038
+
+static void phy_reset(void)
+{
+	writel(0x10, PLGPIO_IO_36);
+	writel(0x10, PLGPIO_SEL_36);
+}
+
 int board_init(void)
 {
+	phy_reset();
 	return spear_board_init(MACH_TYPE_SPEAR320);
 }
 
