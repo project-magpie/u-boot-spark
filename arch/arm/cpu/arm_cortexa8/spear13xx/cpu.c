@@ -100,9 +100,9 @@ int arch_cpu_init(void)
 		 */
 		tmp_var = readl(&misc_p->sys_sw_res);
 		if ((tmp_var & 0x4) == 0) {
-			/* Enable UHC1 and UHC2 clocks) */
+			/* Enable UHC1, UHC2 and UDC clocks) */
 			tmp_var = readl(&misc_p->perip1_clk_enb);
-			writel(tmp_var | 0x600, &misc_p->perip1_clk_enb);
+			writel(tmp_var | 0xe00, &misc_p->perip1_clk_enb);
 
 			/* Wait few cycles */
 			for (tmp_var = 0; tmp_var < 0x10000; tmp_var++)
