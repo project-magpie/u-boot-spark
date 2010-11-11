@@ -51,6 +51,11 @@ __memory_setup_table:
 	 *		#endif
 	 * See the supplied version of the ".romgen" file, to see where
 	 * these have been added, if there is any doubt.
+	 *
+	 * Update (November 2010), an additional modification is required,
+	 * such that the changes to the SPI registers are *only*
+	 * to be performed if we are actively booting from SPI.
+	 * Please note the lines with "QQQ - ... BY HAND"
 	 */
 #include "hdk7108-stx7108.romgen"
 

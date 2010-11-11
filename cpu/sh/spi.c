@@ -495,6 +495,27 @@ static int spi_probe_serial_flash(
 			deviceName = "ST M25PX64";	/* 64 Mbit == 8 MiB */
 		}
 	}
+	else if (
+		(devid[1] == 0x20u)	&&	/* Manufacturer ID */
+		(devid[2] == 0xBAu)	&&	/* Memory Type */
+		(				/* Memory Capacity */
+			(devid[3] == 0x16u) ||	/* N25Q032 */
+			(devid[3] == 0x18u)	/* N25Q128 */
+		)
+	   )
+	{
+		pageSize   = 256u;
+		eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
+		deviceSize = 1u<<devid[3];		/* Memory Capacity */
+		if (devid[3] == 0x16u)
+		{
+			deviceName = "ST N25Q032";	/* 32 Mbit == 4 MiB */
+		}
+		else if (devid[3] == 0x18u)
+		{
+			deviceName = "ST N25Q128";	/* 128 Mbit == 16 MiB */
+		}
+	}
 	else
 	{
 		printf("ERROR: Unknown SPI Device detected, devid = 0x%02x, 0x%02x, 0x%02x\n",

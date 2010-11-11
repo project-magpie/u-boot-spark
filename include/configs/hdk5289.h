@@ -273,7 +273,7 @@
  */
 
 /* Choose if we want FLASH Support (NAND, NOR & SPI devices),
- * all three, or none, ao any other combination.
+ * all three, or none, or any other combination.
  *
  * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
  */

@@ -416,7 +416,6 @@
 #if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
 #	define CONFIG_SPI_FLASH_ST		/* ST M25Pxx (IC27) */
 #	define CONFIG_SPI			/* enable the SPI driver */
-//#	define CONFIG_CMD_SPI			/* SPI serial bus command support - NOT with FSM! */
 #	define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
 #	define CFG_I2C_FRAM			/* to minimize performance degradation */
 #	undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
@@ -424,6 +423,7 @@
 	/* Can only use H/W FSM SPI Controller (not H/W SSC, nor S/W "bit-banging") */
 #	define CONFIG_STM_FSM_SPI		/* Use the H/W FSM for SPI */
 #	define CFG_STM_SPI_FSM_BASE	0xfe702000	/* FSM SPI Controller Base */
+#	undef CONFIG_CMD_SPI			/* SPI serial bus command support - NOT with FSM! */
 #endif	/* CONFIG_SPI_FLASH */
 
 /*-----------------------------------------------------------------------

@@ -80,6 +80,8 @@ stx7108_sysconf_1_regs.SYSTEM_STATUS0
 */
 ELSE(1)
 
+						/* QQQ - FOLLOWING LINE ADDED BY HAND */
+IF_EQ32(2, 0xfde2000c, (0x1f<<2), (0x1a<<2))	/* 2: if MODE[6:2] == 0x1A (i.e. boot-from-SPI) */
 
 /*
 stx7108_spi_regs.SPI_CLOCKDIV
@@ -102,7 +104,12 @@ stx7108_spi_regs.SPI_STATUSMODECHANGE
 /*
 stx7108_spi_regs.SPI_MODESELECT
 */
-  POKE32(0xfe902018, 0x00000005)
+/*POKE32(0xfe902018, 0x00000005)		   QQQ - THIS LINE COMMENTED OUT BY HAND */
+  POKE32(0xfe902018, 0x00000002)		/* QQQ - THIS LINE ADDED BY HAND */
+
+						/* QQQ - FOLLOWING LINE ADDED BY HAND */
+ENDIF(2)					/* 2: if MODE[6:2] == 0x1A (i.e. boot-from-SPI) */
+
 ENDIF(1)
 
 

@@ -538,6 +538,11 @@ extern int fsm_write(const uint8_t * const buf, const uint32_t bufsize, uint32_t
 	return 0;
 }
 
+
+#if !defined(CFG_STM_SPI_CLOCKDIV)
+#define CFG_STM_SPI_CLOCKDIV		2	/* default is SPI_CLOCKDIV = 2 */
+#endif
+
 extern int fsm_init(void)
 {
 	DEBUG("debug: in %s()\n", __FUNCTION__);
@@ -547,9 +552,10 @@ extern int fsm_init(void)
 	udelay(1);	/* QQQ - is this long enough ??? */
 	fsm_write_reg(SPI_FAST_SEQ_CFG, 0);
 
-	fsm_write_reg(SPI_CLOCKDIV, 0x00000002);
+	fsm_write_reg(SPI_CLOCKDIV, CFG_STM_SPI_CLOCKDIV);
 
-	fsm_set_mode(0x8);
+		/* select Fast Sequence Mode (FSM) */
+	fsm_set_mode(1<<3);
 
 	fsm_write_reg(SPI_CONFIGDATA, 0x00a00aa1);
 	fsm_write_reg(SPI_PROGRAM_ERASE_TIME, 0x00000002);
