@@ -55,7 +55,6 @@ disable_watchdog:
 	MOV_CONST16_R0 0xA500	/* WTCSR.TME=0 */
 	mov.w   r0, @r1
 
-
 	/*
 	 * If were are going to boot U-boot from NAND flash, then
 	 * we need add a special "signature" pattern in the first
@@ -150,6 +149,15 @@ config_spiboot_controller:
 #endif
 	mov.l	r0, @(ST40_EMI_SPI_CLOCKDIV-ST40_EMI_SPI_REGS_BASE,r1)
 
+	/*
+	 * Note: we need to ensure that there has been at least one
+	 * transaction on the SPI bus, before we can read (or poll)
+	 * the SPI_STATUSMODECHANGE register later on.
+	 * Any valid peek will do. We may as well do it now.
+	 */
+dummy_peek_on_spi:
+	mov	#0, r0		/* Read word from SPI at offset zero */
+	mov.l	@r0, r0		/* peek(<somewhere-in-SPI>) */
 #endif	/* CFG_BOOT_FROM_SPI */
 
 
