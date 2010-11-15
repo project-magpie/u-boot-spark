@@ -836,3 +836,86 @@ extern int i2c_set_bus_speed(unsigned int speed)
 #endif	/* CONFIG_I2C_CMD_TREE */
 
 
+#if defined(CONFIG_SPI) && defined(CONFIG_SOFT_SPI)
+	/*
+	 * We want to use "bit-banging" for SPI (not SSC, nor FSM).
+	 */
+extern void stx7108_configure_spi(void)
+{
+	/*
+	 *	We set up the PIO pins correctly for SPI
+	 */
+
+	/* route PIO (alternate #0) */
+	stx7108_pioalt_select(2, 1, 0);			/* SPI_MISO */
+	stx7108_pioalt_select(2, 0, 0);			/* SPI_MOSI */
+	stx7108_pioalt_select(1, 7, 0);			/* SPI_notCS */
+	stx7108_pioalt_select(1, 6, 0);			/* SPI_CLK */
+
+	/* set PIO directionality */
+	SET_PIO_PIN(ST40_PIO_BASE(2), 1, STPIO_IN);	/* SPI_MISO */
+	SET_PIO_PIN(ST40_PIO_BASE(2), 0, STPIO_OUT);	/* SPI_MOSI */
+	SET_PIO_PIN(ST40_PIO_BASE(1), 7, STPIO_OUT);	/* SPI_notCS */
+	SET_PIO_PIN(ST40_PIO_BASE(1), 6, STPIO_OUT);	/* SPI_CLK */
+
+	/* drive outputs with sensible initial values */
+	STPIO_SET_PIN(ST40_PIO_BASE(2), 0, 0);		/* deassert SPI_MOSI */
+	STPIO_SET_PIN(ST40_PIO_BASE(1), 7, 1);		/* deassert SPI_notCS */
+	STPIO_SET_PIN(ST40_PIO_BASE(1), 6, 1);		/* assert SPI_CLK */
+}
+
+extern void stx7108_spi_scl(const int val)
+{
+	const int pin = 6;	/* PIO1[6] = SPI_CLK */
+	STPIO_SET_PIN(ST40_PIO_BASE(1), pin, val ? 1 : 0);
+}
+
+extern void stx7108_spi_sda(const int val)
+{
+	const int pin = 0;	/* PIO2[0] = SPI_MOSI */
+	STPIO_SET_PIN(ST40_PIO_BASE(2), pin, val ? 1 : 0);
+}
+
+extern unsigned char stx7108_spi_read(void)
+{
+	const int pin = 1;	/* PIO2[1] = SPI_MISO */
+	return STPIO_GET_PIN(ST40_PIO_BASE(2), pin);
+}
+
+/*
+ * assert or de-assert the SPI Chip Select line.
+ *
+ *	input: cs == true, assert CS, else deassert CS
+ */
+static void spi_chip_select(const int cs)
+{
+	const int pin = 7;	/* PIO1[7] = SPI_notCS */
+
+	if (cs)
+	{	/* assert SPI CSn */
+		STPIO_SET_PIN(ST40_PIO_BASE(1), pin, 0);
+	}
+	else
+	{	/* DE-assert SPI CSn */
+		STPIO_SET_PIN(ST40_PIO_BASE(1), pin, 1);
+	}
+
+	if (cs)
+	{	/* wait 250ns for CSn assert to propagate  */
+		udelay(1);	/* QQQ: can we make this shorter ? */
+	}
+}
+
+/*
+ * The SPI command uses this table of functions for controlling the SPI
+ * chip selects: it calls the appropriate function to control the SPI
+ * chip selects.
+ */
+spi_chipsel_type spi_chipsel[] =
+{
+	spi_chip_select
+};
+int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
+
+#endif	/* CONFIG_SPI && CONFIG_SOFT_SPI */
+
