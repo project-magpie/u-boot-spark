@@ -142,7 +142,7 @@ int checkboard (void)
 #endif
 		"\n");
 
-#if defined(CONFIG_SPI)
+#if defined(CONFIG_SOFT_SPI)
 	/*
 	 * Configure for the SPI Serial Flash.
 	 * Note: for CFG_BOOT_FROM_SPI + CFG_ENV_IS_IN_EEPROM, this

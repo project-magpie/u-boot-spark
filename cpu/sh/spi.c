@@ -825,6 +825,7 @@ extern ssize_t spi_read (
 #endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 	if (len < 1) return len;
+	if (deviceSize == 0) return 0;	/* no valid device found ? */
 	if (last >= deviceSize)	/* Out of range ? */
 	{
 		printf("ERROR: Offset out of range (max=0x%lx)\n",
@@ -1079,6 +1080,7 @@ extern ssize_t spi_write (
 #endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 	if (len < 1) return len;
+	if (deviceSize == 0) return 0;	/* no valid device found ? */
 	if (last >= deviceSize)	/* Out of range ? */
 	{
 		printf("ERROR: Offset out of range (max=0x%lx)\n",

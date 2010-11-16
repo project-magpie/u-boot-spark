@@ -310,18 +310,23 @@
 #if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
 #	define CONFIG_SPI_FLASH_ST		/* ST M25Pxx */
 #	define CONFIG_SPI			/* enable the SPI driver */
-#	define CONFIG_CMD_SPI			/* SPI serial bus command support */
 #	define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
 #	define CFG_I2C_FRAM			/* to minimize performance degradation */
 #	undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
-#	define CONFIG_SOFT_SPI			/* Use S/W "bit-banging" PIO (not the SSC) */
-
-#if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
+	/* On cut 2.0, we *should* be able to use the FSM SPI Controller */
+#if 1						/* Do we use S/W "bit-banging" PIO ? */
+#	define CONFIG_SOFT_SPI			/* Use S/W "bit-banging" PIO (not SSC nor FSM) */
+#	define CONFIG_CMD_SPI			/* add SPI serial bus command support */
 #	define SPI_SCL(val)	do { stx7108_spi_scl((val)); } while (0)
 #	define SPI_SDA(val)	do { stx7108_spi_sda((val)); } while (0)
 #	define SPI_DELAY	do { udelay(1); } while (0)	/* QQQ: only 500 kHz ??? */
 #	define SPI_READ		stx7108_spi_read()
-#endif	/* CONFIG_SOFT_SPI */
+#else						/* else, use the H/W FSM SPI Controller */
+#	define CONFIG_STM_FSM_SPI		/* Use the H/W FSM Controller for SPI */
+#	define CFG_STM_SPI_FSM_BASE	0xfe902000	/* FSM SPI Controller Base */
+#	define CFG_STM_SPI_CLOCKDIV	4	/* set SPI_CLOCKDIV = 4 */
+#	undef CONFIG_CMD_SPI			/* SPI serial bus command support - NOT with FSM! */
+#endif	/* SOFT -v- FSM */
 
 #endif	/* CONFIG_SPI_FLASH */
 

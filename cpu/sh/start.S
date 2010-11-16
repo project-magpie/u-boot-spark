@@ -142,7 +142,7 @@ config_spiboot_controller:
 
 	/* Slow (divide) the SPI clock down to improve reliability. */
 	/* Note: for some (?) FSM SPI controllers, diving by 4 fails to boot! */
-#if defined(CONFIG_SH_FLI7510) || defined(CONFIG_SH_FLI7540) || defined(CONFIG_SH_STX5206)
+#if defined(CONFIG_SH_FLI7510) || defined(CONFIG_SH_FLI7540) || defined(CONFIG_SH_STX5206) || defined(CONFIG_SH_STX7108)
 	mov	#6, r0			/* *ST40_EMI_SPI_CLOCKDIV = 6 */
 #else
 	mov	#4, r0			/* *ST40_EMI_SPI_CLOCKDIV = 4 */
@@ -363,13 +363,8 @@ set_pmb:
 	SH4_SET_PMB 1 0x88 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3 0x98 0x48 128 0 0 1	/* LMI0 (second-half) UN-cached */
 	#endif
-	#if !defined(CFG_BOOT_FROM_SPI)
 	SH4_SET_PMB 4 0xa0 0x00  128 0 0 1	/* NOR FLASH UN-cached (lower 64MiB) */
 	SH4_SET_PMB 5 0xb0 0x00  128		/* NOR FLASH CACHED */
-	#else
-	SH4_SET_PMB 4 0xa0 0x08  128 0 0 1	/* NOR FLASH UN-cached (upper 64MiB) */
-	SH4_SET_PMB 5 0xb0 0x08  128		/* NOR FLASH CACHED */
-	#endif	/* CFG_BOOT_FROM_SPI */
 #elif defined(CONFIG_SH_STX7108) && defined(CONFIG_SH_HDK7108)
 	SH4_SET_PMB 0 0x80 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2 0x90 0x40 128 0 0 1	/* LMI0 (first-half)  UN-cached */
