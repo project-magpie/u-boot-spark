@@ -1286,6 +1286,9 @@ static int ohci_submit_rh_msg(struct usb_device *dev, unsigned long pipe,
 	__u16 wIndex;
 	__u16 wLength;
 
+		/* to workaround strict aliasing issues */
+	typedef __u16 __attribute__((__may_alias__)) __u16_any;
+
 #ifdef DEBUG
 pkt_print(NULL, dev, pipe, buffer, transfer_len, cmd, "SUB(rh)", usb_pipein(pipe));
 #else
@@ -1314,11 +1317,11 @@ pkt_print(NULL, dev, pipe, buffer, transfer_len, cmd, "SUB(rh)", usb_pipein(pipe
 	*/
 
 	case RH_GET_STATUS:
-			*(__u16 *) data_buf = cpu_to_le16 (1); OK (2);
+			*(__u16_any *) data_buf = cpu_to_le16 (1); OK (2);
 	case RH_GET_STATUS | RH_INTERFACE:
-			*(__u16 *) data_buf = cpu_to_le16 (0); OK (2);
+			*(__u16_any *) data_buf = cpu_to_le16 (0); OK (2);
 	case RH_GET_STATUS | RH_ENDPOINT:
-			*(__u16 *) data_buf = cpu_to_le16 (0); OK (2);
+			*(__u16_any *) data_buf = cpu_to_le16 (0); OK (2);
 	case RH_GET_STATUS | RH_CLASS:
 			*(__u32 *) data_buf = cpu_to_le32 (
 				RD_RH_STAT & ~(RH_HS_CRWE | RH_HS_DRWE));

@@ -5,7 +5,7 @@
  * (C) Copyright 2001 Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Andreas Heppel <aheppel@sysgo.de>
  *
- * (C) Copyright 2009 STMicroelectronics Ltd.
+ * (C) Copyright 2009,2010 STMicroelectronics Ltd.
  * Sean McGoogan <Sean.McGoogan@st.com>
 
  * See file CREDITS for list of people who contributed to this
@@ -114,7 +114,7 @@ extern int env_init(void)
 {
 	ulong crc, len, new;
 	unsigned off;
-	uchar buf[4];		/* only do 32-bits per iteration */
+	u32 *buf;		/* only do 32-bits per iteration */
 
 	/* read old CRC (from flash) */
 	crc = spiboot_get_u32(CFG_ENV_OFFSET + offsetof(env_t,crc));
@@ -126,8 +126,8 @@ extern int env_init(void)
 	while (len > 0)
 	{
 		int n = (len > sizeof(buf)) ? sizeof(buf) : len;
-		*(ulong*)buf = spiboot_get_u32(off);
-		new = crc32 (new, buf, n);
+		buf = (u32*)spiboot_get_u32(off);
+		new = crc32 (new, (uchar*)&buf, n);
 		len -= n;
 		off += n;
 	}

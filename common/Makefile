@@ -144,6 +144,11 @@ all:	$(LIB) $(AOBJS)
 $(LIB): $(obj).depend $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 
+# QQQ - we really ought to fix "dlmalloc.c" instead!
+$(obj)dlmalloc.o: $(src)dlmalloc.c
+	$(CC) $(CFLAGS) -fno-strict-aliasing \
+		-c -o $@ $(src)dlmalloc.c
+
 $(obj)environment.o: $(src)environment.c $(obj)../tools/envcrc
 	$(CC) $(AFLAGS) -Wa,--no-warn \
 		-DENV_CRC=$(shell $(obj)../tools/envcrc) \

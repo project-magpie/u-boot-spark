@@ -1022,7 +1022,10 @@ input_data(int dev, ulong *sect_buf, int words)
 static void
 input_data(int dev, ulong *sect_buf, int words)
 {
-	unsigned short *buf = (unsigned short *)sect_buf;
+		/* to workaround strict aliasing issues */
+	typedef unsigned short __attribute__((__may_alias__)) ushort_any;
+	ushort_any *buf = (ushort_any *)sect_buf;
+
 	int count = words << 1;
 	DECLARE_GLOBAL_DATA_PTR;
 	bd_t *bd = gd->bd;
