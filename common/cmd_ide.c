@@ -818,7 +818,7 @@ __ide_outb(int dev, int port, unsigned char val)
 		dev, port, val, (ATA_CURR_BASE(dev)+CFG_ATA_PORT_ADDR(port)));
 	outb(val, (ATA_CURR_BASE(dev)+CFG_ATA_PORT_ADDR(port)));
 }
-void inline ide_outb (int dev, int port, unsigned char val)
+void ide_outb (int dev, int port, unsigned char val)
 		__attribute__((weak, alias("__ide_outb")));
 
 unsigned char inline
@@ -830,7 +830,7 @@ __ide_inb(int dev, int port)
 		dev, port, (ATA_CURR_BASE(dev)+CFG_ATA_PORT_ADDR(port)), val);
 	return val;
 }
-unsigned char inline ide_inb(int dev, int port)
+unsigned char ide_inb(int dev, int port)
 			__attribute__((weak, alias("__ide_inb")));
 
 #ifdef __PPC__
