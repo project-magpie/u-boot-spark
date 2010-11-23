@@ -544,14 +544,119 @@ enable_se_mode:
 #endif	/* CONFIG_CPU_SUBTYPE_SH4_2XX */
 	/* ensure MMU coherency, by issuing an RTE instruction */
 	/* this idiom works for all SH4-x00 series cores */
-	mova	relocate, r0
-	ldc	r0, spc		/* SPC = address of relocate */
+	mova	mmu_coherent, r0
+	ldc	r0, spc		/* SPC = address of "mmu_coherent" */
 	stc	sr, r0
 	ldc	r0, ssr		/* SSR = SR */
 	rte			/* do it */
 	  nop
 .balign 4
+mmu_coherent:
 #endif	/* CONFIG_SH_SE_MODE */
+
+
+	/*
+	 * Support for Linux Hibernation-on-Memory (HoM).
+	 *
+	 * If the 3 long-words at CONFIG_HOM_TAG_VIRTUAL_ADDRESS
+	 * are "frozen_linux", then there is a valid linux kernel
+	 * and HoM environment to restore. The 4th long-word should
+	 * contain the address of stm_defrost_kernel() in vmlinux.
+	 */
+#if defined(CONFIG_HIBERNATION_ON_MEMORY)
+
+#if !defined(CONFIG_HOM_TAG_VIRTUAL_ADDRESS)
+#error Please define CONFIG_HOM_TAG_VIRTUAL_ADDRESS to use HoM.
+#endif
+#define LINUX_HOM_MARKER_0		0x7a6f7266 /* froz */
+#define LINUX_HOM_MARKER_1		0x6c5f6e65 /* en_l */
+#define LINUX_HOM_MARKER_2		0x78756e69 /* inux */
+
+hom_check_frozen_linux_marker:
+	MOV_CONST32_R0	CONFIG_HOM_TAG_VIRTUAL_ADDRESS
+	mov	r0, r1		! start of marker (we hope)
+
+	MOV_CONST32_R0	LINUX_HOM_MARKER_0
+	mov.l	@r1, r2
+	cmp/eq	r0, r2		! check the first marker
+	bf	hom_no_frozen_linux_marker
+
+	MOV_CONST32_R0	LINUX_HOM_MARKER_1
+	mov.l	@(4, r1), r2
+	cmp/eq	r0, r2		! check the second marker
+	bf	hom_no_frozen_linux_marker
+
+	MOV_CONST32_R0	LINUX_HOM_MARKER_2
+	mov.l	@(8, r1), r2
+	cmp/eq	r0, r2		! check the third marker
+	bf	hom_no_frozen_linux_marker
+
+	! if we get here, then the "frozen_linux" marker was found
+hom_got_frozen_linux_marker:
+	mov	#-1, r0		! r0 = 0xFFFFFFFF
+	mov.l	r0, @r1		! over-write the marker with all ones.
+	mov.l	r0, @(4, r1)
+	mov.l	r0, @(8, r1)
+	mov.l	@(12, r1), r8	! r8 = stm_defrost_kernel()
+	ocbp	@r1		! write-back the (now dirty) cache-line
+
+#if defined(CONFIG_SH_SE_MODE)
+	/*
+	 * explicitly invalidate all PMB entries, except for PMB[0],
+	 * and possibly PMB[1].
+	 */
+hom_invalidate_pmb:
+	MOV_CONST32_R0	(P4SEG_PMB_ADDR)
+	mov	r0, r1
+	mov	#0, r2			! PMB[n].V = 0, i.e. INVALID
+	mov	#1, r3
+	shll8	r3			! R3 = address stride is 0x100
+#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	add	r3, r1			! skip first PMB slot (PMB[0])
+	mov	#2, r0			! R0 = counter (indexes: 2..15)
+#else
+	mov	#1, r0			! R0 = counter (indexes: 1..15)
+#endif
+1:	add	r3, r1			! next PMB slot
+	mov.l	r2, @r1			! invalidate current entry
+	cmp/eq	#15, r0			! finished ?
+	bf/s	1b			! more to do ?
+	  add	#1, r0			! next index counter
+
+	/*
+	 * we need to ensure that the ITLB is flushed, and not
+	 * harbouring any mappings from the recently invalidated
+	 * PMB entries.
+	 */
+hom_invalidate_itlb:
+	MOV_CONST32_R0 SH4_CCN_MMUCR
+	mov	#(SH4_MMUCR_TI), r1
+	mov.l	r1, @r0			/* MMUCR.TI = 1 */
+#endif	/* CONFIG_SH_SE_MODE */
+
+	/*
+	 * re-invalidate the caches: both I$ & D$
+	 */
+hom_invalidate_caches:
+	MOV_CONST16_R0 (SH4_CCR_OCI|SH4_CCR_ICI)
+	mov	r0, a0
+	CALL	sh_cache_set_op_offset
+
+	/*
+	 * Disable interrupts, and jump to stm_defrost_kernel()
+	 */
+hom_call_stm_defrost_kernel:
+	mov	#0x3c, r2
+	shll2	r2		! R2 = 0x000000F0
+	stc	sr, r1
+	or	r2, r1
+	ldc	r1, sr		! set SR.IMASK = 15
+	jmp	@r8		! Finally, jump to stm_defrost_kernel()
+	  nop
+
+hom_no_frozen_linux_marker:
+				! no HoM kernel to restore
+#endif	/* CONFIG_HIBERNATION_ON_MEMORY */
 
 
 	/*

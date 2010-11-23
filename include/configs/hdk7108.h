@@ -536,4 +536,23 @@
 #	define I2C_DELAY	do { NDELAY(625); } while (0)	/* 625 ns */
 #endif	/* CONFIG_CMD_I2C */
 
+
+/*----------------------------------------------------------------------
+ * Support for Linux Hibernation-on-Memory (HoM)
+ */
+
+	/*
+	 * Define the following only if we want to use the
+	 * Linux Hibernation-on-Memory (HoM) capability.
+	 */
+#undef CONFIG_HIBERNATION_ON_MEMORY
+
+	/*
+	 * If we are using HoM, we need to tell U-Boot where the
+	 * special "tag" is located in memory. This must be the
+	 * same address as configured for the linux kernel.
+	 */
+#undef CONFIG_HOM_TAG_VIRTUAL_ADDRESS
+
+
 #endif	/* __CONFIG_H */
