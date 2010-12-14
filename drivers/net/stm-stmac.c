@@ -187,6 +187,16 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define TERIDIAN_PHY_ID		0x000e7230u
 #define TERIDIAN_PHY_ID_MASK	0xfffffff0u
 
+#elif defined(CONFIG_STMAC_RTL8201E)	/* REALTEK RTL8201E(L) */
+
+/* REALTEK RTL8201E(L) phy identifier values */
+#define RTL8201E_PHY_ID		0x001cc815u
+#define RTL8201E_PHY_ID_MASK	0xffffffffu
+
+#define PHY_TEST_REG		0x19	/* PHY Support Register */
+#define PHY_ADDR_MSK		0x180	/* PHY Address Mask */
+#define PHY_ADDR_SHIFT		7	/* PHY Address Mask */
+
 #else
 #error Need to define which PHY to use
 #endif
@@ -325,6 +335,11 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "TERIDIAN 78Q2123 found\n");
 			return phyaddr;
 		}
+#elif defined(CONFIG_STMAC_RTL8201E)
+		if ((id & RTL8201E_PHY_ID_MASK) == RTL8201E_PHY_ID) {
+			printf (STMAC "REALTEK RTL8201E(L) found\n");
+			return phyaddr;
+		}
 #else
 #error Need to define which PHY to use
 #endif	/* CONFIG_STMAC_STE10XP */
@@ -367,6 +382,8 @@ static int stmac_phy_init (void)
 #elif defined(CONFIG_STMAC_78Q2123)
 	/* The TERIDIAN 78Q2123 does not appear to support
 	 * reading the H/W PHY address from any register.  */
+#elif defined(CONFIG_STMAC_RTL8201E)
+	value = stmac_mii_read (eth_phy_addr, PHY_TEST_REG);
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #else
 #error Need to define which PHY to use
