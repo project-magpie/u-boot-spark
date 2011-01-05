@@ -345,7 +345,19 @@ static unsigned int stmac_phy_get_addr (void)
 #endif	/* CONFIG_STMAC_STE10XP */
 	}
 
-	printf (STMAC "Unable to find a known PHY (ID=0x%08x)\n", id);
+	printf (STMAC "Unable to find a known PHY!\n");
+
+	/* write out the IDs of all PHYs who respond */
+	for (i = 0; i < 32; i++) {
+		unsigned int phyaddr = i;
+		unsigned int id1 = stmac_mii_read (phyaddr, MII_PHYSID1);
+		unsigned int id2 = stmac_mii_read (phyaddr, MII_PHYSID2);
+		id  = (id1 << 16) | (id2);
+		if (id != ~0u) {	/* not all ones */
+			printf (STMAC "info: PHY at address=0x%02x has ID=0x%08x\n", phyaddr, id);
+		}
+	}
+
 	return (-1);
 }
 
@@ -1303,7 +1315,7 @@ static int stmac_reset_eth (bd_t * bd)
 	}
 
 	if (stmac_phy_init () < 0) {
-		printf (STMAC "Phy not detected\n");
+		printf (STMAC "ERROR: no PHY detected\n");
 		return -1;
 	}
 
@@ -1331,8 +1343,7 @@ static int stmac_reset_eth (bd_t * bd)
 extern int eth_init (bd_t * bd)
 {
 	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
-	stmac_reset_eth (bd);
-	return 0;
+	return stmac_reset_eth (bd);
 }
 
 extern void eth_halt (void)
