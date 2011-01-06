@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2011 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -1255,11 +1255,15 @@ extern void stm_flex_write_buf(
 	uint32_t *p;
 
 #if DEBUG_FLEX
-	printf("WRITE BUF\t\t");
+	printf("WRITE BUF (%u)\t\t", len);
 	for (i=0; i<16; i++)
 		printf("%02x ", buf[i]);
 	printf("...\n");
 #endif
+
+	/* we want only to write multiples of 4-bytes at a time! */
+	if (len % 4 != 0)
+		printf("ERROR: in %s(), length (%u) not a multiple of 4!\n", __FUNCTION__, len);
 
 	/* our buffer needs to be 4-byte aligned, for the FLEX controller */
 	p = ((uint32_t)buf & 0x3) ? (void*)flex.buf : (void*)buf;
