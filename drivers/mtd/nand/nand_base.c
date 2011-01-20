@@ -573,10 +573,16 @@ static void nand_command (struct mtd_info *mtd, unsigned command, int column, in
 
 		/* Serially input address */
 		if (column != -1) {
-			/* Adjust columns for 16 bit buswidth */
-			if (this->options & NAND_BUSWIDTH_16)
-				column >>= 1;
-			this->write_byte(mtd, column);
+			if (command == NAND_CMD_SETFEATURES) {
+				/* write out the FA (Feature Address) */
+				this->write_byte(mtd, column & 0xff);
+				ndelay(70);	/* tADL = 70ns */
+			} else {
+				/* Adjust columns for 16 bit buswidth */
+				if (this->options & NAND_BUSWIDTH_16)
+					column >>= 1;
+				this->write_byte(mtd, column);
+			}
 		}
 		if (page_addr != -1) {
 			this->write_byte(mtd, (unsigned char) (page_addr & 0xff));
@@ -600,6 +606,7 @@ static void nand_command (struct mtd_info *mtd, unsigned command, int column, in
 	case NAND_CMD_ERASE2:
 	case NAND_CMD_SEQIN:
 	case NAND_CMD_STATUS:
+	case NAND_CMD_SETFEATURES:
 		return;
 
 	case NAND_CMD_RESET:
@@ -671,11 +678,17 @@ static void nand_command_lp (struct mtd_info *mtd, unsigned command, int column,
 
 		/* Serially input address */
 		if (column != -1) {
-			/* Adjust columns for 16 bit buswidth */
-			if (this->options & NAND_BUSWIDTH_16)
-				column >>= 1;
-			this->write_byte(mtd, column & 0xff);
-			this->write_byte(mtd, column >> 8);
+			if (command == NAND_CMD_SETFEATURES) {
+				/* write out the FA (Feature Address) */
+				this->write_byte(mtd, column & 0xff);
+				ndelay(70);	/* tADL = 70ns */
+			} else {
+				/* Adjust columns for 16 bit buswidth */
+				if (this->options & NAND_BUSWIDTH_16)
+					column >>= 1;
+				this->write_byte(mtd, column & 0xff);
+				this->write_byte(mtd, column >> 8);
+			}
 		}
 		if (page_addr != -1) {
 			this->write_byte(mtd, (unsigned char) (page_addr & 0xff));
@@ -700,6 +713,7 @@ static void nand_command_lp (struct mtd_info *mtd, unsigned command, int column,
 	case NAND_CMD_ERASE2:
 	case NAND_CMD_SEQIN:
 	case NAND_CMD_STATUS:
+	case NAND_CMD_SETFEATURES:
 		return;
 
 
@@ -916,7 +930,8 @@ static int nand_write_page (struct mtd_info *mtd, struct nand_chip *this, int pa
 	switch (eccmode) {
 	/* No ecc, write all */
 	case NAND_ECC_NONE:
-		printk (KERN_WARNING "Writing data without ECC to NAND-FLASH is not recommended\n");
+		if (!this->is_on_die_ecc)
+			printk (KERN_WARNING "Writing data without ECC to NAND-FLASH is not recommended\n");
 		this->write_buf(mtd, this->data_poi, mtd->oobblock);
 		break;
 
@@ -1224,7 +1239,8 @@ extern int nand_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
 				lastwhinge = jiffies;
 			}
 #else
-			puts("Reading data from NAND FLASH without ECC is not recommended\n");
+			if (!this->is_on_die_ecc)
+				puts("Reading data from NAND FLASH without ECC is not recommended\n");
 #endif
 			this->read_buf(mtd, data_poi, end);
 			break;
@@ -2457,6 +2473,27 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 	if (i > 1)
 		printk(KERN_INFO "%d NAND chips detected\n", i);
 
+	/*
+	 * Enable chip-specific features (e.g. on-die ECC).
+	 */
+	if (nand_maf_id == NAND_MFR_MICRON && nand_dev_id == 0xda) {
+		/* For Micron MT29F2G08ABAEA */
+		const u8 EnableOnDieEccParameters[4] = {0x8, 0x0, 0x0, 0x0};
+		/* Enable the on-die ECC feature */
+		this->cmdfunc(mtd, NAND_CMD_SETFEATURES, NAND_FEATURE_MICRON_ARRAY_OPERATION_MODE, -1);
+		this->write_buf(mtd, EnableOnDieEccParameters, 4);
+		ndelay (100);	/* tWB = 100ns */
+		/* wait until "SET FEATURES" command is processed */
+		if (!this->dev_ready)
+			udelay (this->chip_delay);
+		else
+			while (!this->dev_ready(mtd));
+		/* update flags in structure for new ECC mode */
+		this->eccmode = NAND_ECC_NONE;
+		this->is_on_die_ecc = 1;
+	} else
+		this->is_on_die_ecc = 0;
+
 	/* Allocate buffers, if neccecary */
 	if (!this->oob_buf) {
 		size_t len;
@@ -2561,7 +2598,8 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 		break;
 
 	case NAND_ECC_NONE:
-		printk (KERN_WARNING "NAND_ECC_NONE selected by board driver. This is not recommended !!\n");
+		if (!this->is_on_die_ecc)
+			printk (KERN_WARNING "NAND_ECC_NONE selected by board driver. This is not recommended !!\n");
 		this->eccmode = NAND_ECC_NONE;
 		break;
 
