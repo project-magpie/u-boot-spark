@@ -2284,6 +2284,41 @@ static int nand_block_markbad (struct mtd_info *mtd, loff_t ofs)
 }
 
 /**
+ * nand_set_features - issue a "SET FEATURES" command
+ * @mtd:	MTD device structure
+ * @feature:	the feature address (FA) to be used
+ * @parameters:	the set of 4 parameters to use (P1,P2,P3,P4)
+ *
+ * Send an entire "SET FEATURES" command to NAND device. This includes
+ * the feature address (FA), and the set of 4 parameters to use (P1,P2,P3,P4).
+ */
+static int nand_set_features (struct mtd_info *mtd, int feature, const u_char *parameters)
+{
+	register struct nand_chip *this = mtd->priv;
+
+	DEBUG (MTD_DEBUG_LEVEL0, "%s: with FA=0x%x, P1=0x%x, P2=0x%x, P3=0x%x, P4=0x%x\n",
+		__FUNCTION__, feature,
+		parameters[0], parameters[1], parameters[2], parameters[3]);
+
+	/* issue the appropriate command + address */
+	this->cmdfunc(mtd, NAND_CMD_SETFEATURES, feature, -1);
+
+	/* write the 4 parameters */
+	this->write_buf(mtd, parameters, 4);
+
+	/* short delay */
+	ndelay (100);	/* tWB = 100ns */
+
+	/* wait until "SET FEATURES" command is processed */
+	if (!this->dev_ready)
+		udelay (this->chip_delay);
+	else
+		while (!this->dev_ready(mtd));
+
+	return 0;
+}
+
+/**
  * nand_scan - [NAND Interface] Scan for the NAND device
  * @mtd:	MTD device structure
  * @maxchips:	Number of chips to scan for
@@ -2478,16 +2513,11 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 	 */
 	if (nand_maf_id == NAND_MFR_MICRON && nand_dev_id == 0xda) {
 		/* For Micron MT29F2G08ABAEA */
-		const u8 EnableOnDieEccParameters[4] = {0x8, 0x0, 0x0, 0x0};
+		const u_char EnableOnDieEccParameters[4] = {0x8, 0x0, 0x0, 0x0};
+
 		/* Enable the on-die ECC feature */
-		this->cmdfunc(mtd, NAND_CMD_SETFEATURES, NAND_FEATURE_MICRON_ARRAY_OPERATION_MODE, -1);
-		this->write_buf(mtd, EnableOnDieEccParameters, 4);
-		ndelay (100);	/* tWB = 100ns */
-		/* wait until "SET FEATURES" command is processed */
-		if (!this->dev_ready)
-			udelay (this->chip_delay);
-		else
-			while (!this->dev_ready(mtd));
+		nand_set_features(mtd, NAND_FEATURE_MICRON_ARRAY_OPERATION_MODE, EnableOnDieEccParameters);
+
 		/* update flags in structure for new ECC mode */
 		this->eccmode = NAND_ECC_NONE;
 		this->is_on_die_ecc = 1;
