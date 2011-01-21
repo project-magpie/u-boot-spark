@@ -6,6 +6,8 @@
  *
  * Added 16-bit nand support
  * (C) 2004 Texas Instruments
+ *
+ * Copyright (C) 2010-2011 STMicroelectronics. (Sean McGoogan <Sean.McGoogan@st.com>)
  */
 
 #include <common.h>
@@ -362,6 +364,22 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 				duration = get_timer(0);	/* stop measuring */
 #endif	/* CONFIG_MEASURE_TIME */
 			}
+		} else if (s != NULL && !strcmp(s, ".oob")) {
+			if (size > nand->oobsize) {
+				printf("Error: Too big! OOB size is only %u (0x%x) bytes.\n",
+					nand->oobsize, nand->oobsize);
+				return 1;
+			}
+#if defined(CONFIG_MEASURE_TIME)
+			set_timer(0);				/* start measuring */
+#endif	/* CONFIG_MEASURE_TIME */
+			if (read)
+				ret = nand_read_oob_wrapper(nand, off, &size, (u_char *)addr);
+			else
+				ret = nand_write_oob_wrapper(nand, off, &size, (u_char *)addr);
+#if defined(CONFIG_MEASURE_TIME)
+			duration = get_timer(0);		/* stop measuring */
+#endif	/* CONFIG_MEASURE_TIME */
 		} else {
 #if defined(CONFIG_MEASURE_TIME)
 			set_timer(0);				/* start measuring */
@@ -482,6 +500,8 @@ U_BOOT_CMD(nand, 5, 1, do_nand,
 	"nand read[.jffs2]     - addr off|partition size\n"
 	"nand write[.jffs2]    - addr off|partition size - read/write `size' bytes starting\n"
 	"    at offset `off' to/from memory address `addr'\n"
+	"nand read.oob addr off size   - read out-of-band data\n"
+	"nand write.oob addr off size  - write out-of-band data\n"
 	"nand erase [clean] [off size] - erase `size' bytes from\n"
 	"    offset `off' (entire device if not specified)\n"
 	"nand bad - show bad blocks\n"

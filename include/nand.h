@@ -39,9 +39,19 @@ static inline int nand_read(nand_info_t *info, ulong ofs, ulong *len, u_char *bu
 	return info->read(info, ofs, *len, (size_t *)len, buf);
 }
 
+static inline int nand_read_oob_wrapper(nand_info_t *info, ulong ofs, ulong *len, u_char *buf)
+{
+	return info->read_oob(info, ofs, *len, (size_t *)len, buf);
+}
+
 static inline int nand_write(nand_info_t *info, ulong ofs, ulong *len, u_char *buf)
 {
 	return info->write(info, ofs, *len, (size_t *)len, buf);
+}
+
+static inline int nand_write_oob_wrapper(nand_info_t *info, ulong ofs, ulong *len, u_char *buf)
+{
+	return info->write_oob(info, ofs, *len, (size_t *)len, buf);
 }
 
 static inline int nand_block_isbad(nand_info_t *info, ulong ofs)
