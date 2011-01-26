@@ -117,6 +117,38 @@ static struct nand_oobinfo nand_oob_64 = {
 	.oobfree = { {2, 38} }
 };
 
+	/* For Micron MT29F2G08ABAEA.
+	 * The 64-byte OOB is divided into 4 identical records.
+	 *
+	 * Each 16-byte record has the following layout:
+	 *	0x00 - 0x01 : Reserved (for Bad Block Markers)
+	 *	0x02 - 0x03 : User Metadata II (unprotected)
+	 *	0x04 - 0x07 : User Metadata I  (protected)
+	 *	0x08 - 0x0f : ECC for main + Metadata I regions
+	 *
+	 * We will *only* use the UN-protected bytes for Metadata, as modifying
+	 * these bytes does *not* affect the ECC bytes, which may require
+	 * the entire block to be erased if there are any 0->1 transitions.
+	 * This means there are 4*4 (16) bytes of OOB that are "unusable".
+	 */
+static struct nand_oobinfo nand_oob_64_MT29F_on_die_ecc = {
+	.useecc = MTD_NANDECC_AUTOPLACE,
+	.eccbytes = 32,			/* 32 out of 64 bytes = 50% of OOB */
+	/* .reserved = { {0x00, 2}, {0x10, 2}, {0x20, 2}, {0x30, 2} }, */
+	.oobfree = {
+		{0x02, 2},	/* 2 ECC-unprotected bytes in Record #0 */
+		{0x12, 2},	/* 2 ECC-unprotected bytes in Record #1 */
+		{0x22, 2},	/* 2 ECC-unprotected bytes in Record #2 */
+		{0x32, 2}	/* 2 ECC-unprotected bytes in Record #3 */
+	},			/* only 8 ECC-unprotected bytes in the OOB */
+	/* .unusable = { {0x04, 4}, {0x14, 4}, {0x24, 4}, {0x34, 4} }, */
+	.eccpos = {
+		0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,	/* 512-byte Record #0 */
+		0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,	/* 512-byte Record #1 */
+		0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,	/* 512-byte Record #2 */
+		0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f}	/* 512-byte Record #3 */
+};
+
 /* This is used for padding purposes in nand_write_oob */
 static u_char ffchars[] = {
 	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -2521,6 +2553,10 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 		/* update flags in structure for new ECC mode */
 		this->eccmode = NAND_ECC_NONE;
 		this->is_on_die_ecc = 1;
+
+		/* Select the appropriate default oob placement scheme for
+		 * placement agnostic filesystems */
+		this->autooob = &nand_oob_64_MT29F_on_die_ecc;
 	} else
 		this->is_on_die_ecc = 0;
 

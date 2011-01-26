@@ -11,6 +11,8 @@
  *		nandwrite.c by Steven J. Hill (sjhill@realitydiluted.com)
  *			       and Thomas Gleixner (tglx@linutronix.de)
  *
+ * Copyright (C) 2010-2011 STMicroelectronics. (Sean McGoogan <Sean.McGoogan@st.com>)
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -48,6 +50,8 @@ typedef struct mtd_info	  mtd_info_t;
 /* support only for native endian JFFS2 */
 #define cpu_to_je16(x) (x)
 #define cpu_to_je32(x) (x)
+
+#define MIN(a,b)   ( (a) < (b) ? (a) : (b) )
 
 /*****************************************************************************/
 static int nand_block_bad_scrub(struct mtd_info *mtd, loff_t ofs, int getchip)
@@ -120,10 +124,6 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 					       "and no empty space in oob\n");
 					return -1;
 				}
-				clmpos = oobinfo->oobfree[0][0];
-				clmlen = oobinfo->oobfree[0][1];
-				if (clmlen > 8)
-					clmlen = 8;
 			} else {
 				/* legacy mode */
 				switch (meminfo->oobsize) {
@@ -207,16 +207,39 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 			/* write cleanmarker */
 			if (isNAND) {
 				size_t written;
-				result = meminfo->write_oob(meminfo,
-							    erase.addr + clmpos,
-							    clmlen,
-							    &written,
-							    (unsigned char *)
-							    &cleanmarker);
-				if (result != 0) {
-					printf("\n%s: MTD writeoob failure: %d\n",
-					       mtd_device, result);
-					continue;
+				struct nand_oobinfo *oobinfo = &meminfo->oobinfo;
+				if (oobinfo->useecc == MTD_NANDECC_AUTOPLACE) {
+					int to_write = clmlen;	/* nominally write 8 bytes */
+					int group, len, pos;
+					const unsigned char *buff = (void*)&cleanmarker;
+					for(group=0; to_write; group++,to_write-=len,buff+=len) {
+						pos = oobinfo->oobfree[group][0];
+						len = oobinfo->oobfree[group][1];
+						len = MIN(len, to_write);
+						if (len<1) BUG();
+						result = meminfo->write_oob(meminfo,
+								    erase.addr + pos,
+								    len,
+								    &written,
+								    buff);
+						if (result != 0) {
+							printf("\n%s: MTD writeoob failure: %d\n",
+							       mtd_device, result);
+							continue;
+						}
+					}
+				} else {
+					result = meminfo->write_oob(meminfo,
+								    erase.addr + clmpos,
+								    clmlen,
+								    &written,
+								    (unsigned char *)
+								    &cleanmarker);
+					if (result != 0) {
+						printf("\n%s: MTD writeoob failure: %d\n",
+						       mtd_device, result);
+						continue;
+					}
 				}
 			} else {
 				printf("\n%s: this erase routine only supports"
