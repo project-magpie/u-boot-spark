@@ -295,7 +295,7 @@
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
 #define CONFIG_CMD_FLASH	/* define for NOR flash */
 #define CONFIG_CMD_NAND		/* define for NAND flash */
-#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
+#undef  CONFIG_SPI_FLASH	/* define for SPI serial flash */
 
 /*-----------------------------------------------------------------------
  * NOR FLASH organization
@@ -409,6 +409,20 @@
  *	Name	Manuf	Device
  *	-----	-----	------
  *	UK1	ST	M25P128 (or N25Q128)
+ *
+ *	Note: To use the H/W FSM SPI controller, both the following
+ *	versions are required:
+ *		1) Using STx7108 SoC cut 2.0 (or later)
+ *	and	2) Using Revision 2.0 (or later) of the HDK-7108 board.
+ *
+ *	The H/W FSM SPI controller on Cut 1.x of the silicon is not supported.
+ *	Due to an error in the schematic, board rev 1.0 can not be used
+ *	with the H/W FSM SPI controller either.
+ *
+ *	Note: Currently, the configuration for SPI is disabled by default.
+ *	There is a known issue with SPI when not booting from SPI Serial Flash.
+ *	For further information, please see:
+ *		http://git.stlinux.com/?p=stm/u-boot.git;a=commit;h=2af31e5c52142d966fc60393e02609d1a4c358fd
  */
 #if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
 #	define CONFIG_SPI_FLASH_ST		/* ST M25Pxxx (UK1) */
@@ -417,7 +431,7 @@
 #	define CFG_I2C_FRAM			/* to minimize performance degradation */
 #	undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
 
-	/* Can only use H/W FSM SPI Controller (not H/W SSC, nor S/W "bit-banging") */
+	/* Use H/W FSM SPI Controller (not H/W SSC, nor S/W "bit-banging") */
 #	define CONFIG_STM_FSM_SPI		/* Use the H/W FSM for SPI */
 #	define CFG_STM_SPI_FSM_BASE	0xfe902000	/* FSM SPI Controller Base */
 #	define CFG_STM_SPI_CLOCKDIV	4	/* set SPI_CLOCKDIV = 4 */
