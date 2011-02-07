@@ -318,6 +318,7 @@ ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer,
 	uint32_t endpt, token, usbsts;
 	uint32_t c, toggle;
 	uint32_t cmd;
+	int timeout;
 	int ret = 0;
 
 	debug("dev=%p, pipe=%lx, buffer=%p, length=%d, req=%p\n", dev, pipe,
@@ -446,6 +447,7 @@ ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer,
 	/* Wait for TDs to be processed. */
 	ts = get_timer(0);
 	vtd = td;
+	timeout = USB_TIMEOUT_MS(pipe);
 	do {
 		/* Invalidate dcache */
 		ehci_invalidate_dcache(&qh_list);
@@ -453,7 +455,13 @@ ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer,
 		if (!(token & 0x80))
 			break;
 		WATCHDOG_RESET();
-	} while (get_timer(ts) < CONFIG_SYS_HZ);
+	} while (get_timer(ts) < timeout);
+
+	/* Check that the TD processing happened */
+	if (token & 0x80) {
+		printf("EHCI timed out on TD - token=%#x\n", token);
+		goto fail;
+	}
 
 	/* Disable async schedule. */
 	cmd = ehci_readl(&hcor->or_usbcmd);
