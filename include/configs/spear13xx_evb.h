@@ -64,6 +64,7 @@
 #define CONFIG_DW_SEARCH_PHY			1
 #define CONFIG_DW0_PHY				1
 #define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
+#define CONFIG_DW_AUTONEG			1
 #endif
 
 /* USBD driver configuration */
