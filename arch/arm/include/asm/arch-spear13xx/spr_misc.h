@@ -277,6 +277,10 @@ struct misc_regs {
 #define I2S_REFOUT_CLKEN			(1 << 7)
 #define THSENS_CLKEN				(1 << 8)
 
+/* perip_cfg definitions */
+#define MCIF_MSK				(3 << 3)
+#define MCIF_SD					(1 << 3)
+
 /* fsmc_cfg definitions */
 #define DEV_SEL_NOR				(0 << 0)
 #define DEV_SEL_NAND				(1 << 0)
@@ -302,8 +306,10 @@ struct misc_regs {
 #define SYNT_CLK_ENB				(1 << 31)
 #define SYNT_FIN_FULL				(1 << 30)
 #define SYNT_X_1				(1 << 16)
+#define SYNT_X_2				(2 << 16)
 #define SYNT_Y_2				(2 << 0)
 #define SYNT_Y_5				(5 << 0)
+#define SYNT_Y_21				(21 << 0)
 
 /* gmac_clk_cfg definitions */
 #define PHY_IF_GMII				(0 << 4)

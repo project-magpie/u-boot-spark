@@ -56,6 +56,14 @@
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
+/* MMC configuration */
+#define CONFIG_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_SPEAR_MMC
+#define CONFIG_CMD_MMC
+#endif
+
+#if !defined(CONFIG_SPEAR_USBTTY)
 /* Ethernet configuration */
 #define CONFIG_MII
 #define CONFIG_DESIGNWARE_ETH
@@ -115,13 +123,12 @@
 /*
  * USB/EHCI
  */
-#define CONFIG_CMD_USB				/* Enable USB Commands */
+#if !defined(CONFIG_SPEAR_USBTTY)
 #define CONFIG_USB_EHCI				/* Enable EHCI USB support */
 #define CONFIG_USB_EHCI_SPEAR
-#define CONFIG_CMD_FAT
 #define CONFIG_USB_STORAGE
-#define CONFIG_DOS_PARTITION
-#define CONFIG_ISO_PARTITION
+#define CONFIG_CMD_USB				/* Enable USB Commands */
+#endif
 
 /*
  * NAND FLASH Configuration
@@ -131,11 +138,11 @@
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
 #define CONFIG_MTD_NAND_VERIFY_WRITE		1
 #define CONFIG_SYS_NAND_BASE			(0xA0000000)
+#define CONFIG_CMD_NAND
 
 /*
  * Command support defines
  */
-#define CONFIG_CMD_NAND
 #define CONFIG_CMD_MEMORY
 #define CONFIG_CMD_RUN
 
@@ -144,6 +151,13 @@
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_DHCP
+
+#if defined(CONFIG_USB_STORAGE) || defined(CONFIG_MMC)
+#define CONFIG_CMD_FAT
+#define CONFIG_DOS_PARTITION
+#define CONFIG_ISO_PARTITION
+#endif
+
 #endif
 
 /* This must be included AFTER the definition of CONFIG_COMMANDS (if any) */

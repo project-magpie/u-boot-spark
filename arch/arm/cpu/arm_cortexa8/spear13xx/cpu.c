@@ -37,6 +37,9 @@ int arch_cpu_init(void)
 	struct misc_regs *const misc_p =
 	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 	u32 perip1_clk_enb, perip2_clk_enb;
+#if defined(CONFIG_SPEAR_MMC)
+	u32 perip_cfg;
+#endif
 #if defined(CONFIG_NAND_FSMC)
 	u32 fsmc_cfg;
 #endif
@@ -68,6 +71,18 @@ int arch_cpu_init(void)
 
 #if defined(CONFIG_ST_SMI)
 	perip1_clk_enb |= SMI_CLKEN;
+#endif
+
+#if defined(CONFIG_SPEAR_MMC)
+	perip_cfg = readl(&misc_p->perip_cfg);
+	perip_cfg &= ~MCIF_MSK;
+	perip_cfg |= MCIF_SD;
+	writel(perip_cfg, &misc_p->perip_cfg);
+
+	writel(SYNT_X_2 | SYNT_Y_21 | SYNT_CLK_ENB,
+			&misc_p->mcif_sd_clk_synt);
+
+	perip1_clk_enb |= SD_CLKEN;
 #endif
 
 #if defined(CONFIG_NAND_FSMC)
