@@ -370,7 +370,7 @@ static int dw_reset_phy(struct eth_device *dev)
 static int configure_phy(struct eth_device *dev)
 {
 	struct dw_eth_dev *priv = dev->priv;
-	int phy_addr;
+	int phy_addr = priv->address;
 	u16 bmcr;
 #if defined(CONFIG_DW_AUTONEG)
 	u16 bmsr;
