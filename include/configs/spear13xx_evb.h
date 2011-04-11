@@ -57,14 +57,10 @@
 
 #if !defined(CONFIG_SPEAR_USBTTY)
 /* MMC configuration */
-
-#if 0
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_SPEAR_MMC
 #define CONFIG_CMD_MMC
-#endif
-
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
