@@ -35,6 +35,7 @@ int board_init(void)
 	gd->bd->bi_arch_number = MACH_TYPE_SPEAR1340;
 	gd->bd->bi_boot_params = CONFIG_BOOT_PARAMS_ADDR;
 
+	enable_pad_mux();
 #if defined(CONFIG_ST_SMI)
 	smi_init();
 #endif
