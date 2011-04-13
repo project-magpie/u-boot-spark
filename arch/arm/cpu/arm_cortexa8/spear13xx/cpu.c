@@ -36,7 +36,7 @@ int arch_cpu_init(void)
 {
 	struct misc_regs *const misc_p =
 	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	u32 perip1_clk_enb, perip2_clk_enb;
+	u32 perip1_clk_enb, perip2_clk_enb, perip3_clk_enb;
 #if defined(CONFIG_SPEAR_MMC)
 	u32 perip_cfg;
 #endif
@@ -101,6 +101,10 @@ int arch_cpu_init(void)
 
 	writel(perip1_clk_enb, &misc_p->perip1_clk_enb);
 	writel(perip2_clk_enb, &misc_p->perip2_clk_enb);
+#ifdef CONFIG_SPEAR1340
+	perip3_clk_enb = readl(&misc_p->perip3_clk_enb);
+	writel(perip3_clk_enb, &misc_p->perip3_clk_enb);
+#endif
 
 #ifdef CONFIG_SPEAR1300_ISSUE_101435
 	{
@@ -145,6 +149,8 @@ int print_cpuinfo(void)
 	printf("CPU:   SPEAr1300\n");
 #elif defined(CONFIG_SPEAR1310)
 	printf("CPU:   SPEAr1310\n");
+#elif defined(CONFIG_SPEAR1340)
+	printf("CPU:   SPEAr1340\n");
 #elif defined(CONFIG_SPEAR900)
 	printf("CPU:   SPEAr900\n");
 #endif

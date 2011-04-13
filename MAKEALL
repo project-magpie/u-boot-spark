@@ -653,6 +653,7 @@ LIST_ARM_CORTEX_A8="		\
 	smdkc100		\
 	spear1300		\
 	spear1310		\
+	spear1340		\
 	spear900		\
 "
 

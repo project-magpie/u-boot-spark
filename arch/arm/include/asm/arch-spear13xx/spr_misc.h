@@ -24,6 +24,10 @@
 #ifndef __SPR13XX_MISC_H
 #define __SPR13XX_MISC_H
 
+#ifdef CONFIG_SPEAR1340
+#include <asm/arch/spr1340_misc.h>
+#else
+
 struct misc_regs {
 	u32 soc_cfg;				/* 0x000 */
 	u32 bootstrap_cfg;			/* 0x004 */
@@ -320,4 +324,5 @@ struct misc_regs {
 #define CLK_SEL_PLL2				(1 << 1)
 #define CLK_SEL_OSCI3				(2 << 1)
 
+#endif
 #endif

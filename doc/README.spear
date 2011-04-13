@@ -7,7 +7,7 @@ The SPEAr SoC family embeds a customizable logic that can be programmed
 one-time by a customer at silicon mask level (i.e. not at runtime!).
 
 U-Boot supports seven spear SoCs: SPEAr600, SPEAr3xx, SPEAr1300, SPEAr1310,
-SPEAr900
+SPEAr1340, SPEAr900
 
 4 SoCs (SPEAr3xx and SPEAr600) are based on arm926ejs core and share
 common peripherals. SPEAr13xx SoCs are based on ARM CortexA9 core
@@ -67,6 +67,10 @@ Build options
 	make spear1310_nand_config
 	make spear1310_usbtty_config
 	make spear1310_usbtty_nand_config
+	make spear1340_config
+	make spear1340_nand_config
+	make spear1340_usbtty_config
+	make spear1340_usbtty_nand_config
 	make spear900_config
 	make spear900_nand_config
 	make spear900_usbtty_config

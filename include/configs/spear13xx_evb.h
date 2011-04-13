@@ -34,6 +34,11 @@
 #define CONFIG_SPEAR1310			1
 #endif
 
+#if defined(CONFIG_MK_spear1340)
+#define CONFIG_SPEAR13XX			1
+#define CONFIG_SPEAR1340			1
+#endif
+
 #if defined(CONFIG_MK_spear900)
 #define CONFIG_SPEAR13XX			1
 #define CONFIG_SPEAR900			1
@@ -76,9 +81,12 @@
 #endif
 
 /* USBD driver configuration */
-#if defined(CONFIG_SPEAR_USBTTY)
+#if (defined(CONFIG_SPEAR_USBTTY))
+#ifndef CONFIG_SPEAR1340
 #define CONFIG_DW_UDC
 #define CONFIG_USB_DEVICE
+#endif
+
 #define CONFIG_USBD_HS
 #define CONFIG_USB_TTY
 
