@@ -29,9 +29,9 @@
 #define CONFIG_SPEAR1300			1
 #endif
 
-#if defined(CONFIG_MK_spear1310)
+#if defined(CONFIG_MK_spear1310) && defined(CONFIG_MK_reva)
 #define CONFIG_SPEAR13XX			1
-#define CONFIG_SPEAR1310			1
+#define CONFIG_SPEAR1310_REVA			1
 #endif
 
 #if defined(CONFIG_MK_spear1340)

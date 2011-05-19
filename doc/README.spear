@@ -6,7 +6,7 @@ SPEAr600 is also known as SPEArPlus and SPEAr300 is also known as SPEArBasic
 The SPEAr SoC family embeds a customizable logic that can be programmed
 one-time by a customer at silicon mask level (i.e. not at runtime!).
 
-U-Boot supports seven spear SoCs: SPEAr600, SPEAr3xx, SPEAr1300, SPEAr1310,
+U-Boot supports seven spear SoCs: SPEAr600, SPEAr3xx, SPEAr1300, SPEAr1310_REVA,
 SPEAr1340, SPEAr900
 
 4 SoCs (SPEAr3xx and SPEAr600) are based on arm926ejs core and share
@@ -63,10 +63,10 @@ Build options
 	make spear1300_nand_config
 	make spear1300_usbtty_config
 	make spear1300_usbtty_nand_config
-	make spear1310_config
-	make spear1310_nand_config
-	make spear1310_usbtty_config
-	make spear1310_usbtty_nand_config
+	make spear1310_reva_config
+	make spear1310_reva_nand_config
+	make spear1310_reva_usbtty_config
+	make spear1310_reva_usbtty_nand_config
 	make spear1340_config
 	make spear1340_nand_config
 	make spear1340_usbtty_config

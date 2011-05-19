@@ -3073,11 +3073,11 @@ spear1300_usbtty_config \
 spear1300_usbtty_nand_config :	unconfig
 	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1300 spear spear13xx
 
-spear1310_config \
-spear1310_nand_config \
-spear1310_usbtty_config \
-spear1310_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1310 spear spear13xx
+spear1310_reva_config \
+spear1310_reva_nand_config \
+spear1310_reva_usbtty_config \
+spear1310_reva_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1310_reva spear spear13xx
 
 spear1340_config \
 spear1340_nand_config \

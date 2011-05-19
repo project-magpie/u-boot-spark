@@ -32,7 +32,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int board_init(void)
 {
-	gd->bd->bi_arch_number = MACH_TYPE_SPEAR1310;
+	gd->bd->bi_arch_number = MACH_TYPE_SPEAR1310_REVA;
 	gd->bd->bi_boot_params = CONFIG_BOOT_PARAMS_ADDR;
 
 #if defined(CONFIG_ST_SMI)

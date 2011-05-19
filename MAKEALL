@@ -652,7 +652,7 @@ LIST_ARM_CORTEX_A8="		\
 	omap3_zoom2		\
 	smdkc100		\
 	spear1300		\
-	spear1310		\
+	spear1310_reva		\
 	spear1340		\
 	spear900		\
 "

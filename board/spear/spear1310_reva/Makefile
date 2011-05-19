@@ -25,7 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(BOARD).a
 
-COBJS	:= spear1310.o
+COBJS	:= spear1310_reva.o
 SOBJS	:=
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
