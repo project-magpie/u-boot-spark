@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2011 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -76,7 +76,7 @@
  */
 
 #if defined(CFG_BOOT_FROM_SPI)		/* we are booting from SPI */
-#define CFG_EMI_SPI_BASE	0xA0000000	/* CSA: SPI Flash,  Physical 0x00000000 (128MiB) */
+#define CFG_EMI_SPI_BASE	0xB0000000	/* CSA: SPI Flash,  Physical 0x00000000 (128MiB) */
 #define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (128MiB) */
 #define CFG_EMI_NOR_BASE	0xA8000000	/* CSB: NOR Flash,  Physical 0x08000000 (8MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */

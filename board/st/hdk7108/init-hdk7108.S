@@ -41,6 +41,12 @@ __memory_setup_table:
 	 * your network.  In addition, note that "hdk7108stx7108" should
 	 * substituted if you have a custom target-pack connect command.
 	 *
+	 * If you wish to boot from SPI Serial Flash in "Quad-Mode" (i.e.
+	 * using 4 data wires), then you should also post-pend the "romgen"
+	 * command with the "spi_4x=1" option. e.g.
+	 *
+	 * host% romgen --show-comment dummy:hdk7108stx7108:host,spi_4x=1
+	 *
 	 * At the time of writing this (July 2010) the output from "romgen"
 	 * needs to be edited slightly.  The edit is just two add two lines
 	 * to comment out all the PMB + 32-bit mode configuration. The lines
@@ -56,6 +62,11 @@ __memory_setup_table:
 	 * such that the changes to the SPI registers are *only*
 	 * to be performed if we are actively booting from SPI.
 	 * Please note the lines with "QQQ - ... BY HAND"
+	 *
+	 * Update (May 2011), recent TargetPacks now include boot-time
+	 * checking to configure the SPI only if we are in boot-from-SPI
+	 * mode. Hence the additional modification in the previous
+	  * paragraph may now be ignored if now using newer TargetPacks.
 	 */
 #include "hdk7108-stx7108.romgen"
 
