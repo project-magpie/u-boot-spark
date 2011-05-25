@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004, 2007, 2009 STMicroelectronics.
+ * (C) Copyright 2004, 2007, 2009, 2011 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -28,27 +28,27 @@
 
 	/* build up a 32-bit constant into R0 */
 .macro MOV_CONST32_R0 p1:req
-	mov	#(\p1>>24), r0
+	mov	#((\p1)>>24), r0
 	shll8	r0
-	.ifne    ((\p1 >> 16)&0xFF)
-	or	#((\p1 >> 16)&0xFF), r0
+	.ifne    (((\p1) >> 16)&0xFF)
+	or	#(((\p1) >> 16)&0xFF), r0
 	.endif
 	shll8	r0
-	.ifne    ((\p1 >> 8) &0xFF)
-	or	#((\p1 >> 8) &0xFF), r0
+	.ifne    (((\p1) >> 8) &0xFF)
+	or	#(((\p1) >> 8) &0xFF), r0
 	.endif
 	shll8	r0
-	.ifne    (\p1 &0xFF)
-	or	#(\p1 &0xFF), r0
+	.ifne    ((\p1) &0xFF)
+	or	#((\p1) &0xFF), r0
 	.endif
 .endm
 
 	/* build up a 16-bit constant into R0 */
 .macro MOV_CONST16_R0 p1:req
-	mov	#((\p1 >> 8) &0xFF), r0
+	mov	#(((\p1) >> 8) &0xFF), r0
 	shll8	r0
-	.ifne    (\p1 &0xFF)
-	or	#(\p1 &0xFF), r0
+	.ifne    ((\p1) &0xFF)
+	or	#((\p1) &0xFF), r0
 	.endif
 .endm
 
@@ -172,15 +172,15 @@ where <index> is the PMB entry
 	.endif
 
 		/* poke ADDR_ARRAY entry */
-	MOV_CONST32_R0	(\vpn<<24)
+	MOV_CONST32_R0	((\vpn)<<24)
 	mov	r0,r1
-	MOV_CONST32_R0	(P4SEG_PMB_ADDR | (\i<<8))
+	MOV_CONST32_R0	(P4SEG_PMB_ADDR | ((\i)<<8))
 	mov.l	r1,@r0
 
 		/* poke DATA_ARRAY entry */
-	MOV_CONST32_R0	((\ppn<<24) | SH4_PMB_V | pmbdata)
+	MOV_CONST32_R0	(((\ppn)<<24) | SH4_PMB_V | pmbdata)
 	mov	r0,r1
-	MOV_CONST32_R0	(P4SEG_PMB_DATA | (\i<<8))
+	MOV_CONST32_R0	(P4SEG_PMB_DATA | ((\i)<<8))
 	mov.l	r1,@r0
 .endm
 

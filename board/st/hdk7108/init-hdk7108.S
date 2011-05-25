@@ -47,6 +47,12 @@ __memory_setup_table:
 	 *
 	 * host% romgen --show-comment dummy:hdk7108stx7108:host,spi_4x=1
 	 *
+	 * If you wish to have the 2 LMIs being physically contiguous,
+	 * then you should also post-pend the "romgen" command with
+	 * the "lmi_contig=1" option. e.g.
+	 *
+	 * host% romgen --show-comment dummy:hdk7108stx7108:host,lmi_contig=1
+	 *
 	 * At the time of writing this (July 2010) the output from "romgen"
 	 * needs to be edited slightly.  The edit is just two add two lines
 	 * to comment out all the PMB + 32-bit mode configuration. The lines
@@ -66,7 +72,8 @@ __memory_setup_table:
 	 * Update (May 2011), recent TargetPacks now include boot-time
 	 * checking to configure the SPI only if we are in boot-from-SPI
 	 * mode. Hence the additional modification in the previous
-	  * paragraph may now be ignored if now using newer TargetPacks.
+	 * paragraph may now be ignored if now using newer TargetPacks.
+	 *
 	 */
 #include "hdk7108-stx7108.romgen"
 
