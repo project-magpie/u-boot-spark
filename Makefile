@@ -2813,6 +2813,17 @@ mb680se_config :		unconfig
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb680/config.tmp)
 	@$(MKCONFIG) -a mb680 sh sh mb680 st stx7105
 
+hdk7106_config \
+hdk7106se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/hdk7106
+	@echo "#define CONFIG_SH_STX7105   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_HDK7106   1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7106/config.tmp)
+	@$(MKCONFIG) -a hdk7106 sh sh hdk7106 st stx7105
+
 pdk7105_config \
 pdk7105se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/pdk7105

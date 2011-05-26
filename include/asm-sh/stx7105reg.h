@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2008.
+ * Copyright (C) STMicroelectronics Ltd. 2008-2011
  *
  * All rights reserved.
  */
@@ -362,12 +362,15 @@
 
 /* Device ID values, masks & predicates */
 #define STX7105_DEVID_7105_VAL		0x03E
+#define STX7105_DEVID_7106_VAL		0x041
 #define STX7105_DEVID_ID_SHIFT		12
 #define STX7105_DEVID_ID_MASK		0x3ff
 #define STX7105_DEVID_CUT_SHIFT		28
 #define STX7105_DEVID_CUT_MASK		0xf
 
 #define STX7105_DEVICEID_7105(ID) ((((ID) >> STX7105_DEVID_ID_SHIFT) & STX7105_DEVID_ID_MASK) == STX7105_DEVID_7105_VAL)
+#define STX7105_DEVICEID_CUT(ID)  ((((ID) >> STX7105_DEVID_CUT_SHIFT) & STX7105_DEVID_CUT_MASK) + 1)
+#define STX7105_DEVICEID_7106(ID) ((((ID) >> STX7105_DEVID_ID_SHIFT) & STX7105_DEVID_ID_MASK) == STX7105_DEVID_7106_VAL)
 #define STX7105_DEVICEID_CUT(ID)  ((((ID) >> STX7105_DEVID_CUT_SHIFT) & STX7105_DEVID_CUT_MASK) + 1)
 
 #endif /* __STX7105REG_H */

@@ -63,6 +63,7 @@
        defined(CONFIG_SH_MB671)		|| \
        defined(CONFIG_SH_MB680)		|| \
        defined(CONFIG_SH_PDK7105)	|| \
+       defined(CONFIG_SH_HDK7106)	|| \
        defined(CONFIG_SH_IPIDTV7105)	|| \
        defined(CONFIG_SH_MB704)		|| \
        defined(CONFIG_SH_5197CAB)	|| \
