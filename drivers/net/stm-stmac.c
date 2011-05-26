@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2006-2009 STMicroelectronics Limited
+ *  Copyright (c) 2006-2011 STMicroelectronics Limited
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -383,6 +383,8 @@ static int stmac_phy_init (void)
 	value = stmac_mii_read (eth_phy_addr, SPECIAL_MODE_REG);
 #elif defined(CONFIG_STMAC_DP83865)
 	value = stmac_mii_read (eth_phy_addr, PHY_SUP_REG);
+#elif defined(CONFIG_STMAC_RTL8201E)
+	value = stmac_mii_read (eth_phy_addr, PHY_TEST_REG);
 #elif defined(CONFIG_STMAC_KSZ8041)
 	/* The Micrel KSZ8041 does not appear to support
 	 * reading the H/W PHY address from any register.  */
@@ -394,8 +396,6 @@ static int stmac_phy_init (void)
 #elif defined(CONFIG_STMAC_78Q2123)
 	/* The TERIDIAN 78Q2123 does not appear to support
 	 * reading the H/W PHY address from any register.  */
-#elif defined(CONFIG_STMAC_RTL8201E)
-	value = stmac_mii_read (eth_phy_addr, PHY_TEST_REG);
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #else
 #error Need to define which PHY to use
