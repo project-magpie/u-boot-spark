@@ -25,6 +25,7 @@
  */
 
 #include <common.h>
+#include <miiphy.h>
 #include <netdev.h>
 #include <nand.h>
 #include <linux/mtd/st_smi.h>
@@ -65,9 +66,28 @@ int board_eth_init(bd_t *bis)
 {
 	int ret = 0;
 #if defined(CONFIG_DESIGNWARE_ETH)
+	char *devname;
+	u16 phyid1, phyid2;
+
 	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY) >= 0)
 		ret++;
-#endif
+
+#ifdef CONFIG_MII
+	devname = miiphy_get_current_dev();
+
+	miiphy_read(devname, CONFIG_DW0_PHY, PHY_PHYIDR1, &phyid1);
+	miiphy_read(devname, CONFIG_DW0_PHY, PHY_PHYIDR2, &phyid2);
+
+	if (phyid1 == 0x0022 && (phyid2 & 0xfff0) == 0x1610) {
+		/*
+		 * Note: Adjust timing within Micrel PHY, otherwise link
+		 * doesn't work
+		 */
+		miiphy_write(devname, CONFIG_DW0_PHY, 0x0b, 0x8104);
+		miiphy_write(devname, CONFIG_DW0_PHY, 0x0c, 0x7700);
+	}
+#endif /* CONFIG_MII */
+#endif /* CONFIG_DESIGNWARE_ETH */
 	return ret;
 }
 #endif
