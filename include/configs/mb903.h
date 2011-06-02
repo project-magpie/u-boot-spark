@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2011 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -57,6 +57,8 @@
  *
  * Note: when in boot-from-SPI, the lower 64MiB of the NOR
  * flash is inaccessible, only the upper 64MiB is accessible.
+ * This assumes that the EMI is configured as follows:
+ *	sizeof(Bank #0) == sizeof(Bank #1) == 64MiB.
  */
 #undef CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
 
@@ -66,9 +68,11 @@
  * Assume we run out of uncached memory for the moment
  */
 
-#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 */
 #if defined(CFG_BOOT_FROM_SPI)			/* we are booting from SPI serial flash */
 #define CFG_EMI_SPI_BASE	0xA0000000	/* EMI Bank #0: SPI Flash,  Physical 0x00000000 */
+#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 */
+#else
+#define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 */
 #endif /* CFG_BOOT_FROM_SPI */
 
 #ifdef CONFIG_SH_SE_MODE

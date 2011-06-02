@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2011 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -99,6 +99,15 @@ extern void stmac_phy_reset(void)
 extern int board_init(void)
 {
 	configPIO();
+
+		/*
+		 * Note each EMI bank can only be a maximum of 64MiB.
+		 * set CSA (Bank #0) to be 64MiB (0x00000000 to 0x03ffffff)
+		 * set CSB (Bank #1) to be 64MiB (0x04000000 to 0x07ffffff)
+		 */
+	*ST40_EMI_BASEADDRESS(0) =       (0) >> 22;	/* start of EMI Bank #0 */
+	*ST40_EMI_BASEADDRESS(1) = ( 64<<20) >> 22;	/* start of EMI Bank #1 */
+	*ST40_EMI_BASEADDRESS(2) = (128<<20) >> 22;	/* start of EMI Bank #2 */
 
 #ifdef QQQ	/* QQQ - DELETE */
 #if defined(CONFIG_SH_STM_SATA)
