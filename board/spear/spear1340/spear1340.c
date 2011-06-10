@@ -27,6 +27,10 @@
 #include <linux/mtd/st_smi.h>
 #include <linux/mtd/fsmc_nand.h>
 #include <asm/arch/hardware.h>
+#ifdef CONFIG_DW_OTG
+#include <asm/arch/spr_misc.h>
+#include <asm/io.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -67,5 +71,50 @@ int board_eth_init(bd_t *bis)
 		ret++;
 #endif
 	return ret;
+}
+#endif
+#ifdef CONFIG_DW_OTG
+static struct misc_regs *const misc_regs_p =
+	(struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+
+void phy_init(void)
+{
+	u32 temp;
+	/* phy por deassert*/
+	temp = readl(&misc_regs_p->usbphy_gen_cfg);
+	temp &= ~USBPHY_POR;
+	writel(temp, &misc_regs_p->usbphy_gen_cfg);
+	udelay(1);
+
+	/* phy clock enable*/
+	temp = readl(&misc_regs_p->usbphy_gen_cfg);
+	temp |= USBPHY_RST;
+	writel(temp, &misc_regs_p->usbphy_gen_cfg);
+
+	/* wait for pll lock*/
+	while (!(readl(&misc_regs_p->usbphy_gen_cfg) & USB_PLL_LOCK))
+		;
+
+	udelay(1);
+
+	/* otg prstnt deassert*/
+	temp = readl(&misc_regs_p->usbphy_gen_cfg);
+	temp |= USBPHY_PRSNT;
+	writel(temp, &misc_regs_p->usbphy_gen_cfg);
+	udelay(1);
+	/* OTG HCLK Disable*/
+	temp = readl(&misc_regs_p->perip1_clk_enb);
+	temp &= ~UDC_UPD_CLKEN;
+	writel(temp, &misc_regs_p->perip1_clk_enb);
+
+	/* OTG HRESET deassert*/
+	temp = readl(&misc_regs_p->perip1_clk_enb);
+	temp &= ~UDC_UPD_CLKEN;
+	writel(temp, &misc_regs_p->perip1_clk_enb);
+
+	/* OTG HCLK Enable*/
+	temp = readl(&misc_regs_p->perip1_clk_enb);
+	temp |= UDC_UPD_CLKEN;
+	writel(temp, &misc_regs_p->perip1_clk_enb);
 }
 #endif
