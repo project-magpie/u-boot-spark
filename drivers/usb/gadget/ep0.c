@@ -571,6 +571,13 @@ int ep0_recv_setup (struct urb *urb)
 				return -1;
 			}
 			device->address = address;
+#ifdef CONFIG_DW_OTG
+			/*
+			 * not a good way to do it. Will correct during
+			 * board debug.
+			 */
+			 udc_set_address_controller(address);
+#endif
 
 			/*dbg_ep0(2, "address: %d %d %d", */
 			/*        request->wValue, le16_to_cpu(request->wValue), device->address); */
@@ -590,6 +597,13 @@ int ep0_recv_setup (struct urb *urb)
 
 			/*dbg_ep0(2, "set configuration: %d", device->configuration); */
 			/*serial_printf("DEVICE_CONFIGURED.. event?\n"); */
+#ifdef CONFIG_DW_OTG
+			/*
+			 * not a good way to do it. Will correct during
+			 * board debug.
+			 */
+			 udc_set_configuration_controller(device->configuration);
+#endif
 			return 0;
 
 		case USB_REQ_SET_INTERFACE:
