@@ -297,13 +297,11 @@ struct misc_regs {
 #define CLK_SEL_OSCI3		0x00000002
 
 /* usbphy_gen_cfg definitions */
-#define COMMON_PWDN		0x00000001
-#define USBPHY_POR		0x00001000
-#define USBPHY_RST		0x00002000
-#define UTMI_XFER_RST0		0x00004000
-#define UTMI_XFER_RST1		0x00008000
-#define UTMI_XFER_RST2		0x00010000
-#define USB_PLL_LOCK		0x01000000
+#define COMMON_PWDN		(1 << 0)
+#define USBPHY_POR		(1 << 12)
+#define USBPHY_PRSNT		(1 << 13)
+#define USBPHY_RST		(1 << 15)
+#define USB_PLL_LOCK		(1 << 24)
 
 /* perip_cfg definitions */
 #define MCIF_MSK		0x00000003
