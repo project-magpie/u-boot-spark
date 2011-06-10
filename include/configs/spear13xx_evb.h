@@ -82,11 +82,12 @@
 
 /* USBD driver configuration */
 #if (defined(CONFIG_SPEAR_USBTTY))
-#ifndef CONFIG_SPEAR1340
-#define CONFIG_DW_UDC
 #define CONFIG_USB_DEVICE
+#ifdef CONFIG_SPEAR1340
+#define CONFIG_DW_OTG
+#else
+#define CONFIG_DW_UDC
 #endif
-
 #define CONFIG_USBD_HS
 #define CONFIG_USB_TTY
 
