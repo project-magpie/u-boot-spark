@@ -1,5 +1,5 @@
 /*
- * include/asm-sh/io_generic.h
+ * include/asm-st40/io_generic.h
  *
  * Copyright 2000 Stuart Menefy (stuart.menefy@st.com)
  *

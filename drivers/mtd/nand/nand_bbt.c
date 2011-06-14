@@ -65,7 +65,7 @@
 #include <asm/errno.h>
 
 #if defined(CONFIG_SH4)
-#include <asm-sh/ecc.h>
+#include <asm/ecc.h>
 #endif	/* CONFIG_SH4 */
 
 /**

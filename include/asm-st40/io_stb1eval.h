@@ -1,5 +1,5 @@
  /*
-  * include/asm-sh/io_stb1eval.h
+  * include/asm-st40/io_stb1eval.h
   *
   * Copyright 2001 Stuart Menefy (stuart.menefy@st.com)
   *

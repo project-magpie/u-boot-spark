@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2009 STMicroelectronics.
+ * (C) Copyright 2007-2009,2011 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -35,7 +35,7 @@ SECTIONS
 	.text ALIGN(0x4):
 	{
 		__text_start = .;
-		cpu/sh/start.o (.text.init)
+		cpu/st40/start.o (.text.init)
 		*(.text.init)		/* pre-initialization code */
 		. = ALIGN(32);		/* align to a cache-line */
 		*(.data.init)		/* pre-initialization data */

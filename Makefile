@@ -152,7 +152,7 @@ endif
 ifeq ($(ARCH),avr32)
 CROSS_COMPILE = avr32-linux-
 endif
-ifeq ($(ARCH),sh)
+ifeq ($(ARCH),st40)
 CROSS_COMPILE = sh4-linux-
 endif
 endif
@@ -2677,7 +2677,7 @@ mb618se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb618/config.tmp)
-	@$(MKCONFIG) -a mb618 sh sh mb618 st stx7111
+	@$(MKCONFIG) -a mb618 st40 st40 mb618 st stx7111
 
 hdk7111_config \
 hdk7111se_config :		unconfig
@@ -2688,7 +2688,7 @@ hdk7111se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7111/config.tmp)
-	@$(MKCONFIG) -a hdk7111 sh sh hdk7111 st stx7111
+	@$(MKCONFIG) -a hdk7111 st40 st40 hdk7111 st stx7111
 
 mb628_config \
 mb628se_config :		unconfig
@@ -2699,7 +2699,7 @@ mb628se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x83900000" >$(obj)board/st/mb628/config.tmp)
-	@$(MKCONFIG) -a mb628 sh sh mb628 st stx7141
+	@$(MKCONFIG) -a mb628 st40 st40 mb628 st stx7141
 
 eud7141_config \
 eud7141se_config :		unconfig
@@ -2710,7 +2710,7 @@ eud7141se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/eud7141/config.tmp)
-	@$(MKCONFIG) -a eud7141 sh sh eud7141 st stx7141
+	@$(MKCONFIG) -a eud7141 st40 st40 eud7141 st stx7141
 
 mb671_config \
 mb671se_config :		unconfig
@@ -2721,7 +2721,7 @@ mb671se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb671/config.tmp)
-	@$(MKCONFIG) -a mb671 sh sh mb671 st stx7200
+	@$(MKCONFIG) -a mb671 st40 st40 mb671 st stx7200
 
 mb680_config \
 mb680se_config :		unconfig
@@ -2732,7 +2732,7 @@ mb680se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb680/config.tmp)
-	@$(MKCONFIG) -a mb680 sh sh mb680 st stx7105
+	@$(MKCONFIG) -a mb680 st40 st40 mb680 st stx7105
 
 hdk7106_config \
 hdk7106se_config :		unconfig
@@ -2743,7 +2743,7 @@ hdk7106se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7106/config.tmp)
-	@$(MKCONFIG) -a hdk7106 sh sh hdk7106 st stx7105
+	@$(MKCONFIG) -a hdk7106 st40 st40 hdk7106 st stx7105
 
 pdk7105_config \
 pdk7105se_config :		unconfig
@@ -2754,7 +2754,7 @@ pdk7105se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/pdk7105/config.tmp)
-	@$(MKCONFIG) -a pdk7105 sh sh pdk7105 st stx7105
+	@$(MKCONFIG) -a pdk7105 st40 st40 pdk7105 st stx7105
 
 ipidtv7105_config \
 ipidtv7105se_config :		unconfig
@@ -2765,7 +2765,7 @@ ipidtv7105se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE    1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/pdk7105/config.tmp)
-	@$(MKCONFIG) -a ipidtv7105 sh sh pdk7105 st stx7105
+	@$(MKCONFIG) -a ipidtv7105 st40 st40 pdk7105 st stx7105
 
 mb837se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/mb837
@@ -2775,7 +2775,7 @@ mb837se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE    1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb837/config.tmp)
-	@$(MKCONFIG) -a mb837 sh sh mb837 st stx7108
+	@$(MKCONFIG) -a mb837 st40 st40 mb837 st stx7108
 
 hdk7108se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/hdk7108
@@ -2785,7 +2785,7 @@ hdk7108se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE    1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk7108/config.tmp)
-	@$(MKCONFIG) -a hdk7108 sh sh hdk7108 st stx7108
+	@$(MKCONFIG) -a hdk7108 st40 st40 hdk7108 st stx7108
 
 mb903se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/mb903
@@ -2795,7 +2795,7 @@ mb903se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE    1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb903/config.tmp)
-	@$(MKCONFIG) -a mb903 sh sh mb903 st stx7108
+	@$(MKCONFIG) -a mb903 st40 st40 mb903 st stx7108
 
 mb704_config \
 mb704se_config :		unconfig
@@ -2806,7 +2806,7 @@ mb704se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/st/mb704/config.tmp)
-	@$(MKCONFIG) -a mb704 sh sh mb704 st stx5197
+	@$(MKCONFIG) -a mb704 st40 st40 mb704 st stx5197
 
 5197cab_config \
 5197cabse_config :		unconfig
@@ -2817,21 +2817,21 @@ mb704se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/st/5197cab/config.tmp)
-	@$(MKCONFIG) -a 5197cab sh sh 5197cab st stx5197
+	@$(MKCONFIG) -a 5197cab st40 st40 5197cab st stx5197
 
 fldbse_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/fldb
 	@echo "#define CONFIG_SH_FLI7510   1" >>$(obj)include/config.h
 	@echo "#define CONFIG_SH_FLDB      1" >>$(obj)include/config.h
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h
-	@$(MKCONFIG) -a fldb sh sh fldb st fli7510
+	@$(MKCONFIG) -a fldb st40 st40 fldb st fli7510
 
 fudbse_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/fudb
 	@echo "#define CONFIG_SH_FLI7540   1" >>$(obj)include/config.h
 	@echo "#define CONFIG_SH_FUDB      1" >>$(obj)include/config.h
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h
-	@$(MKCONFIG) -a fudb sh sh fudb st fli7540
+	@$(MKCONFIG) -a fudb st40 st40 fudb st fli7540
 
 # QQQ following should have "TEXT_BASE = 0x8FF00000" for SE mode.
 # QQQ However, the current TargetPacks only define the PMB
@@ -2846,7 +2846,7 @@ mb796se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb796/config.tmp)
-	@$(MKCONFIG) -a mb796 sh sh mb796 st stx5206
+	@$(MKCONFIG) -a mb796 st40 st40 mb796 st stx5206
 
 
 hdk5289_config \
@@ -2858,7 +2858,7 @@ hdk5289se_config :		unconfig
 	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk5289/config.tmp)
-	@$(MKCONFIG) -a hdk5289 sh sh hdk5289 st stx5206
+	@$(MKCONFIG) -a hdk5289 st40 st40 hdk5289 st stx5206
 
 
 #########################################################################

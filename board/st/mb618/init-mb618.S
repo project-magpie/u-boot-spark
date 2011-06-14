@@ -18,7 +18,7 @@
 
 
 #include "asm/stx7111reg.h"
-#include "../../../cpu/sh/init_ram.S"
+#include "../../../cpu/st40/init_ram.S"
 
 
 	.section .data.init, "a"

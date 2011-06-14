@@ -1,5 +1,5 @@
 /*
- * include/asm-sh/cache.h
+ * include/asm-st40/cache.h
  *
  * Copyright 1999 (C) Niibe Yutaka
  * Copyright 2005 (C) Andy Sturges
