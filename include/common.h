@@ -243,10 +243,6 @@ void	forceenv     (char *, char *);
 # include <asm/u-boot-arm.h>	/* ARM version to be fixed! */
 #endif /* CONFIG_ARM */
 
-#ifdef CONFIG_STM_ST231
-# include <asm/setup.h>
-#endif /* CONFIG_STM_ST231 */
-
 #ifdef CONFIG_I386		/* x86 version to be fixed! */
 # include <asm/u-boot-i386.h>
 #endif /* CONFIG_I386 */

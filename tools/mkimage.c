@@ -91,7 +91,6 @@ table_entry_t arch_name[] = {
     {	IH_CPU_PPC,		"ppc",		"PowerPC",	},
     {	IH_CPU_S390,		"s390",		"IBM S390",	},
     {	IH_CPU_SH,		"sh",		"SuperH",	},
-    {	IH_CPU_ST200,		"st200",	"STMicroelectronics ST200",	},
     {	IH_CPU_SPARC,		"sparc",	"SPARC",	},
     {	IH_CPU_SPARC64,		"sparc64",	"SPARC 64 Bit",	},
     {	IH_CPU_BLACKFIN,	"blackfin",	"Blackfin",	},

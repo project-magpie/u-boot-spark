@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2011 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -134,7 +134,6 @@ extern void stm_sata_miphy_init(void);
 extern void stm_sata_miphy_deassert_des_reset(void);
 extern int  stm_sata_probe(void);
 
-extern void stb7100_sata_init(void);
 extern void stx7105_configure_sata(void);
 extern void stx7141_configure_sata(void);
 extern void stx7200_configure_sata(void);
@@ -158,7 +157,6 @@ enum fli7540_usb_ovrcur_mode {
 /*
  * USB initialization functions.
  */
-extern void stb7100_usb_init(void);
 extern void stx5197_usb_init(void);
 extern void stx5206_usb_init(void);
 extern int  stx7105_usb_init(int port, int over_current, int power_ctrl);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2004-2010
+ * Copyright (C) STMicroelectronics Ltd. 2004-2011
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -27,9 +27,7 @@
 #define __SOC_REG_H
 
 
-#if defined(CONFIG_SH_STB7100)
-#	include <asm/stb7100reg.h>
-#elif defined(CONFIG_SH_STX5197)
+#if defined(CONFIG_SH_STX5197)
 #	include <asm/stx5197reg.h>
 #elif defined(CONFIG_SH_STX5206)
 #	include <asm/stx5206reg.h>

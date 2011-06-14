@@ -113,17 +113,7 @@
 
 	/* put device id in p1 */
 .macro GETDEVID p1:req
-#ifdef CONFIG_SH_STB7100
-	mov.l	1f, r0
-	mov.l	@r0, \p1
-	mov.l	2f, r0
-	bra	3f
-	  and	r0, \p1
-	.balign 4
-1:	.long STB7100_SYSCONF_DEVICEID_0
-2:	.long (STB7100_DEVID_ID_MASK << STB7100_DEVID_ID_SHIFT) | (STB7100_DEVID_CUT_MASK << STB7100_DEVID_CUT_SHIFT)
-3:
-#endif
+	/* QQQ - to add! */
 .endm
 
 /* Enable a single PMB entry

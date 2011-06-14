@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 STMicroelectronics Limited
+ * Copyright (C) 2007-2011 STMicroelectronics Limited
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -36,9 +36,7 @@
 
 extern int usb_cpu_init(void)
 {
-#if defined(CONFIG_SH_STB7100)
-	stb7100_usb_init();
-#elif defined(CONFIG_SH_STX5197)
+#if defined(CONFIG_SH_STX5197)
 	stx5197_usb_init();
 #elif defined(CONFIG_SH_STX5206)
 	stx5206_usb_init();

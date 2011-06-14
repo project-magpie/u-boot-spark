@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2011 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -243,9 +243,9 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_SH_STB7100_USB
+#define CONFIG_SH_STM_USB
 
-#ifdef CONFIG_SH_STB7100_USB
+#ifdef CONFIG_SH_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_OHCI_NEW
@@ -256,9 +256,9 @@
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	2	/* Note: TWO root ports */
 #	define LITTLEENDIAN
-#endif	/* ifdef CONFIG_SH_STB7100_USB */
+#endif	/* ifdef CONFIG_SH_STM_USB */
 
-#if defined(CONFIG_SH_STB7100_USB)
+#if defined(CONFIG_SH_STM_USB)
 #	define CFG_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION

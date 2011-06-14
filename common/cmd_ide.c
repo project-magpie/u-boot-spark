@@ -2,7 +2,7 @@
  * (C) Copyright 2000-2005
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * (C) Copyright 2010 STMicroelectronics.
+ * (C) Copyright 2010-2011 STMicroelectronics.
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -57,10 +57,6 @@
 
 #ifndef __PPC__
 #include <asm/io.h>
-#endif
-
-#if defined(CONFIG_SH_STB7100_SATA) && defined(CONFIG_SH_STB7100)
-#include <asm/stb7100reg.h>
 #endif
 
 #ifdef CONFIG_IDE_8xx_DIRECT
@@ -943,23 +939,6 @@ output_data(int dev, ulong *sect_buf, int words)
 	}
 #endif
 }
-#elif defined(CONFIG_SH_STB7100_SATA) && defined(CONFIG_SH_STB7100)
-static void
-output_data(int dev, ulong *sect_buf, int words)
-{
-	int count = words<<1;
-	const unsigned short *buf = (unsigned short *)sect_buf;
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
-	if (STB7100_DEVICEID_7109(bd->bi_devid) && (STB7100_DEVICEID_CUT(bd->bi_devid) >= 2))
-	{
-		while (count--)
-			writew(*buf++, ATA_CURR_BASE(dev)+ATA_DATA_REG);
-	} else {
-		while (count--)
-			writel(*buf++, ATA_CURR_BASE(dev)+ATA_DATA_REG);
-	}
-}
 #else	/* ! __PPC__ */
 static void
 output_data(int dev, ulong *sect_buf, int words)
@@ -1017,26 +996,6 @@ input_data(int dev, ulong *sect_buf, int words)
 #endif
 	}
 #endif
-}
-#elif defined(CONFIG_SH_STB7100_SATA) && defined(CONFIG_SH_STB7100)
-static void
-input_data(int dev, ulong *sect_buf, int words)
-{
-		/* to workaround strict aliasing issues */
-	typedef unsigned short __attribute__((__may_alias__)) ushort_any;
-	ushort_any *buf = (ushort_any *)sect_buf;
-
-	int count = words << 1;
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
-	if (STB7100_DEVICEID_7109(bd->bi_devid) && (STB7100_DEVICEID_CUT(bd->bi_devid) >= 2))
-	{
-		while (count--)
-		  *buf++ = readw(ATA_CURR_BASE(dev)+ATA_DATA_REG);
-	} else {
-		while (count--)
-		  *buf++ = readl(ATA_CURR_BASE(dev)+ATA_DATA_REG);
-	}
 }
 #else	/* ! __PPC__ */
 static void

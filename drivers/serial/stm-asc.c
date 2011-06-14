@@ -3,7 +3,7 @@
  *
  * Support for Serial I/O using STMicroelectronics' on-chip ASC.
  *
- *  Copyright (c) 2004,2008  STMicroelectronics Limited
+ *  Copyright (c) 2004,2008,2011  STMicroelectronics Limited
  *  Sean McGoogan <Sean.McGoogan@st.com>
  *  Copyright (C) 1999  Takeshi Yaegachi & Niibe Yutaka
  *
@@ -111,12 +111,6 @@
  * has a lower deviation error than Mode 0 for higher frequencies.
  * Mode 0 should be used for all baudrates below 19200.
  */
-
-
-#if defined(CONFIG_STM_ST231)
-#define p2_outl(addr,b) writel(b,addr)
-#define p2_inl(addr)    readl(addr)
-#endif
 
 
 #ifdef CONFIG_HWFLOW

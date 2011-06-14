@@ -50,36 +50,7 @@
 
 #define __WANT_IO_DEF
 
-#if defined(CONFIG_SH_MB411)		|| \
-       defined(CONFIG_SH_MB442)		|| \
-       defined(CONFIG_SH_HMP7100)	|| \
-       defined(CONFIG_SH_MB448)		|| \
-       defined(CONFIG_SH_HMS1)		|| \
-       defined(CONFIG_SH_MB519)		|| \
-       defined(CONFIG_SH_MB618)		|| \
-       defined(CONFIG_SH_HDK7111)	|| \
-       defined(CONFIG_SH_MB628)		|| \
-       defined(CONFIG_SH_EUD7141)	|| \
-       defined(CONFIG_SH_MB671)		|| \
-       defined(CONFIG_SH_MB680)		|| \
-       defined(CONFIG_SH_PDK7105)	|| \
-       defined(CONFIG_SH_HDK7106)	|| \
-       defined(CONFIG_SH_IPIDTV7105)	|| \
-       defined(CONFIG_SH_MB704)		|| \
-       defined(CONFIG_SH_5197CAB)	|| \
-       defined(CONFIG_SH_CB101)		|| \
-       defined(CONFIG_SH_CB102)		|| \
-       defined(CONFIG_SH_MB837)		|| \
-       defined(CONFIG_SH_HDK7108)	|| \
-       defined(CONFIG_SH_MB903)		|| \
-       defined(CONFIG_SH_FLI7510)	|| \
-       defined(CONFIG_SH_FLI7540)	|| \
-       defined(CONFIG_SH_MB796)		|| \
-       defined(CONFIG_SH_HDK5289)
-#  include "asm/io_stb1eval.h"
-#else
-#  error "What system is this?"
-#endif
+#include "asm/io_stb1eval.h"
 
 #undef __WANT_IO_DEF
 

@@ -322,12 +322,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #endif
 	printf ("\nbaudrate    = %d bps\n", bd->bi_baudrate);
 
-#if defined(CONFIG_SH_STB7100)
-	if (STB7100_DEVICEID_7109(bd->bi_devid))
-		printf ("\nSTb7109 version %ld.x", STB7100_DEVICEID_CUT(bd->bi_devid));
-	else if (STB7100_DEVICEID_7100(bd->bi_devid))
-		printf ("\nSTb7100 version %ld.x", STB7100_DEVICEID_CUT(bd->bi_devid));
-#elif defined(CONFIG_SH_STX5197)
+#if defined(CONFIG_SH_STX5197)
 	if (STX5197_DEVICEID_5197(bd->bi_devid))
 		printf ("\nSTx5197 version %ld.x", STX5197_DEVICEID_CUT(bd->bi_devid));
 #elif defined(CONFIG_SH_STX5206)
@@ -368,19 +363,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	printf ("  [29-bit mode]\n");
 #endif
 
-#ifdef CONFIG_SH_STB7100
-	print_mhz ("PLL0",		bd->bi_pll0frq);
-	print_mhz ("PLL1",		bd->bi_pll1frq);
-	print_mhz ("ST40  CPU",		bd->bi_st40cpufrq);
-	print_mhz ("ST40  BUS",		bd->bi_st40busfrq);
-	print_mhz ("ST40  PER",		bd->bi_st40perfrq);
-	print_mhz ("ST231 CPU",		bd->bi_st231frq);
-	print_mhz ("ST BUS",		bd->bi_stbusfrq);
 	print_mhz ("EMI",		bd->bi_emifrq);
-	print_mhz ("LMI",		bd->bi_lmifrq);
-#else
-	print_mhz ("EMI",		bd->bi_emifrq);
-#endif	/* CONFIG_SH_STB7100 */
 
 #if CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	enabled = *ST40_EMI_BANK_ENABLE;

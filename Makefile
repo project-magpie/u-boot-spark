@@ -155,9 +155,6 @@ endif
 ifeq ($(ARCH),sh)
 CROSS_COMPILE = sh4-linux-
 endif
-ifeq ($(ARCH),st200)
-CROSS_COMPILE = st231-linux-
-endif
 endif
 endif
 

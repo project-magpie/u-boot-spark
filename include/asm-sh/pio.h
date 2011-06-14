@@ -1,5 +1,5 @@
 /*
- * (C) Copyright STMicroelectronics 2005, 2008, 2009
+ * (C) Copyright STMicroelectronics 2005, 2008, 2009, 2011
  * Andy Stugres, <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -48,12 +48,7 @@
 
 #define STPIO_NO_PIN		0xff	/* No pin specified */
 
-#if defined(CONFIG_SH_STB7100)
-#define PIO_PORT_SIZE		0x1000					/* QQQ - DELETE */
-#define PIO_PORT(n)		( ((n)*PIO_PORT_SIZE) + PIO_BASE)	/* QQQ - DELETE */
-#else	/* CONFIG_SH_STB7100 */
 #define PIO_PORT(n)		( ST40_PIO ## n ## _REGS_BASE )
-#endif	/* CONFIG_SH_STB7100 */
 
 #define PIN_CX(PIN, DIR, X)	(((PIN)==STPIO_NO_PIN) ? 0 : (((DIR) & (X))!=0) << (PIN))
 #define PIN_C0(PIN, DIR)	PIN_CX((PIN), (DIR), 0x01)

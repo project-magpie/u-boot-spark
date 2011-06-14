@@ -3,7 +3,7 @@
  * Synopsis : Header containing macro definitions needed for poke tables and the
  *            poke loop code which uses them.
  *
- * Copyright (c) 2004-2010 STMicroelectronics Limited.  All rights reserved.
+ * Copyright (c) 2004-2011 STMicroelectronics Limited.  All rights reserved.
  */
 
 #ifndef __POKE_LOOP_H_
@@ -33,17 +33,8 @@
 
 #ifdef __ASSEMBLER__
 
-#ifdef __st200__
-/* The ST200 Toolset has a version of GNU as which does not support the .warning
-   or .error directives, so we switch in the .print directive instead to do the
-   best we can.
- */
-#define ASM_WARNING(STR)	.print "Warning:"; .print STR
-#define ASM_ERROR(STR)		.print STR; .err
-#else
 #define ASM_WARNING(STR)	.warning STR
 #define ASM_ERROR(STR)		.error STR
-#endif /* __st200__ */
 
 /* Poke table commands */
 #define POKE8(A, VAL)					.long OP_POKE8, A, VAL
@@ -66,7 +57,7 @@
  /* ENDIF includes an OP_ELSE so that we end up at the correct position regardless of whether there is an explicit ELSE in the IF construct */
 #define ENDIF(NESTLEVEL)				.long OP_ELSE; NESTLEVEL: ; .long 0
 #define DELAY(ITERATIONS)				.long OP_DELAY, (ITERATIONS + 1)
-/* The 2nd argument to the poke loop code (in R5 for ST40, or $r0.17 for ST200)
+/* The 2nd argument to the poke loop code (in R5 for ST40)
  * must be the device ID to compare against for these operations to work - the
  * poke loop code does not try to retrieve the device ID itself.
  */
