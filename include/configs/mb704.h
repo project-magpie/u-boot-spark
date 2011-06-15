@@ -30,7 +30,7 @@
  * (easy to change)
  */
 
-#define CONFIG_SH4	1		/* This is an SH4 CPU		*/
+#define CONFIG_ST40	1		/* This is an SH4 CPU		*/
 #define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 
 
@@ -48,7 +48,7 @@
  * Assume we run out of uncached memory for the moment
  */
 
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
 #define CFG_SDRAM_BASE		0x80000000      /* LMI    Cached addr via PMB */
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
@@ -157,9 +157,9 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_SH_STM_USB
+#define CONFIG_ST40_STM_USB
 
-#ifdef CONFIG_SH_STM_USB
+#ifdef CONFIG_ST40_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_OHCI_NEW
@@ -171,13 +171,13 @@
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
 #	define LITTLEENDIAN
-#endif	/* ifdef CONFIG_SH_STM_USB */
+#endif	/* ifdef CONFIG_ST40_STM_USB */
 
 /*---------------------------------------------------------------
  * IDE driver config
  */
 
-#if defined(CONFIG_SH_STM_USB)
+#if defined(CONFIG_ST40_STM_USB)
 #	define CFG_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION

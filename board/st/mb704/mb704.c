@@ -99,7 +99,7 @@ extern int board_init (void)
 extern int checkboard (void)
 {
 	printf ("\n\nBoard: STx5197-Mboard (MB704)"
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 		"  [32-bit mode]"
 #else
 		"  [29-bit mode]"

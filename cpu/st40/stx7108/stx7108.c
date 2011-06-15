@@ -690,7 +690,7 @@ extern int stx7108_usb_init(const int port)
 #endif /* defined(CONFIG_USB_OHCI_NEW) */
 
 
-#if defined(CONFIG_SH_STM_SATA)
+#if defined(CONFIG_ST40_STM_SATA)
 extern void stx7108_configure_sata(void)
 {
 #ifdef QQQ	/* QQQ - DELETE */
@@ -719,7 +719,7 @@ extern void stx7108_configure_sata(void)
 	}
 #endif		/* QQQ - DELETE */
 }
-#endif	/* CONFIG_SH_STM_SATA */
+#endif	/* CONFIG_ST40_STM_SATA */
 
 
 #if defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C)

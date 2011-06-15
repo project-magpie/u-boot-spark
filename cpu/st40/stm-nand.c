@@ -282,7 +282,7 @@ static struct stm_nand_flex_controller {
  * The implementation will create a single (read-only) 1KiB TLB
  * mapping, including ST40_EMI_NAND_FLEX_DATA to 0xC0000000.
  */
-#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
+#if defined(CONFIG_ST40_NAND_USES_CACHED_READS)
 #define ST40_MMU_PTEH	0xFF000000	/* Page Table Entry High register */
 #define ST40_MMU_PTEL	0xFF000004	/* Page Table Entry Low register */
 #define ST40_MMU_MMUCR	0xFF000010	/* MMU Control Register */
@@ -312,7 +312,7 @@ static volatile u32 * const mmucr_p = (u32*)ST40_MMU_MMUCR;
 
 static volatile u32 * const cache =
 	(u32*)(0xC0000000ul | ((u32)ST40_EMI_NAND_FLEX_DATA & ~PAGE_MASK));
-#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
+#endif	/* CONFIG_ST40_NAND_USES_CACHED_READS */
 
 #endif /* CFG_NAND_FLEX_MODE */
 
@@ -851,7 +851,7 @@ extern void stm_flex_select_chip(
 {
 	struct nand_chip * const chip = mtd->priv;
 	struct stm_nand_flex_device * data = chip->priv;
-#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
+#if defined(CONFIG_ST40_NAND_USES_CACHED_READS)
 	volatile u32 * const pteh_p  = (u32*)ST40_MMU_PTEH;
 	volatile u32 * const ptel_p  = (u32*)ST40_MMU_PTEL;
 	const u32 pteh =
@@ -866,7 +866,7 @@ extern void stm_flex_select_chip(
 		PTEL_SZ_1K					|
 		PTEL_C						|
 		PTEL_SH;
-#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
+#endif	/* CONFIG_ST40_NAND_USES_CACHED_READS */
 
 #if DEBUG_FLEX
 	printf("\t\t\t\t---- SELECT = %2d ----\n", chipnr);
@@ -888,12 +888,12 @@ extern void stm_flex_select_chip(
 			BUG();
 		}
 		/* initialize the TLB mapping if configured */
-#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
+#if defined(CONFIG_ST40_NAND_USES_CACHED_READS)
 		*mmucr_p |= MMUCR_TI;	/* invalidate the TLBs */
 		*pteh_p = pteh;
 		*ptel_p = ptel;
 		asm volatile ("ldtlb");	/* define 1 TLB mapping */
-#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
+#endif	/* CONFIG_ST40_NAND_USES_CACHED_READS */
 		flex.initialized   = 1;			/* initialization done */
 	}
 
@@ -1112,7 +1112,7 @@ extern void stm_flex_read_buf(
 #endif
 	*ST40_EMI_NAND_FLEX_DATA_RD_CFG = reg;
 
-#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
+#if defined(CONFIG_ST40_NAND_USES_CACHED_READS)
 	/*
 	 * Note, we only use the optimized cached TLB mapping,
 	 * if the amount of data to be copied is an exact
@@ -1219,13 +1219,13 @@ extern void stm_flex_read_buf(
 			p[i] = *ST40_EMI_NAND_FLEX_DATA;
 		}
 	}
-#else	/* CONFIG_SH_NAND_USES_CACHED_READS */
+#else	/* CONFIG_ST40_NAND_USES_CACHED_READS */
 	/* copy the data (from NAND) as 4-byte words ... */
 	for(i=0; i<len/4; i++)
 	{
 		p[i] = *ST40_EMI_NAND_FLEX_DATA;
 	}
-#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
+#endif	/* CONFIG_ST40_NAND_USES_CACHED_READS */
 
 	/* copy back into user-supplied buffer, if it was unaligned */
 	if ((void*)p != (void*)buf)

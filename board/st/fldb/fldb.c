@@ -194,7 +194,7 @@ extern int board_init (void)
 extern int checkboard (void)
 {
 	printf ("\n\nBoard: FLI7510 Development Board"
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 		"  [32-bit mode]"
 #else
 		"  [29-bit mode]"

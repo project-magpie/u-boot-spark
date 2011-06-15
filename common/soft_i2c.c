@@ -39,7 +39,7 @@
 #ifdef CONFIG_LPC2292
 #include <asm/arch/hardware.h>
 #endif
-#ifdef CONFIG_SH4
+#ifdef CONFIG_ST40
 #include <asm/io.h>
 #include <asm/pio.h>
 #include <asm/socregs.h>

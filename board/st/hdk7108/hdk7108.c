@@ -111,9 +111,9 @@ extern int board_init(void)
 	configPIO();
 
 #ifdef QQQ	/* QQQ - DELETE */
-#if defined(CONFIG_SH_STM_SATA)
+#if defined(CONFIG_ST40_STM_SATA)
 	stx7105_configure_sata ();
-#endif	/* CONFIG_SH_STM_SATA */
+#endif	/* CONFIG_ST40_STM_SATA */
 #endif		/* QQQ - DELETE */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -145,7 +145,7 @@ extern int board_init(void)
 int checkboard (void)
 {
 	printf ("\n\nBoard: STx7108-HDK"
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 		"  [32-bit mode]"
 #else
 		"  [29-bit mode]"

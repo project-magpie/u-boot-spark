@@ -88,13 +88,13 @@
 #	warning TEXT_BASE != CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 1MiB
 #endif
 
-#if defined(CONFIG_SH_SE_MODE)	/* only in 32-bit mode */
+#if defined(CONFIG_ST40_SE_MODE)	/* only in 32-bit mode */
 #   if !defined(CFG_SE_SDRAM_WINDOW)
 #	warning CFG_SE_SDRAM_WINDOW is not defined in 32-bit mode
 #   elif CFG_SE_SDRAM_WINDOW != (CFG_SDRAM_SIZE - 1)
 #	warning CFG_SE_SDRAM_WINDOW != CFG_SDRAM_SIZE - 1
 #   endif
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 
 extern ulong _uboot_end_data;

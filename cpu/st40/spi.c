@@ -683,12 +683,12 @@ extern void spi_init(void)
 	const unsigned long hz = CFG_STM_SPI_FREQUENCY;
 	      unsigned long sscbrg = fcomms/(2*hz);
 
-#if defined(CONFIG_SH_STX5197)
+#if defined(CONFIG_ST40_STX5197)
 	/* configure SSC0 to use the SPI pads (not PIO1[7:6]) */
 	reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
 	reg |= 1ul<<14;	/* CFG_CTRL_M.SPI_BOOTNOTCOMMS = 1 [14] */
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;
-#endif	/* CONFIG_SH_STX5197 */
+#endif	/* CONFIG_ST40_STX5197 */
 
 #endif	/* CONFIG_STM_SSC_SPI */
 

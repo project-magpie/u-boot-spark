@@ -30,7 +30,7 @@
 #include <asm/pio.h>
 
 
-#if defined(CONFIG_SH_MB705)
+#if defined(CONFIG_ST40_MB705)
 	/*
 	 * More recent EPLD versions have the EPLD in EMI space,
 	 * using CSCn (EMI Bank #2), nominally at physical 0x04800000.
@@ -50,10 +50,10 @@
 #define EPLD_TEST		0x02	/* EPLD Test Register */
 #define EPLD_SWITCH		0x04	/* EPLD Switch Register */
 #define EPLD_MISC		0x0a	/* Miscellaneous Control Register */
-#endif	/* CONFIG_SH_MB705 */
+#endif	/* CONFIG_ST40_MB705 */
 
 
-#if defined(CONFIG_SH_MB705)
+#if defined(CONFIG_ST40_MB705)
 static inline void epld_write(unsigned long value, unsigned long offset)
 {
 	/* 16-bit write to EPLD registers */
@@ -95,11 +95,11 @@ static int mb705_init_epld(void)
 	/* return a "success" result */
 	return 0;
 }
-#endif	/* CONFIG_SH_MB705 */
+#endif	/* CONFIG_ST40_MB705 */
 
 void flashWriteEnable(void)
 {
-#if defined(CONFIG_SH_MB705)
+#if defined(CONFIG_ST40_MB705)
 	unsigned short epld_reg;
 
 	/* Enable Vpp for writing to flash */
@@ -107,12 +107,12 @@ void flashWriteEnable(void)
 	epld_reg |= 1u << 3;	/* NandFlashWP = MISC[3] = 1 */
 	epld_reg |= 1u << 2;	/* NorFlashVpp = MISC[2] = 1 */
 	epld_write(epld_reg, EPLD_MISC);
-#endif	/* CONFIG_SH_MB705 */
+#endif	/* CONFIG_ST40_MB705 */
 }
 
 void flashWriteDisable(void)
 {
-#if defined(CONFIG_SH_MB705)
+#if defined(CONFIG_ST40_MB705)
 	unsigned short epld_reg;
 
 	/* Disable Vpp for writing to flash */
@@ -120,7 +120,7 @@ void flashWriteDisable(void)
 	epld_reg &= ~(1u << 3);	/* NandFlashWP = MISC[3] = 0 */
 	epld_reg &= ~(1u << 2);	/* NorFlashVpp = MISC[2] = 0 */
 	epld_write(epld_reg, EPLD_MISC);
-#endif	/* CONFIG_SH_MB705 */
+#endif	/* CONFIG_ST40_MB705 */
 }
 
 
@@ -215,19 +215,19 @@ extern int board_init(void)
 int checkboard (void)
 {
 	printf ("\n\nBoard: STx5289-Mboard (MB796)"
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 		"  [32-bit mode]"
 #else
 		"  [29-bit mode]"
 #endif
 		"\n");
 
-#if defined(CONFIG_SH_MB705)
+#if defined(CONFIG_ST40_MB705)
 	/*
 	 * initialize the EPLD on the MB705.
 	 */
 	mb705_init_epld();
-#endif	/* CONFIG_SH_MB705 */
+#endif	/* CONFIG_ST40_MB705 */
 
 	return 0;
 }

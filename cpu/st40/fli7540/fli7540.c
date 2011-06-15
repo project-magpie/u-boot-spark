@@ -272,11 +272,11 @@ extern void fli7540_usb_init(
 	if (!xtal_initialized++)
 	{
 		sysconf = readl(CFG_SPARE_1);
-#if defined(CONFIG_SH_FLI7510)
+#if defined(CONFIG_ST40_FLI7510)
 		SET_SYSCONF_BIT(sysconf, 0, USB_XTAL_VALID);
 #else
 		SET_SYSCONF_BIT(sysconf, 1, USB_XTAL_VALID);
-#endif	/* CONFIG_SH_FLI7510 */
+#endif	/* CONFIG_ST40_FLI7510 */
 		writel(sysconf, CFG_SPARE_1);
 	}
 
@@ -287,13 +287,13 @@ extern void fli7540_usb_init(
 		override = 12;
 		ovrcur = 13;
 		polarity = 11;
-#if defined(CONFIG_SH_FLI7510)
+#if defined(CONFIG_ST40_FLI7510)
 		SET_PIO_PIN(ST40_PIO_BASE(27), 1, STPIO_IN);		/* USB_A_OVRCUR */
 		SET_PIO_PIN(ST40_PIO_BASE(27), 2, STPIO_ALT_OUT);	/* USB_A_PWREN */
 #else
 		SET_PIO_PIN(ST40_PIO_BASE(26), 3, STPIO_IN);		/* USB_A_OVRCUR */
 		SET_PIO_PIN(ST40_PIO_BASE(26), 4, STPIO_ALT_OUT);	/* USB_A_PWREN */
-#endif	/* CONFIG_SH_FLI7510 */
+#endif	/* CONFIG_ST40_FLI7510 */
 
 		break;
 	case 1:
@@ -310,14 +310,14 @@ extern void fli7540_usb_init(
 		return;
 	}
 
-#if !defined(CONFIG_SH_FLI7510)
+#if !defined(CONFIG_ST40_FLI7510)
 	sysconf = readl(CFG_COMMS_CONFIG_1);
 		/* CFG_COMMS_CONFIG_1[22,21] = conf_usb_clk_en */
 	SET_SYSCONF_BIT(sysconf, 1, clken);
 		/* CFG_COMMS_CONFIG_1[24,23] = conf_usb_rst_n */
 	SET_SYSCONF_BIT(sysconf, 1, rstn);
 	writel(sysconf, CFG_COMMS_CONFIG_1);
-#endif	/* CONFIG_SH_FLI7510 */
+#endif	/* CONFIG_ST40_FLI7510 */
 
 switch (ovrcur_mode) {
 	case fli7540_usb_ovrcur_disabled:

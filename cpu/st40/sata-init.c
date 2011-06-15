@@ -16,7 +16,7 @@
 #include <common.h>
 
 
-#if defined(CONFIG_SH_STM_SATA)
+#if defined(CONFIG_ST40_STM_SATA)
 
 
 #include <asm/errno.h>
@@ -26,15 +26,15 @@
 #include <asm/socregs.h>
 
 
-#if defined(CONFIG_SH_STX7105)		/* Cut 3.x (or later) */
+#if defined(CONFIG_ST40_STX7105)		/* Cut 3.x (or later) */
 #define SYS_STA00	STX7105_SYSCONF_SYS_STA00
 #define SYS_CFG33	STX7105_SYSCONF_SYS_CFG33
 #define soft_jtag_en	(1<<6)
-#elif defined(CONFIG_SH_STX7141)	/* Cut 2.x (or later) */
+#elif defined(CONFIG_ST40_STX7141)	/* Cut 2.x (or later) */
 #define SYS_STA00	STX7141_SYSCONF_SYS_STA00
 #define SYS_CFG33	STX7141_SYSCONF_SYS_CFG33
 #define soft_jtag_en	(0<<6)		/* STx7141 has this bit inverted */
-#elif defined(CONFIG_SH_STX7200)	/* Cut 3.x (or later) */
+#elif defined(CONFIG_ST40_STX7200)	/* Cut 3.x (or later) */
 #define SYS_STA00	STX7200_SYSCONF_SYS_STA00
 #define SYS_CFG33	STX7200_SYSCONF_SYS_CFG33
 #define soft_jtag_en	(1<<6)
@@ -370,6 +370,6 @@ extern void stm_sata_miphy_deassert_des_reset(void)
 	SATA_JTAG_DR_Write_MIPHY(sc, 0x00, 0x00);
 }
 
-#endif	/* CONFIG_SH_STM_SATA */
+#endif	/* CONFIG_ST40_STM_SATA */
 
 

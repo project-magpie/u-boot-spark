@@ -64,9 +64,9 @@
 
 #include <asm/errno.h>
 
-#if defined(CONFIG_SH4)
+#if defined(CONFIG_ST40)
 #include <asm/ecc.h>
-#endif	/* CONFIG_SH4 */
+#endif	/* CONFIG_ST40 */
 
 /**
  * check_pattern - [GENERIC] check if a pattern is in the buffer
@@ -112,7 +112,7 @@ static int check_pattern (uint8_t *buf, int len, int paglen, struct nand_bbt_des
 	return 0;
 
 check_failed:
-#if defined(CONFIG_SH4)
+#if defined(CONFIG_ST40)
 	if (td->options & NAND_BBT_SCANSTMBOOTECC)	/* is it "Boot-Mode+B" (3+1/128) ? */
 	{	/* Check for STM "Boot-Mode+B" ECC... */
 		int e = 0;
@@ -147,7 +147,7 @@ check_failed:
 			return 0;	/* treat as a "good" match */
 		}
 	}
-#endif	/* CONFIG_SH4 */
+#endif	/* CONFIG_ST40 */
 	return -1;	/* patterns failed to match! */
 }
 

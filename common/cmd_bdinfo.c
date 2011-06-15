@@ -34,7 +34,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 static void print_num(const char *, ulong);
-#if defined(CONFIG_SH4)
+#if defined(CONFIG_ST40)
 static void print_mem(const char *, ulong);
 static void print_mhz(const char *name, ulong value);
 #endif
@@ -278,7 +278,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	return 0;
 }
 
-#elif defined(CONFIG_SH4)
+#elif defined(CONFIG_ST40)
 
 #include "asm/socregs.h"
 
@@ -322,33 +322,33 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #endif
 	printf ("\nbaudrate    = %d bps\n", bd->bi_baudrate);
 
-#if defined(CONFIG_SH_STX5197)
+#if defined(CONFIG_ST40_STX5197)
 	if (STX5197_DEVICEID_5197(bd->bi_devid))
 		printf ("\nSTx5197 version %ld.x", STX5197_DEVICEID_CUT(bd->bi_devid));
-#elif defined(CONFIG_SH_STX5206)
+#elif defined(CONFIG_ST40_STX5206)
 	if (STX5206_DEVICEID_5206(bd->bi_devid))
 		printf ("\nSTx5206/STx5289 version %ld.x", STX5206_DEVICEID_CUT(bd->bi_devid));
-#elif defined(CONFIG_SH_STX7105)
+#elif defined(CONFIG_ST40_STX7105)
 	if (STX7105_DEVICEID_7105(bd->bi_devid))
 		printf ("\nSTx7105 version %ld.x", STX7105_DEVICEID_CUT(bd->bi_devid));
 	else if (STX7105_DEVICEID_7106(bd->bi_devid))
 		printf ("\nSTx7106 version %ld.x", STX7105_DEVICEID_CUT(bd->bi_devid));
-#elif defined(CONFIG_SH_STX7108)
+#elif defined(CONFIG_ST40_STX7108)
 	if (STX7108_DEVICEID_7108(bd->bi_devid))
 		printf ("\nSTx7108 version %ld.x", STX7108_DEVICEID_CUT(bd->bi_devid));
-#elif defined(CONFIG_SH_STX7111)
+#elif defined(CONFIG_ST40_STX7111)
 	if (STX7111_DEVICEID_7111(bd->bi_devid))
 		printf ("\nSTx7111 version %ld.x", STX7111_DEVICEID_CUT(bd->bi_devid));
-#elif defined(CONFIG_SH_STX7141)
+#elif defined(CONFIG_ST40_STX7141)
 	if (STX7141_DEVICEID_7141(bd->bi_devid))
 		printf ("\nSTx7141 version %ld.x", STX7141_DEVICEID_CUT(bd->bi_devid));
-#elif defined(CONFIG_SH_STX7200)
+#elif defined(CONFIG_ST40_STX7200)
 	if (STX7200_DEVICEID_7200(bd->bi_devid))
 		printf ("\nSTx7200 version %ld.x", STX7200_DEVICEID_CUT(bd->bi_devid));
-#elif defined(CONFIG_SH_FLI7510)
+#elif defined(CONFIG_ST40_FLI7510)
 	if (FLI7510_DEVICEID_7510(bd->bi_devid))
 		printf ("\nFLI7510 version %ld.x", FLI7510_DEVICEID_CUT(bd->bi_devid));
-#elif defined(CONFIG_SH_FLI7540)
+#elif defined(CONFIG_ST40_FLI7540)
 	if (FLI7540_DEVICEID_7540(bd->bi_devid))
 		printf ("\nFLI7540 version %ld.x", FLI7540_DEVICEID_CUT(bd->bi_devid));
 #else
@@ -357,7 +357,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	else
 		printf ("\nUnknown device! (id=0x%08lx)", bd->bi_devid);
 
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 	printf ("  [32-bit mode]\n");
 #else
 	printf ("  [29-bit mode]\n");
@@ -469,7 +469,7 @@ static void print_num(const char *name, ulong value)
 	printf ("%-12s= 0x%08lX\n", name, value);
 }
 
-#if defined(CONFIG_SH4)
+#if defined(CONFIG_ST40)
 static void print_mem(const char *name, ulong value)
 {
 	printf ("%-12s= 0x%08lX\t(", name, value);

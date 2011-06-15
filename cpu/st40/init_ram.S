@@ -43,11 +43,11 @@ ENTRY(init_ram)
 	sts	pr, r14
 
 	/* read the DEVICE_ID, and stash in a register */
-#if defined(CONFIG_SH_OLD_POKE_LOOP_PARADIGM)
+#if defined(CONFIG_ST40_OLD_POKE_LOOP_PARADIGM)
 	GETDEVID r7	/* use R7 for the OLD interpreter */
 #else
 	GETDEVID r5	/* use R5 for the NEW interpreter */
-#endif	/* CONFIG_SH_OLD_POKE_LOOP_PARADIGM */
+#endif	/* CONFIG_ST40_OLD_POKE_LOOP_PARADIGM */
 
 	/*
 	 * We need to get the poke loop & associated data
@@ -85,9 +85,9 @@ ENTRY(init_ram)
 	 * executing from cache should this happen.
 	 */
 do_pokes:
-#if !defined(CONFIG_SH_OLD_POKE_LOOP_PARADIGM)
+#if !defined(CONFIG_ST40_OLD_POKE_LOOP_PARADIGM)
 	mov	r1, r4		/* __memory_setup_table */
-#endif	/* CONFIG_SH_OLD_POKE_LOOP_PARADIGM */
+#endif	/* CONFIG_ST40_OLD_POKE_LOOP_PARADIGM */
 	jsr	@r6		/* R6 still points poke_loop() */
 	  nop
 
@@ -112,15 +112,15 @@ p2_to_p1_mask:		.long ~0x20000000
  * generate contemporary poke tables. The latest generation
  * targetpacks may be incompatible with the old interpreter.
  *
- *	#define CONFIG_SH_OLD_POKE_LOOP_PARADIGM
+ *	#define CONFIG_ST40_OLD_POKE_LOOP_PARADIGM
  */
 
-#if defined(CONFIG_SH_OLD_POKE_LOOP_PARADIGM)
+#if defined(CONFIG_ST40_OLD_POKE_LOOP_PARADIGM)
 #	include "asm/old-pokeloop.h"
 #	include "old-pokeloop.S"
 #else
 #	include "asm/pokeloop.h"
 #	include "pokeloop.S"
-#endif	/* CONFIG_SH_OLD_POKE_LOOP_PARADIGM */
+#endif	/* CONFIG_ST40_OLD_POKE_LOOP_PARADIGM */
 
 

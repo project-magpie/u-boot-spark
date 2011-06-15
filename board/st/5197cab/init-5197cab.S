@@ -14,7 +14,7 @@
  * generate contemporary poke tables. The latest generation
  * targetpacks may be incompatible with the old interpreter.
  */
-#define CONFIG_SH_OLD_POKE_LOOP_PARADIGM	/* QQQ - DELETE */
+#define CONFIG_ST40_OLD_POKE_LOOP_PARADIGM	/* QQQ - DELETE */
 
 
 #include "asm/stx5197reg.h"
@@ -49,7 +49,7 @@ __memory_setup_table:
 #include "5197cab.romgen"
 
 
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 	/*
 	 * Note that we also manually need to move the LMI base addresses to
 	 * their 32-bit SE mode locations as defined in the datasheet and change the
@@ -64,7 +64,7 @@ __memory_setup_table:
 	 */
 	UPDATE32(ST40_LMI_SDRA0_0(), 0x001fffff, 0x44000000)
 	UPDATE32(ST40_LMI_SDRA1_0(), 0x001fffff, 0x44000000)
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 	END_MARKER
 

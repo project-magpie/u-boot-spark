@@ -98,9 +98,9 @@ extern int board_init(void)
 #endif
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
-#if defined(CONFIG_SH_STM_SATA)
+#if defined(CONFIG_ST40_STM_SATA)
 	stx7141_configure_sata ();
-#endif	/* CONFIG_SH_STM_SATA */
+#endif	/* CONFIG_ST40_STM_SATA */
 
 	return 0;
 }
@@ -108,7 +108,7 @@ extern int board_init(void)
 extern int checkboard (void)
 {
 	printf ("\n\nBoard: STx7141-EUD"
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 		"  [32-bit mode]"
 #else
 		"  [29-bit mode]"

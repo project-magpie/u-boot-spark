@@ -151,7 +151,7 @@ gd_t *global_data;
 		:					\
 		: "i"(offsetof(gd_t, jt)), "i"(XF_ ##x)	\
 		: "r8");
-#elif defined(CONFIG_SH4)
+#elif defined(CONFIG_ST40)
 /*
  * r13 holds the pointer to the global_data (read-only).
  * r0 & r1 are call-clobbered (clobbered).

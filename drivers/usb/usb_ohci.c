@@ -69,7 +69,7 @@
     defined(CONFIG_440EP) || \
     defined(CONFIG_PCI_OHCI) || \
     defined(CONFIG_MPC5200) || \
-    defined(CONFIG_SH_FLI7510)
+    defined(CONFIG_ST40_FLI7510)
 # define OHCI_USE_NPS		/* force NoPowerSwitching mode */
 #endif
 
@@ -85,12 +85,12 @@
  * Note: We must not modify at all if the address is 0x00000000.
  */
 #ifdef __SH4__
-#if defined(CONFIG_SH_SE_MODE)
+#if defined(CONFIG_ST40_SE_MODE)
 #	define PHYSICAL_ADDR(addr)	\
 	((__u32)(addr) ? ((0x1ffffffful&(__u32)(addr))|(CFG_SE_PHYSICAL_BASE)) : 0ul)
 #else
 #	define PHYSICAL_ADDR(addr)	( 0x1ffffffful & (__u32)(addr) )
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 #else	/* __SH4__ */
 #	define PHYSICAL_ADDR(addr)	(addr)
 #endif	/* __SH4__ */

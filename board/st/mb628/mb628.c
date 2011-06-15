@@ -31,11 +31,11 @@
 
 
 /* EPLD registers */
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 #define EPLD_BASE		0xb5000000	/* Phys 0x05000000 */
 #else
 #define EPLD_BASE		0xa5000000
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 #define EPLD_IDENT		0x00010000
 #define EPLD_TEST		0x00020000
 #define EPLD_FLASH		0x00050000
@@ -110,9 +110,9 @@ extern int board_init(void)
 {
 	configPIO();
 
-#if defined(CONFIG_SH_STM_SATA)
+#if defined(CONFIG_ST40_STM_SATA)
 	stx7141_configure_sata ();
-#endif	/* CONFIG_SH_STM_SATA */
+#endif	/* CONFIG_ST40_STM_SATA */
 
 	return 0;
 }
@@ -122,7 +122,7 @@ extern int checkboard (void)
 	unsigned version;
 
 	printf ("\n\nBoard: STx7141-Mboard (MB628)"
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 		"  [32-bit mode]"
 #else
 		"  [29-bit mode]"

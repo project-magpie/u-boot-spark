@@ -16,7 +16,7 @@
 #include <common.h>
 
 
-#if defined(CONFIG_SH_STM_SATA)
+#if defined(CONFIG_ST40_STM_SATA)
 
 
 #include <asm/errno.h>
@@ -26,11 +26,11 @@
 #include <asm/socregs.h>
 
 
-#if defined(CONFIG_SH_STX7105)		/* Cut 3.x (or later) */
+#if defined(CONFIG_ST40_STX7105)		/* Cut 3.x (or later) */
 #define pc_glue_logic_init	0	/* arch/sh/kernel/cpu/sh4/setup-stx7105.c */
-#elif defined(CONFIG_SH_STX7141)	/* Cut 2.x (or later) */
+#elif defined(CONFIG_ST40_STX7141)	/* Cut 2.x (or later) */
 #define pc_glue_logic_init	0	/* arch/sh/kernel/cpu/sh4/setup-stx7141.c */
-#elif defined(CONFIG_SH_STX7200)	/* Cut 3.x (or later) */
+#elif defined(CONFIG_ST40_STX7200)	/* Cut 3.x (or later) */
 #define pc_glue_logic_init	0	/* arch/sh/kernel/cpu/sh4/setup-stx7200.c */
 #else
 #	error Missing Device Definitions!
@@ -181,6 +181,6 @@ extern int stm_sata_probe(void)
 }
 
 
-#endif	/* CONFIG_SH_STM_SATA */
+#endif	/* CONFIG_ST40_STM_SATA */
 
 

@@ -70,7 +70,7 @@
 	 * and FALSE if only a single entry (#0) is required
 	 * (plus one more (#2) for its un-cached alias).
 	 */
-#define CFG_SH_LMI_NEEDS_2_PMB_ENTRIES	\
+#define CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES	\
 	( (CFG_SDRAM_SIZE) > (128*1024*1024) )
 
 

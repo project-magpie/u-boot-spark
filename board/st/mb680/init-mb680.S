@@ -14,7 +14,7 @@
  * generate contemporary poke tables. The latest generation
  * targetpacks may be incompatible with the old interpreter.
  */
-#undef CONFIG_SH_OLD_POKE_LOOP_PARADIGM
+#undef CONFIG_ST40_OLD_POKE_LOOP_PARADIGM
 
 
 #include "asm/stx7105reg.h"
@@ -51,7 +51,7 @@ __memory_setup_table:
 #include "mb680-stx7105c1.romgen"	/* for STx7105 cut 1.x */
 #endif
 
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 	/*
 	 * Note that we also manually need to move the LMI base addresses to
 	 * their 32-bit SE mode locations as defined in the datasheet and change the
@@ -63,7 +63,7 @@ __memory_setup_table:
 	 */
 	UPDATE32(ST40_LMI_SDRA0_0(), 0x001FFFFF, 0x50000000)
 	UPDATE32(ST40_LMI_SDRA1_0(), 0x001FFFFF, 0x50000000)
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 	END_MARKER
 

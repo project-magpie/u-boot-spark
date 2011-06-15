@@ -30,7 +30,7 @@
 
 //#define DEBUG
 
-#if defined(CONFIG_SH_SE_MODE)
+#if defined(CONFIG_ST40_SE_MODE)
 
 
 #define PMB_ADDR(i)	((volatile unsigned long*)(P4SEG_PMB_ADDR+((i)<<8)))
@@ -72,8 +72,8 @@ static void display_pmb (void)
 
 	printf ("\ninfo: sizeof(LMI) = 0x%08x = %uMB (uses %u PMB slot%s)\n\n",
 		CFG_SDRAM_SIZE, CFG_SDRAM_SIZE/1024/1024,
-		(CFG_SH_LMI_NEEDS_2_PMB_ENTRIES) ? 2 : 1,
-		(CFG_SH_LMI_NEEDS_2_PMB_ENTRIES) ? "s" : "");
+		(CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES) ? 2 : 1,
+		(CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES) ? "s" : "");
 
 	for (i=0; i<16; i++)
 	{
@@ -149,17 +149,17 @@ static void display_pmb (void)
 #ifdef DEBUG
 	/* perform additional checks on validity */
 	SHOULD_BE_VALID(0);
-#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SHOULD_BE_VALID(1);
 #else
 	SHOULD_BE_INVALID(1);
-#endif	/* CFG_SH_LMI_NEEDS_2_PMB_ENTRIES */
+#endif	/* CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES */
 	SHOULD_BE_VALID(2);
-#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SHOULD_BE_VALID(3);
 #else
 	SHOULD_BE_INVALID(3);
-#endif	/* CFG_SH_LMI_NEEDS_2_PMB_ENTRIES */
+#endif	/* CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES */
 	SHOULD_BE_INVALID(15);
 #endif	/* DEBUG */
 }
@@ -177,5 +177,5 @@ U_BOOT_CMD(
 	"- displays the contents of the PMB (when V==1)\n"
 );
 
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 

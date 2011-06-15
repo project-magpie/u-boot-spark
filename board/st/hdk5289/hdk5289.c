@@ -111,7 +111,7 @@ extern int board_init(void)
 int checkboard (void)
 {
 	printf ("\n\nBoard: STx5289-HDK"
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 		"  [32-bit mode]"
 #else
 		"  [29-bit mode]"

@@ -61,7 +61,7 @@ static inline unsigned long get_peripheral_clk_rate(void)
 static inline unsigned long get_tmu0_clk_rate(void)
 {
 	/* Return the TMU's Clock Frequency (in Hz). */
-#if defined(CONFIG_SH_STX5197)
+#if defined(CONFIG_ST40_STX5197)
 	return 200ul * 1000000ul;	/* BODGE: Peripheral Clock = 200 MHz */
 #else
 	return get_peripheral_clk_rate();

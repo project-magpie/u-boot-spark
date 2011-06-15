@@ -68,9 +68,9 @@ extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 #include <dataflash.h>
 #endif
 
-#if defined(CONFIG_SH4)
+#if defined(CONFIG_ST40)
 #include <asm/addrspace.h>
-#endif	/* CONFIG_SH4 */
+#endif	/* CONFIG_ST40 */
 /*
  * Some systems (for example LWMON) have very short watchdog periods;
  * we must make sure to split long operations like memmove() or
@@ -346,7 +346,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		break;
 	case IH_COMP_GZIP:
 		printf ("   Uncompressing %s ... ", name);
-#if defined(CONFIG_SH4)
+#if defined(CONFIG_ST40)
 {
 		const uchar * const isizep =		/* pointer to ISIZE */
 			(uchar *)data + ntohl(hdr->ih_size) - 4;
@@ -362,7 +362,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		const ulong Usize = isize;		/* un-compressed size */
 		const ulong Uend  = Uload + Usize - 1;	/* un-compressed end address */
 
-#if !defined(CONFIG_SH_SE_MODE)
+#if !defined(CONFIG_ST40_SE_MODE)
 		/* assert ( IS_IN_P1_REGION(Uload) ); */
 		if ( (Uload < P1SEG) || (Uend >= P2SEG) )
 		{
@@ -370,7 +370,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				Uload, Uend);
 			/* just a warning, so carry on! */
 		}
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 		/* assert (Uload >= CFG_SDRAM_BASE); */
 		if ( PHYSADDR(Uload) < PHYSADDR(CFG_SDRAM_BASE) )
@@ -408,7 +408,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		}
 		unc_len = Usize;	/* we now know that it will fit okay */
 }
-#endif	/* CONFIG_SH4 */
+#endif	/* CONFIG_ST40 */
 		if (gunzip ((void *)ntohl(hdr->ih_load), unc_len,
 			    (uchar *)data, &len) != 0) {
 			puts ("GUNZIP ERROR - must RESET board to recover\n");

@@ -30,12 +30,12 @@
 
 #define PIO_BASE  0xfd020000	/* Base of PIO block in COMMs block */
 
-#ifndef CONFIG_SH_NO_EPLD
-#ifdef CONFIG_SH_SE_MODE
+#ifndef CONFIG_ST40_NO_EPLD
+#ifdef CONFIG_ST40_SE_MODE
 #define EPLD_BASE		0xb6000000	/* Phys 0x06000000 */
 #else
 #define EPLD_BASE		0xa6000000
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 #define EPLD_IDENT		0x00	/* READ: EPLD Identifier Register */
 #define EPLD_BANK		0x00	/* WRITE: EPLD Bank Register */
@@ -55,7 +55,7 @@ static inline unsigned long epld_read(unsigned long offset)
 	/* 8-bit read from EPLD registers */
 	return readb(EPLD_BASE + offset);
 }
-#endif	/* CONFIG_SH_NO_EPLD */
+#endif	/* CONFIG_ST40_NO_EPLD */
 
 void flashWriteEnable(void)
 {
@@ -86,7 +86,7 @@ extern int board_init(void)
 	return 0;
 }
 
-#if defined(CONFIG_DRIVER_NET_STM_GMAC) && !defined(CONFIG_SH_NO_EPLD)
+#if defined(CONFIG_DRIVER_NET_STM_GMAC) && !defined(CONFIG_ST40_NO_EPLD)
 /*
  * Reset the Ethernet PHY, via the EPLD.
  * This code is only for EPLD version 06 or later.
@@ -100,7 +100,7 @@ static inline void mb618_phy_reset06(void)
 	epld_write(0x4 | 0, EPLD_CTRL);
 	epld_write(0x4 | 1, EPLD_CTRL);
 }
-#endif	/* defined(CONFIG_DRIVER_NET_STM_GMAC) && !defined(CONFIG_SH_NO_EPLD) */
+#endif	/* defined(CONFIG_DRIVER_NET_STM_GMAC) && !defined(CONFIG_ST40_NO_EPLD) */
 
 /*
  * We have several EPLD versions, with slightly different memory
@@ -145,11 +145,11 @@ static inline void mb618_phy_reset06(void)
 
 static int mb618_init_epld(void)
 {
-#ifdef CONFIG_SH_NO_EPLD
+#ifdef CONFIG_ST40_NO_EPLD
 	/* we ignore talking to the EPLD, tell the user */
 	printf("info: Disregarding any EPLD\n");
 
-#else	/* CONFIG_SH_NO_EPLD */
+#else	/* CONFIG_ST40_NO_EPLD */
 	const unsigned char test_values[2] = {0xa4u, 0x2fu};
 	unsigned char epld_reg, inverted;
 	unsigned char epld_version, board_version;
@@ -202,7 +202,7 @@ static int mb618_init_epld(void)
 	/* write inverted 0x55, so it reads back as 0x55 */
 	epld_write(~0x55u, EPLD_TEST);
 
-#endif	/* CONFIG_SH_NO_EPLD */
+#endif	/* CONFIG_ST40_NO_EPLD */
 
 	/* return a "success" result */
 	return 0;
@@ -211,7 +211,7 @@ static int mb618_init_epld(void)
 int checkboard (void)
 {
 	printf ("\n\nBoard: STx7111-Mboard (MB618)"
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 		"  [32-bit mode]"
 #else
 		"  [29-bit mode]"

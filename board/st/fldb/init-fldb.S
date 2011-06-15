@@ -14,7 +14,7 @@
  * generate contemporary poke tables. The latest generation
  * targetpacks may be incompatible with the old interpreter.
  */
-#define CONFIG_SH_OLD_POKE_LOOP_PARADIGM	/* QQQ - DELETE */
+#define CONFIG_ST40_OLD_POKE_LOOP_PARADIGM	/* QQQ - DELETE */
 
 
 #include "asm/fli7510reg.h"

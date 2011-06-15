@@ -14,7 +14,7 @@
  * generate contemporary poke tables. The latest generation
  * targetpacks may be incompatible with the old interpreter.
  */
-#undef CONFIG_SH_OLD_POKE_LOOP_PARADIGM
+#undef CONFIG_ST40_OLD_POKE_LOOP_PARADIGM
 
 
 #include "asm/fli7540reg.h"

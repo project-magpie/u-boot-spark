@@ -142,7 +142,7 @@ config_spiboot_controller:
 
 	/* Slow (divide) the SPI clock down to improve reliability. */
 	/* Note: for some (?) FSM SPI controllers, diving by 4 fails to boot! */
-#if defined(CONFIG_SH_FLI7510) || defined(CONFIG_SH_FLI7540) || defined(CONFIG_SH_STX5206) || defined(CONFIG_SH_STX7108)
+#if defined(CONFIG_ST40_FLI7510) || defined(CONFIG_ST40_FLI7540) || defined(CONFIG_ST40_STX5206) || defined(CONFIG_ST40_STX7108)
 	mov	#6, r0			/* *ST40_EMI_SPI_CLOCKDIV = 6 */
 #else
 	mov	#4, r0			/* *ST40_EMI_SPI_CLOCKDIV = 4 */
@@ -169,7 +169,7 @@ dummy_peek_on_spi:
 	 * r10 == were we WANT to be [BEGIN] (PIC relocate target).
 	 * r11 == were we WANT to be [END]   (PIC relocate target).
 	 *
-	 * NOTE: when CONFIG_SH_SE_MODE is defined, then also:
+	 * NOTE: when CONFIG_ST40_SE_MODE is defined, then also:
 	 *  r8 == 1 assume we are already in 32-bit SE mode (done by GDB).
 	 *  r8 == 0 we are in 29-bit mode, and need to switch to 32-bit mode.
 	 */
@@ -180,26 +180,26 @@ which_location:
 	mov	r0, r9			/* i.e. where we actually ARE */
 	mov.l	@r9, r10
 	sub	r10, r9
-#ifndef CONFIG_SH_SE_MODE
+#ifndef CONFIG_ST40_SE_MODE
 	and	r4, r9			/* make sure its P0 (cached) */
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 	mov.l	target_addr, r10	/* Load target address in r10 */
 					/* i.e. were we WANT to be */
-#ifndef CONFIG_SH_SE_MODE
+#ifndef CONFIG_ST40_SE_MODE
 	and	r4, r10			/* make sure its P0 (cached) */
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 	mov.l	bss_start, r11		/* load target END address in r11 */
-#ifndef CONFIG_SH_SE_MODE
+#ifndef CONFIG_ST40_SE_MODE
 	and	r4, r11			/* make sure its P0 (cached) */
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 	cmp/eq	r9, r10			/* Are we in correct place already ? */
 	movt	r8			/* save SR.T in r8. */
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 	and	r4, r9			/* make sure its P0 (cached) */
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 	/* set up the PMB entries we want to use */
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 	/*
 	 * explicitly invalidate all unused entries
 	 * NOTE: for running from RAM, then keep PMB[0] as is.
@@ -230,18 +230,18 @@ invalidate_pmb:
 #undef  BASE	/* for the "convenience" macro */
 #define BASE	(CFG_SE_PHYSICAL_BASE>>24)	/* move the MSB to the LSB */
 set_pmb:
-#if defined(CONFIG_SH_STX5197) && defined(CONFIG_SH_MB704)
+#if defined(CONFIG_ST40_STX5197) && defined(CONFIG_ST40_MB704)
 	SH4_SET_PMB 0,0x80,BASE, 64,0,0,1	/* LMI-Sys UN-cached */
 	SH4_SET_PMB 2,0x90,BASE, 64,0,0,1	/* LMI-Sys UN-cached */
 	SH4_SET_PMB 4,0xa0,0x00,128,0,0,1	/* SPI Flash (in SPIBOOT mode) UN-cached */
-#elif defined(CONFIG_SH_STX5197) && defined(CONFIG_SH_5197CAB)
+#elif defined(CONFIG_ST40_STX5197) && defined(CONFIG_ST40_5197CAB)
 	SH4_SET_PMB 0,0x80,BASE, 64,0,0,1	/* LMI-Sys UN-cached */
 	SH4_SET_PMB 2,0x90,BASE, 64,0,0,1	/* LMI-Sys UN-cached */
 	SH4_SET_PMB 4,0xa0,0x00,128,0,0,1	/* SPI Flash (in SPIBOOT mode) UN-cached */
-#elif defined(CONFIG_SH_STX5206) && defined(CONFIG_SH_MB796)
+#elif defined(CONFIG_ST40_STX5206) && defined(CONFIG_ST40_MB796)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -259,10 +259,10 @@ set_pmb:
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
 	#endif	/* CFG_BOOT_FROM_NAND */
-#elif defined(CONFIG_SH_STX5206) && defined(CONFIG_SH_HDK5289)
+#elif defined(CONFIG_ST40_STX5206) && defined(CONFIG_ST40_HDK5289)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	#if defined(CFG_BOOT_FROM_NAND) || defined(CFG_BOOT_FROM_SPI)
@@ -279,10 +279,10 @@ set_pmb:
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
 	#endif	/* CFG_BOOT_FROM_NAND */
-#elif defined(CONFIG_SH_STX7105) && defined(CONFIG_SH_MB680)
+#elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_MB680)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -299,10 +299,10 @@ set_pmb:
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
 	#endif	/* CFG_BOOT_FROM_NAND */
-#elif defined(CONFIG_SH_STX7105) && defined(CONFIG_SH_HDK7106)
+#elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_HDK7106)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -316,10 +316,10 @@ set_pmb:
 	SH4_SET_PMB 11,0xad,0x05, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 12,0xae,0x06, 16		/* NAND + CI CACHED */
 	SH4_SET_PMB 13,0xaf,0x07, 16		/* PCI CACHED */
-#elif defined(CONFIG_SH_STX7105) && defined(CONFIG_SH_PDK7105)
+#elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_PDK7105)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -333,18 +333,18 @@ set_pmb:
 	SH4_SET_PMB 11,0xad,0x05, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 12,0xae,0x06, 16		/* NAND + CI CACHED */
 	SH4_SET_PMB 13,0xaf,0x07, 16		/* PCI CACHED */
-#elif defined(CONFIG_SH_STX7105) && defined(CONFIG_SH_IPIDTV7105)
+#elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_IPIDTV7105)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* FLASH UN-cached */
-#elif defined(CONFIG_SH_STX7108) && defined(CONFIG_SH_MB837)
+#elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_MB837)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	#ifdef CFG_BOOT_FROM_NAND /* booting from NAND, so CSA and CSB swapped in EPLD */
@@ -360,42 +360,42 @@ set_pmb:
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
 	#endif	/* CFG_BOOT_FROM_NAND */
-#elif defined(CONFIG_SH_STX7108) && defined(CONFIG_SH_MB903)
+#elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_MB903)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 128,0,0,1	/* NOR FLASH UN-cached (lower 64MiB) */
 	SH4_SET_PMB 5,0xb0,0x00, 128		/* NOR FLASH CACHED */
-#elif defined(CONFIG_SH_STX7108) && defined(CONFIG_SH_HDK7108)
+#elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_HDK7108)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 128,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5,0xb0,0x00, 128		/* NOR FLASH CACHED */
 	SH4_SET_PMB 6,0xa8,0x08, 128,0,0,1	/* NAND FLASH UN-cached */
-#elif defined(CONFIG_SH_STX7111) && defined(CONFIG_SH_MB618)
+#elif defined(CONFIG_ST40_STX7111) && defined(CONFIG_ST40_MB618)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa1,0x01, 16,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 6,0xa8,0x00, 16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 7,0xa9,0x01, 16		/* NOR/NAND FLASH CACHED */
-#ifndef CONFIG_SH_NO_EPLD
+#ifndef CONFIG_ST40_NO_EPLD
 	SH4_SET_PMB 8,0xb6,0x06, 16,0,0,1	/* EPLD UN-cached */
-#endif	/* CONFIG_SH_NO_EPLD */
-#elif defined(CONFIG_SH_STX7111) && defined(CONFIG_SH_HDK7111)
+#endif	/* CONFIG_ST40_NO_EPLD */
+#elif defined(CONFIG_ST40_STX7111) && defined(CONFIG_ST40_HDK7111)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -405,10 +405,10 @@ set_pmb:
 	SH4_SET_PMB 7,0xa5,0x05, 16,0,0,1	/* NOR/NAND     FLASH UN-cached */
 	SH4_SET_PMB 8,0xac,0x04, 16		/* NOR/NAND     FLASH CACHED */
 	SH4_SET_PMB 9,0xad,0x05, 16		/* NOR/NAND     FLASH CACHED */
-#elif defined(CONFIG_SH_STX7141) && defined(CONFIG_SH_MB628)
+#elif defined(CONFIG_ST40_STX7141) && defined(CONFIG_ST40_MB628)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NOR/NAND FLASH UN-cached */
@@ -416,19 +416,19 @@ set_pmb:
 	SH4_SET_PMB 6,0xa8,0x00, 16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 7,0xa9,0x01, 16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 8,0xb5,0x05, 16,0,0,1	/* EPLD UN-cached */
-#elif defined(CONFIG_SH_STX7141) && defined(CONFIG_SH_EUD7141)
+#elif defined(CONFIG_ST40_STX7141) && defined(CONFIG_ST40_EUD7141)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5,0xa8,0x00, 64		/* NOR FLASH CACHED */
 	SH4_SET_PMB 6,0xa4,0x04, 16,0,0,1	/* NAND FLASH UN-cached */
-#elif defined(CONFIG_SH_STX7200) && defined(CONFIG_SH_MB671)
+#elif defined(CONFIG_ST40_STX7200) && defined(CONFIG_ST40_MB671)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -437,25 +437,25 @@ set_pmb:
 	SH4_SET_PMB 6,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 7,0xa9,0x01, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xb5,0x05, 16,0,0,1	/* EPLD UN-cached */
-#elif defined(CONFIG_SH_FLI7510) && defined(CONFIG_SH_FLDB)
+#elif defined(CONFIG_ST40_FLI7510) && defined(CONFIG_ST40_FLDB)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa8,0x00, 64		/* NOR/NAND FLASH CACHED */
-#elif defined(CONFIG_SH_FLI7540) && defined(CONFIG_SH_FUDB)
+#elif defined(CONFIG_ST40_FLI7540) && defined(CONFIG_ST40_FUDB)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 UN-cached */
-	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa8,0x00, 64		/* NOR/NAND FLASH CACHED */
 #else
 	#error Do not know which board/chip we are using for PMB setup.
-#endif	/* defined(CONFIG_SH_STX....) */
+#endif	/* defined(CONFIG_ST40_STX....) */
 #undef  BASE
 
 	/* invalidate the ITLB, in case GDB put a 512 MiB page in slot #0 */
@@ -463,7 +463,7 @@ invalidate_itlb:
 	MOV_CONST32_R0 SH4_CCN_MMUCR
 	mov	#(SH4_MMUCR_TI), r1
 	mov.l	r1, @r0			/* MMUCR.TI = 1 */
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 consider_hyperspace:
 	cmp/pl	r8			/* Are we in correct place already ? */
@@ -496,7 +496,7 @@ do_init_ram:
 	/*
 	 * enable SE (32-bit) mode, if we need to.
 	 */
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 enable_se_mode:
 #ifdef CONFIG_CPU_SUBTYPE_SH4_2XX	/* it is an SH4-200 */
 	/* enable SE mode & invalidate the UTLB/ITLB */
@@ -524,7 +524,7 @@ enable_se_mode:
 	  nop
 .balign 4
 mmu_coherent:
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 
 	/*
@@ -572,7 +572,7 @@ hom_got_frozen_linux_marker:
 	mov.l	@(12, r1), r8	! r8 = stm_defrost_kernel()
 	ocbp	@r1		! write-back the (now dirty) cache-line
 
-#if defined(CONFIG_SH_SE_MODE)
+#if defined(CONFIG_ST40_SE_MODE)
 	/*
 	 * explicitly invalidate all PMB entries, except for PMB[0],
 	 * and possibly PMB[1].
@@ -583,7 +583,7 @@ hom_invalidate_pmb:
 	mov	#0, r2			! PMB[n].V = 0, i.e. INVALID
 	mov	#1, r3
 	shll8	r3			! R3 = address stride is 0x100
-#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	add	r3, r1			! skip first PMB slot (PMB[0])
 	mov	#2, r0			! R0 = counter (indexes: 2..15)
 #else
@@ -604,7 +604,7 @@ hom_invalidate_itlb:
 	MOV_CONST32_R0 SH4_CCN_MMUCR
 	mov	#(SH4_MMUCR_TI), r1
 	mov.l	r1, @r0			/* MMUCR.TI = 1 */
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 	/*
 	 * re-invalidate the caches: both I$ & D$
@@ -717,11 +717,11 @@ hyperspace:
 	 *	The EMI/LMI initialization has been completed.
 	 */
 
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 do_enable_pmb_cache:
 	/* Enable the cacheability for PMB array #0 */
 	CALL sh_toggle_pmb_cacheability_offset
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 	/* init stack pointer */
 init_sp:
@@ -765,10 +765,10 @@ start_sh4boot_addr:.long start_sh4boot
 init_ram_offset:		.long init_ram - .
 sh_cache_clear_op_offset:	.long sh_cache_clear_op - .
 sh_cache_set_op_offset:		.long sh_cache_set_op - .
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 sh_toggle_pmb_cacheability_offset:
 				.long sh_toggle_pmb_cacheability - .
-#endif	/* CONFIG_SH_SE_MODE */
+#endif	/* CONFIG_ST40_SE_MODE */
 
 
 #if defined(CFG_ENV_IS_IN_EEPROM)

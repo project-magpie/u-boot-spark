@@ -103,12 +103,12 @@ do {								\
 		(PIO_ADDR)+STPIO_PC2_OFFSET+STPIO_SET_OFFSET);	\
 } while (0)
 
-#if defined(CONFIG_SH_STX7141)
+#if defined(CONFIG_ST40_STX7141)
 #define SET_PIO_ASC(PIO_ADDR, TX, RX, CTS, RTS)			\
 	SET_PIO_ASC_OUTDIR((PIO_ADDR), (TX), (RX), (CTS), (RTS), STPIO_OUT)
-#else	/* CONFIG_SH_STX7141 */
+#else	/* CONFIG_ST40_STX7141 */
 #define SET_PIO_ASC(PIO_ADDR, TX, RX, CTS, RTS)			\
 	SET_PIO_ASC_OUTDIR((PIO_ADDR), (TX), (RX), (CTS), (RTS), STPIO_ALT_OUT)
-#endif	/* CONFIG_SH_STX7141 */
+#endif	/* CONFIG_ST40_STX7141 */
 
 #endif

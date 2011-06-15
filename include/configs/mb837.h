@@ -30,15 +30,15 @@
  * (easy to change)
  */
 
-#define CONFIG_SH4	1		/* This is an SH4 CPU		*/
+#define CONFIG_ST40	1		/* This is an SH4 CPU		*/
 #define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 
 	/*
 	 * Define the following macro only if the MB837 CPU board
 	 * will be mated with a MB705 peripheral board.
 	 */
-#undef  CONFIG_SH_MB705		/* MB837 withOUT a MB705 */
-#define CONFIG_SH_MB705		/* MB837 + MB705 */
+#undef  CONFIG_ST40_MB705		/* MB837 withOUT a MB705 */
+#define CONFIG_ST40_MB705		/* MB837 + MB705 */
 
 
 /*-----------------------------------------------------------------------
@@ -89,7 +89,7 @@
 #define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
 #endif /* CFG_BOOT_FROM_NAND */
 
-#ifdef CONFIG_SH_SE_MODE
+#ifdef CONFIG_ST40_SE_MODE
 #define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH (uncached) via PMB */
 #define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
 #define CFG_SDRAM_BASE		0x80000000      /* LMI    Cached addr via PMB */
@@ -216,9 +216,9 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_SH_STM_USB
+#define CONFIG_ST40_STM_USB
 
-#ifdef CONFIG_SH_STM_USB
+#ifdef CONFIG_ST40_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_OHCI_NEW
@@ -232,7 +232,7 @@
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
 #	define LITTLEENDIAN
-#endif	/* ifdef CONFIG_SH_STM_USB */
+#endif	/* ifdef CONFIG_ST40_STM_USB */
 
 /*---------------------------------------------------------------
  * SATA driver config
@@ -240,9 +240,9 @@
 
 /* SATA works on cut 3.x of the STx7105 (just one port) */
 /* Choose if we want to use a SATA HDD */
-//#define CONFIG_SH_STM_SATA
+//#define CONFIG_ST40_STM_SATA
 
-#ifdef CONFIG_SH_STM_SATA
+#ifdef CONFIG_ST40_STM_SATA
 #	define CONFIG_CMD_IDE				/* enable "ide" command set */
 #	define CFG_ATA_BASE_ADDR	0xfe209000	/* E-SATA panel connector */
 #	define CFG_ATA_IDE0_OFFSET	0x800		/* Host Controller */
@@ -251,10 +251,10 @@
 #	define CFG_ATA_STRIDE		0x4
 #	define CFG_IDE_MAXBUS		1
 #	define CFG_IDE_MAXDEVICE	1
-#endif	/* CONFIG_SH_STM_SATA */
+#endif	/* CONFIG_ST40_STM_SATA */
 
-#if defined(CONFIG_SH_STM_SATA) ||	\
-    defined(CONFIG_SH_STM_USB)
+#if defined(CONFIG_ST40_STM_SATA) ||	\
+    defined(CONFIG_ST40_STM_USB)
 #	define CFG_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION

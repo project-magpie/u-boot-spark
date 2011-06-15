@@ -471,7 +471,7 @@ extern void stx7141_usb_init(void)
 #endif /* defined(CONFIG_USB_OHCI_NEW) */
 
 
-#if defined(CONFIG_SH_STM_SATA)
+#if defined(CONFIG_ST40_STM_SATA)
 extern void stx7141_configure_sata(void)
 {
 	static int initialised_phy = 0;
@@ -497,6 +497,6 @@ extern void stx7141_configure_sata(void)
 		initialised_phy = 1;
 	}
 }
-#endif	/* CONFIG_SH_STM_SATA */
+#endif	/* CONFIG_ST40_STM_SATA */
 
 

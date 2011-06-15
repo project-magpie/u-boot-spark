@@ -27,23 +27,23 @@
 #define __SOC_REG_H
 
 
-#if defined(CONFIG_SH_STX5197)
+#if defined(CONFIG_ST40_STX5197)
 #	include <asm/stx5197reg.h>
-#elif defined(CONFIG_SH_STX5206)
+#elif defined(CONFIG_ST40_STX5206)
 #	include <asm/stx5206reg.h>
-#elif defined(CONFIG_SH_STX7105)
+#elif defined(CONFIG_ST40_STX7105)
 #	include <asm/stx7105reg.h>
-#elif defined(CONFIG_SH_STX7108)
+#elif defined(CONFIG_ST40_STX7108)
 #	include <asm/stx7108reg.h>
-#elif defined(CONFIG_SH_STX7111)
+#elif defined(CONFIG_ST40_STX7111)
 #	include <asm/stx7111reg.h>
-#elif defined(CONFIG_SH_STX7141)
+#elif defined(CONFIG_ST40_STX7141)
 #	include <asm/stx7141reg.h>
-#elif defined(CONFIG_SH_STX7200)
+#elif defined(CONFIG_ST40_STX7200)
 #	include <asm/stx7200reg.h>
-#elif defined(CONFIG_SH_FLI7510)
+#elif defined(CONFIG_ST40_FLI7510)
 #	include <asm/fli7510reg.h>
-#elif defined(CONFIG_SH_FLI7540)
+#elif defined(CONFIG_ST40_FLI7540)
 #	include <asm/fli7540reg.h>
 #else
 #	error Missing Device Definitions!
