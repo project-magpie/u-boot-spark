@@ -112,7 +112,7 @@ extern void sh_flush_cache_all(void)
 	for (addr = CACHE_OC_ADDRESS_ARRAY;
 	     addr < end_addr;
 	     addr += entry_offset) {
-		ctrl_outl(0, addr);
+		writel(0, addr);
 	}
 }
 

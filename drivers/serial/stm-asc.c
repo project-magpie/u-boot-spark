@@ -117,6 +117,10 @@
 static int hwflow = 0;		/* turned off by default */
 #endif	/* CONFIG_HWFLOW */
 
+/* Note: the argument order for "outl()" is swapped, w.r.t. writel() */
+#define p2_inl(addr)		__raw_readl(addr)
+#define p2_outl(addr,v)		__raw_writel(v, addr)
+
 
 /* busy wait until it is safe to send a char */
 static inline void TxCharReady (void)
