@@ -46,6 +46,7 @@ LIST_5xxx="		\
 	mcc200		\
 	mecp5200	\
 	motionpro	\
+	munices		\
 	o2dnt		\
 	pf5200		\
 	PM520		\
@@ -107,6 +108,7 @@ LIST_8xx="		\
 	lwmon		\
 	MBX		\
 	MBX860T		\
+	mgsuvd		\
 	MHPC		\
 	MPC86xADS	\
 	MPC885ADS	\
@@ -135,6 +137,7 @@ LIST_8xx="		\
 	SPD823TS	\
 	svm_sc8xx	\
 	SXNI855T	\
+	TK885D		\
 	TOP860		\
 	TQM823L		\
 	TQM823L_LCD	\
@@ -168,7 +171,6 @@ LIST_4xx="		\
 	CPCI4052	\
 	CPCI405AB	\
 	CPCI405DT	\
-	CPCI440		\
 	CPCIISER4	\
 	CRAYL1		\
 	csb272		\
@@ -176,10 +178,13 @@ LIST_4xx="		\
 	DASA_SIM	\
 	DP405		\
 	DU405		\
+	DU440		\
 	ebony		\
 	ERIC		\
 	EXBITGEN	\
 	G2000		\
+	haleakala	\
+	haleakala_nand	\
 	hcu4		\
 	hcu5		\
 	HH405		\
@@ -187,8 +192,12 @@ LIST_4xx="		\
 	JSE		\
 	KAREF		\
 	katmai		\
+	kilauea		\
+	kilauea_nand	\
+	korat		\
 	luan		\
 	lwmon5		\
+	makalu		\
 	METROBOX	\
 	MIP405		\
 	MIP405T		\
@@ -203,6 +212,7 @@ LIST_4xx="		\
 	PIP405		\
 	PLU405		\
 	PMC405		\
+	PMC440		\
 	PPChameleonEVB	\
 	rainier		\
 	sbc405		\
@@ -274,6 +284,7 @@ LIST_8260="		\
 	hymod		\
 	IPHASE4539	\
 	ISPAN		\
+	mgcoge		\
 	MPC8260ADS	\
 	MPC8266ADS	\
 	MPC8272ADS	\
@@ -299,6 +310,7 @@ LIST_8260="		\
 LIST_83xx="		\
 	MPC8313ERDB_33	\
 	MPC8313ERDB_66	\
+	MPC8315ERDB	\
 	MPC8323ERDB	\
 	MPC832XEMDS	\
 	MPC832XEMDS_ATM	\
@@ -307,6 +319,10 @@ LIST_83xx="		\
 	MPC8349ITXGP	\
 	MPC8360EMDS	\
 	MPC8360EMDS_ATM	\
+	MPC8360ERDK_33	\
+	MPC8360ERDK_66	\
+	MPC837XEMDS	\
+	MPC837XERDB	\
 	sbc8349		\
 	TQM834x		\
 "
@@ -317,6 +333,7 @@ LIST_83xx="		\
 #########################################################################
 
 LIST_85xx="		\
+	ATUM8548	\
 	MPC8540ADS	\
 	MPC8540EVAL	\
 	MPC8541CDS	\
@@ -328,6 +345,7 @@ LIST_85xx="		\
 	PM854		\
 	PM856		\
 	sbc8540		\
+	sbc8548		\
 	sbc8560		\
 	stxgp3		\
 	stxssa		\
@@ -342,6 +360,7 @@ LIST_85xx="		\
 #########################################################################
 
 LIST_86xx="		\
+	MPC8610HPCD	\
 	MPC8641HPCN	\
 	sbc8641d	\
 "
@@ -427,6 +446,7 @@ LIST_ARM7="		\
 #########################################################################
 
 LIST_ARM9="			\
+	at91cap9adk		\
 	at91rm9200dk		\
 	cmc_pu2			\
 	ap920t			\
@@ -440,6 +460,7 @@ LIST_ARM9="			\
 	cp946es			\
 	cp966			\
 	lpd7a400		\
+	m501sk			\
 	mp2usb			\
 	mx1ads			\
 	mx1fs2			\
@@ -477,6 +498,7 @@ LIST_ARM10="		\
 LIST_ARM11="		\
 	cp1136		\
 	omap2420h4	\
+	apollon		\
 "
 
 #########################################################################
@@ -501,6 +523,10 @@ LIST_pxa="		\
 "
 
 LIST_ixp="		\
+	actux1		\
+	actux2		\
+	actux3		\
+	actux4		\
 	ixdp425		\
 	ixdpg425	\
 	pdnb3		\
@@ -524,6 +550,7 @@ LIST_arm="		\
 
 LIST_mips4kc="		\
 	incaip		\
+	qemu_mips	\
 "
 
 LIST_mips5kc="		\
@@ -624,14 +651,18 @@ LIST_coldfire="			\
 	EB+MCF-EV123		\
 	EB+MCF-EV123_internal	\
 	idmr			\
+	M52277EVB		\
 	M5235EVB		\
 	M5249EVB		\
 	M5253EVB		\
 	M5271EVB		\
 	M5272C3			\
 	M5282EVB		\
-	M5329EVB		\
+	M5329AFEE		\
+	M5373EVB		\
 	M54455EVB		\
+	M5475AFE		\
+	M5485AFE		\
 	r5200			\
 	TASREG			\
 "
@@ -642,6 +673,9 @@ LIST_coldfire="			\
 
 LIST_avr32="		\
 	atstk1002	\
+	atstk1003	\
+	atstk1004	\
+	atngw100	\
 "
 
 #########################################################################
@@ -693,6 +727,24 @@ LIST_st40="		\
 	hdk7106se	\
 "
 
+#########################################################################
+## SH Systems
+#########################################################################
+
+LIST_sh4="		\
+	ms7750se	\
+	ms7722se	\
+"
+
+LIST_sh3="		\
+	ms7720se	\
+"
+
+LIST_sh="		\
+	${LIST_sh3}	\
+	${LIST_sh4}	\
+"
+
 #-----------------------------------------------------------------------
 
 #----- for now, just run PPC by default -----
@@ -709,7 +761,7 @@ build_target() {
 	${MAKE} ${JOBS} all 2>&1 >${LOG_DIR}/$target.MAKELOG \
 				| tee ${LOG_DIR}/$target.ERR
 
-	${CROSS_COMPILE:-ppc_8xx-}size ${BUILD_DIR}/u-boot \
+	${CROSS_COMPILE}size ${BUILD_DIR}/u-boot \
 				| tee -a ${LOG_DIR}/$target.MAKELOG
 }
 
@@ -727,6 +779,7 @@ do
 	mips|mips_el| \
 	nios|nios2| \
 	ppc|5xx|5xxx|512x|8xx|8220|824x|8260|83xx|85xx|86xx|4xx|7xx|74xx| \
+	sh|sh4|sh3| \
 	st40| \
 	x86|I486|TSEC)
 			for target in `eval echo '$LIST_'${arg}`

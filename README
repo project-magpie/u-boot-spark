@@ -136,8 +136,10 @@ Directory Hierarchy:
   - i386	Files specific to i386 CPUs
   - ixp		Files specific to Intel XScale IXP CPUs
   - mcf52x2	Files specific to Freescale ColdFire MCF52x2 CPUs
+  - mcf5227x	Files specific to Freescale ColdFire MCF5227x CPUs
   - mcf532x	Files specific to Freescale ColdFire MCF5329 CPUs
   - mcf5445x	Files specific to Freescale ColdFire MCF5445x CPUs
+  - mcf547x_8x	Files specific to Freescale ColdFire MCF547x_8x CPUs
   - mips	Files specific to MIPS CPUs
   - mpc5xx	Files specific to Freescale MPC5xx  CPUs
   - mpc5xxx	Files specific to Freescale MPC5xxx CPUs
@@ -237,9 +239,7 @@ The following options need to be configured:
 - Board Type:	Define exactly one, e.g. CONFIG_MPC8540ADS.
 
 - CPU Daughterboard Type: (if CONFIG_ATSTK1000 is defined)
-		Define exactly one of
-		CONFIG_ATSTK1002
-
+		Define exactly one, e.g. CONFIG_ATSTK1002
 
 - CPU Module Type: (if CONFIG_COGENT is defined)
 		Define exactly one of
@@ -928,7 +928,7 @@ The following options need to be configured:
 		(i.e. setenv videomode 317; saveenv; reset;)
 
 		- "videomode=bootargs" all the video parameters are parsed
-		from the bootargs. (See drivers/videomodes.c)
+		from the bootargs. (See drivers/video/videomodes.c)
 
 
 		CONFIG_VIDEO_SED13806
@@ -1357,7 +1357,7 @@ The following options need to be configured:
 		CONFIG_FSL_I2C
 
 		Define this option if you want to use Freescale's I2C driver in
-		drivers/fsl_i2c.c.
+		drivers/i2c/fsl_i2c.c.
 
 
 - SPI Support:	CONFIG_SPI
@@ -1381,14 +1381,31 @@ The following options need to be configured:
 		SPI configuration items (port pins to use, etc). For
 		an example, see include/configs/sacsng.h.
 
-- FPGA Support: CONFIG_FPGA_COUNT
+		CONFIG_HARD_SPI
+
+		Enables a hardware SPI driver for general-purpose reads
+		and writes.  As with CONFIG_SOFT_SPI, the board configuration
+		must define a list of chip-select function pointers.
+		Currently supported on some MPC8xxx processors.  For an
+		example, see include/configs/mpc8349emds.h.
+
+- FPGA Support: CONFIG_FPGA
+
+		Enables FPGA subsystem.
+
+		CONFIG_FPGA_<vendor>
+
+		Enables support for specific chip vendors.
+		(ALTERA, XILINX)
+
+		CONFIG_FPGA_<family>
+
+		Enables support for FPGA family.
+		(SPARTAN2, SPARTAN3, VIRTEX2, CYCLONE2, ACEX1K, ACEX)
+
+		CONFIG_FPGA_COUNT
 
 		Specify the number of FPGA devices to support.
-
-		CONFIG_FPGA
-
-		Used to specify the types of FPGA devices.  For example,
-		#define CONFIG_FPGA  CFG_XILINX_VIRTEX2
 
 		CFG_FPGA_PROG_FEEDBACK
 
@@ -2273,6 +2290,10 @@ Low Level (hardware related) configuration options:
 		enable I2C microcode relocation patch (MPC8xx);
 		define relocation offset in DPRAM [DSP2]
 
+- CFG_SMC_UCODE_PATCH, CFG_SMC_DPMEM_OFFSET [0x1FC0]:
+		enable SMC microcode relocation patch (MPC8xx);
+		define relocation offset in DPRAM [SMC1]
+
 - CFG_SPI_UCODE_PATCH, CFG_SPI_DPMEM_OFFSET [0x1FC0]:
 		enable SPI microcode relocation patch (MPC8xx);
 		define relocation offset in DPRAM [SCC4]
@@ -2682,6 +2703,10 @@ Some configuration options can be set using Environment Variables:
 		  => setenv ethact SCC ETHERNET
 		  => ping 10.0.0.1 # traffic sent on SCC ETHERNET
 
+  ethrotate	- When set to "no" U-Boot does not go through all
+		  available network interfaces.
+		  It just stays at the currently selected interface.
+
    netretry	- When set to "no" each network operation will
 		  either succeed or fail without retrying.
 		  When set to "once" the network operation will
@@ -2689,6 +2714,9 @@ Some configuration options can be set using Environment Variables:
 		  are tried once without success.
 		  Useful on scripts which control the retry operation
 		  themselves.
+
+  npe_ucode	- see CONFIG_IXP4XX_NPE_EXT_UCOD
+		  if set load address for the npe microcode
 
   tftpsrcport	- If this is set, the value is used for TFTP's
 		  UDP source port.
@@ -3473,7 +3501,7 @@ GCC's implementation.
 
 For PowerPC, the following registers have specific use:
 	R1:	stack pointer
-	R2:	TOC pointer
+	R2:	reserved for system use
 	R3-R4:	parameter passing and return values
 	R5-R10: parameter passing
 	R13:	small data area pointer
@@ -3482,7 +3510,7 @@ For PowerPC, the following registers have specific use:
 
 	(U-Boot also uses R14 as internal GOT pointer.)
 
-    ==> U-Boot will use R29 to hold a pointer to the global data
+    ==> U-Boot will use R2 to hold a pointer to the global data
 
     Note: on PPC, we could use a static initializer (since the
     address of the global data structure is known at compile time),
@@ -3490,6 +3518,11 @@ For PowerPC, the following registers have specific use:
     smaller code - although the code savings are not that big (on
     average for all boards 752 bytes for the whole U-Boot image,
     624 text + 127 data).
+
+On Blackfin, the normal C ABI (except for P5) is followed as documented here:
+	http://docs.blackfin.uclinux.org/doku.php?id=application_binary_interface
+
+    ==> U-Boot will use P5 to hold a pointer to the global data
 
 On ARM, the following registers are used:
 

@@ -237,13 +237,6 @@
 #endif
 
 /*-----------------------------------------------------------------------
- * Cache Configuration
- */
-#define CFG_DCACHE_SIZE		16384	/* For IBM 405EP CPU			*/
-#define CFG_CACHELINE_SIZE	32	/* ...			*/
-#define CFG_CACHELINE_SHIFT	5	/* log base 2 of the above value	*/
-
-/*-----------------------------------------------------------------------
  * Definitions for initial stack pointer and data area (in data cache)
  */
 /* use on chip memory (OCM) for temperary stack until sdram is tested */
@@ -340,7 +333,7 @@
 	"nfsargs=setenv bootargs root=/dev/nfs rw"			\
 		" nfsroot=${serverip}:${rootpath}\0"			\
 	"ramargs=setenv bootargs root=/dev/ram rw"			\
-		" ramdisk=${ramdisk_size}\0"				\
+		" ramdisk_size=${ramdisk_size}\0"			\
 	"addip=setenv bootargs ${bootargs} "				\
 		"ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}"	\
 	        ":${hostname}:${netdev}:off panic=1\0"			\

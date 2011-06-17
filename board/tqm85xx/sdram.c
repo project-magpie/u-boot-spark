@@ -27,7 +27,6 @@
 #include <asm/immap_85xx.h>
 #include <asm/processor.h>
 #include <asm/mmu.h>
-#include <spd.h>
 
 struct sdram_conf_s {
 	unsigned long size;
@@ -57,8 +56,7 @@ int cas_latency(void);
 long int sdram_setup(int casl)
 {
 	int i;
-	volatile immap_t *immap = (immap_t *) CFG_IMMR;
-	volatile ccsr_ddr_t *ddr = &immap->im_ddr;
+	volatile ccsr_ddr_t *ddr = (void *)(CFG_MPC85xx_DDR_ADDR);
 	unsigned long cfg_ddr_timing1;
 	unsigned long cfg_ddr_mode;
 
@@ -150,8 +148,7 @@ long int initdram (int board_type)
 	 * This DLL-Override only used on TQM8540 and TQM8560
 	 */
 	{
-		volatile immap_t *immap = (immap_t *) CFG_IMMR;
-		volatile ccsr_gur_t *gur= &immap->im_gur;
+		volatile ccsr_gur_t *gur = (void *)(CFG_MPC85xx_GUTS_ADDR);
 		int i,x;
 
 		x = 10;

@@ -241,7 +241,7 @@
 #define CONFIG_NETCONSOLE		/* include NetConsole support	*/
 
 #define CONFIG_PREBOOT	"echo;"	\
-	"echo Type \"run flash_nfs\" to mount root filesystem over NFS;" \
+	"echo Type \\\"run flash_nfs\\\" to mount root filesystem over NFS;" \
 	"echo"
 
 #undef	CONFIG_BOOTARGS
@@ -383,15 +383,6 @@
 #define NAND_MAX_CHIPS		1
 #define CFG_NAND_BASE		(CFG_NAND_ADDR + CFG_NAND_CS)
 #define CFG_NAND_SELECT_DEVICE  1	/* nand driver supports mutipl. chips	*/
-
-/*-----------------------------------------------------------------------
- * Cache Configuration
- */
-#define CFG_DCACHE_SIZE		16384		/* For AMCC 405EZ CPU		*/
-#define CFG_CACHELINE_SIZE	32		/* ...				*/
-#if defined(CONFIG_CMD_KGDB)
-#define CFG_CACHELINE_SHIFT	5		/* log base 2 of the above value*/
-#endif
 
 /*-----------------------------------------------------------------------
  * External Bus Controller (EBC) Setup

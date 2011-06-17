@@ -43,6 +43,12 @@
 
 #include <asm/processor.h>
 
+#ifdef CONFIG_4xx_DCACHE
+#include <asm/mmu.h>
+
+DECLARE_GLOBAL_DATA_PTR;
+#endif
+
 static struct {
 	int number;
 	char * name;
@@ -80,7 +86,9 @@ static struct {
 	{0x107,	"SPRG7",	0x00000000,	0x00000000},
 	{0x10c,	"TBL",		0x00000000,	0x00000000},
 	{0x10d,	"TBU",		0x00000000,	0x00000000},
+#ifdef CONFIG_440
 	{0x11e,	"PIR",		0x0000000f,	0x00000000},
+#endif
 	{0x130,	"DBSR",		0x00000000,	0x00000000},
 	{0x134,	"DBCR0",	0x00000000,	0x00000000},
 	{0x135,	"DBCR1",	0x00000000,	0x00000000},
@@ -95,6 +103,7 @@ static struct {
 	{0x13f,	"DVC2",		0x00000000,	0x00000000},
 	{0x150,	"TSR",		0x00000000,	0x00000000},
 	{0x154,	"TCR",		0x00000000,	0x00000000},
+#ifdef CONFIG_440
 	{0x190,	"IVOR0",	0x0000fff0,	0x00000100},
 	{0x191,	"IVOR1",	0x0000fff0,	0x00000200},
 	{0x192,	"IVOR2",	0x0000fff0,	0x00000300},
@@ -111,6 +120,7 @@ static struct {
 	{0x19d,	"IVOR13",	0x0000fff0,	0x00001300},
 	{0x19e,	"IVOR14",	0x0000fff0,	0x00001400},
 	{0x19f,	"IVOR15",	0x0000fff0,	0x00002000},
+#endif
 	{0x23a,	"MCSRR0",	0x00000000,	0x00000000},
 	{0x23b,	"MCSRR1",	0x00000000,	0x00000000},
 	{0x23c,	"MCSR",		0x00000000,	0x00000000},
@@ -131,8 +141,10 @@ static struct {
 	{0x395,	"DTV1",		0x00000000,	0x00000000},
 	{0x396,	"DTV2",		0x00000000,	0x00000000},
 	{0x397,	"DTV3",		0x00000000,	0x00000000},
+#ifdef CONFIG_440
 	{0x398,	"DVLIM",	0x0fc1f83f,	0x0001f800},
 	{0x399,	"IVLIM",	0x0fc1f83f,	0x0001f800},
+#endif
 	{0x39b,	"RSTCFG",	0x00000000,	0x00000000},
 	{0x39c,	"DCDBTRL",	0x00000000,	0x00000000},
 	{0x39d,	"DCDBTRH",	0x00000000,	0x00000000},
@@ -158,6 +170,10 @@ int spr_post_test (int flags)
 	};
 	unsigned long (*get_spr) (void) = (void *) code;
 
+#ifdef CONFIG_4xx_DCACHE
+	/* disable cache */
+	change_tlb(gd->bd->bi_memstart, gd->bd->bi_memsize, TLB_WORD2_I_ENABLE);
+#endif
 	for (i = 0; i < spr_test_list_size; i++) {
 		int num = spr_test_list[i].number;
 
@@ -174,6 +190,10 @@ int spr_post_test (int flags)
 			ret = -1;
 		}
 	}
+#ifdef CONFIG_4xx_DCACHE
+	/* enable cache */
+	change_tlb(gd->bd->bi_memstart, gd->bd->bi_memsize, 0);
+#endif
 
 	return ret;
 }

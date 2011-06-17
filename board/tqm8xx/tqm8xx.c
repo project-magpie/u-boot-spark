@@ -37,6 +37,7 @@ static long int dram_size (long int, long int *, long int);
 
 #define	_NOT_USED_	0xFFFFFFFF
 
+/* UPM initialization table for SDRAM: 40, 50, 66 MHz CLKOUT @ CAS latency 2, tWR=2 */
 const uint sdram_table[] =
 {
 	/*
@@ -63,14 +64,14 @@ const uint sdram_table[] =
 	/*
 	 * Single Write. (Offset 18 in UPMA RAM)
 	 */
-	0x1F0DFC04, 0xEEABBC00, 0x01B27C04, 0x1FF5FC47, /* last */
-	_NOT_USED_, _NOT_USED_, _NOT_USED_, _NOT_USED_,
+	0x1F0DFC04, 0xEEABBC00, 0x11B77C04, 0xEFFAFC44,
+	0x1FF5FC47, /* last */
+		    _NOT_USED_, _NOT_USED_, _NOT_USED_,
 	/*
 	 * Burst Write. (Offset 20 in UPMA RAM)
 	 */
 	0x1F0DFC04, 0xEEABBC00, 0x10A77C00, 0xF0AFFC00,
-	0xF0AFFC00, 0xE1BAFC04, 0x1FF5FC47, /* last */
-					    _NOT_USED_,
+	0xF0AFFC00, 0xF0AFFC04, 0xE1BAFC44, 0x1FF5FC47, /* last */
 	_NOT_USED_, _NOT_USED_, _NOT_USED_, _NOT_USED_,
 	_NOT_USED_, _NOT_USED_, _NOT_USED_, _NOT_USED_,
 	/*
@@ -83,7 +84,7 @@ const uint sdram_table[] =
 	/*
 	 * Exception. (Offset 3c in UPMA RAM)
 	 */
-	0x7FFFFC07, /* last */
+	0xFFFFFC07, /* last */
 		    _NOT_USED_, _NOT_USED_, _NOT_USED_,
 };
 
@@ -183,7 +184,7 @@ long int initdram (int board_type)
 #ifndef	CONFIG_CAN_DRIVER
 	if ((board_type != 'L') &&
 	    (board_type != 'M') &&
-	    (board_type != 'D') ) {	/* "L" and "M" type boards have only one bank SDRAM */
+	    (board_type != 'D') ) {	/* only one SDRAM bank on L, M and D modules */
 		memctl->memc_or3 = CFG_OR3_PRELIM;
 		memctl->memc_br3 = CFG_BR3_PRELIM;
 	}
@@ -259,7 +260,7 @@ long int initdram (int board_type)
 #ifndef	CONFIG_CAN_DRIVER
 	if ((board_type != 'L') &&
 	    (board_type != 'M') &&
-	    (board_type != 'D') ) {	/* "L" and "M" type boards have only one bank SDRAM */
+	    (board_type != 'D') ) {	/* only one SDRAM bank on L, M and D modules */
 		/*
 		 * Check Bank 1 Memory Size
 		 * use current column settings
@@ -502,5 +503,52 @@ int misc_init_r (void)
 	return (0);
 }
 #endif	/* CONFIG_NSCU */
+
+/* ---------------------------------------------------------------------------- */
+/* TK885D specific initializaion						*/
+/* ---------------------------------------------------------------------------- */
+#ifdef CONFIG_TK885D
+#include <miiphy.h>
+int last_stage_init(void)
+{
+	const unsigned char phy[] = {CONFIG_FEC1_PHY, CONFIG_FEC2_PHY};
+	unsigned short reg;
+	int ret, i = 100;
+	char *s;
+
+	mii_init();
+	/* Without this delay 0xff is read from the UART buffer later in
+	 * abortboot() and autoboot is aborted */
+	udelay(10000);
+	while (tstc() && i--)
+		(void)getc();
+
+	/* Check if auto-negotiation is prohibited */
+	s = getenv("phy_auto_nego");
+
+	if (!s || !strcmp(s, "on"))
+		/* Nothing to do - autonegotiation by default */
+		return 0;
+
+	for (i = 0; i < 2; i++) {
+		ret = miiphy_read("FEC ETHERNET", phy[i], PHY_BMCR, &reg);
+		if (ret) {
+			printf("Cannot read BMCR on PHY %d\n", phy[i]);
+			return 0;
+		}
+		/* Auto-negotiation off, hard set full duplex, 100Mbps */
+		ret = miiphy_write("FEC ETHERNET", phy[i],
+				   PHY_BMCR, (reg | PHY_BMCR_100MB |
+					      PHY_BMCR_DPLX) & ~PHY_BMCR_AUTON);
+		if (ret) {
+			printf("Cannot write BMCR on PHY %d\n", phy[i]);
+			return 0;
+		}
+	}
+
+	return 0;
+}
+
+#endif
 
 /* ------------------------------------------------------------------------- */

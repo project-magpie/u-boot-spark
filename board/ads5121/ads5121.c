@@ -25,6 +25,7 @@
 #include <mpc512x.h>
 #include <asm/bitops.h>
 #include <command.h>
+#include <fdt_support.h>
 
 /* Clocks in use */
 #define SCCR1_CLOCKS_EN	(CLOCK_SCCR1_CFG_EN |				\
@@ -32,7 +33,9 @@
 			 CLOCK_SCCR1_PSC_EN(CONFIG_PSC_CONSOLE) |	\
 			 CLOCK_SCCR1_PSCFIFO_EN |			\
 			 CLOCK_SCCR1_DDR_EN |				\
-			 CLOCK_SCCR1_FEC_EN)
+			 CLOCK_SCCR1_FEC_EN |				\
+			 CLOCK_SCCR1_PCI_EN |				\
+			 CLOCK_SCCR1_TPR_EN)
 
 #define SCCR2_CLOCKS_EN	(CLOCK_SCCR2_MEM_EN |		\
 			 CLOCK_SCCR2_SPDIF_EN |		\
@@ -124,24 +127,24 @@ long int fixed_sdram (void)
 	im->mddrc.prioman_config2 = CFG_MDDRCGRP_PM_CFG2;
 	im->mddrc.hiprio_config = CFG_MDDRCGRP_HIPRIO_CFG;
 	im->mddrc.lut_table0_main_upper = CFG_MDDRCGRP_LUT0_MU;
-	im->mddrc.lut_table1_main_upper = CFG_MDDRCGRP_LUT1_MU;
-	im->mddrc.lut_table2_main_upper = CFG_MDDRCGRP_LUT2_MU;
-	im->mddrc.lut_table3_main_upper = CFG_MDDRCGRP_LUT3_MU;
-	im->mddrc.lut_table4_main_upper = CFG_MDDRCGRP_LUT4_MU;
 	im->mddrc.lut_table0_main_lower = CFG_MDDRCGRP_LUT0_ML;
+	im->mddrc.lut_table1_main_upper = CFG_MDDRCGRP_LUT1_MU;
 	im->mddrc.lut_table1_main_lower = CFG_MDDRCGRP_LUT1_ML;
+	im->mddrc.lut_table2_main_upper = CFG_MDDRCGRP_LUT2_MU;
 	im->mddrc.lut_table2_main_lower = CFG_MDDRCGRP_LUT2_ML;
+	im->mddrc.lut_table3_main_upper = CFG_MDDRCGRP_LUT3_MU;
 	im->mddrc.lut_table3_main_lower = CFG_MDDRCGRP_LUT3_ML;
+	im->mddrc.lut_table4_main_upper = CFG_MDDRCGRP_LUT4_MU;
 	im->mddrc.lut_table4_main_lower = CFG_MDDRCGRP_LUT4_ML;
 	im->mddrc.lut_table0_alternate_upper = CFG_MDDRCGRP_LUT0_AU;
+	im->mddrc.lut_table0_alternate_lower = CFG_MDDRCGRP_LUT0_AL;
 	im->mddrc.lut_table1_alternate_upper = CFG_MDDRCGRP_LUT1_AU;
-	im->mddrc.lut_table2_alternate_upper = CFG_MDDRCGRP_LUT2_AU;
-	im->mddrc.lut_table3_alternate_upper = CFG_MDDRCGRP_LUT3_AU;
-	im->mddrc.lut_table4_alternate_upper = CFG_MDDRCGRP_LUT4_AU;
-	im->mddrc.lut_table0_alternate_lower = CFG_MDDRCGRP_LUT0_AU;
 	im->mddrc.lut_table1_alternate_lower = CFG_MDDRCGRP_LUT1_AL;
+	im->mddrc.lut_table2_alternate_upper = CFG_MDDRCGRP_LUT2_AU;
 	im->mddrc.lut_table2_alternate_lower = CFG_MDDRCGRP_LUT2_AL;
+	im->mddrc.lut_table3_alternate_upper = CFG_MDDRCGRP_LUT3_AU;
 	im->mddrc.lut_table3_alternate_lower = CFG_MDDRCGRP_LUT3_AL;
+	im->mddrc.lut_table4_alternate_upper = CFG_MDDRCGRP_LUT4_AU;
 	im->mddrc.lut_table4_alternate_lower = CFG_MDDRCGRP_LUT4_AL;
 
 	/* Initialize MDDRC */
@@ -155,18 +158,26 @@ long int fixed_sdram (void)
 		im->mddrc.ddr_command = CFG_MICRON_NOP;
 
 	im->mddrc.ddr_command = CFG_MICRON_PCHG_ALL;
+	im->mddrc.ddr_command = CFG_MICRON_NOP;
+	im->mddrc.ddr_command = CFG_MICRON_RFSH;
+	im->mddrc.ddr_command = CFG_MICRON_NOP;
+	im->mddrc.ddr_command = CFG_MICRON_RFSH;
+	im->mddrc.ddr_command = CFG_MICRON_NOP;
+	im->mddrc.ddr_command = CFG_MICRON_INIT_DEV_OP;
+	im->mddrc.ddr_command = CFG_MICRON_NOP;
+	im->mddrc.ddr_command = CFG_MICRON_EM2;
+	im->mddrc.ddr_command = CFG_MICRON_NOP;
+	im->mddrc.ddr_command = CFG_MICRON_PCHG_ALL;
 	im->mddrc.ddr_command = CFG_MICRON_EM2;
 	im->mddrc.ddr_command = CFG_MICRON_EM3;
 	im->mddrc.ddr_command = CFG_MICRON_EN_DLL;
-	im->mddrc.ddr_command = CFG_MICRON_RST_DLL;
+	im->mddrc.ddr_command = CFG_MICRON_INIT_DEV_OP;
 	im->mddrc.ddr_command = CFG_MICRON_PCHG_ALL;
 	im->mddrc.ddr_command = CFG_MICRON_RFSH;
 	im->mddrc.ddr_command = CFG_MICRON_INIT_DEV_OP;
 	im->mddrc.ddr_command = CFG_MICRON_OCD_DEFAULT;
-	im->mddrc.ddr_command = CFG_MICRON_OCD_EXIT;
-
-	for (i = 0; i < 10; i++)
-		im->mddrc.ddr_command = CFG_MICRON_NOP;
+	im->mddrc.ddr_command = CFG_MICRON_PCHG_ALL;
+	im->mddrc.ddr_command = CFG_MICRON_NOP;
 
 	/* Start MDDRC */
 	im->mddrc.ddr_time_config0 = CFG_MDDRC_TIME_CFG0_RUN;
@@ -179,8 +190,24 @@ int checkboard (void)
 {
 	ushort brd_rev = *(vu_short *) (CFG_CPLD_BASE + 0x00);
 	uchar cpld_rev = *(vu_char *) (CFG_CPLD_BASE + 0x02);
+	volatile immap_t *im = (immap_t *) CFG_IMMR;
+	volatile unsigned long *reg;
+	int i;
 
 	printf ("Board: ADS5121 rev. 0x%04x (CPLD rev. 0x%02x)\n",
 		brd_rev, cpld_rev);
+
+	/* change the slew rate on all pata pins to max */
+	reg = (unsigned long *) &(im->io_ctrl.regs[PATA_CE1_IDX]);
+	for (i = 0; i < 9; i++)
+		reg[i] |= 0x00000003;
 	return 0;
 }
+
+#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
+void ft_board_setup(void *blob, bd_t *bd)
+{
+	ft_cpu_setup(blob, bd);
+	fdt_fixup_memory(blob, (u64)bd->bi_memstart, (u64)bd->bi_memsize);
+}
+#endif /* defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP) */

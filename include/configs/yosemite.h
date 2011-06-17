@@ -75,7 +75,7 @@
  *----------------------------------------------------------------------*/
 #define CFG_INIT_RAM_DCACHE	1		/* d-cache as init ram	*/
 #define CFG_INIT_RAM_ADDR	0x70000000		/* DCache       */
-#define CFG_INIT_RAM_END	(8 << 10)
+#define CFG_INIT_RAM_END	(4 << 10)
 #define CFG_GBL_DATA_SIZE	256			/* num bytes initial data*/
 #define CFG_GBL_DATA_OFFSET	(CFG_INIT_RAM_END - CFG_GBL_DATA_SIZE)
 #define CFG_INIT_SP_OFFSET	CFG_GBL_DATA_OFFSET
@@ -160,8 +160,16 @@
 #define CFG_ENV_OFFSET		0x0
 #endif /* CFG_ENV_IS_IN_EEPROM */
 
+/* I2C SYSMON (LM75, AD7414 is almost compatible)			*/
+#define CONFIG_DTT_LM75		1		/* ON Semi's LM75	*/
+#define CONFIG_DTT_AD7414	1		/* use AD7414		*/
+#define CONFIG_DTT_SENSORS	{0}		/* Sensor addresses	*/
+#define CFG_DTT_MAX_TEMP	70
+#define CFG_DTT_LOW_TEMP	-30
+#define CFG_DTT_HYSTERESIS	3
+
 #define CONFIG_PREBOOT	"echo;"	\
-	"echo Type \"run flash_nfs\" to mount root filesystem over NFS;" \
+	"echo Type \\\"run flash_nfs\\\" to mount root filesystem over NFS;" \
 	"echo"
 
 #undef	CONFIG_BOOTARGS
@@ -201,7 +209,7 @@
 	"update=protect off fff80000 ffffffff;era fff80000 ffffffff;"	\
 		"cp.b 200000 fff80000 80000;"			        \
 		"setenv filesize;saveenv\0"				\
-	"upd=run load;run update\0"					\
+	"upd=run load update\0"						\
 	""
 #define CONFIG_BOOTCOMMAND	"run flash_self"
 
@@ -273,6 +281,7 @@
 #define CONFIG_CMD_ASKENV
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_DIAG
+#define CONFIG_CMD_DTT
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_EEPROM
 #define CONFIG_CMD_I2C
@@ -360,15 +369,6 @@
 #define CFG_EBC_PB2CR		(CFG_CPLD | 0x18000)
 
 #define CFG_BCSR5_PCI66EN	0x80
-
-/*-----------------------------------------------------------------------
- * Cache Configuration
- */
-#define CFG_DCACHE_SIZE		(32<<10) /* For AMCC 440 CPUs			*/
-#define CFG_CACHELINE_SIZE	32	/* ...			*/
-#if defined(CONFIG_CMD_KGDB)
-#define CFG_CACHELINE_SHIFT	5	/* log base 2 of the above value	*/
-#endif
 
 /*
  * Internal Definitions

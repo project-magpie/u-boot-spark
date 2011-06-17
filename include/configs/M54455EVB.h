@@ -38,8 +38,6 @@
 #define CONFIG_M54455		/* define processor type */
 #define CONFIG_M54455EVB	/* M54455EVB board */
 
-#undef DEBUG
-
 #define CONFIG_MCFUART
 #define CFG_UART_PORT		(0)
 #define CONFIG_BAUDRATE		115200
@@ -176,6 +174,10 @@
 /* PCI */
 #ifdef CONFIG_CMD_PCI
 #define CONFIG_PCI		1
+#define CONFIG_PCI_PNP		1
+#define CONFIG_SKIPPCI_HOSTBRIDGE
+
+#define CFG_PCI_CACHE_LINE_SIZE	4
 
 #define CFG_PCI_MEM_BUS		0xA0000000
 #define CFG_PCI_MEM_PHYS	CFG_PCI_MEM_BUS
@@ -284,14 +286,13 @@
 #	define CFG_ENV_ADDR		(CFG_FLASH_BASE + 0x4000)
 #	define CFG_ENV_SECT_SIZE	0x2000
 #else
-#	define CFG_FLASH_BASE		CFG_FLASH0_BASE
-#	define CFG_FLASH0_BASE		CFG_CS1_BASE
-#	define CFG_FLASH1_BASE		CFG_CS0_BASE
+#	define CFG_FLASH_BASE		CFG_CS0_BASE
+#	define CFG_FLASH0_BASE		CFG_CS0_BASE
+#	define CFG_FLASH1_BASE		CFG_CS1_BASE
 #	define CFG_ENV_ADDR		(CFG_FLASH_BASE + 0x60000)
 #	define CFG_ENV_SECT_SIZE	0x20000
 #endif
 
-/* M54455EVB has one non CFI flash, defined CFG_FLASH_CFI will cause the system
 /* M54455EVB has one non CFI flash, defined CFG_FLASH_CFI will cause the system
    keep reset. */
 #undef CFG_FLASH_CFI

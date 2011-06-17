@@ -51,6 +51,7 @@
 #define CONFIG_DDR_ECC			/* only for ECC DDR module */
 #define CONFIG_MEM_INIT_VALUE		0xDEADBEEF
 
+#define CONFIG_FSL_LAW		1	/* Use common FSL init code */
 
 /*
  * sysclk for MPC85xx
@@ -365,13 +366,6 @@
  * the maximum mapped by the Linux kernel during initialization.
  */
 #define CFG_BOOTMAPSZ	(8 << 20)	/* Initial Memory map for Linux*/
-
-/* Cache Configuration */
-#define CFG_DCACHE_SIZE		32768
-#define CFG_CACHELINE_SIZE	32
-#if defined(CONFIG_CMD_KGDB)
-#define CFG_CACHELINE_SHIFT	5	/*log base 2 of the above value*/
-#endif
 
 /*
  * Internal Definitions

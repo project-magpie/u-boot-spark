@@ -365,6 +365,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 #endif	/* CONFIG_MEASURE_TIME */
 			}
 		} else if (s != NULL && !strcmp(s, ".oob")) {
+			/* read out-of-band data */
 			if (size > nand->oobsize) {
 				printf("Error: Too big! OOB size is only %u (0x%x) bytes.\n",
 					nand->oobsize, nand->oobsize);
@@ -374,9 +375,11 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			set_timer(0);				/* start measuring */
 #endif	/* CONFIG_MEASURE_TIME */
 			if (read)
-				ret = nand_read_oob_wrapper(nand, off, &size, (u_char *)addr);
+				ret = nand->read_oob(nand, off, size, (size_t *) &size,
+						     (u_char *) addr);
 			else
-				ret = nand_write_oob_wrapper(nand, off, &size, (u_char *)addr);
+				ret = nand->write_oob(nand, off, size, (size_t *) &size,
+						      (u_char *) addr);
 #if defined(CONFIG_MEASURE_TIME)
 			duration = get_timer(0);		/* stop measuring */
 #endif	/* CONFIG_MEASURE_TIME */

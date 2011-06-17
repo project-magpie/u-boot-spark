@@ -103,6 +103,9 @@ typedef volatile unsigned char	vu_char;
 #ifdef CONFIG_ARM
 #define asmlinkage	/* nothing */
 #endif
+#ifdef CONFIG_BLACKFIN
+#include <asm/blackfin.h>
+#endif
 
 #include <part.h>
 #include <flash.h>
@@ -129,20 +132,21 @@ typedef void (interrupt_handler_t)(void *);
 
 /*
  * enable common handling for all TQM8xxL/M boards:
- * - CONFIG_TQM8xxM will be defined for all TQM8xxM and TQM885D boards
+ * - CONFIG_TQM8xxM will be defined for all TQM8xxM boards
  * - CONFIG_TQM8xxL will be defined for all TQM8xxL _and_ TQM8xxM boards
+ *                  and for the TQM885D board
  */
 #if defined(CONFIG_TQM823M) || defined(CONFIG_TQM850M) || \
     defined(CONFIG_TQM855M) || defined(CONFIG_TQM860M) || \
-    defined(CONFIG_TQM862M) || defined(CONFIG_TQM866M) || \
-    defined(CONFIG_TQM885D)
+    defined(CONFIG_TQM862M) || defined(CONFIG_TQM866M)
 # ifndef CONFIG_TQM8xxM
 #  define CONFIG_TQM8xxM
 # endif
 #endif
 #if defined(CONFIG_TQM823L) || defined(CONFIG_TQM850L) || \
     defined(CONFIG_TQM855L) || defined(CONFIG_TQM860L) || \
-    defined(CONFIG_TQM862L) || defined(CONFIG_TQM8xxM)
+    defined(CONFIG_TQM862L) || defined(CONFIG_TQM8xxM) || \
+    defined(CONFIG_TQM885D)
 # ifndef CONFIG_TQM8xxL
 #  define CONFIG_TQM8xxL
 # endif
@@ -196,12 +200,14 @@ int	print_buffer (ulong addr, void* data, uint width, uint count, uint linelen);
 void	main_loop	(void);
 int	run_command	(const char *cmd, int flag);
 int	readline	(const char *const prompt);
+int	readline_into_buffer	(const char *const prompt, char * buffer);
+int	parse_line (char *, char *[]);
 void	init_cmd_timeout(void);
 void	reset_cmd_timeout(void);
 
 /* lib_$(ARCH)/board.c */
-void	board_init_f  (ulong);
-void	board_init_r  (gd_t *, ulong);
+void	board_init_f  (ulong) __attribute__ ((noreturn));
+void	board_init_r  (gd_t *, ulong) __attribute__ ((noreturn));
 int	checkboard    (void);
 int	checkflash    (void);
 int	checkdram     (void);
@@ -226,6 +232,7 @@ extern ulong load_addr;		/* Default Load Address */
 /* common/cmd_nvedit.c */
 int	env_init     (void);
 void	env_relocate (void);
+int	envmatch     (uchar *, int);
 char	*getenv	     (char *);
 int	getenv_r     (char *name, char *buf, unsigned len);
 int	saveenv	     (void);
@@ -259,7 +266,7 @@ void	pciinfo	      (int, int);
     int	   pci_pre_init	       (struct pci_controller * );
 #endif
 
-#if defined(CONFIG_PCI) && defined(CONFIG_440)
+#if defined(CONFIG_PCI) && (defined(CONFIG_440) || defined(CONFIG_405EX))
 #   if defined(CFG_PCI_TARGET_INIT)
 	void	pci_target_init	     (struct pci_controller *);
 #   endif
@@ -267,7 +274,7 @@ void	pciinfo	      (int, int);
 	void	pci_master_init	     (struct pci_controller *);
 #   endif
     int	    is_pci_host		(struct pci_controller *);
-#if defined(CONFIG_440SPE)
+#if defined(CONFIG_440SPE) || defined(CONFIG_405EX)
    void pcie_setup_hoses(int busno);
 #endif
 #endif
@@ -277,6 +284,9 @@ int	misc_init_r   (void);
 
 /* common/exports.c */
 void	jumptable_init(void);
+
+/* api/api.c */
+void	api_init (void);
 
 /* common/memsize.c */
 long	get_ram_size  (volatile long *, long);
@@ -382,7 +392,7 @@ void	icache_disable(void);
 int	dcache_status (void);
 void	dcache_enable (void);
 void	dcache_disable(void);
-void	relocate_code (ulong, gd_t *, ulong);
+void	relocate_code (ulong, gd_t *, ulong) __attribute__ ((noreturn));
 ulong	get_endaddr   (void);
 void	trap_init     (ulong);
 #if defined (CONFIG_4xx)	|| \
@@ -462,7 +472,7 @@ int	prt_8260_clks (void);
 #elif defined(CONFIG_MPC5xxx)
 int	prt_mpc5xxx_clks (void);
 #endif
-#if defined(CONFIG_MPC512x)
+#if defined(CONFIG_MPC512X)
 int	prt_mpc512xxx_clks (void);
 #endif
 #if defined(CONFIG_MPC8220)
@@ -473,6 +483,8 @@ ulong	get_OPB_freq (void);
 ulong	get_PCI_freq (void);
 #endif
 #if defined(CONFIG_S3C2400) || defined(CONFIG_S3C2410) || defined(CONFIG_LH7A40X)
+void	s3c2410_irq(void);
+#define ARM920_IRQ_CALLBACK s3c2410_irq
 ulong	get_FCLK (void);
 ulong	get_HCLK (void);
 ulong	get_PCLK (void);
@@ -498,6 +510,7 @@ ulong	get_bus_freq  (ulong);
 #if defined(CONFIG_MPC85xx)
 typedef MPC85xx_SYS_INFO sys_info_t;
 void	get_sys_info  ( sys_info_t * );
+ulong	get_ddr_freq  (ulong);
 #endif
 #if defined(CONFIG_MPC86xx)
 typedef MPC86xx_SYS_INFO sys_info_t;
@@ -506,15 +519,13 @@ void   get_sys_info  ( sys_info_t * );
 
 #if defined(CONFIG_4xx) || defined(CONFIG_IOP480)
 #  if defined(CONFIG_440)
-    typedef PPC440_SYS_INFO sys_info_t;
 #	if defined(CONFIG_440SPE)
 	 unsigned long determine_sysper(void);
 	 unsigned long determine_pci_clock_per(void);
-	 int ppc440spe_revB(void);
 #	endif
-#  else
-    typedef PPC405_SYS_INFO sys_info_t;
 #  endif
+typedef PPC4xx_SYS_INFO sys_info_t;
+int	ppc440spe_revB(void);
 void	get_sys_info  ( sys_info_t * );
 #endif
 
@@ -658,6 +669,8 @@ void inline show_boot_progress (int val);
 #error CONFIG_INIT_CRITICAL is deprecated!
 #error Read section CONFIG_SKIP_LOWLEVEL_INIT in README.
 #endif
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 /*
  * For instrumenting read/write times (e.g. FLASH):

@@ -43,6 +43,8 @@
 #undef  CONFIG_DDR_ECC			    /* only for ECC DDR module */
 #define CONFIG_DDR_DLL                      /* possible DLL fix needed */
 
+#define CONFIG_FSL_LAW		1	/* Use common FSL init code */
+
 /* Using Localbus SDRAM to emulate flash before we can program the flash,
  * normally you only need a flash-boot image(u-boot.bin),if unsure undef this.
  * Not availabe for EVAL board
@@ -238,8 +240,6 @@
 #define INTEL_LXT971_PHY	1
 #endif
 
-#undef DEBUG
-
 /* Environment */
 #ifndef CFG_RAMBOOT
 #if defined(CONFIG_RAM_AS_FLASH)
@@ -318,13 +318,6 @@
  * the maximum mapped by the Linux kernel during initialization.
  */
 #define CFG_BOOTMAPSZ	(8 << 20) 	/* Initial Memory map for Linux */
-
-/* Cache Configuration */
-#define CFG_DCACHE_SIZE	32768
-#define CFG_CACHELINE_SIZE	32
-#if defined(CONFIG_CMD_KGDB)
-#define CFG_CACHELINE_SHIFT	5	/* log base 2 of the above value */
-#endif
 
 /*
  * Internal Definitions

@@ -28,6 +28,7 @@
 
 #include <common.h>
 #include <mpc86xx.h>
+#include <asm/fsl_law.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -48,6 +49,10 @@ void cpu_init_f(void)
 
 	/* Clear initial global data */
 	memset ((void *) gd, 0, sizeof (gd_t));
+
+#ifdef CONFIG_FSL_LAW
+	init_laws();
+#endif
 
 	/* Map banks 0 and 1 to the FLASH banks 0 and 1 at preliminary
 	 * addresses - these have to be modified later when FLASH size
@@ -114,5 +119,8 @@ void cpu_init_f(void)
  */
 int cpu_init_r(void)
 {
+#ifdef CONFIG_FSL_LAW
+	disable_law(0);
+#endif
 	return 0;
 }

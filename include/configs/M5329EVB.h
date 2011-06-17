@@ -37,8 +37,6 @@
 #define CONFIG_MCF532x		/* define processor family */
 #define CONFIG_M5329		/* define processor type */
 
-#undef DEBUG
-
 #define CONFIG_MCFUART
 #define CFG_UART_PORT		(0)
 #define CONFIG_BAUDRATE		115200
@@ -213,7 +211,7 @@
 
 #ifdef NANDFLASH_SIZE
 #	define CFG_MAX_NAND_DEVICE	1
-#	define CFG_NAND_BASE		(CFG_CS2_BASE << 16)
+#	define CFG_NAND_BASE		CFG_CS2_BASE
 #	define CFG_NAND_SIZE		1
 #	define CFG_NAND_BASE_LIST	{ CFG_NAND_BASE }
 #	define NAND_MAX_CHIPS		1
@@ -224,7 +222,7 @@
 #	define CONFIG_JFFS2_PART_OFFSET	0x00000000
 #endif
 
-#define CFG_FLASH_BASE		(CFG_CS0_BASE << 16)
+#define CFG_FLASH_BASE		CFG_CS0_BASE
 
 /* Configuration for environment
  * Environment is embedded in u-boot in the second sector of the flash
@@ -254,12 +252,12 @@
 #define CFG_CS0_MASK		0x007f0001
 #define CFG_CS0_CTRL		0x00001fa0
 
-#define CFG_CS1_BASE		0x1000
+#define CFG_CS1_BASE		0x10000000
 #define CFG_CS1_MASK		0x001f0001
 #define CFG_CS1_CTRL		0x002A3780
 
 #ifdef NANDFLASH_SIZE
-#define CFG_CS2_BASE		0x2000
+#define CFG_CS2_BASE		0x20000000
 #define CFG_CS2_MASK		((NANDFLASH_SIZE << 20) | 1)
 #define CFG_CS2_CTRL		0x00001f60
 #endif

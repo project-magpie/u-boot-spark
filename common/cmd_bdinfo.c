@@ -159,7 +159,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
+#if defined(CONFIG_CMD_NET)
 	int i;
+#endif
 	bd_t *bd = gd->bd;
 
 	print_num ("mem start",		(ulong)bd->bi_memstart);
@@ -274,6 +276,37 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	print_IPaddr (bd->bi_ip_addr);
 #endif
 	printf ("\nbaudrate    = %d bps\n", bd->bi_baudrate);
+
+	return 0;
+}
+
+#elif defined(CONFIG_BLACKFIN)
+
+int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	int i;
+	bd_t *bd = gd->bd;
+
+	printf("U-Boot      = %s\n", bd->bi_r_version);
+	printf("CPU         = %s\n", bd->bi_cpu);
+	printf("Board       = %s\n", bd->bi_board_name);
+	printf("VCO         = %lu MHz\n", bd->bi_vco / 1000000);
+	printf("CCLK        = %lu MHz\n", bd->bi_cclk / 1000000);
+	printf("SCLK        = %lu MHz\n", bd->bi_sclk / 1000000);
+
+	print_num("boot_params", (ulong)bd->bi_boot_params);
+	print_num("memstart",    (ulong)bd->bi_memstart);
+	print_num("memsize",     (ulong)bd->bi_memsize);
+	print_num("flashstart",  (ulong)bd->bi_flashstart);
+	print_num("flashsize",   (ulong)bd->bi_flashsize);
+	print_num("flashoffset", (ulong)bd->bi_flashoffset);
+
+	puts("ethaddr     =");
+	for (i = 0; i < 6; ++i)
+		printf("%c%02X", i ? ':' : ' ', bd->bi_enetaddr[i]);
+	puts("\nip_addr     = ");
+	print_IPaddr(bd->bi_ip_addr);
+	printf("\nbaudrate    = %d bps\n", bd->bi_baudrate);
 
 	return 0;
 }
@@ -406,7 +439,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	return 0;
 }
 
-#else /* ! SH4 || PPC, which leaves MIPS */
+#else /* ! PPC, which leaves MIPS */
 
 int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
@@ -449,6 +482,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		print_num("-> size",	bd->bi_dram[i].size);
 	}
 
+#if defined(CONFIG_CMD_NET)
 	puts ("ethaddr     =");
 	for (i=0; i<6; ++i) {
 		printf ("%c%02X", i ? ':' : ' ', bd->bi_enetaddr[i]);
@@ -456,6 +490,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	puts  ( "\n"
 		"ip_addr     = ");
 	print_IPaddr (bd->bi_ip_addr);
+#endif
 	printf ("\n"
 		"baudrate    = %d bps\n", bd->bi_baudrate);
 

@@ -30,7 +30,25 @@
 #include <command.h>
 #include <asm/blackfin.h>
 #include <asm/io.h>
+#include <net.h>
 #include "ether_bf537.h"
+#include <asm/mach-common/bits/bootrom.h>
+
+/**
+ * is_valid_ether_addr - Determine if the given Ethernet address is valid
+ * @addr: Pointer to a six-byte array containing the Ethernet address
+ *
+ * Check that the Ethernet address (MAC) is not 00:00:00:00:00:00, is not
+ * a multicast address, and is not FF:FF:FF:FF:FF:FF.
+ *
+ * Return true if the address is valid.
+ */
+static inline int is_valid_ether_addr(const u8 * addr)
+{
+	/* FF:FF:FF:FF:FF:FF is a multicast address so we don't need to
+	 * explicitly check for it here. */
+	return !is_multicast_ether_addr(addr) && !is_zero_ether_addr(addr);
+}
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -100,7 +118,7 @@ int checkboard(void)
 void cf_outb(unsigned char val, volatile unsigned char *addr)
 {
 	*(addr) = val;
-	sync();
+	SSYNC();
 }
 
 unsigned char cf_inb(volatile unsigned char *addr)
@@ -108,7 +126,7 @@ unsigned char cf_inb(volatile unsigned char *addr)
 	volatile unsigned char c;
 
 	c = *(addr);
-	sync();
+	SSYNC();
 
 	return c;
 }
@@ -119,7 +137,7 @@ void cf_insw(unsigned short *sect_buf, unsigned short *addr, int words)
 
 	for (i = 0; i < words; i++)
 		*(sect_buf + i) = *(addr);
-	sync();
+	SSYNC();
 }
 
 void cf_outsw(unsigned short *addr, unsigned short *sect_buf, int words)
@@ -128,7 +146,7 @@ void cf_outsw(unsigned short *addr, unsigned short *sect_buf, int words)
 
 	for (i = 0; i < words; i++)
 		*(addr) = *(sect_buf + i);
-	sync();
+	SSYNC();
 }
 #endif				/* CONFIG_BFIN_IDE */
 

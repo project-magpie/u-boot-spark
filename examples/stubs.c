@@ -25,14 +25,14 @@ gd_t *global_data;
 	: : "i"(XF_ ## x * sizeof(void *)) : "eax", "ecx");
 #elif defined(CONFIG_PPC)
 /*
- * r29 holds the pointer to the global_data, r11 is a call-clobbered
+ * r2 holds the pointer to the global_data, r11 is a call-clobbered
  * register
  */
 #define EXPORT_FUNC(x) \
 	asm volatile (			\
 "	.globl " #x "\n"		\
 #x ":\n"				\
-"	lwz	%%r11, %0(%%r29)\n"	\
+"	lwz	%%r11, %0(%%r2)\n"	\
 "	lwz	%%r11, %1(%%r11)\n"	\
 "	mtctr	%%r11\n"		\
 "	bctr\n"				\
@@ -132,7 +132,7 @@ gd_t *global_data;
  */
 #define EXPORT_FUNC(x)			\
 	asm volatile (			\
-"       .globl _" #x "\n_"		\
+"	.globl _" #x "\n_"		\
 #x ":\n"				\
 "	P0 = [P5 + %0]\n"		\
 "	P0 = [P0 + %1]\n"		\
@@ -151,7 +151,7 @@ gd_t *global_data;
 		:					\
 		: "i"(offsetof(gd_t, jt)), "i"(XF_ ##x)	\
 		: "r8");
-#elif defined(CONFIG_ST40)
+#elif defined(CONFIG_ST40) /* QQQ - we should really use the CONFIG_SH version! */
 /*
  * r13 holds the pointer to the global_data (read-only).
  * r0 & r1 are call-clobbered (clobbered).
@@ -170,6 +170,22 @@ gd_t *global_data;
 	: [jt]   "i"(offsetof(gd_t, jt)),	\
 	  [func] "i"(XF_ ## x * sizeof(void *))	\
 	: "r0", "r1");
+#elif defined(CONFIG_SH)
+/*
+ * r13 holds the pointer to the global_data. r1 is a call clobbered.
+ */
+#define EXPORT_FUNC(x)					\
+	asm volatile (					\
+		"	.align	2\n"			\
+		"	.globl " #x "\n"		\
+		#x ":\n"				\
+		"	mov	r13, r1\n"		\
+		"	add	%0, r1\n"		\
+		"	add	%1, r1\n"		\
+		"	jmp	@r1\n"			\
+		"	nop\n"				\
+		"	nop\n"				\
+		: : "i"(offsetof(gd_t, jt)), "i"(XF_ ## x * sizeof(void *)) : "r1");
 #else
 #error stubs definition missing for this architecture
 #endif
@@ -193,10 +209,10 @@ extern unsigned long __bss_start, _end;
 
 void app_startup(char **argv)
 {
-	unsigned long * cp = &__bss_start;
+	unsigned char * cp = (unsigned char *) &__bss_start;
 
 	/* Zero out BSS */
-	while (cp < &_end) {
+	while (cp < (unsigned char *)&_end) {
 		*cp++ = 0;
 	}
 

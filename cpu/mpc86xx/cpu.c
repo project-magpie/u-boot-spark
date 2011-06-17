@@ -27,10 +27,8 @@
 #include <command.h>
 #include <asm/cache.h>
 #include <mpc86xx.h>
+#include <asm/fsl_law.h>
 
-#if defined(CONFIG_OF_FLAT_TREE)
-#include <ft_build.h>
-#endif
 
 int
 checkcpu(void)
@@ -41,6 +39,8 @@ checkcpu(void)
 	uint major, minor;
 	uint lcrr;		/* local bus clock ratio register */
 	uint clkdiv;		/* clock divider portion of lcrr */
+	volatile immap_t *immap = (immap_t *) CFG_IMMR;
+	volatile ccsr_gur_t *gur = &immap->im_gur;
 
 	puts("Freescale PowerPC\n");
 
@@ -54,8 +54,14 @@ checkcpu(void)
 
 	switch (ver) {
 	case PVR_VER(PVR_86xx):
-		puts("E600");
-		break;
+	{
+		uint msscr0 = mfspr(MSSCR0);
+		printf("E600 Core %d", (msscr0 & 0x20) ? 1 : 0 );
+		if (gur->pordevsr & MPC86xx_PORDEVSR_CORE1TE)
+			puts("\n    Core1Translation Enabled");
+		debug(" (MSSCR0=%x, PORDEVSR=%x)", msscr0, gur->pordevsr);
+	}
+	break;
 	default:
 		puts("Unknown");
 		break;
@@ -76,6 +82,9 @@ checkcpu(void)
 		puts("8641");
 	    }
 	    break;
+	case SVR_8610:
+		puts("8610");
+		break;
 	default:
 		puts("Unknown");
 		break;
@@ -257,62 +266,25 @@ dma_xfer(void *dest, uint count, void *src)
 #endif	/* CONFIG_DDR_ECC */
 
 
-#ifdef CONFIG_OF_FLAT_TREE
-void
-ft_cpu_setup(void *blob, bd_t *bd)
+/*
+ * Print out the state of various machine registers.
+ * Currently prints out LAWs and BR0/OR0
+ */
+void mpc86xx_reginfo(void)
 {
-	u32 *p;
-	ulong clock;
-	int len;
+	immap_t *immap = (immap_t *)CFG_IMMR;
+	ccsr_lbc_t *lbc = &immap->im_lbc;
 
-	clock = bd->bi_busfreq;
-	p = ft_get_prop(blob, "/cpus/" OF_CPU "/bus-frequency", &len);
-	if (p != NULL)
-		*p = cpu_to_be32(clock);
+	print_laws();
 
-	p = ft_get_prop(blob, "/" OF_SOC "/serial@4500/clock-frequency", &len);
-	if (p != NULL)
-		*p = cpu_to_be32(clock);
-
-	p = ft_get_prop(blob, "/" OF_SOC "/serial@4600/clock-frequency", &len);
-	if (p != NULL)
-		*p = cpu_to_be32(clock);
-
-#if defined(CONFIG_TSEC1)
-	p = ft_get_prop(blob, "/" OF_SOC "/ethernet@24000/mac-address", &len);
-	if (p != NULL)
-		memcpy(p, bd->bi_enetaddr, 6);
-	p = ft_get_prop(blob, "/" OF_SOC "/ethernet@24000/local-mac-address", &len);
-	if (p)
-		memcpy(p, bd->bi_enetaddr, 6);
-#endif
-
-#if defined(CONFIG_TSEC2)
-	p = ft_get_prop(blob, "/" OF_SOC "/ethernet@25000/mac-address", &len);
-	if (p != NULL)
-		memcpy(p, bd->bi_enet1addr, 6);
-	p = ft_get_prop(blob, "/" OF_SOC "/ethernet@25000/local-mac-address", &len);
-	if (p != NULL)
-		memcpy(p, bd->bi_enet1addr, 6);
-#endif
-
-#if defined(CONFIG_TSEC3)
-	p = ft_get_prop(blob, "/" OF_SOC "/ethernet@26000/mac-address", &len);
-	if (p != NULL)
-		memcpy(p, bd->bi_enet2addr, 6);
-	p = ft_get_prop(blob, "/" OF_SOC "/ethernet@26000/local-mac-address", &len);
-	if (p != NULL)
-		memcpy(p, bd->bi_enet2addr, 6);
-#endif
-
-#if defined(CONFIG_TSEC4)
-	p = ft_get_prop(blob, "/" OF_SOC "/ethernet@27000/mac-address", &len);
-	if (p != NULL)
-		memcpy(p, bd->bi_enet3addr, 6);
-	p = ft_get_prop(blob, "/" OF_SOC "/ethernet@27000/local-mac-address", &len);
-	if (p != NULL)
-		memcpy(p, bd->bi_enet3addr, 6);
-#endif
+	printf ("Local Bus Controller Registers\n"
+		"\tBR0\t0x%08X\tOR0\t0x%08X \n", in_be32(&lbc->br0), in_be32(&lbc->or0));
+	printf("\tBR1\t0x%08X\tOR1\t0x%08X \n", in_be32(&lbc->br1), in_be32(&lbc->or1));
+	printf("\tBR2\t0x%08X\tOR2\t0x%08X \n", in_be32(&lbc->br2), in_be32(&lbc->or2));
+	printf("\tBR3\t0x%08X\tOR3\t0x%08X \n", in_be32(&lbc->br3), in_be32(&lbc->or3));
+	printf("\tBR4\t0x%08X\tOR4\t0x%08X \n", in_be32(&lbc->br4), in_be32(&lbc->or4));
+	printf("\tBR5\t0x%08X\tOR5\t0x%08X \n", in_be32(&lbc->br5), in_be32(&lbc->or5));
+	printf("\tBR6\t0x%08X\tOR6\t0x%08X \n", in_be32(&lbc->br6), in_be32(&lbc->or6));
+	printf("\tBR7\t0x%08X\tOR7\t0x%08X \n", in_be32(&lbc->br7), in_be32(&lbc->or7));
 
 }
-#endif

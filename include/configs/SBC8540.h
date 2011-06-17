@@ -56,6 +56,7 @@
 #undef	CONFIG_PCI			/* pci ethernet support		*/
 #undef  CONFIG_ETHER_ON_FCC		/* cpm FCC ethernet support	*/
 
+#define CONFIG_FSL_LAW		1	/* Use common FSL init code */
 
 #define CONFIG_ENV_OVERWRITE
 
@@ -394,13 +395,6 @@
  * the maximum mapped by the Linux kernel during initialization.
  */
 #define CFG_BOOTMAPSZ		(8 << 20) /* Initial Memory map for Linux */
-
-/* Cache Configuration */
-#define CFG_DCACHE_SIZE		32768
-#define CFG_CACHELINE_SIZE	32
-#if defined(CONFIG_CMD_KGDB)
-  #define CFG_CACHELINE_SHIFT	5	/* log base 2 of the above value */
-#endif
 
 /*
  * Internal Definitions

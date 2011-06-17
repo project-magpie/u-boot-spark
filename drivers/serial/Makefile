@@ -35,6 +35,7 @@ COBJS-y += serial_max3100.o
 COBJS-y += serial_pl010.o
 COBJS-y += serial_pl011.o
 COBJS-y += serial_xuartlite.o
+COBJS-y += serial_sh.o
 COBJS-y += sh-sci.o
 COBJS-y += stm-asc.o
 COBJS-y += stm-dtf.o

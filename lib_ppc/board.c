@@ -87,6 +87,9 @@ void doc_init (void);
     defined(CONFIG_SOFT_I2C)
 #include <i2c.h>
 #endif
+#if defined(CONFIG_HARD_SPI)
+#include <spi.h>
+#endif
 #if defined(CONFIG_CMD_NAND)
 void nand_init (void);
 #endif
@@ -247,6 +250,16 @@ static int init_func_i2c (void)
 }
 #endif
 
+#if defined(CONFIG_HARD_SPI)
+static int init_func_spi (void)
+{
+	puts ("SPI:   ");
+	spi_init ();
+	puts ("ready\n");
+	return (0);
+}
+#endif
+
 /***********************************************************************/
 
 #if defined(CONFIG_WATCHDOG)
@@ -329,6 +342,9 @@ init_fnc_t *init_sequence[] = {
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 	init_func_i2c,
 #endif
+#if defined(CONFIG_HARD_SPI)
+	init_func_spi,
+#endif
 #if defined(CONFIG_DTT)		/* Digital Thermometers and Thermostats */
 	dtt_init,
 #endif
@@ -344,6 +360,20 @@ init_fnc_t *init_sequence[] = {
 
 	NULL,			/* Terminate this list */
 };
+
+#ifndef CONFIG_MAX_MEM_MAPPED
+#define CONFIG_MAX_MEM_MAPPED (256 << 20)
+#endif
+ulong get_effective_memsize(void)
+{
+#ifndef	CONFIG_VERY_BIG_RAM
+	return gd->ram_size;
+#else
+	/* limit stack to what we can reasonable map */
+	return ((gd->ram_size > CONFIG_MAX_MEM_MAPPED) ?
+		 CONFIG_MAX_MEM_MAPPED : gd->ram_size);
+#endif
+}
 
 /************************************************************************
  *
@@ -403,13 +433,7 @@ void board_init_f (ulong bootflag)
 	 */
 	len = (ulong)&_end - CFG_MONITOR_BASE;
 
-#ifndef	CONFIG_VERY_BIG_RAM
-	addr = CFG_SDRAM_BASE + gd->ram_size;
-#else
-	/* only allow stack below 256M */
-	addr = CFG_SDRAM_BASE +
-	       (gd->ram_size > 256 << 20) ? 256 << 20 : gd->ram_size;
-#endif
+	addr = CFG_SDRAM_BASE + get_effective_memsize();
 
 #ifdef CONFIG_LOGBUFFER
 	/* reserve kernel log buffer */
@@ -555,6 +579,9 @@ void board_init_f (ulong bootflag)
 	bd->bi_sccfreq = gd->scc_clk;
 	bd->bi_vco     = gd->vco_out;
 #endif /* CONFIG_CPM2 */
+#if defined(CONFIG_MPC512X)
+	bd->bi_ipsfreq = gd->ips_clk;
+#endif /* CONFIG_MPC512X */
 #if defined(CONFIG_MPC5xxx)
 	bd->bi_ipbfreq = gd->ipb_clk;
 	bd->bi_pcifreq = gd->pci_clk;
@@ -832,6 +859,11 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #if defined(CONFIG_SC3)
 	sc3_read_eeprom();
 #endif
+
+#ifdef CFG_ID_EEPROM
+	mac_read_from_eeprom();
+#endif
+
 	s = getenv ("ethaddr");
 #if defined (CONFIG_MBX) || \
     defined (CONFIG_RPXCLASSIC) || \
@@ -899,10 +931,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	}
 #endif
 
-#ifdef CFG_ID_EEPROM
-	mac_read_from_eeprom();
-#endif
-
 #if defined(CONFIG_TQM8xxL) || defined(CONFIG_TQM8260) || \
     defined(CONFIG_TQM8272) || \
     defined(CONFIG_CCM) || defined(CONFIG_KUP4K) || \
@@ -927,6 +955,11 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	/* Initialize the jump table for applications */
 	jumptable_init ();
+
+#if defined(CONFIG_API)
+	/* Initialize API */
+	api_init ();
+#endif
 
 	/* Initialize the console (after the relocation and devices init) */
 	console_init_r ();

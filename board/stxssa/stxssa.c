@@ -29,15 +29,13 @@
  */
 
 
-extern long int spd_sdram (void);
-
 #include <common.h>
 #include <pci.h>
 #include <asm/processor.h>
 #include <asm/immap_85xx.h>
 #include <ioports.h>
 #include <asm/io.h>
-#include <spd.h>
+#include <spd_sdram.h>
 #include <miiphy.h>
 
 long int fixed_sdram (void);
@@ -252,8 +250,7 @@ int
 board_early_init_f(void)
 {
 #if defined(CONFIG_PCI)
-	volatile immap_t *immr = (immap_t *)CFG_IMMR;
-	volatile ccsr_pcix_t *pci = &immr->im_pcix;
+	volatile ccsr_pcix_t *pci = (void *)(CFG_MPC85xx_PCIX_ADDR);
 
 	pci->peer &= 0xffffffdf; /* disable master abort */
 #endif
@@ -298,12 +295,10 @@ long int
 initdram (int board_type)
 {
 	long dram_size = 0;
-	extern long spd_sdram (void);
 
 #if defined(CONFIG_DDR_DLL)
 	{
-		volatile immap_t *immap = (immap_t *)CFG_IMMR;
-		volatile ccsr_gur_t *gur= &immap->im_gur;
+		volatile ccsr_gur_t *gur = (void *)(CFG_MPC85xx_GUTS_ADDR);
 		uint temp_ddrdll = 0;
 
 		/* Work around to stabilize DDR DLL */

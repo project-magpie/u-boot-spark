@@ -142,7 +142,7 @@ extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t *
 #define NAND_ECC_HW3_256	2
 /* Hardware ECC 3 byte ECC per 512 Byte data */
 #define NAND_ECC_HW3_512	3
-/* Hardware ECC 3 byte ECC per 512 Byte data */
+/* Hardware ECC 6 byte ECC per 512 Byte data */
 #define NAND_ECC_HW6_512	4
 /* Hardware ECC 8 byte ECC per 512 Byte data */
 #define NAND_ECC_HW8_512	6

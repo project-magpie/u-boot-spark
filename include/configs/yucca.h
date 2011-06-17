@@ -64,7 +64,7 @@
 #define CFG_PCI_TARGBASE	CFG_PCI_MEMBASE
 
 #define CFG_PCIE_MEMBASE	0xb0000000	/* mapped PCIe memory	*/
-#define CFG_PCIE_MEMSIZE	0x01000000
+#define CFG_PCIE_MEMSIZE	0x08000000	/* smallest incr for PCIe port */
 #define CFG_PCIE_BASE		0xe0000000	/* PCIe UTL regs */
 
 #define CFG_PCIE0_CFGBASE	0xc0000000
@@ -73,6 +73,9 @@
 #define CFG_PCIE0_XCFGBASE	0xc3000000
 #define CFG_PCIE1_XCFGBASE	0xc3001000
 #define CFG_PCIE2_XCFGBASE	0xc3002000
+
+/* base address of inbound PCIe window */
+#define CFG_PCIE_INBOUND_BASE	0x0000000400000000ULL
 
 /* System RAM mapped to PCI space */
 #define CONFIG_PCI_SYS_MEM_BUS	CFG_SDRAM_BASE
@@ -151,7 +154,7 @@
 #define CONFIG_ENV_OVERWRITE	1
 
 #define CONFIG_PREBOOT	"echo;"	\
-	"echo Type \"run flash_nfs\" to mount root filesystem over NFS;" \
+	"echo Type \\\"run flash_nfs\\\" to mount root filesystem over NFS;" \
 	"echo"
 
 #undef	CONFIG_BOOTARGS
@@ -172,7 +175,7 @@
 		"bootm ${kernel_addr} ${ramdisk_addr}\0"		\
 	"net_nfs=tftp 200000 ${bootfile};run nfsargs addip addtty;"     \
 		"bootm\0"						\
-	"rootpath=/opt/eldk/ppc_4xx\0"				\
+	"rootpath=/opt/eldk/ppc_4xx\0"					\
 	"bootfile=yucca/uImage\0"					\
 	"kernel_addr=E7F10000\0"					\
 	"ramdisk_addr=E7F20000\0"					\
@@ -181,8 +184,9 @@
 	"update=protect off 2:4-7;era 2:4-7;"				\
 		"cp.b ${fileaddr} FFFB0000 ${filesize};"		\
 		"setenv filesize;saveenv\0"				\
-	"upd=run load;run update\0"					\
+	"upd=run load update\0"						\
 	"pciconfighost=1\0"						\
+	"pcie_mode=RP:EP:EP\0"						\
 	""
 #define CONFIG_BOOTCOMMAND	"run flash_self"
 
@@ -320,14 +324,6 @@
  * the maximum mapped by the Linux kernel during initialization.
  */
 #define CFG_BOOTMAPSZ		(8 << 20)	/*Initial Memory map for Linux*/
-/*-----------------------------------------------------------------------
- * Cache Configuration
- */
-#define CFG_DCACHE_SIZE		8192	/* For AMCC 405 CPUs		*/
-#define CFG_CACHELINE_SIZE	32	/* ...				*/
-#if defined(CONFIG_CMD_KGDB)
-#define CFG_CACHELINE_SHIFT	5	/* log base 2 of the above value */
-#endif
 
 /*
  * Internal Definitions

@@ -27,7 +27,7 @@
 #include <i2c.h>
 #include <spd.h>
 #include <asm/mmu.h>
-
+#include <asm/fsl_law.h>
 
 #if defined(CONFIG_DDR_ECC) && !defined(CONFIG_ECC_INIT_VIA_DDRCONTROLLER)
 extern void dma_init(void);
@@ -196,7 +196,7 @@ spd_init(unsigned char i2c_address, unsigned int ddr_num,
 	spd_eeprom_t spd;
 	unsigned int n_ranks;
 	unsigned int rank_density;
-	unsigned int odt_rd_cfg, odt_wr_cfg;
+	unsigned int odt_rd_cfg, odt_wr_cfg, ba_bits;
 	unsigned int odt_cfg, mode_odt_enable;
 	unsigned int refresh_clk;
 #ifdef MPC86xx_DDR_SDRAM_CLK_CNTL
@@ -321,6 +321,10 @@ spd_init(unsigned char i2c_address, unsigned int ddr_num,
 		odt_wr_cfg = 1;		/* Assert ODT on writes to CS0 */
 	}
 
+	ba_bits = 0;
+	if (spd.nbanks == 0x8)
+		ba_bits = 1;
+
 #ifdef CONFIG_DDR_INTERLEAVE
 
 	if (dimm_num != 1) {
@@ -357,6 +361,7 @@ spd_init(unsigned char i2c_address, unsigned int ddr_num,
 #endif
 				    | (odt_rd_cfg << 20)
 				    | (odt_wr_cfg << 16)
+				    | (ba_bits << 14)
 				    | (spd.nrow_addr - 12) << 8
 				    | (spd.ncol_addr - 8) );
 
@@ -386,6 +391,7 @@ spd_init(unsigned char i2c_address, unsigned int ddr_num,
 		ddr->cs0_config = ( 1 << 31
 				    | (odt_rd_cfg << 20)
 				    | (odt_wr_cfg << 16)
+				    | (ba_bits << 14)
 				    | (spd.nrow_addr - 12) << 8
 				    | (spd.ncol_addr - 8) );
 
@@ -403,6 +409,7 @@ spd_init(unsigned char i2c_address, unsigned int ddr_num,
 			ddr->cs1_config = ( 1<<31
 					    | (odt_rd_cfg << 20)
 					    | (odt_wr_cfg << 16)
+					    | (ba_bits << 14)
 					    | (spd.nrow_addr - 12) << 8
 					    | (spd.ncol_addr - 8) );
 			debug("DDR: cs1_bnds   = 0x%08x\n", ddr->cs1_bnds);
@@ -422,6 +429,7 @@ spd_init(unsigned char i2c_address, unsigned int ddr_num,
 		ddr->cs2_config = ( 1 << 31
 				    | (odt_rd_cfg << 20)
 				    | (odt_wr_cfg << 16)
+				    | (ba_bits << 14)
 				    | (spd.nrow_addr - 12) << 8
 				    | (spd.ncol_addr - 8) );
 
@@ -439,6 +447,7 @@ spd_init(unsigned char i2c_address, unsigned int ddr_num,
 			ddr->cs3_config = ( 1<<31
 					    | (odt_rd_cfg << 20)
 					    | (odt_wr_cfg << 16)
+					    | (ba_bits << 14)
 					    | (spd.nrow_addr - 12) << 8
 					    | (spd.ncol_addr - 8) );
 			debug("DDR: cs3_bnds   = 0x%08x\n", ddr->cs3_bnds);
@@ -934,7 +943,7 @@ unsigned int enable_ddr(unsigned int ddr_num)
 	spd_eeprom_t spd1,spd2;
 	volatile ccsr_ddr_t *ddr;
 	unsigned sdram_cfg_1;
-	unsigned char sdram_type, mem_type, config, mod_attr;
+	unsigned char sdram_type, mem_type, mod_attr;
 	unsigned char d_init;
 	unsigned int no_dimm1=0, no_dimm2=0;
 
@@ -1008,6 +1017,10 @@ unsigned int enable_ddr(unsigned int ddr_num)
 		printf("No memory modules found for DDR controller %d!!\n", ddr_num);
 		return 0;
 	} else {
+
+#if defined(CONFIG_DDR_ECC)
+		unsigned char config;
+#endif
 		mem_type = no_dimm2 ? spd1.mem_type : spd2.mem_type;
 
 		/*
@@ -1113,9 +1126,8 @@ spd_sdram(void)
 	int memsize_ddr1_dimm2 = 0;
 	int memsize_ddr1 = 0;
 	unsigned int law_size_ddr1;
-	volatile immap_t *immap = (immap_t *)CFG_IMMR;
-	volatile ccsr_local_mcm_t *mcm = &immap->im_local_mcm;
 #ifdef CONFIG_DDR_INTERLEAVE
+	volatile immap_t *immap = (immap_t *)CFG_IMMR;
 	volatile ccsr_ddr_t *ddr1 = &immap->im_ddr1;
 #endif
 
@@ -1170,15 +1182,11 @@ spd_sdram(void)
 		/*
 		 * Set up LAWBAR for DDR 1 space.
 		 */
-		mcm->lawbar1 = ((CFG_DDR_SDRAM_BASE >> 12) & 0xfffff);
-		mcm->lawar1 = (LAWAR_EN
-			       | LAWAR_TRGT_IF_DDR_INTERLEAVED
-			       | (LAWAR_SIZE & law_size_interleaved));
-		debug("DDR: LAWBAR1=0x%08x\n", mcm->lawbar1);
-		debug("DDR: LAWAR1=0x%08x\n", mcm->lawar1);
+#ifdef CONFIG_FSL_LAW
+		set_law(1, CFG_DDR_SDRAM_BASE, law_size_interleaved, LAW_TRGT_IF_DDR_INTRLV);
+#endif
 		debug("Interleaved memory size is 0x%08lx\n", memsize_total);
 
-#ifdef	CONFIG_DDR_INTERLEAVE
 #if (CFG_PAGE_INTERLEAVING == 1)
 		printf("Page ");
 #elif (CFG_BANK_INTERLEAVING == 1)
@@ -1187,7 +1195,6 @@ spd_sdram(void)
 		printf("Super-bank ");
 #else
 		printf("Cache-line ");
-#endif
 #endif
 		printf("Interleaved");
 		return memsize_total * 1024 * 1024;
@@ -1230,12 +1237,9 @@ spd_sdram(void)
 		/*
 		 * Set up LAWBAR for DDR 1 space.
 		 */
-		mcm->lawbar1 = ((CFG_DDR_SDRAM_BASE >> 12) & 0xfffff);
-		mcm->lawar1 = (LAWAR_EN
-			       | LAWAR_TRGT_IF_DDR1
-			       | (LAWAR_SIZE & law_size_ddr1));
-		debug("DDR: LAWBAR1=0x%08x\n", mcm->lawbar1);
-		debug("DDR: LAWAR1=0x%08x\n", mcm->lawar1);
+#ifdef CONFIG_FSL_LAW
+		set_law(1, CFG_DDR_SDRAM_BASE, law_size_ddr1, LAW_TRGT_IF_DDR_1);
+#endif
 	}
 
 #if  (CONFIG_NUM_DDR_CONTROLLERS > 1)
@@ -1260,17 +1264,11 @@ spd_sdram(void)
 		/*
 		 * Set up LAWBAR for DDR 2 space.
 		 */
-		if (ddr1_enabled)
-			mcm->lawbar8 = (((memsize_ddr1 * 1024 * 1024) >> 12)
-					& 0xfffff);
-		else
-			mcm->lawbar8 = ((CFG_DDR_SDRAM_BASE >> 12) & 0xfffff);
-
-		mcm->lawar8 = (LAWAR_EN
-			       | LAWAR_TRGT_IF_DDR2
-			       | (LAWAR_SIZE & law_size_ddr2));
-		debug("\nDDR: LAWBAR8=0x%08x\n", mcm->lawbar8);
-		debug("DDR: LAWAR8=0x%08x\n", mcm->lawar8);
+#ifdef CONFIG_FSL_LAW
+		set_law(8,
+			(ddr1_enabled ? (memsize_ddr1 * 1024 * 1024) : CFG_DDR_SDRAM_BASE),
+			law_size_ddr2, LAW_TRGT_IF_DDR_2);
+#endif
 	}
 
 	debug("\nMemory size of DDR2 = 0x%08lx\n", memsize_ddr2);

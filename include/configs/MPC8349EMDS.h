@@ -29,8 +29,6 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#undef DEBUG
-
 /*
  * High Level Configuration Options
  */
@@ -341,11 +339,7 @@
 /* pass open firmware flat tree */
 #define CONFIG_OF_LIBFDT	1
 #define CONFIG_OF_BOARD_SETUP	1
-
-#define OF_CPU			"PowerPC,8349@0"
-#define OF_SOC			"soc8349@e0000000"
-#define OF_TBCLK		(bd->bi_busfreq / 4)
-#define OF_STDOUT_PATH		"/soc8349@e0000000/serial@4500"
+#define CONFIG_OF_STDOUT_VIA_ALIAS	1
 
 /* I2C */
 #define CONFIG_HARD_I2C			/* I2C with hardware support*/
@@ -358,6 +352,16 @@
 #define CFG_I2C_NOPROBES	{{0,0x69}}	/* Don't probe these addrs */
 #define CFG_I2C_OFFSET		0x3000
 #define CFG_I2C2_OFFSET		0x3100
+
+/* SPI */
+#define CONFIG_MPC8XXX_SPI
+#define CONFIG_HARD_SPI			/* SPI with hardware support */
+#undef CONFIG_SOFT_SPI			/* SPI bit-banged */
+
+/* GPIOs.  Used as SPI chip selects */
+#define CFG_GPIO1_PRELIM
+#define CFG_GPIO1_DIR		0xC0000000  /* SPI CS on 0, LED on 1 */
+#define CFG_GPIO1_DAT		0xC0000000  /* Both are active LOW */
 
 /* TSEC */
 #define CFG_TSEC1_OFFSET 0x24000
@@ -456,7 +460,7 @@
  */
 #ifndef CFG_RAMBOOT
 	#define CFG_ENV_IS_IN_FLASH	1
-	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + 0x40000)
+	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
 	#define CFG_ENV_SECT_SIZE	0x20000	/* 128K(one sector) for env */
 	#define CFG_ENV_SIZE		0x2000
 
@@ -530,13 +534,6 @@
  * the maximum mapped by the Linux kernel during initialization.
  */
 #define CFG_BOOTMAPSZ	(8 << 20)	/* Initial Memory map for Linux*/
-
-/* Cache Configuration */
-#define CFG_DCACHE_SIZE		32768
-#define CFG_CACHELINE_SIZE	32
-#if defined(CONFIG_CMD_KGDB)
-#define CFG_CACHELINE_SHIFT	5	/*log base 2 of the above value*/
-#endif
 
 #define CFG_RCWH_PCIHOST 0x80000000 /* PCIHOST  */
 
@@ -720,7 +717,7 @@
 #define CONFIG_BAUDRATE	 115200
 
 #define CONFIG_PREBOOT	"echo;"	\
-	"echo Type \"run flash_nfs\" to mount root filesystem over NFS;" \
+	"echo Type \\\"run flash_nfs\\\" to mount root filesystem over NFS;" \
 	"echo"
 
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
@@ -742,7 +739,7 @@
 	"load=tftp 100000 /tftpboot/mpc8349emds/u-boot.bin\0"		\
 	"update=protect off fe000000 fe03ffff; "			\
 		"era fe000000 fe03ffff; cp.b 100000 fe000000 ${filesize}\0"	\
-	"upd=run load;run update\0"					\
+	"upd=run load update\0"						\
 	"fdtaddr=400000\0"						\
 	"fdtfile=mpc8349emds.dtb\0"					\
 	""

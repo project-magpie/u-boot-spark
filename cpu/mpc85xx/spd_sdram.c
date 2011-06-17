@@ -27,6 +27,7 @@
 #include <i2c.h>
 #include <spd.h>
 #include <asm/mmu.h>
+#include <asm/fsl_law.h>
 
 
 #if defined(CONFIG_DDR_ECC) && !defined(CONFIG_ECC_INIT_VIA_DDRCONTROLLER)
@@ -53,8 +54,8 @@ picos_to_clk(int picos)
 {
 	int clks;
 
-	clks = picos / (2000000000 / (get_bus_freq(0) / 1000));
-	if (picos % (2000000000 / (get_bus_freq(0) / 1000)) != 0) {
+	clks = picos / (2000000000 / (get_ddr_freq(0) / 1000));
+	if (picos % (2000000000 / (get_ddr_freq(0) / 1000)) != 0) {
 		clks++;
 	}
 
@@ -171,8 +172,7 @@ unsigned int determine_refresh_rate(unsigned int spd_refresh)
 long int
 spd_sdram(void)
 {
-	volatile immap_t *immap = (immap_t *)CFG_IMMR;
-	volatile ccsr_ddr_t *ddr = &immap->im_ddr;
+	volatile ccsr_ddr_t *ddr = (void *)(CFG_MPC85xx_DDR_ADDR);
 	spd_eeprom_t spd;
 	unsigned int n_ranks;
 	unsigned int rank_density;
@@ -309,7 +309,7 @@ spd_sdram(void)
 	if ((SVR_VER(get_svr()) == SVR_8548_E) &&
 			(SVR_MJREV(get_svr()) == 1) &&
 			(spd.mem_type == SPD_MEMTYPE_DDR2)) {
-		volatile ccsr_gur_t *gur = &immap->im_gur;
+		volatile ccsr_gur_t *gur = (void *)(CFG_MPC85xx_GUTS_ADDR);
 		gur->ddrioovcr = (0x80000000	/* Enable */
 				  | 0x10000000);/* VSEL to 1.8V */
 	}
@@ -422,7 +422,7 @@ spd_sdram(void)
 	 * Adjust the CAS Latency to allow for bus speeds that
 	 * are slower than the DDR module.
 	 */
-	busfreq = get_bus_freq(0) / 1000000;	/* MHz */
+	busfreq = get_ddr_freq(0) / 1000000;	/* MHz */
 
 	effective_data_rate = max_data_rate;
 	if (busfreq < 90) {
@@ -1023,8 +1023,6 @@ spd_sdram(void)
 static unsigned int
 setup_laws_and_tlbs(unsigned int memsize)
 {
-	volatile immap_t *immap = (immap_t *)CFG_IMMR;
-	volatile ccsr_local_ecm_t *ecm = &immap->im_local_ecm;
 	unsigned int tlb_size;
 	unsigned int law_size;
 	unsigned int ram_tlb_index;
@@ -1073,22 +1071,9 @@ setup_laws_and_tlbs(unsigned int memsize)
 	ram_tlb_address = (unsigned int)CFG_DDR_SDRAM_BASE;
 	while (ram_tlb_address < (memsize * 1024 * 1024)
 	      && ram_tlb_index < 16) {
-		mtspr(MAS0, TLB1_MAS0(1, ram_tlb_index, 0));
-		mtspr(MAS1, TLB1_MAS1(1, 1, 0, 0, tlb_size));
-		mtspr(MAS2, TLB1_MAS2(E500_TLB_EPN(ram_tlb_address),
-				      0, 0, 0, 0, 0, 0, 0, 0));
-		mtspr(MAS3, TLB1_MAS3(E500_TLB_RPN(ram_tlb_address),
-				      0, 0, 0, 0, 0, 1, 0, 1, 0, 1));
-		asm volatile("isync;msync;tlbwe;isync");
-
-		debug("DDR: MAS0=0x%08x\n", TLB1_MAS0(1, ram_tlb_index, 0));
-		debug("DDR: MAS1=0x%08x\n", TLB1_MAS1(1, 1, 0, 0, tlb_size));
-		debug("DDR: MAS2=0x%08x\n",
-		      TLB1_MAS2(E500_TLB_EPN(ram_tlb_address),
-				0, 0, 0, 0, 0, 0, 0, 0));
-		debug("DDR: MAS3=0x%08x\n",
-		      TLB1_MAS3(E500_TLB_RPN(ram_tlb_address),
-				0, 0, 0, 0, 0, 1, 0, 1, 0, 1));
+		set_tlb(1, ram_tlb_address, ram_tlb_address,
+			MAS3_SX|MAS3_SW|MAS3_SR, 0,
+			0, ram_tlb_index, tlb_size, 1);
 
 		ram_tlb_address += (0x1000 << ((tlb_size - 1) * 2));
 		ram_tlb_index++;
@@ -1103,12 +1088,10 @@ setup_laws_and_tlbs(unsigned int memsize)
 	/*
 	 * Set up LAWBAR for all of DDR.
 	 */
-	ecm->lawbar1 = ((CFG_DDR_SDRAM_BASE >> 12) & 0xfffff);
-	ecm->lawar1 = (LAWAR_EN
-		       | LAWAR_TRGT_IF_DDR
-		       | (LAWAR_SIZE & law_size));
-	debug("DDR: LAWBAR1=0x%08x\n", ecm->lawbar1);
-	debug("DDR: LARAR1=0x%08x\n", ecm->lawar1);
+
+#ifdef CONFIG_FSL_LAW
+	set_law(1, CFG_DDR_SDRAM_BASE, law_size, LAW_TRGT_IF_DDR);
+#endif
 
 	/*
 	 * Confirm that the requested amount of memory was mapped.
@@ -1130,8 +1113,7 @@ ddr_enable_ecc(unsigned int dram_size)
 {
 	uint *p = 0;
 	uint i = 0;
-	volatile immap_t *immap = (immap_t *)CFG_IMMR;
-	volatile ccsr_ddr_t *ddr= &immap->im_ddr;
+	volatile ccsr_ddr_t *ddr= (void *)(CFG_MPC85xx_DDR_ADDR);
 
 	dma_init();
 

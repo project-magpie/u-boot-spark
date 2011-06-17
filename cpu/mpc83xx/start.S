@@ -462,7 +462,7 @@ init_e300_core: /* time t 10 */
 
 	li	r4, 0x556C
 	sth	r4, SWSRR@l(r3)
-	li	r4, 0xAA39
+	li	r4, -0x55C7
 	sth	r4, SWSRR@l(r3)
 #else
 	/* Disable Wathcdog  */
@@ -838,40 +838,6 @@ dcache_status:
 	.globl get_pvr
 get_pvr:
 	mfspr	r3, PVR
-	blr
-
-/*------------------------------------------------------------------------------- */
-/* Function:	 ppcDcbf */
-/* Description:	 Data Cache block flush */
-/* Input:	 r3 = effective address */
-/* Output:	 none. */
-/*------------------------------------------------------------------------------- */
-	.globl	ppcDcbf
-ppcDcbf:
-	dcbf	r0,r3
-	blr
-
-/*------------------------------------------------------------------------------- */
-/* Function:	 ppcDcbi */
-/* Description:	 Data Cache block Invalidate */
-/* Input:	 r3 = effective address */
-/* Output:	 none. */
-/*------------------------------------------------------------------------------- */
-	.globl	ppcDcbi
-ppcDcbi:
-	dcbi	r0,r3
-	blr
-
-/*--------------------------------------------------------------------------
- * Function:	 ppcDcbz
- * Description:	 Data Cache block zero.
- * Input:	 r3 = effective address
- * Output:	 none.
- *-------------------------------------------------------------------------- */
-
-	.globl	ppcDcbz
-ppcDcbz:
-	dcbz	r0,r3
 	blr
 
 	.globl	ppcDWstore

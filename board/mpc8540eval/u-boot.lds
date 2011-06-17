@@ -56,7 +56,6 @@ SECTIONS
   .text      :
   {
     cpu/mpc85xx/start.o	(.text)
-    board/mpc8540eval/init.o (.text)
     cpu/mpc85xx/traps.o (.text)
     cpu/mpc85xx/interrupts.o (.text)
     cpu/mpc85xx/cpu_init.o (.text)
@@ -129,7 +128,7 @@ SECTIONS
   __init_end = .;
 
   __bss_start = .;
-  .bss       :
+  .bss (NOLOAD)       :
   {
    *(.sbss) *(.scommon)
    *(.dynbss)
@@ -143,7 +142,6 @@ SECTIONS
   .bootpg   :
   {
     cpu/mpc85xx/start.o	(.bootpg)
-    board/mpc8540eval/init.o (.bootpg)
   } = 0xffff
 
   . = (. & 0xFFF80000) + 0x0007FFFC;

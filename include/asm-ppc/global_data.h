@@ -55,7 +55,7 @@ typedef	struct	global_data {
 #if defined(CONFIG_MPC83XX)
 	/* There are other clocks in the MPC83XX */
 	u32 csb_clk;
-#if defined (CONFIG_MPC834X) || defined(CONFIG_MPC831X)
+#if defined(CONFIG_MPC834X) || defined(CONFIG_MPC831X) || defined(CONFIG_MPC837X)
 	u32 tsec1_clk;
 	u32 tsec2_clk;
 	u32 usbdr_clk;
@@ -63,17 +63,32 @@ typedef	struct	global_data {
 #if defined (CONFIG_MPC834X)
 	u32 usbmph_clk;
 #endif /* CONFIG_MPC834X */
+#if defined(CONFIG_MPC8315)
+	u32 tdm_clk;
+#endif
+#if defined(CONFIG_MPC837X)
+	u32 sdhc_clk;
+#endif
 	u32 core_clk;
-	u32 i2c1_clk;
-	u32 i2c2_clk;
 	u32 enc_clk;
 	u32 lbiu_clk;
 	u32 lclk_clk;
 	u32 ddr_clk;
 	u32 pci_clk;
+#if defined(CONFIG_MPC837X)
+	u32 pciexp1_clk;
+	u32 pciexp2_clk;
+#endif
+#if defined(CONFIG_MPC837X) || defined(CONFIG_MPC8315)
+	u32 sata_clk;
+#endif
 #if defined(CONFIG_MPC8360)
 	u32  ddr_sec_clk;
 #endif /* CONFIG_MPC8360 */
+#endif
+#if defined(CONFIG_MPC83XX) || defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
+	u32 i2c1_clk;
+	u32 i2c2_clk;
 #endif
 #if defined(CONFIG_QE)
 	u32 qe_clk;
@@ -86,8 +101,9 @@ typedef	struct	global_data {
 	unsigned long	pci_clk;
 #endif
 #if defined(CONFIG_MPC512X)
-	u32 ipb_clk;
+	u32 ips_clk;
 	u32 csb_clk;
+	u32 pci_clk;
 #endif /* CONFIG_MPC512X */
 #if defined(CONFIG_MPC8220)
 	unsigned long   bExtUart;
@@ -107,6 +123,9 @@ typedef	struct	global_data {
 	unsigned int	dp_alloc_base;
 	unsigned int	dp_alloc_top;
 #endif
+#if defined(CONFIG_4xx)
+	u32  uart_clk;
+#endif /* CONFIG_4xx */
 #if defined(CFG_GT_6426x)
 	unsigned int	mirror_hack[16];
 #endif
@@ -147,7 +166,7 @@ typedef	struct	global_data {
 #define	GD_FLG_SILENT	0x00004		/* Silent mode				*/
 
 #if 1
-#define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r29")
+#define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r2")
 #else /* We could use plain global data, but the resulting code is bigger */
 #define XTRN_DECLARE_GLOBAL_DATA_PTR	extern
 #define DECLARE_GLOBAL_DATA_PTR     XTRN_DECLARE_GLOBAL_DATA_PTR \

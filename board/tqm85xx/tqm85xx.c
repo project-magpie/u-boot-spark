@@ -32,7 +32,6 @@
 #include <asm/processor.h>
 #include <asm/immap_85xx.h>
 #include <ioports.h>
-#include <spd.h>
 #include <flash.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -40,7 +39,6 @@ DECLARE_GLOBAL_DATA_PTR;
 extern flash_info_t flash_info[];	/* FLASH chips info */
 
 void local_bus_init (void);
-long int fixed_sdram (void);
 ulong flash_get_size (ulong base, int banknum);
 
 #ifdef CONFIG_PS2MULT
@@ -262,8 +260,7 @@ int checkboard (void)
 
 int misc_init_r (void)
 {
-	volatile immap_t    *immap = (immap_t *)CFG_IMMR;
-	volatile ccsr_lbc_t *memctl = &immap->im_lbc;
+	volatile ccsr_lbc_t *memctl = (void *)(CFG_MPC85xx_LBC_ADDR);
 
 	/*
 	 * Adjust flash start and offset to detected values
@@ -324,9 +321,8 @@ int misc_init_r (void)
  */
 void local_bus_init (void)
 {
-	volatile immap_t *immap = (immap_t *) CFG_IMMR;
-	volatile ccsr_gur_t *gur = &immap->im_gur;
-	volatile ccsr_lbc_t *lbc = &immap->im_lbc;
+	volatile ccsr_gur_t *gur = (void *)(CFG_MPC85xx_GUTS_ADDR);
+	volatile ccsr_lbc_t *lbc = (void *)(CFG_MPC85xx_LBC_ADDR);
 
 	uint clkdiv;
 	uint lbc_hz;

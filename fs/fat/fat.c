@@ -5,7 +5,6 @@
  *
  * 2002-07-28 - rjones@nexus-tech.net - ported to ppcboot v1.1.6
  * 2003-03-10 - kharris@nexus-tech.net - ported to uboot
- * 2010-08-11 - Sean.McGoogan@st.com - added invalid_cluster()
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -33,32 +32,6 @@
 #include <part.h>
 
 #if defined(CONFIG_CMD_FAT)
-
-
-/*
- * return TRUE if cluster number is "invalid", i.e.
- * out of range for "normal" data clusters.
- * Note, the upper range depends on the FAT size (12,16,32).
- */
-static inline int
-invalid_cluster(const fsdata * const mydata, const __u32 cluster)
-{
-	int result;
-
-	result = cluster <= 0x00000001ul ||
-		 cluster >= ((mydata->fatsize==32) ? 0x0ffffff0ul :
-			     (mydata->fatsize==16) ? 0x0000fff0ul :
-			     /* else, for FAT12 */   0x00000ff0ul);
-
-#if 0
-	printf("info: with FAT%2u, cluster=0x%06x is %s\n",
-		mydata->fatsize,
-		cluster,
-		result ? "INVALID!!!" : "okay.");
-#endif
-
-	return result;
-}
 
 /*
  * Convert a string to lowercase.
@@ -112,46 +85,41 @@ fat_register_device(block_dev_desc_t *dev_desc, int part_no)
 		/* no signature found */
 		return -1;
 	}
-	if(!strncmp((char *)&buffer[DOS_FS_TYPE_OFFSET],"FAT",3)) {
-		/* ok, we assume we are on a PBR only */
-		cur_part = 1;
-		part_offset=0;
-	} else {
 #if (defined(CONFIG_CMD_IDE) || \
      defined(CONFIG_CMD_SCSI) || \
      defined(CONFIG_CMD_USB) || \
-     (defined(CONFIG_MMC) && defined(CONFIG_LPC2292)) || \
-     defined(CONFIG_SYSTEMACE)          )
-		/* First we assume, there is a MBR */
-		if (!get_partition_info (dev_desc, part_no, &info)) {
-			part_offset = info.start;
-			cur_part = part_no;
-		} else if (!strncmp((char *)&buffer[DOS_FS_TYPE_OFFSET], "FAT", 3)) {
-			/* ok, we assume we are on a PBR only */
-			cur_part = 1;
-			part_offset = 0;
-		} else {
-			printf ("** Partition %d not valid on device %d **\n",
+     defined(CONFIG_MMC) || \
+     defined(CONFIG_SYSTEMACE) )
+	/* First we assume, there is a MBR */
+	if (!get_partition_info (dev_desc, part_no, &info)) {
+		part_offset = info.start;
+		cur_part = part_no;
+	} else if (!strncmp((char *)&buffer[DOS_FS_TYPE_OFFSET], "FAT", 3)) {
+		/* ok, we assume we are on a PBR only */
+		cur_part = 1;
+		part_offset = 0;
+	} else {
+		printf ("** Partition %d not valid on device %d **\n",
 				part_no, dev_desc->dev);
-			return -1;
-		}
-#else
-		if(!strncmp((char *)&buffer[DOS_FS_TYPE_OFFSET],"FAT",3)) {
-			/* ok, we assume we are on a PBR only */
-			cur_part = 1;
-			part_offset = 0;
-			info.start = part_offset;
-		} else {
-			/* FIXME we need to determine the start block of the
-			 * partition where the DOS FS resides. This can be done
-			 * by using the get_partition_info routine. For this
-			 * purpose the libpart must be included.
-			 */
-			part_offset = 32;
-			cur_part = 1;
-		}
-#endif
+		return -1;
 	}
+
+#else
+	if (!strncmp((char *)&buffer[DOS_FS_TYPE_OFFSET],"FAT",3)) {
+		/* ok, we assume we are on a PBR only */
+		cur_part = 1;
+		part_offset = 0;
+		info.start = part_offset;
+	} else {
+		/* FIXME we need to determine the start block of the
+		 * partition where the DOS FS resides. This can be done
+		 * by using the get_partition_info routine. For this
+		 * purpose the libpart must be included.
+		 */
+		part_offset = 32;
+		cur_part = 1;
+	}
+#endif
 	return 0;
 }
 
@@ -218,7 +186,7 @@ static void get_name (dir_entry *dirent, char *s_name)
 	if (*s_name == DELETED_FLAG)
 		*s_name = '\0';
 	else if (*s_name == aRING)
-		*s_name = 'å';
+		*s_name = '?';
 	downcase (s_name);
 }
 
@@ -384,7 +352,7 @@ get_contents(fsdata *mydata, dir_entry *dentptr, __u8 *buffer,
 			newclust = get_fatent(mydata, endclust);
 			if((newclust -1)!=endclust)
 				goto getit;
-			if (invalid_cluster(mydata, newclust)) {
+			if (CHECK_CLUST(newclust, mydata->fatsize)) {
 				FAT_DPRINT("curclust: 0x%x\n", newclust);
 				FAT_DPRINT("Invalid FAT entry\n");
 				return gotsize;
@@ -419,7 +387,7 @@ getit:
 		filesize -= actsize;
 		buffer += actsize;
 		curclust = get_fatent(mydata, endclust);
-		if (invalid_cluster(mydata, curclust)) {
+		if (CHECK_CLUST(curclust, mydata->fatsize)) {
 			FAT_DPRINT("curclust: 0x%x\n", curclust);
 			FAT_ERROR("Invalid FAT entry\n");
 			return gotsize;
@@ -491,7 +459,7 @@ get_vfatname(fsdata *mydata, int curclust, __u8 *cluster,
 
 		slotptr--;
 		curclust = get_fatent(mydata, curclust);
-		if (invalid_cluster(mydata, curclust)) {
+		if (CHECK_CLUST(curclust, mydata->fatsize)) {
 			FAT_DPRINT("curclust: 0x%x\n", curclust);
 			FAT_ERROR("Invalid FAT entry\n");
 			return -1;
@@ -523,7 +491,7 @@ get_vfatname(fsdata *mydata, int curclust, __u8 *cluster,
 
 	l_name[idx] = '\0';
 	if (*l_name == DELETED_FLAG) *l_name = '\0';
-	else if (*l_name == aRING) *l_name = 'å';
+	else if (*l_name == aRING) *l_name = '?';
 	downcase(l_name);
 
 	/* Return the real directory entry */
@@ -684,7 +652,7 @@ static dir_entry *get_dentfromdir (fsdata * mydata, int startsect,
 	    return retdent;
 	}
 	curclust = get_fatent (mydata, curclust);
-	if (invalid_cluster(mydata, curclust)) {
+	if (CHECK_CLUST(curclust, mydata->fatsize)) {
 	    FAT_DPRINT ("curclust: 0x%x\n", curclust);
 	    FAT_ERROR ("Invalid FAT entry\n");
 	    return NULL;
@@ -1020,7 +988,7 @@ file_fat_detectfs(void)
 #if defined(CONFIG_CMD_IDE) || \
     defined(CONFIG_CMD_SCSI) || \
     defined(CONFIG_CMD_USB) || \
-    (CONFIG_MMC)
+    defined(CONFIG_MMC)
 	printf("Interface:  ");
 	switch(cur_dev->if_type) {
 		case IF_TYPE_IDE :	printf("IDE"); break;

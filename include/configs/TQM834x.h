@@ -181,7 +181,7 @@ extern int tqm834x_num_flash_banks;
 #define CFG_INIT_SP_OFFSET	CFG_GBL_DATA_OFFSET
 
 #define CFG_MONITOR_LEN		(256 * 1024) /* Reserve 256 kB for Mon */
-#define CFG_MALLOC_LEN		(128 * 1024) /* Reserved for malloc */
+#define CFG_MALLOC_LEN		(256 * 1024) /* Reserve 256 kB for malloc */
 
 /*
  * Serial Port
@@ -302,7 +302,7 @@ extern int tqm834x_num_flash_banks;
 #ifndef CFG_RAMBOOT
 	#define CFG_ENV_IS_IN_FLASH	1
 	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + 0x40000)
-	#define CFG_ENV_SECT_SIZE	0x20000	/* 256K(one sector) for env */
+	#define CFG_ENV_SECT_SIZE	0x40000	/* 256K(one sector) for env */
 	#define CFG_ENV_SIZE		0x2000
 #else
 	#define CFG_NO_FLASH		1	/* Flash is not usable now */
@@ -335,6 +335,7 @@ extern int tqm834x_num_flash_banks;
 #define CONFIG_CMD_JFFS2
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_PING
+#define CONFIG_CMD_DHCP
 
 #if defined(CONFIG_PCI)
     #define CONFIG_CMD_PCI
@@ -377,15 +378,6 @@ extern int tqm834x_num_flash_banks;
  * the maximum mapped by the Linux kernel during initialization.
  */
 #define CFG_BOOTMAPSZ	(8 << 20)	/* Initial Memory map for Linux*/
-
-/*
- * Cache Configuration
- */
-#define CFG_DCACHE_SIZE		32768
-#define CFG_CACHELINE_SIZE	32
-#if defined(CONFIG_CMD_KGDB)
-#define CFG_CACHELINE_SHIFT	5	/*log base 2 of the above value*/
-#endif
 
 #define CFG_HRCW_LOW (\
 	HRCWL_LCL_BUS_TO_SCB_CLK_1X1 |\
@@ -500,24 +492,7 @@ extern int tqm834x_num_flash_banks;
  * Environment Configuration
  */
 
-#if defined(CONFIG_TSEC_ENET)
-#define CONFIG_HAS_ETH0
-#define CONFIG_ETHADDR		D2:DA:5E:44:BC:29
-#define CONFIG_HAS_ETH1
-#define CONFIG_ETH1ADDR		1E:F3:40:21:92:53
-#endif
-
-#define CONFIG_IPADDR		192.168.205.1
-
-#define CONFIG_HOSTNAME		tqm8349
-#define CONFIG_ROOTPATH		/opt/eldk/ppc_6xx
-#define CONFIG_BOOTFILE		/tftpboot/tqm83xx/uImage
-
-#define CONFIG_SERVERIP		192.168.1.1
-#define CONFIG_GATEWAYIP	192.168.1.1
-#define CONFIG_NETMASK		255.255.255.0
-
-#define CONFIG_LOADADDR		200000	/* default location for tftp and bootm */
+#define CONFIG_LOADADDR		400000	/* default location for tftp and bootm */
 
 #define CONFIG_BOOTDELAY	6	/* -1 disables auto-boot */
 #undef  CONFIG_BOOTARGS			/* the boot command will set bootargs */
@@ -525,14 +500,14 @@ extern int tqm834x_num_flash_banks;
 #define CONFIG_BAUDRATE		115200
 
 #define CONFIG_PREBOOT	"echo;"	\
-	"echo Type \"run flash_nfs\" to mount root filesystem over NFS;" \
+	"echo Type \\\"run flash_nfs\\\" to mount root filesystem over NFS;" \
 	"echo"
 
 #undef	CONFIG_BOOTARGS
 
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
 	"netdev=eth0\0"							\
-	"hostname=tqm83xx\0"						\
+	"hostname=tqm834x\0"						\
 	"nfsargs=setenv bootargs root=/dev/nfs rw "			\
 		"nfsroot=${serverip}:${rootpath}\0"			\
 	"ramargs=setenv bootargs root=/dev/ram rw\0"			\
@@ -544,16 +519,16 @@ extern int tqm834x_num_flash_banks;
 		"bootm ${kernel_addr}\0"				\
 	"flash_self=run ramargs addip addtty;"				\
 		"bootm ${kernel_addr} ${ramdisk_addr}\0"		\
-	"net_nfs=tftp 200000 ${bootfile};run nfsargs addip addtty;"     \
+	"net_nfs=tftp 400000 ${bootfile};run nfsargs addip addtty;"     \
 		"bootm\0"						\
 	"rootpath=/opt/eldk/ppc_6xx\0"					\
-	"bootfile=/tftpboot/tqm83xx/uImage\0"				\
+	"bootfile=/tftpboot/tqm834x/uImage\0"				\
 	"kernel_addr=80060000\0"					\
 	"ramdisk_addr=80160000\0"					\
-	"load=tftp 100000 /tftpboot/tqm83xx/u-boot.bin\0"		\
+	"load=tftp 100000 /tftpboot/tqm834x/u-boot.bin\0"		\
 	"update=protect off 80000000 8003ffff; "			\
 		"era 80000000 8003ffff; cp.b 100000 80000000 40000\0"	\
-	"upd=run load;run update\0"					\
+	"upd=run load update\0"						\
 	""
 
 #define CONFIG_BOOTCOMMAND	"run flash_self"
@@ -566,7 +541,7 @@ extern int tqm834x_num_flash_banks;
 #define MTDIDS_DEFAULT		"nor0=TQM834x-0"
 
 /* default mtd partition table */
-#define MTDPARTS_DEFAULT	"mtdparts=TQM834x-0:256k(u-boot),128k(env),"\
+#define MTDPARTS_DEFAULT	"mtdparts=TQM834x-0:256k(u-boot),256k(env),"\
 						"1m(kernel),2m(initrd),"\
 						"-(user);"\
 

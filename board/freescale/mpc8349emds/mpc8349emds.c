@@ -27,14 +27,11 @@
 #include <mpc83xx.h>
 #include <asm/mpc8349_pci.h>
 #include <i2c.h>
-#include <spd.h>
+#include <spi.h>
 #include <miiphy.h>
-#if defined(CONFIG_SPD_EEPROM)
 #include <spd_sdram.h>
-#endif
-#if defined(CONFIG_OF_FLAT_TREE)
-#include <ft_build.h>
-#elif defined(CONFIG_OF_LIBFDT)
+
+#if defined(CONFIG_OF_LIBFDT)
 #include <libfdt.h>
 #endif
 
@@ -253,19 +250,37 @@ void sdram_init(void)
 }
 #endif
 
+/*
+ * The following are used to control the SPI chip selects for the SPI command.
+ */
+#ifdef CONFIG_HARD_SPI
+
+#define SPI_CS_MASK	0x80000000
+
+void spi_eeprom_chipsel(int cs)
+{
+	volatile gpio83xx_t *iopd = &((immap_t *)CFG_IMMR)->gpio[0];
+
+	if (cs)
+		iopd->dat &= ~SPI_CS_MASK;
+	else
+		iopd->dat |=  SPI_CS_MASK;
+}
+
+/*
+ * The SPI command uses this table of functions for controlling the SPI
+ * chip selects.
+ */
+spi_chipsel_type spi_chipsel[] = {
+	spi_eeprom_chipsel,
+};
+int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
+
+#endif /* CONFIG_HARD_SPI */
+
 #if defined(CONFIG_OF_BOARD_SETUP)
 void ft_board_setup(void *blob, bd_t *bd)
 {
-#if defined(CONFIG_OF_FLAT_TREE)
-	u32 *p;
-	int len;
-
-	p = ft_get_prop(blob, "/memory/reg", &len);
-	if (p != NULL) {
-		*p++ = cpu_to_be32(bd->bi_memstart);
-		*p = cpu_to_be32(bd->bi_memsize);
-	}
-#endif
 	ft_cpu_setup(blob, bd);
 #ifdef CONFIG_PCI
 	ft_pci_setup(blob, bd);

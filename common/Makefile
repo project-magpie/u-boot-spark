@@ -55,7 +55,7 @@ COBJS-$(CONFIG_CMD_ELF) += cmd_elf.o
 COBJS-$(CONFIG_CMD_EXT2) += cmd_ext2.o
 COBJS-$(CONFIG_CMD_FAT) += cmd_fat.o
 COBJS-y += cmd_fdc.o
-COBJS-$(CONFIG_OF_LIBFDT) += cmd_fdt.o
+COBJS-$(CONFIG_OF_LIBFDT) += cmd_fdt.o fdt_support.o
 COBJS-$(CONFIG_CMD_FDOS) += cmd_fdos.o
 COBJS-$(CONFIG_CMD_FLASH) += cmd_flash.o
 ifdef CONFIG_FPGA
@@ -76,6 +76,7 @@ COBJS-y += cmd_nand.o
 COBJS-$(CONFIG_CMD_NET) += cmd_net.o
 COBJS-y += cmd_nvedit.o
 COBJS-y += cmd_onenand.o
+COBJS-$(CONFIG_CMD_OTP) += cmd_otp.o
 ifdef CONFIG_PCI
 COBJS-$(CONFIG_CMD_PCI) += cmd_pci.o
 endif
@@ -86,6 +87,8 @@ COBJS-$(CONFIG_CMD_REISER) += cmd_reiser.o
 COBJS-y += cmd_sata.o
 COBJS-$(CONFIG_CMD_SCSI) += cmd_scsi.o
 COBJS-$(CONFIG_CMD_SPI) += cmd_spi.o
+COBJS-$(CONFIG_CMD_STRINGS) += cmd_strings.o
+COBJS-$(CONFIG_CMD_TERMINAL) += cmd_terminal.o
 COBJS-$(CONFIG_CMD_UNIVERSE) += cmd_universe.o
 COBJS-$(CONFIG_CMD_USB) += cmd_usb.o
 COBJS-y += cmd_vfd.o
@@ -105,7 +108,6 @@ COBJS-y += env_onenand.o
 COBJS-y += env_nvram.o
 COBJS-y += env_nowhere.o
 COBJS-y += exports.o
-COBJS-y += fdt_support.o
 COBJS-y += flash.o
 COBJS-y += fpga.o
 COBJS-y += ft_build.o
