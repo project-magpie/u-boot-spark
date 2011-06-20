@@ -82,8 +82,7 @@
 #define CFG_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
 #define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
 #else
-#define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* NOR FLASH in P2 region */
-#define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
+#error This SoC is not supported in 29-bit mode, please enable SE-mode!
 #endif
 
 #define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */

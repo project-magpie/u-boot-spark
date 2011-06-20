@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2011 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -42,6 +42,16 @@
 
 #define TRUE			1
 #define FALSE			0
+
+
+	/*
+	 * The STx7108 is only supported in 32-bit (SE) mode,
+	 * and is not supported in 29-bit (legacy) mode.
+	 * We refuse to build, if this assertion is invalid.
+	 */
+#if !defined(CONFIG_SH_SE_MODE)
+#error This SoC is not supported in 29-bit mode, please enable SE-mode!
+#endif	/* !CONFIG_SH_SE_MODE */
 
 
 static void stx7108_clocks(void)
