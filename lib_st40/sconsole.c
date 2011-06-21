@@ -29,8 +29,7 @@
 
 #include "sconsole.h"
 
-#if	!defined(CONFIG_SH_SCIF_SERIAL) &&	\
-	!defined(CONFIG_STM_ASC_SERIAL) &&	\
+#if	!defined(CONFIG_STM_ASC_SERIAL) &&	\
 	!defined(CONFIG_STM_DTF_SERIAL)
 
 int serial_init (void)

@@ -33,10 +33,6 @@
 #ifdef CONFIG_STM_DTF_SERIAL
 
 
-#ifdef CONFIG_SH_SCIF_SERIAL
-#error Can not define CONFIG_SH_SCIF_SERIAL and CONFIG_STM_DTF_SERIAL at same time!
-#endif
-
 #ifdef CONFIG_STM_ASC_SERIAL
 #error Can not define CONFIG_STM_ASC_SERIAL and CONFIG_STM_DTF_SERIAL at same time!
 #endif
