@@ -56,8 +56,10 @@
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
+#if !defined(CONFIG_SPEAR1340)
 /* Solve issue #101435 - UHC blocks the BUSMATRIX */
 #define CONFIG_SPEAR1300_ISSUE_101435		1
+#endif
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
