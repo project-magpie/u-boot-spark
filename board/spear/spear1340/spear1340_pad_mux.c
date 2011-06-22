@@ -133,9 +133,9 @@ void enable_pad_mux(void)
 
 #if defined(CONFIG_NAND_FSMC)
 #if defined(CONFIG_SYS_FSMC_NAND_16BIT)
-	enable_fsmc_pad(DEV_WIDTH_16);
+	enable_fsmc_pad(16);
 #elif defined(CONFIG_SYS_FSMC_NAND_8BIT)
-	enable_fsmc_pad(DEV_WIDTH_8);
+	enable_fsmc_pad(8);
 #endif
 #endif
 
