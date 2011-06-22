@@ -53,7 +53,12 @@ int arch_cpu_init(void)
 #endif
 
 #if defined(CONFIG_DESIGNWARE_ETH)
+#if defined(CONFIG_SPEAR1340)
+	writel(PHY_IF_RGMII | CLK_SEL_PAD, &misc_p->gmac_clk_cfg);
+#else
 	writel(PHY_IF_GMII | CLK_SEL_PLL2, &misc_p->gmac_clk_cfg);
+#endif
+
 	perip1_clk_enb |= GETH_CLKEN;
 #endif
 
