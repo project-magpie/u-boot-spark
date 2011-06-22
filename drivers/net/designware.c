@@ -103,8 +103,10 @@ static void descs_init(struct eth_device *dev)
 static int mac_reset(struct eth_device *dev)
 {
 	struct dw_eth_dev *priv = dev->priv;
-	struct eth_mac_regs *mac_p = priv->mac_regs_p;
 	struct eth_dma_regs *dma_p = priv->dma_regs_p;
+#if  !defined(CONFIG_SPEAR13XX)
+	struct eth_mac_regs *mac_p = priv->mac_regs_p;
+#endif
 
 	int timeout = CONFIG_MACRESET_TIMEOUT;
 

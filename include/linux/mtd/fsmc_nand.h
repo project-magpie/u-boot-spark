@@ -24,6 +24,8 @@
 #ifndef __FSMC_NAND_H__
 #define __FSMC_NAND_H__
 
+#include <linux/mtd/nand.h>
+
 struct fsmc_regs {
 	u32 ctrl;			/* 0x00 */
 	u8 reserved_1[0x40 - 0x04];
