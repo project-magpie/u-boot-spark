@@ -300,7 +300,9 @@ struct stx7108_gmac_pin {
 	struct {
 		unsigned char port, pin, alt;
 	} pio[2];
-	enum { BYPASS = 1, CLOCK, PHY_CLOCK, DATA, DGTX } type;
+	enum { BYPASS = 1, CLOCK, PHY_CLOCK, DATA, DGTX, RMII_TXD,
+	       RMII_MDINT, RMII_MDIO, RMII_MDC, RMII_RXD, RMII_PHY_CLOCK
+	} type;
 	const struct stx7108_pioalt_pad_cfg *dir;
 };
 
@@ -389,21 +391,19 @@ static struct stx7108_gmac_pin stx7108_gmac_gmii_gtx_pins[] = {
 	{ { { 9, 2, 1 }, { 19, 0, 2 } }, CLOCK, IN  },		/* RXCLK */
 };
 
-/* At the time of writing the suggested retime configuration for
- * MII pads in RMII mode was "BYPASS"... */
 static struct stx7108_gmac_pin stx7108_gmac_rmii_pins[] = {
-	{ { { 9, 3, 2 }, { 15, 5, 3 } }, BYPASS, },		/* PHYCLK */
-	{ { { 6, 0, 1 }, { 16, 0, 2 } }, BYPASS, OUT },		/* TXD[0] */
-	{ { { 6, 1, 1 }, { 16, 1, 2 } }, BYPASS, OUT },		/* TXD[1] */
-	{ { { 7, 0, 1 }, { 17, 1, 2 } }, BYPASS, OUT },		/* TXER */
-	{ { { 7, 1, 1 }, { 15, 7, 2 } }, BYPASS, OUT },		/* TXEN */
-	{ { { 7, 4, 1 }, { 17, 4, 2 } }, BYPASS, BIDIR },	/* MDIO */
-	{ { { 7, 5, 1 }, { 17, 5, 2 } }, BYPASS, OUT },		/* MDC */
-	{ { { 7, 7, 1 }, { 15, 6, 2 } }, BYPASS, IN  },		/* MDINT */
-	{ { { 8, 0, 1 }, { 18, 0, 2 } }, BYPASS, IN  },		/* RXD[0] */
-	{ { { 8, 1, 1 }, { 18, 1, 2 } }, BYPASS, IN  },		/* RXD[1] */
-	{ { { 9, 0, 1 }, { 17, 6, 2 } }, BYPASS, IN  },		/* RXDV */
-	{ { { 9, 1, 1 }, { 17, 7, 2 } }, BYPASS, IN  },		/* RX_ER */
+	{ { { 9, 3, 2 }, { 15, 5, 3 } }, RMII_PHY_CLOCK, },	/* PHYCLK */
+	{ { { 6, 0, 1 }, { 16, 0, 2 } }, RMII_TXD, OUT },	/* TXD[0] */
+	{ { { 6, 1, 1 }, { 16, 1, 2 } }, RMII_TXD, OUT },	/* TXD[1] */
+	{ { { 7, 0, 1 }, { 17, 1, 2 } }, RMII_TXD, OUT },	/* TXER */
+	{ { { 7, 1, 1 }, { 15, 7, 2 } }, RMII_TXD, OUT },	/* TXEN */
+	{ { { 7, 4, 1 }, { 17, 4, 2 } }, RMII_MDIO, BIDIR },	/* MDIO */
+	{ { { 7, 5, 1 }, { 17, 5, 2 } }, RMII_MDC, OUT },	/* MDC */
+	{ { { 7, 7, 1 }, { 15, 6, 2 } }, RMII_MDINT, IN  },	/* MDINT */
+	{ { { 8, 0, 1 }, { 18, 0, 2 } }, RMII_RXD, IN  },	/* RXD[0] */
+	{ { { 8, 1, 1 }, { 18, 1, 2 } }, RMII_RXD, IN  },	/* RXD[1] */
+	{ { { 9, 0, 1 }, { 17, 6, 2 } }, RMII_RXD, IN  },	/* RXDV */
+	{ { { 9, 1, 1 }, { 17, 7, 2 } }, RMII_RXD, IN  },	/* RX_ER */
 };
 
 static struct stx7108_gmac_pin stx7108_gmac_reverse_mii_pins[] = {
@@ -551,7 +551,7 @@ extern void stx7108_configure_ethernet(
 		int portno = pin->pio[port].port;
 		int pinno = pin->pio[port].pin;
 		struct stx7108_pioalt_retime_cfg retime_cfg = {
-			-1, -1, -1, -1, -1, -1 /* -1 means "do not set */
+			-1, -1, -1, -1, -1, -1 /* -1 means "do not set" */
 		};
 
 		stx7108_pioalt_select(portno, pinno, pin->pio[port].alt);
@@ -593,6 +593,41 @@ extern void stx7108_configure_ethernet(
 			retime_cfg.clknotdata = 0;
 			retime_cfg.retime = 1;
 			retime_cfg.clk1notclk0 = port;
+			break;
+		case RMII_TXD:
+			retime_cfg.retime = 1;
+			retime_cfg.clk1notclk0 = 1;
+			retime_cfg.clknotdata = 0;
+			retime_cfg.double_edge = 0;
+			retime_cfg.invertclk = 0;
+			retime_cfg.delay_input = 0;
+			break;
+		case RMII_RXD:
+			retime_cfg.retime = 1;
+			retime_cfg.clk1notclk0 = 1;
+			retime_cfg.clknotdata = 0;
+			retime_cfg.double_edge = 0;
+			retime_cfg.invertclk = 0;
+			retime_cfg.delay_input = 2;
+			break;
+		case RMII_MDINT:
+			retime_cfg.retime = 0;
+			retime_cfg.clknotdata = 0;
+			retime_cfg.delay_input = 0;
+			break;
+		case RMII_MDIO:
+			retime_cfg.retime = 0;
+			retime_cfg.clknotdata = 0;
+			retime_cfg.delay_input = 3;
+			break;
+		case RMII_MDC:
+			/* fallthru */
+		case RMII_PHY_CLOCK:
+			retime_cfg.retime = 1;
+			retime_cfg.clk1notclk0 = 0;
+			retime_cfg.clknotdata = 1;
+			retime_cfg.invertclk = 0;
+			retime_cfg.delay_input = 0;
 			break;
 		default:
 			BUG();
