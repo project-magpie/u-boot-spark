@@ -181,6 +181,12 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define IP1001_PHY_ID		0x02430d90u
 #define IP1001_PHY_ID_MASK	0xfffffff0u
 
+#elif defined(CONFIG_STMAC_IP101A)	/* IC+ IP101A */
+
+/* IC+ IP101A phy identifier values */
+#define IP101A_PHY_ID		0x02430c54u
+#define IP101A_PHY_ID_MASK	0xffffffffu
+
 #elif defined(CONFIG_STMAC_78Q2123)	/* TERIDIAN 78Q2123 */
 
 /* TERIDIAN 78Q2123 phy identifier values */
@@ -330,6 +336,11 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "IC+ IP1001 found\n");
 			return phyaddr;
 		}
+#elif defined(CONFIG_STMAC_IP101A)
+		if ((id & IP101A_PHY_ID_MASK) == IP101A_PHY_ID) {
+			printf (STMAC "IC+ IP101A found\n");
+			return phyaddr;
+		}
 #elif defined(CONFIG_STMAC_78Q2123)
 		if ((id & TERIDIAN_PHY_ID_MASK) == TERIDIAN_PHY_ID) {
 			printf (STMAC "TERIDIAN 78Q2123 found\n");
@@ -390,6 +401,10 @@ static int stmac_phy_init (void)
 	 * reading the H/W PHY address from any register.  */
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #elif defined(CONFIG_STMAC_IP1001)
+	/* The IC+ IP1001 does not appear to support
+	 * reading the H/W PHY address from any register.  */
+#	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
+#elif defined(CONFIG_STMAC_IP101A)
 	/* The IC+ IP1001 does not appear to support
 	 * reading the H/W PHY address from any register.  */
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
