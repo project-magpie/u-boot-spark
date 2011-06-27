@@ -2876,6 +2876,16 @@ mb903se_config :		unconfig
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb903/config.tmp)
 	@$(MKCONFIG) -a mb903 sh sh mb903 st stx7108
 
+b2037se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/b2037
+	@echo "#define CONFIG_SH_STX7108    1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_B2037      1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE    1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2037/config.tmp)
+	@$(MKCONFIG) -a b2037 sh sh b2037 st stx7108
+
 mb704_config \
 mb704se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/mb704

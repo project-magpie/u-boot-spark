@@ -72,6 +72,7 @@
        defined(CONFIG_SH_MB837)		|| \
        defined(CONFIG_SH_HDK7108)	|| \
        defined(CONFIG_SH_MB903)		|| \
+       defined(CONFIG_SH_B2037)		|| \
        defined(CONFIG_SH_FLI7510)	|| \
        defined(CONFIG_SH_FLI7540)	|| \
        defined(CONFIG_SH_MB796)		|| \

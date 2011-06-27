@@ -403,6 +403,18 @@ set_pmb:
 	SH4_SET_PMB 4,0xa0,0x00, 128,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5,0xb0,0x00, 128		/* NOR FLASH CACHED */
 	SH4_SET_PMB 6,0xa8,0x08, 128,0,0,1	/* NAND FLASH UN-cached */
+#elif defined(CONFIG_SH_STX7108) && defined(CONFIG_SH_B2037)
+	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI1 (first-half)  UN-cached */
+	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI1 (first-half)  UN-cached */
+	#if CFG_SH_LMI_NEEDS_2_PMB_ENTRIES
+	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI1 (second-half) UN-cached */
+	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI1 (second-half) UN-cached */
+	#endif
+	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* SPI FLASH UN-cached */
+	SH4_SET_PMB 5,0xb0,0x00, 16		/* SPI FLASH CACHED */
+	SH4_SET_PMB 6,0xa8,0x08, 16,0,0,1	/* NAND FLASH UN-cached */
+	SH4_SET_PMB 7,0xab,0x0b, 16,0,0,1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 8,0xbb,0x0b, 16		/* NOR FLASH CACHED */
 #elif defined(CONFIG_SH_STX7111) && defined(CONFIG_SH_MB618)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI UN-cached */
