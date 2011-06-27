@@ -145,11 +145,16 @@
  */
 
 /*
- * There are 2 on-chip ST-GMACs.
+ * There is one on-chip ST-GMAC, which is routed to:
  *
- *	GMAC #0 is connected to MII(2x22) (JP2), for a off-board PHY
+ *	1)	on-package die (i.e. IC+ IP101A PHY), and ultimately
+ *		to the on-board RJ-45 (JP2)
  *
- *	GMAC #1 is connected to a on-board IC+ IP1001 PHY (UP1)
+ *	2)	on-board (2x22) MII connector (JP1), for an
+ *		external off-board PHY.
+ *
+ *	Currently, we only support the on-package die option (JP2),
+ *	i.e. the on-board IC+ IP101A PHY.
  */
 
 /* are we using the internal ST GMAC device ? */
@@ -160,13 +165,11 @@
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC0_BASE	0xfda88000ul	/* MII #0 (off-board, JP2) */
-#	define CFG_STM_STMAC1_BASE	0xfe730000ul	/* MII #1 (on-board, IC+ IP1001) */
-#	if 1
-#		define CFG_STM_STMAC_BASE	CFG_STM_STMAC1_BASE
-#		define CONFIG_STMAC_IP1001	/* IC+ IP1001 (UP1) */
-#	else
-#		define CFG_STM_STMAC_BASE	CFG_STM_STMAC0_BASE
+#	define CFG_STM_STMAC0_BASE	0xfda88000ul	/* MII #0 */
+#	define CFG_STM_STMAC_BASE	CFG_STM_STMAC0_BASE
+#	if 1					/* use the on-package PHY ? */
+#		define CONFIG_STMAC_IP101A	/* IC+ IP101A (JP2) */
+#	else					/* else, off-board, MII connector (JP1) */
 #		define CONFIG_STMAC_xxx		/* NOTE: users need to specify this! */
 #	endif
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */

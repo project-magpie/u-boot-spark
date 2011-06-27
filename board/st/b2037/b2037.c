@@ -77,18 +77,10 @@ static void configPIO(void)
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
 	 * Configure the Ethernet PHY Reset signal
-	 *	PIO15[4] == POWER_ON_ETH (a.k.a. ETH_RESET)
+	 *	PIO3[6] == POWER_ON_ETH (a.k.a. ETH_RESET)
 	 */
-	SET_PIO_PIN(ST40_PIO_BASE(15), 4, STPIO_OUT);
+	SET_PIO_PIN(ST40_PIO_BASE(3), 6, STPIO_OUT);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
-
-	/*
-	 * Some of the peripherals are powered by regulators
-	 * controlled by the following PIO line...
-	 *	PIO5[0] == POWER_ON
-	 */
-	SET_PIO_PIN(ST40_PIO_BASE(5), 0, STPIO_OUT);
-	STPIO_SET_PIN(ST40_PIO_BASE(5), 0, 1);
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -96,13 +88,12 @@ extern void stmac_phy_reset(void)
 {
 	/*
 	 * Reset the Ethernet PHY.
-	 * Note both PHYs share the *same* reset line.
 	 *
-	 *	PIO15[4] = POWER_ON_ETH (a.k.a. ETH_RESET)
+	 *	PIO3[6] = POWER_ON_ETH (a.k.a. ETH_RESET)
 	 */
-	STPIO_SET_PIN(ST40_PIO_BASE(15), 4, 0);
+	STPIO_SET_PIN(ST40_PIO_BASE(3), 6, 0);
 	udelay(10000);				/* 10 ms */
-	STPIO_SET_PIN(ST40_PIO_BASE(15), 4, 1);
+	STPIO_SET_PIN(ST40_PIO_BASE(3), 6, 1);
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
@@ -113,17 +104,12 @@ extern int board_init(void)
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/* Reset the PHY */
 	stmac_phy_reset();
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0, on MII JP2 */
+#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE
+		/* MII0: RMII with 25MHz External Clock  */
 	stx7108_configure_ethernet(0, &(struct stx7108_ethernet_config) {
-			.mode = stx7108_ethernet_mode_mii,
+			.mode = stx7108_ethernet_mode_rmii,
 			.ext_clk = 1,
 			.phy_bus = 0, });
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1, IC+ IP1001 (UP1) */
-	stx7108_configure_ethernet(1, &(struct stx7108_ethernet_config) {
-			.mode = stx7108_ethernet_mode_mii,
-		//QQQ	.mode = stx7108_ethernet_mode_gmii_gtx,
-			.ext_clk = 0,
-			.phy_bus = 1, });
 #else
 #error Unknown base address for the STM GMAC
 #endif
