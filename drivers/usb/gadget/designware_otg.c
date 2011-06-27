@@ -718,22 +718,16 @@ static int dwc_otg_pcd_handle_usb_reset_intr(void)
 	writel(gintmsk, &core_global_regs->gintmsk);
 
 	/* program fifo size for ep0 */
-	temp = readl(&core_global_regs->grxfsiz);
-	if ((temp & 0xFFFF) > 256) {
-		temp &= 0xFFFF0000;
-		temp |= 0x0100;
-		writel(temp, &core_global_regs->grxfsiz);
-	}
+
+	writel(0x200, &core_global_regs->grxfsiz);
+
 	temp = readl(&dev_if->in_ep_regs[0]->diepctl);
 	temp &= 0xFFC3FFFF; /* TxFNumBF = 0, bits 25:22 */
 	writel(temp, &dev_if->in_ep_regs[0]->diepctl);
 
 	temp = readl(&core_global_regs->gnptxfsiz);
-	if ((temp >> 16) > 512) {
-		temp &= 0x0000FFFF;
-		temp |= 0x02000000;
-		writel(temp, &core_global_regs->gnptxfsiz);
-	}
+
+	writel(0x2000000, &core_global_regs->gnptxfsiz);
 
 	/* Reset Device Address */
 	temp = readl(&dev_global_regs->dcfg);
