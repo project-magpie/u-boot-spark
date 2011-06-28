@@ -83,6 +83,11 @@
 #endif
 #define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
 #define CONFIG_DW_AUTONEG			1
+
+#ifdef CONFIG_SPEAR1340
+#define CONFIG_DW_SEARCH_PHY			1
+#endif
+
 #endif
 
 /* USBD driver configuration */
