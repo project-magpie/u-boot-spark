@@ -63,6 +63,20 @@ char *miiphy_get_current_dev (void);
 
 void miiphy_listdev (void);
 
+/* Interface Mode definitions */
+typedef enum {
+	PHY_INTERFACE_MODE_MII,
+	PHY_INTERFACE_MODE_GMII,
+	PHY_INTERFACE_MODE_SGMII,
+	PHY_INTERFACE_MODE_TBI,
+	PHY_INTERFACE_MODE_RMII,
+	PHY_INTERFACE_MODE_RGMII,
+	PHY_INTERFACE_MODE_RGMII_ID,
+	PHY_INTERFACE_MODE_RGMII_RXID,
+	PHY_INTERFACE_MODE_RGMII_TXID,
+	PHY_INTERFACE_MODE_RTBI
+} phy_interface_t;
+
 #ifdef CONFIG_BITBANGMII
 
 #define BB_MII_DEVNAME	"bb_miiphy"
