@@ -9,6 +9,7 @@
 #ifndef __MTD_MTD_H__
 #define __MTD_MTD_H__
 #include <linux/types.h>
+#include <stdint.h>
 #include <linux/mtd/mtd-abi.h>
 
 #define MAX_MTD_DEVICES 16

@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <linux/mtd/mtd.h>
+#include <linux/mtd/mtd-user.h>
 #include "fw_env.h"
 
 typedef unsigned char uchar;
