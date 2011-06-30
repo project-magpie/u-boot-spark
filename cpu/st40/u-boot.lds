@@ -66,7 +66,7 @@ SECTIONS
 
 	_uboot_end_data = .;
 
-	.bss ALIGN(0x4):
+	.bss ALIGN(0x4) (NOLOAD):
 	{
 		__bss_start = .;
 		*(.bss)
