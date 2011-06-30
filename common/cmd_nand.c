@@ -375,10 +375,10 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			set_timer(0);				/* start measuring */
 #endif	/* CONFIG_MEASURE_TIME */
 			if (read)
-				ret = nand->read_oob(nand, off, size, (size_t *) &size,
+				ret = nand->read_oob(nand, off, size, (size_t *)(void*) &size,
 						     (u_char *) addr);
 			else
-				ret = nand->write_oob(nand, off, size, (size_t *) &size,
+				ret = nand->write_oob(nand, off, size, (size_t *)(void*) &size,
 						      (u_char *) addr);
 #if defined(CONFIG_MEASURE_TIME)
 			duration = get_timer(0);		/* stop measuring */
