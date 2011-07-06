@@ -745,9 +745,14 @@ static int flash_write_cfiword (flash_info_t * info, ulong dest,
 				cfiword_t cword)
 {
 	void *dstaddr;
-	int flag;
+	int flag, retcode;
+	flash_sect_t sector;
 
 	dstaddr = map_physmem(dest, info->portwidth, MAP_NOCACHE);
+
+	/* put the flash in read mode */
+	sector = find_sector (info, dest);
+	flash_write_cmd (info, sector, 0, info->cmd_reset);
 
 	/* Check if Flash is (sufficiently) erased */
 	switch (info->portwidth) {
@@ -778,8 +783,8 @@ static int flash_write_cfiword (flash_info_t * info, ulong dest,
 	switch (info->vendor) {
 	case CFI_CMDSET_INTEL_EXTENDED:
 	case CFI_CMDSET_INTEL_STANDARD:
-		flash_write_cmd (info, 0, 0, FLASH_CMD_CLEAR_STATUS);
-		flash_write_cmd (info, 0, 0, FLASH_CMD_WRITE);
+		flash_write_cmd (info, sector, 0, FLASH_CMD_CLEAR_STATUS);
+		flash_write_cmd (info, sector, 0, FLASH_CMD_WRITE);
 		break;
 	case CFI_CMDSET_AMD_EXTENDED:
 	case CFI_CMDSET_AMD_STANDARD:
@@ -812,8 +817,10 @@ static int flash_write_cfiword (flash_info_t * info, ulong dest,
 
 	unmap_physmem(dstaddr, info->portwidth);
 
-	return flash_full_status_check (info, find_sector (info, dest),
+	retcode = flash_full_status_check (info, sector,
 					info->write_tout, "write");
+	flash_write_cmd (info, sector, 0, info->cmd_reset);
+	return retcode;
 }
 
 #ifdef CFG_FLASH_USE_BUFFER_WRITE
@@ -882,6 +889,7 @@ static int flash_write_cfibuffer (flash_info_t * info, ulong dest, uchar * cp,
 	switch (info->vendor) {
 	case CFI_CMDSET_INTEL_STANDARD:
 	case CFI_CMDSET_INTEL_EXTENDED:
+		flash_write_cmd (info, sector, 0, FLASH_CMD_RESET);
 		flash_write_cmd (info, sector, 0, FLASH_CMD_CLEAR_STATUS);
 		flash_write_cmd (info, sector, 0, FLASH_CMD_WRITE_TO_BUFFER);
 		retcode = flash_status_check (info, sector,
@@ -997,6 +1005,7 @@ static int flash_write_cfibuffer (flash_info_t * info, ulong dest, uchar * cp,
 
 out_unmap:
 	unmap_physmem(dst, len);
+	flash_write_cmd (info, sector, 0, FLASH_CMD_RESET);
 	return retcode;
 }
 #endif /* CFG_FLASH_USE_BUFFER_WRITE */
@@ -1074,8 +1083,10 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
 			if (flash_full_status_check
 			    (info, sect, info->erase_blk_tout, "erase")) {
 				rcode = 1;
-			} else
+			} else {
+				flash_write_cmd (info, sect, 0, info->cmd_reset);
 				putc ('.');
+			}
 		}
 	}
 	puts (" done\n");
@@ -1149,6 +1160,9 @@ void flash_print_info (flash_info_t * info)
 		int size;
 		int erased;
 		volatile unsigned long *flash;
+
+		/* make sure the sector is in read mode first */
+		flash_write_cmd (info, i, 0, info->cmd_reset);
 
 		/*
 		 * Check if whole sector is erased
@@ -1315,6 +1329,7 @@ int flash_real_protect (flash_info_t * info, long sector, int prot)
 			}
 		}
 	}
+	flash_write_cmd (info, sector, 0, info->cmd_reset);
 	return retcode;
 }
 
@@ -1772,10 +1787,20 @@ ulong flash_get_size (ulong base, int banknum)
 				switch (info->vendor) {
 				case CFI_CMDSET_INTEL_EXTENDED:
 				case CFI_CMDSET_INTEL_STANDARD:
+					/* for multi-bank devices, the READ_ID command
+					 * must be issued on a per sector basis */
+					flash_write_cmd (info, sect_cnt,
+                                                         info->cfi_offset,
+                                                         FLASH_CMD_READ_ID);
 					info->protect[sect_cnt] =
 						flash_isset (info, sect_cnt,
 							     FLASH_OFFSET_PROTECT,
 							     FLASH_STATUS_PROTECT);
+					/* for multi-bank devices, the RESET command
+					 * must be issued on a per sector basis */
+					flash_write_cmd (info, sect_cnt,
+                                                         info->cfi_offset,
+                                                         FLASH_CMD_RESET);
 					break;
 				default:
 					/* default: not protected */
@@ -1783,6 +1808,11 @@ ulong flash_get_size (ulong base, int banknum)
 				}
 
 				sect_cnt++;
+			}
+			switch (info->vendor) {
+			case CFI_CMDSET_INTEL_EXTENDED:
+			case CFI_CMDSET_INTEL_STANDARD:
+			    flash_write_cmd (info, 0, info->cfi_offset, FLASH_CMD_CFI);
 			}
 		}
 
