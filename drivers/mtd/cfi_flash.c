@@ -1206,6 +1206,7 @@ int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 	int aln;
 	cfiword_t cword;
 	int i, rc;
+	const ulong dot_stride = 16ul << 10;	/* 16 KiB */
 
 #ifdef CFG_FLASH_USE_BUFFER_WRITE
 	int buffered_size;
@@ -1273,6 +1274,10 @@ int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 			return rc;
 		wp += info->portwidth;
 		cnt -= info->portwidth;
+		/* print a dot every 'dot_stride' bytes */
+		/* Note: dependant on alignment may print one too many */
+		if ((wp % dot_stride) == 0x0ul)
+			putc ('.');
 	}
 #endif /* CFG_FLASH_USE_BUFFER_WRITE */
 	if (cnt == 0) {
