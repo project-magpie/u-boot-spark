@@ -22,6 +22,7 @@
  */
 
 #include <common.h>
+#include <miiphy.h>
 #include <netdev.h>
 #include <nand.h>
 #include <linux/mtd/st_smi.h>
@@ -66,8 +67,13 @@ int board_nand_init(struct nand_chip *nand)
 int board_eth_init(bd_t *bis)
 {
 	int ret = 0;
+	u32 interface = PHY_INTERFACE_MODE_RMII;
 #if defined(CONFIG_DESIGNWARE_ETH)
-	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY) >= 0)
+#if defined(CONFIG_DW_AUTONEG)
+	interface = PHY_INTERFACE_MODE_RGMII;
+#endif
+	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY,
+				interface) >= 0)
 		ret++;
 #endif
 	return ret;

@@ -68,8 +68,12 @@ int board_eth_init(bd_t *bis)
 #if defined(CONFIG_DESIGNWARE_ETH)
 	char *devname;
 	u16 phyid1, phyid2;
-
-	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY) >= 0)
+	u32 interface = PHY_INTERFACE_MODE_MII;
+#if defined(CONFIG_DW_AUTONEG)
+	interface = PHY_INTERFACE_MODE_GMII;
+#endif
+	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY,
+				interface) >= 0)
 		ret++;
 
 #ifdef CONFIG_MII
