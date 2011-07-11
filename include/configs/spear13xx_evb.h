@@ -242,13 +242,23 @@
 						"bootm 0x1600000"
 #endif
 
-#define CONFIG_BOOTARGS_NFS			"root=/dev/nfs ip=dhcp " \
-						"console=ttyAMA0,115200 " \
-						"init=/bin/sh"
 #define CONFIG_BOOTARGS				"console=ttyAMA0,115200 " \
-						"mem=128M "  \
 						"root="CONFIG_FSMTDBLK \
 						"rootfstype=jffs2"
+
+#define CONFIG_NFSBOOTCOMMAND						\
+	"bootp; "							\
+	"setenv bootargs root=/dev/nfs rw "				\
+	"nfsroot=$(serverip):$(rootpath) "				\
+	"ip=$(ipaddr):$(serverip):$(gatewayip):"			\
+			"$(netmask):$(hostname):$(netdev):off "		\
+			"console=ttyAMA0,115200 $(othbootargs);"	\
+	"bootm; "
+
+#define CONFIG_RAMBOOTCOMMAND						\
+	"setenv bootargs root=/dev/ram rw "				\
+		"console=ttyAMA0,115200 $(othbootargs);"		\
+	CONFIG_BOOTCOMMAND
 
 #define CONFIG_ENV_SIZE				0x02000
 
