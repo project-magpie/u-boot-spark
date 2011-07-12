@@ -103,13 +103,17 @@ static void descs_init(struct eth_device *dev)
 static int mac_reset(struct eth_device *dev)
 {
 	struct dw_eth_dev *priv = dev->priv;
-	struct eth_mac_regs *mac_p = priv->mac_regs_p;
 	struct eth_dma_regs *dma_p = priv->dma_regs_p;
+#if  !defined(CONFIG_SPEAR13XX)
+	struct eth_mac_regs *mac_p = priv->mac_regs_p;
+#endif
 
 	int timeout = CONFIG_MACRESET_TIMEOUT;
 
 	writel(DMAMAC_SRST, &dma_p->busmode);
+#if  !defined(CONFIG_SPEAR13XX)
 	writel(MII_PORTSELECT, &mac_p->conf);
+#endif
 
 	do {
 		if (!(readl(&dma_p->busmode) & DMAMAC_SRST))
@@ -160,6 +164,13 @@ static int dw_eth_init(struct eth_device *dev, bd_t *bis)
 
 	if (priv->speed != SPEED_1000M)
 		conf |= MII_PORTSELECT;
+
+	if ((priv->interface != PHY_INTERFACE_MODE_MII) &&
+		(priv->interface != PHY_INTERFACE_MODE_GMII)) {
+
+		if (priv->speed == SPEED_100M)
+			conf |= FES_100;
+	}
 
 	if (priv->duplex == FULL_DUPLEX)
 		conf |= FULLDPLXMODE;
@@ -479,7 +490,7 @@ static int dw_mii_write(char *devname, u8 addr, u8 reg, u16 val)
 }
 #endif
 
-int designware_initialize(u32 id, ulong base_addr, u32 phy_addr)
+int designware_initialize(u32 id, ulong base_addr, u32 phy_addr, u32 interface)
 {
 	struct eth_device *dev;
 	struct dw_eth_dev *priv;
@@ -512,6 +523,7 @@ int designware_initialize(u32 id, ulong base_addr, u32 phy_addr)
 	priv->dma_regs_p = (struct eth_dma_regs *)(base_addr +
 			DW_DMA_BASE_OFFSET);
 	priv->address = phy_addr;
+	priv->interface = interface;
 
 	if (mac_reset(dev) < 0)
 		return -1;

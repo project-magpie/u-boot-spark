@@ -24,7 +24,7 @@
 VERSION = 2010
 PATCHLEVEL = 03
 SUBLEVEL =
-EXTRAVERSION =-lsp-3.1.0
+EXTRAVERSION =-lsp-3.2.0-rc2
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -3073,11 +3073,17 @@ spear1300_usbtty_config \
 spear1300_usbtty_nand_config :	unconfig
 	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1300 spear spear13xx
 
-spear1310_config \
-spear1310_nand_config \
-spear1310_usbtty_config \
-spear1310_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1310 spear spear13xx
+spear1310_reva_config \
+spear1310_reva_nand_config \
+spear1310_reva_usbtty_config \
+spear1310_reva_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1310_reva spear spear13xx
+
+spear1340_config \
+spear1340_nand_config \
+spear1340_usbtty_config \
+spear1340_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1340 spear spear13xx
 
 spear900_config \
 spear900_nand_config \
@@ -3085,6 +3091,11 @@ spear900_usbtty_config \
 spear900_usbtty_nand_config :	unconfig
 	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear900 spear spear13xx
 
+spearR1801e_config \
+spearR1801e_nand_config \
+spearR1801e_usbtty_config \
+spearR1801e_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spearR1801e_evb arm arm_cortexa8 spearR1801e spear spear13xx
 
 suen3_config:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs km_arm keymile kirkwood

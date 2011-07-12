@@ -2863,6 +2863,9 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_TINY_GURNARD         2880
 #define MACH_TYPE_SPEAR1310            2881
 #define MACH_TYPE_SPEAR900             3061
+#define MACH_TYPE_SPEAR1340            3394
+#define MACH_TYPE_SPEAR1310_REVA       7777
+#define MACH_TYPE_SPEARR1801E          3464
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
@@ -37076,6 +37079,41 @@ extern unsigned int __machine_arch_type;
 # define machine_is_spear900()	(0)
 #endif
 
+#ifdef CONFIG_MACH_SPEAR1340
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_SPEAR1340
+# endif
+# define machine_is_spear1340()	(machine_arch_type == MACH_TYPE_SPEAR1340)
+#else
+# define machine_is_spear1340()	(0)
+#endif
+
+#ifdef CONFIG_MACH_SPEAR1310_REVA
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_SPEAR1310_REVA
+# endif
+# define machine_is_spear1310_reva()	(machine_arch_type == MACH_TYPE_SPEAR1310_REVA)
+#else
+# define machine_is_spear1310_reva()	(0)
+#endif
+
+#ifdef CONFIG_MACH_SPEARR1801E
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_SPEARR1801E
+# endif
+# define machine_is_spearR1801E()	(machine_arch_type == MACH_TYPE_SPEARR1801E)
+#else
+# define machine_is_spearR1801E()	(0)
+#endif
 
 /*
  * These have not yet been registered

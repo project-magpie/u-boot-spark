@@ -29,9 +29,14 @@
 #define CONFIG_SPEAR1300			1
 #endif
 
-#if defined(CONFIG_MK_spear1310)
+#if defined(CONFIG_MK_spear1310) && defined(CONFIG_MK_reva)
 #define CONFIG_SPEAR13XX			1
-#define CONFIG_SPEAR1310			1
+#define CONFIG_SPEAR1310_REVA			1
+#endif
+
+#if defined(CONFIG_MK_spear1340)
+#define CONFIG_SPEAR13XX			1
+#define CONFIG_SPEAR1340			1
 #endif
 
 #if defined(CONFIG_MK_spear900)
@@ -51,20 +56,18 @@
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
+#if !defined(CONFIG_SPEAR1340)
 /* Solve issue #101435 - UHC blocks the BUSMATRIX */
 #define CONFIG_SPEAR1300_ISSUE_101435		1
+#endif
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
 /* MMC configuration */
-
-#if 0
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_SPEAR_MMC
 #define CONFIG_CMD_MMC
-#endif
-
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
@@ -73,16 +76,28 @@
 #define CONFIG_DESIGNWARE_ETH
 #define CONFIG_NET_MULTI
 #define CONFIG_DW_ALTDESCRIPTOR			1
-/* #define CONFIG_DW_SEARCH_PHY			1 */
+#ifdef CONFIG_SPEAR1340
+#define CONFIG_DW0_PHY				1
+#else
 #define CONFIG_DW0_PHY				5
+#endif
 #define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
 #define CONFIG_DW_AUTONEG			1
+
+#ifdef CONFIG_SPEAR1340
+#define CONFIG_DW_SEARCH_PHY			1
+#endif
+
 #endif
 
 /* USBD driver configuration */
-#if defined(CONFIG_SPEAR_USBTTY)
-#define CONFIG_DW_UDC
+#if (defined(CONFIG_SPEAR_USBTTY))
 #define CONFIG_USB_DEVICE
+#ifdef CONFIG_SPEAR1340
+#define CONFIG_DW_OTG
+#else
+#define CONFIG_DW_UDC
+#endif
 #define CONFIG_USBD_HS
 #define CONFIG_USB_TTY
 
@@ -141,7 +156,11 @@
 #define CONFIG_SYS_FSMC_NAND_8BIT		1
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
 #define CONFIG_MTD_NAND_VERIFY_WRITE		1
+#if defined(CONFIG_SPEAR1340)
+#define CONFIG_SYS_NAND_BASE			(0xB0800000)
+#else
 #define CONFIG_SYS_NAND_BASE			(0xA0000000)
+#endif
 #define CONFIG_CMD_NAND
 
 /*
@@ -192,7 +211,12 @@
  */
 #define CONFIG_SYS_MONITOR_LEN			0x00040000
 #define CONFIG_ENV_SECT_SIZE			0x00010000
+
+#if !defined(CONFIG_SPEAR1340)
 #define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
+#else
+#define CONFIG_FSMTDBLK				"/dev/mtdblock4 "
+#endif
 
 #define CONFIG_BOOTCOMMAND			"bootm 0xe6050000"
 
@@ -206,20 +230,35 @@
 
 #define CONFIG_ENV_OFFSET			0x60000
 #define CONFIG_ENV_RANGE			0x10000
+
+#if !defined(CONFIG_SPEAR1340)
 #define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
+#else
+#define CONFIG_FSMTDBLK				"/dev/mtdblock8 "
+#endif
 
 #define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
 						"0x80000 0x4C0000; " \
 						"bootm 0x1600000"
 #endif
 
-#define CONFIG_BOOTARGS_NFS			"root=/dev/nfs ip=dhcp " \
-						"console=ttyAMA0,115200 " \
-						"init=/bin/sh"
 #define CONFIG_BOOTARGS				"console=ttyAMA0,115200 " \
-						"mem=128M "  \
 						"root="CONFIG_FSMTDBLK \
 						"rootfstype=jffs2"
+
+#define CONFIG_NFSBOOTCOMMAND						\
+	"bootp; "							\
+	"setenv bootargs root=/dev/nfs rw "				\
+	"nfsroot=$(serverip):$(rootpath) "				\
+	"ip=$(ipaddr):$(serverip):$(gatewayip):"			\
+			"$(netmask):$(hostname):$(netdev):off "		\
+			"console=ttyAMA0,115200 $(othbootargs);"	\
+	"bootm; "
+
+#define CONFIG_RAMBOOTCOMMAND						\
+	"setenv bootargs root=/dev/ram rw "				\
+		"console=ttyAMA0,115200 $(othbootargs);"		\
+	CONFIG_BOOTCOMMAND
 
 #define CONFIG_ENV_SIZE				0x02000
 

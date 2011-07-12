@@ -36,7 +36,7 @@ int arch_cpu_init(void)
 {
 	struct misc_regs *const misc_p =
 	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	u32 perip1_clk_enb, perip2_clk_enb;
+	u32 perip1_clk_enb, perip2_clk_enb, perip3_clk_enb;
 #if defined(CONFIG_SPEAR_MMC)
 	u32 perip_cfg;
 #endif
@@ -53,7 +53,12 @@ int arch_cpu_init(void)
 #endif
 
 #if defined(CONFIG_DESIGNWARE_ETH)
+#if defined(CONFIG_SPEAR1340)
+	writel(PHY_IF_RGMII | CLK_SEL_PLL2, &misc_p->gmac_clk_cfg);
+#else
 	writel(PHY_IF_GMII | CLK_SEL_PLL2, &misc_p->gmac_clk_cfg);
+#endif
+
 	perip1_clk_enb |= GETH_CLKEN;
 #endif
 
@@ -101,6 +106,10 @@ int arch_cpu_init(void)
 
 	writel(perip1_clk_enb, &misc_p->perip1_clk_enb);
 	writel(perip2_clk_enb, &misc_p->perip2_clk_enb);
+#ifdef CONFIG_SPEAR1340
+	perip3_clk_enb = readl(&misc_p->perip3_clk_enb);
+	writel(perip3_clk_enb, &misc_p->perip3_clk_enb);
+#endif
 
 #ifdef CONFIG_SPEAR1300_ISSUE_101435
 	{
@@ -143,8 +152,10 @@ int print_cpuinfo(void)
 {
 #if defined(CONFIG_SPEAR1300)
 	printf("CPU:   SPEAr1300\n");
-#elif defined(CONFIG_SPEAR1310)
-	printf("CPU:   SPEAr1310\n");
+#elif defined(CONFIG_SPEAR1310_REVA)
+	printf("CPU:   SPEAr1310_REVA\n");
+#elif defined(CONFIG_SPEAR1340)
+	printf("CPU:   SPEAr1340\n");
 #elif defined(CONFIG_SPEAR900)
 	printf("CPU:   SPEAr900\n");
 #endif
