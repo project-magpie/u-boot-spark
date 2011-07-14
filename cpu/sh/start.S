@@ -528,11 +528,22 @@ set_pmb:
 #endif	/* defined(CONFIG_SH_STB7100) */
 #undef  BASE
 
-	/* invalidate the ITLB, in case GDB put a 512 MiB page in slot #0 */
+	/*
+	 * Invalidate the ITLB, in case GDB put a 512 MiB page in slot #0.
+	 * Note: For SH4-200 series cores, we need to ensure that
+	 * we preserve the MMUCR.SE bit faithfully. For SH4-300 series
+	 * cores, the SE bit is actually in a different register (PASCR).
+	 */
 invalidate_itlb:
 	MOV_CONST32_R0 SH4_CCN_MMUCR
 	mov	#(SH4_MMUCR_TI), r1
-	mov.l	r1, @r0			/* MMUCR.TI = 1 */
+#ifdef CONFIG_CPU_SUBTYPE_SH4_2XX	/* it is an SH4-200 */
+	mov.l	@r0, r2			/* read the MMUCR */
+	mov	#(SH4_MMUCR_SE), r3
+	and	r3, r2			/* mask every bit, except MMUCR.SE */
+	or	r2, r1			/* OR in MMUCR.TI */
+#endif	/* CONFIG_CPU_SUBTYPE_SH4_2XX */
+	mov.l	r1, @r0			/* set MMUCR.TI, preserving MMUCR.SE */
 #endif	/* CONFIG_SH_SE_MODE */
 
 consider_hyperspace:
