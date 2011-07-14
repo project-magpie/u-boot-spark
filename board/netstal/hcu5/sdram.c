@@ -34,11 +34,11 @@
 #include <asm/processor.h>
 #include <asm/io.h>
 #include <asm/mmu.h>
+#include <asm/cache.h>
 #include <ppc440.h>
 
 void hcu_led_set(u32 value);
 void dcbz_area(u32 start_address, u32 num_bytes);
-void dflush(void);
 
 #define DDR_DCR_BASE 0x10
 #define ddrcfga  (DDR_DCR_BASE+0x0)   /* DDR configuration address reg */
@@ -69,8 +69,6 @@ void dflush(void);
 
 #define MY_TLB_WORD2_I_ENABLE TLB_WORD2_I_ENABLE
 	/* disable caching on DDR2 */
-
-void program_tlb(u32 phys_addr, u32 virt_addr, u32 size, u32 tlb_word2_i_value);
 
 void board_add_ram_info(int use_default)
 {
@@ -187,14 +185,14 @@ static void program_ecc(unsigned long start_address, unsigned long num_bytes)
 #endif
 
 	sync();
-	eieio();
 
 	puts(str);
 
 	/* ECC bit set method for cached memory */
 	/* Fast method, no noticeable delay */
 	dcbz_area(start_address, num_bytes);
-	dflush();
+	/* Write modified dcache lines back to memory */
+	clean_dcache_range(start_address, start_address + num_bytes);
 	blank_string(strlen(str));
 
 	/* Clear error status */

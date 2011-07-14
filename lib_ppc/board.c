@@ -38,6 +38,9 @@
 #if defined(CONFIG_CMD_IDE)
 #include <ide.h>
 #endif
+#if defined(CONFIG_CMD_SATA)
+#include <sata.h>
+#endif
 #if defined(CONFIG_CMD_SCSI)
 #include <scsi.h>
 #endif
@@ -115,6 +118,10 @@ DECLARE_GLOBAL_DATA_PTR;
 #define	TOTAL_MALLOC_LEN	(CFG_MALLOC_LEN + CFG_ENV_SIZE)
 #else
 #define	TOTAL_MALLOC_LEN	CFG_MALLOC_LEN
+#endif
+
+#if !defined(CFG_MEM_TOP_HIDE)
+#define CFG_MEM_TOP_HIDE	0
 #endif
 
 extern ulong __init_end;
@@ -425,6 +432,7 @@ void board_init_f (ulong bootflag)
 	 * relocate the code and continue running from DRAM.
 	 *
 	 * Reserve memory at end of RAM for (top down in that order):
+	 *  - area that won't get touched by U-Boot and Linux (optional)
 	 *  - kernel log buffer
 	 *  - protected RAM
 	 *  - LCD framebuffer
@@ -433,12 +441,26 @@ void board_init_f (ulong bootflag)
 	 */
 	len = (ulong)&_end - CFG_MONITOR_BASE;
 
+	/*
+	 * Subtract specified amount of memory to hide so that it won't
+	 * get "touched" at all by U-Boot. By fixing up gd->ram_size
+	 * the Linux kernel should now get passed the now "corrected"
+	 * memory size and won't touch it either. This should work
+	 * for arch/ppc and arch/powerpc. Only Linux board ports in
+	 * arch/powerpc with bootwrapper support, that recalculate the
+	 * memory size from the SDRAM controller setup will have to
+	 * get fixed.
+	 */
+	gd->ram_size -= CFG_MEM_TOP_HIDE;
+
 	addr = CFG_SDRAM_BASE + get_effective_memsize();
 
 #ifdef CONFIG_LOGBUFFER
+#ifndef CONFIG_ALT_LB_ADDR
 	/* reserve kernel log buffer */
 	addr -= (LOGBUFF_RESERVE);
 	debug ("Reserving %dk for kernel logbuffer at %08lx\n", LOGBUFF_LEN, addr);
+#endif
 #endif
 
 #ifdef CONFIG_PRAM
@@ -860,7 +882,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	sc3_read_eeprom();
 #endif
 
-#ifdef CFG_ID_EEPROM
+#if defined (CFG_ID_EEPROM) || defined (CFG_I2C_MAC_OFFSET)
 	mac_read_from_eeprom();
 #endif
 
@@ -1091,6 +1113,11 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 #endif
 
+#if defined(CONFIG_CMD_SATA)
+	puts ("SATA:  ");
+	sata_initialize ();
+#endif
+
 #ifdef CONFIG_LAST_STAGE_INIT
 	WATCHDOG_RESET ();
 	/*
@@ -1126,8 +1153,10 @@ void board_init_r (gd_t *id, ulong dest_addr)
 		pram=0;
 #endif
 #ifdef CONFIG_LOGBUFFER
+#ifndef CONFIG_ALT_LB_ADDR
 		/* Also take the logbuffer into account (pram is in kB) */
 		pram += (LOGBUFF_LEN+LOGBUFF_OVERHEAD)/1024;
+#endif
 #endif
 		sprintf ((char *)memsz, "%ldk", (bd->bi_memsize / 1024) - pram);
 		setenv ("mem", (char *)memsz);

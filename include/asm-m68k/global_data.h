@@ -47,6 +47,10 @@ typedef	struct	global_data {
 	unsigned long	vco_clk;
 	unsigned long	flb_clk;
 #endif
+#ifdef CONFIG_FSL_I2C
+	unsigned long	i2c1_clk;
+	unsigned long	i2c2_clk;
+#endif
 	unsigned long	ram_size;	/* RAM size */
 	unsigned long	reloc_off;	/* Relocation Offset */
 	unsigned long	reset_status;	/* reset status register at boot	*/
@@ -68,6 +72,7 @@ typedef	struct	global_data {
 #define	GD_FLG_RELOC	0x00001		/* Code was relocated to RAM		*/
 #define	GD_FLG_DEVINIT	0x00002		/* Devices have been initialized	*/
 #define	GD_FLG_SILENT	0x00004		/* Silent mode				*/
+#define	GD_FLG_POSTFAIL	0x00008		/* Critical POST test failed		*/
 
 #if 0
 extern gd_t *global_data;

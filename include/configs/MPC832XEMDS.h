@@ -346,7 +346,7 @@
 #define CFG_PCI_MMIO_BASE	0x90000000
 #define CFG_PCI_MMIO_PHYS	CFG_PCI_MMIO_BASE
 #define CFG_PCI_MMIO_SIZE	0x10000000	/* 256M */
-#define CFG_PCI_IO_BASE		0xE0300000
+#define CFG_PCI_IO_BASE		0x00000000
 #define CFG_PCI_IO_PHYS		0xE0300000
 #define CFG_PCI_IO_SIZE		0x100000	/* 1M */
 
@@ -572,7 +572,7 @@
 
 #define CONFIG_BAUDRATE	115200
 
-#define CONFIG_LOADADDR	200000	/* default location for tftp and bootm */
+#define CONFIG_LOADADDR	500000	/* default location for tftp and bootm */
 
 #define CONFIG_BOOTDELAY 6 	/* -1 disables auto-boot */
 #undef  CONFIG_BOOTARGS		/* the boot command will set bootargs */

@@ -306,7 +306,7 @@ spd_sdram(void)
 	 * Adjust DDR II IO voltage biasing.
 	 * Only 8548 rev 1 needs the fix
 	 */
-	if ((SVR_VER(get_svr()) == SVR_8548_E) &&
+	if ((SVR_SOC_VER(get_svr()) == SVR_8548_E) &&
 			(SVR_MJREV(get_svr()) == 1) &&
 			(spd.mem_type == SPD_MEMTYPE_DDR2)) {
 		volatile ccsr_gur_t *gur = (void *)(CFG_MPC85xx_GUTS_ADDR);
@@ -610,8 +610,8 @@ spd_sdram(void)
 	/*
 	 * Sneak in some Extended Refresh Recovery.
 	 */
-	ddr->ext_refrec = (trfc_high << 16);
-	debug("DDR: ext_refrec = 0x%08x\n", ddr->ext_refrec);
+	ddr->timing_cfg_3 = (trfc_high << 16);
+	debug("DDR: timing_cfg_3 = 0x%08x\n", ddr->timing_cfg_3);
 
 	ddr->timing_cfg_1 =
 	    (0

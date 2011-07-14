@@ -172,6 +172,7 @@ Matthias Fuchs <matthias.fuchs@esd-electronics.com>
 Niklaus Giger <niklaus.giger@netstal.com>
 
 	HCU4			PPC405GPr
+	MCU25			PPC405GPr
 	HCU5			PPC440EPx
 
 Frank Gottschling <fgottschling@eltec.de>
@@ -319,7 +320,9 @@ Stefan Roese <sr@denx.de>
 	alpr			PPC440GX
 	bamboo			PPC440EP
 	bunbinga		PPC405EP
+	canyonlands		PPC460EX
 	ebony			PPC440GP
+	glacier			PPC460GT
 	haleakala		PPC405EXr
 	katmai			PPC440SPe
 	kilauea			PPC405EX
@@ -404,6 +407,10 @@ Stephen Williams <steve@icarus.com>
 John Zhan <zhanz@sinovee.com>
 
 	svm_sc8xx		MPC8xx
+
+Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+	linkstation		MPC8241
 
 -------------------------------------------------------------------------
 
@@ -527,6 +534,11 @@ Dave Peverley <dpeverley@mpc-data.co.uk>
 
 	omap730p2		ARM926EJS
 
+Stelian Pop <stelian.pop@leadtechdesign.com>
+
+	at91cap9adk		ARM926EJS (AT91CAP9 SoC)
+	at91sam9260ek		ARM926EJS (AT91SAM9260 SoC)
+
 Stefan Roese <sr@denx.de>
 
 	ixdpg425		xscale
@@ -551,6 +563,10 @@ Greg Ungerer <greg.ungerer@opengear.com>
 Richard Woodruff <r-woodruff2@ti.com>
 
 	omap2420h4		ARM1136EJS
+
+Kyungmin Park <kyungmin.park@samsung.com>
+
+	apollon			ARM1136EJS
 
 Alex Züpke <azu@sysgo.de>
 
@@ -591,7 +607,7 @@ Thomas Lange <thomas@corelatus.se>
 	dbau1x00		MIPS32 Au1000
 	gth2			MIPS32 Au1000
 
-Vlad Lungu <vlad@comsys.ro>
+Vlad Lungu <vlad.lungu@windriver.com>
 	qemu_mips		MIPS32
 
 #########################################################################
@@ -652,10 +668,6 @@ Matthias Fuchs <matthias.fuchs@esd-electronics.com>
 
 	TASREG			MCF5249
 
-Zachary P. Landau <zachary.landau@labxtechnologies.com>
-
-	r5200			mcf52x2
-
 TsiChung Liew <Tsi-Chung.Liew@freescale.com>
 
 	M52277EVB		mcf5227x
@@ -692,14 +704,39 @@ Haavard Skinnemoen <hskinnemoen@atmel.com>
 #	Board			CPU					#
 #########################################################################
 
-Nobuhiro Iwmaatsu <iwamatsu@nigauri.org>
+Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
 
 	MS7750SE		SH7750
 	MS7722SE		SH7722
+	R7780MP			SH7780
+	R2DPlus			SH7751R
+
+Mark Jonas <mark.jonas@de.bosch.com>
+
+	mpr2			SH7720
 
 Yoshihiro Shimoda <shimoda.yoshihiro@renesas.com>
 
 	MS7720SE		SH7720
+
+Yusuke Goda <goda.yusuke@renesas.com>
+
+	MIGO-R			SH7722
+
+#########################################################################
+# Blackfin Systems:							#
+#									#
+# Maintainer Name, Email Address					#
+#	Board			CPU					#
+#########################################################################
+
+Mike Frysinger <vapier@gentoo.org>
+Blackfin Team <u-boot-devel@blackfin.uclinux.org>
+
+	BF533-EZKIT		BF533
+	BF533-STAMP		BF533
+	BF537-STAMP		BF537
+	BF561-EZKIT		BF561
 
 #########################################################################
 # End of MAINTAINERS list						#

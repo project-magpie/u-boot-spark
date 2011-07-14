@@ -239,11 +239,13 @@ static u32 flash_read32(void *addr)
 	return __raw_readl(addr);
 }
 
-static u64 flash_read64(void *addr)
+static u64 __flash_read64(void *addr)
 {
 	/* No architectures currently implement __raw_readq() */
 	return *(volatile u64 *)addr;
 }
+
+u64 flash_read64(void *addr)__attribute__((weak, alias("__flash_read64")));
 
 /*-----------------------------------------------------------------------
  */
@@ -363,6 +365,20 @@ static inline uchar flash_read_uchar (flash_info_t * info, uint offset)
 	flash_unmap (info, 0, offset, cp);
 	return retval;
 }
+
+/*-----------------------------------------------------------------------
+ * read a word at a port width address, assume 16bit bus
+ */
+static inline ushort flash_read_word (flash_info_t * info, uint offset)
+{
+	ushort *addr, retval;
+
+	addr = flash_map (info, 0, offset);
+	retval = flash_read16 (addr);
+	flash_unmap (info, 0, offset, addr);
+	return retval;
+}
+
 
 /*-----------------------------------------------------------------------
  * read a long word by picking the least significant byte of each maximum
@@ -848,24 +864,28 @@ static int flash_write_cfibuffer (flash_info_t * info, ulong dest, uchar * cp,
 	void *dst = map_physmem(dest, len, MAP_NOCACHE);
 	void *dst2 = dst;
 	int flag = 0;
+	uint offset = 0;
+	unsigned int shift;
 
 	switch (info->portwidth) {
 	case FLASH_CFI_8BIT:
-		cnt = len;
+		shift = 0;
 		break;
 	case FLASH_CFI_16BIT:
-		cnt = len >> 1;
+		shift = 1;
 		break;
 	case FLASH_CFI_32BIT:
-		cnt = len >> 2;
+		shift = 2;
 		break;
 	case FLASH_CFI_64BIT:
-		cnt = len >> 3;
+		shift = 3;
 		break;
 	default:
 		retcode = ERR_INVAL;
 		goto out_unmap;
 	}
+
+	cnt = len >> shift;
 
 	while ((cnt-- > 0) && (flag == 0)) {
 		switch (info->portwidth) {
@@ -911,23 +931,7 @@ static int flash_write_cfibuffer (flash_info_t * info, ulong dest, uchar * cp,
 		if (retcode == ERR_OK) {
 			/* reduce the number of loops by the width of
 			 * the port */
-			switch (info->portwidth) {
-			case FLASH_CFI_8BIT:
-				cnt = len;
-				break;
-			case FLASH_CFI_16BIT:
-				cnt = len >> 1;
-				break;
-			case FLASH_CFI_32BIT:
-				cnt = len >> 2;
-				break;
-			case FLASH_CFI_64BIT:
-				cnt = len >> 3;
-				break;
-			default:
-				retcode = ERR_INVAL;
-				goto out_unmap;
-			}
+			cnt = len >> shift;
 			flash_write_cmd (info, sector, 0, (uchar) cnt - 1);
 			while (cnt-- > 0) {
 				switch (info->portwidth) {
@@ -964,36 +968,34 @@ static int flash_write_cfibuffer (flash_info_t * info, ulong dest, uchar * cp,
 	case CFI_CMDSET_AMD_STANDARD:
 	case CFI_CMDSET_AMD_EXTENDED:
 		flash_unlock_seq(info,0);
-		flash_write_cmd (info, sector, 0, AMD_CMD_WRITE_TO_BUFFER);
+
+#ifdef CONFIG_FLASH_SPANSION_S29WS_N
+		offset = ((unsigned long)dst - info->start[sector]) >> shift;
+#endif
+		flash_write_cmd(info, sector, offset, AMD_CMD_WRITE_TO_BUFFER);
+		cnt = len >> shift;
+		flash_write_cmd(info, sector, offset, (uchar)cnt - 1);
 
 		switch (info->portwidth) {
 		case FLASH_CFI_8BIT:
-			cnt = len;
-			flash_write_cmd (info, sector, 0,  (uchar) cnt - 1);
 			while (cnt-- > 0) {
 				flash_write8(flash_read8(src), dst);
 				src += 1, dst += 1;
 			}
 			break;
 		case FLASH_CFI_16BIT:
-			cnt = len >> 1;
-			flash_write_cmd (info, sector, 0,  (uchar) cnt - 1);
 			while (cnt-- > 0) {
 				flash_write16(flash_read16(src), dst);
 				src += 2, dst += 2;
 			}
 			break;
 		case FLASH_CFI_32BIT:
-			cnt = len >> 2;
-			flash_write_cmd (info, sector, 0,  (uchar) cnt - 1);
 			while (cnt-- > 0) {
 				flash_write32(flash_read32(src), dst);
 				src += 4, dst += 4;
 			}
 			break;
 		case FLASH_CFI_64BIT:
-			cnt = len >> 3;
-			flash_write_cmd (info, sector, 0,  (uchar) cnt - 1);
 			while (cnt-- > 0) {
 				flash_write64(flash_read64(src), dst);
 				src += 8, dst += 8;
@@ -1207,6 +1209,27 @@ void flash_print_info (flash_info_t * info)
 }
 
 /*-----------------------------------------------------------------------
+ * This is used in a few places in write_buf() to show programming
+ * progress.  Making it a function is nasty because it needs to do side
+ * effect updates to digit and dots.  Repeated code is nasty too, so
+ * we define it once here.
+ */
+#ifdef CONFIG_FLASH_SHOW_PROGRESS
+#define FLASH_SHOW_PROGRESS(scale, dots, digit, dots_sub) \
+	dots -= dots_sub; \
+	if ((scale > 0) && (dots <= 0)) { \
+		if ((digit % 5) == 0) \
+			printf ("%d", digit / 5); \
+		else \
+			putc ('.'); \
+		digit--; \
+		dots += scale; \
+	}
+#else
+#define FLASH_SHOW_PROGRESS(scale, dots, digit, dots_sub)
+#endif
+
+/*-----------------------------------------------------------------------
  * Copy memory to flash, returns:
  * 0 - OK
  * 1 - write timeout
@@ -1224,6 +1247,20 @@ int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 #ifdef CFG_FLASH_USE_BUFFER_WRITE
 	int buffered_size;
 #endif
+#ifdef CONFIG_FLASH_SHOW_PROGRESS
+	int digit = CONFIG_FLASH_SHOW_PROGRESS;
+	int scale = 0;
+	int dots  = 0;
+
+	/*
+	 * Suppress if there are fewer than CONFIG_FLASH_SHOW_PROGRESS writes.
+	 */
+	if (cnt >= CONFIG_FLASH_SHOW_PROGRESS) {
+		scale = (int)((cnt + CONFIG_FLASH_SHOW_PROGRESS - 1) /
+			CONFIG_FLASH_SHOW_PROGRESS);
+	}
+#endif
+
 	/* get lower aligned address */
 	wp = (addr & ~(info->portwidth - 1));
 
@@ -1247,6 +1284,7 @@ int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 			return rc;
 
 		wp += i;
+		FLASH_SHOW_PROGRESS(scale, dots, digit, i);
 	}
 
 	/* handle the aligned part */
@@ -1276,6 +1314,7 @@ int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 		wp += i;
 		src += i;
 		cnt -= i;
+		FLASH_SHOW_PROGRESS(scale, dots, digit, i);
 	}
 #else
 	while (cnt >= info->portwidth) {
@@ -1291,8 +1330,10 @@ int write_buff (flash_info_t * info, uchar * src, ulong addr, ulong cnt)
 		/* Note: dependant on alignment may print one too many */
 		if ((wp % dot_stride) == 0x0ul)
 			putc ('.');
+		FLASH_SHOW_PROGRESS(scale, dots, digit, info->portwidth);
 	}
 #endif /* CFG_FLASH_USE_BUFFER_WRITE */
+
 	if (cnt == 0) {
 		return (0);
 	}
@@ -1444,17 +1485,29 @@ static void cmdset_amd_read_jedec_ids(flash_info_t *info)
 	flash_unlock_seq(info, 0);
 	flash_write_cmd(info, 0, info->addr_unlock1, FLASH_CMD_READ_ID);
 	udelay(1000); /* some flash are slow to respond */
+
 	info->manufacturer_id = flash_read_uchar (info,
 					FLASH_OFFSET_MANUFACTURER_ID);
-	info->device_id = flash_read_uchar (info,
-					FLASH_OFFSET_DEVICE_ID);
-	if (info->device_id == 0x7E) {
-		/* AMD 3-byte (expanded) device ids */
-		info->device_id2 = flash_read_uchar (info,
-					FLASH_OFFSET_DEVICE_ID2);
-		info->device_id2 <<= 8;
-		info->device_id2 |= flash_read_uchar (info,
-					FLASH_OFFSET_DEVICE_ID3);
+
+	switch (info->chipwidth){
+	case FLASH_CFI_8BIT:
+		info->device_id = flash_read_uchar (info,
+						FLASH_OFFSET_DEVICE_ID);
+		if (info->device_id == 0x7E) {
+			/* AMD 3-byte (expanded) device ids */
+			info->device_id2 = flash_read_uchar (info,
+						FLASH_OFFSET_DEVICE_ID2);
+			info->device_id2 <<= 8;
+			info->device_id2 |= flash_read_uchar (info,
+						FLASH_OFFSET_DEVICE_ID3);
+		}
+		break;
+	case FLASH_CFI_16BIT:
+		info->device_id = flash_read_word (info,
+						FLASH_OFFSET_DEVICE_ID);
+		break;
+	default:
+		break;
 	}
 	flash_write_cmd(info, 0, 0, AMD_CMD_RESET);
 }
@@ -1883,6 +1936,12 @@ unsigned long flash_init (void)
 {
 	unsigned long size = 0;
 	int i;
+#if defined(CFG_FLASH_AUTOPROTECT_LIST)
+	struct apl_s {
+		ulong start;
+		ulong size;
+	} apl[] = CFG_FLASH_AUTOPROTECT_LIST;
+#endif
 
 #ifdef CFG_FLASH_PROTECTION
 	char *s = getenv("unlock");
@@ -1975,6 +2034,17 @@ unsigned long flash_init (void)
 		       CFG_ENV_ADDR_REDUND,
 		       CFG_ENV_ADDR_REDUND + CFG_ENV_SIZE_REDUND - 1,
 		       flash_get_info(CFG_ENV_ADDR_REDUND));
+#endif
+
+#if defined(CFG_FLASH_AUTOPROTECT_LIST)
+	for (i = 0; i < (sizeof(apl) / sizeof(struct apl_s)); i++) {
+		debug("autoprotecting from %08x to %08x\n",
+		      apl[i].start, apl[i].start + apl[i].size - 1);
+		flash_protect (FLAG_PROTECT_SET,
+			       apl[i].start,
+			       apl[i].start + apl[i].size - 1,
+			       flash_get_info(apl[i].start));
+	}
 #endif
 	return (size);
 }

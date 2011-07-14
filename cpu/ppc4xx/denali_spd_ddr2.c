@@ -45,6 +45,7 @@
 #include <asm/io.h>
 #include <asm/processor.h>
 #include <asm/mmu.h>
+#include <asm/cache.h>
 
 #if defined(CONFIG_SPD_EEPROM) &&				\
 	(defined(CONFIG_440EPX) || defined(CONFIG_440GRX))
@@ -92,7 +93,6 @@
 extern int denali_wait_for_dlllock(void);
 extern void denali_core_search_data_eye(void);
 extern void dcbz_area(u32 start_address, u32 num_bytes);
-extern void dflush(void);
 
 /*
  * Board-specific Platform code can reimplement spd_ddr_init_hang () if needed
@@ -1093,10 +1093,10 @@ long int initdram(int board_type)
 
 	program_ddr0_06(dimm_ranks, iic0_dimm_addr, num_dimm_banks, sdram_freq);
 
-	/*------------------------------------------------------------------
+	/*
 	 * TODO: tFAW not found in SPD.  Value of 13 taken from Sequoia
-	 * board SDRAM, but may be overly concervate.
-	 *-----------------------------------------------------------------*/
+	 * board SDRAM, but may be overly conservative.
+	 */
 	mtsdram(DDR0_07, DDR0_07_NO_CMD_INIT_ENCODE(0) |
 		DDR0_07_TFAW_ENCODE(13) |
 		DDR0_07_AUTO_REFRESH_MODE_ENCODE(1) |
@@ -1181,26 +1181,30 @@ long int initdram(int board_type)
 	denali_wait_for_dlllock();
 
 #if defined(CONFIG_DDR_DATA_EYE)
-	/* -----------------------------------------------------------+
-	 * Perform data eye search if requested.
-	 * ----------------------------------------------------------*/
-	program_tlb(0, CFG_SDRAM_BASE, dram_size, TLB_WORD2_I_ENABLE);
+	/*
+	 * Map the first 1 MiB of memory in the TLB, and perform the data eye
+	 * search.
+	 */
+	program_tlb(0, CFG_SDRAM_BASE, TLB_1MB_SIZE, TLB_WORD2_I_ENABLE);
 	denali_core_search_data_eye();
 	denali_sdram_register_dump();
-	remove_tlb(CFG_SDRAM_BASE, dram_size);
+	remove_tlb(CFG_SDRAM_BASE, TLB_1MB_SIZE);
 #endif
 
 #if defined(CONFIG_ZERO_SDRAM) || defined(CONFIG_DDR_ECC)
 	program_tlb(0, CFG_SDRAM_BASE, dram_size, 0);
 	sync();
-	eieio();
 	/* Zero the memory */
 	debug("Zeroing SDRAM...");
-	dcbz_area(CFG_SDRAM_BASE, dram_size);
-	dflush();
+#if defined(CFG_MEM_TOP_HIDE)
+	dcbz_area(CFG_SDRAM_BASE, dram_size - CFG_MEM_TOP_HIDE);
+#else
+#error Please define CFG_MEM_TOP_HIDE (see README) in your board config file
+#endif
+	/* Write modified dcache lines back to memory */
+	clean_dcache_range(CFG_SDRAM_BASE, CFG_SDRAM_BASE + dram_size - CFG_MEM_TOP_HIDE);
 	debug("Completed\n");
 	sync();
-	eieio();
 	remove_tlb(CFG_SDRAM_BASE, dram_size);
 
 #if defined(CONFIG_DDR_ECC)
@@ -1211,7 +1215,6 @@ long int initdram(int board_type)
 		u32 val;
 
 		sync();
-		eieio();
 		/* Clear error status */
 		mfsdram(DDR0_00, val);
 		mtsdram(DDR0_00, val | DDR0_00_INT_ACK_ALL);
@@ -1229,7 +1232,6 @@ long int initdram(int board_type)
 		print_mcsr();
 #endif
 		sync();
-		eieio();
 	}
 #endif /* defined(CONFIG_DDR_ECC) */
 #endif /* defined(CONFIG_ZERO_SDRAM) || defined(CONFIG_DDR_ECC) */

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007
+ * (C) Copyright 2007-2008
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
  * See file CREDITS for list of people who contributed to this
@@ -27,12 +27,69 @@
 #include <asm/cache.h>
 #include <ppc4xx.h>
 
-#if defined(CONFIG_OF_LIBFDT)
+#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
 #include <libfdt.h>
 #include <libfdt_env.h>
 #include <fdt_support.h>
+#include <asm/4xx_pcie.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+void __ft_board_setup(void *blob, bd_t *bd)
+{
+	u32 val[4];
+	int rc;
+
+	ft_cpu_setup(blob, bd);
+
+	/* Fixup NOR mapping */
+	val[0] = 0;				/* chip select number */
+	val[1] = 0;				/* always 0 */
+	val[2] = gd->bd->bi_flashstart;
+	val[3] = gd->bd->bi_flashsize;
+	rc = fdt_find_and_setprop(blob, "/plb/opb/ebc", "ranges",
+				  val, sizeof(val), 1);
+	if (rc)
+		printf("Unable to update property NOR mapping, err=%s\n",
+		       fdt_strerror(rc));
+}
+void ft_board_setup(void *blob, bd_t *bd) __attribute__((weak, alias("__ft_board_setup")));
+
+/*
+ * Fixup all PCIe nodes by setting the device_type property
+ * to "pci-endpoint" instead is "pci" for endpoint ports.
+ * This property will get checked later by the Linux driver
+ * to properly configure the PCIe port in Linux (again).
+ */
+void fdt_pcie_setup(void *blob)
+{
+	const char *compat = "ibm,plb-pciex";
+	const char *prop = "device_type";
+	const char *prop_val = "pci-endpoint";
+	const u32 *port;
+	int no;
+	int rc;
+
+	/* Search first PCIe node */
+	no = fdt_node_offset_by_compatible(blob, -1, compat);
+	while (no != -FDT_ERR_NOTFOUND) {
+		port = fdt_getprop(blob, no, "port", NULL);
+		if (port == NULL) {
+			printf("WARNING: could not find port property\n");
+		} else {
+			if (is_end_point(*port)) {
+				rc = fdt_setprop(blob, no, prop, prop_val,
+						 strlen(prop_val) + 1);
+				if (rc < 0)
+					printf("WARNING: could not set %s for %s: %s.\n",
+					       prop, compat, fdt_strerror(rc));
+			}
+		}
+
+		/* Jump to next PCIe node */
+		no = fdt_node_offset_by_compatible(blob, no, compat);
+	}
+}
 
 void ft_cpu_setup(void *blob, bd_t *bd)
 {
@@ -46,8 +103,14 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 			     bd->bi_intfreq, 1);
 	do_fixup_by_path_u32(blob, "/plb", "clock-frequency", sys_info.freqPLB, 1);
 	do_fixup_by_path_u32(blob, "/plb/opb", "clock-frequency", sys_info.freqOPB, 1);
-	do_fixup_by_path_u32(blob, "/plb/opb/ebc", "clock-frequency",
-			     sys_info.freqEBC, 1);
+
+	if (fdt_path_offset(blob, "/plb/opb/ebc") >= 0)
+		do_fixup_by_path_u32(blob, "/plb/opb/ebc", "clock-frequency",
+			sys_info.freqEBC, 1);
+	else
+		do_fixup_by_path_u32(blob, "/plb/ebc", "clock-frequency",
+			sys_info.freqEBC, 1);
+
 	fdt_fixup_memory(blob, (u64)bd->bi_memstart, (u64)bd->bi_memsize);
 
 	/*
@@ -60,5 +123,10 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 	 * Note: aliases in the dts are required for this
 	 */
 	fdt_fixup_ethernet(blob, bd);
+
+	/*
+	 * Fixup all available PCIe nodes by setting the device_type property
+	 */
+	fdt_pcie_setup(blob);
 }
-#endif /* CONFIG_OF_LIBFDT */
+#endif /* CONFIG_OF_LIBFDT && CONFIG_OF_BOARD_SETUP */

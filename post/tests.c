@@ -27,8 +27,6 @@
 
 #include <common.h>
 
-#ifdef CONFIG_POST
-
 #include <post.h>
 
 extern int cache_post_test (int flags);
@@ -47,6 +45,13 @@ extern int sysmon_post_test (int flags);
 extern int dsp_post_test (int flags);
 extern int codec_post_test (int flags);
 extern int ecc_post_test (int flags);
+
+extern int dspic_init_post_test (int flags);
+extern int dspic_post_test (int flags);
+extern int gdc_post_test (int flags);
+extern int fpga_post_test (int flags);
+extern int lwmon5_watchdog_post_test(int flags);
+extern int sysmon1_post_test(int flags);
 
 extern int sysmon_init_f (void);
 
@@ -68,6 +73,9 @@ struct post_test post_list[] =
     },
 #endif
 #if CONFIG_POST & CFG_POST_WATCHDOG
+#if defined(CONFIG_POST_WATCHDOG)
+	CONFIG_POST_WATCHDOG,
+#else
     {
 	"Watchdog timer test",
 	"watchdog",
@@ -78,6 +86,7 @@ struct post_test post_list[] =
 	NULL,
 	CFG_POST_WATCHDOG
     },
+#endif
 #endif
 #if CONFIG_POST & CFG_POST_I2C
     {
@@ -225,7 +234,7 @@ struct post_test post_list[] =
 	CFG_POST_DSP
     },
 #endif
-#if CONFIG_POST & CFG_POST_DSP
+#if CONFIG_POST & CFG_POST_CODEC
     {
 	"CODEC test",
 	"codec",
@@ -249,8 +258,21 @@ struct post_test post_list[] =
 	CFG_POST_ECC
     },
 #endif
+#if CONFIG_POST & CFG_POST_BSPEC1
+	CONFIG_POST_BSPEC1,
+#endif
+#if CONFIG_POST & CFG_POST_BSPEC2
+	CONFIG_POST_BSPEC2,
+#endif
+#if CONFIG_POST & CFG_POST_BSPEC3
+	CONFIG_POST_BSPEC3,
+#endif
+#if CONFIG_POST & CFG_POST_BSPEC4
+	CONFIG_POST_BSPEC4,
+#endif
+#if CONFIG_POST & CFG_POST_BSPEC4
+	CONFIG_POST_BSPEC5,
+#endif
 };
 
 unsigned int post_list_size = sizeof (post_list) / sizeof (struct post_test);
-
-#endif /* CONFIG_POST */

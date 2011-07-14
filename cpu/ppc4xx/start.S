@@ -403,7 +403,8 @@ rsttlb:	tlbwe	r0,r1,0x0000	/* Invalidate all entries (V=0)*/
 2:
 
 #if defined(CONFIG_NAND_SPL)
-#if defined(CONFIG_440EPX) || defined(CONFIG_440GRX)
+#if defined(CONFIG_440EPX) || defined(CONFIG_440GRX) || \
+    defined(CONFIG_460EX) || defined(CONFIG_460GT)
 	/*
 	 * Enable internal SRAM (only on 440EPx/GRx, 440EP/GR have no OCM)
 	 */
@@ -415,6 +416,11 @@ rsttlb:	tlbwe	r0,r1,0x0000	/* Invalidate all entries (V=0)*/
 	mfdcr	r1,isram0_pmeg
 	and	r1,r1,r2		/* Disable pwr mgmt */
 	mtdcr	isram0_pmeg,r1
+#if defined(CONFIG_460EX) || defined(CONFIG_460GT)
+	lis	r1,0x4000		/* BAS = 8000_0000 */
+	ori	r1,r1,0x4580		/* 16k */
+	mtdcr	isram0_sb0cr,r1
+#endif
 #endif
 #if defined(CONFIG_440EP)
 	/*
@@ -672,7 +678,9 @@ _start:
 	/* 440EP & 440GR are only 440er PPC's without internal SRAM */
 #if !defined(CONFIG_440EP) && !defined(CONFIG_440GR)
 	/* not all PPC's have internal SRAM usable as L2-cache */
-#if defined(CONFIG_440GX) || defined(CONFIG_440SP) || defined(CONFIG_440SPE)
+#if defined(CONFIG_440GX) || \
+    defined(CONFIG_440SP) || defined(CONFIG_440SPE) || \
+    defined(CONFIG_460EX) || defined(CONFIG_460GT)
 	mtdcr	l2_cache_cfg,r0		/* Ensure L2 Cache is off */
 #endif
 
@@ -711,6 +719,10 @@ _start:
 	lis	r1, 0x0003
 	ori	r1,r1, 0x0984		/* fourth 64k */
 	mtdcr	isram0_sb3cr,r1
+#elif defined(CONFIG_460EX) || defined(CONFIG_460GT)
+	lis	r1,0x4000		/* BAS = 8000_0000 */
+	ori	r1,r1,0x4580		/* 16k */
+	mtdcr	isram0_sb0cr,r1
 #elif defined(CONFIG_440GP)
 	ori	r1,r1,0x0380		/* 8k rw */
 	mtdcr	isram0_sb0cr,r1
@@ -1370,7 +1382,8 @@ relocate_code:
 
 #if defined(CONFIG_440EP) || defined(CONFIG_440GR) || \
     defined(CONFIG_440EPX) || defined(CONFIG_440GRX) || \
-    defined(CONFIG_440SP) || defined(CONFIG_440SPE)
+    defined(CONFIG_440SP) || defined(CONFIG_440SPE) || \
+    defined(CONFIG_460EX) || defined(CONFIG_460GT)
 	/*
 	 * On some 440er platforms the cache is enabled in the first TLB (Boot-CS)
 	 * to speed up the boot process. Now this cache needs to be disabled.
@@ -1662,35 +1675,6 @@ trap_reloc:
 	sync
 	blr
 	function_epilog(dcbz_area)
-
-/*----------------------------------------------------------------------------+
-| dflush.  Assume 32K at vector address is cachable.
-+----------------------------------------------------------------------------*/
-	function_prolog(dflush)
-	mfmsr	r9
-	rlwinm	r8,r9,0,15,13
-	rlwinm	r8,r8,0,17,15
-	mtmsr	r8
-	mfspr	r8,dvlim
-	addi	r3,r0,0x0000
-	mtspr	dvlim,r3
-	mfspr	r3,ivpr
-	addi	r4,r0,1024
-	mtctr	r4
-..dflush_loop:
-	lwz	r6,0x0(r3)
-	addi	r3,r3,32
-	bdnz	..dflush_loop
-	addi	r3,r3,-32
-	mtctr	r4
-..ag:	dcbf	r0,r3
-	addi	r3,r3,-32
-	bdnz	..ag
-	mtspr	dvlim,r8
-	sync
-	mtmsr	r9
-	blr
-	function_epilog(dflush)
 #endif /* CONFIG_440 */
 #endif /* CONFIG_NAND_SPL */
 

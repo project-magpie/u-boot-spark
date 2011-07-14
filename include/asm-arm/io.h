@@ -38,8 +38,6 @@ static inline void sync(void)
  * that can be used to access the memory range with the caching
  * properties specified by "flags".
  */
-typedef unsigned long phys_addr_t;
-
 #define MAP_NOCACHE	(0)
 #define MAP_WRCOMBINE	(0)
 #define MAP_WRBACK	(0)
@@ -125,7 +123,7 @@ extern void __raw_readsl(unsigned int addr, void *data, int longlen);
  * only.  Their primary purpose is to access PCI and ISA peripherals.
  *
  * Note that for a big endian machine, this implies that the following
- * big endian mode connectivity is in place, as described by numerious
+ * big endian mode connectivity is in place, as described by numerous
  * ARM documents:
  *
  *    PCI:  D0-D7   D8-D15 D16-D23 D24-D31

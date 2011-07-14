@@ -96,6 +96,7 @@
 
 #ifdef CONFIG_FEC_ENET
 #define CFG_DISCOVER_PHY
+#define CONFIG_MII_INIT		1
 #endif
 
 
@@ -456,10 +457,6 @@
 /* We don't use the 8259.
 */
 #define NR_8259_INTS	0
-
-/* Machine type
-*/
-#define _MACH_8xx (_MACH_fads)
 
 /*-----------------------------------------------------------------------
  * PCMCIA stuff

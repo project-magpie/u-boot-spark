@@ -583,10 +583,11 @@ uint mii_parse_RTL8211B_sr(uint mii_reg, struct tsec_private * priv)
 	uint speed;
 
 	mii_reg = read_phy_reg(priv, MIIM_RTL8211B_PHY_STATUS);
-	if ((mii_reg & MIIM_RTL8211B_PHYSTAT_LINK) &&
-		!(mii_reg & MIIM_RTL8211B_PHYSTAT_SPDDONE)) {
+	if (!(mii_reg & MIIM_RTL8211B_PHYSTAT_SPDDONE)) {
 		int i = 0;
 
+		/* in case of timeout ->link is cleared */
+		priv->link = 1;
 		puts("Waiting for PHY realtime link");
 		while (!(mii_reg & MIIM_RTL8211B_PHYSTAT_SPDDONE)) {
 			/* Timeout reached ? */
@@ -1266,6 +1267,41 @@ struct phy_info phy_info_VSC8244 = {
 			   },
 };
 
+struct phy_info phy_info_VSC8601 = {
+		0x00007042,
+		"Vitesse VSC8601",
+		4,
+		(struct phy_cmd[]){     /* config */
+				/* Override PHY config settings */
+				/* Configure some basic stuff */
+				{MIIM_CONTROL, MIIM_CONTROL_INIT, &mii_cr_init},
+#ifdef CFG_VSC8601_SKEWFIX
+				{MIIM_VSC8601_EPHY_CON,MIIM_VSC8601_EPHY_CON_INIT_SKEW,NULL},
+#if defined(CFG_VSC8601_SKEW_TX) && defined(CFG_VSC8601_SKEW_RX)
+				{MIIM_EXT_PAGE_ACCESS,1,NULL},
+#define VSC8101_SKEW	(CFG_VSC8601_SKEW_TX<<14)|(CFG_VSC8601_SKEW_RX<<12)
+				{MIIM_VSC8601_SKEW_CTRL,VSC8101_SKEW,NULL},
+				{MIIM_EXT_PAGE_ACCESS,0,NULL},
+#endif
+#endif
+				{miim_end,}
+				 },
+		(struct phy_cmd[]){     /* startup */
+				/* Read the Status (2x to make sure link is right) */
+				{MIIM_STATUS, miim_read, NULL},
+				/* Auto-negotiate */
+				{MIIM_STATUS, miim_read, &mii_parse_sr},
+				/* Read the status */
+				{MIIM_VSC8244_AUX_CONSTAT, miim_read,
+						&mii_parse_vsc8244},
+				{miim_end,}
+				},
+		(struct phy_cmd[]){     /* shutdown */
+				{miim_end,}
+				},
+};
+
+
 struct phy_info phy_info_dm9161 = {
 	0x0181b88,
 	"Davicom DM9161E",
@@ -1461,6 +1497,7 @@ struct phy_info *phy_info[] = {
 	&phy_info_dm9161,
 	&phy_info_lxt971,
 	&phy_info_VSC8244,
+	&phy_info_VSC8601,
 	&phy_info_dp83865,
 	&phy_info_rtl8211b,
 	&phy_info_generic,

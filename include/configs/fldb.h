@@ -226,6 +226,7 @@
 #	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
+#	define CFG_OHCI_USE_NPS			/* Force NoPowerSwitching mode */
 #	define LITTLEENDIAN
 #endif	/* ifdef CONFIG_ST40_STM_USB */
 

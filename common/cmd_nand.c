@@ -95,7 +95,7 @@ static inline int str2long(char *p, ulong *num)
 }
 
 static int
-arg_off_size(int argc, char *argv[], nand_info_t *nand, ulong *off, ulong *size)
+arg_off_size(int argc, char *argv[], nand_info_t *nand, ulong *off, size_t *size)
 {
 	int idx = nand_curr_device;
 #if defined(CONFIG_CMD_JFFS2) && defined(CONFIG_JFFS2_CMDLINE)
@@ -112,7 +112,7 @@ arg_off_size(int argc, char *argv[], nand_info_t *nand, ulong *off, ulong *size)
 			}
 			*off = part->offset;
 			if (argc >= 2) {
-				if (!(str2long(argv[1], size))) {
+				if (!(str2long(argv[1], (ulong *)size))) {
 					printf("'%s' is not a number\n", argv[1]);
 					return -1;
 				}
@@ -138,7 +138,7 @@ arg_off_size(int argc, char *argv[], nand_info_t *nand, ulong *off, ulong *size)
 	}
 
 	if (argc >= 2) {
-		if (!(str2long(argv[1], size))) {
+		if (!(str2long(argv[1], (ulong *)size))) {
 			printf("'%s' is not a number\n", argv[1]);
 			return -1;
 		}
@@ -160,7 +160,8 @@ out:
 int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 {
 	int i, dev, ret;
-	ulong addr, off, size;
+	ulong addr, off;
+	size_t size;
 	char *cmd, *s;
 	nand_info_t *nand;
 #ifdef CFG_NAND_QUIET
@@ -520,9 +521,12 @@ static int nand_load_image(cmd_tbl_t *cmdtp, nand_info_t *nand,
 {
 	int r;
 	char *ep, *s;
-	ulong cnt;
+	size_t cnt;
 	image_header_t *hdr;
 	int jffs2 = 0;
+#if defined(CONFIG_FIT)
+	const void *fit_hdr;
+#endif
 
 	s = strchr(cmd, '.');
 	if (s != NULL &&
@@ -551,18 +555,35 @@ static int nand_load_image(cmd_tbl_t *cmdtp, nand_info_t *nand,
 	}
 	show_boot_progress (56);
 
-	hdr = (image_header_t *) addr;
+	switch (genimg_get_format ((void *)addr)) {
+	case IMAGE_FORMAT_LEGACY:
+		hdr = (image_header_t *)addr;
 
-	if (ntohl(hdr->ih_magic) != IH_MAGIC) {
-		printf("\n** Bad Magic Number 0x%x **\n", hdr->ih_magic);
+		show_boot_progress (57);
+		image_print_contents (hdr);
+
+		cnt = image_get_image_size (hdr);
+		break;
+#if defined(CONFIG_FIT)
+	case IMAGE_FORMAT_FIT:
+		fit_hdr = (const void *)addr;
+		if (!fit_check_format (fit_hdr)) {
+			show_boot_progress (-150);
+			puts ("** Bad FIT image format\n");
+			return 1;
+		}
+		show_boot_progress (151);
+		puts ("Fit image detected...\n");
+
+		cnt = fit_get_size (fit_hdr);
+		break;
+#endif
+	default:
 		show_boot_progress (-57);
+		puts ("** Unknown image type\n");
 		return 1;
 	}
-	show_boot_progress (57);
 
-	print_image_hdr(hdr);
-
-	cnt = (ntohl(hdr->ih_size) + sizeof (image_header_t));
 	if (jffs2) {
 		nand_read_options_t opts;
 		memset(&opts, 0, sizeof(opts));
@@ -581,6 +602,12 @@ static int nand_load_image(cmd_tbl_t *cmdtp, nand_info_t *nand,
 		return 1;
 	}
 	show_boot_progress (58);
+
+#if defined(CONFIG_FIT)
+	/* This cannot be done earlier, we need complete FIT image in RAM first */
+	if (genimg_get_format ((void *)addr) == IMAGE_FORMAT_FIT)
+		fit_print_contents ((const void *)addr);
+#endif
 
 	/* Loading ok, update default load address */
 
@@ -852,23 +879,24 @@ int do_nand (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 		if (strncmp (argv[1], "read", 4) == 0 ||
 		    strncmp (argv[1], "write", 5) == 0) {
-			ulong addr = simple_strtoul (argv[2], NULL, 16);
-			ulong off = simple_strtoul (argv[3], NULL, 16);
-			ulong size = simple_strtoul (argv[4], NULL, 16);
-			int cmd = (strncmp (argv[1], "read", 4) == 0) ?
-				NANDRW_READ : NANDRW_WRITE;
-			int ret, total;
+			ulong	addr = simple_strtoul (argv[2], NULL, 16);
+			off_t	off  = simple_strtoul (argv[3], NULL, 16);
+			size_t	size = simple_strtoul (argv[4], NULL, 16);
+			int	cmd = (strncmp (argv[1], "read", 4) == 0) ?
+					NANDRW_READ : NANDRW_WRITE;
+			size_t total;
+			int ret;
 			char *cmdtail = strchr (argv[1], '.');
 
 			if (cmdtail && !strncmp (cmdtail, ".oob", 2)) {
 				/* read out-of-band data */
 				if (cmd & NANDRW_READ) {
 					ret = nand_read_oob (nand_dev_desc + curr_device,
-							     off, size, (size_t *) & total,
+							     off, size, &total,
 							     (u_char *) addr);
 				} else {
 					ret = nand_write_oob (nand_dev_desc + curr_device,
-							      off, size, (size_t *) & total,
+							      off, size, &total,
 							      (u_char *) addr);
 				}
 				return ret;
@@ -904,7 +932,7 @@ int do_nand (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 
 			ret = nand_legacy_rw (nand_dev_desc + curr_device,
 					      cmd, off, size,
-					      (size_t *) & total,
+					      &total,
 					      (u_char *) addr);
 
 			printf (" %d bytes %s: %s\n", total,
@@ -964,6 +992,10 @@ int do_nandboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	ulong offset = 0;
 	image_header_t *hdr;
 	int rcode = 0;
+#if defined(CONFIG_FIT)
+	const void *fit_hdr;
+#endif
+
 	show_boot_progress (52);
 	switch (argc) {
 	case 1:
@@ -1019,17 +1051,31 @@ int do_nandboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 	show_boot_progress (56);
 
-	hdr = (image_header_t *)addr;
+	switch (genimg_get_format ((void *)addr)) {
+	case IMAGE_FORMAT_LEGACY:
+		hdr = (image_header_t *)addr;
+		image_print_contents (hdr);
 
-	if (ntohl(hdr->ih_magic) == IH_MAGIC) {
-
-		print_image_hdr (hdr);
-
-		cnt = (ntohl(hdr->ih_size) + sizeof(image_header_t));
+		cnt = image_get_image_size (hdr);
 		cnt -= SECTORSIZE;
-	} else {
-		printf ("\n** Bad Magic Number 0x%x **\n", ntohl(hdr->ih_magic));
+		break;
+#if defined(CONFIG_FIT)
+	case IMAGE_FORMAT_FIT:
+		fit_hdr = (const void *)addr;
+		if (!fit_check_format (fit_hdr)) {
+			show_boot_progress (-150);
+			puts ("** Bad FIT image format\n");
+			return 1;
+		}
+		show_boot_progress (151);
+		puts ("Fit image detected...\n");
+
+		cnt = fit_get_size (fit_hdr);
+		break;
+#endif
+	default:
 		show_boot_progress (-57);
+		puts ("** Unknown image type\n");
 		return 1;
 	}
 	show_boot_progress (57);
@@ -1042,6 +1088,12 @@ int do_nandboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		return 1;
 	}
 	show_boot_progress (58);
+
+#if defined(CONFIG_FIT)
+	/* This cannot be done earlier, we need complete FIT image in RAM first */
+	if (genimg_get_format ((void *)addr) == IMAGE_FORMAT_FIT)
+		fit_print_contents ((const void *)addr);
+#endif
 
 	/* Loading ok, update default load address */
 

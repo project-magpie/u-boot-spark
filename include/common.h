@@ -214,18 +214,13 @@ int	checkdram     (void);
 char *	strmhz(char *buf, long hz);
 int	last_stage_init(void);
 extern ulong monitor_flash_len;
-#ifdef CFG_ID_EEPROM
 int mac_read_from_eeprom(void);
-#endif
 
 /* common/flash.c */
 void flash_perror (int);
 
 /* common/cmd_autoscript.c */
-int	autoscript (ulong addr);
-
-/* common/cmd_bootm.c */
-void	print_image_hdr (image_header_t *hdr);
+int	autoscript (ulong addr, const char *fit_uname);
 
 extern ulong load_addr;		/* Default Load Address */
 
@@ -274,7 +269,9 @@ void	pciinfo	      (int, int);
 	void	pci_master_init	     (struct pci_controller *);
 #   endif
     int	    is_pci_host		(struct pci_controller *);
-#if defined(CONFIG_440SPE) || defined(CONFIG_405EX)
+#if defined(CONFIG_440SPE) || \
+    defined(CONFIG_460EX) || defined(CONFIG_460GT) || \
+    defined(CONFIG_405EX)
    void pcie_setup_hoses(int busno);
 #endif
 #endif
@@ -606,8 +603,9 @@ int	sprintf(char * buf, const char *fmt, ...);
 int	vsprintf(char *buf, const char *fmt, va_list args);
 
 /* lib_generic/crc32.c */
-ulong crc32 (ulong, const unsigned char *, uint);
-ulong crc32_no_comp (ulong, const unsigned char *, uint);
+uint32_t crc32 (uint32_t, const unsigned char *, uint);
+uint32_t crc32_wd (uint32_t, const unsigned char *, uint, uint);
+uint32_t crc32_no_comp (uint32_t, const unsigned char *, uint);
 
 /* common/console.c */
 int	console_init_f(void);	/* Before relocation; uses the serial  stuff	*/
@@ -663,7 +661,7 @@ int	pcmcia_init (void);
 /*
  * Board-specific Platform code can reimplement show_boot_progress () if needed
  */
-void inline show_boot_progress (int val);
+void __attribute__((weak)) show_boot_progress (int val);
 
 #ifdef CONFIG_INIT_CRITICAL
 #error CONFIG_INIT_CRITICAL is deprecated!
@@ -689,5 +687,19 @@ do {										\
 		(((bytes)>>10)*1000)/(ms));					\
 } while (0)
 #endif /* CONFIG_MEASURE_TIME */
+
+#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+#define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
+
+/* Multicore arch functions */
+#ifdef CONFIG_MP
+int cpu_status(int nr);
+int cpu_reset(int nr);
+int cpu_release(int nr, int argc, char *argv[]);
+#endif
+
+#ifdef CONFIG_POST
+#define CONFIG_HAS_POST
+#endif
 
 #endif	/* __COMMON_H_ */

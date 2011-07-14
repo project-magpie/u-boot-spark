@@ -299,7 +299,7 @@
 #define CFG_PCI_MMIO_BASE	0x90000000
 #define CFG_PCI_MMIO_PHYS	CFG_PCI_MMIO_BASE
 #define CFG_PCI_MMIO_SIZE	0x10000000 /* 256M */
-#define CFG_PCI_IO_BASE		0xE0300000
+#define CFG_PCI_IO_BASE		0x00000000
 #define CFG_PCI_IO_PHYS		0xE0300000
 #define CFG_PCI_IO_SIZE		0x100000 /* 1M */
 
@@ -347,6 +347,29 @@
 
 /* Options are: eTSEC[0-1] */
 #define CONFIG_ETHPRIME		"eTSEC1"
+
+/*
+ * SATA
+ */
+#define CONFIG_LIBATA
+#define CONFIG_FSL_SATA
+
+#define CFG_SATA_MAX_DEVICE	2
+#define CONFIG_SATA1
+#define CFG_SATA1_OFFSET	0x18000
+#define CFG_SATA1		(CFG_IMMR + CFG_SATA1_OFFSET)
+#define CFG_SATA1_FLAGS		FLAGS_DMA
+#define CONFIG_SATA2
+#define CFG_SATA2_OFFSET	0x19000
+#define CFG_SATA2		(CFG_IMMR + CFG_SATA2_OFFSET)
+#define CFG_SATA2_FLAGS		FLAGS_DMA
+
+#ifdef CONFIG_FSL_SATA
+#define CONFIG_LBA48
+#define CONFIG_CMD_SATA
+#define CONFIG_DOS_PARTITION
+#define CONFIG_CMD_EXT2
+#endif
 
 /*
  * Environment
@@ -508,7 +531,7 @@
 
 #define CONFIG_BAUDRATE 115200
 
-#define CONFIG_LOADADDR 200000	/* default location for tftp and bootm */
+#define CONFIG_LOADADDR 500000	/* default location for tftp and bootm */
 
 #define CONFIG_BOOTDELAY 6	/* -1 disables auto-boot */
 #undef CONFIG_BOOTARGS		/* the boot command will set bootargs */

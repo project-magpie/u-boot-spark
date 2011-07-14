@@ -97,6 +97,7 @@
 #define	FEC_ENET		1	/* eth.c needs it that way... */
 #undef CFG_DISCOVER_PHY
 #define CONFIG_MII		1
+#define CONFIG_MII_INIT		1
 #undef CONFIG_RMII
 
 #define CONFIG_ETHER_ON_FEC1	1
@@ -594,7 +595,5 @@ typedef unsigned int led_id_t;
 
 #define OF_CPU			"PowerPC,MPC870@0"
 #define OF_TBCLK		(MPC8XX_HZ / 16)
-#define CONFIG_OF_HAS_BD_T	1
-#define CONFIG_OF_HAS_UBOOT_ENV	1
 
 #endif	/* __CONFIG_H */

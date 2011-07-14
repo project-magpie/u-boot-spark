@@ -87,6 +87,7 @@
  */
 #define CFG_CCSRBAR_DEFAULT	0xff700000	/* CCSRBAR Default */
 #define CFG_CCSRBAR		0xe0000000	/* relocated CCSRBAR */
+#define CFG_CCSRBAR_PHYS	CFG_CCSRBAR	/* physical addr of CCSRBAR */
 #define CFG_IMMR		CFG_CCSRBAR	/* PQII uses CFG_IMMR */
 
 #define CFG_PCI1_ADDR	(CFG_CCSRBAR+0x8000)
@@ -147,7 +148,7 @@
  * 1111 1111 1000 0000 0110 1110 0110 0101 = ff806e65    OR0
  *
  * OR6:
- *    Addr Mask = 64M = OR6[0:16] = 1111 1100 0000 0000 0
+ *    Addr Mask = 64M = OR6[0:16] = 1111 1000 0000 0000 0
  *    XAM = OR6[17:18] = 11
  *    CSNT = OR6[20] = 1
  *    ACS = half cycle delay = OR6[21:22] = 11
@@ -156,7 +157,7 @@
  *    EAD = use external address latch delay = OR6[31] = 1
  *
  * 0    4    8    12   16   20   24   28
- * 1111 1100 0000 0000 0110 1110 0110 0101 = fc006e65    OR6
+ * 1111 1000 0000 0000 0110 1110 0110 0101 = f8006e65    OR6
  */
 
 #define CFG_BOOT_BLOCK		0xff800000	/* start of 8MB Flash */
@@ -166,7 +167,7 @@
 #define CFG_BR6_PRELIM		0xfb801801
 
 #define	CFG_OR0_PRELIM		0xff806e65
-#define	CFG_OR6_PRELIM		0xfc006e65
+#define	CFG_OR6_PRELIM		0xf8006e65
 
 #define CFG_FLASH_BANKS_LIST	{CFG_FLASH_BASE}
 #define CFG_MAX_FLASH_BANKS	1		/* number of banks */

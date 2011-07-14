@@ -139,7 +139,6 @@
 #define CFG_KBYTES_SDRAM        (128 * 1024)    /* 128MB		    */
 #define CFG_SDRAM_BANKS	        (2)
 
-
 /*-----------------------------------------------------------------------
  * I2C
  *----------------------------------------------------------------------*/
@@ -227,6 +226,7 @@
 #define CONFIG_MII		1	/* MII PHY management		*/
 #define CONFIG_NET_MULTI        1	/* required for netconsole      */
 #define CONFIG_PHY1_ADDR        3
+#define CONFIG_HAS_ETH0		1	/* add support for "ethaddr"	*/
 #define CONFIG_HAS_ETH1		1	/* add support for "eth1addr"	*/
 #define CONFIG_PHY_ADDR		1	/* PHY address, See schematics	*/
 
@@ -382,5 +382,9 @@
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed to run kgdb serial port */
 #define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
 #endif
+
+/* pass open firmware flat tree */
+#define CONFIG_OF_LIBFDT	1
+#define CONFIG_OF_BOARD_SETUP	1
 
 #endif	/* __CONFIG_H */

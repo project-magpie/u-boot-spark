@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2001, 2002
+ * (C) Copyright 2001-2008
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  * Keith Outwater, keith_outwater@mvis.com`
  *
@@ -60,19 +60,19 @@
 /*
  * RTC control register bits
  */
-#define RTC_CTL_BIT_A1IE	0x1	/* Alarm 1 interrupt enable     */
-#define RTC_CTL_BIT_A2IE	0x2	/* Alarm 2 interrupt enable     */
-#define RTC_CTL_BIT_INTCN	0x4	/* Interrupt control            */
-#define RTC_CTL_BIT_RS1		0x8	/* Rate select 1                */
-#define RTC_CTL_BIT_RS2		0x10	/* Rate select 2                */
-#define RTC_CTL_BIT_DOSC	0x80	/* Disable Oscillator           */
+#define RTC_CTL_BIT_A1IE	0x1	/* Alarm 1 interrupt enable	*/
+#define RTC_CTL_BIT_A2IE	0x2	/* Alarm 2 interrupt enable	*/
+#define RTC_CTL_BIT_INTCN	0x4	/* Interrupt control		*/
+#define RTC_CTL_BIT_RS1		0x8	/* Rate select 1		*/
+#define RTC_CTL_BIT_RS2		0x10	/* Rate select 2		*/
+#define RTC_CTL_BIT_DOSC	0x80	/* Disable Oscillator		*/
 
 /*
  * RTC status register bits
  */
-#define RTC_STAT_BIT_A1F	0x1	/* Alarm 1 flag                 */
-#define RTC_STAT_BIT_A2F	0x2	/* Alarm 2 flag                 */
-#define RTC_STAT_BIT_OSF	0x80	/* Oscillator stop flag         */
+#define RTC_STAT_BIT_A1F	0x1	/* Alarm 1 flag			*/
+#define RTC_STAT_BIT_A2F	0x2	/* Alarm 2 flag			*/
+#define RTC_STAT_BIT_OSF	0x80	/* Oscillator stop flag		*/
 
 
 static uchar rtc_read (uchar reg);
@@ -84,8 +84,9 @@ static unsigned bcd2bin (uchar c);
 /*
  * Get the current time from the RTC
  */
-void rtc_get (struct rtc_time *tmp)
+int rtc_get (struct rtc_time *tmp)
 {
+	int rel = 0;
 	uchar sec, min, hour, mday, wday, mon_cent, year, control, status;
 
 	control = rtc_read (RTC_CTL_REG_ADDR);
@@ -107,6 +108,7 @@ void rtc_get (struct rtc_time *tmp)
 		/* clear the OSF flag */
 		rtc_write (RTC_STAT_REG_ADDR,
 			   rtc_read (RTC_STAT_REG_ADDR) & ~RTC_STAT_BIT_OSF);
+		rel = -1;
 	}
 
 	tmp->tm_sec  = bcd2bin (sec & 0x7F);
@@ -122,6 +124,8 @@ void rtc_get (struct rtc_time *tmp)
 	DEBUGR ("Get DATE: %4d-%02d-%02d (wday=%d)  TIME: %2d:%02d:%02d\n",
 		tmp->tm_year, tmp->tm_mon, tmp->tm_mday, tmp->tm_wday,
 		tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
+
+	return rel;
 }
 
 
@@ -154,11 +158,18 @@ void rtc_set (struct rtc_time *tmp)
  * SQW/INTB* pin and program it for 32,768 Hz output. Note that
  * according to the datasheet, turning on the square wave output
  * increases the current drain on the backup battery from about
- * 600 nA to 2uA.
+ * 600 nA to 2uA. Define CFG_RTC_DS1337_NOOSC if you wish to turn
+ * off the OSC output.
  */
+#ifdef CFG_RTC_DS1337_NOOSC
+ #define RTC_DS1337_RESET_VAL \
+	(RTC_CTL_BIT_INTCN | RTC_CTL_BIT_RS1 | RTC_CTL_BIT_RS2)
+#else
+ #define RTC_DS1337_RESET_VAL (RTC_CTL_BIT_RS1 | RTC_CTL_BIT_RS2)
+#endif
 void rtc_reset (void)
 {
-	rtc_write (RTC_CTL_REG_ADDR, RTC_CTL_BIT_RS1 | RTC_CTL_BIT_RS2);
+	rtc_write (RTC_CTL_REG_ADDR, RTC_DS1337_RESET_VAL);
 }
 
 

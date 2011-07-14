@@ -40,7 +40,7 @@
 
 #include <post.h>
 
-#ifdef CONFIG_SILENT_CONSOLE
+#if defined(CONFIG_SILENT_CONSOLE) || defined(CONFIG_POST) || defined(CONFIG_CMDLINE_EDITING)
 DECLARE_GLOBAL_DATA_PTR;
 #endif
 
@@ -67,11 +67,9 @@ static int abortboot(int);
 
 char        console_buffer[CFG_CBSIZE];		/* console I/O buffer	*/
 
-#ifndef CONFIG_CMDLINE_EDITING
 static char * delete_char (char *buffer, char *p, int *colp, int *np, int plen);
 static char erase_seq[] = "\b \b";		/* erase sequence	*/
 static char   tab_seq[] = "        ";		/* used to expand TABs	*/
-#endif /* CONFIG_CMDLINE_EDITING */
 
 #ifdef CONFIG_BOOT_RETRY_TIME
 static uint64_t endtime = 0;  /* must be set, default is instant timeout */
@@ -369,6 +367,12 @@ void main_loop (void)
 	init_cmd_timeout ();
 # endif	/* CONFIG_BOOT_RETRY_TIME */
 
+#ifdef CONFIG_POST
+	if (gd->flags & GD_FLG_POSTFAIL) {
+		s = getenv("failbootcmd");
+	}
+	else
+#endif /* CONFIG_POST */
 #ifdef CONFIG_BOOTCOUNT_LIMIT
 	if (bootlimit && (bootcount > bootlimit)) {
 		printf ("Warning: Bootlimit (%u) exceeded. Using altbootcmd.\n",
@@ -941,11 +945,26 @@ int readline_into_buffer (const char *const prompt, char * buffer)
 		initted = 1;
 	}
 
-	puts (prompt);
 
-	rc = cread_line(prompt, p, &len);
-	return rc < 0 ? rc : len;
-#else
+	/*
+	 * History uses a global array which is not
+	 * writable until after relocation to RAM.
+	 * Revert to non-history version if still
+	 * running from flash.
+	 */
+	if (gd->flags & GD_FLG_RELOC) {
+		if (!initted) {
+			hist_init();
+			initted = 1;
+		}
+
+		puts (prompt);
+
+		rc = cread_line(prompt, p, &len);
+		return rc < 0 ? rc : len;
+
+	} else {
+#endif	/* CONFIG_CMDLINE_EDITING */
 	char * p_buf = p;
 	int	n = 0;				/* buffer index		*/
 	int	plen = 0;			/* prompt length	*/
@@ -1041,12 +1060,13 @@ int readline_into_buffer (const char *const prompt, char * buffer)
 			}
 		}
 	}
-#endif /* CONFIG_CMDLINE_EDITING */
+#ifdef CONFIG_CMDLINE_EDITING
+	}
+#endif
 }
 
 /****************************************************************************/
 
-#ifndef CONFIG_CMDLINE_EDITING
 static char * delete_char (char *buffer, char *p, int *colp, int *np, int plen)
 {
 	char *s;
@@ -1076,7 +1096,6 @@ static char * delete_char (char *buffer, char *p, int *colp, int *np, int plen)
 	(*np)--;
 	return (p);
 }
-#endif /* CONFIG_CMDLINE_EDITING */
 
 /****************************************************************************/
 

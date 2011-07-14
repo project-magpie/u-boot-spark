@@ -40,8 +40,11 @@ typedef	struct	global_data {
 	bd_t		*bd;
 	unsigned long	flags;
 	unsigned long	baudrate;
-	unsigned long	cpu_clk;	/* CPU clock in Hz!		*/
+	unsigned long	cpu_clk;	/* CPU clock in Hz! */
 	unsigned long	bus_clk;
+#if defined(CONFIG_8xx)
+	unsigned long	brg_clk;
+#endif
 #if defined(CONFIG_CPM2)
 	/* There are many clocks on the MPC8260 - see page 9-5 */
 	unsigned long	vco_out;
@@ -49,9 +52,7 @@ typedef	struct	global_data {
 	unsigned long	scc_clk;
 	unsigned long	brg_clk;
 #endif
-#if defined(CONFIG_MPC7448HPC2)
 	unsigned long   mem_clk;
-#endif
 #if defined(CONFIG_MPC83XX)
 	/* There are other clocks in the MPC83XX */
 	u32 csb_clk;
@@ -73,7 +74,6 @@ typedef	struct	global_data {
 	u32 enc_clk;
 	u32 lbiu_clk;
 	u32 lclk_clk;
-	u32 ddr_clk;
 	u32 pci_clk;
 #if defined(CONFIG_MPC837X)
 	u32 pciexp1_clk;
@@ -83,7 +83,7 @@ typedef	struct	global_data {
 	u32 sata_clk;
 #endif
 #if defined(CONFIG_MPC8360)
-	u32  ddr_sec_clk;
+	u32  mem_sec_clk;
 #endif /* CONFIG_MPC8360 */
 #endif
 #if defined(CONFIG_MPC83XX) || defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
@@ -155,6 +155,9 @@ typedef	struct	global_data {
 #if defined(CONFIG_LWMON) || defined(CONFIG_LWMON5)
 	unsigned long kbd_status;
 #endif
+#if defined(CONFIG_WD_MAX_RATE)
+	unsigned long long wdt_last;	/* trace watch-dog triggering rate */
+#endif
 	void		**jt;		/* jump table */
 } gd_t;
 
@@ -164,6 +167,7 @@ typedef	struct	global_data {
 #define	GD_FLG_RELOC	0x00001		/* Code was relocated to RAM		*/
 #define	GD_FLG_DEVINIT	0x00002		/* Devices have been initialized	*/
 #define	GD_FLG_SILENT	0x00004		/* Silent mode				*/
+#define	GD_FLG_POSTFAIL	0x00008		/* Critical POST test failed		*/
 
 #if 1
 #define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r2")

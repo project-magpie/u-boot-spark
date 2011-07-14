@@ -96,6 +96,25 @@ int board_early_init_f(void)
 
 	gpio_write_bit(CFG_GPIO_FLASH_WP, 1);
 
+#if CONFIG_POST & CFG_POST_BSPEC1
+	gpio_write_bit(CFG_GPIO_HIGHSIDE, 1);
+
+	reg = 0; /* reuse as counter */
+	out_be32((void *)CFG_DSPIC_TEST_ADDR,
+		in_be32((void *)CFG_DSPIC_TEST_ADDR)
+			& ~CFG_DSPIC_TEST_MASK);
+	while (!gpio_read_in_bit(CFG_GPIO_DSPIC_READY) && reg++ < 1000) {
+		udelay(1000);
+	}
+	gpio_write_bit(CFG_GPIO_HIGHSIDE, 0);
+	if (gpio_read_in_bit(CFG_GPIO_DSPIC_READY)) {
+		/* set "boot error" flag */
+		out_be32((void *)CFG_DSPIC_TEST_ADDR,
+			in_be32((void *)CFG_DSPIC_TEST_ADDR) |
+			CFG_DSPIC_TEST_MASK);
+	}
+#endif
+
 	/*
 	 * Reset PHY's:
 	 * The PHY's need a 2nd reset pulse, since the MDIO address is latched
@@ -457,6 +476,24 @@ int is_pci_host(struct pci_controller *hose)
 void hw_watchdog_reset(void)
 {
 	int val;
+#if defined(CONFIG_WD_MAX_RATE)
+	unsigned long long ct = get_ticks();
+
+	/*
+	 * Don't allow watch-dog triggering more frequently than
+	 * the predefined value CONFIG_WD_MAX_RATE [ticks].
+	 */
+	if (ct >= gd->wdt_last) {
+		if ((ct - gd->wdt_last) < CONFIG_WD_MAX_RATE)
+			return;
+	} else {
+		/* Time base counter had been reset */
+		if (((unsigned long long)(-1) - gd->wdt_last + ct) <
+		    CONFIG_WD_MAX_RATE)
+			return;
+	}
+	gd->wdt_last = get_ticks();
+#endif
 
 	/*
 	 * Toggle watchdog output
@@ -548,17 +585,35 @@ unsigned int board_video_init (void)
 	return CFG_LIME_BASE_0;
 }
 
-void board_backlight_switch (int flag)
+#define DEFAULT_BRIGHTNESS 0x64
+
+static void board_backlight_brightness(int brightness)
 {
-	if (flag) {
+	if (brightness > 0) {
 		/* pwm duty, lamp on */
-		out_be32((void *)(CFG_FPGA_BASE_0 + 0x00000024), 0x64);
+		out_be32((void *)(CFG_FPGA_BASE_0 + 0x00000024), brightness);
 		out_be32((void *)(CFG_FPGA_BASE_0 + 0x00000020), 0x701);
 	} else {
 		/* lamp off */
 		out_be32((void *)(CFG_FPGA_BASE_0 + 0x00000024), 0x00);
 		out_be32((void *)(CFG_FPGA_BASE_0 + 0x00000020), 0x00);
 	}
+}
+
+void board_backlight_switch (int flag)
+{
+	char * param;
+	int rc;
+
+	if (flag) {
+		param = getenv("brightness");
+		rc = param ? simple_strtol(param, NULL, 10) : -1;
+		if (rc < 0)
+			rc = DEFAULT_BRIGHTNESS;
+	} else {
+		rc = 0;
+	}
+	board_backlight_brightness(rc);
 }
 
 #if defined(CONFIG_CONSOLE_EXTRA_INFO)
@@ -575,3 +630,8 @@ void video_get_info_str (int line_number, char *info)
 }
 #endif
 #endif /* CONFIG_VIDEO */
+
+void board_reset(void)
+{
+	gpio_write_bit(CFG_GPIO_BOARD_RESET, 1);
+}

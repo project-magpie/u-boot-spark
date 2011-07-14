@@ -98,6 +98,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
  */
 #define CFG_CCSRBAR_DEFAULT	0xff700000	/* CCSRBAR Default */
 #define CFG_CCSRBAR		0xe0000000	/* relocated CCSRBAR */
+#define CFG_CCSRBAR_PHYS	CFG_CCSRBAR	/* physical addr of CCSRBAR */
 #define CFG_IMMR		CFG_CCSRBAR	/* PQII uses CFG_IMMR */
 
 #define CFG_PCI1_ADDR		(CFG_CCSRBAR+0x8000)
@@ -164,6 +165,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 
 #define CFG_FLASH_BANKS_LIST	{0xfe800000,CFG_FLASH_BASE}
 
+#define CFG_FLASH_QUIET_TEST
 #define CFG_MAX_FLASH_BANKS	2		/* number of banks */
 #define CFG_MAX_FLASH_SECT	128		/* sectors per device */
 #undef	CFG_FLASH_CHECKSUM

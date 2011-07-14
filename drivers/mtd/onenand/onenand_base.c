@@ -20,6 +20,19 @@
 #include <asm/io.h>
 #include <asm/errno.h>
 
+/* It should access 16-bit instead of 8-bit */
+static inline void *memcpy_16(void *dst, const void *src, unsigned int len)
+{
+	void *ret = dst;
+	short *d = dst;
+	const short *s = src;
+
+	len >>= 1;
+	while (len-- > 0)
+		*d++ = *s++;
+	return ret;
+}
+
 static const unsigned char ffchars[] = {
 	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,	/* 16 */
@@ -345,7 +358,7 @@ static int onenand_read_bufferram(struct mtd_info *mtd, int area,
 	bufferram = this->base + area;
 	bufferram += onenand_bufferram_offset(mtd, area);
 
-	memcpy(buffer, bufferram + offset, count);
+	memcpy_16(buffer, bufferram + offset, count);
 
 	return 0;
 }
@@ -372,7 +385,7 @@ static int onenand_sync_read_bufferram(struct mtd_info *mtd, int area,
 
 	this->mmcontrol(mtd, ONENAND_SYS_CFG1_SYNC_READ);
 
-	memcpy(buffer, bufferram + offset, count);
+	memcpy_16(buffer, bufferram + offset, count);
 
 	this->mmcontrol(mtd, 0);
 
@@ -399,7 +412,7 @@ static int onenand_write_bufferram(struct mtd_info *mtd, int area,
 	bufferram = this->base + area;
 	bufferram += onenand_bufferram_offset(mtd, area);
 
-	memcpy(bufferram + offset, buffer, count);
+	memcpy_16(bufferram + offset, buffer, count);
 
 	return 0;
 }
@@ -1179,6 +1192,12 @@ static int onenand_probe(struct mtd_info *mtd)
 	/* Check OneNAND device */
 	if (maf_id != bram_maf_id || dev_id != bram_dev_id)
 		return -ENXIO;
+
+	/* FIXME : Current OneNAND MTD doesn't support Flex-OneNAND */
+	if (dev_id & (1 << 9)) {
+		printk("Not yet support Flex-OneNAND\n");
+		return -ENXIO;
+	}
 
 	/* Flash device information */
 	onenand_print_device_info(dev_id, 0);

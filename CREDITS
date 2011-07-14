@@ -236,6 +236,10 @@ E: mark.jonas@freescale.com
 D: Support for Freescale Total5200 platform
 W: http://www.mobilegt.com/
 
+N: Mark Jonas
+E: mark.jonas@de.bosch.com
+D: Support for MPR2 board
+
 N: Sam Song
 E: samsongshu@yahoo.com.cn
 D: Port to the RPXlite_DW board
@@ -431,6 +435,7 @@ D: Support for EP82xxM
 N: Art Shipkowski
 E: art@videon-central.com
 D: Support for NetSilicon NS7520
+D: Support for ColdFire MCF5275
 
 N: Michal Simek
 E: monstr@monstr.eu

@@ -30,6 +30,7 @@
 #include <command.h>
 #include <common.h>
 #include <malloc.h>
+#include <environment.h>
 #include <linux/types.h>
 #include <api_public.h>
 
@@ -40,8 +41,6 @@
 
 /* U-Boot routines needed */
 extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
-extern uchar (*env_get_char)(int);
-extern uchar *env_get_addr(int);
 
 /*****************************************************************************
  *
@@ -583,7 +582,7 @@ int syscall(int call, int *retval, ...)
 	va_list	ap;
 	int rv;
 
-	if (call < 0 || call >= calls_no || calls_table[call] == NULL) {
+	if (call < 0 || call >= calls_no) {
 		debugf("invalid call #%d\n", call);
 		return 0;
 	}

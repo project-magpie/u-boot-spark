@@ -55,10 +55,6 @@
 # include <status_led.h>
 #endif
 
-#ifndef __PPC__
-#include <asm/io.h>
-#endif
-
 #ifdef CONFIG_IDE_8xx_DIRECT
 DECLARE_GLOBAL_DATA_PTR;
 #endif
@@ -69,12 +65,6 @@ DECLARE_GLOBAL_DATA_PTR;
 #else
 # define EIEIO		/* nothing */
 # define SYNC		/* nothing */
-#endif
-
-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
-#define INT64(X) X##LL	/* explicit qualification, to avoid warnings */
-#else
-#define INT64(X) X
 #endif
 
 #ifdef CONFIG_IDE_8xx_DIRECT
@@ -375,10 +365,13 @@ int do_diskboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	char *boot_device = NULL;
 	char *ep;
 	int dev, part = 0;
-	ulong addr, cnt, checksum;
+	ulong addr, cnt;
 	disk_partition_t info;
 	image_header_t *hdr;
 	int rcode = 0;
+#if defined(CONFIG_FIT)
+	const void *fit_hdr;
+#endif
 
 	show_boot_progress (41);
 	switch (argc) {
@@ -455,29 +448,43 @@ int do_diskboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 	show_boot_progress (48);
 
-	hdr = (image_header_t *)addr;
+	switch (genimg_get_format ((void *)addr)) {
+	case IMAGE_FORMAT_LEGACY:
+		hdr = (image_header_t *)addr;
 
-	if (ntohl(hdr->ih_magic) != IH_MAGIC) {
-		printf("\n** Bad Magic Number **\n");
+		show_boot_progress (49);
+
+		if (!image_check_hcrc (hdr)) {
+			puts ("\n** Bad Header Checksum **\n");
+			show_boot_progress (-50);
+			return 1;
+		}
+		show_boot_progress (50);
+
+		image_print_contents (hdr);
+
+		cnt = image_get_image_size (hdr);
+		break;
+#if defined(CONFIG_FIT)
+	case IMAGE_FORMAT_FIT:
+		fit_hdr = (const void *)addr;
+		if (!fit_check_format (fit_hdr)) {
+			show_boot_progress (-140);
+			puts ("** Bad FIT image format\n");
+			return 1;
+		}
+		show_boot_progress (141);
+		puts ("Fit image detected...\n");
+
+		cnt = fit_get_size (fit_hdr);
+		break;
+#endif
+	default:
 		show_boot_progress (-49);
+		puts ("** Unknown image type\n");
 		return 1;
 	}
-	show_boot_progress (49);
 
-	checksum = ntohl(hdr->ih_hcrc);
-	hdr->ih_hcrc = 0;
-
-	if (crc32 (0, (uchar *)hdr, sizeof(image_header_t)) != checksum) {
-		puts ("\n** Bad Header Checksum **\n");
-		show_boot_progress (-50);
-		return 1;
-	}
-	show_boot_progress (50);
-	hdr->ih_hcrc = htonl(checksum); /* restore checksum for later use */
-
-	print_image_hdr (hdr);
-
-	cnt = (ntohl(hdr->ih_size) + sizeof(image_header_t));
 	cnt += info.blksz - 1;
 	cnt /= info.blksz;
 	cnt -= 1;
@@ -490,6 +497,11 @@ int do_diskboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 	show_boot_progress (51);
 
+#if defined(CONFIG_FIT)
+	/* This cannot be done earlier, we need complete FIT image in RAM first */
+	if (genimg_get_format ((void *)addr) == IMAGE_FORMAT_FIT)
+		fit_print_contents ((const void *)addr);
+#endif
 
 	/* Loading ok, update default load address */
 
@@ -1281,7 +1293,7 @@ ulong ide_read (int device, lbaint_t blknr, ulong blkcnt, void *buffer)
 #ifdef CONFIG_LBA48
 	unsigned char lba48 = 0;
 
-	if (blknr & INT64(0x0000fffff0000000)) {
+	if (blknr & 0x0000fffff0000000ULL) {
 		/* more than 28 bits used, use 48bit mode */
 		lba48 = 1;
 	}
@@ -1335,8 +1347,13 @@ ulong ide_read (int device, lbaint_t blknr, ulong blkcnt, void *buffer)
 			/* write high bits */
 			ide_outb (device, ATA_SECT_CNT, 0);
 			ide_outb (device, ATA_LBA_LOW,	(blknr >> 24) & 0xFF);
+#ifdef CFG_64BIT_LBA
 			ide_outb (device, ATA_LBA_MID,	(blknr >> 32) & 0xFF);
 			ide_outb (device, ATA_LBA_HIGH, (blknr >> 40) & 0xFF);
+#else
+			ide_outb (device, ATA_LBA_MID,	0);
+			ide_outb (device, ATA_LBA_HIGH, 0);
+#endif
 		}
 #endif
 		ide_outb (device, ATA_SECT_CNT, 1);
@@ -1400,7 +1417,7 @@ ulong ide_write (int device, lbaint_t blknr, ulong blkcnt, void *buffer)
 #ifdef CONFIG_LBA48
 	unsigned char lba48 = 0;
 
-	if (blknr & INT64(0x0000fffff0000000)) {
+	if (blknr & 0x0000fffff0000000ULL) {
 		/* more than 28 bits used, use 48bit mode */
 		lba48 = 1;
 	}
@@ -1425,8 +1442,13 @@ ulong ide_write (int device, lbaint_t blknr, ulong blkcnt, void *buffer)
 			/* write high bits */
 			ide_outb (device, ATA_SECT_CNT, 0);
 			ide_outb (device, ATA_LBA_LOW,	(blknr >> 24) & 0xFF);
+#ifdef CFG_64BIT_LBA
 			ide_outb (device, ATA_LBA_MID,	(blknr >> 32) & 0xFF);
 			ide_outb (device, ATA_LBA_HIGH, (blknr >> 40) & 0xFF);
+#else
+			ide_outb (device, ATA_LBA_MID,	0);
+			ide_outb (device, ATA_LBA_HIGH, 0);
+#endif
 		}
 #endif
 		ide_outb (device, ATA_SECT_CNT, 1);
@@ -1545,6 +1567,9 @@ static void ide_reset (void)
 		ide_dev_desc[i].type = DEV_TYPE_UNKNOWN;
 
 	ide_set_reset (1); /* assert reset */
+
+	/* the reset signal shall be asserted for et least 25 us */
+	udelay(25);
 
 	WATCHDOG_RESET();
 

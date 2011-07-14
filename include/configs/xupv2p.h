@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007 Michal Simek
+ * (C) Copyright 2007-2008 Michal Simek
  *
  * Michal SIMEK <monstr@monstr.eu>
  *
@@ -31,14 +31,23 @@
 #define	CONFIG_XUPV2P		1
 
 /* uart */
+#ifdef XILINX_UARTLITE_BASEADDR
 #define	CONFIG_XILINX_UARTLITE
-#define	CONFIG_SERIAL_BASE	XILINX_UART_BASEADDR
-#define	CONFIG_BAUDRATE		XILINX_UART_BAUDRATE
+#define	CONFIG_SERIAL_BASE	XILINX_UARTLITE_BASEADDR
+#define	CONFIG_BAUDRATE		XILINX_UARTLITE_BAUDRATE
 #define	CFG_BAUDRATE_TABLE	{ CONFIG_BAUDRATE }
-
-/* ethernet */
-#define CONFIG_EMAC	1
-#define XPAR_EMAC_0_DEVICE_ID	XPAR_XEMAC_NUM_INSTANCES
+#else
+#ifdef XILINX_UART16550_BASEADDR
+#define CFG_NS16550
+#define CFG_NS16550_SERIAL
+#define CFG_NS16550_REG_SIZE	4
+#define CONFIG_CONS_INDEX	1
+#define CFG_NS16550_COM1	XILINX_UART16550_BASEADDR
+#define CFG_NS16550_CLK		XILINX_UART16550_CLOCK_HZ
+#define	CONFIG_BAUDRATE		115200
+#define	CFG_BAUDRATE_TABLE	{ 9600, 115200 }
+#endif
+#endif
 
 /*
  * setting reset address
@@ -51,6 +60,18 @@
  */
 /* #define	CFG_RESET_ADDRESS	0x36000000 */
 
+/* ethernet */
+#ifdef XILINX_EMAC_BASEADDR
+#define CONFIG_XILINX_EMAC	1
+#define CFG_ENET
+#else
+#ifdef XILINX_EMACLITE_BASEADDR
+#define CONFIG_XILINX_EMACLITE	1
+#define CFG_ENET
+#endif
+#endif
+#undef ET_DEBUG
+
 /* gpio */
 #ifdef XILINX_GPIO_BASEADDR
 #define	CFG_GPIO_0		1
@@ -58,18 +79,28 @@
 #endif
 
 /* interrupt controller */
+#ifdef XILINX_INTC_BASEADDR
 #define	CFG_INTC_0		1
 #define	CFG_INTC_0_ADDR		XILINX_INTC_BASEADDR
 #define	CFG_INTC_0_NUM		XILINX_INTC_NUM_INTR_INPUTS
+#endif
 
 /* timer */
+#ifdef XILINX_TIMER_BASEADDR
+#if (XILINX_TIMER_IRQ != -1)
 #define	CFG_TIMER_0		1
 #define	CFG_TIMER_0_ADDR	XILINX_TIMER_BASEADDR
 #define	CFG_TIMER_0_IRQ		XILINX_TIMER_IRQ
 #define	FREQUENCE		XILINX_CLOCK_FREQ
 #define	CFG_TIMER_0_PRELOAD	( FREQUENCE/1000 )
+#endif
+#else
+#ifdef XILINX_CLOCK_FREQ
 #define	CONFIG_XILINX_CLOCK_FREQ	XILINX_CLOCK_FREQ
-
+#else
+#error BAD CLOCK FREQ
+#endif
+#endif
 /*
  * memory layout - Example
  * TEXT_BASE = 0x3600_0000;
@@ -137,12 +168,18 @@
 #include <config_cmd_default.h>
 
 #undef CONFIG_CMD_FLASH
+#undef CONFIG_CMD_JFFS2
 #undef CONFIG_CMD_IMLS
 
 #define CONFIG_CMD_ASKENV
 #define CONFIG_CMD_CACHE
 #define CONFIG_CMD_IRQ
-#define CONFIG_CMD_PING
+
+#ifndef CFG_ENET
+	#undef CONFIG_CMD_NET
+#else
+	#define CONFIG_CMD_PING
+#endif
 
 #ifdef XILINX_SYSACE_BASEADDR
 #define CONFIG_CMD_EXT2
@@ -183,5 +220,8 @@
 #define	CFG_SYSTEMACE_WIDTH	XILINX_SYSACE_MEM_WIDTH
 #define	CONFIG_DOS_PARTITION
 #endif
+
+#define CONFIG_CMDLINE_EDITING
+#define CONFIG_OF_LIBFDT	1 /* flat device tree */
 
 #endif	/* __CONFIG_H */

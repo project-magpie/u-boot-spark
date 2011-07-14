@@ -190,6 +190,7 @@
 
 #ifdef CONFIG_PCI
 #define CONFIG_CMD_PCI
+#define CONFIG_PCIAUTO_SKIP_HOST_BRIDGE	1
 #endif
 
 #if defined(CONFIG_MINIFAP) || defined(CONFIG_STK52XX) || defined(CONFIG_FO300)
@@ -252,12 +253,22 @@
 	"setup=tftp 200000 cam5200/setup.img; autoscr 200000\0"
 #endif
 
+#if defined(CONFIG_TQM5200_B)
+#define ENV_FLASH_LAYOUT						\
+	"fdt_addr=FC100000\0"						\
+	"kernel_addr=FC140000\0"					\
+	"ramdisk_addr=FC600000\0"
+#else	/* !CONFIG_TQM5200_B */
+#define ENV_FLASH_LAYOUT						\
+	"fdt_addr=FC0A0000\0"						\
+	"kernel_addr=FC0C0000\0"					\
+	"ramdisk_addr=FC300000\0"
+#endif
+
 #define CONFIG_EXTRA_ENV_SETTINGS					\
 	"netdev=eth0\0"							\
 	"console=ttyPSC0\0"						\
-	"fdt_addr=FC0A0000\0"						\
-	"kernel_addr=FC0C0000\0"					\
-	"ramdisk_addr=FC300000\0"					\
+	ENV_FLASH_LAYOUT						\
 	"kernel_addr_r=400000\0"					\
 	"fdt_addr_r=600000\0"						\
 	"rootpath=/opt/eldk/ppc_6xx\0"					\
@@ -400,8 +411,9 @@
 # if defined(CONFIG_TQM5200_B)
 #  if defined(CFG_LOWBOOT)
 #   define MTDPARTS_DEFAULT	"mtdparts=TQM5200-0:1m(firmware),"	\
-						"1536k(kernel),"	\
-						"3584k(small-fs),"	\
+						"256k(dtb),"		\
+						"2304k(kernel),"	\
+						"2560k(small-fs),"	\
 						"2m(initrd),"		\
 						"8m(misc),"		\
 						"16m(big-fs)"

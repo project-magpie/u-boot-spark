@@ -96,7 +96,7 @@
  */
 #define CFG_SCCR_TSEC1CM	1	/* CSB:eTSEC1 = 1:1 */
 #define CFG_SCCR_TSEC2CM	1	/* CSB:eTSEC2 = 1:1 */
-#define CFG_SCCR_SATACM		SCCR_SATACM_1	/* CSB:SATA[0:3] = 1:1 */
+#define CFG_SCCR_SATACM		SCCR_SATACM_2	/* CSB:SATA[0:3] = 2:1 */
 
 /*
  * System IO Config
@@ -338,7 +338,7 @@
 #define CFG_PCI_MMIO_BASE	0x90000000
 #define CFG_PCI_MMIO_PHYS	CFG_PCI_MMIO_BASE
 #define CFG_PCI_MMIO_SIZE	0x10000000 /* 256M */
-#define CFG_PCI_IO_BASE		0xE0300000
+#define CFG_PCI_IO_BASE		0x00000000
 #define CFG_PCI_IO_PHYS		0xE0300000
 #define CFG_PCI_IO_SIZE		0x100000 /* 1M */
 
@@ -388,6 +388,34 @@
 
 /* Options are: TSEC[0-1] */
 #define CONFIG_ETHPRIME		"eTSEC1"
+
+/* SERDES */
+#define CONFIG_FSL_SERDES
+#define CONFIG_FSL_SERDES1	0xe3000
+#define CONFIG_FSL_SERDES2	0xe3100
+
+/*
+ * SATA
+ */
+#define CONFIG_LIBATA
+#define CONFIG_FSL_SATA
+
+#define CFG_SATA_MAX_DEVICE	2
+#define CONFIG_SATA1
+#define CFG_SATA1_OFFSET	0x18000
+#define CFG_SATA1		(CFG_IMMR + CFG_SATA1_OFFSET)
+#define CFG_SATA1_FLAGS		FLAGS_DMA
+#define CONFIG_SATA2
+#define CFG_SATA2_OFFSET	0x19000
+#define CFG_SATA2		(CFG_IMMR + CFG_SATA2_OFFSET)
+#define CFG_SATA2_FLAGS		FLAGS_DMA
+
+#ifdef CONFIG_FSL_SATA
+#define CONFIG_LBA48
+#define CONFIG_CMD_SATA
+#define CONFIG_DOS_PARTITION
+#define CONFIG_CMD_EXT2
+#endif
 
 /*
  * Environment
@@ -567,7 +595,7 @@
 
 #define CONFIG_BAUDRATE 115200
 
-#define CONFIG_LOADADDR 200000	/* default location for tftp and bootm */
+#define CONFIG_LOADADDR 500000	/* default location for tftp and bootm */
 
 #define CONFIG_BOOTDELAY 6	/* -1 disables auto-boot */
 #undef CONFIG_BOOTARGS		/* the boot command will set bootargs */

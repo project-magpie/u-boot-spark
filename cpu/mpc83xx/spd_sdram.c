@@ -34,10 +34,13 @@
 #include <asm/mmu.h>
 #include <spd_sdram.h>
 
+DECLARE_GLOBAL_DATA_PTR;
+
 void board_add_ram_info(int use_default)
 {
 	volatile immap_t *immap = (immap_t *) CFG_IMMR;
 	volatile ddr83xx_t *ddr = &immap->ddr;
+	char buf[32];
 
 	printf(" (DDR%d", ((ddr->sdram_cfg & SDRAM_CFG_SDRAM_TYPE_MASK)
 			   >> SDRAM_CFG_SDRAM_TYPE_SHIFT) - 1);
@@ -48,9 +51,11 @@ void board_add_ram_info(int use_default)
 		puts(", 64-bit");
 
 	if (ddr->sdram_cfg & SDRAM_CFG_ECC_EN)
-		puts(", ECC on)");
+		puts(", ECC on");
 	else
-		puts(", ECC off)");
+		puts(", ECC off");
+
+	printf(", %s MHz)", strmhz(buf, gd->mem_clk));
 
 #if defined(CFG_LB_SDRAM) && defined(CFG_LBC_SDRAM_SIZE)
 	puts("\nSDRAM: ");
@@ -59,8 +64,6 @@ void board_add_ram_info(int use_default)
 }
 
 #ifdef CONFIG_SPD_EEPROM
-
-DECLARE_GLOBAL_DATA_PTR;
 
 #if defined(CONFIG_DDR_ECC) && !defined(CONFIG_ECC_INIT_VIA_DDRC)
 extern void dma_init(void);
@@ -78,12 +81,12 @@ extern int dma_xfer(void *dest, uint count, void *src);
 int
 picos_to_clk(int picos)
 {
-	unsigned int ddr_bus_clk;
+	unsigned int mem_bus_clk;
 	int clks;
 
-	ddr_bus_clk = gd->ddr_clk >> 1;
-	clks = picos / (1000000000 / (ddr_bus_clk / 1000));
-	if (picos % (1000000000 / (ddr_bus_clk / 1000)) != 0)
+	mem_bus_clk = gd->mem_clk >> 1;
+	clks = picos / (1000000000 / (mem_bus_clk / 1000));
+	if (picos % (1000000000 / (mem_bus_clk / 1000)) != 0)
 		clks++;
 
 	return clks;
@@ -313,7 +316,7 @@ long int spd_sdram()
 
 	debug("DDR:Module maximum data rate is: %dMhz\n", max_data_rate);
 
-	ddrc_clk = gd->ddr_clk / 1000000;
+	ddrc_clk = gd->mem_clk / 1000000;
 	effective_data_rate = 0;
 
 	if (max_data_rate >= 390 && max_data_rate < 460) { /* it is DDR 400 */
@@ -598,7 +601,7 @@ long int spd_sdram()
 	debug("DDR:timing_cfg_2=0x%08x\n", ddr->timing_cfg_2);
 
 	/* Check DIMM data bus width */
-	if (spd.dataw_lsb == 0x20) {
+	if (spd.dataw_lsb < 64) {
 		if (spd.mem_type == SPD_MEMTYPE_DDR)
 			burstlen = 0x03; /* 32 bit data bus, burst len is 8 */
 		else
@@ -760,7 +763,7 @@ long int spd_sdram()
 		sdram_cfg |= SDRAM_CFG_RD_EN;
 
 	/* The DIMM is 32bit width */
-	if (spd.dataw_lsb == 0x20) {
+	if (spd.dataw_lsb < 64) {
 		if (spd.mem_type == SPD_MEMTYPE_DDR)
 			sdram_cfg |= SDRAM_CFG_32_BE | SDRAM_CFG_8_BE;
 		if (spd.mem_type == SPD_MEMTYPE_DDR2)

@@ -84,22 +84,37 @@
 # endif
 #endif /* CFG_ENV_IS_IN_NAND */
 
+#ifdef USE_HOSTCC
+# include <stdint.h>
+#else
+# include <linux/types.h>
+#endif
 
 #ifdef CFG_REDUNDAND_ENVIRONMENT
-# define ENV_HEADER_SIZE	(sizeof(unsigned long) + 1)
+# define ENV_HEADER_SIZE	(sizeof(uint32_t) + 1)
 #else
-# define ENV_HEADER_SIZE	(sizeof(unsigned long))
+# define ENV_HEADER_SIZE	(sizeof(uint32_t))
 #endif
 
 
 #define ENV_SIZE (CFG_ENV_SIZE - ENV_HEADER_SIZE)
 
 typedef	struct environment_s {
-	unsigned long	crc;		/* CRC32 over data bytes	*/
+	uint32_t	crc;		/* CRC32 over data bytes	*/
 #ifdef CFG_REDUNDAND_ENVIRONMENT
 	unsigned char	flags;		/* active/obsolete flags	*/
 #endif
 	unsigned char	data[ENV_SIZE]; /* Environment data		*/
 } env_t;
+
+/* Pointer to function that returns a character from the environment */
+extern unsigned char (*env_get_char)(int);
+
+/* Function that returns a pointer to a value from the environment */
+unsigned char *env_get_addr(int);
+unsigned char env_get_char_memory (int index);
+
+/* Function that updates CRC of the enironment */
+void env_crc_update (void);
 
 #endif	/* _ENVIRONMENT_H_ */
