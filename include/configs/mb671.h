@@ -239,6 +239,7 @@
 #define CFG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CONFIG_FLASH_PROTECT_SINGLE_CELL
+#define CONFIG_FLASH_SHOW_PROGRESS 45	/* count down from 45/5: 9..1		*/
 #define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
 #define CFG_MAX_FLASH_SECT	259	/* max number of sectors on one chip	*/
