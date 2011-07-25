@@ -1005,6 +1005,7 @@ void udc_disconnect(void)
 	dcfg = readl(&dev_regs->dctl);
 	dcfg |= SFTDISCON;
 	writel(dcfg, &dev_regs->dctl);
+	udelay(150);
 }
 
 void udc_startup_events(struct usb_device_instance *device)
@@ -1057,6 +1058,7 @@ int is_usbd_high_speed(void)
 int udc_init(void)
 {
 	phy_init();
+	udc_disconnect();
 	usbotg_init();
 	return 0;
 }
