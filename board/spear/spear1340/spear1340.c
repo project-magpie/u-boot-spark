@@ -86,39 +86,40 @@ static struct misc_regs *const misc_regs_p =
 void phy_init(void)
 {
 	u32 temp;
-	/* phy por deassert*/
+
+	/* phy por deassert */
 	temp = readl(&misc_regs_p->usbphy_gen_cfg);
 	temp &= ~USBPHY_POR;
 	writel(temp, &misc_regs_p->usbphy_gen_cfg);
 	udelay(1);
 
-	/* phy clock enable*/
+	/* phy clock enable */
 	temp = readl(&misc_regs_p->usbphy_gen_cfg);
 	temp |= USBPHY_RST;
 	writel(temp, &misc_regs_p->usbphy_gen_cfg);
 
-	/* wait for pll lock*/
+	/* wait for pll lock */
 	while (!(readl(&misc_regs_p->usbphy_gen_cfg) & USB_PLL_LOCK))
 		;
 
 	udelay(1);
 
-	/* otg prstnt deassert*/
+	/* otg prstnt deassert */
 	temp = readl(&misc_regs_p->usbphy_gen_cfg);
 	temp |= USBPHY_PRSNT;
 	writel(temp, &misc_regs_p->usbphy_gen_cfg);
 	udelay(1);
-	/* OTG HCLK Disable*/
+	/* OTG HCLK Disable */
 	temp = readl(&misc_regs_p->perip1_clk_enb);
 	temp &= ~UDC_UPD_CLKEN;
 	writel(temp, &misc_regs_p->perip1_clk_enb);
 
-	/* OTG HRESET deassert*/
+	/* OTG HRESET deassert */
 	temp = readl(&misc_regs_p->perip1_clk_enb);
 	temp &= ~UDC_UPD_CLKEN;
 	writel(temp, &misc_regs_p->perip1_clk_enb);
 
-	/* OTG HCLK Enable*/
+	/* OTG HCLK Enable */
 	temp = readl(&misc_regs_p->perip1_clk_enb);
 	temp |= UDC_UPD_CLKEN;
 	writel(temp, &misc_regs_p->perip1_clk_enb);
