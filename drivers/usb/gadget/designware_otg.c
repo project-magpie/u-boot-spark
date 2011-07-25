@@ -81,12 +81,18 @@ void dwc_otg_read_packet(struct dwc_ep *ep, u16 _bytes)
 	int word_count = (_bytes + 3) / 4;
 	u32 *fifo = dev_if->data_fifo[0];
 	u32 *data_buff = (u32 *) ep->xfer_buff;
+	u32 unaligned;
 	/*
 	 * This requires reading data from the FIFO into a u32 temp buffer,
 	 * then moving it into the data buffer.
 	 */
-	for (i = 0; i < word_count; i++, data_buff++)
-		*data_buff = readl(fifo);
+	if ((_bytes < 4) && (_bytes > 0)) {
+		unaligned = readl(fifo);
+		memcpy(data_buff, &unaligned, _bytes);
+	} else {
+		for (i = 0; i < word_count; i++, data_buff++)
+			*data_buff = readl(fifo);
+	}
 }
 
 /* Handle RX transaction on non-ISO endpoint. */
@@ -125,7 +131,7 @@ static void dwc_otg_ep_write_packet(struct dwc_ep *ep)
 	u32 dword_count;
 	u32 *fifo;
 	u32 *data_buff = (u32 *) ep->xfer_buff;
-	u32 temp;
+	u32 temp, unaligned;
 	struct device_in_ep_regs *in_ep_regs = dev_if->in_ep_regs[ep->num];
 	struct core_global_regs *core_global_regs = dev_if->core_global_regs;
 
@@ -157,8 +163,13 @@ static void dwc_otg_ep_write_packet(struct dwc_ep *ep)
 		;
 
 	/* write to fifo */
-	for (i = 0; i < dword_count; i++, data_buff++)
-		*fifo = *data_buff;
+	if ((ep->xfer_len < 4) && (ep->xfer_len > 0)) {
+		memcpy(&unaligned, data_buff, ep->xfer_len);
+		*fifo = unaligned;
+	} else {
+		for (i = 0; i < dword_count; i++, data_buff++)
+			*fifo = *data_buff;
+	}
 
 	writel(NPTXFEMPTY, &core_global_regs->gintsts);
 
