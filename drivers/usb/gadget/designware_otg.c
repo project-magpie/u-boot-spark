@@ -536,11 +536,33 @@ static void dwc_otg_bulk_in_activate(void)
 	writel(diepctl, &in_regs->diepctl);
 }
 
+static void dwc_otg_int_in_activate(void)
+{
+	struct device_in_ep_regs *in_regs =
+		dev_if->in_ep_regs[UDC_INT_ENDPOINT];
+	struct device_global_regs *dev_global_regs
+		= dev_if->dev_global_regs;
+	u32 diepctl, daint;
+
+	daint = readl(&dev_global_regs->daintmsk);
+	daint |= 1 << (UDC_INT_ENDPOINT + DAINTMASK_IN_SHIFT);
+	writel(daint, &dev_global_regs->daintmsk);
+
+	diepctl = readl(&in_regs->diepctl);
+	diepctl &= ~DIEPCTL_MPSMSK;
+	diepctl &= ~EPTYPEMSK;
+	diepctl |= (UDC_INT_PACKET_SIZE
+			| USBACTEP | DATA0PID
+			| (EPTYPE_INT << EPTYPE_SHIFT));
+	writel(diepctl, &in_regs->diepctl);
+}
+
 /* should be called after set configuration is received */
 void udc_set_configuration_controller(u32 config)
 {
 	dwc_otg_bulk_out_activate();
 	dwc_otg_bulk_in_activate();
+	dwc_otg_int_in_activate();
 	usbd_device_event_irq(udc_device, DEVICE_CONFIGURED, 0);
 }
 
