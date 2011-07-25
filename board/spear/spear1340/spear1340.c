@@ -87,6 +87,19 @@ void phy_init(void)
 {
 	u32 temp;
 
+	/* phy por assert */
+	temp = readl(&misc_regs_p->usbphy_gen_cfg);
+	temp |= USBPHY_POR;
+	writel(temp, &misc_regs_p->usbphy_gen_cfg);
+	udelay(1);
+
+	/* phy clock disable */
+	temp = readl(&misc_regs_p->usbphy_gen_cfg);
+	temp &= ~USBPHY_RST;
+	writel(temp, &misc_regs_p->usbphy_gen_cfg);
+
+	udelay(150);
+
 	/* phy por deassert */
 	temp = readl(&misc_regs_p->usbphy_gen_cfg);
 	temp &= ~USBPHY_POR;
