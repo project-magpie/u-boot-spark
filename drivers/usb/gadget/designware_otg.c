@@ -364,6 +364,15 @@ static void do_setup_in_status_phase(struct device_if *dev_if)
 	writel(doepctl, &out_regs->doepctl);
 }
 
+static void udc_set_stall(int epid, int dir)
+{
+	if (dir)
+		writel(readl(&dev_if->in_ep_regs[epid]->diepctl) | SSTALL,
+			&dev_if->in_ep_regs[epid]->diepctl);
+	else
+		writel(readl(&dev_if->out_ep_regs[epid]->doepctl) | SSTALL,
+			&dev_if->out_ep_regs[epid]->doepctl);
+}
 /*
  * This function handles EP0 Control transfers.
  *
@@ -384,7 +393,10 @@ void handle_ep0(int in_flag)
 		return;
 
 	if (!ep0_urb->actual_length) {
-		ep0_recv_setup(ep0_urb);
+		if (ep0_recv_setup(ep0_urb)) {
+			udc_set_stall(0, ctrl->bmRequestType & USB_DIR_IN);
+			return;
+		}
 		ep0->xfer_buff = (u8 *)ep0_urb->buffer;
 	} else
 		ep0->xfer_buff += EP0_MAX_PACKET_SIZE;
@@ -397,11 +409,16 @@ void handle_ep0(int in_flag)
 		ep0_urb->actual_length -= EP0_MAX_PACKET_SIZE;
 	}
 
-	dwc_otg_ep_write_packet(ep0);
-
-	if (!ep0_urb->actual_length)
-		if (ctrl->bmRequestType & USB_DIR_IN)
+	if (ctrl->bmRequestType & USB_DIR_IN) {
+		dwc_otg_ep_write_packet(ep0);
+		if (!ep0_urb->actual_length)
 			do_setup_in_status_phase(dev_if);
+	} else {
+		if (!ctrl->wLength)
+			dwc_otg_ep_write_packet(ep0);
+		else
+			udc_set_stall(0, ctrl->bmRequestType & USB_DIR_OUT);
+	}
 }
 
 /*

@@ -320,6 +320,7 @@ struct device_in_ep_regs {
 #define EPDIS				(1 << 30)
 #define	SNAK				(1 << 27)
 #define	CNAK				(1 << 26)
+#define	SSTALL				(1 << 21)
 #define MPS_SHIFT			0
 #define MPSMSK0				(3 << MPS_SHIFT)
 #define DWC_DEP0CTL_MPS_64			0
