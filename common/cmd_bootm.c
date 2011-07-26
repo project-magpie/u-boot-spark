@@ -238,24 +238,23 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				   (void *)os_data, os_len, CHUNKSZ);
 
 			load_end = load_start + os_len;
-			puts("OK\n");
 		}
 		break;
 	case IH_COMP_GZIP:
 		printf ("   Uncompressing %s ... ", type_name);
-#if defined(CONFIG_ST40) && 0		/* QQQ - DELETE 2nd clause .... */
+#if defined(CONFIG_ST40)
 {
 		const uchar * const isizep =		/* pointer to ISIZE */
-			(uchar *)data + ntohl(hdr->ih_size) - 4;
+			(uchar *)os_data + os_len - 4;
 		const ulong isize =			/* ISIZE (gzip's Input Size) */
 			(ulong)(isizep[0]) << 0*8 |	/* i.e. the ORIGINAL UN-compressed size */
 			(ulong)(isizep[1]) << 1*8 |
 			(ulong)(isizep[2]) << 2*8 |
 			(ulong)(isizep[3]) << 3*8;
-		const ulong Cload = data;		/* compressed load address */
-		const ulong Csize = ntohl(hdr->ih_size);/* compressed size */
+		const ulong Cload = os_data;		/* compressed load address */
+		const ulong Csize = os_len;		/* compressed size */
 		const ulong Cend  = Cload + Csize - 1;	/* compressed end address */
-		const ulong Uload = ntohl(hdr->ih_load);/* un-compressed load address */
+		const ulong Uload = load_start;		/* un-compressed load address */
 		const ulong Usize = isize;		/* un-compressed size */
 		const ulong Uend  = Uload + Usize - 1;	/* un-compressed end address */
 
@@ -288,10 +287,10 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		}
 
 #if 0
-		printf ("info: Cload = 0x%8x<n\n", PHYSADDR(Cload));
-		printf ("info: Cend  = 0x%8x<n\n", PHYSADDR(Cend) );
-		printf ("info: Uload = 0x%8x<n\n", PHYSADDR(Uload));
-		printf ("info: Uend  = 0x%8x<n\n", PHYSADDR(Uend) );
+		printf ("info: Cload = 0x%8x\n", PHYSADDR(Cload));
+		printf ("info: Cend  = 0x%8x\n", PHYSADDR(Cend) );
+		printf ("info: Uload = 0x%8x\n", PHYSADDR(Uload));
+		printf ("info: Uend  = 0x%8x\n", PHYSADDR(Uend) );
 		printf ("info: Cload > Uend = %d\n", PHYSADDR(Cload) > PHYSADDR(Uend) );
 		printf ("info: Uload > Cend = %d\n", PHYSADDR(Uload) > PHYSADDR(Cend) );
 #endif

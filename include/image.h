@@ -270,14 +270,14 @@ ulong genimg_get_image (ulong img_addr);
 int boot_get_ramdisk (int argc, char *argv[], bootm_headers_t *images,
 		uint8_t arch, ulong *rd_start, ulong *rd_end);
 
-#if defined(CONFIG_PPC) || defined(CONFIG_M68K)
+#if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_ST40)
 int boot_ramdisk_high (struct lmb *lmb, ulong rd_data, ulong rd_len,
 		  ulong *initrd_start, ulong *initrd_end);
 
 int boot_get_cmdline (struct lmb *lmb, ulong *cmd_start, ulong *cmd_end,
 			ulong bootmap_base);
 int boot_get_kbd (struct lmb *lmb, bd_t **kbd, ulong bootmap_base);
-#endif /* CONFIG_PPC || CONFIG_M68K */
+#endif /* CONFIG_PPC || CONFIG_M68K || CONFIG_ST40 */
 #endif /* !USE_HOSTCC */
 
 /*******************************************************************/

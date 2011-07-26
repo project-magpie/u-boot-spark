@@ -972,7 +972,7 @@ int boot_get_ramdisk (int argc, char *argv[], bootm_headers_t *images,
 	return 0;
 }
 
-#if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_SPARC)
+#if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_SPARC) || defined(CONFIG_ST40)
 /**
  * boot_ramdisk_high - relocate init ramdisk
  * @lmb: pointer to lmb handle, will be used for memory mgmt
@@ -1055,7 +1055,9 @@ int boot_ramdisk_high (struct lmb *lmb, ulong rd_data, ulong rd_len,
 error:
 	return -1;
 }
+#endif /* CONFIG_PPC || CONFIG_M68K || CONFIG_SPARC || CONFIG_ST40 */
 
+#if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_SPARC)
 /**
  * boot_get_cmdline - allocate and initialize kernel cmdline
  * @lmb: pointer to lmb handle, will be used for memory mgmt
@@ -1130,7 +1132,7 @@ int boot_get_kbd (struct lmb *lmb, bd_t **kbd, ulong bootmap_base)
 
 	return 0;
 }
-#endif /* CONFIG_PPC || CONFIG_M68K */
+#endif /* CONFIG_PPC || CONFIG_M68K || CONFIG_SPARC */
 #endif /* !USE_HOSTCC */
 
 #if defined(CONFIG_FIT)

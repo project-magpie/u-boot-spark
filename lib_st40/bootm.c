@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2008 STMicroelectronics.
+ * (C) Copyright 2004-2011 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -39,9 +39,6 @@
 # define SHOW_BOOT_PROGRESS(arg)
 #endif
 
-int gunzip (void *, int, unsigned char *, int *);
-
-extern image_header_t header;	/* from cmd_bootm.c */
 
 extern int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[]);
 
@@ -72,175 +69,87 @@ extern void sh_toggle_pmb_cacheability(void);
 #endif	/* CONFIG_ST40_SE_MODE */
 
 void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
-		     ulong addr, ulong * len_ptr, int verify)
+		     bootm_headers_t *images)
 {
-#if 0	/* QQQ - DELETE */
-	DECLARE_GLOBAL_DATA_PTR;
-
-	ulong len = 0, checksum;
-	ulong initrd_start;
-	ulong data, param;
+	ulong initrd_start, initrd_end, initrd_len;
+	ulong param, ep = 0, load = 0;
 	void (*theKernel) (void);
-	image_header_t *hdr = &header;
-	char *commandline = getenv ("bootargs");
-	char extra[128];	/* Extra command line args */
-	extra[0] = 0;
+	const char * const commandline = getenv ("bootargs");
+	int ret;
 #ifdef CONFIG_ST40_SE_MODE
 	size_t i;
 #endif	/* CONFIG_ST40_SE_MODE */
 
-	theKernel = (void (*)(void)) ntohl (hdr->ih_ep);
-	param = ntohl (hdr->ih_load);
+	/* find kernel entry point */
+	if (images->legacy_hdr_valid) {
+		ep   = image_get_ep   (&images->legacy_hdr_os_copy);
+		load = image_get_load (&images->legacy_hdr_os_copy);
+#if defined(CONFIG_FIT)
+	} else if (images->fit_uname_os) {
+		ret = fit_image_get_entry (images->fit_hdr_os,
+				images->fit_noffset_os, &ep);
+		if (ret) {
+			puts ("Can't get entry point property!\n");
+			goto error;
+		}
+#endif
+	} else {
+		puts ("Could not find kernel entry point!\n");
+		goto error;
+	}
+	theKernel = (void (*)(void))ep;	/* The Kernel's Entry Point */
+	param = load;			/* The kernel's "parameter" block */
 
 	/*
-	 * Check if there is an initrd image
+	 * Check if there is a valid initrd image
 	 */
-	if (argc >= 3) {
-		SHOW_BOOT_PROGRESS (9);
-
-		addr = simple_strtoul (argv[2], NULL, 16);
-
-		/* Copy header so we can blank CRC field for re-calculation */
-		memcpy (&header, (char *) addr, sizeof (image_header_t));
-
-		if (ntohl (hdr->ih_magic) != IH_MAGIC) {
-			printf ("Bad Magic Number\n");
-			SHOW_BOOT_PROGRESS (-10);
-			do_reset (cmdtp, flag, argc, argv);
-		}
-
-		data = (ulong) & header;
-		len = sizeof (image_header_t);
-
-		checksum = ntohl (hdr->ih_hcrc);
-		hdr->ih_hcrc = 0;
-
-		if (crc32 (0, (unsigned char *) data, len) != checksum) {
-			printf ("Bad Header Checksum\n");
-			SHOW_BOOT_PROGRESS (-11);
-			do_reset (cmdtp, flag, argc, argv);
-		}
-
-		SHOW_BOOT_PROGRESS (10);
-
-		print_image_hdr (hdr);
-
-		data = addr + sizeof (image_header_t);
-		len = ntohl (hdr->ih_size);
-
-		if (verify) {
-			ulong csum = 0;
-
-			printf ("   Verifying Checksum ... ");
-			csum = crc32 (0, (unsigned char *) data, len);
-			if (csum != ntohl (hdr->ih_dcrc)) {
-				printf ("Bad Data CRC\n");
-				SHOW_BOOT_PROGRESS (-12);
-				do_reset (cmdtp, flag, argc, argv);
-			}
-			printf ("OK\n");
-		}
-
-		SHOW_BOOT_PROGRESS (11);
-
-		if ((hdr->ih_os != IH_OS_LINUX) ||
-		    (hdr->ih_arch != IH_CPU_SH) ||
-		    (hdr->ih_type != IH_TYPE_RAMDISK)) {
-			printf ("No Linux SH Ramdisk Image\n");
-			SHOW_BOOT_PROGRESS (-13);
-			do_reset (cmdtp, flag, argc, argv);
-		}
-
-
-		/*
-		 * Now check if we have a multifile image
-		 */
-	} else if ((hdr->ih_type == IH_TYPE_MULTI) && (len_ptr[1])) {
-		ulong tail = ntohl (len_ptr[0]) % 4;
-		int i;
-
-		SHOW_BOOT_PROGRESS (13);
-
-		/* skip kernel length and terminator */
-		data = (ulong) (&len_ptr[2]);
-		/* skip any additional image length fields */
-		for (i = 1; len_ptr[i]; ++i)
-			data += 4;
-		/* add kernel length, and align */
-		data += ntohl (len_ptr[0]);
-		if (tail) {
-			data += 4 - tail;
-		}
-
-		len = ntohl (len_ptr[1]);
-
-	} else {
-		/*
-		 * no initrd image
-		 */
-		SHOW_BOOT_PROGRESS (14);
-
-		data = 0;
+	ret = boot_get_ramdisk (argc, argv, images, IH_ARCH_SH,
+			&initrd_start, &initrd_end);
+	initrd_len = initrd_end - initrd_start /* + 1 */;
+	if (ret) {
+		/* a RAM disk was found, but was corrupt or invalid */
+		puts("RAM Disk invalid (or corrupt)!\n");
+		goto error;
 	}
 
-#ifdef	DEBUG
-	if (!data) {
-		printf ("No initrd\n");
-	}
-#endif
-
-	if (data) {
+	if (initrd_start) {
 		/*
-		 * Copy ramdisk image into place
-		 * data points to start of image
-		 * len gives length of image
-		 * we will copy image onto end of kernel aligned on a page
-		 * boundary
-		 *
+		 * Copy the ramdisk image into place
+		 * initrd_start points to start of initrd image
+		 * initrd_end points to end of initrd image
+		 * initrd_len gives length of initrd image
 		 */
-		ulong sp;
-	      asm ("mov r15, %0": "=r" (sp):);
-				/* read stack pointer */
-		debug ("## Current stack ends at 0x%08lX ", sp);
+		const ulong orig_start = initrd_start;
+		const ulong orig_len   = initrd_len;
+		struct lmb * const lmb = images->lmb;
+		ulong sp;	/* holds the stack pointer (R15) */
 
-		sp -= 2048;	/* just to be sure */
-		if (sp > (CFG_SDRAM_BASE + CFG_BOOTMAPSZ))
-			sp = (CFG_SDRAM_BASE + CFG_BOOTMAPSZ);
-		sp &= ~0xF;
-		initrd_start = (sp - len) & ~(4096 - 1);
+		/* reserve all the memory from just below the SP to end of RAM */
+		asm ("mov r15, %0": "=r" (sp):);
+		debug ("## Current stack ends at 0x%08lX\n", sp);
+		sp -= 64 * 1024;	/* just to be sure */
+		lmb_reserve(lmb, sp, (CFG_SDRAM_BASE + CFG_SDRAM_SIZE - sp));
 
+		debug ("## ORIGINAL  initrd at 0x%08lX ... 0x%08lX\n",
+		       orig_start, orig_start+initrd_len);
 		SHOW_BOOT_PROGRESS (12);
 
-		debug ("## initrd at 0x%08lX ... 0x%08lX (len=%ld=0x%lX)\n",
-		       data, data + len - 1, len, len);
-
-		printf ("   Loading Ramdisk to %08lx, length %08lx ... ",
-			initrd_start, len);
-#if defined(CONFIG_HW_WATCHDOG) || defined(CONFIG_WATCHDOG)
-		{
-			size_t l = len;
-			void *to = (void *) initrd_start;
-			void *from = (void *) data;
-
-			while (l > 0) {
-				size_t tail = (l > CHUNKSZ) ? CHUNKSZ : l;
-				WATCHDOG_RESET ();
-				memmove (to, from, tail);
-				to += tail;
-				from += tail;
-				l -= tail;
-			}
+		/* relocate the initrd, honoring 'initrd_high' (if it exists) */
+		ret = boot_ramdisk_high(lmb, orig_start, orig_len,
+					&initrd_start, &initrd_end);
+		if (ret) {
+			puts("### Failed to relocate RAM disk\n");
+			goto error;
 		}
-#else /* !(CONFIG_HW_WATCHDOG || CONFIG_WATCHDOG) */
-		memmove ((void *) initrd_start, (void *) data, len);
-#endif /* CONFIG_HW_WATCHDOG || CONFIG_WATCHDOG */
-		puts ("OK\n");
-
-
+		if (orig_start != initrd_start) {
+			printf ("   Relocated initrd from 0x%08lx to 0x%08lx (length 0x%08lx)\n",
+				orig_start, initrd_start, initrd_len);
+		}
 		*LOADER_TYPE = 1;
 		*INITRD_START = (initrd_start - (param - PAGE_OFFSET)) ;	/* passed of offset from memory base */
-		*INITRD_SIZE = len;
+		*INITRD_SIZE = initrd_len;
 	} else {
+		debug ("## No initrd\n");
 		*LOADER_TYPE = 0;
 		*INITRD_START = 0;
 		*INITRD_SIZE = 0;
@@ -262,22 +171,31 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 			CURRENT_SE_MODE ^ (32 ^ 29),
 			CURRENT_SE_MODE,
 			*SE_MODE);
-		return;
+		goto error;
 	}
 
-#ifdef DEBUG
-	printf ("## Transferring control to Linux (at address %08lx) initrd =  %08lx ...\n",
-		(ulong) theKernel, *INITRD_START);
-#endif
-
+	/*
+	 * now copy the Kernel's command line into the parameter block.
+	 * i.e. copy the string in the environment variable "bootargs".
+	 */
 	strcpy (COMMAND_LINE, commandline);
-	if (*extra)
-		strcpy (COMMAND_LINE + strlen (commandline), extra);
 
-	/* linux_params_init (gd->bd->bi_boot_params, commandline); */
+	debug ("## Preparing to transfer control to Linux (at address %08lx) initrd = %08lx ...\n",
+		(ulong) theKernel, *INITRD_START);
 
-	printf ("\nStarting kernel %s - 0x%08x - %d ...\n\n", COMMAND_LINE,
-		*INITRD_START, *INITRD_SIZE);
+	/* if not "autostart", then we are done! */
+	if (!images->autostart)
+		return ;
+
+	/*
+	 * We are now ready to start the final stages, prior
+	 * ultimately to transferring control to the kernel.
+	 */
+	printf ("\nStarting kernel:\n"
+		"   start    = 0x%08x\n"
+		"   initrd   = 0x%08x (%d bytes)\n"
+		"   bootargs = %s\n\n",
+		(ulong)theKernel, *INITRD_START, *INITRD_SIZE, COMMAND_LINE);
 
 	/*
 	 * remove Vpp from the FLASH, so that no further writes can occur.
@@ -395,5 +313,11 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 
 	/* now, finally, we pass control to the kernel itself ... */
 	theKernel ();
-#endif	/* QQQ - DELETE */
+	/* does not return */
+	return;
+
+error:
+	if (images->autostart)
+		do_reset (cmdtp, flag, argc, argv);
+	return;
 }
