@@ -205,7 +205,6 @@
 #define CFG_MAXARGS		16		/* max number of command args	*/
 #define CFG_HZ			1000		/* HZ for timer ticks	*/
 #define CFG_LOAD_ADDR		CFG_SDRAM_BASE	/* default load address		*/
-#define CFG_BOOTMAPSZ		(16 << 20)	/* initial linux memory size	*/
 #define CONFIG_BOOTDELAY	10		/* default delay before executing bootcmd */
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 
