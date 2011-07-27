@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2008 STMicroelectronics.
+ * (C) Copyright 2004-2011 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -195,17 +195,13 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 		 * len gives length of image
 		 * we will copy image onto end of kernel aligned on a page
 		 * boundary
-		 *
 		 */
 		ulong sp;
-	      asm ("mov r15, %0": "=r" (sp):);
+		asm ("mov r15, %0": "=r" (sp):);
 				/* read stack pointer */
-		debug ("## Current stack ends at 0x%08lX ", sp);
+		debug ("## Current stack ends at 0x%08lX\n", sp);
 
-		sp -= 2048;	/* just to be sure */
-		if (sp > (CFG_SDRAM_BASE + CFG_BOOTMAPSZ))
-			sp = (CFG_SDRAM_BASE + CFG_BOOTMAPSZ);
-		sp &= ~0xF;
+		sp -= 64 * 1024;	/* just to be sure */
 		initrd_start = (sp - len) & ~(4096 - 1);
 
 		SHOW_BOOT_PROGRESS (12);
