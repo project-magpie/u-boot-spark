@@ -213,6 +213,9 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 			 * turning the "load high" feature off. This is intentional.
 			 * A value of 0xFFFFFFFF will force *no* relocation at all!
 			 * Otherwise, we set an upper-limit on the initrd relocation.
+			 * Note: it looks like we also need to avoid using the very
+			 * last page that linux sees, so adjust down by one page
+			 * when we use "initrd_high" as the upper limit - just in case!
 			 */
 		if ((s = getenv("initrd_high")) != NULL) {
 			const ulong initrd_high = simple_strtoul(s, NULL, 16);
@@ -222,6 +225,7 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 				    (initrd_start+len > initrd_high) ) {
 				initrd_start = initrd_high-len;	/* honour initrd_high */
 				initrd_start &= ~(PAGE_SIZE - 1);/* page align */
+				initrd_start -= PAGE_SIZE;	/* adjust one page down! */
 			}
 		}
 
