@@ -45,7 +45,8 @@ extern image_header_t header;	/* from cmd_bootm.c */
 
 extern int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[]);
 
-#define PAGE_OFFSET 0x1000
+#define PAGE_SIZE		(0x1000)	/* linux uses 4 KiB pages */
+#define PAGE_OFFSET		PAGE_SIZE	/* one page */
 
 #define MOUNT_ROOT_RDONLY	((unsigned long *) (param+0x000))
 #define RAMDISK_FLAGS		((unsigned long *) (param+0x004))
@@ -194,15 +195,35 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 		 * data points to start of image
 		 * len gives length of image
 		 * we will copy image onto end of kernel aligned on a page
-		 * boundary
+		 * boundary, unless "initrd_high" forces a lower ceiling,
+		 * or initrd_high==0xFFFFFFFF forces no relocation at all!
 		 */
 		ulong sp;
+		const char *s;
+
 		asm ("mov r15, %0": "=r" (sp):);
 				/* read stack pointer */
 		debug ("## Current stack ends at 0x%08lX\n", sp);
-
 		sp -= 64 * 1024;	/* just to be sure */
-		initrd_start = (sp - len) & ~(4096 - 1);
+		initrd_start = sp - len;
+		initrd_start &= ~(PAGE_SIZE - 1);	/* page align */
+			/*
+			 * Use the environment variable "initrd_high" (if defined).
+			 * A value of "no" or a similar string will act like 0,
+			 * turning the "load high" feature off. This is intentional.
+			 * A value of 0xFFFFFFFF will force *no* relocation at all!
+			 * Otherwise, we set an upper-limit on the initrd relocation.
+			 */
+		if ((s = getenv("initrd_high")) != NULL) {
+			const ulong initrd_high = simple_strtoul(s, NULL, 16);
+			if (initrd_high == ~0ul) {		/* 0xFFFFFFFF ? */
+				initrd_start = data;		/* use "in situ" */
+			} else if ( (initrd_high != 0) &&
+				    (initrd_start+len > initrd_high) ) {
+				initrd_start = initrd_high-len;	/* honour initrd_high */
+				initrd_start &= ~(PAGE_SIZE - 1);/* page align */
+			}
+		}
 
 		SHOW_BOOT_PROGRESS (12);
 
