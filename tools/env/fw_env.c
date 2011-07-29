@@ -21,6 +21,7 @@
  * MA 02111-1307 USA
  */
 
+#include <stdint.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
