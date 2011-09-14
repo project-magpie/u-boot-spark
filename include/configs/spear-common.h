@@ -102,6 +102,8 @@
 #define CONFIG_NAND_FSMC			1
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
 #define CONFIG_MTD_NAND_VERIFY_WRITE		1
+#define CONFIG_SYS_NAND_ONFI_DETECTION		1
+#define CONFIG_SYS_NAND_QUIET_TEST		1
 
 /*
  * Command support defines
