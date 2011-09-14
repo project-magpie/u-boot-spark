@@ -2779,24 +2779,18 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 			break;
 
 	if (!type->name) {
-		/* supress warning if there is no nand */
-		if (*maf_id != 0x00 && *maf_id != 0xff &&
-		    *dev_id  != 0x00 && *dev_id  != 0xff)
-			printk(KERN_INFO "%s: unknown NAND device: "
-				"Manufacturer ID: 0x%02x, Chip ID: 0x%02x\n",
-				__func__, *maf_id, *dev_id);
-		return ERR_PTR(-ENODEV);
-	}
+		chip->onfi_version = 0;
+		ret = nand_flash_detect_onfi(mtd, chip, &busw);
 
-	if (!mtd->name)
-		mtd->name = type->name;
+		if (!ret)
+			return ERR_PTR(-ENODEV);
+	} else {
+		if (!mtd->name)
+			mtd->name = type->name;
+		chip->chipsize = (uint64_t)type->chipsize << 20;
 
-	chip->chipsize = (uint64_t)type->chipsize << 20;
-	chip->onfi_version = 0;
-
-	ret = nand_flash_detect_onfi(mtd, chip, &busw);
-	if (!ret)
 		nand_flash_detect_non_onfi(mtd, chip, type, &busw);
+	}
 
 	/* Get chip options, preserve non chip based options */
 	chip->options &= ~NAND_CHIPOPTIONS_MSK;
