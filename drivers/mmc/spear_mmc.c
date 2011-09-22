@@ -267,6 +267,9 @@ static void sdhci_set_ios(struct mmc *mmc)
 	writeb(ctrl, base_addr + SDHCI_HOST_CONTROL);
 }
 
+#if defined(CONFIG_SPEAR1300) || \
+	defined(CONFIG_SPEAR1310_REVA) || \
+	defined(CONFIG_SPEAR900)
 static void swap_2_3(char *buffer, size_t size)
 {
 	u8 swap, swap_tmp;
@@ -292,6 +295,7 @@ static void swap_2_3(char *buffer, size_t size)
 		size--;
 	}
 }
+#endif
 
 static void sdhci_read_block_pio(struct mmc *mmc, struct mmc_data *data,
 		char *buffer)
@@ -318,8 +322,12 @@ static void sdhci_read_block_pio(struct mmc *mmc, struct mmc_data *data,
 		blksize--;
 	}
 
+#if defined(CONFIG_SPEAR1300) || \
+	defined(CONFIG_SPEAR1310_REVA) || \
+	defined(CONFIG_SPEAR900)
 	if (mmc->bus_width == 4)
 		swap_2_3(buffer, data->blocksize);
+#endif
 }
 
 static void sdhci_write_block_pio(struct mmc *mmc, struct mmc_data *data,
@@ -330,8 +338,12 @@ static void sdhci_write_block_pio(struct mmc *mmc, struct mmc_data *data,
 	size_t blksize, chunk = 0;
 	u32 scratch = 0;
 
+#if defined(CONFIG_SPEAR1300) || \
+	defined(CONFIG_SPEAR1310_REVA) || \
+	defined(CONFIG_SPEAR900)
 	if (mmc->bus_width == 4)
 		swap_2_3(buffer, data->blocksize);
+#endif
 
 	blksize = data->blocksize;
 

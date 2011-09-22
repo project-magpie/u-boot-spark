@@ -320,6 +320,7 @@ struct device_in_ep_regs {
 #define EPDIS				(1 << 30)
 #define	SNAK				(1 << 27)
 #define	CNAK				(1 << 26)
+#define	SSTALL				(1 << 21)
 #define MPS_SHIFT			0
 #define MPSMSK0				(3 << MPS_SHIFT)
 #define DWC_DEP0CTL_MPS_64			0
@@ -379,6 +380,7 @@ struct device_out_ep_regs {
 #define EPTYPE_SHIFT		18
 #define EPTYPEMSK		(0x3 << EPTYPE_SHIFT)
 #define EPTYPE_BULK		0x2
+#define EPTYPE_INT		0x3
 #define DATA0PID		(1 << 28)
 #define DATA1PID		(1 << 29)
 #define DPIDMSK			(1 << 16)

@@ -81,12 +81,18 @@ void dwc_otg_read_packet(struct dwc_ep *ep, u16 _bytes)
 	int word_count = (_bytes + 3) / 4;
 	u32 *fifo = dev_if->data_fifo[0];
 	u32 *data_buff = (u32 *) ep->xfer_buff;
+	u32 unaligned;
 	/*
 	 * This requires reading data from the FIFO into a u32 temp buffer,
 	 * then moving it into the data buffer.
 	 */
-	for (i = 0; i < word_count; i++, data_buff++)
-		*data_buff = readl(fifo);
+	if ((_bytes < 4) && (_bytes > 0)) {
+		unaligned = readl(fifo);
+		memcpy(data_buff, &unaligned, _bytes);
+	} else {
+		for (i = 0; i < word_count; i++, data_buff++)
+			*data_buff = readl(fifo);
+	}
 }
 
 /* Handle RX transaction on non-ISO endpoint. */
@@ -125,7 +131,7 @@ static void dwc_otg_ep_write_packet(struct dwc_ep *ep)
 	u32 dword_count;
 	u32 *fifo;
 	u32 *data_buff = (u32 *) ep->xfer_buff;
-	u32 temp;
+	u32 temp, unaligned;
 	struct device_in_ep_regs *in_ep_regs = dev_if->in_ep_regs[ep->num];
 	struct core_global_regs *core_global_regs = dev_if->core_global_regs;
 
@@ -157,8 +163,13 @@ static void dwc_otg_ep_write_packet(struct dwc_ep *ep)
 		;
 
 	/* write to fifo */
-	for (i = 0; i < dword_count; i++, data_buff++)
-		*fifo = *data_buff;
+	if ((ep->xfer_len < 4) && (ep->xfer_len > 0)) {
+		memcpy(&unaligned, data_buff, ep->xfer_len);
+		*fifo = unaligned;
+	} else {
+		for (i = 0; i < dword_count; i++, data_buff++)
+			*fifo = *data_buff;
+	}
 
 	writel(NPTXFEMPTY, &core_global_regs->gintsts);
 
@@ -364,6 +375,15 @@ static void do_setup_in_status_phase(struct device_if *dev_if)
 	writel(doepctl, &out_regs->doepctl);
 }
 
+static void udc_set_stall(int epid, int dir)
+{
+	if (dir)
+		writel(readl(&dev_if->in_ep_regs[epid]->diepctl) | SSTALL,
+			&dev_if->in_ep_regs[epid]->diepctl);
+	else
+		writel(readl(&dev_if->out_ep_regs[epid]->doepctl) | SSTALL,
+			&dev_if->out_ep_regs[epid]->doepctl);
+}
 /*
  * This function handles EP0 Control transfers.
  *
@@ -384,7 +404,10 @@ void handle_ep0(int in_flag)
 		return;
 
 	if (!ep0_urb->actual_length) {
-		ep0_recv_setup(ep0_urb);
+		if (ep0_recv_setup(ep0_urb)) {
+			udc_set_stall(0, ctrl->bmRequestType & USB_DIR_IN);
+			return;
+		}
 		ep0->xfer_buff = (u8 *)ep0_urb->buffer;
 	} else
 		ep0->xfer_buff += EP0_MAX_PACKET_SIZE;
@@ -397,11 +420,16 @@ void handle_ep0(int in_flag)
 		ep0_urb->actual_length -= EP0_MAX_PACKET_SIZE;
 	}
 
-	dwc_otg_ep_write_packet(ep0);
-
-	if (!ep0_urb->actual_length)
-		if (ctrl->bmRequestType & USB_DIR_IN)
+	if (ctrl->bmRequestType & USB_DIR_IN) {
+		dwc_otg_ep_write_packet(ep0);
+		if (!ep0_urb->actual_length)
 			do_setup_in_status_phase(dev_if);
+	} else {
+		if (!ctrl->wLength)
+			dwc_otg_ep_write_packet(ep0);
+		else
+			udc_set_stall(0, ctrl->bmRequestType & USB_DIR_OUT);
+	}
 }
 
 /*
@@ -536,11 +564,33 @@ static void dwc_otg_bulk_in_activate(void)
 	writel(diepctl, &in_regs->diepctl);
 }
 
+static void dwc_otg_int_in_activate(void)
+{
+	struct device_in_ep_regs *in_regs =
+		dev_if->in_ep_regs[UDC_INT_ENDPOINT];
+	struct device_global_regs *dev_global_regs
+		= dev_if->dev_global_regs;
+	u32 diepctl, daint;
+
+	daint = readl(&dev_global_regs->daintmsk);
+	daint |= 1 << (UDC_INT_ENDPOINT + DAINTMASK_IN_SHIFT);
+	writel(daint, &dev_global_regs->daintmsk);
+
+	diepctl = readl(&in_regs->diepctl);
+	diepctl &= ~DIEPCTL_MPSMSK;
+	diepctl &= ~EPTYPEMSK;
+	diepctl |= (UDC_INT_PACKET_SIZE
+			| USBACTEP | DATA0PID
+			| (EPTYPE_INT << EPTYPE_SHIFT));
+	writel(diepctl, &in_regs->diepctl);
+}
+
 /* should be called after set configuration is received */
 void udc_set_configuration_controller(u32 config)
 {
 	dwc_otg_bulk_out_activate();
 	dwc_otg_bulk_in_activate();
+	dwc_otg_int_in_activate();
 	usbd_device_event_irq(udc_device, DEVICE_CONFIGURED, 0);
 }
 
@@ -955,6 +1005,7 @@ void udc_disconnect(void)
 	dcfg = readl(&dev_regs->dctl);
 	dcfg |= SFTDISCON;
 	writel(dcfg, &dev_regs->dctl);
+	udelay(150);
 }
 
 void udc_startup_events(struct usb_device_instance *device)
@@ -1007,6 +1058,7 @@ int is_usbd_high_speed(void)
 int udc_init(void)
 {
 	phy_init();
+	udc_disconnect();
 	usbotg_init();
 	return 0;
 }
