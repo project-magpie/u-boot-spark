@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2011 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -23,97 +23,34 @@
 #include <nand.h>
 
 
-extern struct nand_bbt_descr stm_nand_badblock_pattern_16;
-extern struct nand_bbt_descr stm_nand_badblock_pattern_64;
-
-extern int stm_nand_default_bbt (
-	struct mtd_info *mtd);
+extern int stm_nand_default_bbt(
+	struct mtd_info * const mtd);
 
 
-#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
+#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" ECC (3 bytes/128 byte record) */
 
+extern void stm_nand_init(
+	struct mtd_info * const mtd);
 
-extern int stm_nand_calculate_ecc (
+extern void stm_nand_select_chip(
 	struct mtd_info * const mtd,
-	const u_char * const dat,
-	u_char * const ecc_code);
-
-extern int stm_nand_correct_data (
-	struct mtd_info *mtd,
-	u_char *dat,
-	u_char *read_ecc,
-	u_char *calc_ecc);
-
-extern void stm_nand_enable_hwecc (
-	struct mtd_info *mtd,
-	int mode);
-
-
-extern int stm_nand_read (
-	struct mtd_info *mtd,
-	loff_t from,
-	size_t len,
-	size_t * retlen,
-	u_char * buf);
-
-extern int stm_nand_read_ecc (
-	struct mtd_info *mtd,
-	loff_t from,
-	size_t len,
-	size_t * retlen,
-	u_char * buf,
-	u_char * eccbuf,
-	struct nand_oobinfo *oobsel);
-
-extern int stm_nand_read_oob (
-	struct mtd_info *mtd,
-	loff_t from,
-	size_t len,
-	size_t * retlen,
-	u_char * buf);
-
-
-extern int stm_nand_write (
-	struct mtd_info *mtd,
-	loff_t to,
-	size_t len,
-	size_t * retlen,
-	const u_char * buf);
-
-extern int stm_nand_write_ecc (
-	struct mtd_info *mtd,
-	loff_t to,
-	size_t len,
-	size_t * retlen,
-	const u_char * buf,
-	u_char * eccbuf,
-	struct nand_oobinfo *oobsel);
-
-extern int stm_nand_write_oob (
-	struct mtd_info *mtd,
-	loff_t to,
-	size_t len,
-	size_t * retlen,
-	const u_char *buf);
-
+	const int chipnr);
 
 #endif	/* CFG_NAND_ECC_HW3_128 */
 
 
-#ifdef CFG_NAND_FLEX_MODE	/* for STM "flex-mode" (c.f. "bit-banging") */
-
+#ifdef CFG_NAND_FLEX_MODE	/* for STM "FLEX-mode" */
 
 extern int stm_flex_device_ready(
 	struct mtd_info * const mtd);
 
-extern void stm_flex_select_chip (
+extern void stm_flex_select_chip(
 	struct mtd_info * const mtd,
 	const int chipnr);
 
-extern void stm_flex_hwcontrol (
+extern void stm_flex_hwcontrol(
 	struct mtd_info * const mtd,
 	int control);
-
 
 extern u_char stm_flex_read_byte(
 	struct mtd_info * const mtd);
@@ -121,7 +58,6 @@ extern u_char stm_flex_read_byte(
 extern void stm_flex_write_byte(
 	struct mtd_info * const mtd,
 	u_char byte);
-
 
 extern void stm_flex_read_buf(
 	struct mtd_info * const mtd,
@@ -132,7 +68,6 @@ extern void stm_flex_write_buf(
 	struct mtd_info * const mtd,
 	const u_char *buf,
 	const int len);
-
 
 #endif /* CFG_NAND_FLEX_MODE */
 

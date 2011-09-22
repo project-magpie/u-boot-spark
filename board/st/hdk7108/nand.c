@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2006 DENX Software Engineering
- * (C) Copyright 2008-2010 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2011 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -25,7 +25,7 @@
 #include <nand.h>
 #include <asm/io.h>
 #include <asm/pio.h>
-#include <asm/stx7108reg.h>
+#include <asm/socregs.h>
 #include <asm/stm-nand.h>
 
 
@@ -33,10 +33,10 @@
  * hardware specific access to control-lines for "bit-banging".
  *	CL -> Emi_Addr(17)
  *	AL -> Emi_Addr(18)
- *	nCE is handled by EMI (not s/w controlable)
+ *	nCE is handled by EMI (not s/w controllable)
  */
 #ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
-static void hdk7108_hwcontrol(struct mtd_info *mtdinfo, int cmd)
+static void board_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 {
 	struct nand_chip* this = (struct nand_chip *)(mtdinfo->priv);
 
@@ -67,7 +67,7 @@ static void hdk7108_hwcontrol(struct mtd_info *mtdinfo, int cmd)
  * Signal is routed through the EMI NAND Controller block.
  */
 #ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
-static int hdk7108_device_ready(struct mtd_info *mtd)
+static int board_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
 	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
@@ -76,26 +76,13 @@ static int hdk7108_device_ready(struct mtd_info *mtd)
 
 
 /*
- * Board-specific NAND initialization. The following members of the
- * argument are board-specific (per include/linux/mtd/nand.h):
- * - IO_ADDR_R?: address to read the 8 I/O lines of the flash device
- * - IO_ADDR_W?: address to write the 8 I/O lines of the flash device
- * - hwcontrol: hardwarespecific function for accesing control-lines
- * - dev_ready: hardwarespecific function for  accesing device ready/busy line
- * - enable_hwecc?: function to enable (reset)  hardware ecc generator. Must
- *   only be provided if a hardware ECC is available
- * - eccmode: mode of ecc, see defines
- * - chip_delay: chip dependent delay for transfering data from array to
- *   read regs (tR)
- * - options: various chip options. They can partly be set to inform
- *   nand_scan about special functionality. See the defines for further
- *   explanation
- * Members with a "?" were not set in the merged testing-NAND branch,
- * so they are not set here either.
+ * Board-specific NAND initialization.
+ *
+ * Please see comment in cpu/sh/stm-nand.c for details ...
  */
 extern int board_nand_init(struct nand_chip *nand)
 {
-	nand->eccmode       = NAND_ECC_SOFT;
+	nand->eccmode       = NAND_ECC_SOFT;	/* default is S/W 3/256 ECC */
 	nand->options       = NAND_NO_AUTOINCR;
 
 #ifdef CFG_NAND_FLEX_MODE	/* for STM "flex-mode" (c.f. "bit-banging") */
@@ -107,8 +94,11 @@ extern int board_nand_init(struct nand_chip *nand)
 	nand->read_buf      = stm_flex_read_buf;
 	nand->write_buf     = stm_flex_write_buf;
 #else				/* for "bit-banging" (c.f. STM "flex-mode")  */
-	nand->dev_ready     = hdk7108_device_ready;
-	nand->hwcontrol     = hdk7108_hwcontrol;
+	nand->dev_ready     = board_device_ready;
+	nand->hwcontrol     = board_hwcontrol;
+#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" ECC + "bit-banging"! */
+	nand->select_chip   = stm_nand_select_chip;
+#endif /* CFG_NAND_ECC_HW3_128 */
 #endif /* CFG_NAND_FLEX_MODE */
 
 	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
