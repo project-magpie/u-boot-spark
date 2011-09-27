@@ -36,7 +36,7 @@
  *	nCE is handled by EMI (not s/w controllable)
  */
 #ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
-static void board_hwcontrol(struct mtd_info *mtdinfo, int cmd)
+static void hdk7108_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 {
 	struct nand_chip* this = (struct nand_chip *)(mtdinfo->priv);
 
@@ -67,7 +67,7 @@ static void board_hwcontrol(struct mtd_info *mtdinfo, int cmd)
  * Signal is routed through the EMI NAND Controller block.
  */
 #ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
-static int board_device_ready(struct mtd_info *mtd)
+static int hdk7108_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
 	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
@@ -77,35 +77,24 @@ static int board_device_ready(struct mtd_info *mtd)
 
 /*
  * Board-specific NAND initialization.
- *
- * Please see comment in cpu/sh/stm-nand.c for details ...
+ * We use a "generic" STM function stm_default_board_nand_init() to do it.
+ * However, we can easily override anything locally, if required.
  */
-extern int board_nand_init(struct nand_chip *nand)
+extern int board_nand_init(struct nand_chip * const nand)
 {
-	nand->eccmode       = NAND_ECC_SOFT;	/* default is S/W 3/256 ECC */
-	nand->options       = NAND_NO_AUTOINCR;
+#if defined(CFG_NAND_FLEX_MODE)	/* for STM "flex-mode" */
+	stm_default_board_nand_init(nand, NULL, NULL);
+#else				/* for "bit-banging" */
+	stm_default_board_nand_init(nand, hdk7108_hwcontrol, hdk7108_device_ready);
+#endif
 
-#ifdef CFG_NAND_FLEX_MODE	/* for STM "flex-mode" (c.f. "bit-banging") */
-	nand->select_chip   = stm_flex_select_chip;
-	nand->dev_ready     = stm_flex_device_ready;
-	nand->hwcontrol     = stm_flex_hwcontrol;
-	nand->read_byte     = stm_flex_read_byte;
-	nand->write_byte    = stm_flex_write_byte;
-	nand->read_buf      = stm_flex_read_buf;
-	nand->write_buf     = stm_flex_write_buf;
-#else				/* for "bit-banging" (c.f. STM "flex-mode")  */
-	nand->dev_ready     = board_device_ready;
-	nand->hwcontrol     = board_hwcontrol;
-#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" ECC + "bit-banging"! */
-	nand->select_chip   = stm_nand_select_chip;
-#endif /* CFG_NAND_ECC_HW3_128 */
-#endif /* CFG_NAND_FLEX_MODE */
-
-	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
-	nand->scan_bbt      = stm_nand_default_bbt;
-
-#if 1	/* Enable to use a NAND-resident (non-volatile) Bad Block Table (BBT) */
-	nand->options      |= NAND_USE_FLASH_BBT;
+	/*
+	 * Only enable the following to use a (volatile) RAM-based
+	 * (not NAND-resident) Bad Block Table (BBT).
+	 * This is *not* recommended! A NAND-resident BBT is recommended.
+	 */
+#if 0
+	nand->options &= ~NAND_USE_FLASH_BBT;
 #endif
 
 	return 0;

@@ -20,55 +20,26 @@
  * MA 02111-1307 USA
  */
 
+
+#ifndef __STM_NAND_H_
+#define __STM_NAND_H_
+
+
 #include <nand.h>
 
 
-extern int stm_nand_default_bbt(
-	struct mtd_info * const mtd);
+struct nand_chip;
+struct mtd_info;
 
 
-#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" ECC (3 bytes/128 byte record) */
+extern void stm_default_board_nand_init(
+	struct nand_chip * const nand,
+	void (*hwcontrol)(struct mtd_info *mtdinfo, int cmd),
+	int (*dev_ready)(struct mtd_info *mtd));
 
-extern void stm_nand_init(
-	struct mtd_info * const mtd);
-
-extern void stm_nand_select_chip(
+extern void stm_flex_init_nand(
 	struct mtd_info * const mtd,
-	const int chipnr);
-
-#endif	/* CFG_NAND_ECC_HW3_128 */
+	struct nand_chip * const nand);
 
 
-#ifdef CFG_NAND_FLEX_MODE	/* for STM "FLEX-mode" */
-
-extern int stm_flex_device_ready(
-	struct mtd_info * const mtd);
-
-extern void stm_flex_select_chip(
-	struct mtd_info * const mtd,
-	const int chipnr);
-
-extern void stm_flex_hwcontrol(
-	struct mtd_info * const mtd,
-	int control);
-
-extern u_char stm_flex_read_byte(
-	struct mtd_info * const mtd);
-
-extern void stm_flex_write_byte(
-	struct mtd_info * const mtd,
-	u_char byte);
-
-extern void stm_flex_read_buf(
-	struct mtd_info * const mtd,
-	u_char * const buf,
-	const int len);
-
-extern void stm_flex_write_buf(
-	struct mtd_info * const mtd,
-	const u_char *buf,
-	const int len);
-
-#endif /* CFG_NAND_FLEX_MODE */
-
-
+#endif /* __STM_NAND_H_ */

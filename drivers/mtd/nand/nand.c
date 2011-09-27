@@ -45,6 +45,7 @@ static void nand_init_chip(struct mtd_info *mtd, struct nand_chip *nand,
 			   ulong base_addr)
 {
 	mtd->priv = nand;
+	nand->priv = mtd;	/* so board_nand_init() can use 'mtd' */
 
 	nand->IO_ADDR_R = nand->IO_ADDR_W = (void  __iomem *)base_addr;
 	if (board_nand_init(nand) == 0) {

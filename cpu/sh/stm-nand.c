@@ -81,39 +81,6 @@ static struct nand_bbt_descr stm_nand_badblock_pattern_64 = {
 };
 
 
-extern int stm_nand_default_bbt (struct mtd_info * const mtd)
-{
-	struct nand_chip * const this = (struct nand_chip *)(mtd->priv);
-
-	/* over-write the default "badblock_pattern", with our one */
-	/* choose the correct pattern struct, depending on the OOB size */
-	if (mtd->oobsize > 16)
-		this->badblock_pattern = &stm_nand_badblock_pattern_64;	/* LARGE-page */
-	else
-		this->badblock_pattern = &stm_nand_badblock_pattern_16;	/* SMALL-page */
-
-	/*
-	 * For the "boot-mode+B" ECC (i.e. 3+1/128) scheme, and for
-	 * the "AFM4" ECC (i.e. 4+3/512) scheme, then we wish to
-	 * be compatible with the way linux scans NAND devices.
-	 * So, we do not want to scan all pages, nor all the in-band data!
-	 * Play with the options to make it so...
-	 */
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B || CFG_STM_NAND_AFM4_ECC_WITH_AFM
-	this->badblock_pattern->options &= ~(NAND_BBT_SCANEMPTY|NAND_BBT_SCANALLPAGES);
-#endif
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	/* Additional "B" tag in OOB ? */
-	this->badblock_pattern->options |= NAND_BBT_SCANSTMBOOTECC;
-#endif
-#if CFG_STM_NAND_AFM4_ECC_WITH_AFM	/* Additional "AFM" tag in OOB ? */
-	this->badblock_pattern->options |= NAND_BBT_SCANSTMAFMECC;
-#endif
-
-	/* now call the generic BBT function */
-	return nand_default_bbt (mtd);
-}
-
-
 /*****************************************************************************************
  *****************************************************************************************
  *****************		H/W 3/128 Boot-Mode		**************************
@@ -613,62 +580,95 @@ static int stm_nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size
 }
 
 
-extern void stm_nand_init (struct mtd_info * const mtd)
-{
-	struct nand_chip * const this = (struct nand_chip *)(mtd->priv);
-
-	mtd->read          = stm_nand_read;
-	mtd->write         = stm_nand_write;
-	mtd->read_ecc      = stm_nand_read_ecc;
-	mtd->write_ecc     = stm_nand_write_ecc;
-	mtd->read_oob      = stm_nand_read_oob;
-	mtd->write_oob     = stm_nand_write_oob;
-	this->enable_hwecc = stm_nand_enable_hwecc;
-}
-
-
-#if !defined(CFG_NAND_FLEX_MODE)
-	/*
-	 * Specifically for "bit-banging" + Boot-Mode!
-	 *
-	 * This function essentially does the same as the 'static' function
-	 * nand_select_chip() in 'drivers/mtd/nand/nand_base.c'. The main
-	 * difference, is that it will also call stm_nand_init() on the
-	 * first invocation, to update several of the function pointers
-	 * to ensure we use the STM-specific "hybrid" accessors, to
-	 * select between STM "boot-mode", and the "other" ECC, when
-	 * we are using the "bit-banging" interface (not FLEX/AFM).
-	 *
-	 * Warning: we use the private data in nand_chip to indicate
-	 * if we have called stm_nand_init() yet or not.
-	 */
-extern void stm_nand_select_chip (struct mtd_info * const mtd, const int chipnr)
-{
-	struct nand_chip * const this = (struct nand_chip *)(mtd->priv);
-
-		/* only initialize this once, on the first call */
-	if (!this->priv) {			/* not initialized ? */
-		stm_nand_init(mtd);
-		this->priv = (void*)1;		/* initialized */
-	}
-	BUG_ON (this->priv!=(void*)1);		/* just in case! */
-
-		/* equivalent to calling nand_select_chip(mtd, chipnr) */
-	switch (chipnr) {
-	case -1:
-		this->hwcontrol(mtd, NAND_CTL_CLRNCE);
-		break;
-	case 0:
-		this->hwcontrol(mtd, NAND_CTL_SETNCE);
-		break;
-	default:
-		BUG();
-	}
-}
-#endif	/* CFG_NAND_FLEX_MODE */
-
-
 #endif	/* CFG_NAND_ECC_HW3_128 */
+
+
+/*****************************************************************************************
+ *****************************************************************************************
+ *****************		Generic "common" code		**************************
+ *****************************************************************************************
+ *****************************************************************************************/
+
+
+static int stm_nand_default_bbt (struct mtd_info * const mtd)
+{
+	struct nand_chip * const this = (struct nand_chip *)(mtd->priv);
+
+	/* over-write the default "badblock_pattern", with our one */
+	/* choose the correct pattern struct, depending on the OOB size */
+	if (mtd->oobsize > 16)
+		this->badblock_pattern = &stm_nand_badblock_pattern_64;	/* LARGE-page */
+	else
+		this->badblock_pattern = &stm_nand_badblock_pattern_16;	/* SMALL-page */
+
+	/*
+	 * For the "boot-mode+B" ECC (i.e. 3+1/128) scheme, and for
+	 * the "AFM4" ECC (i.e. 4+3/512) scheme, then we wish to
+	 * be compatible with the way linux scans NAND devices.
+	 * So, we do not want to scan all pages, nor all the in-band data!
+	 * Play with the options to make it so...
+	 */
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B || CFG_STM_NAND_AFM4_ECC_WITH_AFM
+	this->badblock_pattern->options &= ~(NAND_BBT_SCANEMPTY|NAND_BBT_SCANALLPAGES);
+#endif
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	/* Additional "B" tag in OOB ? */
+	this->badblock_pattern->options |= NAND_BBT_SCANSTMBOOTECC;
+#endif
+#if CFG_STM_NAND_AFM4_ECC_WITH_AFM	/* Additional "AFM" tag in OOB ? */
+	this->badblock_pattern->options |= NAND_BBT_SCANSTMAFMECC;
+#endif
+
+	/* now call the generic BBT function */
+	return nand_default_bbt (mtd);
+}
+
+
+extern void stm_default_board_nand_init(
+	struct nand_chip * const nand,
+	void (*hwcontrol)(struct mtd_info *mtdinfo, int cmd),
+	int (*dev_ready)(struct mtd_info *mtd))
+{
+#if defined(CFG_NAND_FLEX_MODE) || defined(CFG_NAND_ECC_HW3_128)
+	struct mtd_info * const mtd = (struct mtd_info *)(nand->priv);
+#endif
+
+	/* free up private pointer for the real driver */
+	nand->priv = NULL;
+
+	nand->eccmode       = NAND_ECC_SOFT;	/* default is S/W 3/256 ECC */
+	nand->options       = NAND_NO_AUTOINCR;
+#if 1	/* Enable to use a NAND-resident (non-volatile) Bad Block Table (BBT) */
+	nand->options      |= NAND_USE_FLASH_BBT;
+#endif
+	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
+	nand->scan_bbt      = stm_nand_default_bbt;
+
+#if defined(CFG_NAND_FLEX_MODE)		/* for STM "flex-mode" (c.f. "bit-banging") */
+	stm_flex_init_nand(mtd, nand);
+#else					/* for "bit-banging" (c.f. STM "flex-mode")  */
+	nand->hwcontrol     = hwcontrol;
+	nand->dev_ready     = dev_ready;
+#endif /* CFG_NAND_FLEX_MODE */
+
+#if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" ECC */
+	mtd->read           = stm_nand_read;
+	mtd->write          = stm_nand_write;
+	mtd->read_ecc       = stm_nand_read_ecc;
+	mtd->write_ecc      = stm_nand_write_ecc;
+	mtd->read_oob       = stm_nand_read_oob;
+	mtd->write_oob      = stm_nand_write_oob;
+	nand->enable_hwecc  = stm_nand_enable_hwecc;
+#endif /* CFG_NAND_ECC_HW3_128 */
+
+	/*
+	 * Only enable the following to use a (volatile) RAM-based
+	 * (not NAND-resident) Bad Block Table (BBT).
+	 * This is *not* recommended! A NAND-resident BBT is recommended.
+	 */
+#if 0
+	nand->options      &= ~NAND_USE_FLASH_BBT;
+#endif
+}
 
 
 #endif	/* CONFIG_CMD_NAND */

@@ -81,7 +81,6 @@ struct stm_nand_flex_device {
  * There is only a single one of these.
  */
 static struct stm_nand_flex_controller {
-	int			initialized;	/* is the FLEX controller initialized ? */
 	int			current_csn;	/* Currently Selected Device (CSn) */
 	int			next_csn;	/* First free NAND Device (CSn) */
 	enum stm_nand_flex_mode mode;
@@ -206,7 +205,7 @@ static void flex_set_timings(struct nand_timing_data * const tm)
  * hardware specific access to the Ready/not_Busy signal.
  * Signal is routed through the EMI NAND Controller block.
  */
-extern int stm_flex_device_ready(struct mtd_info * const mtd)
+static int stm_flex_device_ready(struct mtd_info * const mtd)
 {
 	/* Apply a small delay before sampling the RBn signal */
 #if 1
@@ -261,81 +260,16 @@ static void init_flex_mode(void)
  *   - Set bank in mux_control_reg to data->csn
  *   - Update read/write timings (to do)
  */
-extern void stm_flex_select_chip(
+static void stm_flex_select_chip(
 	struct mtd_info * const mtd,
 	const int chipnr)
 {
-	struct nand_chip * const chip = mtd->priv;
-	struct stm_nand_flex_device * data = chip->priv;
-#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
-	volatile u32 * const pteh_p  = (u32*)ST40_MMU_PTEH;
-	volatile u32 * const ptel_p  = (u32*)ST40_MMU_PTEL;
-	const u32 pteh =
-		((u32)cache & PAGE_MASK)			|
-		(PTEH_ASID & ASID_MASK);
-	const u32 ptel =
-		((u32)ST40_EMI_NAND_FLEX_DATA & PAGE_MASK)	|
-		PTEL_V						|
-#if 0
-		PTEL_PR_WRITE | PTEL_D	/* if we use OCBI */	|
-#endif
-		PTEL_SZ_1K					|
-		PTEL_C						|
-		PTEL_SH;
-#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
+	struct nand_chip * const nand = mtd->priv;
+	struct stm_nand_flex_device * const data = nand->priv;
 
 #if DEBUG_FLEX
 	printf("\t\t\t\t---- SELECT = %2d ----\n", chipnr);
 #endif
-
-	if (!flex.initialized)		/* is the H/W yet to be initialized ? */
-	{
-		/* initialize the FLEX mode controller H/W */
-		init_flex_mode();
-		/* initialize the "flex" software structure */
-		flex.mode          = flex_quiecent;	/* nothing pending */
-		flex.next_csn      = 0;			/* start with first EMI CSn */
-		flex.current_csn   = -1;		/* no NAND device selected */
-							/* allocate a bounce buffer */
-		flex.buf = malloc(NAND_MAX_PAGESIZE + NAND_MAX_OOBSIZE);
-		if (flex.buf==NULL)
-		{
-			printf("ERROR: Unable to allocate memory for a bounce buffer\n");
-			BUG();
-		}
-		/* initialize the TLB mapping if configured */
-#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
-		*mmucr_p |= MMUCR_TI;	/* invalidate the TLBs */
-		*pteh_p = pteh;
-		*ptel_p = ptel;
-		asm volatile ("ldtlb");	/* define 1 TLB mapping */
-#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
-		flex.initialized   = 1;			/* initialization done */
-	}
-
-	if (data == NULL)		/* device not yet scanned ? */
-	{
-#ifdef CFG_NAND_FLEX_CSn_MAP
-		const int csn_map[CFG_MAX_NAND_DEVICE] = CFG_NAND_FLEX_CSn_MAP;
-#endif	/* CFG_NAND_FLEX_CSn_MAP */
-		int csn            = flex.next_csn++;		/* first free CSn */
-		chip->priv = data  = &(flex.device[csn]);	/* first free "private" structure */
-		if (csn >= CFG_MAX_NAND_DEVICE) BUG();
-#ifdef CFG_NAND_FLEX_CSn_MAP
-		csn                = csn_map[csn];		/* Re-map to different CSn if needed */
-#endif	/* CFG_NAND_FLEX_CSn_MAP */
-#if DEBUG_FLEX
-		printf("info: stm_nand_flex_device.csn = %u\n", csn);
-#endif
-
-		data->csn          = csn;			/* fill in the private structure ... */
-		data->mtd          = mtd;
-		data->chip         = chip;
-		data->timing_data  = NULL;			/* QQQ: to do */
-#ifdef CFG_NAND_ECC_HW3_128
-		stm_nand_init(mtd);
-#endif /* CFG_NAND_ECC_HW3_128 */
-	}
 
 	/* Deselect, do nothing */
 	if (chipnr == -1) {
@@ -350,13 +284,6 @@ extern void stm_flex_select_chip(
 		flex.current_csn = data->csn;
 		*ST40_EMI_NAND_FLEX_MUXCTRL = 1ul << data->csn;
 
-		/* Set up timing parameters */
-#if 0
-		/* The default times will work for 200MHz (or slower) */
-		/* QQQ: to do - BUT this is also the WRONG place to do this! */
-		flex_set_timings(data->timing_data);
-#endif
-
 	} else {
 		printf("ERROR: In %s() attempted to select chipnr = %d\n",
 			__FUNCTION__,
@@ -365,7 +292,7 @@ extern void stm_flex_select_chip(
 }
 
 
-extern void stm_flex_hwcontrol (
+static void stm_flex_hwcontrol (
 	struct mtd_info * const mtd,
 	int control)
 {
@@ -418,7 +345,7 @@ extern void stm_flex_hwcontrol (
  * nand_read_byte - [DEFAULT] read one byte from the chip
  * @mtd:	MTD device structure
  */
-extern u_char stm_flex_read_byte(
+static u_char stm_flex_read_byte(
 	struct mtd_info * const mtd)
 {
 	u_char byte;
@@ -449,7 +376,7 @@ extern u_char stm_flex_read_byte(
  * @mtd:	MTD device structure
  * @byte:	pointer to data byte to write
  */
-extern void stm_flex_write_byte(
+static void stm_flex_write_byte(
 	struct mtd_info * const mtd,
 	u_char byte)
 {
@@ -496,7 +423,7 @@ extern void stm_flex_write_byte(
  * @buf:	buffer to store data
  * @len:	number of bytes to read
  */
-extern void stm_flex_read_buf(
+static void stm_flex_read_buf(
 	struct mtd_info * const mtd,
 	u_char * const buf,
 	const int len)
@@ -656,7 +583,7 @@ extern void stm_flex_read_buf(
  * @buf:	data buffer
  * @len:	number of bytes to write
  */
-extern void stm_flex_write_buf(
+static void stm_flex_write_buf(
 	struct mtd_info * const mtd,
 	const u_char * const buf,
 	const int len)
@@ -688,6 +615,90 @@ extern void stm_flex_write_buf(
 	{
 		*ST40_EMI_NAND_FLEX_DATA = p[i];
 	}
+}
+
+
+extern void stm_flex_init_nand(
+	struct mtd_info * const mtd,
+	struct nand_chip * const nand)
+{
+	struct stm_nand_flex_device * data = nand->priv;
+	int csn;
+#ifdef CFG_NAND_FLEX_CSn_MAP
+	const int csn_map[CFG_MAX_NAND_DEVICE] = CFG_NAND_FLEX_CSn_MAP;
+#endif	/* CFG_NAND_FLEX_CSn_MAP */
+
+	BUG_ON(data!=NULL);		/* just in case ... */
+	BUG_ON(flex.next_csn!=0);	/* just in case ... */
+
+#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
+	volatile u32 * const pteh_p  = (u32*)ST40_MMU_PTEH;
+	volatile u32 * const ptel_p  = (u32*)ST40_MMU_PTEL;
+	const u32 pteh =
+		((u32)cache & PAGE_MASK)			|
+		(PTEH_ASID & ASID_MASK);
+	const u32 ptel =
+		((u32)ST40_EMI_NAND_FLEX_DATA & PAGE_MASK)	|
+		PTEL_V						|
+#if 0
+		PTEL_PR_WRITE | PTEL_D	/* if we use OCBI */	|
+#endif
+		PTEL_SZ_1K					|
+		PTEL_C						|
+		PTEL_SH;
+#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
+
+	/* initialize the FLEX mode controller H/W */
+	init_flex_mode();
+	/* initialize the "flex" software structure */
+	flex.mode          = flex_quiecent;	/* nothing pending */
+	flex.current_csn   = -1;		/* no NAND device selected */
+						/* allocate a bounce buffer */
+	flex.buf = malloc(NAND_MAX_PAGESIZE + NAND_MAX_OOBSIZE);
+	if (flex.buf==NULL)
+	{
+		printf("ERROR: Unable to allocate memory for a bounce buffer\n");
+		BUG();
+	}
+	/* initialize the TLB mapping if configured */
+#if defined(CONFIG_SH_NAND_USES_CACHED_READS)
+	*mmucr_p |= MMUCR_TI;	/* invalidate the TLBs */
+	*pteh_p = pteh;
+	*ptel_p = ptel;
+	asm volatile ("ldtlb");	/* define 1 TLB mapping */
+#endif	/* CONFIG_SH_NAND_USES_CACHED_READS */
+
+	csn = flex.next_csn++;		/* first free CSn */
+	nand->priv = data = &(flex.device[csn]);	/* first free "private" structure */
+	if (csn >= CFG_MAX_NAND_DEVICE) BUG();
+#ifdef CFG_NAND_FLEX_CSn_MAP
+	csn = csn_map[csn];				/* Re-map to different CSn if needed */
+#endif	/* CFG_NAND_FLEX_CSn_MAP */
+#if DEBUG_FLEX
+	printf("info: stm_nand_flex_device.csn = %u\n", csn);
+#endif
+	data->csn         = csn;			/* fill in the private structure ... */
+	data->mtd         = mtd;
+	data->chip        = nand;
+	data->timing_data = NULL;			/* QQQ: to do */
+
+	/* Set up timing parameters */
+#if 0
+	/* The default times will work for 200MHz (or slower) */
+	flex_set_timings(data->timing_data); /* QQQ: to do */
+#endif
+
+	/*
+	 * Finally, over-write the function pointers in the 'nand_chip'
+	 * structure, to use our FLEX H/W-specific ones instead.
+	 */
+	nand->select_chip = stm_flex_select_chip;
+	nand->dev_ready   = stm_flex_device_ready;
+	nand->hwcontrol   = stm_flex_hwcontrol;
+	nand->read_byte   = stm_flex_read_byte;
+	nand->write_byte  = stm_flex_write_byte;
+	nand->read_buf    = stm_flex_read_buf;
+	nand->write_buf   = stm_flex_write_buf;
 }
 
 
