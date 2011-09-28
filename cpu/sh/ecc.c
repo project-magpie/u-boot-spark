@@ -1,7 +1,7 @@
 /*
  * Synopsis : Error Correction Codes (ECC) Algorithms.
  *
- * Copyright (c) 2008-2010 STMicroelectronics Limited.  All right reserved.
+ * Copyright (c) 2008-2011 STMicroelectronics Limited.  All right reserved.
  *
  * See ecc.h for a description of this module.
  *
@@ -68,7 +68,7 @@ const unsigned char  ecc_bit_count_table[256] =   /* Parity look up table */
 };
 
 
-#if defined(CFG_NAND_ECC_HW3_128)
+#if defined(CFG_NAND_ECC_HW3_128) || defined(CFG_NAND_ECC_AFM4)
 
 static const unsigned char byte_parity_table[] =   /* Parity look up table */
 {
@@ -134,11 +134,6 @@ ecc_t ecc_gen(const unsigned char* p_data, const enum ecc_size size)
   unsigned char byte_d;
 
   ecc_t result;
-  if ( (size!=128) || (((unsigned long)p_data)%4!=0) )	/* QQQ - DELETE */
-  {							/* QQQ - DELETE */
-	printf("ERROR: %s(p_data=%p, size=%u)\n",	/* QQQ - DELETE */
-		__FUNCTION__, p_data, (unsigned)size);	/* QQQ - DELETE */
-  }							/* QQQ - DELETE */
 
   switch (size)
   {
@@ -489,5 +484,5 @@ int main()
   return 0;
 }
 #endif	/* TESTING */
-#endif	/* CFG_NAND_ECC_HW3_128 */
+#endif	/* CFG_NAND_ECC_HW3_128 || CFG_NAND_ECC_AFM4 */
 #endif	/* CONFIG_CMD_NAND */

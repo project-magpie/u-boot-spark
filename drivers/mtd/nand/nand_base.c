@@ -14,6 +14,8 @@
  *		  2009-2011 STMicroelectronics. (Sean McGoogan <Sean.McGoogan@st.com>)
  *
  *
+ *  09-28-2011  SMG: added support for 7 bytes of ECC per 512 byte record (AFM4)
+ *
  *  02-06-2009  SMG: added support for 3 bytes of ECC per 128 byte record.
  *
  *  02-08-2004  tglx: support for strange chips, which cannot auto increment
@@ -2646,6 +2648,7 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 
 	case NAND_ECC_HW3_512:
 	case NAND_ECC_HW6_512:
+	case NAND_ECC_HW7_512:
 	case NAND_ECC_HW8_512:
 		if (mtd->oobblock == 256) {
 			printk (KERN_WARNING "512 byte HW ECC not possible on 256 Byte pagesize, fallback to SW ECC \n");
@@ -2686,7 +2689,9 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 	case NAND_ECC_HW12_2048:
 		this->eccbytes += 4;
 	case NAND_ECC_HW8_512:
-		this->eccbytes += 2;
+		this->eccbytes += 1;
+	case NAND_ECC_HW7_512:
+		this->eccbytes += 1;
 	case NAND_ECC_HW6_512:
 		this->eccbytes += 3;
 	case NAND_ECC_HW3_512:
@@ -2707,6 +2712,7 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 		break;
 	case NAND_ECC_HW3_512:
 	case NAND_ECC_HW6_512:
+	case NAND_ECC_HW7_512:
 	case NAND_ECC_HW8_512:
 		this->eccsteps = mtd->oobblock / 512;
 		break;
