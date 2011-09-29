@@ -41,6 +41,28 @@
 #define VERBOSE_ECC		0	/* Enable for verbose ECC information  */
 
 
+/*
+ * STMicroelectronics' H/W ECC layouts:
+ *
+ * Boot-mode ECC: 128-byte data records, 3 bytes ECC + 1 byte marker ('B')
+ *                Hence, Boot-Mode is described as 3+1/128 ECC.
+ *
+ * AFM3 ECC:      512-byte data records, 3 bytes H/W ECC
+ *                Hence, AFM3 is described as 3/512 ECC.
+ *
+ * AFM4 ECC:      512-byte data records, 3 bytes H/W ECC, 1 byte S/W ECC, 3 bytes marker ('A', 'F', 'M')
+ *                Hence, AFM4 is described as 4+3/512 ECC.
+ *
+ * Note: ECC schemes described here using the form "x+y/z", means:
+ * x-bytes of ECC plus y-bytes of "marker bytes" per z-byte record of data.
+ *
+ * Note: There is a bug in the AFM3 H/W engine that results in two of the
+ * parity bits (LP16 + LP17) being calculated incorrectly. The S/W workaround
+ * for this issue is to store the correct values for these two bits in a
+ * 4th ECC byte (hence AFM4). The S/W will then "fix-up" the LP16+LP17 bits.
+ * It is ill-advised to use the redundant top 6-bits in the 4th byte - beware!
+ * In addition, a 3-byte tag is also stored along with the ECC, hence 4+3/512 ECC.
+ */
 #if !defined(CFG_STM_NAND_BOOT_MODE_ECC_WITH_B)
 #	define CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	1	/* Enable 'B' tagging */
 #endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
@@ -79,6 +101,27 @@ static struct nand_bbt_descr stm_nand_badblock_pattern_64 = {
 	.offs = 0,	/* Bytes 0-1 */
 	.len = 2
 };
+
+
+/*****************************************************************************************
+ *****************************************************************************************
+ *****************		Common "ECC" functions		**************************
+ *****************************************************************************************
+ *****************************************************************************************/
+
+
+#if defined(CFG_NAND_ECC_HW3_128) || defined(CFG_NAND_ECC_AFM4)
+
+
+static void stm_nand_enable_hwecc (
+	struct mtd_info *mtd,
+	int mode)
+{
+	/* do nothing - we are only emulating H/W in S/W */
+}
+
+
+#endif /* CFG_NAND_ECC_HW3_128 || CFG_NAND_ECC_AFM4 */
 
 
 /*****************************************************************************************
@@ -193,6 +236,7 @@ struct stm_mtd_nand_ecc
 		int			eccbytes;	/* for ECC + ID tags */
 		int			eccsteps;
 		struct nand_oobinfo	*autooob;
+		void (*enable_hwecc)(struct mtd_info *mtd, int mode);
 		int (*calculate_ecc)(struct mtd_info *, const u_char *, u_char *);
 		int (*correct_data)(struct mtd_info *, u_char *, u_char *, u_char *);
 	}	nand;
@@ -360,6 +404,7 @@ static void initialize_ecc_diffs (
 	default_ecc.nand.eccbytes	= this->eccbytes;
 	default_ecc.nand.eccsteps	= this->eccsteps;
 	default_ecc.nand.autooob	= this->autooob;
+	default_ecc.nand.enable_hwecc	= this->enable_hwecc;
 	default_ecc.nand.calculate_ecc	= this->calculate_ecc;
 	default_ecc.nand.correct_data	= this->correct_data;
 	default_ecc.mtd.oobavail	= mtd->oobavail;
@@ -376,6 +421,7 @@ static void initialize_ecc_diffs (
 #endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
 	special_ecc.nand.eccsteps	= mtd->oobblock / special_ecc.nand.eccsize;
 	special_ecc.nand.autooob	= autooob;
+	special_ecc.nand.enable_hwecc	= stm_nand_enable_hwecc;
 	special_ecc.nand.calculate_ecc	= stm_nand_calculate_ecc;
 	special_ecc.nand.correct_data	= stm_nand_correct_data;
 	if (this->options & NAND_BUSWIDTH_16) {
@@ -404,6 +450,7 @@ static void set_ecc_diffs (
 	this->eccbytes		= diffs->nand.eccbytes;
 	this->eccsteps		= diffs->nand.eccsteps;
 	this->autooob		= diffs->nand.autooob;
+	this->enable_hwecc	= diffs->nand.enable_hwecc;
 	this->calculate_ecc	= diffs->nand.calculate_ecc;
 	this->correct_data	= diffs->nand.correct_data;
 
@@ -459,14 +506,6 @@ static int set_ecc_mode (
 	}
 
 	return 0;	/* success */
-}
-
-
-static void stm_nand_enable_hwecc (
-	struct mtd_info *mtd,
-	int mode)
-{
-	/* do nothing - we are only emulating HW in SW */
 }
 
 
@@ -585,6 +624,209 @@ static int stm_nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size
 
 /*****************************************************************************************
  *****************************************************************************************
+ *****************		H/W 4+3/512 AFM4 ECC		**************************
+ *****************************************************************************************
+ *****************************************************************************************/
+
+
+#if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
+
+
+	/* for SMALL-page devices */
+static struct nand_oobinfo stm_afm4_oobinfo_16 = {
+	.useecc = MTD_NANDECC_AUTOPLACE,
+	.eccbytes = 7,			/* 7 out of 16 bytes of OOB */
+	.eccpos = {			/* { HW_ECC0, HW_ECC1, HW_ECC2, 'A', 'F', 'M', SW_ECC } */
+		0, 1, 2, 3, 4, 5, 6,	/* 512-byte Record 0 */
+	},
+	.oobfree = { { 7, 9} }		/* 9 free bytes in the OOB */
+};
+
+	/* for LARGE-page devices */
+static struct nand_oobinfo stm_afm4_oobinfo_64 = {
+	.useecc = MTD_NANDECC_AUTOPLACE,
+	.eccbytes = 28,			/* 28 out of 64 bytes of OOB */
+	.eccpos = {			/* { HW_ECC0, HW_ECC1, HW_ECC2, 'A', 'F', 'M', SW_ECC } */
+		0,   1,  2,  3,  4,  5,  6,	/* 512-byte Record 0 */
+		16, 17, 18, 19, 20, 21, 22,	/* 512-byte Record 1 */
+		32, 33, 34, 35, 36, 37, 38,	/* 512-byte Record 2 */
+		48, 49, 50, 51, 52, 53, 54,	/* 512-byte Record 3 */
+	},
+	.oobfree = { {7, 9}, {23, 9}, {39, 9}, {55, 9} }	/* 9*4 free bytes in the OOB */
+};
+
+
+static int stm_afm4_calculate_ecc (
+	struct mtd_info * const mtd,
+	const u_char * const dat,
+	u_char * const ecc_code)
+{
+	const struct nand_chip * const this = mtd->priv;
+
+	if (this->eccmode!=NAND_ECC_HW7_512)
+	{
+		printf("ERROR: Can not calculate ECC: Internal Error (eccmode=%u)\n",
+			this->eccmode);
+		BUG();
+		return -1;	/* Note: caller ignores this value! */
+	}
+	else if ((((unsigned long)dat)%4)!=0)	/* data *must* be 4-bytes aligned */
+	{
+		/* QQQ: change this case to use a properly aligned bounce buffer */
+		printf("ERROR: Can not calculate ECC: data (%08lx) must be 4-byte aligned!\n",
+			(unsigned long)dat);
+		ecc_code[0] = 'B';
+		ecc_code[1] = 'A';
+		ecc_code[2] = 'D';
+		ecc_code[3] = 'A';	/* ASCII 'A', for AFM4 */
+		ecc_code[4] = 'F';	/* ASCII 'F', for AFM4 */
+		ecc_code[5] = 'M';	/* ASCII 'M', for AFM4 */
+		ecc_code[6] = 0;
+		return -1;	/* Note: caller ignores this value! */
+	}
+	else
+	{	/* calculate 3 ECC bytes per 512 bytes of data */
+		const ecc_t computed_ecc = ecc_gen(dat, ECC_512);
+		/* poke them into the right place */
+		ecc_code[0] = computed_ecc.byte[0];
+		ecc_code[1] = computed_ecc.byte[1];
+		ecc_code[2] = computed_ecc.byte[2];
+		ecc_code[3] = 'A';	/* ASCII 'A', for AFM4 */
+		ecc_code[4] = 'F';	/* ASCII 'F', for AFM4 */
+		ecc_code[5] = 'M';	/* ASCII 'M', for AFM4 */
+			/* also copy the 2 bits LP16 + LP17 in Byte6[1:0] as well! */
+		ecc_code[6] = computed_ecc.byte[2] & 0x03;	/* set top 6-bits to zero */
+#if 0	/* QQQ - DELETE */
+		printf("qqq: ECC_CODE[0:6] = %02x.%02x.%02x - '%c%c%c' - %02x\n",
+			ecc_code[0], ecc_code[1], ecc_code[2],
+			isprint(ecc_code[3]) ? ecc_code[3] : '.',
+			isprint(ecc_code[4]) ? ecc_code[4] : '.',
+			isprint(ecc_code[5]) ? ecc_code[5] : '.',
+			ecc_code[6]);
+#endif	/* QQQ - DELETE */
+	}
+
+	return 0;
+}
+
+
+static int stm_afm4_correct_data (
+	struct mtd_info *mtd,
+	u_char *dat,
+	u_char *read_ecc,
+	u_char *calc_ecc)
+{
+	ecc_t read, calc;
+	enum ecc_check result;
+	const struct nand_chip const * this = mtd->priv;
+
+#if 0	/* QQQ - DELETE */
+	printf("qqq: READ_ECC[0:6] = %02x.%02x.%02x - '%c%c%c' - %02x\n",
+		read_ecc[0], read_ecc[1], read_ecc[2],
+		isprint(read_ecc[3]) ? read_ecc[3] : '.',
+		isprint(read_ecc[4]) ? read_ecc[4] : '.',
+		isprint(read_ecc[5]) ? read_ecc[5] : '.',
+		read_ecc[6]);
+	printf("qqq: CALC_ECC[0:6] = %02x.%02x.%02x - '%c%c%c' - %02x\n",
+		calc_ecc[0], calc_ecc[1], calc_ecc[2],
+		isprint(calc_ecc[3]) ? calc_ecc[3] : '.',
+		isprint(calc_ecc[4]) ? calc_ecc[4] : '.',
+		isprint(calc_ecc[5]) ? calc_ecc[5] : '.',
+		calc_ecc[6]);
+#endif	/* QQQ - DELETE */
+
+	if (this->eccmode!=NAND_ECC_HW7_512)
+	{
+		printf("ERROR: Can not correct ECC: Internal Error (eccmode=%u)\n",
+			this->eccmode);
+		BUG();
+		return -1;
+	}
+
+	/*
+	 * Do we need to try and correct anything ?
+	 * We get LP16 and LP17 from byte6[1:0], instead of byte2[1:0] !
+	 * We assume that calc_ecc[6] is has the top 6-bits as zero.
+	 */
+	if (	(read_ecc[0] == calc_ecc[0])			&&
+		(read_ecc[1] == calc_ecc[1])			&&
+		((read_ecc[2]&0xfc) == (calc_ecc[2]&0xfc))	&&
+		((read_ecc[6]&0x03) == calc_ecc[6])		   )
+	{
+		return 0;		/* ECCs agree, nothing to do */
+	}
+
+#if VERBOSE_ECC
+	printf("warning: ECC error detected!  "
+		"read_ecc %02x:%02x:%02x:%02x (%c%c%c%c) != "
+		"calc_ecc %02x:%02x:%02x:%02x (%c%c%c%c)\n",
+		(unsigned)read_ecc[0],
+		(unsigned)read_ecc[1],
+		(unsigned)read_ecc[2],
+		(unsigned)read_ecc[6],
+		isprint(read_ecc[0]) ? read_ecc[0] : '.',
+		isprint(read_ecc[1]) ? read_ecc[1] : '.',
+		isprint(read_ecc[2]) ? read_ecc[2] : '.',
+		isprint(read_ecc[6]) ? read_ecc[6] : '.',
+		(unsigned)calc_ecc[0],
+		(unsigned)calc_ecc[1],
+		(unsigned)calc_ecc[2],
+		(unsigned)calc_ecc[6],
+		isprint(calc_ecc[0]) ? calc_ecc[0] : '.',
+		isprint(calc_ecc[1]) ? calc_ecc[1] : '.',
+		isprint(calc_ecc[2]) ? calc_ecc[2] : '.',
+		isprint(calc_ecc[6]) ? calc_ecc[6] : '.');
+#endif	/* VERBOSE_ECC */
+
+	/*
+	 * Put ECC bytes into required structure
+	 * We get LP16 and LP17 from byte6[1:0], instead of byte2[1:0] !
+	 * We assume that calc_ecc[2] is correct though!
+	 */
+	read.byte[0] = read_ecc[0];
+	read.byte[1] = read_ecc[1];
+	read.byte[2] = (read_ecc[2]&0xfc) | (read_ecc[6]&0x03);
+	calc.byte[0] = calc_ecc[0];
+	calc.byte[1] = calc_ecc[1];
+	calc.byte[2] = calc_ecc[2];
+
+	/* correct a 1-bit error (if we can) */
+	result = ecc_correct(dat, read, calc, ECC_512);
+
+	/* let the user know if we were able to recover it or not! */
+	switch (result)
+	{
+		case E_D1_CHK:
+			printf("info: 1-bit error in data was corrected\n");
+			break;
+		case E_C1_CHK:
+			printf("info: 1-bit error in ECC ignored (data was okay)\n");
+			break;
+		default:
+#if VERBOSE_ECC
+			/* QQQ: filter out genuinely ERASED pages - TO DO */
+			printf("ERROR: uncorrectable ECC error not corrected!\n");
+#endif	/* VERBOSE_ECC */
+			break;
+	}
+
+	/* return zero if all okay, and -1 if we have an uncorrectable issue */
+	if ((result==E_D1_CHK)||(result==E_C1_CHK))
+	{
+		return 0;	/* okay (correctable) */
+	}
+	else
+	{
+		return -1;	/* uncorrectable */
+	}
+}
+
+
+#endif /* CFG_NAND_ECC_AFM4 */
+
+
+/*****************************************************************************************
+ *****************************************************************************************
  *****************		Generic "common" code		**************************
  *****************************************************************************************
  *****************************************************************************************/
@@ -635,7 +877,11 @@ extern void stm_default_board_nand_init(
 	/* free up private pointer for the real driver */
 	nand->priv = NULL;
 
+#if defined(CFG_NAND_ECC_AFM4)		/* for STM AFM4 ECC compatibility */
+	nand->eccmode       = NAND_ECC_HW7_512;	/* comptable with AFM4 (4+3/512) ECC */
+#else
 	nand->eccmode       = NAND_ECC_SOFT;	/* default is S/W 3/256 ECC */
+#endif /* CFG_NAND_ECC_AFM4 */
 	nand->options       = NAND_NO_AUTOINCR;
 #if 1	/* Enable to use a NAND-resident (non-volatile) Bad Block Table (BBT) */
 	nand->options      |= NAND_USE_FLASH_BBT;
@@ -657,8 +903,13 @@ extern void stm_default_board_nand_init(
 	mtd->write_ecc      = stm_nand_write_ecc;
 	mtd->read_oob       = stm_nand_read_oob;
 	mtd->write_oob      = stm_nand_write_oob;
-	nand->enable_hwecc  = stm_nand_enable_hwecc;
 #endif /* CFG_NAND_ECC_HW3_128 */
+
+#if defined(CFG_NAND_ECC_AFM4)		/* for STM AFM4 ECC compatibility */
+	nand->enable_hwecc  = stm_nand_enable_hwecc;
+	nand->correct_data  = stm_afm4_correct_data;
+	nand->calculate_ecc = stm_afm4_calculate_ecc;
+#endif /* CFG_NAND_ECC_AFM4 */
 
 	/*
 	 * Only enable the following to use a (volatile) RAM-based
@@ -668,6 +919,24 @@ extern void stm_default_board_nand_init(
 #if 0
 	nand->options      &= ~NAND_USE_FLASH_BBT;
 #endif
+}
+
+
+extern void stm_nand_chip_init(
+	struct mtd_info * const mtd,
+	const int nand_maf_id,
+	const int nand_dev_id)
+{
+#if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
+	struct nand_chip * const nand = mtd->priv;
+
+	if (mtd->oobsize == 64)				/* large page device ? */
+		nand->autooob = &stm_afm4_oobinfo_64;
+	else if (mtd->oobsize == 16)			/* small page device ? */
+		nand->autooob = &stm_afm4_oobinfo_16;
+	else						/* unknown ? */
+		BUG();
+#endif /* CFG_NAND_ECC_AFM4 */
 }
 
 

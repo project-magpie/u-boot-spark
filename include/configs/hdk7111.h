@@ -319,6 +319,18 @@
 #	define CFG_NAND_ECC_HW3_128	/* define for "boot-from-NAND" compatibility */
 
 	/*
+	 * Do we want to use STMicroelectronics' proprietary AFM4 (4+3/512)
+	 * ECC format, instead of Linux's traditional S/W 3/256 ECC?
+	 * Note: This does *not* enable H/W AFM - you can use either
+	 * "bit-banging" or STM's "FLEX-mode", it is simply the addition
+	 * of the AFM4 ECC algorithm+layout that is being supported here.
+	 * Note: We *can* use this H/W AFM4 (4+3/512) ECC in addition to
+	 * the H/W "boot-mode" (3+1/128) ECC, on the same NAND device,
+	 * to partition it, set CFG_NAND_STM_BOOT_MODE_BOUNDARY appropriately.
+	 */
+#	undef CFG_NAND_ECC_AFM4		/* define for AFM4 (4+3/512) ECC compatibility */
+
+	/*
 	 * If using CFG_NAND_ECC_HW3_128, then we must also define
 	 * where the (high watermark) boundary is. That is, the
 	 * NAND offset, below which we are in "boot-mode", and

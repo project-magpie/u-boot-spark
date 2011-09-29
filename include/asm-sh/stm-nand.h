@@ -25,11 +25,8 @@
 #define __STM_NAND_H_
 
 
-#include <nand.h>
-
-
-struct nand_chip;
-struct mtd_info;
+struct nand_chip;	/* defined elsewhere */
+struct mtd_info;	/* defined elsewhere */
 
 
 extern void stm_default_board_nand_init(
@@ -40,6 +37,11 @@ extern void stm_default_board_nand_init(
 extern void stm_flex_init_nand(
 	struct mtd_info * const mtd,
 	struct nand_chip * const nand);
+
+extern void stm_nand_chip_init(
+	struct mtd_info * const mtd,
+	const int nand_maf_id,
+	const int nand_dev_id);
 
 
 #endif /* __STM_NAND_H_ */
