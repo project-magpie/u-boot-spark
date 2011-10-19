@@ -326,7 +326,7 @@ struct misc_regs {
 #define SYNT_X_2		0x00020000
 #define SYNT_Y_2		0x00000002
 #define SYNT_Y_5		0x00000005
-#define SYNT_Y_21		0x0000006F
+#define SYNT_Y_21		0x00000015
 
 #define CONFIG_SPEAR_FUNCENB0		(0xE0700668)
 #define CONFIG_SPEAR_FUNCENB1		(0xE070066C)
