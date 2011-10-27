@@ -1,0 +1,96 @@
+/*
+ * (C) Copyright 2009
+ * Vipin Kumar, ST Micoelectronics, vipin.kumar@st.com.
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+#include <common.h>
+#include <miiphy.h>
+#include <netdev.h>
+#include <nand.h>
+#include <asm/io.h>
+#include <linux/mtd/fsmc_nand.h>
+#include <asm/arch/hardware.h>
+#include <asm/arch/spr_defs.h>
+#include <asm/arch/spr_misc.h>
+
+int board_init(void)
+{
+	return spear_board_init(MACH_TYPE_SPEAR320_HMI);
+}
+
+/*
+ * board_nand_init - Board specific NAND initialization
+ * @nand:	mtd private chip structure
+ *
+ * Called by nand_init_chip to initialize the board specific functions
+ */
+
+int board_nand_init(struct nand_chip *nand)
+{
+	struct misc_regs *const misc_regs_p =
+	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+
+#if defined(CONFIG_NAND_FSMC)
+	if (((readl(&misc_regs_p->auto_cfg_reg) & MISC_SOCCFGMSK) ==
+	     MISC_SOCCFG30) ||
+	    ((readl(&misc_regs_p->auto_cfg_reg) & MISC_SOCCFGMSK) ==
+	     MISC_SOCCFG31)) {
+
+		return fsmc_nand_init(nand);
+	}
+#endif
+	return -1;
+}
+
+int board_eth_init(bd_t *bis)
+{
+	struct misc_regs *const misc_regs_p =
+		(struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+	int ret = 0, val;
+
+#if defined(CONFIG_MACB)
+	/* Enable AMEM clock for memory port access */
+	writel(readl(&misc_regs_p->amem_cfg_ctrl) | 0x1,
+			&misc_regs_p->amem_cfg_ctrl);
+
+	/*
+	 * Select the MDIO Muxed configuration for the MII interface.
+	 * The RAS control register should have the following cfg
+	 * For MII-0 interface
+	 * Reset Bit-5 of RAS CONTROL REGISTER (0xB3000010)
+	 *
+	 * For MII-1/MII interface
+	 * Set Bit-5 of RAS CONTROL REGISTER (0xB3000010).
+	 */
+	val = readl(CONFIG_SPEAR_RASBASE + SPEAR320_RAS_CTRL_OFF);
+	val |= SMII1_MDIO_SEL;
+	writel(val, CONFIG_SPEAR_RASBASE + SPEAR320_RAS_CTRL_OFF);
+
+	if (macb_eth_initialize(0, (void *)CONFIG_SYS_MACB0_BASE,
+				CONFIG_MACB0_PHY) >= 0)
+		ret++;
+
+	if (macb_eth_initialize(1, (void *)CONFIG_SYS_MACB1_BASE,
+				CONFIG_MACB1_PHY) >= 0)
+		ret++;
+#endif
+	return ret;
+}
