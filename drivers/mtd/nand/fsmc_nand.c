@@ -158,7 +158,7 @@ static int fsmc_correct_data(struct mtd_info *mtd, u_char *dat,
 		      u_char *read_ecc, u_char *calc_ecc)
 {
 	/* The calculated ecc is actually the correction index in data */
-	u16 err_idx[8];
+	u32 err_idx[8];
 	u64 ecc_data[2];
 	u32 num_err, i;
 
