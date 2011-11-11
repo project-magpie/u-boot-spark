@@ -154,7 +154,7 @@ static void fsmc_nand_hwcontrol(struct mtd_info *mtd, int cmd, uint ctrl)
 		writeb(cmd, this->IO_ADDR_W);
 }
 
-static int fsmc_correct_data(struct mtd_info *mtd, u_char *dat,
+static int fsmc_bch8_correct_data(struct mtd_info *mtd, u_char *dat,
 		      u_char *read_ecc, u_char *calc_ecc)
 {
 	/* The calculated ecc is actually the correction index in data */
@@ -176,7 +176,7 @@ static int fsmc_correct_data(struct mtd_info *mtd, u_char *dat,
 
 	num_err = (readl(&fsmc_regs_p->sts) >> 10) & 0xF;
 
-	if (num_err == 0xF)
+	if (num_err > 8)
 		return -EBADMSG;
 
 	i = 0;
@@ -382,7 +382,7 @@ int fsmc_nand_init(struct nand_chip *nand)
 	switch (fsmc_version) {
 	case FSMC_VER8:
 		nand->ecc.bytes = 13;
-		nand->ecc.correct = fsmc_correct_data;
+		nand->ecc.correct = fsmc_bch8_correct_data;
 		nand->ecc.read_page = fsmc_read_page_hwecc;
 		if (mtd->writesize == 512)
 			nand->ecc.layout = &fsmc_ecc4_sp_layout;
