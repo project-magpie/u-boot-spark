@@ -105,44 +105,42 @@ extern void stx7108_pioalt_select(const int port, const int pin, const int alt)
 
 /* Pad configuration */
 
-const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_in = {
-	.oe = 0,
-	.pu = 0,
-	.od = 0,
-};
-#define IN (&stx7108_pioalt_pad_in)
-
-const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_out = {
-	.oe = 1,
-	.pu = 0,
-	.od = 0,
-};
-#define OUT (&stx7108_pioalt_pad_out)
-
-const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_od = {
-	.oe = 1,
-	.pu = 0,
-	.od = 1,
-};
-#define OD (&stx7108_pioalt_pad_od)
-
-const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_bidir = {
-	.oe = -1,
-	.pu = 0,
-	.od = 0,
-};
-#define BIDIR (&stx7108_pioalt_pad_bidir)
+#define IN		stm_pad_direction_input
+#define IN_WITH_PU	stm_pad_direction_input_with_pullup
+#define OUT		stm_pad_direction_output
+#define BIDIR		stm_pad_direction_bidir_no_pullup
+#define BIDIR_WITH_PU	stm_pad_direction_bidir_with_pullup
+#define IGNORED		stm_pad_direction_ignored
+#define UNKNOWN		stm_pad_direction_unknown
 
 void stx7108_pioalt_pad(int port, const int pin,
-		const struct stx7108_pioalt_pad_cfg * const cfg)
+		const enum stm_pad_gpio_direction direction)
 {
 	int num, bit;
+	int oe=0, pu=0, od=0;
 	unsigned long sysconf, *sysconfReg;
 
+	switch (direction) {
+	case IN:
+		oe = 0; pu = 0; od = 0;
+		break;
+	case IN_WITH_PU:
+		oe = 0; pu = 1; od = 0;
+		break;
+	case OUT:
+		oe = 1; pu = 0; od = 0;
+		break;
+	case BIDIR:
+		oe = 1; pu = 0; od = 1;
+		break;
+	default:
+		BUG();
+		break;
+	}
+
 #if 0
-	printf("%s(port=%d, pin=%d, oe=%d, pu=%d, od=%d)\n", __func__, port, pin, cfg->oe, cfg->pu, cfg->od);
+	printf("%s(port=%d, pin=%d, oe=%d, pu=%d, od=%d)\n", __func__, port, pin, oe, pu, od);
 	BUG_ON(pin < 0 || pin > 7);
-	BUG_ON(!cfg);
 #endif
 
 	switch (port)
@@ -164,32 +162,23 @@ void stx7108_pioalt_pad(int port, const int pin,
 	bit = ((port * 8) + pin) % 32;
 
 		/* set the "Output Enable" pad control */
-	if (cfg->oe >= 0)
-	{
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->oe, bit);
-		writel(sysconf, sysconfReg);
-	}
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, oe, bit);
+	writel(sysconf, sysconfReg);
 
 	sysconfReg += 4;	/* skip 4 syscfg registers */
 
 		/* set the "Pull Up" pad control */
-	if (cfg->pu >= 0)
-	{
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->pu, bit);
-		writel(sysconf, sysconfReg);
-	}
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, pu, bit);
+	writel(sysconf, sysconfReg);
 
 	sysconfReg += 4;	/* skip another 4 syscfg registers */
 
 		/* set the "Open Drain Enable" pad control */
-	if (cfg->od >= 0)
-	{
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->od, bit);
-		writel(sysconf, sysconfReg);
-	}
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, od, bit);
+	writel(sysconf, sysconfReg);
 }
 
 /* PIO retiming setup */
@@ -303,7 +292,7 @@ struct stx7108_gmac_pin {
 	enum { BYPASS = 1, CLOCK, PHY_CLOCK, DATA, DGTX, RMII_TXD,
 	       RMII_MDINT, RMII_MDIO, RMII_MDC, RMII_RXD, RMII_PHY_CLOCK
 	} type;
-	const struct stx7108_pioalt_pad_cfg *dir;
+	enum stm_pad_gpio_direction direction;
 };
 
 static struct stx7108_gmac_pin stx7108_gmac_mii_pins[] = {
@@ -544,7 +533,7 @@ extern void stx7108_configure_ethernet(
 	SET_SYSCONF_BIT(sysconf, enmii, ENMII);
 	*STX7108_MII_SYSGFG(sc_regnum) = sysconf;
 
-	pins[0].dir = config->ext_clk ? IN : OUT;
+	pins[0].direction = config->ext_clk ? IN : OUT;
 
 	for (i = 0; i < pins_num; i++) {
 		const struct stx7108_gmac_pin *pin = &pins[i];
@@ -556,7 +545,7 @@ extern void stx7108_configure_ethernet(
 
 		stx7108_pioalt_select(portno, pinno, pin->pio[port].alt);
 
-		stx7108_pioalt_pad(portno, pinno, pin->dir);
+		stx7108_pioalt_pad(portno, pinno, pin->direction);
 
 		switch (pin->type) {
 		case BYPASS:

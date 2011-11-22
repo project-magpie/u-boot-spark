@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2011 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -27,19 +27,7 @@
 #define	_SOC_H_
 
 
-/*
- * PIO data types
- */
-struct stx7108_pioalt_pad_cfg
-{
-	int oe:2;
-	int pu:2;
-	int od:2;
-};
-extern const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_in;
-extern const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_out;
-extern const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_od;
-extern const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_bidir;
+#include <asm/pio-control.h>
 
 
 /*
@@ -48,7 +36,7 @@ extern const struct stx7108_pioalt_pad_cfg stx7108_pioalt_pad_bidir;
 extern void stx7108_pioalt_pad(
 	int port,
 	const int pin,
-	const struct stx7108_pioalt_pad_cfg * const cfg);
+	const enum stm_pad_gpio_direction direction);
 extern void stx7108_pioalt_select(
 	const int port,
 	const int pin,
@@ -90,7 +78,6 @@ struct stx7108_ethernet_config
 	int ext_clk;
 	int phy_bus;
 };
-
 
 /*
  * common call-back functions for STMAC.
@@ -224,7 +211,6 @@ extern int		fli7510_i2c_read(void);
 extern void		fli7540_i2c_scl(const int val);
 extern void		fli7540_i2c_sda(const int val);
 extern int		fli7540_i2c_read(void);
-
 
 #endif	/* _SOC_H_ */
 

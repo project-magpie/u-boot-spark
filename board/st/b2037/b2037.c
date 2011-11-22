@@ -57,18 +57,18 @@ static void configPIO(void)
 #if CFG_STM_ASC_BASE == ST40_ASC1_REGS_BASE
 
 	/* Route UART1 via PIO5 for TX, RX, CTS & RTS (Alternative #1) */
-	PIOALT(5, 1, 1, &stx7108_pioalt_pad_out);	/* UART1-TX */
-	PIOALT(5, 2, 1, &stx7108_pioalt_pad_in);	/* UART1-RX */
-	PIOALT(5, 4, 1, &stx7108_pioalt_pad_out);	/* UART1-RTS */
-	PIOALT(5, 3, 1, &stx7108_pioalt_pad_in);	/* UART1-CTS */
+	PIOALT(5, 1, 1, stm_pad_direction_output);	/* UART1-TX */
+	PIOALT(5, 2, 1, stm_pad_direction_input);	/* UART1-RX */
+	PIOALT(5, 4, 1, stm_pad_direction_output);	/* UART1-RTS */
+	PIOALT(5, 3, 1, stm_pad_direction_input);	/* UART1-CTS */
 
 #elif CFG_STM_ASC_BASE == ST40_ASC3_REGS_BASE
 
 	/* Route UART3 via PIO24/25 for TX, RX (Alternative #1) */
-	PIOALT(24, 4, 1, &stx7108_pioalt_pad_out);	/* UART3-TX */
-	PIOALT(24, 5, 1, &stx7108_pioalt_pad_in);	/* UART3-RX */
-//	PIOALT(24, 7, 1, &stx7108_pioalt_pad_out);	/* UART3-RTS */
-//	PIOALT(25, 0, 1, &stx7108_pioalt_pad_in);	/* UART3-CTS */
+	PIOALT(24, 4, 1, stm_pad_direction_output);	/* UART3-TX */
+	PIOALT(24, 5, 1, stm_pad_direction_input);	/* UART3-RX */
+//	PIOALT(24, 7, 1, stm_pad_direction_output);	/* UART3-RTS */
+//	PIOALT(25, 0, 1, stm_pad_direction_input);	/* UART3-CTS */
 
 #else
 #error Unknown ASC port selected!
