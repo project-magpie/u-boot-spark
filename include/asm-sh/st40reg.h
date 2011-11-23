@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2002, 2003, 2007-2009
+ * Copyright (C) STMicroelectronics Ltd. 2002, 2003, 2007-2011
  *
  * andy.sturges@st.com
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -702,5 +702,9 @@
 #define ST40_ASC_TXRESET(n)		SH4_DWORD_REG(ST40_ASC##n##_REGS_BASE + 0x20)
 #define ST40_ASC_RXRESET(n)		SH4_DWORD_REG(ST40_ASC##n##_REGS_BASE + 0x24)
 #define ST40_ASC_RETRIES(n)		SH4_DWORD_REG(ST40_ASC##n##_REGS_BASE + 0x28)
+
+/* EMISS/EMIPCISS register space */
+#define ST40_EMISS_CONFIG		SH4_DWORD_REG(ST40_EMISS_REGS_BASE + 0x1000)
+#define ST40_EMISS_NAND_HAMMING_NOT_BCH	(1ul<<6)	/* bit #6 */
 
 #endif /* __ST40REG_H */

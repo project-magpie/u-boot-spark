@@ -805,6 +805,27 @@ static void init_flex_mode(void)
 {
 	u_int32_t reg;
 
+	/*
+	 * Explicitly enable the Hamming controller, or the BCH controller,
+	 * as appropriate.
+	 *
+	 * Failure to do this correctly, will result in undefined
+	 * (typically very bad) behaviour!  Presently, U-Boot *only*
+	 * supports the (1-bit ECC) Hamming controller, so it is essential
+	 * to set this appropriately to enable the Hamming controller
+	 * *before* performing *any* FLEX-mode register accesses.
+	 *
+	 * It should be noted that, the STxH415 when booting from
+	 * SPI serial flash, by default, actually configures this bit
+	 * to enable the BCH (and not the Hamming) controller! As a result,
+	 * attempting to use FLEX-mode accesses to talk to the Hamming
+	 * controller, when the BCH is enabled must be avoided!
+	 */
+#if defined(CFG_SH_NAND_USE_HAMMING)
+	/* enable the Hamming controller (and disable BCH) */
+	*ST40_EMISS_CONFIG |= ST40_EMISS_NAND_HAMMING_NOT_BCH;
+#endif
+
 	/* Disable the BOOT-mode controller */
 	*ST40_EMI_NAND_BOOTBANK_CFG = 0;
 
