@@ -2971,6 +2971,16 @@ hdk5289se_config :		unconfig
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk5289/config.tmp)
 	@$(MKCONFIG) -a hdk5289 sh sh hdk5289 st stx5206
 
+b2000se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/b2000
+	@echo "#define CONFIG_SH_STXH415    1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_B2000      1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE    1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2000/config.tmp)
+	@$(MKCONFIG) -a b2000 sh sh b2000 st stxh415
+
 
 #========================================================================
 # STMicroelectronics ST200

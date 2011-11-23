@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2004-2010
+ * Copyright (C) STMicroelectronics Ltd. 2004-2011
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -47,6 +47,8 @@
 #	include <asm/fli7510reg.h>
 #elif defined(CONFIG_SH_FLI7540)
 #	include <asm/fli7540reg.h>
+#elif defined(CONFIG_SH_STXH415)
+#	include <asm/stxh415reg.h>
 #else
 #	error Missing Device Definitions!
 #endif
