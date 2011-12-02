@@ -700,6 +700,8 @@ static struct stm_pad_sysconf stxh415_ethernet_rmii_pad_sysconfs[] = {
 			STM_PAD_SYSCONF(SYSCONF(382), 2, 4, 4),
 			/* ENMIIx */
 			STM_PAD_SYSCONF(SYSCONF(382), 5, 5, 1),
+			/* ETH0_SEL_INTERNAL_NOT_EXT_PHYCLK */
+			STM_PAD_SYSCONF(SYSCONF(382), 7, 7, 1),
 			/* TX_RETIMING_CLK */
 			STM_PAD_SYSCONF(SYSCONF(382), 8, 8, 1),
 };
@@ -724,6 +726,8 @@ static struct stm_pad_sysconf stxh415_ethernet_rmii_pad_sysconfs[] = {
 			STM_PAD_SYSCONF(SYSCONF(29), 2, 4, 4),
 			/* ENMIIx */
 			STM_PAD_SYSCONF(SYSCONF(29), 5, 5, 1),
+			/* ETH1_SEL_INTERNAL_NOT_EXT_PHYCLK */
+			STM_PAD_SYSCONF(SYSCONF(29), 7, 7, 1),
 			/* TX_RETIMING_CLK */
 			STM_PAD_SYSCONF(SYSCONF(29), 8, 8, 1),
 };
@@ -881,46 +885,22 @@ extern void stxh415_configure_ethernet(
 		break;
 
 	case stxh415_ethernet_mode_rmii:  {
-		BUG();		/* QQQ - NOT TESTED in U-Boot yet! */
 		pad_config = stxh415_ethernet_rmii_pad_configs;
 		num_pads = ARRAY_SIZE(stxh415_ethernet_rmii_pad_configs);
 		sys_config = stxh415_ethernet_rmii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stxh415_ethernet_rmii_pad_sysconfs);
+
+		/* we assume we *always* use the internal clock for RMII! */
+		BUG_ON(config->ext_clk!= 0);
+
+		/*
+		 * Configure the PHY Clock:
+		 * CLKS_GMAC0_PHY (PIO13[5]) or CLKS_ETH1_PHY (PIO2[3]) should
+		 * be 50MHz for RMII mode (as appropriate).
+		 * Note: We rely on the GDB "pokes" to set the frequency for us ...
+		 */
 		phy_clock = find_phy_clock(pad_config, num_pads);
-
-		/* SEL_INTERNAL_NO_EXT_PHYCLK */
-#ifdef QQQ
-		if (!port)
-			sc  = sysconf_claim(2, 82, 7, 7, "rmii");
-		else
-			sc  = sysconf_claim(0, 29, 7, 7, "rmii");
-#endif
-
-		if (config->ext_clk) {
-			stm_pad_set_pio_in(phy_clock, 3 - port);
-			/* SEL_INTERNAL_NO_EXT_PHYCLK */
-#ifdef QQQ
-			sysconf_write(sc, 0);
-#endif
-		} else {
-#ifdef QQQ
-			unsigned long phy_clk_rate;
-			struct clk *phy_clk;
-			if (!port)
-				phy_clk = clk_get(NULL, "CLKS_GMAC0_PHY");
-			else
-				phy_clk = clk_get(NULL, "CLKS_ETH1_PHY");
-			BUG_ON(!phy_clk);
-#endif
-
-			stm_pad_set_pio_out(phy_clock, 2 - port);
-#ifdef QQQ
-			phy_clk_rate = 50000000;
-			clk_set_rate(phy_clk, phy_clk_rate);
-			/* SEL_INTERNAL_NO_EXT_PHYCLK */
-			sysconf_write(sc, 1);
-#endif
-		}
+		stm_pad_set_pio_out(phy_clock, 2 - port);
 	} break;
 
 	case stxh415_ethernet_mode_reverse_mii:

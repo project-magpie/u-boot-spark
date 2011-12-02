@@ -164,7 +164,9 @@
  *	GMAC #1 is wired to CN23, for a daughter-board PHY
  *
  *	The off-board PHY, could be a IC+ IP1001, on a B2032
- *	daughter board, or other compatible board.
+ *	daughter board, or other compatible board, such as
+ *	a IC+ IP101A PHY connected in RMII mode on a B2035A
+ *	daughter board.
  *
  *	The default configuration assumes a B2032 daughter
  *	board (IP1001) is connected to CN23 (GMAC #1).
@@ -178,14 +180,17 @@
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC0_BASE	0xfe810000ul	/* GMII #0 */
-#	define CFG_STM_STMAC1_BASE	0xfef08000ul	/* GMII #1 */
-#	if 0
+#	define CFG_STM_STMAC0_BASE	0xfe810000ul	/* GMAC #0 */
+#	define CFG_STM_STMAC1_BASE	0xfef08000ul	/* GMAC #1 */
+#	if 0	/* TRUE == GMAC #0, or FALSE == GMAC #1 */
 #		define CFG_STM_STMAC_BASE	CFG_STM_STMAC0_BASE
-#		define CONFIG_STMAC_IP1001	/* IC+ IP1001 (B2032) */
 #	else
 #		define CFG_STM_STMAC_BASE	CFG_STM_STMAC1_BASE
+#	endif
+#	if 1	/* TRUE == B2032, or FALSE == B2035 */
 #		define CONFIG_STMAC_IP1001	/* IC+ IP1001 (B2032) */
+#	else
+#		define CONFIG_STMAC_IP101A	/* IC+ IP101A (B2035) */
 #	endif
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 

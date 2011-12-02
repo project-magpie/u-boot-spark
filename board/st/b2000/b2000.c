@@ -128,8 +128,7 @@ extern int board_init(void)
 #endif	/* QQQ - TO IMPLEMENT */
 
 /*
- * B2032A (MII or GMII) Ethernet card
- * GMII Mode on B2032A needs R26 to be fitted with 51R
+ * B2032A (MII) Ethernet card (*not* GMII)
  * On B2000B board, to get GMAC0 working make sure that jumper
  * on PIN 9-10 on CN35 and CN36 are removed.
  *
@@ -149,21 +148,39 @@ extern int board_init(void)
  * distribution source trees for: arch/sh/boards/mach-b2000/setup.c
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-	/* Reset the PHY */
-	stmac_phy_reset();
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0, on CN22 */
+#	if defined(CONFIG_STMAC_IP1001)		/* IC+ IP1001 (B2032) */
 	stxh415_configure_ethernet(0, &(struct stxh415_ethernet_config) {
 			.mode = stxh415_ethernet_mode_mii,
 			.ext_clk = 1,
 			.phy_bus = 0, });
+#	elif defined(CONFIG_STMAC_IP101A)	/* IC+ IP101A (B2035) */
+	stxh415_configure_ethernet(0, &(struct stxh415_ethernet_config) {
+			.mode = stxh415_ethernet_mode_rmii,
+			.ext_clk = 0,
+			.phy_bus = 0, });
+#	else
+#	error Unknown PHY type associated with STM GMAC #0
+#	endif	/* CONFIG_STMAC_IP1001 || CONFIG_STMAC_IP101A */
 #elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1, on CN23 */
+#	if defined(CONFIG_STMAC_IP1001)		/* IC+ IP1001 (B2032) */
 	stxh415_configure_ethernet(1, &(struct stxh415_ethernet_config) {
 			.mode = stxh415_ethernet_mode_mii,
 			.ext_clk = 1,
 			.phy_bus = 1, });
+#	elif defined(CONFIG_STMAC_IP101A)	/* IC+ IP101A (B2035) */
+	stxh415_configure_ethernet(1, &(struct stxh415_ethernet_config) {
+			.mode = stxh415_ethernet_mode_rmii,
+			.ext_clk = 0,
+			.phy_bus = 1, });
+#	else
+#	error Unknown PHY type associated with STM GMAC #1
+#	endif	/* CONFIG_STMAC_IP1001 || CONFIG_STMAC_IP101A */
 #else
 #error Unknown base address for the STM GMAC
 #endif
+	/* Reset the PHY -- do *after* we have a clock routed to it! */
+	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 #if defined(CONFIG_CMD_I2C)

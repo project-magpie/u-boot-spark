@@ -581,9 +581,9 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 	/* Return read value */
 	val = STMAC_READ (MAC_MII_DATA);
 
-#if	defined(CONFIG_SH_STXH415)			&& \
-	defined(CONFIG_SH_B2000)			&& \
-	defined(CONFIG_STMAC_IP1001)			&& \
+#if	defined(CONFIG_SH_STXH415)					&& \
+	defined(CONFIG_SH_B2000)					&& \
+	(defined(CONFIG_STMAC_IP1001)||defined(CONFIG_STMAC_IP101A))	&& \
 	(CFG_STM_STMAC_BASE==CFG_STM_STMAC0_BASE)
 		/*
 		 * On the B2000 board (STxH415), using a suitable
