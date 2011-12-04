@@ -361,6 +361,7 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 	if (smi_wait_till_ready(banknum, CONFIG_SYS_FLASH_WRITE_TOUT))
 		return -EBUSY;
 
+	writel(readl(&smicntl->smi_sr) & ~(ERF1 | ERF2), &smicntl->smi_sr);
 	/* Set SMI in Hardware Mode */
 	writel(readl(&smicntl->smi_cr1) & ~SW_MODE, &smicntl->smi_cr1);
 
