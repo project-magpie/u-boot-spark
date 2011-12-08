@@ -73,6 +73,8 @@ int board_nand_init(struct nand_chip *nand)
 
 int board_eth_init(bd_t *bis)
 {
+	struct misc_regs *const misc_regs_p =
+		(struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 	int ret = 0;
 	u32 interface = PHY_INTERFACE_MODE_MII;
 #if defined(CONFIG_DESIGNWARE_ETH)
@@ -81,6 +83,10 @@ int board_eth_init(bd_t *bis)
 		ret++;
 #endif
 #if defined(CONFIG_MACB)
+	/* Enable AMEM clock for memory port access */
+	writel(readl(&misc_regs_p->amem_cfg_ctrl) | 0x1,
+			&misc_regs_p->amem_cfg_ctrl);
+
 	if (macb_eth_initialize(0, (void *)CONFIG_SYS_MACB1_BASE,
 				CONFIG_MACB1_PHY) >= 0)
 		ret++;
