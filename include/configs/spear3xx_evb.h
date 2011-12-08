@@ -65,6 +65,7 @@
 #elif defined(CONFIG_SPEAR320)
 #define CONFIG_MACB				1
 #define CONFIG_MACB0_PHY			0x01
+#define CONFIG_MACB1_PHY			0x02
 
 #endif
 #endif
