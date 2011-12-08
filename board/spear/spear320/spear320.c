@@ -75,7 +75,7 @@ int board_eth_init(bd_t *bis)
 {
 	struct misc_regs *const misc_regs_p =
 		(struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	int ret = 0;
+	int ret = 0, val;
 	u32 interface = PHY_INTERFACE_MODE_MII;
 #if defined(CONFIG_DESIGNWARE_ETH)
 	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY,
@@ -86,6 +86,11 @@ int board_eth_init(bd_t *bis)
 	/* Enable AMEM clock for memory port access */
 	writel(readl(&misc_regs_p->amem_cfg_ctrl) | 0x1,
 			&misc_regs_p->amem_cfg_ctrl);
+
+	/* Let macb1 drive mdio lines */
+	val = readl(CONFIG_SPEAR_RASBASE + SPEAR320_RAS_CTRL_OFF);
+	val |= SMII1_MDIO_SEL;
+	writel(val, CONFIG_SPEAR_RASBASE + SPEAR320_RAS_CTRL_OFF);
 
 	if (macb_eth_initialize(0, (void *)CONFIG_SYS_MACB1_BASE,
 				CONFIG_MACB1_PHY) >= 0)
