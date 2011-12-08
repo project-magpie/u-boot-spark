@@ -1,5 +1,5 @@
 /*
- * (C) Copyright STMicroelectronics 2005, 2008, 2009
+ * (C) Copyright STMicroelectronics 2005, 2008-2011
  * Andy Stugres, <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -88,6 +88,19 @@ do {								\
 } while (0)
 #define STPIO_GET_PIN(PIO_ADDR, PIN)				\
 	((readl((PIO_ADDR)+STPIO_PIN_OFFSET)>>(PIN))&0x01)
+
+	/*
+	 * Add versions that allow us to define a convenient macro
+	 * which defines both the 'PIO' and 'PIN' arguments
+	 * as a comma-delimited single (macro) argument pair.
+	 */
+#define SET_PIO_PIN2(PAIR, DIR)		SET_PIO_PIN3(PAIR, (DIR))
+#define STPIO_SET_PIN2(PAIR, V)		STPIO_SET_PIN3(PAIR, (V))
+#define STPIO_GET_PIN2(PAIR)		STPIO_GET_PIN3(PAIR)
+	/* also, we need a set to map 'PIO' -> 'PIO_ADDR' */
+#define SET_PIO_PIN3(PIO, PIN, DIR)	SET_PIO_PIN(ST40_PIO_BASE(PIO), (PIN), (DIR))
+#define STPIO_SET_PIN3(PIO, PIN, V)	STPIO_SET_PIN(ST40_PIO_BASE(PIO), (PIN), (V))
+#define STPIO_GET_PIN3(PIO, PIN)	STPIO_GET_PIN(ST40_PIO_BASE(PIO), (PIN))
 
 #define SET_PIO_ASC_OUTDIR(PIO_ADDR, TX, RX, CTS, RTS, OUTDIR)	\
 do {								\

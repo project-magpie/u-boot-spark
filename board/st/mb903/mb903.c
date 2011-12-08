@@ -62,10 +62,10 @@ static void configPIO(void)
 	 * Note: on the MB903A, RS232_RTS is connected (incorrectly)
 	 *       to PIO24[6], this is corrected in MB903B.
 	 */
-	PIOALT(24, 4, 1, &stx7108_pioalt_pad_out);	/* UART3-TX */
-	PIOALT(24, 5, 1, &stx7108_pioalt_pad_in);	/* UART3-RX */
-	PIOALT(24, 7, 1, &stx7108_pioalt_pad_out);	/* UART3-RTS */
-	PIOALT(25, 0, 1, &stx7108_pioalt_pad_in);	/* UART3-CTS */
+	PIOALT(24, 4, 1, stm_pad_direction_output);	/* UART3-TX */
+	PIOALT(24, 5, 1, stm_pad_direction_input);	/* UART3-RX */
+	PIOALT(24, 7, 1, stm_pad_direction_output);	/* UART3-RTS */
+	PIOALT(25, 0, 1, stm_pad_direction_input);	/* UART3-CTS */
 
 #else
 #error Unknown ASC port selected!

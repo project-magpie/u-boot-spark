@@ -356,6 +356,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #elif defined(CONFIG_SH_FLI7540)
 	if (FLI7540_DEVICEID_7540(bd->bi_devid))
 		printf ("\nFLI7540 version %ld.x", FLI7540_DEVICEID_CUT(bd->bi_devid));
+#elif defined(CONFIG_SH_STXH415)
+	if (STXH415_DEVICEID_415(bd->bi_devid))
+		printf ("\nSTxH415 version %ld.x", STXH415_DEVICEID_CUT(bd->bi_devid));
 #else
 #error Missing Device Definitions!
 #endif
