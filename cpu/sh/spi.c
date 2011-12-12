@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007,2009-2010 STMicroelectronics.
+ * (C) Copyright 2007,2009-2011 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -500,7 +500,9 @@ static int spi_probe_serial_flash(
 		(devid[2] == 0xBAu)	&&	/* Memory Type */
 		(				/* Memory Capacity */
 			(devid[3] == 0x16u) ||	/* N25Q032 */
-			(devid[3] == 0x18u)	/* N25Q128 */
+			(devid[3] == 0x17u) ||	/* N25Q064 */
+			(devid[3] == 0x18u) ||	/* N25Q128 */
+			(devid[3] == 0x19u)	/* N25Q256 */
 		)
 	   )
 	{
@@ -511,9 +513,17 @@ static int spi_probe_serial_flash(
 		{
 			deviceName = "ST N25Q032";	/* 32 Mbit == 4 MiB */
 		}
+		else if (devid[3] == 0x17u)
+		{
+			deviceName = "ST N25Q064";	/* 64 Mbit == 8 MiB */
+		}
 		else if (devid[3] == 0x18u)
 		{
 			deviceName = "ST N25Q128";	/* 128 Mbit == 16 MiB */
+		}
+		else if (devid[3] == 0x19u)
+		{
+			deviceName = "ST N25Q256";	/* 256 Mbit == 32 MiB */
 		}
 	}
 	else
