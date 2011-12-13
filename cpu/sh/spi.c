@@ -620,6 +620,16 @@ static int spi_probe_serial_flash(
 		eraseSize);		/* in bytes */
 #endif
 
+	/*
+	 * With only 24-bit addresses, we can only access the first 16MiB!
+	 * QQQ - Need to add proper support for 32-bit addresses.
+	 */
+	if (deviceSize > (1u << 24))	/* need more than 24-bit addresses ? */
+	{
+		printf("warning: SPI device (%s) effectively capped at first 16MiB only!\n", deviceName);
+		deviceSize = 16u << 20;	/* cap to the first 16 MiB */
+	}
+
 #if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 	/* is the device in a write protected mode ? */
 	if (status & SR_BP_MASK)	/* BPx != 0 ? */
