@@ -29,8 +29,6 @@
 #include <asm/stm-nand.h>
 
 
-#define QQQ(bit)	((bit)+0)	/* QQQ - DELETE */
-
 /*
  * hardware specific access to control-lines for "bit-banging".
  *	CL -> Emi_Addr(9)
@@ -45,19 +43,19 @@ static void b2037_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 	switch(cmd) {
 
 	case NAND_CTL_SETCLE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W | (1u << QQQ(9)));
+		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W | (1u << 9));
 		break;
 
 	case NAND_CTL_CLRCLE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W & ~(1u << QQQ(9)));
+		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W & ~(1u << 9));
 		break;
 
 	case NAND_CTL_SETALE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W | (1u << QQQ(10)));
+		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W | (1u << 10));
 		break;
 
 	case NAND_CTL_CLRALE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W & ~(1u << QQQ(10)));
+		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W & ~(1u << 10));
 		break;
 	}
 }
