@@ -47,6 +47,8 @@
 #	include <asm/fli7510reg.h>
 #elif defined(CONFIG_SH_FLI7540)
 #	include <asm/fli7540reg.h>
+#elif defined(CONFIG_SH_STXH205)
+#	include <asm/stxh205reg.h>
 #elif defined(CONFIG_SH_STXH415)
 #	include <asm/stxh415reg.h>
 #else

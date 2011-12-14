@@ -42,6 +42,16 @@ extern void stx7108_pioalt_select(
 	const int pin,
 	const int alt);
 
+extern void stxh205_pioalt_pad(
+	int port,
+	const int pin,
+	const enum stm_pad_gpio_direction direction);
+extern void stxh205_pioalt_select(
+	const int port,
+	const int pin,
+	const int alt);
+#define STXH205_PIOALT_SELECT(PAIR, ALT) stxh205_pioalt_select(PAIR, (ALT))
+
 extern void stxh415_pioalt_pad(
 	int port,
 	const int pin,
@@ -185,6 +195,7 @@ extern void fli7540_usb_init(const int port, const enum fli7540_usb_ovrcur_mode 
 /*
  * SPI initialization functions.
  */
+extern void		stxh205_configure_spi(void);
 extern void		stxh415_configure_spi(void);
 extern void		stx7108_configure_spi(void);
 
@@ -212,6 +223,10 @@ extern void		fli7540_spi_scl(const int val);
 extern void		fli7540_spi_sda(const int val);
 extern unsigned char	fli7540_spi_read(void);
 
+extern void		stxh205_spi_scl(const int val);
+extern void		stxh205_spi_sda(const int val);
+extern unsigned char	stxh205_spi_read(void);
+
 extern void		stxh415_spi_scl(const int val);
 extern void		stxh415_spi_sda(const int val);
 extern unsigned char	stxh415_spi_read(void);
@@ -221,6 +236,7 @@ extern unsigned char	stxh415_spi_read(void);
  * I2C initialization functions.
  */
 extern void		stx7108_configure_i2c(void);
+extern void		stxh205_configure_i2c(void);
 extern void		stxh415_configure_i2c(void);
 
 
@@ -242,6 +258,10 @@ extern int		fli7510_i2c_read(void);
 extern void		fli7540_i2c_scl(const int val);
 extern void		fli7540_i2c_sda(const int val);
 extern int		fli7540_i2c_read(void);
+
+extern void		stxh205_i2c_scl(const int val);
+extern void		stxh205_i2c_sda(const int val);
+extern int		stxh205_i2c_read(void);
 
 extern void		stxh415_i2c_scl(const int val);
 extern void		stxh415_i2c_sda(const int val);

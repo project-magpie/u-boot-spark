@@ -2981,6 +2981,16 @@ b2000se_config :		unconfig
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2000/config.tmp)
 	@$(MKCONFIG) -a b2000 sh sh b2000 st stxh415
 
+b2057se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/b2057
+	@echo "#define CONFIG_SH_STXH205    1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_B2057      1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE    1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
+	@$(MKCONFIG) -a b2057 sh sh b2057 st stxh205
+
 
 #========================================================================
 # STMicroelectronics ST200

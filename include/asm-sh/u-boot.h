@@ -60,6 +60,7 @@ typedef struct bd_info
 	defined(CONFIG_SH_STX7111) ||	\
 	defined(CONFIG_SH_STX7141) ||	\
 	defined(CONFIG_SH_STX7200) ||	\
+	defined(CONFIG_SH_STXH205) ||	\
 	defined(CONFIG_SH_STXH415) ||	\
 	defined(CONFIG_SH_FLI7510) ||	\
 	defined(CONFIG_SH_FLI7540)
