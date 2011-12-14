@@ -29,6 +29,7 @@ endif
 
 LIB	= $(obj)lib$(VENDOR).a
 
+COBJS-$(CONFIG_SPEAR3XX) += padmux.o
 COBJS-$(CONFIG_SPEAR3XX) += spr_misc.o
 COBJS-$(CONFIG_SPEAR600) += spr_misc.o
 COBJS-$(CONFIG_SPEAR13XX) += spr13xx_misc.o
