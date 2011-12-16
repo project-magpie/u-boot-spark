@@ -72,6 +72,42 @@ static struct nand_ecclayout fsmc_ecc4_lp_layout = {
 };
 
 /*
+ * ECC4 layout for NAND of pagesize 4096 bytes & OOBsize 224 bytes. 13*8 bytes
+ * of OOB size is reserved for ECC, Byte no. 0 & 1 reserved for bad block & 118
+ * bytes are free for use.
+ */
+static struct nand_ecclayout fsmc_ecc4_224_layout = {
+	.eccbytes = 104,
+	.eccpos = {  2,   3,   4,   5,   6,   7,   8,
+		9,  10,  11,  12,  13,  14,
+		18,  19,  20,  21,  22,  23,  24,
+		25,  26,  27,  28,  29,  30,
+		34,  35,  36,  37,  38,  39,  40,
+		41,  42,  43,  44,  45,  46,
+		50,  51,  52,  53,  54,  55,  56,
+		57,  58,  59,  60,  61,  62,
+		66,  67,  68,  69,  70,  71,  72,
+		73,  74,  75,  76,  77,  78,
+		82,  83,  84,  85,  86,  87,  88,
+		89,  90,  91,  92,  93,  94,
+		98,  99, 100, 101, 102, 103, 104,
+		105, 106, 107, 108, 109, 110,
+		114, 115, 116, 117, 118, 119, 120,
+		121, 122, 123, 124, 125, 126
+	},
+	.oobfree = {
+		{.offset = 15, .length = 3},
+		{.offset = 31, .length = 3},
+		{.offset = 47, .length = 3},
+		{.offset = 63, .length = 3},
+		{.offset = 79, .length = 3},
+		{.offset = 95, .length = 3},
+		{.offset = 111, .length = 3},
+		{.offset = 127, .length = 97}
+	}
+};
+
+/*
  * ECC placement definitions in oobfree type format
  * There are 13 bytes of ecc for every 512 byte block and it has to be read
  * consecutively and immediately after the 512 byte data block for hardware to
@@ -154,11 +190,11 @@ static void fsmc_nand_hwcontrol(struct mtd_info *mtd, int cmd, uint ctrl)
 		writeb(cmd, this->IO_ADDR_W);
 }
 
-static int fsmc_correct_data(struct mtd_info *mtd, u_char *dat,
+static int fsmc_bch8_correct_data(struct mtd_info *mtd, u_char *dat,
 		      u_char *read_ecc, u_char *calc_ecc)
 {
 	/* The calculated ecc is actually the correction index in data */
-	u16 err_idx[8];
+	u32 err_idx[8];
 	u64 ecc_data[2];
 	u32 num_err, i;
 
@@ -176,7 +212,7 @@ static int fsmc_correct_data(struct mtd_info *mtd, u_char *dat,
 
 	num_err = (readl(&fsmc_regs_p->sts) >> 10) & 0xF;
 
-	if (num_err == 0xF)
+	if (num_err > 8)
 		return -EBADMSG;
 
 	i = 0;
@@ -382,12 +418,16 @@ int fsmc_nand_init(struct nand_chip *nand)
 	switch (fsmc_version) {
 	case FSMC_VER8:
 		nand->ecc.bytes = 13;
-		nand->ecc.correct = fsmc_correct_data;
+		nand->ecc.correct = fsmc_bch8_correct_data;
 		nand->ecc.read_page = fsmc_read_page_hwecc;
 		if (mtd->writesize == 512)
 			nand->ecc.layout = &fsmc_ecc4_sp_layout;
-		else
-			nand->ecc.layout = &fsmc_ecc4_lp_layout;
+		else {
+			if (mtd->oobsize == 224)
+				nand->ecc.layout = &fsmc_ecc4_224_layout;
+			else
+				nand->ecc.layout = &fsmc_ecc4_lp_layout;
+		}
 
 		break;
 	default:

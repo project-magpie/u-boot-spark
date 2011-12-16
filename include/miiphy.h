@@ -180,6 +180,8 @@ int bb_miiphy_write (char *devname, unsigned char addr,
 #define PHY_ANLPAR_10FD		0x0040
 #define PHY_ANLPAR_10		0x0020
 #define PHY_ANLPAR_100		0x0380	/* we can run at 100 */
+#define PHY_ANLPAR_100FD	0x0300
+#define PHY_ANLPAR_100HD	0x0080
 /* phy ANLPAR 1000BASE-X */
 #define PHY_X_ANLPAR_NP		0x8000
 #define PHY_X_ANLPAR_ACK	0x4000

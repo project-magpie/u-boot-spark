@@ -37,6 +37,7 @@ int arch_cpu_init(void)
 	struct misc_regs *const misc_p =
 	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 	u32 perip1_clk_enb, perip2_clk_enb, perip3_clk_enb;
+	u32 perip_clk_cfg;
 #if defined(CONFIG_SPEAR_MMC)
 	u32 perip_cfg;
 #endif
@@ -49,6 +50,12 @@ int arch_cpu_init(void)
 	perip1_clk_enb |= GPT1_CLKEN;
 
 #if defined(CONFIG_PL011_SERIAL)
+	/* select USB PLL 48 MHz as the src clock */
+	perip_clk_cfg = readl(&misc_p->perip_clk_cfg);
+	perip_clk_cfg &= ~CONFIG_SPEAR_UARTCLKMSK;
+	perip_clk_cfg |= CONFIG_SPEAR_UART48M;
+	writel(perip_clk_cfg, &misc_p->perip_clk_cfg);
+
 	perip1_clk_enb |= UART_CLKEN;
 #endif
 

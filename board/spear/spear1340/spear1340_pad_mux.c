@@ -50,12 +50,9 @@ static void enable_pad(u8 pad_num)
 void enable_pads(u8 *pads, u32 count)
 {
 	int i;
-	writel(readl(CONFIG_SPEAR_FUNCENB0) & ~0x1, CONFIG_SPEAR_FUNCENB0);
 
 	for (i = 0; i < count; i++)
 		enable_pad(pads[i] + 1);
-
-	writel(readl(CONFIG_SPEAR_FUNCENB0) | 0x1, CONFIG_SPEAR_FUNCENB0);
 }
 
 void enable_serial_pad(void)

@@ -237,6 +237,8 @@ struct misc_regs {
 
 /* perip_clk_cfg definitions */
 #define MPMC_CLK_PLL4				(1 << 10)
+#define CONFIG_SPEAR_UART48M			0
+#define CONFIG_SPEAR_UARTCLKMSK			(0x1 << 4)
 
 /* perip*_[clk_enb/sw_rst] definitions */
 #define BUS_CLKEN				(1 << 0)	/* perip1 */
