@@ -27,12 +27,31 @@
 #include <nand.h>
 #include <asm/io.h>
 #include <linux/mtd/fsmc_nand.h>
+#include <asm/arch//spr_generic.h>
 #include <asm/arch/hardware.h>
+#include <asm/arch/padmux.h>
 #include <asm/arch/spr_defs.h>
 #include <asm/arch/spr_misc.h>
 
+/* padmux devices to enable */
+static struct pmx_dev *pmx_devs[] = {
+	/* spear3xx specific devices */
+	&spear3xx_pmx_i2c,
+	&spear3xx_pmx_ssp,
+	&spear3xx_pmx_uart0,
+
+	/* hmi specific devices */
+	&spear320s_pmx_fsmc[0],
+	&spear320_pmx_sdhci[1],
+	&spear320_pmx_mii1_2[1],
+};
+
 int board_init(void)
 {
+	/* call spear320 machine init function */
+	spear320_common_init(&spear320s_extended_mode, pmx_devs,
+			ARRAY_SIZE(pmx_devs));
+
 	return spear_board_init(MACH_TYPE_SPEAR320_HMI);
 }
 
