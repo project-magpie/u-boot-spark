@@ -28,18 +28,18 @@ void arch_get_mdio_control(struct eth_device *netdev)
 	u32 val;
 
 	val = readl(CONFIG_SPEAR_RASBASE + CONFG_SPEAR_SMII_OFF);
-	va &= ~SMII_PHY_MASK;
+	val &= ~SMII_PHY_MASK;
 
-	if (!strcmp(netdev.name, "macb0")) {
+	if (!strcmp(netdev->name, "macb0")) {
 		val |= (0x0 << SMII_PHY_SHIFT);
-	} else if (!strcmp(netdev.name, "macb1")) {
+	} else if (!strcmp(netdev->name, "macb1")) {
 		val |= (0x1 << SMII_PHY_SHIFT);
-	} else if (!strcmp(netdev.name, "macb2")) {
+	} else if (!strcmp(netdev->name, "macb2")) {
 		val |= (0x2 << SMII_PHY_SHIFT);
-	} else if (!strcmp(netdev.name, "macb3")) {
+	} else if (!strcmp(netdev->name, "macb3")) {
 		val |= (0x3 << SMII_PHY_SHIFT);
 	} else {
-		printf ("no such device:%s\n", netdev.name);
+		printf ("no such device:%s\n", netdev->name);
 	}
 
 	writel(val, CONFIG_SPEAR_RASBASE + CONFG_SPEAR_SMII_OFF);
