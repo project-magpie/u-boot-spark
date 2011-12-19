@@ -87,11 +87,6 @@ int board_eth_init(bd_t *bis)
 	writel(readl(&misc_regs_p->amem_cfg_ctrl) | 0x1,
 			&misc_regs_p->amem_cfg_ctrl);
 
-	/* Let macb1 drive mdio lines */
-	val = readl(CONFIG_SPEAR_RASBASE + SPEAR320_RAS_CTRL_OFF);
-	val |= SMII1_MDIO_SEL;
-	writel(val, CONFIG_SPEAR_RASBASE + SPEAR320_RAS_CTRL_OFF);
-
 	if (macb_eth_initialize(0, (void *)CONFIG_SYS_MACB1_BASE,
 				CONFIG_MACB1_PHY) >= 0)
 		ret++;

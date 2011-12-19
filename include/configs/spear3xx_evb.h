@@ -61,6 +61,7 @@
 #define CONFIG_DW_ALTDESCRIPTOR			1
 
 #if defined(CONFIG_SPEAR310)
+#define CONFIG_ETH_MDIO_HOOK			1
 #define CONFIG_MACB				1
 #define CONFIG_MACB0_PHY			0x01
 #define CONFIG_MACB1_PHY			0x03
@@ -68,11 +69,13 @@
 #define CONFIG_MACB3_PHY			0x07
 
 #elif defined(CONFIG_SPEAR320)
+#define CONFIG_ETH_MDIO_HOOK			1
 #define CONFIG_MACB				1
 #define CONFIG_MACB0_PHY			0x01
 #define CONFIG_MACB1_PHY			0x02
 
 #elif defined(CONFIG_SPEAR320_HMI)
+#define CONFIG_ETH_MDIO_HOOK			1
 #define CONFIG_MACB				1
 #define CONFIG_MACB0_PHY			0x1
 #define CONFIG_MACB1_PHY			0x0

@@ -108,12 +108,19 @@ struct macb_device {
 };
 #define to_macb(_nd) container_of(_nd, struct macb_device, netdev)
 
+#ifdef CONFIG_ETH_MDIO_HOOK
+extern void arch_get_mdio_control(struct eth_device *netdev);
+#endif
+
 static void macb_mdio_write(struct macb_device *macb, u8 reg, u16 value)
 {
 	unsigned long netctl;
 	unsigned long netstat;
 	unsigned long frame;
 
+#ifdef CONFIG_ETH_MDIO_HOOK
+	arch_get_mdio_control(&macb->netdev);
+#endif
 	netctl = macb_readl(macb, NCR);
 	netctl |= MACB_BIT(MPE);
 	macb_writel(macb, NCR, netctl);
@@ -141,6 +148,9 @@ static u16 macb_mdio_read(struct macb_device *macb, u8 reg)
 	unsigned long netstat;
 	unsigned long frame;
 
+#ifdef CONFIG_ETH_MDIO_HOOK
+	arch_get_mdio_control(&macb->netdev);
+#endif
 	netctl = macb_readl(macb, NCR);
 	netctl |= MACB_BIT(MPE);
 	macb_writel(macb, NCR, netctl);
@@ -476,6 +486,8 @@ static int macb_init(struct eth_device *netdev, bd_t *bd)
 	macb_writel(macb, SA1T, hwaddr_top);
 
 	/* choose RMII or MII mode. This depends on the board */
+#define CONFIG_RMII
+
 #ifdef CONFIG_RMII
 #if defined(CONFIG_AT91CAP9) || defined(CONFIG_AT91SAM9260) || \
     defined(CONFIG_AT91SAM9263) || defined(CONFIG_AT91SAM9G20) || \

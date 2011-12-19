@@ -495,6 +495,29 @@ static struct pmx_driver pmx_driver = {
 };
 
 /*
+ * Function to dnamically set control of shared mdio lines to concerned
+ * mac controller
+ */
+#ifdef CONFIG_ETH_MDIO_HOOK
+void arch_get_mdio_control(struct eth_device *netdev)
+{
+	u32 val;
+
+	val = readl(SPEAR320_CONTROL_REG);
+
+	if (!strcmp(netdev->name, "macb0")) {
+		val &= ~(0x1 << MII_ENB);
+	} else if (!strcmp(netdev->name, "macb1")) {
+		val |= (0x1 << MII_ENB);
+	} else {
+		printf ("no such device:%s\n", netdev->name);
+	}
+
+	writel(val, SPEAR320_CONTROL_REG);
+}
+#endif
+
+/*
  * retreive the SoC-id for differentiating between SPEAr320
  * and future variants of the same (for e.g. SPEAr320s)
  */

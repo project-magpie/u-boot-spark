@@ -90,19 +90,6 @@ int board_eth_init(bd_t *bis)
 	writel(readl(&misc_regs_p->amem_cfg_ctrl) | 0x1,
 			&misc_regs_p->amem_cfg_ctrl);
 
-	/*
-	 * Select the MDIO Muxed configuration for the MII interface.
-	 * The RAS control register should have the following cfg
-	 * For MII-0 interface
-	 * Reset Bit-5 of RAS CONTROL REGISTER (0xB3000010)
-	 *
-	 * For MII-1/MII interface
-	 * Set Bit-5 of RAS CONTROL REGISTER (0xB3000010).
-	 */
-	val = readl(CONFIG_SPEAR_RASBASE + SPEAR320_RAS_CTRL_OFF);
-	val |= SMII1_MDIO_SEL;
-	writel(val, CONFIG_SPEAR_RASBASE + SPEAR320_RAS_CTRL_OFF);
-
 	if (macb_eth_initialize(0, (void *)CONFIG_SYS_MACB0_BASE,
 				CONFIG_MACB0_PHY) >= 0)
 		ret++;
