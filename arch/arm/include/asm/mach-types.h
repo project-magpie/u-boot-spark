@@ -2867,6 +2867,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_SPEARR1801E          3464
 #define MACH_TYPE_SPEAR320_HMI         3767
 #define MACH_TYPE_SPEAR1310_REVA       7777
+#define MACH_TYPE_SPEAR_HURRICANE          3853
 
 #ifdef CONFIG_ARCH_EBSA110
 # ifdef machine_arch_type
@@ -37126,6 +37127,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_spearR1801E()	(machine_arch_type == MACH_TYPE_SPEARR1801E)
 #else
 # define machine_is_spearR1801E()	(0)
+#endif
+
+#ifdef CONFIG_MACH_SPEAR_HURRICANE
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_SPEAR_HURRICANE
+# endif
+# define machine_is_spear_hurricane()	(machine_arch_type == MACH_TYPE_SPEAR_HURRICANE)
+#else
+# define machine_is_spear_hurricane()	(0)
 #endif
 
 /*
