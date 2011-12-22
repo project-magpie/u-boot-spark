@@ -78,6 +78,7 @@
 #define CONFIG_DW_ALTDESCRIPTOR			1
 #ifdef CONFIG_SPEAR1340
 #define CONFIG_DW0_PHY				1
+#define CONFIG_SPEAR_RGMII
 #else
 #define CONFIG_DW0_PHY				5
 #endif
