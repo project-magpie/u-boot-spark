@@ -55,7 +55,7 @@
 
 #define CONFIG_SYS_MACB_RX_BUFFER_SIZE		4096
 #define CONFIG_SYS_MACB_RX_RING_SIZE		(CONFIG_SYS_MACB_RX_BUFFER_SIZE / 128)
-#define CONFIG_SYS_MACB_TX_RING_SIZE		16
+#define CONFIG_SYS_MACB_TX_RING_SIZE		1
 #define CONFIG_SYS_MACB_TX_TIMEOUT		1000
 #define CONFIG_SYS_MACB_AUTONEG_TIMEOUT	5000000
 
@@ -226,7 +226,13 @@ static int macb_send(struct eth_device *netdev, void *packet, int length)
 	macb->tx_ring[tx_head].ctrl = ctrl;
 	macb->tx_ring[tx_head].addr = paddr;
 	barrier();
-	macb_writel(macb, NCR, MACB_BIT(TE) | MACB_BIT(RE) | MACB_BIT(TSTART));
+	/*
+	 * Due to issues on SPEAr320 RMII, disable TE first so that
+	 * controller can come out if it is hanged during transmission
+	 */
+	macb_writel(macb, NCR, macb_readl(macb, NCR) & ~MACB_BIT(TE));
+	macb_writel(macb, NCR, macb_readl(macb, NCR) |
+			MACB_BIT(TE) | MACB_BIT(TSTART));
 
 	/*
 	 * I guess this is necessary because the networking core may
@@ -444,6 +450,31 @@ static int macb_phy_init(struct macb_device *macb)
 	}
 }
 
+static void macb_reset_hw(struct macb_device *bp)
+{
+	/* Make sure we have the write buffer for ourselves */
+	barrier();
+	/*
+	 * Disable RX and TX (XXX: Should we halt the transmission
+	 * more gracefully?) and we should not close the mdio port
+	 */
+	macb_writel(bp, NCR, 0);
+
+	/* Clear the stats registers (XXX: Update stats first?) */
+	macb_writel(bp, NCR, MACB_BIT(CLRSTAT));
+
+	/* keep the mdio port , otherwise other eth will not work */
+	macb_writel(bp, NCR, MACB_BIT(MPE));
+
+	/* Clear all status flags */
+	macb_writel(bp, TSR, ~0UL);
+	macb_writel(bp, RSR, ~0UL);
+
+	/* Disable all interrupts */
+	macb_writel(bp, IDR, ~0UL);
+	macb_readl(bp, ISR);
+}
+
 static int macb_init(struct eth_device *netdev, bd_t *bd)
 {
 	struct macb_device *macb = to_macb(netdev);
@@ -520,8 +551,7 @@ static void macb_halt(struct eth_device *netdev)
 		tsr = macb_readl(macb, TSR);
 	} while (tsr & MACB_BIT(TGO));
 
-	/* Disable TX and RX, and clear statistics */
-	macb_writel(macb, NCR, MACB_BIT(CLRSTAT));
+	macb_reset_hw(macb);
 }
 
 static int macb_write_hwaddr(struct eth_device *dev)
