@@ -505,13 +505,29 @@ void arch_get_mdio_control(struct eth_device *netdev)
 
 	val = readl(SPEAR320_CONTROL_REG);
 
-	if (!strcmp(netdev->name, "macb0")) {
-		val &= ~(0x1 << MII_ENB);
-	} else if (!strcmp(netdev->name, "macb1")) {
+#ifdef CONFIG_SPEAR320
+	/*
+	 * There is just one Ethernet interface on SPEAr320 PLC board
+	 * which is RAS Eth#2
+	 */
+	if (!strcmp(netdev->name, "macb0"))
 		val |= (0x1 << MII_ENB);
-	} else {
+	else
 		printf ("no such device:%s\n", netdev->name);
-	}
+#elif defined(CONFIG_SPEAR320_HMI)
+	/*
+	 * There are two Ethernet (RMII) interfaces on SPEAr320 new HMI
+	 * board
+	 */
+	if (!strcmp(netdev->name, "macb0"))
+		val &= ~(0x1 << MII_ENB);
+	else if (!strcmp(netdev->name, "macb1"))
+		val |= (0x1 << MII_ENB);
+	else
+		printf ("no such device:%s\n", netdev->name);
+#else
+#error "unknown SPEAr320 based board"
+#endif
 
 	writel(val, SPEAR320_CONTROL_REG);
 }
