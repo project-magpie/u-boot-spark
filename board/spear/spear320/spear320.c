@@ -34,11 +34,21 @@
 
 #define PLGPIO_SEL_36	0xb3000028
 #define PLGPIO_IO_36	0xb3000038
+#define PLGPIO_SEL_76	0xb300002C
+#define PLGPIO_IO_76	0xb300003C
+#define PLGPIO_36	(0x1 << 4)
+#define PLGPIO_76	(0x1 << 12)
 
 static void phy_reset(void)
 {
-	writel(0x10, PLGPIO_IO_36);
-	writel(0x10, PLGPIO_SEL_36);
+	/* PLGPIO36 is used to enable oscillator */
+	writel(readl(PLGPIO_IO_36) | PLGPIO_36, PLGPIO_IO_36);
+	writel(readl(PLGPIO_SEL_36) | PLGPIO_36, PLGPIO_SEL_36);
+
+	/* PLGPIO76 is used to reset phy */
+	writel(readl(PLGPIO_IO_76) & ~PLGPIO_76, PLGPIO_IO_76);
+	writel(readl(PLGPIO_SEL_76) | PLGPIO_76, PLGPIO_SEL_76);
+	writel(readl(PLGPIO_IO_76) | PLGPIO_76, PLGPIO_IO_76);
 }
 
 int board_init(void)
