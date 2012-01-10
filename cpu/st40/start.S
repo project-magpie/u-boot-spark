@@ -379,6 +379,18 @@ set_pmb:
 	SH4_SET_PMB 4,0xa0,0x00, 128,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5,0xb0,0x00, 128		/* NOR FLASH CACHED */
 	SH4_SET_PMB 6,0xa8,0x08, 128,0,0,1	/* NAND FLASH UN-cached */
+#elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_B2037)
+	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI1 (first-half)  UN-cached */
+	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI1 (first-half)  UN-cached */
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI1 (second-half) UN-cached */
+	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI1 (second-half) UN-cached */
+	#endif
+	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* SPI FLASH UN-cached */
+	SH4_SET_PMB 5,0xb0,0x00, 16		/* SPI FLASH CACHED */
+	SH4_SET_PMB 6,0xa8,0x08, 16,0,0,1	/* NAND FLASH UN-cached */
+	SH4_SET_PMB 7,0xab,0x0b, 16,0,0,1	/* NOR FLASH UN-cached */
+	SH4_SET_PMB 8,0xbb,0x0b, 16		/* NOR FLASH CACHED */
 #elif defined(CONFIG_ST40_STX7111) && defined(CONFIG_ST40_MB618)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI UN-cached */
@@ -453,16 +465,47 @@ set_pmb:
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa8,0x00, 64		/* NOR/NAND FLASH CACHED */
+#elif defined(CONFIG_ST40_STXH415) && defined(CONFIG_ST40_B2000)
+	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 UN-cached */
+	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 UN-cached */
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
+	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
+	#endif
+	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
+	SH4_SET_PMB 5,0xb0,0x00, 16		/* NAND/SPI FLASH CACHED */
+	SH4_SET_PMB 6,0xa1,0x01, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
+#elif defined(CONFIG_ST40_STXH205) && defined(CONFIG_ST40_B2057)
+	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 UN-cached */
+	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 UN-cached */
+	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
+	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
+	#endif
+	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
+	SH4_SET_PMB 5,0xb0,0x00, 16		/* NAND/SPI FLASH CACHED */
+	SH4_SET_PMB 6,0xa1,0x01, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
 #else
 	#error Do not know which board/chip we are using for PMB setup.
 #endif	/* defined(CONFIG_ST40_STX....) */
 #undef  BASE
 
-	/* invalidate the ITLB, in case GDB put a 512 MiB page in slot #0 */
+	/*
+	 * Invalidate the ITLB, in case GDB put a 512 MiB page in slot #0.
+	 * Note: For SH4-200 series cores, we need to ensure that
+	 * we preserve the MMUCR.SE bit faithfully. For SH4-300 series
+	 * cores, the SE bit is actually in a different register (PASCR).
+	 */
 invalidate_itlb:
 	MOV_CONST32_R0 SH4_CCN_MMUCR
 	mov	#(SH4_MMUCR_TI), r1
-	mov.l	r1, @r0			/* MMUCR.TI = 1 */
+#ifdef CONFIG_CPU_SUBTYPE_SH4_2XX	/* it is an SH4-200 */
+	mov.l	@r0, r2			/* read the MMUCR */
+	mov	#(SH4_MMUCR_SE), r3
+	and	r3, r2			/* mask every bit, except MMUCR.SE */
+	or	r2, r1			/* OR in MMUCR.TI */
+#endif	/* CONFIG_CPU_SUBTYPE_SH4_2XX */
+	mov.l	r1, @r0			/* set MMUCR.TI, preserving MMUCR.SE */
 #endif	/* CONFIG_ST40_SE_MODE */
 
 consider_hyperspace:

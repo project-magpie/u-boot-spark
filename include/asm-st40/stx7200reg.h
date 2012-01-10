@@ -46,9 +46,6 @@
 #ifndef ST40_INTC_REGS_BASE
 #define ST40_INTC_REGS_BASE 0xffd00000
 #endif
-#ifndef ST40_SCIF2_REGS_BASE
-#define ST40_SCIF2_REGS_BASE 0xffe80000
-#endif
 
 #ifndef ST40_ILC_REGS_BASE
 #define ST40_ILC_REGS_BASE 0xfd804000

@@ -171,7 +171,7 @@
 	/* 9-pin D-type connector on STi7105-SDK-SB daughter board */
 #	define CFG_STM_ASC_BASE		ST40_ASC2_REGS_BASE	/* UART #2 */
 #else
-	/* JN5, 6-way connector - QQQ NOT TESTED */
+	/* JN5, 6-way connector - works, but requires custom cable */
 #	define CFG_STM_ASC_BASE		ST40_ASC3_REGS_BASE	/* UART #3 */
 #endif
 
@@ -356,6 +356,18 @@
 	 * record.  If so, then define the "CFG_NAND_ECC_HW3_128" macro.
 	 */
 #	define CFG_NAND_ECC_HW3_128	/* define for "boot-from-NAND" compatibility */
+
+	/*
+	 * Do we want to use STMicroelectronics' proprietary AFM4 (4+3/512)
+	 * ECC format, instead of Linux's traditional S/W 3/256 ECC?
+	 * Note: This does *not* enable H/W AFM - you can use either
+	 * "bit-banging" or STM's "FLEX-mode", it is simply the addition
+	 * of the AFM4 ECC algorithm+layout that is being supported here.
+	 * Note: We *can* use this H/W AFM4 (4+3/512) ECC in addition to
+	 * the H/W "boot-mode" (3+1/128) ECC, on the same NAND device,
+	 * to partition it, set CFG_NAND_STM_BOOT_MODE_BOUNDARY appropriately.
+	 */
+#	undef CFG_NAND_ECC_AFM4		/* define for AFM4 (4+3/512) ECC compatibility */
 
 	/*
 	 * If using CFG_NAND_ECC_HW3_128, then we must also define

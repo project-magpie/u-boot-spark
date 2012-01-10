@@ -14,8 +14,6 @@
  *		  2009-2011 STMicroelectronics. (Sean McGoogan <Sean.McGoogan@st.com>)
  *
  *
- *  02-06-2009  SMG: added support for 3 bytes of ECC per 128 byte record.
- *
  *  02-08-2004  tglx: support for strange chips, which cannot auto increment
  *		pages on read / read_oob
  *
@@ -31,6 +29,13 @@
  *  09-24-2004  tglx: add support for hardware controllers (e.g. ECC) shared
  *		among multiple independend devices. Suggestions and initial patch
  *		from Ben Dooks <ben-mtd@fluff.org>
+ *
+ *  02-06-2009  SMG: added support for 3 bytes of ECC per 128 byte record.
+ *
+ *  09-28-2011  SMG: added support for 7 bytes of ECC per 512 byte record (AFM4)
+ *
+ *  09-29-2011  SMG: Added call-back of stm_nand_chip_init() to complete the
+ *		initialization of the device structures, POST-probing.
  *
  * Credits:
  *	David Woodhouse for adding multichip support
@@ -90,6 +95,10 @@
 
 #ifdef CONFIG_JFFS2_NAND
 #include <jffs2/jffs2.h>
+#endif
+
+#if defined(CONFIG_ST40)
+#include <asm/stm-nand.h>
 #endif
 
 /* Define default oob placement schemes for large and small page devices */
@@ -2543,8 +2552,14 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 		printk(KERN_INFO "%d NAND chips detected\n", i);
 
 	/*
-	 * Enable chip-specific features (e.g. on-die ECC).
+	 * Enable chip-specific features (e.g. on-die ECC), or,
+	 * now that we have probed the NAND device, and we now know
+	 * the *actual* device ID, we can complete the other
+	 * structure fields properly (e.g. this->autooob).
 	 */
+#if defined(CONFIG_ST40)
+	stm_nand_chip_init(mtd, nand_maf_id, nand_dev_id);
+#endif
 	if (nand_maf_id == NAND_MFR_MICRON && nand_dev_id == 0xda) {
 		/* For Micron MT29F2G08ABAEA */
 		const u_char EnableOnDieEccParameters[4] = {0x8, 0x0, 0x0, 0x0};
@@ -2645,6 +2660,7 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 
 	case NAND_ECC_HW3_512:
 	case NAND_ECC_HW6_512:
+	case NAND_ECC_HW7_512:
 	case NAND_ECC_HW8_512:
 		if (mtd->oobblock == 256) {
 			printk (KERN_WARNING "512 byte HW ECC not possible on 256 Byte pagesize, fallback to SW ECC \n");
@@ -2685,7 +2701,9 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 	case NAND_ECC_HW12_2048:
 		this->eccbytes += 4;
 	case NAND_ECC_HW8_512:
-		this->eccbytes += 2;
+		this->eccbytes += 1;
+	case NAND_ECC_HW7_512:
+		this->eccbytes += 1;
 	case NAND_ECC_HW6_512:
 		this->eccbytes += 3;
 	case NAND_ECC_HW3_512:
@@ -2706,6 +2724,7 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 		break;
 	case NAND_ECC_HW3_512:
 	case NAND_ECC_HW6_512:
+	case NAND_ECC_HW7_512:
 	case NAND_ECC_HW8_512:
 		this->eccsteps = mtd->oobblock / 512;
 		break;

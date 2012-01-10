@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2011 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -161,18 +161,18 @@ static void configPIO(void)
 #if CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE
 
 	/* Route UART2 via PIO14 for TX, RX, CTS & RTS (Alternative #1) */
-	PIOALT(14, 4, 1, &stx7108_pioalt_pad_out);	/* UART2-TX */
-	PIOALT(14, 5, 1, &stx7108_pioalt_pad_in);	/* UART2-RX */
-	PIOALT(14, 6, 1, &stx7108_pioalt_pad_out);	/* UART2-RTS */
-	PIOALT(14, 7, 1, &stx7108_pioalt_pad_in);	/* UART2-CTS */
+	PIOALT(14, 4, 1, stm_pad_direction_output);	/* UART2-TX */
+	PIOALT(14, 5, 1, stm_pad_direction_input);	/* UART2-RX */
+	PIOALT(14, 6, 1, stm_pad_direction_output);	/* UART2-RTS */
+	PIOALT(14, 7, 1, stm_pad_direction_input);	/* UART2-CTS */
 
 #elif CFG_STM_ASC_BASE == ST40_ASC3_REGS_BASE
 
 	/* Route UART3 via PIO21 for TX, RX, CTS & RTS (Alternative #2) */
-	PIOALT(21, 0, 2, &stx7108_pioalt_pad_out);	/* UART3-TX */
-	PIOALT(21, 1, 2, &stx7108_pioalt_pad_in);	/* UART3-RX */
-	PIOALT(21, 3, 2, &stx7108_pioalt_pad_out);	/* UART3-RTS */
-	PIOALT(21, 4, 2, &stx7108_pioalt_pad_in);	/* UART3-CTS */
+	PIOALT(21, 0, 2, stm_pad_direction_output);	/* UART3-TX */
+	PIOALT(21, 1, 2, stm_pad_direction_input);	/* UART3-RX */
+	PIOALT(21, 3, 2, stm_pad_direction_output);	/* UART3-RTS */
+	PIOALT(21, 4, 2, stm_pad_direction_input);	/* UART3-CTS */
 
 #else
 #error Unknown ASC port selected!

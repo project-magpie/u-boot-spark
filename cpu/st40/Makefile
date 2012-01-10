@@ -28,6 +28,7 @@ LIB	= $(obj)lib$(CPU).a
 START	= start.o
 COBJS	= cpu.o interrupts.o usb.o cmd_pmb.o
 COBJS	+= ecc.o stm-nand.o cmd_copybbt.o	# NAND
+COBJS	+= stm-nand-flex.o			# NAND
 COBJS	+= sata-init.o sata-probe.o		# SATA
 COBJS	+= spi.o stm_spi_fsm.o env_eeprom.o	# SPI
 SOBJS	=
@@ -38,7 +39,7 @@ START	:= $(addprefix $(obj),$(START))
 
 all:	$(obj).depend $(START) $(LIB)
 
-$(obj)stm-nand.o: stm-nand.c
+$(obj)stm-nand-flex.o: stm-nand-flex.c
 	$(CC) $(CFLAGS) -m4 -c -o $@ $<
 
 $(LIB):	$(OBJS)

@@ -33,16 +33,36 @@
 #include <asm/st40reg.h>
 #include <asm/io.h>
 #include <asm/socregs.h>
-#include <asm/cache.h>
 
 
 #define isprint(x)	( ((x)>=0x20u) && ((x)<0x7fu) )
 
 
-#define DEBUG_FLEX		0	/* Enable additional debugging of the FLEX controller */
 #define VERBOSE_ECC		0	/* Enable for verbose ECC information  */
 
 
+/*
+ * STMicroelectronics' H/W ECC layouts:
+ *
+ * Boot-mode ECC: 128-byte data records, 3 bytes ECC + 1 byte marker ('B')
+ *                Hence, Boot-Mode is described as 3+1/128 ECC.
+ *
+ * AFM3 ECC:      512-byte data records, 3 bytes H/W ECC
+ *                Hence, AFM3 is described as 3/512 ECC.
+ *
+ * AFM4 ECC:      512-byte data records, 3 bytes H/W ECC, 1 byte S/W ECC, 3 bytes marker ('A', 'F', 'M')
+ *                Hence, AFM4 is described as 4+3/512 ECC.
+ *
+ * Note: ECC schemes described here using the form "x+y/z", means:
+ * x-bytes of ECC plus y-bytes of "marker bytes" per z-byte record of data.
+ *
+ * Note: There is a bug in the AFM3 H/W engine that results in two of the
+ * parity bits (LP16 + LP17) being calculated incorrectly. The S/W workaround
+ * for this issue is to store the correct values for these two bits in a
+ * 4th ECC byte (hence AFM4). The S/W will then "fix-up" the LP16+LP17 bits.
+ * It is ill-advised to use the redundant top 6-bits in the 4th byte - beware!
+ * In addition, a 3-byte tag is also stored along with the ECC, hence 4+3/512 ECC.
+ */
 #if !defined(CFG_STM_NAND_BOOT_MODE_ECC_WITH_B)
 #	define CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	1	/* Enable 'B' tagging */
 #endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
@@ -68,14 +88,14 @@
  */
 static uint8_t scan_pattern[] = { 0xffu, 0xffu };
 
-struct nand_bbt_descr stm_nand_badblock_pattern_16 = {
+static struct nand_bbt_descr stm_nand_badblock_pattern_16 = {
 	.pattern = scan_pattern,
 	.options = NAND_BBT_SCANEMPTY /* | NAND_BBT_SCANALLPAGES */ | NAND_BBT_SCAN2NDPAGE,
 	.offs = 5,	/* Byte 5 */
 	.len = 1
 };
 
-struct nand_bbt_descr stm_nand_badblock_pattern_64 = {
+static struct nand_bbt_descr stm_nand_badblock_pattern_64 = {
 	.pattern = scan_pattern,
 	.options = NAND_BBT_SCANEMPTY /* | NAND_BBT_SCANALLPAGES */ | NAND_BBT_SCAN2NDPAGE,
 	.offs = 0,	/* Bytes 0-1 */
@@ -83,10 +103,237 @@ struct nand_bbt_descr stm_nand_badblock_pattern_64 = {
 };
 
 
+/*****************************************************************************************
+ *****************************************************************************************
+ *****************		Common "ECC" functions		**************************
+ *****************************************************************************************
+ *****************************************************************************************/
+
+
+#if defined(CFG_NAND_ECC_HW3_128) || defined(CFG_NAND_ECC_AFM4)
+
+
+static void stm_nand_enable_hwecc (
+	struct mtd_info *mtd,
+	int mode)
+{
+	/* do nothing - we are only emulating H/W in S/W */
+}
+
+
+static int stm_nand_calculate_ecc (
+	struct mtd_info * const mtd,
+	const u_char * const dat,
+	u_char * const ecc_code)
+{
+	const struct nand_chip const * this = mtd->priv;
+
+	if ((((unsigned long)dat)%4)!=0)	/* data *must* be 4-bytes aligned */
+	{
+		printf("ERROR: Can not calculate ECC: data (%08lx) must be 4-byte aligned!\n",
+			(unsigned long)dat);
+		BUG();
+		return -1;	/* Note: caller ignores this value! */
+	}
+	else
+#if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" */
+	if (this->eccmode==NAND_ECC_HW3_128)
+	{	/* calculate 3 ECC bytes per 128 bytes of data */
+		const ecc_t computed_ecc = ecc_gen(dat, ECC_128);
+		/* poke them into the right place */
+		ecc_code[0] = computed_ecc.byte[0];
+		ecc_code[1] = computed_ecc.byte[1];
+		ecc_code[2] = computed_ecc.byte[2];
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+		ecc_code[3] = 'B';	/* append ASCII 'B', for Boot-mode */
+#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+	}
+	else
+#endif /* CFG_NAND_ECC_HW3_128 */
+#if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
+	if (this->eccmode==NAND_ECC_HW7_512)
+	{	/* calculate 3 ECC bytes per 512 bytes of data */
+		const ecc_t computed_ecc = ecc_gen(dat, ECC_512);
+		/* poke them into the right place */
+		ecc_code[0] = computed_ecc.byte[0];
+		ecc_code[1] = computed_ecc.byte[1];
+		ecc_code[2] = computed_ecc.byte[2];
+		ecc_code[3] = 'A';	/* ASCII 'A', for AFM4 */
+		ecc_code[4] = 'F';	/* ASCII 'F', for AFM4 */
+		ecc_code[5] = 'M';	/* ASCII 'M', for AFM4 */
+			/* also copy the 2 bits LP16 + LP17 in Byte6[1:0] as well! */
+		ecc_code[6] = computed_ecc.byte[2] & 0x03;	/* set top 6-bits to zero */
+	}
+	else
+#endif /* CFG_NAND_ECC_AFM4 */
+	{
+		printf("ERROR: Can not calculate ECC: Internal Error (eccmode=%u)\n",
+			this->eccmode);
+		BUG();
+		return -1;	/* Note: caller ignores this value! */
+	}
+
+	return 0;
+}
+
+
+static int stm_nand_correct_data (
+	struct mtd_info *mtd,
+	u_char *dat,
+	u_char *read_ecc,
+	u_char *calc_ecc)
+{
+	ecc_t read, calc;
+	enum ecc_check result;
+	const struct nand_chip const * this = mtd->priv;
+	enum ecc_size ecc_size;
+
+#if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" */
+	if (this->eccmode==NAND_ECC_HW3_128)
+	{
+		/* do we need to try and correct anything ? */
+		if (    (read_ecc[0] == calc_ecc[0]) &&
+			(read_ecc[1] == calc_ecc[1]) &&
+			(read_ecc[2] == calc_ecc[2])    )
+		{
+			return 0;		/* ECCs agree, nothing to do */
+		}
+
+	#if VERBOSE_ECC
+		printf("warning: ECC error detected!  "
+			"read_ecc %02x:%02x:%02x (%c%c%c) != "
+			"calc_ecc %02x:%02x:%02x (%c%c%c)\n",
+			(unsigned)read_ecc[0],
+			(unsigned)read_ecc[1],
+			(unsigned)read_ecc[2],
+			isprint(read_ecc[0]) ? read_ecc[0] : '.',
+			isprint(read_ecc[1]) ? read_ecc[1] : '.',
+			isprint(read_ecc[2]) ? read_ecc[2] : '.',
+			(unsigned)calc_ecc[0],
+			(unsigned)calc_ecc[1],
+			(unsigned)calc_ecc[2],
+			isprint(calc_ecc[0]) ? calc_ecc[0] : '.',
+			isprint(calc_ecc[1]) ? calc_ecc[1] : '.',
+			isprint(calc_ecc[2]) ? calc_ecc[2] : '.');
+	#endif	/* VERBOSE_ECC */
+
+		/* put ECC bytes into required structure */
+		read.byte[0] = read_ecc[0];
+		read.byte[1] = read_ecc[1];
+		read.byte[2] = read_ecc[2];
+		calc.byte[0] = calc_ecc[0];
+		calc.byte[1] = calc_ecc[1];
+		calc.byte[2] = calc_ecc[2];
+		ecc_size = ECC_128;		/* 128 bytes/record */
+	}
+	else
+#endif /* CFG_NAND_ECC_HW3_128 */
+#if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
+	if (this->eccmode==NAND_ECC_HW7_512)
+	{
+		/*
+		 * Do we need to try and correct anything ?
+		 * We get LP16 and LP17 from byte6[1:0], instead of byte2[1:0] !
+		 * We assume that calc_ecc[6] is has the top 6-bits as zero.
+		 */
+		if (	(read_ecc[0] == calc_ecc[0])			&&
+			(read_ecc[1] == calc_ecc[1])			&&
+			((read_ecc[2]&0xfc) == (calc_ecc[2]&0xfc))	&&
+			((read_ecc[6]&0x03) == calc_ecc[6])		   )
+		{
+			return 0;		/* ECCs agree, nothing to do */
+		}
+
+	#if VERBOSE_ECC
+		printf("warning: ECC error detected!  "
+			"read_ecc %02x:%02x:%02x:%02x (%c%c%c%c) != "
+			"calc_ecc %02x:%02x:%02x:%02x (%c%c%c%c)\n",
+			(unsigned)read_ecc[0],
+			(unsigned)read_ecc[1],
+			(unsigned)read_ecc[2],
+			(unsigned)read_ecc[6],
+			isprint(read_ecc[0]) ? read_ecc[0] : '.',
+			isprint(read_ecc[1]) ? read_ecc[1] : '.',
+			isprint(read_ecc[2]) ? read_ecc[2] : '.',
+			isprint(read_ecc[6]) ? read_ecc[6] : '.',
+			(unsigned)calc_ecc[0],
+			(unsigned)calc_ecc[1],
+			(unsigned)calc_ecc[2],
+			(unsigned)calc_ecc[6],
+			isprint(calc_ecc[0]) ? calc_ecc[0] : '.',
+			isprint(calc_ecc[1]) ? calc_ecc[1] : '.',
+			isprint(calc_ecc[2]) ? calc_ecc[2] : '.',
+			isprint(calc_ecc[6]) ? calc_ecc[6] : '.');
+	#endif	/* VERBOSE_ECC */
+
+		/*
+		 * Put ECC bytes into required structure
+		 * We get LP16 and LP17 from byte6[1:0], instead of byte2[1:0] !
+		 * We assume that calc_ecc[2] is correct though!
+		 */
+		read.byte[0] = read_ecc[0];
+		read.byte[1] = read_ecc[1];
+		read.byte[2] = (read_ecc[2]&0xfc) | (read_ecc[6]&0x03);
+		calc.byte[0] = calc_ecc[0];
+		calc.byte[1] = calc_ecc[1];
+		calc.byte[2] = calc_ecc[2];
+		ecc_size = ECC_512;		/* 512 bytes/record */
+	}
+	else
+#endif /* CFG_NAND_ECC_AFM4 */
+	{
+		printf("ERROR: Can not correct ECC: Internal Error (eccmode=%u)\n",
+			this->eccmode);
+		BUG();
+		return -1;
+	}
+
+	/* correct a 1-bit error (if we can) */
+	result = ecc_correct(dat, read, calc, ecc_size);
+
+	/* let the user know if we were able to recover it or not! */
+	switch (result)
+	{
+		case E_D1_CHK:
+			printf("info: 1-bit error in data was corrected\n");
+			break;
+		case E_C1_CHK:
+			printf("info: 1-bit error in ECC ignored (data was okay)\n");
+			break;
+		default:
+#if VERBOSE_ECC
+			/* QQQ: filter out genuinely ERASED pages - TO DO */
+			printf("ERROR: uncorrectable ECC error not corrected!\n");
+#endif	/* VERBOSE_ECC */
+			break;
+	}
+
+	/* return zero if all okay, and -1 if we have an uncorrectable issue */
+	if ((result==E_D1_CHK)||(result==E_C1_CHK))
+	{
+		return 0;	/* okay (correctable) */
+	}
+	else
+	{
+		return -1;	/* uncorrectable */
+	}
+}
+
+
+#endif /* CFG_NAND_ECC_HW3_128 || CFG_NAND_ECC_AFM4 */
+
+
+/*****************************************************************************************
+ *****************************************************************************************
+ *****************		H/W 3/128 Boot-Mode		**************************
+ *****************************************************************************************
+ *****************************************************************************************/
+
+
 #ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
 
 	/* for SMALL-page devices */
-static struct nand_oobinfo stm_nand_oobinfo_16 = {
+static struct nand_oobinfo stm_boot_oobinfo_16 = {
 	.useecc = MTD_NANDECC_AUTOPLACE,
 #if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
 	.eccbytes = 16,			/* 16 out of 16 bytes = 100% of OOB */
@@ -108,7 +355,7 @@ static struct nand_oobinfo stm_nand_oobinfo_16 = {
 };
 
 	/* for LARGE-page devices */
-static struct nand_oobinfo stm_nand_oobinfo_64 = {
+static struct nand_oobinfo stm_boot_oobinfo_64 = {
 	.useecc = MTD_NANDECC_AUTOPLACE,
 #if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
 	.eccbytes = 64,			/* 64 out of 64 bytes = 100% of OOB */
@@ -188,6 +435,7 @@ struct stm_mtd_nand_ecc
 		int			eccbytes;	/* for ECC + ID tags */
 		int			eccsteps;
 		struct nand_oobinfo	*autooob;
+		void (*enable_hwecc)(struct mtd_info *mtd, int mode);
 		int (*calculate_ecc)(struct mtd_info *, const u_char *, u_char *);
 		int (*correct_data)(struct mtd_info *, u_char *, u_char *, u_char *);
 	}	nand;
@@ -205,281 +453,6 @@ static struct stm_mtd_nand_ecc special_ecc;	/* ECC diffs for the "special" hybri
 static int done_ecc_info = 0;			/* are the 2 ECC structures initialized ? */
 
 
-#endif	/* CFG_NAND_ECC_HW3_128 */
-
-
-#ifdef CFG_NAND_FLEX_MODE	/* for STM "flex-mode" (c.f. "bit-banging") */
-
-/* Flex-Mode Data {Read,Write} Config Registers & Flex-Mode {Command,Address} Registers */
-#define FLEX_WAIT_RBn			( 1u << 27 )	/* wait for RBn to be asserted (i.e. ready) */
-#define FLEX_BEAT_COUNT_1		( 1u << 28 )	/* One Beat */
-#define FLEX_BEAT_COUNT_2		( 2u << 28 )	/* Two Beats */
-#define FLEX_BEAT_COUNT_3		( 3u << 28 )	/* Three Beats */
-#define FLEX_BEAT_COUNT_4		( 0u << 28 )	/* Four Beats */
-#define FLEX_CSn_STATUS			( 1u << 31 )	/* Deasserts CSn after current operation completes */
-
-/* Flex-Mode Data-{Read,Write} Config Registers */
-#define FLEX_1_BYTE_PER_BEAT		( 0u << 30 )	/* One Byte per Beat */
-#define FLEX_2_BYTES_PER_BEAT		( 1u << 30 )	/* Two Bytes per Beat */
-
-/* Flex-Mode Configuration Register */
-#define FLEX_CFG_ENABLE_FLEX_MODE	( 1u <<  0 )	/* Enable Flex-Mode operations */
-#define FLEX_CFG_ENABLE_AFM		( 2u <<  0 )	/* Enable Advanced-Flex-Mode operations */
-#define FLEX_CFG_SW_RESET		( 1u <<  3 )	/* Enable Software Reset */
-#define FLEX_CFG_CSn_STATUS		( 1u <<  4 )	/* Deasserts CSn in current Flex bank */
-
-
-enum stm_nand_flex_mode {
-	flex_quiecent,		/* next byte_write is *UNEXPECTED* */
-	flex_command,		/* next byte_write is a COMMAND */
-	flex_address		/* next byte_write is a ADDRESS */
-};
-
-
-/*
- * NAND device connected to STM NAND Controller operating in FLEX mode.
- * There may be several NAND device connected to the NAND controller.
- */
-struct stm_nand_flex_device {
-	int			csn;
-	struct nand_chip	*chip;
-	struct mtd_info		*mtd;
-	struct nand_timing_data *timing_data;
-};
-
-
-/*
- * STM NAND Controller operating in FLEX mode.
- * There is only a single one of these.
- */
-static struct stm_nand_flex_controller {
-	int			initialized;	/* is the FLEX controller initialized ? */
-	int			current_csn;	/* Currently Selected Device (CSn) */
-	int			next_csn;	/* First free NAND Device (CSn) */
-	enum stm_nand_flex_mode mode;
-	struct stm_nand_flex_device device[CFG_MAX_NAND_DEVICE];
-	uint8_t			*buf;		/* Bounce buffer for non-aligned xfers */
-} flex;
-
-
-/*
- * In FLEX-mode, we can either read from the Flex-mode data
- * register (ST40_EMI_NAND_FLEX_DATA), over the STBus with either
- * a 4-byte read (LD4) or a 32-byte read (LD32) bus opcode.
- * Using the LD32 bus opcode amortises the cost of the bus
- * latency over 32-bytes, instead of only 4 bytes, so one can
- * achieve a higher throughput, using the LD32 bus opcode.
- *
- * However, in order to realize this potential improvement, one
- * needs to access the ST40_EMI_NAND_FLEX_DATA via the CPU's operand
- * (data) caches. This in turn requires a TLB (or PMB) address
- * translation to be configured and enabled.
- *
- * The following macros are used to configure the TLB to map
- * the ST40_EMI_NAND_FLEX_DATA into a P3 (cachable + translatable)
- * virtual address, so we can utilize the LD32 opcode.
- *
- * The implementation will create a single (read-only) 1KiB TLB
- * mapping, including ST40_EMI_NAND_FLEX_DATA to 0xC0000000.
- */
-#if defined(CONFIG_ST40_NAND_USES_CACHED_READS)
-#define ST40_MMU_PTEH	0xFF000000	/* Page Table Entry High register */
-#define ST40_MMU_PTEL	0xFF000004	/* Page Table Entry Low register */
-#define ST40_MMU_MMUCR	0xFF000010	/* MMU Control Register */
-
-#define PTEH_ASID	0		/* ASID to use (any 8-bit number) */
-
-#define PTEL_WT		(1ul<<0)	/* Write-through bit */
-#define PTEL_SH		(1ul<<1)	/* Private page or Shared page */
-#define PTEL_D		(1ul<<2)	/* Dirty bit */
-#define PTEL_C		(1ul<<3)	/* Cacheability bit */
-#define PTEL_SZ_1K	(0ul<<4)	/* Page size of 1 KiB */
-#define PTEL_SZ_4K	(1ul<<4)	/* Page size of 4 KiB */
-#define PTEL_SZ_64K	(8ul<<4)	/* Page size of 64 KiB */
-#define PTEL_SZ_1M	(9ul<<4)	/* Page size of 1 MiB */
-#define PTEL_PR_READ	(0ul<<5)	/* Privileged-mode can READ */
-#define PTEL_PR_WRITE	(1ul<<5)	/* Privileged-mode can READ+WRITE */
-#define PTEL_V		(1ul<<8)	/* Validity Bit */
-#define PTEL_UB		(1ul<<9)	/* Unbuffered write control bit */
-
-#define MMUCR_AT	(1ul<<0)	/* Address Translation bit */
-#define MMUCR_TI	(1ul<<2)	/* TLB Invalidate bit */
-
-#define PAGE_MASK	(~0x3fful)	/* 1 KiB Page */
-#define ASID_MASK	(0xfful)	/* 8 bit ASID */
-
-static volatile u32 * const mmucr_p = (u32*)ST40_MMU_MMUCR;
-
-static volatile u32 * const cache =
-	(u32*)(0xC0000000ul | ((u32)ST40_EMI_NAND_FLEX_DATA & ~PAGE_MASK));
-#endif	/* CONFIG_ST40_NAND_USES_CACHED_READS */
-
-#endif /* CFG_NAND_FLEX_MODE */
-
-
-extern int stm_nand_default_bbt (struct mtd_info *mtd)
-{
-	struct nand_chip * const this = (struct nand_chip *)(mtd->priv);
-
-	/* over-write the default "badblock_pattern", with our one */
-	/* choose the correct pattern struct, depending on the OOB size */
-	if (mtd->oobsize > 16)
-		this->badblock_pattern = &stm_nand_badblock_pattern_64;	/* LARGE-page */
-	else
-		this->badblock_pattern = &stm_nand_badblock_pattern_16;	/* SMALL-page */
-
-	/*
-	 * For the "boot-mode+B" ECC (i.e. 3+1/128) scheme, and for
-	 * the "AFM4" ECC (i.e. 4+3/512) scheme, then we wish to
-	 * be compatible with the way linux scans NAND devices.
-	 * So, we do not want to scan all pages, nor all the in-band data!
-	 * Play with the options to make it so...
-	 */
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B || CFG_STM_NAND_AFM4_ECC_WITH_AFM
-	this->badblock_pattern->options &= ~(NAND_BBT_SCANEMPTY|NAND_BBT_SCANALLPAGES);
-#endif
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	/* Additional "B" tag in OOB ? */
-	this->badblock_pattern->options |= NAND_BBT_SCANSTMBOOTECC;
-#endif
-#if CFG_STM_NAND_AFM4_ECC_WITH_AFM	/* Additional "AFM" tag in OOB ? */
-	this->badblock_pattern->options |= NAND_BBT_SCANSTMAFMECC;
-#endif
-
-	/* now call the generic BBT function */
-	return nand_default_bbt (mtd);
-}
-
-
-#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
-
-
-extern int stm_nand_calculate_ecc (
-	struct mtd_info * const mtd,
-	const u_char * const dat,
-	u_char * const ecc_code)
-{
-	const struct nand_chip const * this = mtd->priv;
-
-	if (this->eccmode!=NAND_ECC_HW3_128)
-	{
-		printf("ERROR: Can not calculate ECC: Internal Error (eccmode=%u)\n",
-			this->eccmode);
-		BUG();
-		return -1;	/* Note: caller ignores this value! */
-	}
-	else if ((((unsigned long)dat)%4)!=0)	/* data *must* be 4-bytes aligned */
-	{
-		/* QQQ: change this case to use a properly aligned bounce buffer */
-		printf("ERROR: Can not calculate ECC: data (%08lx) must be 4-byte aligned!\n",
-			(unsigned long)dat);
-		ecc_code[0] = 'B';
-		ecc_code[1] = 'A';
-		ecc_code[2] = 'D';
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
-		ecc_code[3] = 'B';	/* append ASCII 'B', for Boot-mode */
-#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
-		return -1;	/* Note: caller ignores this value! */
-	}
-	else
-	{	/* calculate 3 ECC bytes per 128 bytes of data */
-		const ecc_t computed_ecc = ecc_gen(dat, ECC_128);
-		/* poke them into the right place */
-		ecc_code[0] = computed_ecc.byte[0];
-		ecc_code[1] = computed_ecc.byte[1];
-		ecc_code[2] = computed_ecc.byte[2];
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
-		ecc_code[3] = 'B';	/* append ASCII 'B', for Boot-mode */
-#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
-	}
-
-	return 0;
-}
-
-
-extern int stm_nand_correct_data (
-	struct mtd_info *mtd,
-	u_char *dat,
-	u_char *read_ecc,
-	u_char *calc_ecc)
-{
-	ecc_t read, calc;
-	enum ecc_check result;
-	const struct nand_chip const * this = mtd->priv;
-
-	if (this->eccmode!=NAND_ECC_HW3_128)
-	{
-		printf("ERROR: Can not correct ECC: Internal Error (eccmode=%u)\n",
-			this->eccmode);
-		BUG();
-		return -1;
-	}
-
-	/* do we need to try and correct anything ? */
-	if (    (read_ecc[0] == calc_ecc[0]) &&
-		(read_ecc[1] == calc_ecc[1]) &&
-		(read_ecc[2] == calc_ecc[2])    )
-	{
-		return 0;		/* ECCs agree, nothing to do */
-	}
-
-#if VERBOSE_ECC
-	printf("warning: ECC error detected!  "
-		"read_ecc %02x:%02x:%02x (%c%c%c) != "
-		"calc_ecc %02x:%02x:%02x (%c%c%c)\n",
-		(unsigned)read_ecc[0],
-		(unsigned)read_ecc[1],
-		(unsigned)read_ecc[2],
-		isprint(read_ecc[0]) ? read_ecc[0] : '.',
-		isprint(read_ecc[1]) ? read_ecc[1] : '.',
-		isprint(read_ecc[2]) ? read_ecc[2] : '.',
-		(unsigned)calc_ecc[0],
-		(unsigned)calc_ecc[1],
-		(unsigned)calc_ecc[2],
-		isprint(calc_ecc[0]) ? calc_ecc[0] : '.',
-		isprint(calc_ecc[1]) ? calc_ecc[1] : '.',
-		isprint(calc_ecc[2]) ? calc_ecc[2] : '.');
-#endif	/* VERBOSE_ECC */
-
-	/* put ECC bytes into required structure */
-	read.byte[0] = read_ecc[0];
-	read.byte[1] = read_ecc[1];
-	read.byte[2] = read_ecc[2];
-	calc.byte[0] = calc_ecc[0];
-	calc.byte[1] = calc_ecc[1];
-	calc.byte[2] = calc_ecc[2];
-
-	/* correct a 1-bit error (if we can) */
-	result = ecc_correct(dat, read, calc, ECC_128);
-
-	/* let the user know if we were able to recover it or not! */
-	switch (result)
-	{
-		case E_D1_CHK:
-			printf("info: 1-bit error in data was corrected\n");
-			break;
-		case E_C1_CHK:
-			printf("info: 1-bit error in ECC ignored (data was okay)\n");
-			break;
-		default:
-#if VERBOSE_ECC
-			/* QQQ: filter out genuinely ERASED pages - TO DO */
-			printf("ERROR: uncorrectable ECC error not corrected!\n");
-#endif	/* VERBOSE_ECC */
-			break;
-	}
-
-	/* return zero if all okay, and -1 if we have an uncorrectable issue */
-	if ((result==E_D1_CHK)||(result==E_C1_CHK))
-	{
-		return 0;	/* okay (correctable) */
-	}
-	else
-	{
-		return -1;	/* uncorrectable */
-	}
-}
-
-
 /*
  * fill in the "default_ecc" and "special_ecc" structures.
  */
@@ -491,9 +464,11 @@ static void initialize_ecc_diffs (
 
 	/* choose the correct OOB info struct, depending on the OOB size */
 	if (mtd->oobsize > 16)
-		autooob = &stm_nand_oobinfo_64;	/* LARGE-page */
+		autooob = &stm_boot_oobinfo_64;	/* LARGE-page */
 	else
-		autooob = &stm_nand_oobinfo_16;	/* SMALL-page */
+		autooob = &stm_boot_oobinfo_16;	/* SMALL-page */
+
+	BUG_ON (!this->calculate_ecc || !this->correct_data);
 
 	/* fill in "default_ecc" from the current "live" (default) structures */
 	default_ecc.nand.eccmode	= this->eccmode;
@@ -501,6 +476,7 @@ static void initialize_ecc_diffs (
 	default_ecc.nand.eccbytes	= this->eccbytes;
 	default_ecc.nand.eccsteps	= this->eccsteps;
 	default_ecc.nand.autooob	= this->autooob;
+	default_ecc.nand.enable_hwecc	= this->enable_hwecc;
 	default_ecc.nand.calculate_ecc	= this->calculate_ecc;
 	default_ecc.nand.correct_data	= this->correct_data;
 	default_ecc.mtd.oobavail	= mtd->oobavail;
@@ -517,6 +493,7 @@ static void initialize_ecc_diffs (
 #endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
 	special_ecc.nand.eccsteps	= mtd->oobblock / special_ecc.nand.eccsize;
 	special_ecc.nand.autooob	= autooob;
+	special_ecc.nand.enable_hwecc	= stm_nand_enable_hwecc;
 	special_ecc.nand.calculate_ecc	= stm_nand_calculate_ecc;
 	special_ecc.nand.correct_data	= stm_nand_correct_data;
 	if (this->options & NAND_BUSWIDTH_16) {
@@ -545,6 +522,7 @@ static void set_ecc_diffs (
 	this->eccbytes		= diffs->nand.eccbytes;
 	this->eccsteps		= diffs->nand.eccsteps;
 	this->autooob		= diffs->nand.autooob;
+	this->enable_hwecc	= diffs->nand.enable_hwecc;
 	this->calculate_ecc	= diffs->nand.calculate_ecc;
 	this->correct_data	= diffs->nand.correct_data;
 
@@ -603,15 +581,7 @@ static int set_ecc_mode (
 }
 
 
-extern void stm_nand_enable_hwecc (
-	struct mtd_info *mtd,
-	int mode)
-{
-	/* do nothing - we are only emulating HW in SW */
-}
-
-
-extern int stm_nand_read (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf)
+static int stm_boot_read (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf)
 {
 	int result;
 
@@ -629,7 +599,7 @@ extern int stm_nand_read (struct mtd_info *mtd, loff_t from, size_t len, size_t 
 }
 
 
-extern int stm_nand_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
+static int stm_boot_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
 	size_t * retlen, u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel)
 {
 	int result;
@@ -648,7 +618,7 @@ extern int stm_nand_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
 }
 
 
-extern int stm_nand_read_oob (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf)
+static int stm_boot_read_oob (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf)
 {
 	int result;
 
@@ -666,7 +636,7 @@ extern int stm_nand_read_oob (struct mtd_info *mtd, loff_t from, size_t len, siz
 }
 
 
-extern int stm_nand_write (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char * buf)
+static int stm_boot_write (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char * buf)
 {
 	int result;
 
@@ -684,7 +654,7 @@ extern int stm_nand_write (struct mtd_info *mtd, loff_t to, size_t len, size_t *
 }
 
 
-extern int stm_nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
+static int stm_boot_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 	size_t * retlen, const u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel)
 {
 	int result;
@@ -703,7 +673,7 @@ extern int stm_nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 }
 
 
-extern int stm_nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char *buf)
+static int stm_boot_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char *buf)
 {
 	int result;
 
@@ -724,564 +694,156 @@ extern int stm_nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size
 #endif	/* CFG_NAND_ECC_HW3_128 */
 
 
-#ifdef CFG_NAND_FLEX_MODE	/* for STM "flex-mode" (c.f. "bit-banging") */
+/*****************************************************************************************
+ *****************************************************************************************
+ *****************		H/W 4+3/512 AFM4 ECC		**************************
+ *****************************************************************************************
+ *****************************************************************************************/
 
 
-/* Configure NAND controller timing registers */
-/* QQQ: to write & use this function (for performance reasons!) */
-#ifdef QQQ
-static void flex_set_timings(struct nand_timing_data * const tm)
+#if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
+
+
+	/* for SMALL-page devices */
+static struct nand_oobinfo stm_afm4_oobinfo_16 = {
+	.useecc = MTD_NANDECC_AUTOPLACE,
+	.eccbytes = 7,			/* 7 out of 16 bytes of OOB */
+	.eccpos = {			/* { HW_ECC0, HW_ECC1, HW_ECC2, 'A', 'F', 'M', SW_ECC } */
+		0, 1, 2, 3, 4, 5, 6,	/* 512-byte Record 0 */
+	},
+	.oobfree = { { 7, 9} }		/* 9 free bytes in the OOB */
+};
+
+	/* for LARGE-page devices */
+static struct nand_oobinfo stm_afm4_oobinfo_64 = {
+	.useecc = MTD_NANDECC_AUTOPLACE,
+	.eccbytes = 28,			/* 28 out of 64 bytes of OOB */
+	.eccpos = {			/* { HW_ECC0, HW_ECC1, HW_ECC2, 'A', 'F', 'M', SW_ECC } */
+		0,   1,  2,  3,  4,  5,  6,	/* 512-byte Record 0 */
+		16, 17, 18, 19, 20, 21, 22,	/* 512-byte Record 1 */
+		32, 33, 34, 35, 36, 37, 38,	/* 512-byte Record 2 */
+		48, 49, 50, 51, 52, 53, 54,	/* 512-byte Record 3 */
+	},
+	.oobfree = { {7, 9}, {23, 9}, {39, 9}, {55, 9} }	/* 9*4 free bytes in the OOB */
+};
+
+
+#endif /* CFG_NAND_ECC_AFM4 */
+
+
+/*****************************************************************************************
+ *****************************************************************************************
+ *****************		Generic "common" code		**************************
+ *****************************************************************************************
+ *****************************************************************************************/
+
+
+static int stm_nand_default_bbt (struct mtd_info * const mtd)
 {
-	uint32_t n;
-	uint32_t reg;
-	uint32_t emi_clk;
-	uint32_t emi_t_ns;
-
-	/* Timings are set in units of EMI clock cycles */
-	emi_clk = clk_get_rate(clk_get(NULL, "emi_master"));
-	emi_t_ns = 1000000000UL / emi_clk;
-
-	/* CONTROL_TIMING */
-	n = (tm->sig_setup + emi_t_ns - 1u)/emi_t_ns;
-	reg = (n & 0xffu) << 0;
-
-	n = (tm->sig_hold + emi_t_ns - 1u)/emi_t_ns;
-	reg |= (n & 0xffu) << 8;
-
-	n = (tm->CE_deassert + emi_t_ns - 1u)/emi_t_ns;
-	reg |= (n & 0xffu) << 16;
-
-	n = (tm->WE_to_RBn + emi_t_ns - 1u)/emi_t_ns;
-	reg |= (n & 0xffu) << 24;
-
-#if DEBUG_FLEX
-	printf("info: CONTROL_TIMING = 0x%08x\n", reg);
-#endif
-	*ST40_EMI_NAND_CTL_TIMING = reg;
-
-	/* WEN_TIMING */
-	n = (tm->wr_on + emi_t_ns - 1u)/emi_t_ns;
-	reg = (n & 0xffu) << 0;
-
-	n = (tm->wr_off + emi_t_ns - 1u)/emi_t_ns;
-	reg |= (n & 0xffu) << 8;
-
-#if DEBUG_FLEX
-	printf("info: WEN_TIMING = 0x%08x\n", reg);
-#endif
-	*ST40_EMI_NAND_WEN_TIMING = reg;
-
-	/* REN_TIMING */
-	n = (tm->rd_on + emi_t_ns - 1u)/emi_t_ns;
-	reg = (n & 0xffu) << 0;
-
-	n = (tm->rd_off + emi_t_ns - 1u)/emi_t_ns;
-	reg |= (n & 0xffu) << 8;
-
-#if DEBUG_FLEX
-	printf("info: REN_TIMING = 0x%08x\n", reg);
-#endif
-	*ST40_EMI_NAND_REN_TIMING = reg;
-}
-#endif
-
-
-/*
- * hardware specific access to the Ready/not_Busy signal.
- * Signal is routed through the EMI NAND Controller block.
- */
-extern int stm_flex_device_ready(struct mtd_info * const mtd)
-{
-	/* Apply a small delay before sampling the RBn signal */
-#if 1
-	ndelay(500);	/* QQQ: do we really need this ??? */
-#endif
-	/* extract bit 2: status of RBn pin on the FLEX bank */
-	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<2)) ? 1 : 0;
-}
-
-
-static void init_flex_mode(void)
-{
-	u_int32_t reg;
-
-	/* Disable the BOOT-mode controller */
-	*ST40_EMI_NAND_BOOTBANK_CFG = 0;
-
-	/* Perform a S/W reset the FLEX-mode controller */
-	/* need to assert it for at least one (EMI) clock cycle. */
-	*ST40_EMI_NAND_FLEXMODE_CFG = FLEX_CFG_SW_RESET;
-	udelay(1);	/* QQQ: can we do something shorter ??? */
-	*ST40_EMI_NAND_FLEXMODE_CFG = 0;
-
-	/* Disable all interrupts in FLEX mode */
-	*ST40_EMI_NAND_INT_EN = 0;
-
-	/* Set FLEX-mode controller to enable FLEX-mode */
-	*ST40_EMI_NAND_FLEXMODE_CFG = FLEX_CFG_ENABLE_FLEX_MODE;
-
-	/*
-	 * Configure (pervading) FLEX_DATA to write 4-bytes at a time.
-	 * DATA is only written by write_buf(), not write_byte().
-	 * Hence, we only need to configure this once (ever)!
-	 * As we may be copying directly from NOR flash to NAND flash,
-	 * we need to deassert the CSn after *each* access, as we
-	 * can not guarantee the buffer is in RAM (or not in the EMI).
-	 * Note: we could run memcpy() in write_buf() instead.
-	 */
-	reg = FLEX_BEAT_COUNT_4 | FLEX_1_BYTE_PER_BEAT;
-	reg |= FLEX_CSn_STATUS;		/* deassert CSn after each flex data write */
-#if 0
-	reg |= FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
-#endif
-	*ST40_EMI_NAND_FLEX_DATAWRT_CFG = reg;
-}
-
-
-/* FLEX mode chip select: For now we only support 1 chip per
- * 'stm_nand_flex_device' so chipnr will be 0 for select, -1 for deselect.
- *
- * So, if we change device:
- *   - Set bank in mux_control_reg to data->csn
- *   - Update read/write timings (to do)
- */
-extern void stm_flex_select_chip(
-	struct mtd_info * const mtd,
-	const int chipnr)
-{
-	struct nand_chip * const chip = mtd->priv;
-	struct stm_nand_flex_device * data = chip->priv;
-#if defined(CONFIG_ST40_NAND_USES_CACHED_READS)
-	volatile u32 * const pteh_p  = (u32*)ST40_MMU_PTEH;
-	volatile u32 * const ptel_p  = (u32*)ST40_MMU_PTEL;
-	const u32 pteh =
-		((u32)cache & PAGE_MASK)			|
-		(PTEH_ASID & ASID_MASK);
-	const u32 ptel =
-		((u32)ST40_EMI_NAND_FLEX_DATA & PAGE_MASK)	|
-		PTEL_V						|
-#if 0
-		PTEL_PR_WRITE | PTEL_D	/* if we use OCBI */	|
-#endif
-		PTEL_SZ_1K					|
-		PTEL_C						|
-		PTEL_SH;
-#endif	/* CONFIG_ST40_NAND_USES_CACHED_READS */
-
-#if DEBUG_FLEX
-	printf("\t\t\t\t---- SELECT = %2d ----\n", chipnr);
-#endif
-
-	if (!flex.initialized)		/* is the H/W yet to be initialized ? */
-	{
-		/* initialize the FLEX mode controller H/W */
-		init_flex_mode();
-		/* initialize the "flex" software structure */
-		flex.mode          = flex_quiecent;	/* nothing pending */
-		flex.next_csn      = 0;			/* start with first EMI CSn */
-		flex.current_csn   = -1;		/* no NAND device selected */
-							/* allocate a bounce buffer */
-		flex.buf = malloc(NAND_MAX_PAGESIZE + NAND_MAX_OOBSIZE);
-		if (flex.buf==NULL)
-		{
-			printf("ERROR: Unable to allocate memory for a bounce buffer\n");
-			BUG();
-		}
-		/* initialize the TLB mapping if configured */
-#if defined(CONFIG_ST40_NAND_USES_CACHED_READS)
-		*mmucr_p |= MMUCR_TI;	/* invalidate the TLBs */
-		*pteh_p = pteh;
-		*ptel_p = ptel;
-		asm volatile ("ldtlb");	/* define 1 TLB mapping */
-#endif	/* CONFIG_ST40_NAND_USES_CACHED_READS */
-		flex.initialized   = 1;			/* initialization done */
-	}
-
-	if (data == NULL)		/* device not yet scanned ? */
-	{
-#ifdef CFG_NAND_FLEX_CSn_MAP
-		const int csn_map[CFG_MAX_NAND_DEVICE] = CFG_NAND_FLEX_CSn_MAP;
-#endif	/* CFG_NAND_FLEX_CSn_MAP */
-		int csn            = flex.next_csn++;		/* first free CSn */
-		chip->priv = data  = &(flex.device[csn]);	/* first free "private" structure */
-		if (csn >= CFG_MAX_NAND_DEVICE) BUG();
-#ifdef CFG_NAND_FLEX_CSn_MAP
-		csn                = csn_map[csn];		/* Re-map to different CSn if needed */
-#endif	/* CFG_NAND_FLEX_CSn_MAP */
-#if DEBUG_FLEX
-		printf("info: stm_nand_flex_device.csn = %u\n", csn);
-#endif
-
-		data->csn          = csn;			/* fill in the private structure ... */
-		data->mtd          = mtd;
-		data->chip         = chip;
-		data->timing_data  = NULL;			/* QQQ: to do */
-#ifdef CFG_NAND_ECC_HW3_128
-		mtd->read          = stm_nand_read;
-		mtd->write         = stm_nand_write;
-		mtd->read_ecc      = stm_nand_read_ecc;
-		mtd->write_ecc     = stm_nand_write_ecc;
-		mtd->read_oob      = stm_nand_read_oob;
-		mtd->write_oob     = stm_nand_write_oob;
-		chip->enable_hwecc = stm_nand_enable_hwecc;
-#endif /* CFG_NAND_ECC_HW3_128 */
-	}
-
-	/* Deselect, do nothing */
-	if (chipnr == -1) {
-		return;
-
-	} else if (chipnr == 0) {
-		/* If same chip as last time, no need to change anything */
-		if (data->csn == flex.current_csn)
-			return;
-
-		/* Set correct EMI Chip Select (CSn) on FLEX controller */
-		flex.current_csn = data->csn;
-		*ST40_EMI_NAND_FLEX_MUXCTRL = 1ul << data->csn;
-
-		/* Set up timing parameters */
-#if 0
-		/* The default times will work for 200MHz (or slower) */
-		/* QQQ: to do - BUT this is also the WRONG place to do this! */
-		flex_set_timings(data->timing_data);
-#endif
-
-	} else {
-		printf("ERROR: In %s() attempted to select chipnr = %d\n",
-			__FUNCTION__,
-			chipnr);
-	}
-}
-
-
-extern void stm_flex_hwcontrol (
-	struct mtd_info * const mtd,
-	int control)
-{
-	switch(control) {
-
-	case NAND_CTL_SETCLE:
-#if DEBUG_FLEX
-		printf("\t\t\t\t\t\t----START COMMAND----\n");
-		if (flex.mode != flex_quiecent) BUG();
-#endif
-		flex.mode = flex_command;
-		break;
-
-#if DEBUG_FLEX
-	case NAND_CTL_CLRCLE:
-		printf("\t\t\t\t\t\t---- end  command----\n");
-		if (flex.mode != flex_command) BUG();
-		flex.mode = flex_quiecent;
-		break;
-#endif
-
-	case NAND_CTL_SETALE:
-#if DEBUG_FLEX
-		printf("\t\t\t\t\t\t----START ADDRESS----\n");
-		if (flex.mode != flex_quiecent) BUG();
-#endif
-		flex.mode = flex_address;
-		break;
-
-#if DEBUG_FLEX
-	case NAND_CTL_CLRALE:
-		printf("\t\t\t\t\t\t---- end  address----\n");
-		if (flex.mode != flex_address) BUG();
-		flex.mode = flex_quiecent;
-		break;
-#endif
-
-#if DEBUG_FLEX
-	default:
-		printf("ERROR: Unexpected parameter (control=0x%x) in %s()\n",
-			control,
-			__FUNCTION__);
-		BUG();
-#endif
-	}
-}
-
-
-/**
- * nand_read_byte - [DEFAULT] read one byte from the chip
- * @mtd:	MTD device structure
- */
-extern u_char stm_flex_read_byte(
-	struct mtd_info * const mtd)
-{
-	u_char byte;
-	u_int32_t reg;
-
-	/* read 1-byte at a time */
-	reg = FLEX_BEAT_COUNT_1 | FLEX_1_BYTE_PER_BEAT;
-	reg |= FLEX_CSn_STATUS;		/* deassert CSn after each flex data read */
-#if 0
-	reg |= FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
-#endif
-	*ST40_EMI_NAND_FLEX_DATA_RD_CFG = reg;
-
-	/* read it */
-	byte = (u_char)*ST40_EMI_NAND_FLEX_DATA;
-
-#if DEBUG_FLEX
-	printf("\t\t\t\t\t\t\t\t\t READ = 0x%02x\n", byte);
-#endif
-
-	/* return it */
-	return byte;
-}
-
-
-/**
- * nand_write_byte - [DEFAULT] write one byte to the chip
- * @mtd:	MTD device structure
- * @byte:	pointer to data byte to write
- */
-extern void stm_flex_write_byte(
-	struct mtd_info * const mtd,
-	u_char byte)
-{
-	u_int32_t reg;
-
-#if DEBUG_FLEX
-	printf("\t\t\t\t\t\t\t\t\tWRITE = 0x%02x\t%s\n", byte,
-		(flex.mode==flex_command) ? "command" :
-		((flex.mode==flex_address) ? "address" : "*UNKNOWN*"));
-#endif
-
-	switch (flex.mode)
-	{
-		case flex_command:
-			reg = byte | FLEX_BEAT_COUNT_1;
-			reg |= FLEX_CSn_STATUS;	/* deassert CSn after each flex command write */
-#if 0
-			reg |= FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
-#endif
-			*ST40_EMI_NAND_FLEX_CMD = reg;
-			break;
-
-		case flex_address:
-			reg = byte | FLEX_BEAT_COUNT_1;
-			reg |= FLEX_CSn_STATUS;	/* deassert CSn after each flex address write */
-#if 0
-			reg |= FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
-#endif
-			*ST40_EMI_NAND_FLEX_ADD_REG = reg;
-#if 0			/* QQQ: do we need this - I think not! */
-			while (!nand_device_ready()) ;	/* wait till NAND is ready */
-#endif
-			break;
-
-		default:
-			BUG();
-	}
-}
-
-
-/**
- * nand_read_buf - [DEFAULT] read chip data into buffer
- * @mtd:	MTD device structure
- * @buf:	buffer to store data
- * @len:	number of bytes to read
- */
-extern void stm_flex_read_buf(
-	struct mtd_info * const mtd,
-	u_char * const buf,
-	const int len)
-{
-	int i;
-	uint32_t *p;
-	u_int32_t reg;
-
-	/* our buffer needs to be 4-byte aligned, for the FLEX controller */
-	p = ((uint32_t)buf & 0x3) ? (void*)flex.buf : (void*)buf;
-
-#if DEBUG_FLEX
-	printf("info: stm_flex_read_buf( buf=%p, len=0x%x )\t\tp=%p%s\n",
-		buf, len, p,
-		((uint32_t)buf & 0x3) ? "\t\t**** UN-ALIGNED *****" : "");
-#endif
-
-	/* configure to read 4-bytes at a time */
-	reg = FLEX_BEAT_COUNT_4 | FLEX_1_BYTE_PER_BEAT;
-	reg |= FLEX_CSn_STATUS;		/* deassert CSn after each flex data read */
-#if 0
-	reg |= FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
-#endif
-	*ST40_EMI_NAND_FLEX_DATA_RD_CFG = reg;
-
-#if defined(CONFIG_ST40_NAND_USES_CACHED_READS)
-	/*
-	 * Note, we only use the optimized cached TLB mapping,
-	 * if the amount of data to be copied is an exact
-	 * multiple of the length of a cache line.
-	 */
-	if ((len % DCACHE_LINESZ) == 0)	/* whole multiples of cache lines ? */
-	{
-		*mmucr_p |= MMUCR_AT;	/* enable Address Translation */
-		asm volatile ("nop");	/* wait a few cycles after enabling AT */
-		asm volatile ("nop");
-		asm volatile ("nop");
-		asm volatile ("nop");
-
-#if 0	/* QQQ - DELETE */
-		/* copy the data (from NAND), one CACHE-LINE at a time ... */
-		if (((u32)p) % DCACHE_LINESZ == 0ul)	/* cache aligned ? */
-		{
-			register u32 src32;
-			register u32 dst32 = (u32)p;
-			register double temp0 asm("dr0");
-			register double temp1 asm("dr2");
-			register double temp2 asm("dr4");
-			register double temp3 asm("dr6");
-
-#define PUT_FPSCR(F)	asm volatile ("lds %0, fpscr"	: : "r"(F))
-#define OCBP(LINE)	asm volatile ("ocbp @%0"	: : "r"(LINE))
-#define PREF(LINE)	asm volatile ("pref @%0"	: : "r"(LINE))
-#define ALLOC(LINE)	asm volatile ("movca.l r0, @%0"	: : "r"(LINE))
-
-			OCBP(cache);
-			PREF(cache);
-			PUT_FPSCR(1<<20);	/* FPSCR.SZ=1 */
-
-			for(i=0; i<len; )
-			{
-				src32 = (u32)cache;
-				asm volatile ("fmov @%0+,%1"	: "+r"(src32),"=d"(temp0));
-				asm volatile ("fmov @%0+,%1"	: "+r"(src32),"=d"(temp1));
-				asm volatile ("fmov @%0+,%1"	: "+r"(src32),"=d"(temp2));
-				asm volatile ("fmov @%0+,%1"	: "+r"(src32),"=d"(temp3));
-
-				OCBP(cache);
-
-				i += DCACHE_LINESZ;
-
-				if (i<len)
-				{
-//QQQ					PREF(cache);
-				}
-
-				ALLOC(dst32);
-				asm volatile ("fmov %1,@%0"	: : "r"(dst32),"d"(temp0) : "memory" );
-				dst32+=8;
-				asm volatile ("fmov %1,@%0"	: : "r"(dst32),"d"(temp1) : "memory" );
-				dst32+=8;
-				asm volatile ("fmov %1,@%0"	: : "r"(dst32),"d"(temp2) : "memory" );
-				dst32+=8;
-				asm volatile ("fmov %1,@%0"	: : "r"(dst32),"d"(temp3) : "memory" );
-				dst32+=8;
-			}
-		}
-		else	/* destination is *not* cache-aligned */
-#endif	/* QQQ - DELETE */
-		{
-			for(i=0; i<len/4; i+=DCACHE_LINESZ/4)
-			{
-				asm volatile ("ocbp @%0" : : "r"(cache));
-				p[i+0] = cache[0];
-				p[i+1] = cache[1];
-				p[i+2] = cache[2];
-				p[i+3] = cache[3];
-				p[i+4] = cache[4];
-				p[i+5] = cache[5];
-				p[i+6] = cache[6];
-				p[i+7] = cache[7];
-			}
-		}
-#if 0					/* QQQ - DELETE */
-		if (++done_init < 8)
-		{
-			int j;
-			printf("READ BUF\tlen=%u,\tpass=%u\n",len, done_init);
-			for (i=0; i<len; i+=16)
-			{
-				for (j=0; j<16; j++)
-					printf("%02x ", buf[i+j]);
-				printf("\n");
-			}
-			printf("\n");
-		}
-#endif					/* QQQ - DELETE */
-		/* finally, disable Address Translation */
-		*mmucr_p &= ~MMUCR_AT;
-	}
+	struct nand_chip * const this = (struct nand_chip *)(mtd->priv);
+
+	/* over-write the default "badblock_pattern", with our one */
+	/* choose the correct pattern struct, depending on the OOB size */
+	if (mtd->oobsize > 16)
+		this->badblock_pattern = &stm_nand_badblock_pattern_64;	/* LARGE-page */
 	else
-	{
-		/* let the user know we are *not* using the TLB */
-		printf("warning: Not using cached copy in %s() for len=%u\n",
-			__FUNCTION__,
-			len);
-		/* copy the data (from NAND) as 4-byte words ... */
-		for(i=0; i<len/4; i++)
-		{
-			p[i] = *ST40_EMI_NAND_FLEX_DATA;
-		}
-	}
-#else	/* CONFIG_ST40_NAND_USES_CACHED_READS */
-	/* copy the data (from NAND) as 4-byte words ... */
-	for(i=0; i<len/4; i++)
-	{
-		p[i] = *ST40_EMI_NAND_FLEX_DATA;
-	}
-#endif	/* CONFIG_ST40_NAND_USES_CACHED_READS */
+		this->badblock_pattern = &stm_nand_badblock_pattern_16;	/* SMALL-page */
 
-	/* copy back into user-supplied buffer, if it was unaligned */
-	if ((void*)p != (void*)buf)
-		memcpy(buf, p, len);
-
-#if DEBUG_FLEX
-	printf("READ BUF\t\t\t\t");
-	for (i=0; i<16; i++)
-		printf("%02x ", buf[i]);
-	printf("...\n");
+	/*
+	 * For the "boot-mode+B" ECC (i.e. 3+1/128) scheme, and for
+	 * the "AFM4" ECC (i.e. 4+3/512) scheme, then we wish to
+	 * be compatible with the way linux scans NAND devices.
+	 * So, we do not want to scan all pages, nor all the in-band data!
+	 * Play with the options to make it so...
+	 */
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B || CFG_STM_NAND_AFM4_ECC_WITH_AFM
+	this->badblock_pattern->options &= ~(NAND_BBT_SCANEMPTY|NAND_BBT_SCANALLPAGES);
 #endif
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	/* Additional "B" tag in OOB ? */
+	this->badblock_pattern->options |= NAND_BBT_SCANSTMBOOTECC;
+#endif
+#if CFG_STM_NAND_AFM4_ECC_WITH_AFM	/* Additional "AFM" tag in OOB ? */
+	this->badblock_pattern->options |= NAND_BBT_SCANSTMAFMECC;
+#endif
+
+	/* now call the generic BBT function */
+	return nand_default_bbt (mtd);
 }
 
 
-/**
- * nand_write_buf - [DEFAULT] write buffer to chip
- * @mtd:	MTD device structure
- * @buf:	data buffer
- * @len:	number of bytes to write
- */
-extern void stm_flex_write_buf(
-	struct mtd_info * const mtd,
-	const u_char * const buf,
-	const int len)
+extern void stm_default_board_nand_init(
+	struct nand_chip * const nand,
+	void (*hwcontrol)(struct mtd_info *mtdinfo, int cmd),
+	int (*dev_ready)(struct mtd_info *mtd))
 {
-	int i;
-	uint32_t *p;
-
-#if DEBUG_FLEX
-	printf("WRITE BUF (%u)\t\t", len);
-	for (i=0; i<16; i++)
-		printf("%02x ", buf[i]);
-	printf("...\n");
+#if defined(CFG_NAND_FLEX_MODE) || defined(CFG_NAND_ECC_HW3_128)
+	struct mtd_info * const mtd = (struct mtd_info *)(nand->priv);
 #endif
 
-	/* we want only to write multiples of 4-bytes at a time! */
-	if (len % 4 != 0)
-		printf("ERROR: in %s(), length (%u) not a multiple of 4!\n", __FUNCTION__, len);
+	/* free up private pointer for the real driver */
+	nand->priv = NULL;
 
-	/* our buffer needs to be 4-byte aligned, for the FLEX controller */
-	p = ((uint32_t)buf & 0x3) ? (void*)flex.buf : (void*)buf;
+#if defined(CFG_NAND_ECC_AFM4)		/* for STM AFM4 ECC compatibility */
+	nand->eccmode       = NAND_ECC_HW7_512;	/* comptable with AFM4 (4+3/512) ECC */
+#else
+	nand->eccmode       = NAND_ECC_SOFT;	/* default is S/W 3/256 ECC */
+#endif /* CFG_NAND_ECC_AFM4 */
+	nand->options       = NAND_NO_AUTOINCR;
+#if 1	/* Enable to use a NAND-resident (non-volatile) Bad Block Table (BBT) */
+	nand->options      |= NAND_USE_FLASH_BBT;
+#endif
+	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
+	nand->scan_bbt      = stm_nand_default_bbt;
 
-	/* copy from user-supplied buffer, if it is unaligned */
-	if ((void*)p != (void*)buf)
-		memcpy(p, buf, len);
+#if defined(CFG_NAND_FLEX_MODE)		/* for STM "flex-mode" (c.f. "bit-banging") */
+	stm_flex_init_nand(mtd, nand);
+#else					/* for "bit-banging" (c.f. STM "flex-mode")  */
+	nand->hwcontrol     = hwcontrol;
+	nand->dev_ready     = dev_ready;
+#endif /* CFG_NAND_FLEX_MODE */
 
-	/* configured to write 4-bytes at a time */
-	/* copy the data (to NAND) as 32-bit words ... */
-	for(i=0; i<len/4; i++)
-	{
-		*ST40_EMI_NAND_FLEX_DATA = p[i];
-	}
+#if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" ECC */
+	mtd->read           = stm_boot_read;
+	mtd->write          = stm_boot_write;
+	mtd->read_ecc       = stm_boot_read_ecc;
+	mtd->write_ecc      = stm_boot_write_ecc;
+	mtd->read_oob       = stm_boot_read_oob;
+	mtd->write_oob      = stm_boot_write_oob;
+#endif /* CFG_NAND_ECC_HW3_128 */
+
+#if defined(CFG_NAND_ECC_AFM4)		/* for STM AFM4 ECC compatibility */
+	nand->enable_hwecc  = stm_nand_enable_hwecc;
+	nand->correct_data  = stm_nand_correct_data;
+	nand->calculate_ecc = stm_nand_calculate_ecc;
+#endif /* CFG_NAND_ECC_AFM4 */
+
+	/*
+	 * Only enable the following to use a (volatile) RAM-based
+	 * (not NAND-resident) Bad Block Table (BBT).
+	 * This is *not* recommended! A NAND-resident BBT is recommended.
+	 */
+#if 0
+	nand->options      &= ~NAND_USE_FLASH_BBT;
+#endif
 }
 
 
-#endif /* CFG_NAND_FLEX_MODE */
+extern void stm_nand_chip_init(
+	struct mtd_info * const mtd,
+	const int nand_maf_id,
+	const int nand_dev_id)
+{
+#if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
+	struct nand_chip * const nand = mtd->priv;
+
+	if (mtd->oobsize == 64)				/* large page device ? */
+		nand->autooob = &stm_afm4_oobinfo_64;
+	else if (mtd->oobsize == 16)			/* small page device ? */
+		nand->autooob = &stm_afm4_oobinfo_16;
+	else						/* unknown ? */
+		BUG();
+#endif /* CFG_NAND_ECC_AFM4 */
+}
 
 
 #endif	/* CONFIG_CMD_NAND */

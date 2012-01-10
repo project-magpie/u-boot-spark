@@ -3018,6 +3018,16 @@ mb903se_config :		unconfig
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb903/config.tmp)
 	@$(MKCONFIG) -a mb903 st40 st40 mb903 st stx7108
 
+b2037se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/b2037
+	@echo "#define CONFIG_ST40_STX7108   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_ST40_B2037     1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2037/config.tmp)
+	@$(MKCONFIG) -a b2037 st40 st40 b2037 st stx7108
+
 mb704_config \
 mb704se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/mb704
@@ -3080,6 +3090,26 @@ hdk5289se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk5289/config.tmp)
 	@$(MKCONFIG) -a hdk5289 st40 st40 hdk5289 st stx5206
+
+b2057se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/b2057
+	@echo "#define CONFIG_ST40_STXH205   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_ST40_B2057     1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
+	@$(MKCONFIG) -a b2057 st40 st40 b2057 st stxh205
+
+b2000se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/b2000
+	@echo "#define CONFIG_ST40_STXH415   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_ST40_B2000     1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2000/config.tmp)
+	@$(MKCONFIG) -a b2000 st40 st40 b2000 st stxh415
 
 
 #########################################################################

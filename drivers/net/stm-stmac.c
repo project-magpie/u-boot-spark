@@ -181,6 +181,12 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define IP1001_PHY_ID		0x02430d90u
 #define IP1001_PHY_ID_MASK	0xfffffff0u
 
+#elif defined(CONFIG_STMAC_IP101A)	/* IC+ IP101A */
+
+/* IC+ IP101A phy identifier values */
+#define IP101A_PHY_ID		0x02430c54u
+#define IP101A_PHY_ID_MASK	0xffffffffu
+
 #elif defined(CONFIG_STMAC_78Q2123)	/* TERIDIAN 78Q2123 */
 
 /* TERIDIAN 78Q2123 phy identifier values */
@@ -296,6 +302,32 @@ static unsigned int stmac_phy_get_addr (void)
 		unsigned int id1 = stmac_mii_read (phyaddr, MII_PHYSID1);
 		unsigned int id2 = stmac_mii_read (phyaddr, MII_PHYSID2);
 		id  = (id1 << 16) | (id2);
+
+#if	0						&& \
+	defined(CONFIG_ST40_STXH415)			&& \
+	defined(CONFIG_ST40_B2000)			&& \
+	defined(CONFIG_STMAC_IP1001)			&& \
+	(CFG_STM_STMAC_BASE==CFG_STM_STMAC0_BASE)
+		/*
+		 * See comment in stmac_mii_read() for details ...
+		 * The code there is probably a better solution!
+		 */
+		if (id != ~0u) {
+			const unsigned int fixMask = 0x7fff7fffu;
+			if ((id & IP1001_PHY_ID_MASK) == IP1001_PHY_ID) {
+				/* printf (STMAC "info: PHY_ID: got a prefect match\n"); */
+			}
+			else if (((id & (IP1001_PHY_ID_MASK & fixMask))) == IP1001_PHY_ID) {
+				printf (STMAC "Warning: Corrupted PHY_ID: expected=%08x, obtained=%08x, XOR=%08x\n",
+					IP1001_PHY_ID		& IP1001_PHY_ID_MASK,
+					id			& IP1001_PHY_ID_MASK,
+					(id ^ IP1001_PHY_ID)	& IP1001_PHY_ID_MASK);
+				printf (STMAC "Warning: Compensating for presumed error (bit #15) in SMI register reads!\n");
+				id &= fixMask;		/* clear the two bits coming from bit #15 */
+			}
+		}
+#endif	/* CONFIG_ST40_STXH415 && CONFIG_ST40_B2000 && ... */
+
 		/* Make sure it is a valid (known) identifier */
 #if defined(CONFIG_STMAC_STE10XP)
 		if ((id & STE101P_PHY_ID_MASK) == STE101P_PHY_ID) {
@@ -328,6 +360,11 @@ static unsigned int stmac_phy_get_addr (void)
 #elif defined(CONFIG_STMAC_IP1001)
 		if ((id & IP1001_PHY_ID_MASK) == IP1001_PHY_ID) {
 			printf (STMAC "IC+ IP1001 found\n");
+			return phyaddr;
+		}
+#elif defined(CONFIG_STMAC_IP101A)
+		if ((id & IP101A_PHY_ID_MASK) == IP101A_PHY_ID) {
+			printf (STMAC "IC+ IP101A found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_78Q2123)
@@ -390,6 +427,10 @@ static int stmac_phy_init (void)
 	 * reading the H/W PHY address from any register.  */
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #elif defined(CONFIG_STMAC_IP1001)
+	/* The IC+ IP1001 does not appear to support
+	 * reading the H/W PHY address from any register.  */
+#	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
+#elif defined(CONFIG_STMAC_IP101A)
 	/* The IC+ IP1001 does not appear to support
 	 * reading the H/W PHY address from any register.  */
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
@@ -497,6 +538,10 @@ static void stmac_mii_write (int phy_addr, int reg, int value)
 {
 	int mii_addr;
 
+#if 0
+	printf("QQQ: %s(addr=%u, reg=%u, value=0x%04x)\n", __FUNCTION__, phy_addr, reg, value);
+#endif
+
 	/* Select register */
 	mii_addr =
 		((phy_addr & MAC_MII_ADDR_PHY_MASK) << MAC_MII_ADDR_PHY_SHIFT)
@@ -535,6 +580,41 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 
 	/* Return read value */
 	val = STMAC_READ (MAC_MII_DATA);
+
+#if	defined(CONFIG_ST40_STXH415)					&& \
+	defined(CONFIG_ST40_B2000)					&& \
+	(defined(CONFIG_STMAC_IP1001)||defined(CONFIG_STMAC_IP101A))	&& \
+	(CFG_STM_STMAC_BASE==CFG_STM_STMAC0_BASE)
+		/*
+		 * On the B2000 board (STxH415), using a suitable
+		 * daughter-board PHY (e.g. B2032), connected to GMAC #0 (CN22),
+		 * there seems to be some "occasional" corruption on the 16-bit
+		 * register reads on the SMI (Serial Management Interface).
+		 * As a result, for example, the PHY_ID can be misread,
+		 * and hence logically "not found" by U-Boot.
+		 * The following code will try and "catch" these
+		 * corruptions and compensate for them (and generate a
+		 * suitable diagnostic in the process).
+		 * This problem has not been fully analysed, and this
+		 * code is only intended as a short-term workaround.
+		 * Although this can impact *any* register reads, so far,
+		 * it is only Registers 2, 3 and 4 that cause a real issue for
+		 * U-Boot, hence we only "fix-up" these specific registers.
+		 * So far, it appears that it is *only* bit #15 that is
+		 * affected. No corruptions have been noticed on GMAC #1.
+		 * Also, it looks like it is only reads that are affected.
+		 */
+	if ( (val!=0xffffu) && (val&(1u<<15)) && (reg==2||reg==3||reg==4) )
+	{
+		printf(STMAC "Warning: SMI bit #15 apparently set when reading PHY register %u:%u -- CLEARING!!!\n",
+			phy_addr, reg);
+		val &= ~(1u<<15);		/* clear bit #15 */
+	}
+#endif	/* CONFIG_ST40_STXH415 && CONFIG_ST40_B2000 && ... */
+
+#if 0
+	printf("QQQ: %s(addr=%u, reg=%u) --> value=0x%04x)\n", __FUNCTION__, phy_addr, reg, val);
+#endif
 	return val;
 }
 
@@ -1301,6 +1381,20 @@ static int stmac_reset_eth (bd_t * bd)
 {
 	int err;
 
+		/*
+		 * Initialize the PHY (and complete an auto-negotiation)
+		 * *before* we reset the MAC. This is needed in case the
+		 * PHY auto-negotiated to giga-bit, but the MAC is configured
+		 * for the slower 100Mps (using MII).
+		 * This combination results in the lack of TX clock from the PHY,
+		 * (to the MAC) and can result in the GMAC not being resettable!
+		 * Specifically, the DMA reset code needs a good TX clk present.
+		 */
+	if (stmac_phy_init () < 0) {
+		printf (STMAC "ERROR: no PHY detected\n");
+		return -1;
+	}
+
 	/* MAC Software reset */
 	stmac_dma_reset ();		/* Must be done early  */
 
@@ -1312,11 +1406,6 @@ static int stmac_reset_eth (bd_t * bd)
 		memset (bd->bi_enetaddr, 0, 6);
 		/* upper code ignores return value, but NOT bi_enetaddr */
 		return (-1);
-	}
-
-	if (stmac_phy_init () < 0) {
-		printf (STMAC "ERROR: no PHY detected\n");
-		return -1;
 	}
 
 	init_dma_desc_rings ();

@@ -26,7 +26,7 @@
 #define ZUTIL_H
 #define ZLIB_INTERNAL
 
-#include "u-boot/zlib.h"
+#include <u-boot/zlib.h>
 #include <common.h>
 /* To avoid a build time warning */
 #ifdef STDC

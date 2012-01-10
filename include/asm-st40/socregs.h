@@ -45,6 +45,10 @@
 #	include <asm/fli7510reg.h>
 #elif defined(CONFIG_ST40_FLI7540)
 #	include <asm/fli7540reg.h>
+#elif defined(CONFIG_ST40_STXH205)
+#	include <asm/stxh205reg.h>
+#elif defined(CONFIG_ST40_STXH415)
+#	include <asm/stxh415reg.h>
 #else
 #	error Missing Device Definitions!
 #endif

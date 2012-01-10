@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2002, 2003, 2007-2009
+ * Copyright (C) STMicroelectronics Ltd. 2002, 2003, 2007-2011
  *
  * andy.sturges@st.com
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -100,18 +100,6 @@
 #define ST40_ILC_SET_ENABLE(n)		SH4_DWORD_REG(ST40_ILC_REGS_BASE + (0x0500 + ((n) * 4)))
 #define ST40_ILC_WAKEUP_ENABLE(n)	SH4_DWORD_REG(ST40_ILC_REGS_BASE + (0x0600 + ((n) * 4)))
 #define ST40_ILC_WAKEUP_ACTIVE_LEVEL(n)	SH4_DWORD_REG(ST40_ILC_REGS_BASE + (0x0680 + ((n) * 4)))
-
-/* Serial Communication Interfaces control registers (all ST40 variants) */
-#define ST40_SCIF_SCSMR(n)		SH4_WORD_REG(ST40_SCIF##n##_REGS_BASE + 0x00)
-#define ST40_SCIF_SCBRR(n)		SH4_BYTE_REG(ST40_SCIF##n##_REGS_BASE + 0x04)
-#define ST40_SCIF_SCSCR(n)		SH4_WORD_REG(ST40_SCIF##n##_REGS_BASE + 0x08)
-#define ST40_SCIF_SCFTDR(n)		SH4_BYTE_REG(ST40_SCIF##n##_REGS_BASE + 0x0c)
-#define ST40_SCIF_SCFSR(n)		SH4_WORD_REG(ST40_SCIF##n##_REGS_BASE + 0x10)
-#define ST40_SCIF_SCFRDR(n)		SH4_BYTE_REG(ST40_SCIF##n##_REGS_BASE + 0x14)
-#define ST40_SCIF_SCFCR(n)		SH4_WORD_REG(ST40_SCIF##n##_REGS_BASE + 0x18)
-#define ST40_SCIF_SCFDR(n)		SH4_WORD_REG(ST40_SCIF##n##_REGS_BASE + 0x1c)
-#define ST40_SCIF_SCSPTR(n)		SH4_WORD_REG(ST40_SCIF##n##_REGS_BASE + 0x20)
-#define ST40_SCIF_SCLSR(n)		SH4_WORD_REG(ST40_SCIF##n##_REGS_BASE + 0x24)
 
 /* Clock Generator control registers (all ST40 variants) */
 #define ST40_CLOCKGEN_PLL1CR1(n)	SH4_DWORD_REG(ST40_CLOCKGEN##n##_REGS_BASE + 0x00)
@@ -702,5 +690,9 @@
 #define ST40_ASC_TXRESET(n)		SH4_DWORD_REG(ST40_ASC##n##_REGS_BASE + 0x20)
 #define ST40_ASC_RXRESET(n)		SH4_DWORD_REG(ST40_ASC##n##_REGS_BASE + 0x24)
 #define ST40_ASC_RETRIES(n)		SH4_DWORD_REG(ST40_ASC##n##_REGS_BASE + 0x28)
+
+/* EMISS/EMIPCISS register space */
+#define ST40_EMISS_CONFIG		SH4_DWORD_REG(ST40_EMISS_REGS_BASE + 0x1000)
+#define ST40_EMISS_NAND_HAMMING_NOT_BCH	(1ul<<6)	/* bit #6 */
 
 #endif /* __ST40REG_H */
