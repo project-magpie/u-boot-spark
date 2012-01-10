@@ -21,8 +21,8 @@
  */
 
 
-#ifndef __STM_NAND_H_
-#define __STM_NAND_H_
+#ifndef __ASM_ST40_STM_NAND_H
+#define __ASM_ST40_STM_NAND_H
 
 
 struct nand_chip;	/* defined elsewhere */
@@ -44,4 +44,4 @@ extern void stm_nand_chip_init(
 	const int nand_dev_id);
 
 
-#endif /* __STM_NAND_H_ */
+#endif /* __ASM_ST40_STM_NAND_H */

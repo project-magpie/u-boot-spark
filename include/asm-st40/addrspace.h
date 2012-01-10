@@ -7,8 +7,8 @@
  *
  * Defitions for the address spaces of the SH CPUs.
  */
-#ifndef __ASM_SH_ADDRSPACE_H
-#define __ASM_SH_ADDRSPACE_H
+#ifndef __ASM_ST40_ADDRSPACE_H
+#define __ASM_ST40_ADDRSPACE_H
 
 /* Memory segments (32bit Priviledged mode addresses)  */
 #define P0SEG		0x00000000
@@ -89,4 +89,4 @@
 )
 #endif	/* CONFIG_ST40_SE_MODE */
 
-#endif /* __ASM_SH_ADDRSPACE_H */
+#endif /* __ASM_ST40_ADDRSPACE_H */

@@ -19,8 +19,8 @@
  */
 
 
-#ifndef __ASM_SH_BITOPS_H
-#define __ASM_SH_BITOPS_H
+#ifndef __ASM_ST40_BITOPS_H
+#define __ASM_ST40_BITOPS_H
 
 #ifdef __KERNEL__
 #include <asm/system.h>
@@ -375,4 +375,4 @@ static __inline__ unsigned long ext2_find_next_zero_bit (void *addr,
 
 #endif /* __KERNEL__ */
 
-#endif /* __ASM_SH_BITOPS_H */
+#endif /* __ASM_ST40_BITOPS_H */

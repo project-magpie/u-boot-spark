@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __STX7200REG_H
-#define __STX7200REG_H
+#ifndef __ASM_ST40_STX7200REG_H
+#define __ASM_ST40_STX7200REG_H
 
 #include "sh4regtype.h"
 
@@ -322,4 +322,4 @@
 	((((ID)>>STX7200_DEVID_ID_SHIFT)&STX7200_DEVID_ID_MASK)==STX7200_DEVID_7200c2_VAL)     )
 #define STX7200_DEVICEID_CUT(ID)  ((((ID) >> STX7200_DEVID_CUT_SHIFT) & STX7200_DEVID_CUT_MASK) + 1)
 
-#endif /* __STX7200REG_H */
+#endif /* __ASM_ST40_STX7200REG_H */

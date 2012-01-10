@@ -22,8 +22,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __STBUS_H__
-#define __STBUS_H__
+#ifndef __ASM_ST40_STBUS_H
+#define __ASM_ST40_STBUS_H
 
 /*
  * This file attempts to support all the various flavours of USB wrappers,
@@ -96,4 +96,4 @@
 /* function to start the USB Host Controller Wrapper */
 extern int ST40_start_host_control(unsigned int flags);
 
-#endif	/* __STBUS_H__ */
+#endif	/* __ASM_ST40_STBUS_H */

@@ -114,8 +114,8 @@
  *
  */
 
-#ifndef ECC_H
-#define ECC_H
+#ifndef __ASM_ST40_ECC_H
+#define __ASM_ST40_ECC_H
 
 /* Parity look up table (number of ones in a byte) */
 extern const unsigned char ecc_bit_count_table[256];
@@ -167,5 +167,5 @@ extern enum ecc_check ecc_correct(
 	ecc_t new_ecc,
 	enum ecc_size size);
 
-#endif /* ifndef ECC_H */
+#endif /* ifndef __ASM_ST40_ECC_H */
 

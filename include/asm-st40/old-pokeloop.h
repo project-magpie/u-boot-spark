@@ -25,8 +25,8 @@
  */
 
 
-#ifndef __OLD_POKE_LOOP_H__
-#define __OLD_POKE_LOOP_H__
+#ifndef __ASM_ST40_OLD_POKE_LOOP_H
+#define __ASM_ST40_OLD_POKE_LOOP_H
 
 #ifdef __ASSEMBLER__
 
@@ -76,6 +76,6 @@
 
 #endif	/* __ASSEMBLER__ */
 
-#endif	/* __OLD_POKE_LOOP_H__ */
+#endif	/* __ASM_ST40_OLD_POKE_LOOP_H */
 
 

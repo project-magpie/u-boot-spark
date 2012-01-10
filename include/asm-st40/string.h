@@ -1,5 +1,5 @@
-#ifndef __ASM_SH_STRING_H
-#define __ASM_SH_STRING_H
+#ifndef __ASM_ST40_STRING_H
+#define __ASM_ST40_STRING_H
 
 /*
  * Copyright (C) 1999 Niibe Yutaka
@@ -125,4 +125,4 @@ extern size_t strlen (const char *);
 /* Don't build bcopy at all ...  */
 #define __HAVE_ARCH_BCOPY
 
-#endif /* __ASM_SH_STRING_H */
+#endif /* __ASM_ST40_STRING_H */

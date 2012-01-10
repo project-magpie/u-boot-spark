@@ -6,8 +6,8 @@
  * Copyright (c) 2004-2011 STMicroelectronics Limited.  All rights reserved.
  */
 
-#ifndef __POKE_LOOP_H_
-#define __POKE_LOOP_H_
+#ifndef __ASM_ST40_POKE_LOOP_H
+#define __ASM_ST40_POKE_LOOP_H
 
 /* Opcode values */
 #define OP_END_POKES					0
@@ -93,4 +93,4 @@
 
 #endif /* __ASSEMBLER__ */
 
-#endif /* !__POKE_LOOP_H_ */
+#endif /* !__ASM_ST40_POKE_LOOP_H */

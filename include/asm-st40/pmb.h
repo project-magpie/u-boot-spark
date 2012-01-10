@@ -23,8 +23,8 @@
  */
 
 
-#ifndef _PMB_H_
-#define _PMB_H_
+#ifndef __ASM_ST40_PMB_H
+#define __ASM_ST40_PMB_H
 
 	/*
 	 * The PMB contains 16 entries, and supports the following
@@ -74,5 +74,5 @@
 	( (CFG_SDRAM_SIZE) > (128*1024*1024) )
 
 
-#endif	/* _PMB_H_ */
+#endif	/* __ASM_ST40_PMB_H */
 

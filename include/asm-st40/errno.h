@@ -1,5 +1,5 @@
-#ifndef _SH_ERRNO_H
-#define _SH_ERRNO_H
+#ifndef __ASM_ST40_ERRNO_H
+#define __ASM_ST40_ERRNO_H
 
 #define	EPERM		 1	/* Operation not permitted */
 #define	ENOENT		 2	/* No such file or directory */
@@ -135,4 +135,4 @@
 
 #define _LAST_ERRNO	515
 
-#endif
+#endif /* __ASM_ST40_ERRNO_H */

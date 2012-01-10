@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef	__ASM_GBL_DATA_H
-#define __ASM_GBL_DATA_H
+#ifndef	__ASM_ST40_GLOBAL_DATA_H
+#define __ASM_ST40_GLOBAL_DATA_H
 
 
 /*
@@ -60,4 +60,4 @@ register volatile gd_t *gd asm ("r13");	/* declare this in all files     */
 
 #define DECLARE_GLOBAL_DATA_PTR
 
-#endif /* __ASM_GBL_DATA_H */
+#endif /* __ASM_ST40_GLOBAL_DATA_H */

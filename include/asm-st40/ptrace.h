@@ -1,5 +1,5 @@
-#ifndef __ASM_SH_PTRACE_H
-#define __ASM_SH_PTRACE_H
+#ifndef __ASM_ST40_PTRACE_H
+#define __ASM_ST40_PTRACE_H
 
 #include <asm/processor.h>
 #include <asm/ubc.h>
@@ -72,4 +72,4 @@ struct pt_regs
 extern void show_regs (struct pt_regs *);
 #endif
 
-#endif /* __ASM_SH_PTRACE_H */
+#endif /* __ASM_ST40_PTRACE_H */

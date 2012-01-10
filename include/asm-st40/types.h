@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __ASM_SH_TYPES_H
-#define __ASM_SH_TYPES_H
+#ifndef __ASM_ST40_TYPES_H
+#define __ASM_ST40_TYPES_H
 
 typedef unsigned short umode_t;
 
@@ -74,4 +74,4 @@ typedef unsigned long phys_size_t;
 
 #endif /* __KERNEL__ */
 
-#endif /* __ASM_SH_TYPES_H */
+#endif /* __ASM_ST40_TYPES_H */

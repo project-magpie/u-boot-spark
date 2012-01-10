@@ -1,5 +1,5 @@
-#ifndef __ASM_SH_POSIX_TYPES_H
-#define __ASM_SH_POSIX_TYPES_H
+#ifndef __ASM_ST40_POSIX_TYPES_H
+#define __ASM_ST40_POSIX_TYPES_H
 
 /*
  * This file is generally used by user-level software, so you need to
@@ -135,4 +135,4 @@ static __inline__ void __FD_ZERO (__kernel_fd_set * __p)
 
 #endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
 
-#endif /* __ASM_SH_POSIX_TYPES_H */
+#endif /* __ASM_ST40_POSIX_TYPES_H */

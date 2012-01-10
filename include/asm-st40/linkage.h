@@ -1,5 +1,5 @@
-#ifndef _LINUX_LINKAGE_H
-#define _LINUX_LINKAGE_H
+#ifndef __ASM_ST40_LINKAGE_H
+#define __ASM_ST40_LINKAGE_H
 
 #define SYMBOL_NAME(name) name
 #define SYMBOL_NAME_LABEL(name) name ## :

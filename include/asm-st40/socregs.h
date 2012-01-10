@@ -23,8 +23,8 @@
  */
 
 
-#ifndef __SOC_REG_H
-#define __SOC_REG_H
+#ifndef __ASM_ST40_SOC_REG_H
+#define __ASM_ST40_SOC_REG_H
 
 
 #if defined(CONFIG_ST40_STX5197)
@@ -54,4 +54,4 @@
 #endif
 
 
-#endif /* __SOC_REG_H */
+#endif /* __ASM_ST40_SOC_REG_H */

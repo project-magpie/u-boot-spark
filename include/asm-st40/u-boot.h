@@ -24,8 +24,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _U_BOOT_H_
-#define _U_BOOT_H_	1
+#ifndef __ASM_ST40_U_BOOT_H
+#define __ASM_ST40_U_BOOT_H
 
 typedef struct bd_info
 {
@@ -47,4 +47,4 @@ typedef struct bd_info
 #define bi_env_data bi_env->data
 #define bi_env_crc  bi_env->crc
 
-#endif /* _U_BOOT_H_ */
+#endif /* __ASM_ST40_U_BOOT_H */

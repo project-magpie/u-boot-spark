@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __STXH415REG_H
-#define __STXH415REG_H
+#ifndef __ASM_ST40_STXH415REG_H
+#define __ASM_ST40_STXH415REG_H
 
 #include "sh4regtype.h"
 
@@ -221,4 +221,4 @@
 #define STXH415_DEVICEID_415(ID)	((((ID) >> STXH415_DEVID_ID_SHIFT) & STXH415_DEVID_ID_MASK) == STXH415_DEVID_VAL)
 #define STXH415_DEVICEID_CUT(ID)	((((ID) >> STXH415_DEVID_CUT_SHIFT) & STXH415_DEVID_CUT_MASK) + 1)
 
-#endif /* __STXH415REG_H */
+#endif /* __ASM_ST40_STXH415REG_H */

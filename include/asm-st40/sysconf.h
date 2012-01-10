@@ -23,8 +23,8 @@
  */
 
 
-#ifndef __sysconf_h__
-#define __sysconf_h__
+#ifndef __ASM_ST40_SYSCONF_H
+#define __ASM_ST40_SYSCONF_H
 
 	/*
 	 * if ('flag')
@@ -70,6 +70,6 @@
 	} while (0)
 
 
-#endif	/* __sysconf_h__ */
+#endif	/* __ASM_ST40_SYSCONF_H */
 
 

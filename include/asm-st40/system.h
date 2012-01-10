@@ -1,5 +1,5 @@
-#ifndef __ASM_SH_SYSTEM_H
-#define __ASM_SH_SYSTEM_H
+#ifndef __ASM_ST40_SYSTEM_H
+#define __ASM_ST40_SYSTEM_H
 
 /*
  * Copyright (C) 1999, 2000  Niibe Yutaka  &  Kaz Kojima
@@ -293,4 +293,4 @@ static __inline__ unsigned long __xchg (unsigned long x, volatile void *ptr,
 void disable_hlt (void);
 void enable_hlt (void);
 
-#endif
+#endif /* __ASM_ST40_SYSTEM_H */

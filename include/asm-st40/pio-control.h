@@ -11,8 +11,8 @@
 
 
 
-#ifndef _PIO_CONTROL_H_
-#define _PIO_CONTROL_H_
+#ifndef __ASM_ST40_PIO_CONTROL_H
+#define __ASM_ST40_PIO_CONTROL_H
 
 struct stm_pio_control_retime_config {
 	int retime:2;
@@ -102,5 +102,5 @@ enum stm_pad_gpio_direction {
 		.delay_input = 0, \
 		})
 
-#endif	/* _PIO_CONTROL_H_ */
+#endif	/* __ASM_ST40_PIO_CONTROL_H */
 

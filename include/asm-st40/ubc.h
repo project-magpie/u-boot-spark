@@ -1,5 +1,5 @@
-#ifndef __ASM_SH_UBC_H
-#define __ASM_SH_UBC_H
+#ifndef __ASM_ST40_UBC_H
+#define __ASM_ST40_UBC_H
 
 /* User Break Controller */
 
@@ -69,4 +69,4 @@ extern void ubc_wakeup (void);
 extern void ubc_sleep (void);
 #endif
 
-#endif /* __ASM_SH_UBC_H */
+#endif /* __ASM_ST40_UBC_H */

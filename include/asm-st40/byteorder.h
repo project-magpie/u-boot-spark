@@ -1,5 +1,5 @@
-#ifndef __ASM_SH_BYTEORDER_H
-#define __ASM_SH_BYTEORDER_H
+#ifndef __ASM_ST40_BYTEORDER_H
+#define __ASM_ST40_BYTEORDER_H
 
 /*
  * Copyright (C) 1999  Niibe Yutaka
@@ -35,4 +35,4 @@ static __inline__ __attribute__((const)) __u16 ___arch__swab16 (__u16 x)
 #include <linux/byteorder/big_endian.h>
 #endif
 
-#endif /* __ASM_SH_BYTEORDER_H */
+#endif /* __ASM_ST40_BYTEORDER_H */

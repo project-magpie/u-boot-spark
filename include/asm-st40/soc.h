@@ -23,8 +23,8 @@
  */
 
 
-#ifndef _SOC_H_
-#define	_SOC_H_
+#ifndef __ASM_ST40_SOC_H
+#define	__ASM_ST40_SOC_H
 
 
 #include <asm/pio-control.h>
@@ -265,5 +265,5 @@ extern void		stxh415_i2c_scl(const int val);
 extern void		stxh415_i2c_sda(const int val);
 extern int		stxh415_i2c_read(void);
 
-#endif	/* _SOC_H_ */
+#endif	/* __ASM_ST40_SOC_H */
 

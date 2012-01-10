@@ -1,5 +1,5 @@
-#ifndef __ASM_SH_TERMBITS_H
-#define __ASM_SH_TERMBITS_H
+#ifndef __ASM_ST40_TERMBITS_H
+#define __ASM_ST40_TERMBITS_H
 
 #include <linux/posix_types.h>
 
@@ -170,4 +170,4 @@ struct termios
 #define	TCSADRAIN	1
 #define	TCSAFLUSH	2
 
-#endif /* __ASM_SH_TERMBITS_H */
+#endif /* __ASM_ST40_TERMBITS_H */

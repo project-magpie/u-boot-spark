@@ -4,8 +4,8 @@
  * Copyright (C) 1999, 2000  Niibe Yutaka
  */
 
-#ifndef __ASM_SH_PROCESSOR_H
-#define __ASM_SH_PROCESSOR_H
+#ifndef __ASM_ST40_PROCESSOR_H
+#define __ASM_ST40_PROCESSOR_H
 
 /* #include <asm/page.h> */
 #include <asm/types.h>
@@ -237,4 +237,4 @@ extern void free_task_struct (struct task_struct *);
 
 #define cpu_relax()	do { } while (0)
 
-#endif /* __ASM_SH_PROCESSOR_H */
+#endif /* __ASM_ST40_PROCESSOR_H */

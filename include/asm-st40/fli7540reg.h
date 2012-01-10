@@ -4,8 +4,8 @@
  * All rights reserved.
  */
 
-#ifndef __FLI7540REG_H
-#define __FLI7540REG_H
+#ifndef __ASM_ST40_FLI7540REG_H
+#define __ASM_ST40_FLI7540REG_H
 
 #include "sh4regtype.h"
 
@@ -171,4 +171,4 @@
 #define FLI7540_DEVICEID_7540(ID) ((((ID) >> FLI7540_DEVID_ID_SHIFT) & FLI7540_DEVID_ID_MASK) == FLI7540_DEVID_7540_VAL)
 #define FLI7540_DEVICEID_CUT(ID)  ((((ID) >> FLI7540_DEVID_CUT_SHIFT) & FLI7540_DEVID_CUT_MASK) + 0)
 
-#endif /* __FLI7540REG_H */
+#endif /* __ASM_ST40_FLI7540REG_H */

@@ -28,8 +28,8 @@
  *   sh-superh-elf/examples/bare/sh4reg/st40reg.h
  */
 
-#ifndef __ST40REG_H
-#define __ST40REG_H
+#ifndef __ASM_ST40_ST40REG_H
+#define __ASM_ST40_ST40REG_H
 
 #include "asm/sh4regtype.h"
 
@@ -695,4 +695,4 @@
 #define ST40_EMISS_CONFIG		SH4_DWORD_REG(ST40_EMISS_REGS_BASE + 0x1000)
 #define ST40_EMISS_NAND_HAMMING_NOT_BCH	(1ul<<6)	/* bit #6 */
 
-#endif /* __ST40REG_H */
+#endif /* __ASM_ST40_ST40REG_H */

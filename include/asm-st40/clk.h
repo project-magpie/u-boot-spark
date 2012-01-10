@@ -21,8 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-#ifndef __ASM_SH_CLK_H__
-#define __ASM_SH_CLK_H__
+#ifndef __ASM_ST40_CLK_H
+#define __ASM_ST40_CLK_H
 
 /*
  * Note that there are two distinct clocks we need to deal with:
@@ -79,4 +79,4 @@ static inline unsigned long get_comms_clk_rate(void)
 }
 #endif	/* QQQ - TO DO */
 
-#endif /* __ASM_SH_CLK_H__ */
+#endif /* __ASM_ST40_CLK_H */

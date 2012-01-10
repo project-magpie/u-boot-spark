@@ -5,8 +5,8 @@
  * Copyright 2005 (C) Andy Sturges
  */
 
-#ifndef __ASM_SH_CACHE_H
-#define __ASM_SH_CACHE_H
+#ifndef __ASM_ST40_CACHE_H
+#define __ASM_ST40_CACHE_H
 
 #define L1_CACHE_BYTES			32
 
@@ -48,4 +48,4 @@ extern int sh_data_caches_on;
 
 #endif	/* __ASSEMBLER__ */
 
-#endif /* __ASM_SH_CACHE_H */
+#endif /* __ASM_ST40_CACHE_H */

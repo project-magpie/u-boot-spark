@@ -23,6 +23,10 @@
  */
 
 
+#ifndef __ASM_ST40_SPI_COMMANDS_H
+#define __ASM_ST40_SPI_COMMANDS_H
+
+
 #if defined(CONFIG_SPI)
 
 
@@ -133,4 +137,5 @@
 
 #endif	/* defined(CONFIG_SPI) */
 
+#endif /* __ASM_ST40_SPI_COMMANDS_H */
 

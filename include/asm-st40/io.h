@@ -1,5 +1,5 @@
-#ifndef __ASM_SH_IO_H
-#define __ASM_SH_IO_H
+#ifndef __ASM_ST40_IO_H
+#define __ASM_ST40_IO_H
 
 /*
  * Convention:
@@ -164,4 +164,4 @@ static inline void unmap_physmem(void *vaddr, unsigned long flags)
 	/* do nothing */
 }
 
-#endif /* __ASM_SH_IO_H */
+#endif /* __ASM_ST40_IO_H */

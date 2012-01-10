@@ -8,8 +8,8 @@
  * Copyright (C) 2004, STMicroelectronics
  */
 
-#ifndef __ASM_SH_REGDEF_H
-#define __ASM_SH_REGDEF_H
+#ifndef __ASM_ST40_REGDEF_H
+#define __ASM_ST40_REGDEF_H
 
 /*
  * Symbolic register names for 32 bit ABI
@@ -32,4 +32,4 @@
 #define fp      r14		/* frame pointer */
 #define sp      r15		/* stack pointer */
 
-#endif /* __ASM_SH_REGDEF_H */
+#endif /* __ASM_ST40_REGDEF_H */
