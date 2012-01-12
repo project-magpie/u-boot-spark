@@ -279,7 +279,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		/* assert ( IS_IN_P1_REGION(Uload) ); */
 		if ( (Uload < P1SEG) || (Uend >= P2SEG) )
 		{
-			printf ("\nwarning: Uncompressing to non-P1 region (0x%08x..0x%08x)\n",
+			printf ("\nwarning: Uncompressing to non-P1 region (0x%08lx..0x%08lx)\n",
 				Uload, Uend);
 			/* just a warning, so carry on! */
 		}
@@ -288,7 +288,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		/* assert (Uload >= CFG_SDRAM_BASE); */
 		if ( PHYSADDR(Uload) < PHYSADDR(CFG_SDRAM_BASE) )
 		{
-			printf ("\nERROR: Uncompressed image (0x%08x) is below RAM (0x%08x)\n",
+			printf ("\nERROR: Uncompressed image (0x%08lx) is below RAM (0x%08x)\n",
 				Uload,
 				CFG_SDRAM_BASE);
 			return 1;	/* unable to proceed */
@@ -297,7 +297,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		/* assert (Uend < CFG_MEMTEST_END); */
 		if ( PHYSADDR(Uend) >= PHYSADDR(CFG_MEMTEST_END) )
 		{
-			printf ("\nERROR: Uncompressed image (0x%08x) is beyond safe RAM (0x%08x)\n",
+			printf ("\nERROR: Uncompressed image (0x%08lx) is beyond safe RAM (0x%08x)\n",
 				Uend,
 				CFG_MEMTEST_END);
 			return 1;	/* unable to proceed */
@@ -314,7 +314,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		/* assert ( (Cload > Uend) || (Uload > Cend) ); */
 		if ( !((PHYSADDR(Cload) > PHYSADDR(Uend)) || (PHYSADDR(Uload) > PHYSADDR(Cend))) )
 		{
-			printf ("\nERROR: Overlapping images (0x%08x..0x%08x) and (0x%08x..0x%08x)\n",
+			printf ("\nERROR: Overlapping images (0x%08lx..0x%08lx) and (0x%08lx..0x%08lx)\n",
 				Cload, Cend,
 				Uload, Uend);
 			return 1;	/* unable to proceed */

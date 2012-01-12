@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007,2009-2011 STMicroelectronics.
+ * (C) Copyright 2007,2009-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -29,6 +29,7 @@
 #include <spi.h>
 #include <asm/clk.h>
 #include <asm/spi-commands.h>
+#include <malloc.h>
 #include "stm_spi_fsm.h"
 
 
@@ -56,6 +57,14 @@
 	(defined(CONFIG_STM_FSM_SPI) && defined(CONFIG_STM_SSC_SPI))	)
 #error No more than one of CONFIG_SOFT_SPI, CONFIG_STM_SSC_SPI or CONFIG_STM_FSM_SPI may be defined!
 #endif
+
+
+/**********************************************************************/
+
+
+static struct spi_slave * MyDefaultSlave = NULL;	/* QQQ - TO DO SOMETHING HERE ??? */
+
+#define DEFAULT_SPI_XFER_FLAGS	(SPI_XFER_BEGIN | SPI_XFER_END)
 
 
 /**********************************************************************/
@@ -183,6 +192,130 @@ static void hexdump(
 /**********************************************************************/
 
 
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
+
+/*-----------------------------------------------------------------------
+ * Determine if a SPI chipselect is valid.
+ * This function is provided by the board if the low-level SPI driver
+ * needs it to determine if a given chipselect is actually valid.
+ *
+ * Returns: 1 if bus:cs identifies a valid chip on this board, 0
+ * otherwise.
+ *
+ * Note: Initally, we will only accept CS #0, on BUS #0 (i.e. 0:0).
+ */
+extern int spi_cs_is_valid(
+	const unsigned int bus,
+	const unsigned int cs)
+{
+	if ( (bus==0) && (cs==0) )	/* is it 0:0 ? */
+	{
+		return 1;		/* PASS - bus:cs is "OK" */
+	}
+	else
+	{
+		return 0;		/* FAIL - bus:cs is NOT ok */
+	}
+}
+
+/*-----------------------------------------------------------------------
+ * Set up communications parameters for a SPI slave.
+ *
+ * This must be called once for each slave. Note that this function
+ * usually doesn't touch any actual hardware, it only initializes the
+ * contents of spi_slave so that the hardware can be easily
+ * initialized later.
+ *
+ *   bus:     Bus ID of the slave chip.
+ *   cs:      Chip select ID of the slave chip on the specified bus.
+ *   max_hz:  Maximum SCK rate in Hz.
+ *   mode:    Clock polarity, clock phase and other parameters.
+ *
+ * Returns: A spi_slave reference that can be used in subsequent SPI
+ * calls, or NULL if one or more of the parameters are not supported.
+ */
+extern struct spi_slave * spi_setup_slave(
+	const unsigned int bus,
+	const unsigned int cs,
+	const unsigned int max_hz,
+	const unsigned int mode)
+{
+	struct spi_slave * slave;
+
+	if (!spi_cs_is_valid(bus, cs))	/* bad bus/slave specification? */
+	{
+		return NULL;		/* failed! */
+	}
+
+	/* allocate memory for new slave structure */
+	slave = malloc(sizeof(struct spi_slave));
+
+	if (!slave)			/* unable to allocate memory? */
+	{
+		return NULL;		/* failed! */
+	}
+
+	/* initialize the newly allocated structure */
+	slave->bus = bus;
+	slave->cs  = cs;
+
+	return slave;			/* sucess - return it */
+}
+
+/*-----------------------------------------------------------------------
+ * Free any memory associated with a SPI slave.
+ *
+ *   slave:	The SPI slave
+ */
+extern void spi_free_slave(struct spi_slave * const slave)
+{
+	if (slave == MyDefaultSlave)	/* the "default" one ? */
+	{
+		MyDefaultSlave = NULL;
+	}
+
+	free(slave);			/* safely free it */
+}
+
+/*-----------------------------------------------------------------------
+ * Claim the bus and prepare it for communication with a given slave.
+ *
+ * This must be called before doing any transfers with a SPI slave. It
+ * will enable and initialize any SPI hardware as necessary, and make
+ * sure that the SCK line is in the correct idle state. It is not
+ * allowed to claim the same bus for several slaves without releasing
+ * the bus in between.
+ *
+ *   slave:	The SPI slave
+ *
+ * Returns: 0 if the bus was claimed successfully, or a negative value
+ * if it wasn't.
+ */
+extern int spi_claim_bus(struct spi_slave * const slave)
+{
+	return 0;		/* do nothing! */
+}
+
+/*-----------------------------------------------------------------------
+ * Release the SPI bus
+ *
+ * This must be called once for every call to spi_claim_bus() after
+ * all transfers have finished. It may disable any SPI hardware as
+ * appropriate.
+ *
+ *   slave:	The SPI slave
+ */
+extern void spi_release_bus(struct spi_slave * const slave)
+{
+	return;			/* do nothing! */
+}
+
+#endif /* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
+
+
+/**********************************************************************/
+
+
 /*
  * Transfer (i.e. exchange) one "word" with selected SPI device.
  * Typically one word is 8-bits (an octet), but it does not need to be,
@@ -243,23 +376,27 @@ static unsigned int spi_xfer_one_word(const unsigned int out)
  * Typically one word is 8-bits (an octet).
  * This function is expects a word to be exactly 8-bits.
  *
- *	input:   chipsel is pointer to the chip-select function (if !NULL)
+ *	input:   slave, the SPI slave which will be sending/receiving the data.
  *		 bitlen number of *bits* (not bytes) to be exchanged
  *		 dout pointer to array of words to be sent to SPI
  *		 din pointer to array of words that were read from SPI
+ *		 flags, additional transfer flags
  *	returns: zero on success, else non-zero.
  *
  *	Note: 'din' may be NULL if caller does not need to see it.
  */
 #if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 extern int spi_xfer(
-	spi_chipsel_type const chipsel,
-	const int bitlen,
-	uchar * const dout,
-	uchar * const din)
+	struct spi_slave * const slave,
+	const unsigned int bitlen,
+	const void * const _dout,
+	      void * const _din,
+	const unsigned long flags)
 {
 	size_t i;
 	const int bytelen = bitlen / 8;	/* number of 8-bit bytes */
+	const uchar * const dout = _dout;
+	      uchar * const din  = _din;
 
 	/*
 	 * This code assumes that as we are using the SSC, that we will always
@@ -283,9 +420,9 @@ extern int spi_xfer(
 	hexdump(dout, bytelen);
 #endif	/* QQQ - DELETE */
 
-	if(chipsel)
+	if (flags & SPI_XFER_BEGIN)
 	{	/* assert SPI CS */
-		chipsel(1);
+		spi_cs_activate(slave);
 	}
 
 	/* transfer: write bytes in 'dout', and read into 'din' */
@@ -296,9 +433,9 @@ extern int spi_xfer(
 		if (din != NULL) din[i] = data;
 	}
 
-	if(chipsel)
+	if (flags & SPI_XFER_END)
 	{	/* de-assert SPI CS */
-		chipsel(0);
+		spi_cs_deactivate(slave);
 	}
 
 #if 0	/* QQQ - DELETE */
@@ -320,11 +457,11 @@ extern int spi_xfer(
 /*
  * read the SPI slave device's "Status Register".
  *
- * input:   none
+ * input:   slave, the SPI slave which will be sending/receiving the data.
  * returns: the value of the status register.
  */
 static unsigned int spi_read_status(
-	spi_chipsel_type const chipsel)
+	struct spi_slave * const slave)
 {
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
 	/* return the status byte read */
@@ -333,7 +470,7 @@ static unsigned int spi_read_status(
 	unsigned char data[2] = { OP_READ_STATUS, 0x00 };
 
 	/* issue the Status Register Read command */
-	spi_xfer(chipsel, sizeof(data)*8, data, data);
+	spi_xfer(slave, sizeof(data)*8, data, data, DEFAULT_SPI_XFER_FLAGS);
 
 	/* return the status byte read */
 	return data[1];
@@ -347,17 +484,17 @@ static unsigned int spi_read_status(
 /*
  * poll the "Status Register" waiting till it is not busy.
  *
- * input:   none
+ * input:   slave, the SPI slave which will be sending/receiving the data.
  * returns: none
  */
 extern void spi_wait_till_ready(
-	spi_chipsel_type const chipsel)
+	struct spi_slave * const slave)
 {
 #if defined(CONFIG_SPI_FLASH_ATMEL)
-	while (!(spi_read_status(chipsel) & SR_READY))
+	while (!(spi_read_status(slave) & SR_READY))
 		;	/* do nothing */
 #elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
-	while (spi_read_status(chipsel) & SR_WIP)
+	while (spi_read_status(slave) & SR_WIP)
 		;	/* do nothing */
 #else
 #error Please specify which SPI Serial Flash is being used
@@ -373,7 +510,7 @@ extern void spi_wait_till_ready(
  * it is a known type, and initialize its properties.
  */
 static int spi_probe_serial_flash(
-	spi_chipsel_type const chipsel)
+	struct spi_slave * const slave)
 {
 	unsigned int status;
 	unsigned char devid[8] = {
@@ -381,7 +518,7 @@ static int spi_probe_serial_flash(
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, };
 
 	/* read & detect the SPI device type */
-	status = spi_read_status(chipsel);
+	status = spi_read_status(slave);
 	if (
 		(status == 0xffu)	/* nothing talking to us ? */	||
 		( (status & CFG_STM_SPI_DEVICE_MASK) != CFG_STM_SPI_DEVICE_VAL )
@@ -403,7 +540,7 @@ static int spi_probe_serial_flash(
 	 */
 	fsm_read_jedec(sizeof(devid)-1u, &devid[1]);
 #else	/* CONFIG_STM_FSM_SPI */
-	spi_xfer(chipsel, sizeof(devid)*8, devid, devid);
+	spi_xfer(slave, sizeof(devid)*8, devid, devid, DEFAULT_SPI_XFER_FLAGS);
 #endif	/* CONFIG_STM_FSM_SPI */
 
 #if defined(CONFIG_SPI_FLASH_ATMEL)
@@ -646,16 +783,16 @@ static int spi_probe_serial_flash(
 	printf("info: unlocking SPI ...\n");
 
 	/* issue a WRITE ENABLE (WREN) command */
-	spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
+	spi_xfer(slave, sizeof(enable)*8, enable, NULL, DEFAULT_SPI_XFER_FLAGS);
 
 	/* issue a WRITE Status Register (WRSR) command */
-	spi_xfer(chipsel, sizeof(unlock)*8, unlock, NULL);
+	spi_xfer(slave, sizeof(unlock)*8, unlock, NULL, DEFAULT_SPI_XFER_FLAGS);
 
 	/* give it some time to clear the non-volatile flags */
 	udelay(2 * 1000);	/* 2 ms */
 
 	/* re-read (and display) the updated status register */
-	status = spi_read_status(chipsel);
+	status = spi_read_status(slave);
 	if (status & SR_BP_MASK)	/* BPx != 0 ? */
 	{	/* we MAY have succeeded, but we needed a longer delay! */
 		printf("warning:            ... FAILED! (status=0x%02x)\n",
@@ -683,11 +820,6 @@ static int spi_probe_serial_flash(
 extern void spi_init(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
-#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
-	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
-#elif defined(CONFIG_STM_FSM_SPI)
-	spi_chipsel_type const chipsel = NULL;	/* FSM only support one device */
-#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
 	/* initialize the H/W FSM SPI Controller. */
@@ -713,13 +845,13 @@ extern void spi_init(void)
 #endif	/* CONFIG_STM_SSC_SPI */
 
 	/* de-assert SPI CS */
-	(*chipsel)(0);
+	spi_cs_deactivate(MyDefaultSlave);
 
 #if defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 	/* program the SSC's Baud-Rate Generator */
 	if ((sscbrg < 0x07u) || (sscbrg > (0x1u << 16)))
 	{
-		printf("ERROR: Unable to set SSC buad-rate generator to 0x%04x\n",
+		printf("ERROR: Unable to set SSC buad-rate generator to 0x%04lx\n",
 			sscbrg);
 		return;
 	}
@@ -776,7 +908,7 @@ extern void spi_init(void)
 #endif	/* CONFIG_STM_FSM_SPI */
 
 	/* now probe the serial flash, to ensure it is the correct one */
-	spi_probe_serial_flash(chipsel);
+	spi_probe_serial_flash(MyDefaultSlave);
 }
 
 
@@ -841,7 +973,6 @@ extern ssize_t spi_read (
 	const unsigned long last   = start + len - 1ul;
 #if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 	int i;
-	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
 #endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 	if (len < 1) return len;
@@ -858,7 +989,7 @@ extern ssize_t spi_read (
 #else	/* CONFIG_STM_FSM_SPI */
 
 	/* assert SPI CS */
-	(*chipsel)(1);
+	spi_cs_activate(MyDefaultSlave);
 
 	/* issue appropriate READ array command */
 	spi_xfer_one_word(OP_READ_ARRAY);
@@ -884,7 +1015,8 @@ extern ssize_t spi_read (
 	}
 
 	/* de-assert SPI CS */
-	(*chipsel)(0);
+	spi_cs_deactivate(MyDefaultSlave);
+
 #endif	/* CONFIG_STM_FSM_SPI */
 
 	return len;
@@ -895,7 +1027,7 @@ extern ssize_t spi_read (
 
 
 static void my_spi_write(
-	spi_chipsel_type const chipsel,
+	struct spi_slave * const slave,
 	const unsigned long address,
 	const uchar * const buffer,
 	unsigned long len)
@@ -930,14 +1062,14 @@ static void my_spi_write(
 		};
 
 		/* copy page (to be updated) in serial flash into buffer #1 */
-		spi_xfer(chipsel, sizeof(transfer)*8, transfer, NULL);
+		spi_xfer(slave, sizeof(transfer)*8, transfer, NULL, DEFAULT_SPI_XFER_FLAGS);
 
 		/* now wait until the transfer has completed ... */
-		spi_wait_till_ready(chipsel);
+		spi_wait_till_ready(slave);
 	}
 
 	/* assert SPI CS */
-	(*chipsel)(1);
+	spi_cs_activate(slave);
 
 	/* issue appropriate WRITE command */
 	spi_xfer_one_word(OP_WRITE_VIA_BUFFER1);
@@ -954,10 +1086,10 @@ static void my_spi_write(
 	}
 
 	/* de-assert SPI CS */
-	(*chipsel)(0);
+	spi_cs_deactivate(slave);
 
 	/* now wait until the programming has completed ... */
-	spi_wait_till_ready(chipsel);
+	spi_wait_till_ready(slave);
 #endif	/* CONFIG_STM_FSM_SPI */
 }
 #elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
@@ -1024,28 +1156,28 @@ static void my_spi_write(
 	fsm_erase_sector(sector, op_erase);
 #else	/* CONFIG_STM_FSM_SPI */
 	/* issue a WRITE ENABLE (WREN) command */
-	spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
+	spi_xfer(slave, sizeof(enable)*8, enable, NULL, DEFAULT_SPI_XFER_FLAGS);
 
 	/* issue a Sector Erase command */
-	spi_xfer(chipsel, sizeof(erase)*8, erase, NULL);
+	spi_xfer(slave, sizeof(erase)*8, erase, NULL, DEFAULT_SPI_XFER_FLAGS);
 #endif	/* CONFIG_STM_FSM_SPI */
 
 	/* now wait until the erase has completed ... */
-	spi_wait_till_ready(chipsel);
+	spi_wait_till_ready(slave);
 
 	/* now program each page in turn ... */
 	for (page_base=sector,page=0u; page<pages; page++)
 	{
+		/* program one page... */
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
-	/* program one page */
-	fsm_write(ptr, pageSize, page_base);
-	ptr += pageSize;
+		fsm_write(ptr, pageSize, page_base);
+		ptr += pageSize;
 #else	/* CONFIG_STM_FSM_SPI */
 		/* issue a WRITE ENABLE (WREN) command */
-		spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
+		spi_xfer(slave, sizeof(enable)*8, enable, NULL, DEFAULT_SPI_XFER_FLAGS);
 
 		/* assert SPI CS */
-		(*chipsel)(1);
+		spi_cs_activate(slave);
 
 		/* issue a Page Program command */
 		spi_xfer_one_word(OP_PP);
@@ -1062,11 +1194,11 @@ static void my_spi_write(
 		}
 
 		/* de-assert SPI CS */
-		(*chipsel)(0);
+		spi_cs_deactivate(slave);
 #endif	/* CONFIG_STM_FSM_SPI */
 
 		/* now wait until the programming has completed ... */
-		spi_wait_till_ready(chipsel);
+		spi_wait_till_ready(slave);
 
 		/* advance to next page */
 		page_base += pageSize;
@@ -1093,11 +1225,6 @@ extern ssize_t spi_write (
 	const unsigned long byte   = first % eraseSize;
 	      unsigned long ptr    = first;
 	unsigned written = 0;		/* amount written between two dots */
-#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
-	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
-#elif defined(CONFIG_STM_FSM_SPI)
-	spi_chipsel_type const chipsel = NULL;	/* FSM only support one device */
-#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 	if (len < 1) return len;
 	if (deviceSize == 0) return 0;	/* no valid device found ? */
@@ -1113,7 +1240,7 @@ extern ssize_t spi_write (
 	{
 		/* till end of first erase block, or entirety, which is less */
 		const unsigned long size = MIN(len,eraseSize-byte);
-		my_spi_write(chipsel, first, buffer, size);
+		my_spi_write(MyDefaultSlave, first, buffer, size);
 
 		sector++;
 		ptr += size;
@@ -1132,7 +1259,7 @@ extern ssize_t spi_write (
 		}
 
 		/* a whole erase block */
-		my_spi_write(chipsel, ptr, buffer, eraseSize);
+		my_spi_write(MyDefaultSlave, ptr, buffer, eraseSize);
 
 		sector++;
 		ptr += eraseSize;
@@ -1144,7 +1271,7 @@ extern ssize_t spi_write (
 	/* finally, process any data at the tail */
 	if (ptr <= last)
 	{
-		my_spi_write(chipsel, ptr, buffer, last-ptr+1u);
+		my_spi_write(MyDefaultSlave, ptr, buffer, last-ptr+1u);
 	}
 
 	return len;

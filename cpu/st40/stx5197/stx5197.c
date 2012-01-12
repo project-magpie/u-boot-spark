@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -125,47 +125,43 @@ extern void stx5197_usb_init(void)
 /**********************************************************************/
 
 
+#if defined(CONFIG_SPI)
+
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 /*
- * assert or de-assert the SPI Chip Select line.
+ * A pair of functions to assert and de-assert the SPI
+ * chip select line, for the given SPI "slave" device.
  *
- *	input: cs == true, assert CS, else deassert CS
+ * This is used by both the S/W "bit-banging" and the
+ * H/W SSC drivers (but not the H/W FSM driver).
+ *
+ * We only support *one* SPI device, so we just ignore
+ * the "slave" parameter. This may change later...
  */
-#if defined(CONFIG_SPI) && defined(CONFIG_STM_SSC_SPI)
-static void spi_chip_select(const int cs)
+extern void spi_cs_activate(struct spi_slave * const slave)
 {
-	unsigned long reg;
+	unsigned long reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
 
-	reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
+	reg &= ~(1ul<<13);	/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 0 [13] */
 
-	if (cs)
-	{	/* assert SPI CS */
-		reg &= ~(1ul<<13);	/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 0 [13] */
-	}
-	else
-	{	/* DE-assert SPI CS */
-		reg |= 1ul<<13;		/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 1 [13] */
-	}
-
+	/* assert SPI CSn */
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;
 
-	if (cs)
-	{	/* wait 250ns for CS assert to propagate  */
-		udelay(1);	/* QQQ: can we make this shorter ? */
-	}
+	/* wait 1us for CSn assert to propagate  */
+	udelay(1);
 }
-
-
-/*
- * The SPI command uses this table of functions for controlling the SPI
- * chip selects: it calls the appropriate function to control the SPI
- * chip selects.
- */
-spi_chipsel_type spi_chipsel[] =
+extern void spi_cs_deactivate(struct spi_slave * const slave)
 {
-	spi_chip_select
-};
-int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
-#endif	/* CONFIG_SPI && defined(CONFIG_STM_SSC_SPI) */
+	unsigned long reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
+
+	reg |= 1ul<<13;		/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 1 [13] */
+
+	/* DE-assert SPI CSn */
+	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;
+}
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
+
+#endif	/* CONFIG_SPI */
 
 
 /**********************************************************************/

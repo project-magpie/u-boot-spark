@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 STMicroelectronics.
+ * (C) Copyright 2010-2012 STMicroelectronics.
  *
  * Angus Clark   <Angus.Clark@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -165,7 +165,7 @@ extern int fsm_write(
 
 	/* QQQ - move to spi.h ??? */
 extern void spi_wait_till_ready(
-	spi_chipsel_type const chipsel);
+	struct spi_slave *slave);
 
 #endif	/* STM_SPI_FSM_H */
 

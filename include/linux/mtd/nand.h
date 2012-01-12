@@ -73,16 +73,6 @@ extern int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
 			   size_t * retlen, const u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel);
 extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char *buf);
 
-/* This constant declares the max. oobsize / page, which
- * is supported now. If you add a chip with bigger oobsize/page
- * adjust this accordingly.
- * max oobfree is the max. number of "free" regions/areas
- * in the OOB area.
- */
-#define NAND_MAX_OOBFREE	16	/* 16 regions for STMicroelectronics SoCs */
-#define NAND_MAX_OOBSIZE	64
-#define NAND_MAX_PAGESIZE	2048
-
 /*
  * Constants for hardware specific CLE/ALE/NCE function
 */

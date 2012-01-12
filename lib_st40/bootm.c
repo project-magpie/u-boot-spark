@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2011 STMicroelectronics.
+ * (C) Copyright 2004-2012 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -167,7 +167,7 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 		printf("\n"
 			"Error: A %2u-bit Kernel is incompatible with this %2u-bit U-Boot!\n"
 			"Please re-configure and re-build vmlinux or u-boot.\n"
-			"Aborting the Boot process - Boot FAILED.  (SE_MODE=0x%08x)\n",
+			"Aborting the Boot process - Boot FAILED.  (SE_MODE=0x%08lx)\n",
 			CURRENT_SE_MODE ^ (32 ^ 29),
 			CURRENT_SE_MODE,
 			*SE_MODE);
@@ -183,17 +183,13 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	debug ("## Preparing to transfer control to Linux (at address %08lx) initrd = %08lx ...\n",
 		(ulong) theKernel, *INITRD_START);
 
-	/* if not "autostart", then we are done! */
-	if (!images->autostart)
-		return ;
-
 	/*
 	 * We are now ready to start the final stages, prior
 	 * ultimately to transferring control to the kernel.
 	 */
 	printf ("\nStarting kernel:\n"
-		"   start    = 0x%08x\n"
-		"   initrd   = 0x%08x (%d bytes)\n"
+		"   start    = 0x%08lx\n"
+		"   initrd   = 0x%08lx (%ld bytes)\n"
 		"   bootargs = %s\n\n",
 		(ulong)theKernel, *INITRD_START, *INITRD_SIZE, COMMAND_LINE);
 
@@ -317,7 +313,6 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	return;
 
 error:
-	if (images->autostart)
-		do_reset (cmdtp, flag, argc, argv);
+	do_reset (cmdtp, flag, argc, argv);
 	return;
 }

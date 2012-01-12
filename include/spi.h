@@ -198,11 +198,4 @@ static inline int spi_w8r8(struct spi_slave *slave, unsigned char byte)
 	return ret < 0 ? ret : din[1];
 }
 
-/*
- * External table of chip select functions (see the appropriate board
- * support for the actual definition of the table).
- */
-extern spi_chipsel_type spi_chipsel[];
-extern int spi_chipsel_cnt;
-
 #endif	/* _SPI_H_ */

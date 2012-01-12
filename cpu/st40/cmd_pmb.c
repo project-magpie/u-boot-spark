@@ -92,7 +92,7 @@ static void display_pmb (void)
 			continue;		/* skip to next if not valid */
 
 		/* print entry if it is valid */
-		printf ("PMB[%2u]  =  VPN:%02x...%02x  PPN:%02x...%02x  %2s  %1s  %2s  %3uMB\n",
+		printf ("PMB[%2u]  =  VPN:%02lx...%02lx  PPN:%02lx...%02lx  %2s  %1s  %2s  %3luMiB\n",
 			i,
 			vpn,				/* VPN (first page) */
 			vpn + (mb >> 4) - 1,		/* VPN (last page) */

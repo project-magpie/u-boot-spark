@@ -2389,7 +2389,7 @@ static int nand_set_features (struct mtd_info *mtd, int feature, const u_char *p
 {
 	register struct nand_chip *this = mtd->priv;
 
-	DEBUG (MTD_DEBUG_LEVEL0, "%s: with FA=0x%x, P1=0x%x, P2=0x%x, P3=0x%x, P4=0x%x\n",
+	MTDDEBUG (MTD_DEBUG_LEVEL0, "%s: with FA=0x%x, P1=0x%x, P2=0x%x, P3=0x%x, P4=0x%x\n",
 		__FUNCTION__, feature,
 		parameters[0], parameters[1], parameters[2], parameters[3]);
 

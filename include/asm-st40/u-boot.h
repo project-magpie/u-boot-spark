@@ -1,7 +1,7 @@
 /*
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, <wd@denx.de>
- * (C) Copyright 2004-2011 STMicroelectronics.
+ * (C) Copyright 2004-2012 STMicroelectronics.
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -35,7 +35,7 @@ typedef struct bd_info
 	unsigned long bi_arch_number;	/* unique id for this board */
 	unsigned long bi_boot_params;	/* where this board expects params */
 	unsigned long bi_memstart;	/* start of DRAM memory */
-	unsigned long bi_memsize;	/* size  of DRAM memory in bytes */
+	phys_size_t   bi_memsize;	/* size  of DRAM memory in bytes */
 #ifndef CFG_NO_FLASH
 	unsigned long bi_flashstart;	/* start of FLASH memory */
 	unsigned long bi_flashsize;	/* size  of FLASH memory */

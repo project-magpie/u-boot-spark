@@ -89,6 +89,16 @@ struct region_info_user {
 #define MEMGETBADBLOCK		_IOW('M', 11, loff_t)
 #define MEMSETBADBLOCK		_IOW('M', 12, loff_t)
 
+/* This constant declares the max. oobsize / page, which
+ * is supported now. If you add a chip with bigger oobsize/page
+ * adjust this accordingly.
+ * max oobfree is the max. number of "free" regions/areas
+ * in the OOB area.
+ */
+#define NAND_MAX_OOBFREE	16	/* 16 regions for STMicroelectronics SoCs */
+#define NAND_MAX_OOBSIZE	64
+#define NAND_MAX_PAGESIZE	2048
+
 struct nand_oobinfo {
 	uint32_t useecc;
 	uint32_t eccbytes;

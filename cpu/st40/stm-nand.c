@@ -572,7 +572,7 @@ static int set_ecc_mode (
 	}
 	else
 	{	/* the range is split over *both* "boot" and "non-boot" modes! */
-		printf("ERROR: NAND range crosses \"boot-mode\" boundary (0x%08x)\n",
+		printf("ERROR: NAND range crosses \"boot-mode\" boundary (0x%08lx)\n",
 			CFG_NAND_STM_BOOT_MODE_BOUNDARY);
 		return -EINVAL;
 	}

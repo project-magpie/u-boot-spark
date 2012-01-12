@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2011 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -916,40 +916,35 @@ extern unsigned char stx7108_spi_read(void)
 	return STPIO_GET_PIN(ST40_PIO_BASE(2), pin);
 }
 
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 /*
- * assert or de-assert the SPI Chip Select line.
+ * A pair of functions to assert and de-assert the SPI
+ * chip select line, for the given SPI "slave" device.
  *
- *	input: cs == true, assert CS, else deassert CS
+ * This is used by both the S/W "bit-banging" and the
+ * H/W SSC drivers (but not the H/W FSM driver).
+ *
+ * We only support *one* SPI device, so we just ignore
+ * the "slave" parameter. This may change later...
  */
-static void spi_chip_select(const int cs)
+extern void spi_cs_activate(struct spi_slave * const slave)
 {
-	const int pin = 7;	/* PIO1[7] = SPI_notCS */
+	const int pin = 7;	/* PIO1[7] = SPI_NOTCS */
 
-	if (cs)
-	{	/* assert SPI CSn */
-		STPIO_SET_PIN(ST40_PIO_BASE(1), pin, 0);
-	}
-	else
-	{	/* DE-assert SPI CSn */
-		STPIO_SET_PIN(ST40_PIO_BASE(1), pin, 1);
-	}
+	/* assert SPI CSn */
+	STPIO_SET_PIN(ST40_PIO_BASE(1), pin, 0);
 
-	if (cs)
-	{	/* wait 250ns for CSn assert to propagate  */
-		udelay(1);	/* QQQ: can we make this shorter ? */
-	}
+	/* wait 1us for CSn assert to propagate  */
+	udelay(1);
 }
-
-/*
- * The SPI command uses this table of functions for controlling the SPI
- * chip selects: it calls the appropriate function to control the SPI
- * chip selects.
- */
-spi_chipsel_type spi_chipsel[] =
+extern void spi_cs_deactivate(struct spi_slave * const slave)
 {
-	spi_chip_select
-};
-int spi_chipsel_cnt = sizeof(spi_chipsel) / sizeof(spi_chipsel[0]);
+	const int pin = 7;	/* PIO1[7] = SPI_NOTCS */
+
+	/* DE-assert SPI CSn */
+	STPIO_SET_PIN(ST40_PIO_BASE(1), pin, 1);
+}
+#endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 #endif	/* CONFIG_SPI && CONFIG_SOFT_SPI */
 
