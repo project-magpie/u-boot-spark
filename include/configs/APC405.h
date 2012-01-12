@@ -36,7 +36,7 @@
  */
 #define CONFIG_405GP		1	/* This is a PPC405 CPU		*/
 #define CONFIG_4xx		1	/* ...member of PPC4xx family   */
-#define CONFIG_APCG405		1	/* ...on a APC405 board 	*/
+#define CONFIG_APCG405		1	/* ...on a APC405 board		*/
 
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* call board_early_init_f()	*/
 #define CONFIG_BOARD_EARLY_INIT_R 1
@@ -193,7 +193,8 @@
 /* If a long serial cable is connected but */
 /* other end is dead, garbage will be read */
 #define CONFIG_AUTOBOOT_KEYED	1
-#define CONFIG_AUTOBOOT_PROMPT	"Press SPACE to abort autoboot in %d seconds\n"
+#define CONFIG_AUTOBOOT_PROMPT	\
+	"Press SPACE to abort autoboot in %d seconds\n", bootdelay
 #undef CONFIG_AUTOBOOT_DELAY_STR
 #define CONFIG_AUTOBOOT_STOP_STR " "
 

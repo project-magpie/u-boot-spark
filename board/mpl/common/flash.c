@@ -160,7 +160,7 @@ unsigned long flash_init (void)
 	unsigned long size_b1,flashcr,size_reg;
 	int mode;
 	extern char version_string;
-	char *p=&version_string;
+	char *p = &version_string;
 
 	/* Since we are relocated, we can set-up the CS finally */
 	setup_cs_reloc();
@@ -398,7 +398,7 @@ static ulong flash_get_size (vu_long *addr, flash_info_t *info)
 		return (0);			/* no or unknown flash	*/
 	}
 	value = addr2[1];			/* device ID		*/
-	/*	printf("Device value %x\n",value); 		    */
+	/*	printf("Device value %x\n",value);		    */
 	switch (value) {
 	case (FLASH_WORD_SIZE)AMD_ID_F040B:
 		info->flash_id += FLASH_AM040;

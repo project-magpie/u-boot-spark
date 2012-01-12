@@ -276,13 +276,9 @@
 #define CFG_MCIO1_VAL		0x0000c108
 
 #define CONFIG_DRIVER_DM9000		1
-#define CONFIG_DRIVER_DM9000		1
 #define CONFIG_DM9000_BASE	0x08000000
 #define DM9000_IO			CONFIG_DM9000_BASE
 #define DM9000_DATA			(CONFIG_DM9000_BASE+0x8004)
-/* #define CONFIG_DM9000_USE_8BIT */
-/* #define CONFIG_DM9000_USE_16BIT */
-#define CONFIG_DM9000_USE_32BIT
 
 #define CONFIG_USB_OHCI_NEW	1
 #define CFG_USB_OHCI_BOARD_INIT	1
@@ -303,7 +299,7 @@
 #define CFG_MONITOR_LEN		0x40000
 
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
-#define CFG_MAX_FLASH_SECT	4 + 255  /* max number of sectors on one chip    */
+#define CFG_MAX_FLASH_SECT	4 + 255  /* max number of sectors on one chip   */
 
 /* timeout values are in ticks */
 #define CFG_FLASH_ERASE_TOUT	(25*CFG_HZ) /* Timeout for Flash Erase */
@@ -314,8 +310,8 @@
 
 /* Flash environment locations */
 #define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_ADDR		(PHYS_FLASH_1 + CFG_MONITOR_LEN)	/* Addr of Environment Sector	*/
-#define CFG_ENV_SIZE		0x40000	/* Total Size of Environment     	*/
+#define CFG_ENV_ADDR		(PHYS_FLASH_1 + CFG_MONITOR_LEN) /* Addr of Environment Sector	*/
+#define CFG_ENV_SIZE		0x40000	/* Total Size of Environment		*/
 #define CFG_ENV_SECT_SIZE	0x40000	/* Total Size of Environment Sector	*/
 
 /* Address and size of Redundant Environment Sector	*/

@@ -162,7 +162,7 @@ CPPFLAGS += -I$(OBJTREE)/include2 -I$(OBJTREE)/include
 endif
 
 CPPFLAGS += -I$(TOPDIR)/include
-CPPFLAGS += -fno-builtin -ffreestanding -nostdinc 	\
+CPPFLAGS += -fno-builtin -ffreestanding -nostdinc	\
 	-isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 
 ifdef BUILD_TAG
@@ -171,6 +171,8 @@ CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes \
 else
 CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes
 endif
+
+CFLAGS += $(call cc-option,-fno-stack-protector)
 
 # avoid trigraph warnings while parsing pci.h (produced by NIOS gcc-2.9)
 # this option have to be placed behind -Wall -- that's why it is here

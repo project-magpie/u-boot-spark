@@ -48,6 +48,7 @@ LIST_5xxx="		\
 	mecp5200	\
 	motionpro	\
 	munices		\
+	MVBC_P		\
 	o2dnt		\
 	pf5200		\
 	PM520		\
@@ -219,6 +220,7 @@ LIST_4xx="		\
 	PMC405		\
 	PMC440		\
 	PPChameleonEVB	\
+	quad100hd	\
 	rainier		\
 	sbc405		\
 	sc3		\
@@ -330,6 +332,7 @@ LIST_83xx="		\
 	MPC8360ERDK_66	\
 	MPC837XEMDS	\
 	MPC837XERDB	\
+	MVBLM7		\
 	sbc8349		\
 	TQM834x		\
 "
@@ -354,10 +357,12 @@ LIST_85xx="		\
 	sbc8540		\
 	sbc8548		\
 	sbc8560		\
+	socrates	\
 	stxgp3		\
 	stxssa		\
 	TQM8540		\
 	TQM8541		\
+	TQM8548		\
 	TQM8555		\
 	TQM8560		\
 "
@@ -457,10 +462,6 @@ LIST_ARM7="		\
 #########################################################################
 
 LIST_ARM9="			\
-	at91cap9adk		\
-	at91rm9200dk		\
-	at91sam9260ek		\
-	cmc_pu2			\
 	ap920t			\
 	ap922_XA10		\
 	ap926ejs		\
@@ -471,11 +472,7 @@ LIST_ARM9="			\
 	cp926ejs		\
 	cp946es			\
 	cp966			\
-	csb637			\
-	kb9202			\
 	lpd7a400		\
-	m501sk			\
-	mp2usb			\
 	mx1ads			\
 	mx1fs2			\
 	netstar			\
@@ -496,6 +493,7 @@ LIST_ARM9="			\
 	voiceblue		\
 	davinci_dvevm		\
 	davinci_schmoogie	\
+	davinci_sffsdr		\
 	davinci_sonata		\
 "
 
@@ -520,11 +518,28 @@ LIST_ARM11="		\
 "
 
 #########################################################################
+## AT91 Systems
+#########################################################################
+
+LIST_at91="		\
+	at91cap9adk	\
+	at91rm9200dk	\
+	at91sam9260ek	\
+	at91sam9261ek	\
+	at91sam9263ek	\
+	at91sam9rlek	\
+	cmc_pu2		\
+	csb637		\
+	kb9202		\
+	mp2usb		\
+	m501sk		\
+"
+
+#########################################################################
 ## Xscale Systems
 #########################################################################
 
 LIST_pxa="		\
-	adsvix		\
 	cerf250		\
 	cradle		\
 	csb226		\
@@ -561,6 +576,7 @@ LIST_arm="		\
 	${LIST_ARM9}	\
 	${LIST_ARM10}	\
 	${LIST_ARM11}	\
+	${LIST_at91}	\
 	${LIST_pxa}	\
 	${LIST_ixp}	\
 "
@@ -675,7 +691,7 @@ LIST_coldfire="			\
 	M52277EVB		\
 	M5235EVB		\
 	M5249EVB		\
-	M5253EVB		\
+	M5253EVBE		\
 	M5271EVB		\
 	M5272C3			\
 	M5275EVB		\
@@ -696,6 +712,7 @@ LIST_avr32="		\
 	atstk1002	\
 	atstk1003	\
 	atstk1004	\
+	atstk1006	\
 	atngw100	\
 "
 
@@ -763,9 +780,10 @@ LIST_sh3="		\
 LIST_sh4="		\
 	ms7750se	\
 	ms7722se	\
-	Migo-R		\
+	MigoR		\
 	r7780mp		\
 	r2dplus		\
+	sh7763rdp	\
 "
 
 LIST_sh="		\
@@ -805,7 +823,7 @@ build_target() {
 for arg in $@
 do
 	case "$arg" in
-	arm|SA|ARM7|ARM9|ARM10|ARM11|ixp|pxa \
+	arm|SA|ARM7|ARM9|ARM10|ARM11|at91|ixp|pxa \
 	|avr32 \
 	|blackfin \
 	|coldfire \

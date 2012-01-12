@@ -181,7 +181,12 @@ void cpu_init_f (volatile immap_t * im)
 
 	/* System General Purpose Register */
 #ifdef CFG_SICRH
+#if defined(CONFIG_MPC834X) || defined(CONFIG_MPC8313)
+	/* regarding to MPC34x manual rev.1 bits 28..29 must be preserved */
+	im->sysconf.sicrh = (im->sysconf.sicrh & 0x0000000C) | CFG_SICRH;
+#else
 	im->sysconf.sicrh = CFG_SICRH;
+#endif
 #endif
 #ifdef CFG_SICRL
 	im->sysconf.sicrl = CFG_SICRL;
@@ -218,7 +223,7 @@ void cpu_init_f (volatile immap_t * im)
 	im->sysconf.lblaw[0].bar = CFG_LBLAWBAR0_PRELIM;
 	im->sysconf.lblaw[0].ar = CFG_LBLAWAR0_PRELIM;
 #else
-#error 	CFG_BR0_PRELIM, CFG_OR0_PRELIM, CFG_LBLAWBAR0_PRELIM & CFG_LBLAWAR0_PRELIM must be defined
+#error	CFG_BR0_PRELIM, CFG_OR0_PRELIM, CFG_LBLAWBAR0_PRELIM & CFG_LBLAWAR0_PRELIM must be defined
 #endif
 
 #if defined(CFG_BR1_PRELIM) && defined(CFG_OR1_PRELIM)

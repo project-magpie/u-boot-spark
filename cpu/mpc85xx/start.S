@@ -89,7 +89,7 @@ _start_e500:
 	/* L1 */
 	li	r0,2
 	mtspr	L1CSR0,r0	/* invalidate d-cache */
-	mtspr	L1CSR1,r0 	/* invalidate i-cache */
+	mtspr	L1CSR1,r0	/* invalidate i-cache */
 
 	mfspr	r1,DBSR
 	mtspr	DBSR,r1		/* Clear all valid bits */
@@ -188,11 +188,12 @@ _start_e500:
 	lis     r7,FSL_BOOKE_MAS1(1, 1, 0, 1, BOOKE_PAGESZ_16M)@h
 	ori     r7,r7,FSL_BOOKE_MAS1(1, 1, 0, 1, BOOKE_PAGESZ_16M)@l
 
-	lis     r8,FSL_BOOKE_MAS2(TEXT_BASE, (MAS2_I|MAS2_G))@h
-	ori     r8,r8,FSL_BOOKE_MAS2(TEXT_BASE, (MAS2_I|MAS2_G))@l
+	/* Align the mapping to 16MB */
+	lis     r8,FSL_BOOKE_MAS2(TEXT_BASE & 0xff000000, (MAS2_I|MAS2_G))@h
+	ori     r8,r8,FSL_BOOKE_MAS2(TEXT_BASE & 0xff000000, (MAS2_I|MAS2_G))@l
 
-	lis     r9,FSL_BOOKE_MAS3(0xff800000, 0, (MAS3_SX|MAS3_SW|MAS3_SR))@h
-	ori     r9,r9,FSL_BOOKE_MAS3(0xff800000, 0, (MAS3_SX|MAS3_SW|MAS3_SR))@l
+	lis     r9,FSL_BOOKE_MAS3(0xff000000, 0, (MAS3_SX|MAS3_SW|MAS3_SR))@h
+	ori     r9,r9,FSL_BOOKE_MAS3(0xff000000, 0, (MAS3_SX|MAS3_SW|MAS3_SR))@l
 
 	mtspr   MAS0,r6
 	mtspr   MAS1,r7

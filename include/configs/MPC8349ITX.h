@@ -149,8 +149,8 @@
  * DDR Setup
  */
 #define CFG_DDR_BASE		0x00000000	/* DDR is system memory*/
-#define CFG_SDRAM_BASE 		CFG_DDR_BASE
-#define CFG_DDR_SDRAM_BASE 	CFG_DDR_BASE
+#define CFG_SDRAM_BASE		CFG_DDR_BASE
+#define CFG_DDR_SDRAM_BASE	CFG_DDR_BASE
 #define CFG_83XX_DDR_USES_CS0
 #define CFG_MEMTEST_START	0x1000		/* memtest region */
 #define CFG_MEMTEST_END		0x2000
@@ -187,7 +187,7 @@
 boards, we say we have two, but don't display a message if we find only one. */
 #define CFG_FLASH_QUIET_TEST
 #define CFG_MAX_FLASH_BANKS	2		/* number of banks */
-#define CFG_FLASH_BANKS_LIST 	{CFG_FLASH_BASE, CFG_FLASH_BASE + 0x800000}
+#define CFG_FLASH_BANKS_LIST	{CFG_FLASH_BASE, CFG_FLASH_BASE + 0x800000}
 #define CFG_FLASH_SIZE		16		/* FLASH size in MB */
 #define CFG_FLASH_SIZE_SHIFT	4		/* log2 of the above value */
 
@@ -211,7 +211,7 @@ boards, we say we have two, but don't display a message if we find only one. */
 
 #define CFG_BR0_PRELIM		(CFG_FLASH_BASE | BR_PS_16 | BR_V)
 #define CFG_OR0_PRELIM		((~(CFG_FLASH_SIZE - 1) << 20) | OR_UPM_XAM | \
-				OR_GPCM_CSNT | OR_GPCM_ACS_0b11 | OR_GPCM_XACS | OR_GPCM_SCY_15 | \
+				OR_GPCM_CSNT | OR_GPCM_ACS_DIV2 | OR_GPCM_XACS | OR_GPCM_SCY_15 | \
 				OR_GPCM_TRLX | OR_GPCM_EHTR | OR_GPCM_EAD)
 #define CFG_LBLAWBAR0_PRELIM	CFG_FLASH_BASE
 #define CFG_LBLAWAR0_PRELIM	(LBLAWAR_EN | (0x13 + CFG_FLASH_SIZE_SHIFT))
@@ -236,7 +236,7 @@ boards, we say we have two, but don't display a message if we find only one. */
 
 #define CFG_LED_BASE		0xF9000000
 #define CFG_BR2_PRELIM		(CFG_LED_BASE | BR_PS_8 | BR_V)
-#define CFG_OR2_PRELIM		(OR_AM_2MB | OR_GPCM_CSNT | OR_GPCM_ACS_0b11 | \
+#define CFG_OR2_PRELIM		(OR_AM_2MB | OR_GPCM_CSNT | OR_GPCM_ACS_DIV2 | \
 				OR_GPCM_XACS | OR_GPCM_SCY_9 | OR_GPCM_TRLX | \
 				OR_GPCM_EHTR | OR_GPCM_EAD)
 
@@ -555,6 +555,7 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CFG_HID0_FINAL	CFG_HID0_INIT
 
 #define CFG_HID2	HID2_HBE
+#define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
 /* DDR  */
 #define CFG_IBAT0L	(CFG_SDRAM_BASE | BATL_PP_10 | BATL_MEMCOHERENCE)
@@ -671,21 +672,21 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_BOOTARGS \
 	"root=/dev/nfs rw" \
 	" nfsroot=" MK_STR(CONFIG_SERVERIP) ":" MK_STR(CONFIG_ROOTPATH) \
-	" ip=" MK_STR(CONFIG_IPADDR) ":" MK_STR(CONFIG_SERVERIP) ":" 	\
+	" ip=" MK_STR(CONFIG_IPADDR) ":" MK_STR(CONFIG_SERVERIP) ":"	\
 		MK_STR(CONFIG_GATEWAYIP) ":" MK_STR(CONFIG_NETMASK) ":" \
 		MK_STR(CONFIG_HOSTNAME) ":" MK_STR(CONFIG_NETDEV) ":off" \
 	" console=" MK_STR(CONFIG_CONSOLE) "," MK_STR(CONFIG_BAUDRATE)
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"console=" MK_STR(CONFIG_CONSOLE) "\0" 				\
-	"netdev=" MK_STR(CONFIG_NETDEV) "\0" 				\
-	"uboot=" MK_STR(CONFIG_UBOOTPATH) "\0" 				\
-	"tftpflash=tftpboot $loadaddr $uboot; " 			\
-		"protect off " MK_STR(TEXT_BASE) " +$filesize; " 	\
-		"erase " MK_STR(TEXT_BASE) " +$filesize; " 		\
-		"cp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize; " 	\
-		"protect on " MK_STR(TEXT_BASE) " +$filesize; " 	\
-		"cmp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize\0" 	\
+	"console=" MK_STR(CONFIG_CONSOLE) "\0"				\
+	"netdev=" MK_STR(CONFIG_NETDEV) "\0"				\
+	"uboot=" MK_STR(CONFIG_UBOOTPATH) "\0"				\
+	"tftpflash=tftpboot $loadaddr $uboot; "				\
+		"protect off " MK_STR(TEXT_BASE) " +$filesize; "	\
+		"erase " MK_STR(TEXT_BASE) " +$filesize; "		\
+		"cp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize; "	\
+		"protect on " MK_STR(TEXT_BASE) " +$filesize; "		\
+		"cmp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize\0"	\
 	"fdtaddr=400000\0"						\
 	"fdtfile=" MK_STR(CONFIG_FDTFILE) "\0"
 

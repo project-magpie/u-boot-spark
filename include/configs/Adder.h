@@ -131,7 +131,7 @@
 #define CFG_BOOTMAPSZ		(8 << 20)	/* Initial Memory map for Linux */
 
 #define CFG_MONITOR_BASE	TEXT_BASE
-#define CFG_MONITOR_LEN		(192 << 10)	/* Reserve 192 KB for Monitor   */
+#define CFG_MONITOR_LEN		(256 << 10)	/* Reserve 256 KB for Monitor   */
 #ifdef CONFIG_BZIP2
 #define CFG_MALLOC_LEN		(2500 << 10)	/* Reserve ~2.5 MB for malloc() */
 #else
@@ -149,7 +149,7 @@
 
 /* Environment is in flash */
 #define CFG_ENV_IS_IN_FLASH
-#define CFG_ENV_SECT_SIZE	0x10000 	/* We use one complete sector	*/
+#define CFG_ENV_SECT_SIZE	0x10000		/* We use one complete sector	*/
 #define CFG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
 
 #define CONFIG_ENV_OVERWRITE
@@ -191,16 +191,16 @@
 #define CFG_TBSCR		(TBSCR_TBF | TBSCR_TBE)
 
 /* PISCR - Periodic Interrupt Status and Control */
-#define CFG_PISCR       	(PISCR_PS | PISCR_PITF)
+#define CFG_PISCR		(PISCR_PS | PISCR_PITF)
 
 /* PLPRCR - PLL, Low-Power, and Reset Control Register */
-/* #define CFG_PLPRCR      	PLPRCR_TEXPS */
+/* #define CFG_PLPRCR		PLPRCR_TEXPS */
 
 /* SCCR - System Clock and reset Control Register */
-#define SCCR_MASK       	SCCR_EBDF11
+#define SCCR_MASK		SCCR_EBDF11
 #define CFG_SCCR		SCCR_RTSEL
 
-#define CFG_DER         	0
+#define CFG_DER			0
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

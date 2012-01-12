@@ -24,10 +24,6 @@
  */
 
 #include <common.h>
-
-#if defined(CONFIG_CMD_NET) \
-	&& defined(CONFIG_NET_MULTI) && defined(CONFIG_PLB2800_ETHER)
-
 #include <malloc.h>
 #include <net.h>
 #include <asm/addrspace.h>
@@ -333,7 +329,7 @@ static void plb2800_set_mac_addr(struct eth_device *dev, unsigned char * addr)
 	DA_LOOKUP = temp;
 
 	/* Set MA_LEARN register */
-	temp = 50 << MA_DEST_SHF; 	/* static entry */
+	temp = 50 << MA_DEST_SHF;	/* static entry */
 	MA_LEARN = temp;
 
 	/* set destination address */
@@ -392,5 +388,3 @@ static unsigned char * plb2800_get_mac_addr(void)
 
 	return addr;
 }
-
-#endif /* CONFIG_PLB2800_ETHER */

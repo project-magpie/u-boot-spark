@@ -84,7 +84,7 @@ void board_add_ram_info(int use_default)
 		puts(" (ECC not");
 
 	get_sys_info(&board_cfg);
-	printf(" enabled, %d MHz", (board_cfg.freqPLB * 2) / 1000000);
+	printf(" enabled, %ld MHz", (board_cfg.freqPLB * 2) / 1000000);
 
 	mfsdram(DDR0_03, val);
 	val = DDR0_03_CASLAT_DECODE(val);
@@ -158,7 +158,7 @@ static void program_ecc(u32 start_address,
  * initdram -- 440EPx's DDR controller is a DENALI Core
  *
  ************************************************************************/
-long int initdram (int board_type)
+phys_size_t initdram (int board_type)
 {
 #if 0 /* test-only: will remove this define later, when ECC problems are solved! */
 	/* CL=3 */

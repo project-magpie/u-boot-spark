@@ -146,12 +146,9 @@ struct usb_string_descriptor *usbd_get_string (__u8 index)
 static struct usb_configuration_instance *usbd_device_configuration_instance (struct usb_device_instance *device,
 		unsigned int port, unsigned int configuration)
 {
-	/* XXX */
-	configuration = configuration ? configuration - 1 : 0;
-
-	if (configuration >= device->configurations) {
+	if (configuration >= device->configurations)
 		return NULL;
-	}
+
 	return device->configuration_instance_array + configuration;
 }
 
@@ -549,21 +546,23 @@ void urb_append (urb_link * hd, struct urb *urb)
  *
  * NOTE: endpoint_address MUST contain a direction flag.
  */
-struct urb *usbd_alloc_urb (struct usb_device_instance *device, struct usb_endpoint_instance *endpoint)
+struct urb *usbd_alloc_urb (struct usb_device_instance *device,
+			    struct usb_endpoint_instance *endpoint)
 {
 	struct urb *urb;
 
-	if( !(urb = (struct urb*)malloc(sizeof(struct urb))) ) {
-	  usberr(" F A T A L:  malloc(%u) FAILED!!!!", sizeof(struct urb));
-	  return NULL;
+	if (!(urb = (struct urb *) malloc (sizeof (struct urb)))) {
+		usberr (" F A T A L:  malloc(%zu) FAILED!!!!",
+			sizeof (struct urb));
+		return NULL;
 	}
 
 	/* Fill in known fields */
-	memset(urb, 0, sizeof(struct urb));
+	memset (urb, 0, sizeof (struct urb));
 	urb->endpoint = endpoint;
 	urb->device = device;
-	urb->buffer = (u8*)urb->buffer_data;
-	urb->buffer_length = sizeof(urb->buffer_data);
+	urb->buffer = (u8 *) urb->buffer_data;
+	urb->buffer_length = sizeof (urb->buffer_data);
 
 	urb_link_init (&urb->link);
 

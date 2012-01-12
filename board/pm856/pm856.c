@@ -225,7 +225,7 @@ int checkboard (void)
 }
 
 
-long int
+phys_size_t
 initdram(int board_type)
 {
 	long dram_size = 0;
@@ -248,7 +248,7 @@ initdram(int board_type)
 	    udelay (200);
 	    while (gur->ddrdllcr != 0x81000100)
 	    {
-	    	gur->devdisr = gur->devdisr | 0x00010000;
+		gur->devdisr = gur->devdisr | 0x00010000;
 		asm("sync;isync;msync");
 		for (i=0; i<x; i++)
 		    ;

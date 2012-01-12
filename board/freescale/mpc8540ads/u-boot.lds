@@ -2,6 +2,8 @@
  * (C) Copyright 2002,2003, Motorola,Inc.
  * Xianghua Xiao, X.Xiao@motorola.com.
  *
+ * Copyright 2008 Freescale Semiconductor, Inc.
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -24,18 +26,14 @@
 OUTPUT_ARCH(powerpc)
 /* Do we need any of these for elf?
    __DYNAMIC = 0;    */
+PHDRS
+{
+  text PT_LOAD;
+  bss PT_LOAD;
+}
+
 SECTIONS
 {
-  .resetvec 0xFFFFFFFC :
-  {
-    *(.resetvec)
-  } = 0xffff
-
-  .bootpg 0xFFFFF000 :
-  {
-    cpu/mpc85xx/start.o	(.bootpg)
-  } = 0xffff
-
   /* Read-only sections, merged into text segment: */
   . = + SIZEOF_HEADERS;
   .interp : { *(.interp) }
@@ -43,11 +41,11 @@ SECTIONS
   .dynsym        : { *(.dynsym)		}
   .dynstr        : { *(.dynstr)		}
   .rel.text      : { *(.rel.text)		}
-  .rela.text     : { *(.rela.text) 	}
+  .rela.text     : { *(.rela.text)	}
   .rel.data      : { *(.rel.data)		}
-  .rela.data     : { *(.rela.data) 	}
-  .rel.rodata    : { *(.rel.rodata) 	}
-  .rela.rodata   : { *(.rela.rodata) 	}
+  .rela.data     : { *(.rela.data)	}
+  .rel.rodata    : { *(.rel.rodata)	}
+  .rela.rodata   : { *(.rela.rodata)	}
   .rel.got       : { *(.rel.got)		}
   .rela.got      : { *(.rela.got)		}
   .rel.ctors     : { *(.rel.ctors)	}
@@ -62,21 +60,10 @@ SECTIONS
   .plt : { *(.plt) }
   .text      :
   {
-    cpu/mpc85xx/start.o	(.text)
-    cpu/mpc85xx/traps.o (.text)
-    cpu/mpc85xx/interrupts.o (.text)
-    cpu/mpc85xx/cpu_init.o (.text)
-    cpu/mpc85xx/cpu.o (.text)
-    cpu/mpc85xx/speed.o (.text)
-    cpu/mpc85xx/pci.o (.text)
-    common/dlmalloc.o (.text)
-    lib_generic/crc32.o (.text)
-    lib_ppc/extable.o (.text)
-    lib_generic/zlib.o (.text)
     *(.text)
     *(.fixup)
     *(.got1)
-   }
+   } :text
     _etext = .;
     PROVIDE (etext = .);
     .rodata    :
@@ -85,7 +72,7 @@ SECTIONS
     *(.rodata1)
     *(.rodata.str1.4)
     *(.eh_frame)
-  }
+  } :text
   .fini      : { *(.fini)    } =0
   .ctors     : { *(.ctors)   }
   .dtors     : { *(.dtors)   }
@@ -134,6 +121,18 @@ SECTIONS
   . = ALIGN(256);
   __init_end = .;
 
+  .bootpg ADDR(.text) + 0x7f000 :
+  {
+    cpu/mpc85xx/start.o	(.bootpg)
+  } :text = 0xffff
+
+  .resetvec ADDR(.text) + 0x7fffc :
+  {
+    *(.resetvec)
+  } :text = 0xffff
+
+  . = ADDR(.text) + 0x80000;
+
   __bss_start = .;
   .bss (NOLOAD)       :
   {
@@ -141,7 +140,9 @@ SECTIONS
    *(.dynbss)
    *(.bss)
    *(COMMON)
-  }
+  } :bss
+
+  . = ALIGN(4);
   _end = . ;
   PROVIDE (end = .);
 }

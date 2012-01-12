@@ -55,6 +55,7 @@
 #define CONFIG_NUM_DDR_CONTROLLERS	1
 #define CONFIG_INTERRUPTS		/* enable pci, srio, ddr interrupts */
 
+#define CONFIG_HIGH_BATS	1	/* High BATs supported & enabled */
 #define CONFIG_ALTIVEC		1
 
 /*
@@ -71,10 +72,8 @@
 #define CONFIG_BOARD_EARLY_INIT_F	1	/* Call board_pre_init */
 #define CONFIG_MISC_INIT_R		1
 
-#undef	CFG_DRAM_TEST			/* memory test, takes time */
 #define CFG_MEMTEST_START	0x00200000	/* memtest region */
 #define CFG_MEMTEST_END		0x00400000
-#define CFG_ALT_MEMTEST
 
 /*
  * Base addresses -- Note these are effective addresses where the
@@ -141,11 +140,11 @@
 #endif
 #endif
 
-#define CFG_ID_EEPROM
-#ifdef CFG_ID_EEPROM
 #define CONFIG_ID_EEPROM
-#endif
-#define ID_EEPROM_ADDR		0x57
+#define CFG_I2C_EEPROM_NXID
+#define CFG_ID_EEPROM
+#define CFG_I2C_EEPROM_ADDR     0x57
+#define CFG_I2C_EEPROM_ADDR_LEN 1
 
 
 #define CFG_FLASH_BASE		0xf0000000 /* start of FLASH 128M */
@@ -330,7 +329,7 @@
 #define CONFIG_USB_KEYBOARD	1
 #define CFG_DEVICE_DEREGISTER
 #define CFG_USB_EVENT_POLL	1
-#define CFG_USB_OHCI_SLOT_NAME 	"ohci_pci"
+#define CFG_USB_OHCI_SLOT_NAME	"ohci_pci"
 #define CFG_USB_OHCI_MAX_ROOT_PORTS 15
 #define CFG_OHCI_SWAP_REG_ACCESS	1
 
@@ -486,7 +485,8 @@
 #endif
 
 
-#undef CONFIG_WATCHDOG			/* watchdog disabled */
+#define CONFIG_WATCHDOG			/* watchdog enabled */
+#define CFG_WATCHDOG_FREQ	5000	/* Feed interval, 5s */
 
 /*DIU Configuration*/
 #define DIU_CONNECT_TO_DVI		/* DIU controller connects to DVI encoder*/

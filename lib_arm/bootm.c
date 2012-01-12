@@ -43,9 +43,6 @@ static void setup_memory_tags (bd_t *bd);
 # endif
 static void setup_commandline_tag (bd_t *bd, char *commandline);
 
-#if 0
-static void setup_ramdisk_tag (bd_t *bd);
-#endif
 # ifdef CONFIG_INITRD_TAG
 static void setup_initrd_tag (bd_t *bd, ulong initrd_start,
 			      ulong initrd_end);
@@ -140,9 +137,6 @@ void do_bootm_linux (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[],
 	setup_end_tag (bd);
 #endif
 
-	if (!images->autostart)
-		return ;
-
 	/* we assume that the kernel is in place */
 	printf ("\nStarting kernel ...\n\n");
 
@@ -160,8 +154,7 @@ void do_bootm_linux (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[],
 	return;
 
 error:
-	if (images->autostart)
-		do_reset (cmdtp, flag, argc, argv);
+	do_reset (cmdtp, flag, argc, argv);
 	return;
 }
 

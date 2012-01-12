@@ -240,7 +240,8 @@ static int nand_davinci_compare_ecc(u_int8_t *ecc_nand, u_int8_t *ecc_calc, u_in
 			return 0;
 		case 1:
 			/* Uncorrectable error */
-			DEBUG (MTD_DEBUG_LEVEL0, "ECC UNCORRECTED_ERROR 1\n");
+			MTDDEBUG (MTD_DEBUG_LEVEL0,
+			          "ECC UNCORRECTED_ERROR 1\n");
 			return(-1);
 		case 12:
 			/* Correctable error */
@@ -256,7 +257,9 @@ static int nand_davinci_compare_ecc(u_int8_t *ecc_nand, u_int8_t *ecc_calc, u_in
 
 			find_bit = (ecc_bit[5] << 2) + (ecc_bit[3] << 1) + ecc_bit[1];
 
-			DEBUG (MTD_DEBUG_LEVEL0, "Correcting single bit ECC error at offset: %d, bit: %d\n", find_byte, find_bit);
+			MTDDEBUG (MTD_DEBUG_LEVEL0, "Correcting single bit ECC "
+			          "error at offset: %d, bit: %d\n",
+			          find_byte, find_bit);
 
 			page_data[find_byte] ^= (1 << find_bit);
 
@@ -266,7 +269,8 @@ static int nand_davinci_compare_ecc(u_int8_t *ecc_nand, u_int8_t *ecc_calc, u_in
 				if (ecc_calc[0] == 0 && ecc_calc[1] == 0 && ecc_calc[2] == 0)
 					return(0);
 			}
-			DEBUG (MTD_DEBUG_LEVEL0, "UNCORRECTED_ERROR default\n");
+			MTDDEBUG (MTD_DEBUG_LEVEL0,
+			          "UNCORRECTED_ERROR default\n");
 			return(-1);
 	}
 }
@@ -325,17 +329,17 @@ static void nand_flash_init(void)
 	 *                                                                  *
 	 *------------------------------------------------------------------*/
 	 acfg1 = 0
-	 	| (0 << 31 )	/* selectStrobe */
-	 	| (0 << 30 )	/* extWait */
-	 	| (1 << 26 )	/* writeSetup	10 ns */
-	 	| (3 << 20 )	/* writeStrobe	40 ns */
-	 	| (1 << 17 )	/* writeHold	10 ns */
-	 	| (1 << 13 )	/* readSetup	10 ns */
-	 	| (5 << 7 )	/* readStrobe	60 ns */
-	 	| (1 << 4 )	/* readHold	10 ns */
-	 	| (3 << 2 )	/* turnAround	?? ns */
-	 	| (0 << 0 )	/* asyncSize	8-bit bus */
-	 	;
+		| (0 << 31 )	/* selectStrobe */
+		| (0 << 30 )	/* extWait */
+		| (1 << 26 )	/* writeSetup	10 ns */
+		| (3 << 20 )	/* writeStrobe	40 ns */
+		| (1 << 17 )	/* writeHold	10 ns */
+		| (1 << 13 )	/* readSetup	10 ns */
+		| (5 << 7 )	/* readStrobe	60 ns */
+		| (1 << 4 )	/* readHold	10 ns */
+		| (3 << 2 )	/* turnAround	?? ns */
+		| (0 << 0 )	/* asyncSize	8-bit bus */
+		;
 
 	emif_regs = (emifregs)DAVINCI_ASYNC_EMIF_CNTRL_BASE;
 

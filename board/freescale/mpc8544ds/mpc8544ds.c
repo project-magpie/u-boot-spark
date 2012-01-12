@@ -40,11 +40,6 @@ extern void ddr_enable_ecc(unsigned int dram_size);
 
 void sdram_init(void);
 
-int board_early_init_f (void)
-{
-	return 0;
-}
-
 int checkboard (void)
 {
 	volatile ccsr_gur_t *gur = (void *)(CFG_MPC85xx_GUTS_ADDR);
@@ -52,9 +47,12 @@ int checkboard (void)
 	volatile ccsr_local_ecm_t *ecm = (void *)(CFG_MPC85xx_ECM_ADDR);
 
 	if ((uint)&gur->porpllsr != 0xe00e0000) {
-		printf("immap size error %x\n",&gur->porpllsr);
+		printf("immap size error %lx\n",(ulong)&gur->porpllsr);
 	}
-	printf ("Board: MPC8544DS\n");
+	printf ("Board: MPC8544DS, System ID: 0x%02x, "
+		"System Version: 0x%02x, FPGA Version: 0x%02x\n",
+		in8(PIXIS_BASE + PIXIS_ID), in8(PIXIS_BASE + PIXIS_VER),
+		in8(PIXIS_BASE + PIXIS_PVER));
 
 	lbc->ltesr = 0xffffffff;	/* Clear LBC error interrupts */
 	lbc->lteir = 0xffffffff;	/* Enable LBC error interrupts */
@@ -64,7 +62,7 @@ int checkboard (void)
 	return 0;
 }
 
-long int
+phys_size_t
 initdram(int board_type)
 {
 	long dram_size = 0;
@@ -82,45 +80,6 @@ initdram(int board_type)
 	puts("    DDR: ");
 	return dram_size;
 }
-
-#if defined(CFG_DRAM_TEST)
-int
-testdram(void)
-{
-	uint *pstart = (uint *) CFG_MEMTEST_START;
-	uint *pend = (uint *) CFG_MEMTEST_END;
-	uint *p;
-
-	printf("Testing DRAM from 0x%08x to 0x%08x\n",
-	       CFG_MEMTEST_START,
-	       CFG_MEMTEST_END);
-
-	printf("DRAM test phase 1:\n");
-	for (p = pstart; p < pend; p++)
-		*p = 0xaaaaaaaa;
-
-	for (p = pstart; p < pend; p++) {
-		if (*p != 0xaaaaaaaa) {
-			printf ("DRAM test fails at: %08x\n", (uint) p);
-			return 1;
-		}
-	}
-
-	printf("DRAM test phase 2:\n");
-	for (p = pstart; p < pend; p++)
-		*p = 0x55555555;
-
-	for (p = pstart; p < pend; p++) {
-		if (*p != 0x55555555) {
-			printf ("DRAM test fails at: %08x\n", (uint) p);
-			return 1;
-		}
-	}
-
-	printf("DRAM test passed.\n");
-	return 0;
-}
-#endif
 
 #ifdef CONFIG_PCI1
 static struct pci_controller pci1_hose;

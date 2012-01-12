@@ -80,8 +80,8 @@ static void at91sam9260ek_nand_hw_init(void)
 
 	/* Configure SMC CS3 for NAND/SmartMedia */
 	at91_sys_write(AT91_SMC_SETUP(3),
-		       AT91_SMC_NWESETUP_(0) | AT91_SMC_NCS_WRSETUP_(0) |
-		       AT91_SMC_NRDSETUP_(0) | AT91_SMC_NCS_RDSETUP_(0));
+		       AT91_SMC_NWESETUP_(1) | AT91_SMC_NCS_WRSETUP_(0) |
+		       AT91_SMC_NRDSETUP_(1) | AT91_SMC_NCS_RDSETUP_(0));
 	at91_sys_write(AT91_SMC_PULSE(3),
 		       AT91_SMC_NWEPULSE_(3) | AT91_SMC_NCS_WRPULSE_(3) |
 		       AT91_SMC_NRDPULSE_(3) | AT91_SMC_NCS_RDPULSE_(3));
@@ -90,7 +90,12 @@ static void at91sam9260ek_nand_hw_init(void)
 	at91_sys_write(AT91_SMC_MODE(3),
 		       AT91_SMC_READMODE | AT91_SMC_WRITEMODE |
 		       AT91_SMC_EXNWMODE_DISABLE |
-		       AT91_SMC_DBW_8 | AT91_SMC_TDF_(2));
+#ifdef CFG_NAND_DBW_16
+		       AT91_SMC_DBW_16 |
+#else /* CFG_NAND_DBW_8 */
+		       AT91_SMC_DBW_8 |
+#endif
+		       AT91_SMC_TDF_(2));
 
 	at91_sys_write(AT91_PMC_PCER, 1 << AT91SAM9260_ID_PIOC);
 
@@ -126,7 +131,7 @@ static void at91sam9260ek_macb_hw_init(void)
 	/*
 	 * Disable pull-up on:
 	 *	RXDV (PA17) => PHY normal mode (not Test mode)
-	 * 	ERX0 (PA14) => PHY ADDR0
+	 *	ERX0 (PA14) => PHY ADDR0
 	 *	ERX1 (PA15) => PHY ADDR1
 	 *	ERX2 (PA25) => PHY ADDR2
 	 *	ERX3 (PA26) => PHY ADDR3
@@ -144,7 +149,7 @@ static void at91sam9260ek_macb_hw_init(void)
 
 	/* Need to reset PHY -> 500ms reset */
 	at91_sys_write(AT91_RSTC_MR, AT91_RSTC_KEY |
-				     AT91_RSTC_ERSTL | (0x0D << 8) |
+				     (AT91_RSTC_ERSTL & (0x0D << 8)) |
 				     AT91_RSTC_URSTEN);
 
 	at91_sys_write(AT91_RSTC_CR, AT91_RSTC_KEY | AT91_RSTC_EXTRST);
@@ -154,7 +159,7 @@ static void at91sam9260ek_macb_hw_init(void)
 
 	/* Restore NRST value */
 	at91_sys_write(AT91_RSTC_MR, AT91_RSTC_KEY |
-				     AT91_RSTC_ERSTL | (0x0 << 8) |
+				     (AT91_RSTC_ERSTL & (0x0 << 8)) |
 				     AT91_RSTC_URSTEN);
 
 	/* Re-enable pull-up */
@@ -183,8 +188,17 @@ static void at91sam9260ek_macb_hw_init(void)
 	at91_set_B_periph(AT91_PIN_PA25, 0);	/* ERX2 */
 	at91_set_B_periph(AT91_PIN_PA26, 0);	/* ERX3 */
 	at91_set_B_periph(AT91_PIN_PA27, 0);	/* ERXCK */
+#if defined(CONFIG_AT91SAM9260EK)
+	/*
+	 * use PA10, PA11 for ETX2, ETX3.
+	 * PA23 and PA24 are for TWI EEPROM
+	 */
+	at91_set_B_periph(AT91_PIN_PA10, 0);	/* ETX2 */
+	at91_set_B_periph(AT91_PIN_PA11, 0);	/* ETX3 */
+#else
 	at91_set_B_periph(AT91_PIN_PA23, 0);	/* ETX2 */
 	at91_set_B_periph(AT91_PIN_PA24, 0);	/* ETX3 */
+#endif
 	at91_set_B_periph(AT91_PIN_PA22, 0);	/* ETXER */
 #endif
 

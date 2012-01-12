@@ -26,6 +26,9 @@
 #include <asm/bitops.h>
 #include <command.h>
 #include <fdt_support.h>
+#ifdef CONFIG_MISC_INIT_R
+#include <i2c.h>
+#endif
 
 /* Clocks in use */
 #define SCCR1_CLOCKS_EN	(CLOCK_SCCR1_CFG_EN |				\
@@ -39,6 +42,7 @@
 
 #define SCCR2_CLOCKS_EN	(CLOCK_SCCR2_MEM_EN |		\
 			 CLOCK_SCCR2_SPDIF_EN |		\
+			 CLOCK_SCCR2_DIU_EN |		\
 			 CLOCK_SCCR2_I2C_EN)
 
 #define CSAW_START(start)	((start) & 0xFFFF0000)
@@ -73,8 +77,21 @@ int board_early_init_f (void)
 	 * Without this the flash identification routine fails, as it needs to issue
 	 * write commands in order to establish the device ID.
 	 */
-	*((volatile u8 *)(CFG_CPLD_BASE + 0x08)) = 0xC1;
 
+#ifdef CONFIG_ADS5121_REV2
+	*((volatile u8 *)(CFG_CPLD_BASE + 0x08)) = 0xC1;
+#else
+	if (*((u8 *)(CFG_CPLD_BASE + 0x08)) & 0x04) {
+		*((volatile u8 *)(CFG_CPLD_BASE + 0x08)) = 0xC1;
+	} else {
+		/* running from Backup flash */
+		*((volatile u8 *)(CFG_CPLD_BASE + 0x08)) = 0x32;
+	}
+#endif
+	/*
+	 * Configure Flash Speed
+	 */
+	*((volatile u32 *)(CFG_IMMR + LPC_OFFSET + CS0_CONFIG)) = CFG_CS0_CFG;
 	/*
 	 * Enable clocks
 	 */
@@ -84,7 +101,7 @@ int board_early_init_f (void)
 	return 0;
 }
 
-long int initdram (int board_type)
+phys_size_t initdram (int board_type)
 {
 	u32 msize = 0;
 
@@ -105,7 +122,7 @@ long int fixed_sdram (void)
 	u32 i;
 
 	/* Initialize IO Control */
-	im->io_ctrl.regs[MEM_IDX] = IOCTRL_MUX_DDR;
+	im->io_ctrl.regs[IOCTL_MEM/4] = IOCTRL_MUX_DDR;
 
 	/* Initialize DDR Local Window */
 	im->sysconf.ddrlaw.bar = CFG_DDR_BASE & 0xFFFFF000;
@@ -186,21 +203,101 @@ long int fixed_sdram (void)
 	return msize;
 }
 
+int misc_init_r(void)
+{
+	u8 tmp_val;
+	extern int ads5121_diu_init(void);
+
+	/* Using this for DIU init before the driver in linux takes over
+	 *  Enable the TFP410 Encoder (I2C address 0x38)
+	 */
+
+	i2c_set_bus_num(2);
+	tmp_val = 0xBF;
+	i2c_write(0x38, 0x08, 1, &tmp_val, sizeof(tmp_val));
+	/* Verify if enabled */
+	tmp_val = 0;
+	i2c_read(0x38, 0x08, 1, &tmp_val, sizeof(tmp_val));
+	debug("DVI Encoder Read: 0x%02lx\n", tmp_val);
+
+	tmp_val = 0x10;
+	i2c_write(0x38, 0x0A, 1, &tmp_val, sizeof(tmp_val));
+	/* Verify if enabled */
+	tmp_val = 0;
+	i2c_read(0x38, 0x0A, 1, &tmp_val, sizeof(tmp_val));
+	debug("DVI Encoder Read: 0x%02lx\n", tmp_val);
+
+#ifdef CONFIG_FSL_DIU_FB
+#if	!(defined(CONFIG_VIDEO) || defined(CONFIG_CFB_CONSOLE))
+	ads5121_diu_init();
+#endif
+#endif
+
+	return 0;
+}
+static  iopin_t ioregs_init[] = {
+	/* FUNC1=FEC_RX_DV Sets Next 3 to FEC pads */
+	{
+		IOCTL_SPDIF_TXCLK, 3, 0,
+		IO_PIN_FMUX(1) | IO_PIN_HOLD(0) | IO_PIN_PUD(0) |
+		IO_PIN_PUE(0) | IO_PIN_ST(0) | IO_PIN_DS(3)
+	},
+	/* Set highest Slew on 9 PATA pins */
+	{
+		IOCTL_PATA_CE1, 9, 1,
+		IO_PIN_FMUX(0) | IO_PIN_HOLD(0) | IO_PIN_PUD(0) |
+		IO_PIN_PUE(0) | IO_PIN_ST(0) | IO_PIN_DS(3)
+	},
+	/* FUNC1=FEC_COL Sets Next 15 to FEC pads */
+	{
+		IOCTL_PSC0_0, 15, 0,
+		IO_PIN_FMUX(1) | IO_PIN_HOLD(0) | IO_PIN_PUD(0) |
+		IO_PIN_PUE(0) | IO_PIN_ST(0) | IO_PIN_DS(3)
+	},
+	/* FUNC1=SPDIF_TXCLK */
+	{
+		IOCTL_LPC_CS1, 1, 0,
+		IO_PIN_FMUX(1) | IO_PIN_HOLD(0) | IO_PIN_PUD(0) |
+		IO_PIN_PUE(0) | IO_PIN_ST(1) | IO_PIN_DS(3)
+	},
+	/* FUNC2=SPDIF_TX and sets Next pin to SPDIF_RX */
+	{
+		IOCTL_I2C1_SCL, 2, 0,
+		IO_PIN_FMUX(2) | IO_PIN_HOLD(0) | IO_PIN_PUD(0) |
+		IO_PIN_PUE(0) | IO_PIN_ST(1) | IO_PIN_DS(3)
+	},
+	/* FUNC2=DIU CLK */
+	{
+		IOCTL_PSC6_0, 1, 0,
+		IO_PIN_FMUX(2) | IO_PIN_HOLD(0) | IO_PIN_PUD(0) |
+		IO_PIN_PUE(0) | IO_PIN_ST(1) | IO_PIN_DS(3)
+	},
+	/* FUNC2=DIU_HSYNC */
+	{
+		IOCTL_PSC6_1, 1, 0,
+		IO_PIN_FMUX(2) | IO_PIN_HOLD(0) | IO_PIN_PUD(0) |
+		IO_PIN_PUE(0) | IO_PIN_ST(0) | IO_PIN_DS(3)
+	},
+	/* FUNC2=DIUVSYNC Sets Next 26 to DIU Pads */
+	{
+		IOCTL_PSC6_4, 26, 0,
+		IO_PIN_FMUX(2) | IO_PIN_HOLD(0) | IO_PIN_PUD(0) |
+		IO_PIN_PUE(0) | IO_PIN_ST(0) | IO_PIN_DS(3)
+	}
+};
+
 int checkboard (void)
 {
 	ushort brd_rev = *(vu_short *) (CFG_CPLD_BASE + 0x00);
 	uchar cpld_rev = *(vu_char *) (CFG_CPLD_BASE + 0x02);
-	volatile immap_t *im = (immap_t *) CFG_IMMR;
-	volatile unsigned long *reg;
-	int i;
 
 	printf ("Board: ADS5121 rev. 0x%04x (CPLD rev. 0x%02x)\n",
 		brd_rev, cpld_rev);
+	/* initialize function mux & slew rate IO inter alia on IO Pins  */
 
-	/* change the slew rate on all pata pins to max */
-	reg = (unsigned long *) &(im->io_ctrl.regs[PATA_CE1_IDX]);
-	for (i = 0; i < 9; i++)
-		reg[i] |= 0x00000003;
+
+	iopin_initialize(ioregs_init, sizeof(ioregs_init) / sizeof(ioregs_init[0]));
+
 	return 0;
 }
 

@@ -44,9 +44,6 @@ tested on both gig copper and gig fiber boards
 
 #include "e1000.h"
 
-#if defined(CONFIG_CMD_NET) \
-	&& defined(CONFIG_NET_MULTI) && defined(CONFIG_E1000)
-
 #define TOUT_LOOP   100000
 
 #undef	virt_to_bus
@@ -78,11 +75,13 @@ static struct pci_device_id supported[] = {
 	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82544GC_LOM},
 	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82540EM},
 	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82545EM_COPPER},
+	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82545GM_COPPER},
 	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82546EB_COPPER},
 	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82545EM_FIBER},
 	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82546EB_FIBER},
 	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82540EM_LOM},
 	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82541ER},
+	{PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82541GI_LF},
 };
 
 /* Function forward declarations */
@@ -514,9 +513,11 @@ e1000_read_mac_addr(struct eth_device *nic)
 		nic->enetaddr[5] += 1;
 	}
 #ifdef CONFIG_E1000_FALLBACK_MAC
-	if ( *(u32*)(nic->enetaddr) == 0 || *(u32*)(nic->enetaddr) == ~0 )
-		for ( i=0; i < NODE_ADDRESS_SIZE; i++ )
-			nic->enetaddr[i] = (CONFIG_E1000_FALLBACK_MAC >> (8*(5-i))) & 0xff;
+	if ( *(u32*)(nic->enetaddr) == 0 || *(u32*)(nic->enetaddr) == ~0 ) {
+		unsigned char fb_mac[NODE_ADDRESS_SIZE] = CONFIG_E1000_FALLBACK_MAC;
+
+		memcpy (nic->enetaddr, fb_mac, NODE_ADDRESS_SIZE);
+	}
 #endif
 #else
 	/*
@@ -532,10 +533,9 @@ e1000_read_mac_addr(struct eth_device *nic)
 	DEBUGFUNC();
 
 	s = getenv ("ethaddr");
-	if (s == NULL){
+	if (s == NULL) {
 		return -E1000_ERR_EEPROM;
-	}
-	else{
+	} else {
 		for(ii = 0; ii < 6; ii++) {
 			nic->enetaddr[ii] = s ? simple_strtoul (s, &e, 16) : 0;
 			if (s){
@@ -638,6 +638,7 @@ e1000_set_mac_type(struct e1000_hw *hw)
 		hw->mac_type = e1000_82540;
 		break;
 	case E1000_DEV_ID_82545EM_COPPER:
+	case E1000_DEV_ID_82545GM_COPPER:
 	case E1000_DEV_ID_82545EM_FIBER:
 		hw->mac_type = e1000_82545;
 		break;
@@ -646,6 +647,7 @@ e1000_set_mac_type(struct e1000_hw *hw)
 		hw->mac_type = e1000_82546;
 		break;
 	case E1000_DEV_ID_82541ER:
+	case E1000_DEV_ID_82541GI_LF:
 		hw->mac_type = e1000_82541_rev_2;
 		break;
 	default:
@@ -3059,5 +3061,3 @@ e1000_initialize(bd_t * bis)
 	}
 	return 1;
 }
-
-#endif

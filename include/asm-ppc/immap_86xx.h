@@ -119,7 +119,7 @@ typedef struct ccsr_ddr {
 	uint    sdram_mode_2;		/* 0x211c - DDR SDRAM Mode Configuration 2 */
 	uint    sdram_mode_cntl;        /* 0x2120 - DDR SDRAM Mode Control */
 	uint	sdram_interval;		/* 0x2124 - DDR SDRAM Interval Configuration */
-	uint    sdram_data_init; 	/* 0x2128 - DDR SDRAM Data Initialization */
+	uint    sdram_data_init;	/* 0x2128 - DDR SDRAM Data Initialization */
 	char	res8[4];
 	uint	sdram_clk_cntl;		/* 0x2130 - DDR SDRAM Clock Control */
 	char    res9[12];
@@ -464,7 +464,7 @@ typedef struct ccsr_dma {
 
 /* tsec1-4: 24000-28000 */
 typedef struct ccsr_tsec {
-	uint    id; 		/* 0x24000 - Controller ID Register */
+	uint    id;		/* 0x24000 - Controller ID Register */
 	char	res1[12];
 	uint	ievent;		/* 0x24010 - Interrupt Event Register */
 	uint	imask;		/* 0x24014 - Interrupt Mask Register */
@@ -538,7 +538,7 @@ typedef struct ccsr_tsec {
 	uint    rbifx;		/* 0x24330 - Receive bit field extract control Register */
 	uint    rqfar;		/* 0x24334 - Receive queue filing table address Register */
 	uint    rqfcr;		/* 0x24338 - Receive queue filing table control Register */
-	uint    rqfpr;      	/* 0x2433c - Receive queue filing table property Register */
+	uint    rqfpr;		/* 0x2433c - Receive queue filing table property Register */
 	uint	mrblr;		/* 0x24340 - Maximum Receive Buffer Length Register */
 	char	res28[56];
 	uint    rbdbph;		/* 0x2437C - Receive Data Buffer Pointer High */
@@ -1304,8 +1304,20 @@ typedef struct ccsr_gur {
 	uint    lynxdcr1;        /* 0xe0f08 - Lynx debug control register 1*/
 	int     res14[6];
 	uint    ddrioovcr;      /* 0xe0f24 - DDR IO Overdrive Control register */
-	char	res15[61656];
+	char	res15[216];
 } ccsr_gur_t;
+
+/*
+ * Watchdog register block(0xe_4000-0xe_4fff)
+ */
+typedef struct ccsr_wdt {
+	uint	res0;
+	uint	swcrr; /* System watchdog control register */
+	uint	swcnr; /* System watchdog count register */
+	char	res1[2];
+	ushort	swsrr; /* System watchdog service register */
+	char	res2[4080];
+} ccsr_wdt_t;
 
 typedef struct immap {
 	ccsr_local_mcm_t	im_local_mcm;
@@ -1330,6 +1342,8 @@ typedef struct immap {
 	char                    res5[389120];
 	ccsr_rio_t		im_rio;
 	ccsr_gur_t		im_gur;
+	char			res6[12288];
+	ccsr_wdt_t		im_wdt;
 } immap_t;
 
 extern immap_t  *immr;

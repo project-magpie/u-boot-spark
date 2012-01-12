@@ -54,6 +54,7 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	char	*commandline = getenv ("bootargs");
 	char	env_buf[12];
 	int	ret;
+	char	*cp;
 
 	/* find kernel entry point */
 	if (images->legacy_hdr_valid) {
@@ -88,15 +89,11 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	linux_params_init (UNCACHED_SDRAM (gd->bd->bi_boot_params), commandline);
 
 #ifdef CONFIG_MEMSIZE_IN_BYTES
-	sprintf (env_buf, "%lu", gd->ram_size);
-#ifdef DEBUG
-	printf ("## Giving linux memsize in bytes, %lu\n", gd->ram_size);
-#endif
+	sprintf (env_buf, "%lu", (ulong)gd->ram_size);
+	debug ("## Giving linux memsize in bytes, %lu\n", (ulong)gd->ram_size);
 #else
-	sprintf (env_buf, "%lu", gd->ram_size >> 20);
-#ifdef DEBUG
-	printf ("## Giving linux memsize in MB, %lu\n", gd->ram_size >> 20);
-#endif
+	sprintf (env_buf, "%lu", (ulong)(gd->ram_size >> 20));
+	debug ("## Giving linux memsize in MB, %lu\n", (ulong)(gd->ram_size >> 20));
 #endif /* CONFIG_MEMSIZE_IN_BYTES */
 
 	linux_env_set ("memsize", env_buf);
@@ -113,8 +110,15 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	sprintf (env_buf, "0x%X", (uint) (gd->bd->bi_flashsize));
 	linux_env_set ("flash_size", env_buf);
 
-	if (!images->autostart)
-		return ;
+	cp = getenv("ethaddr");
+	if (cp != NULL) {
+		linux_env_set("ethaddr", cp);
+	}
+
+	cp = getenv("eth1addr");
+	if (cp != NULL) {
+		linux_env_set("eth1addr", cp);
+	}
 
 	/* we assume that the kernel is in place */
 	printf ("\nStarting kernel ...\n\n");
@@ -124,8 +128,7 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	return;
 
 error:
-	if (images->autostart)
-		do_reset (cmdtp, flag, argc, argv);
+	do_reset (cmdtp, flag, argc, argv);
 	return;
 }
 

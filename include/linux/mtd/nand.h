@@ -76,7 +76,10 @@ extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t *
 /* This constant declares the max. oobsize / page, which
  * is supported now. If you add a chip with bigger oobsize/page
  * adjust this accordingly.
+ * max oobfree is the max. number of "free" regions/areas
+ * in the OOB area.
  */
+#define NAND_MAX_OOBFREE	16	/* 16 regions for STMicroelectronics SoCs */
 #define NAND_MAX_OOBSIZE	64
 #define NAND_MAX_PAGESIZE	2048
 
@@ -402,6 +405,10 @@ struct nand_manufacturers {
 
 extern struct nand_flash_dev nand_flash_ids[];
 extern struct nand_manufacturers nand_manuf_ids[];
+
+#ifndef NAND_MAX_CHIPS
+#define NAND_MAX_CHIPS 8
+#endif
 
 /**
  * struct nand_bbt_descr - bad block table descriptor

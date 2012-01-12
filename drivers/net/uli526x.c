@@ -22,9 +22,6 @@
 
 /* some kernel function compatible define */
 
-#if defined(CONFIG_CMD_NET) && defined(CONFIG_NET_MULTI) && \
-	defined(CONFIG_ULI526X)
-
 #undef DEBUG
 
 /* Board/System/Debug information/definition */
@@ -412,7 +409,7 @@ static void uli526x_init(struct eth_device *dev)
 	}
 	/* Media Mode Process */
 	if (!(db->media_mode & ULI526X_AUTO))
-		db->op_mode = db->media_mode; 	/* Force Mode */
+		db->op_mode = db->media_mode;	/* Force Mode */
 
 	/* Initialize Transmit/Receive decriptor and CR3/4 */
 	uli526x_descriptor_init(db, db->ioaddr);
@@ -566,7 +563,7 @@ static int uli526x_rx_packet(struct eth_device *dev)
 			/* error summary bit check */
 			if (rdes0 & 0x8000) {
 				/* This is a error packet */
-				printf("Eroor: rdes0: %lx\n", rdes0);
+				printf("Error: rdes0: %x\n", rdes0);
 			}
 
 			if (!(rdes0 & 0x8000) ||
@@ -993,4 +990,3 @@ static void set_mac_addr(struct eth_device *dev)
 	udelay(10);
 	return;
 }
-#endif

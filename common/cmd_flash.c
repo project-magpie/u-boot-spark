@@ -210,7 +210,7 @@ flash_fill_sect_ranges (ulong addr_first, ulong addr_last,
 		s_last [bank] = -1;	/* last  sector to erase	*/
 	}
 
-	for (bank=0,info=&flash_info[0];
+	for (bank=0,info = &flash_info[0];
 	     (bank < CFG_MAX_FLASH_BANKS) && (addr_first <= addr_last);
 	     ++bank, ++info) {
 		ulong b_end;
@@ -342,7 +342,7 @@ int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			puts ("Bad sector specification\n");
 			return 1;
 		}
-		printf ("Erase Flash Sectors %d-%d in Bank # %d ",
+		printf ("Erase Flash Sectors %d-%d in Bank # %zu ",
 			sect_first, sect_last, (info-flash_info)+1);
 		rcode = flash_erase(info, sect_first, sect_last);
 		return rcode;
@@ -360,7 +360,7 @@ int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				addr_last = addr_first + part->size - 1;
 
 				printf ("Erase Flash Parition %s, "
-						"bank %d, 0x%08lx - 0x%08lx ",
+						"bank %ld, 0x%08lx - 0x%08lx ",
 						argv[1], bank, addr_first,
 						addr_last);
 
@@ -427,7 +427,7 @@ int flash_sect_erase (ulong addr_first, ulong addr_last)
 					s_first, s_last, &planned );
 
 	if (planned && (rcode == 0)) {
-		for (bank=0,info=&flash_info[0];
+		for (bank=0,info = &flash_info[0];
 		     (bank < CFG_MAX_FLASH_BANKS) && (rcode == 0);
 		     ++bank, ++info) {
 			if (s_first[bank]>=0) {
@@ -534,7 +534,7 @@ int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			puts ("Bad sector specification\n");
 			return 1;
 		}
-		printf("%sProtect Flash Sectors %d-%d in Bank # %d\n",
+		printf("%sProtect Flash Sectors %d-%d in Bank # %zu\n",
 			p ? "" : "Un-", sect_first, sect_last,
 			(info-flash_info)+1);
 		for (i = sect_first; i <= sect_last; i++) {
@@ -566,7 +566,7 @@ int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				addr_last = addr_first + part->size - 1;
 
 				printf ("%sProtect Flash Parition %s, "
-						"bank %d, 0x%08lx - 0x%08lx\n",
+						"bank %ld, 0x%08lx - 0x%08lx\n",
 						p ? "" : "Un", argv[1],
 						bank, addr_first, addr_last);
 
@@ -651,7 +651,7 @@ int flash_sect_protect (int p, ulong addr_first, ulong addr_last)
 	protected = 0;
 
 	if (planned && (rcode == 0)) {
-		for (bank=0,info=&flash_info[0]; bank < CFG_MAX_FLASH_BANKS; ++bank, ++info) {
+		for (bank=0,info = &flash_info[0]; bank < CFG_MAX_FLASH_BANKS; ++bank, ++info) {
 			if (info->flash_id == FLASH_UNKNOWN) {
 				continue;
 			}

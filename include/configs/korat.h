@@ -129,7 +129,7 @@
 
 #define CFG_ENV_SECT_SIZE	0x20000	/* size of one complete sector	      */
 #define CFG_ENV_ADDR		(CFG_FLASH1_TOP - CFG_ENV_SECT_SIZE)
-#define	CFG_ENV_SIZE		0x2000	/* Total Size of Environment Sector   */
+#define CFG_ENV_SIZE		0x2000	/* Total Size of Environment Sector   */
 
 /* Address and size of Redundant Environment Sector */
 #define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR - CFG_ENV_SECT_SIZE)
@@ -145,7 +145,6 @@
 #define CONFIG_DDR_ECC			/* Use ECC when available	*/
 #define SPD_EEPROM_ADDRESS	{0x50}
 #define CONFIG_PROG_SDRAM_TLB
-#define CFG_DRAM_TEST
 #define CFG_MEM_TOP_HIDE	(4 << 10) /* don't use last 4kbytes	*/
 					/* 440EPx errata CHIP 11	*/
 
@@ -185,7 +184,7 @@
 #define CFG_ROOTPATH		"rootpath=/opt/eldk/ppc_4xxFP\0"
 
 /* Note: kernel_addr and ramdisk_addr assume that FLASH1 is 64 MiB. */
-#define	CONFIG_EXTRA_ENV_SETTINGS					\
+#define CONFIG_EXTRA_ENV_SETTINGS					\
 	CFG_BOOTFILE							\
 	CFG_ROOTPATH							\
 	"netdev=eth0\0"							\
@@ -216,7 +215,7 @@
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download	*/
 #define CFG_LOADS_BAUD_CHANGE	1	/* allow baudrate change	*/
 
-#define	CONFIG_IBM_EMAC4_V4	1
+#define CONFIG_IBM_EMAC4_V4	1
 #define CONFIG_MII		1	/* MII PHY management		*/
 #define CONFIG_PHY_ADDR		2	/* PHY address, See schematics	*/
 #define CONFIG_PHY_DYNAMIC_ANEG	1
@@ -225,7 +224,7 @@
 #define CONFIG_PHY_GIGE		1	/* Include GbE speed/duplex detection */
 
 #define CONFIG_HAS_ETH0
-#define CFG_RX_ETH_BUFFER	32	/* Number of ethernet rx 	*/
+#define CFG_RX_ETH_BUFFER	32	/* Number of ethernet rx	*/
 					/*   buffers & descriptors	*/
 #define CONFIG_NET_MULTI	1
 #define CONFIG_HAS_ETH1		1	/* add support for "eth1addr"	*/
@@ -308,7 +307,7 @@
 #define CFG_CBSIZE	        256	/* Console I/O Buffer Size	*/
 #endif
 #define CFG_PBSIZE              (CFG_CBSIZE+sizeof(CFG_PROMPT)+16)
-					/* Print Buffer Size 		*/
+					/* Print Buffer Size		*/
 #define CFG_MAXARGS	        16	/* max number of command args	*/
 #define CFG_BARGSIZE	        CFG_CBSIZE /* Boot Argument Buffer Size	*/
 
@@ -339,7 +338,7 @@
 #define CONFIG_PCI_PNP			/* do pci plug-and-play		*/
 #define CFG_PCI_CACHE_LINE_SIZE	0	/* to avoid problems with PNP	*/
 #define CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup	*/
-#define CFG_PCI_TARGBASE	0x80000000 	/* PCIaddr mapped to	*/
+#define CFG_PCI_TARGBASE	0x80000000	/* PCIaddr mapped to	*/
 						/*   CFG_PCI_MEMBASE	*/
 /* Board-specific PCI */
 #define CFG_PCI_TARGET_INIT
@@ -547,5 +546,9 @@
 #define CONFIG_KGDB_BAUDRATE	230400 /* speed to run kgdb serial port	*/
 #define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use	*/
 #endif
+
+/* Pass open firmware flat tree */
+#define CONFIG_OF_LIBFDT	1
+#define CONFIG_OF_BOARD_SETUP	1
 
 #endif /* __CONFIG_H */

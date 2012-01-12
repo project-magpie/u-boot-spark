@@ -165,8 +165,8 @@ int board_early_init_f (void)
 		printf ("Invalid DDR2 clock setting\n");
 		return -1;
 	}
-	printf ("BUS: %d MHz\n", get_board_bus_clk() / 1000000);
-	printf ("MEM: %d MHz\n", gd->mem_clk / 1000000);
+	printf ("BUS: %lu MHz\n", get_board_bus_clk() / 1000000);
+	printf ("MEM: %lu MHz\n", gd->mem_clk / 1000000);
 	return 0;
 }
 
@@ -616,14 +616,14 @@ int misc_init_r (void)
 		0x802e0044);	/* D=0.25% */
 	out32 (CFG_TSI108_CSR_BASE +
 		TSI108_CLK_REG_OFFSET + CG_PLL0_CTRL0,
-	 	0x80000000 | pll0_config[i].ctrl0);
+		0x80000000 | pll0_config[i].ctrl0);
 #endif	/* CFG_CLK_SPREAD */
 
 #ifdef CFG_L2
 	l2cache_enable ();
 #endif
-	printf ("BUS:   %d MHz\n", gd->bus_clk / 1000000);
-	printf ("MEM:   %d MHz\n", gd->mem_clk / 1000000);
+	printf ("BUS:   %lu MHz\n", gd->bus_clk / 1000000);
+	printf ("MEM:   %lu MHz\n", gd->mem_clk / 1000000);
 
 	/*
 	 * All the information needed to print the cache details is avaiblable

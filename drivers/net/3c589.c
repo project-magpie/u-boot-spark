@@ -26,8 +26,6 @@
 #include <command.h>
 #include <net.h>
 
-#ifdef CONFIG_DRIVER_3C589
-
 #include "3c589.h"
 
 
@@ -99,7 +97,7 @@ typedef unsigned long int dword;
 				})
 
 #define insw(args...)	mmio_insw(args)
-#define mmio_insw(r,b,l) 	({	int __i ;  \
+#define mmio_insw(r,b,l)	({	int __i ;  \
 					word *__b2;  \
 					__b2 = (word *) b;  \
 					for (__i = 0; __i < l; __i++) {  \
@@ -154,8 +152,8 @@ enum RxFilter {
 /* Register window 1 offsets, the window used in normal operation. */
 #define TX_FIFO		0x00
 #define RX_FIFO		0x00
-#define RX_STATUS 	0x08
-#define TX_STATUS 	0x0B
+#define RX_STATUS	0x08
+#define TX_STATUS	0x0B
 #define TX_FREE		0x0C	/* Remaining free bytes in Tx buffer. */
 
 
@@ -514,6 +512,3 @@ int eth_send(volatile void *packet, int length) {
 
 	return length;
 }
-
-
-#endif /* CONFIG_DRIVER_3C589 */

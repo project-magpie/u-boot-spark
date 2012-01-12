@@ -51,6 +51,9 @@ typedef	struct	global_data {
 	unsigned long	cpm_clk;
 	unsigned long	scc_clk;
 	unsigned long	brg_clk;
+#ifdef CONFIG_PCI
+	unsigned long	pci_clk;
+#endif
 #endif
 	unsigned long   mem_clk;
 #if defined(CONFIG_MPC83XX)
@@ -96,6 +99,9 @@ typedef	struct	global_data {
 	uint mp_alloc_base;
 	uint mp_alloc_top;
 #endif /* CONFIG_QE */
+#if defined(CONFIG_FSL_LAW)
+	u32 used_laws;
+#endif
 #if defined(CONFIG_MPC5xxx)
 	unsigned long	ipb_clk;
 	unsigned long	pci_clk;
@@ -113,7 +119,7 @@ typedef	struct	global_data {
 	unsigned long   pev_clk;
 	unsigned long   flb_clk;
 #endif
-	unsigned long	ram_size;	/* RAM size */
+	phys_size_t	ram_size;	/* RAM size */
 	unsigned long	reloc_off;	/* Relocation Offset */
 	unsigned long	reset_status;	/* reset status register at boot	*/
 	unsigned long	env_addr;	/* Address  of Environment struct	*/
@@ -168,6 +174,8 @@ typedef	struct	global_data {
 #define	GD_FLG_DEVINIT	0x00002		/* Devices have been initialized	*/
 #define	GD_FLG_SILENT	0x00004		/* Silent mode				*/
 #define	GD_FLG_POSTFAIL	0x00008		/* Critical POST test failed		*/
+#define	GD_FLG_POSTSTOP	0x00010		/* POST seqeunce aborted		*/
+#define	GD_FLG_LOGINIT	0x00020		/* Log Buffer has been initialized	*/
 
 #if 1
 #define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r2")

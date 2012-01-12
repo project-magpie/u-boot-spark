@@ -258,36 +258,6 @@ u32 ddr_clktr(u32 default_val) {
 	return (SDRAM_CLKTR_CLKP_90_DEG_ADV);
 }
 
-#if defined(CFG_DRAM_TEST)
-int testdram (void)
-{
-	uint *pstart = (uint *) 0x00000000;
-	uint *pend = (uint *) 0x08000000;
-	uint *p;
-
-	for (p = pstart; p < pend; p++)
-		*p = 0xaaaaaaaa;
-
-	for (p = pstart; p < pend; p++) {
-		if (*p != 0xaaaaaaaa) {
-			printf ("SDRAM test fails at: %08x\n", (uint) p);
-			return 1;
-		}
-	}
-
-	for (p = pstart; p < pend; p++)
-		*p = 0x55555555;
-
-	for (p = pstart; p < pend; p++) {
-		if (*p != 0x55555555) {
-			printf ("SDRAM test fails at: %08x\n", (uint) p);
-			return 1;
-		}
-	}
-	return 0;
-}
-#endif
-
 /*************************************************************************
  *  pci_pre_init
  *
@@ -441,27 +411,27 @@ void pcie_setup_hoses(int busno)
 		pci_register_hose(hose);
 
 		if (is_end_point(i)) {
-		    	ppc4xx_setup_pcie_endpoint(hose, i);
+			ppc4xx_setup_pcie_endpoint(hose, i);
 			/*
 			 * Reson for no scanning is endpoint can not generate
 			 * upstream configuration accesses.
-		    	 */
+			 */
 		} else {
-		    	ppc4xx_setup_pcie_rootpoint(hose, i);
+			ppc4xx_setup_pcie_rootpoint(hose, i);
 			env = getenv ("pciscandelay");
-		    	if (env != NULL) {
-			    	delay = simple_strtoul(env, NULL, 10);
+			if (env != NULL) {
+				delay = simple_strtoul(env, NULL, 10);
 				if (delay > 5)
-				    	printf("Warning, expect noticable delay before "
+					printf("Warning, expect noticable delay before "
 					       "PCIe scan due to 'pciscandelay' value!\n");
 				mdelay(delay * 1000);
 			}
 
-		    	/*
-		     	 * Config access can only go down stream
-		     	 */
-		    	hose->last_busno = pci_hose_scan(hose);
-		    	bus = hose->last_busno + 1;
+			/*
+			 * Config access can only go down stream
+			 */
+			hose->last_busno = pci_hose_scan(hose);
+			bus = hose->last_busno + 1;
 		}
 	}
 }
@@ -547,24 +517,3 @@ int post_hotkeys_pressed(void)
 	return (ctrlc());
 }
 #endif
-
-#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
-void ft_board_setup(void *blob, bd_t *bd)
-{
-	u32 val[4];
-	int rc;
-
-	ft_cpu_setup(blob, bd);
-
-	/* Fixup NOR mapping */
-	val[0] = 0;				/* chip select number */
-	val[1] = 0;				/* always 0 */
-	val[2] = gd->bd->bi_flashstart;
-	val[3] = gd->bd->bi_flashsize;
-	rc = fdt_find_and_setprop(blob, "/plb/opb/ebc", "ranges",
-				  val, sizeof(val), 1);
-	if (rc)
-		printf("Unable to update property NOR mapping, err=%s\n",
-		       fdt_strerror(rc));
-}
-#endif /* defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP) */

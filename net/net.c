@@ -169,7 +169,7 @@ ushort		NetOurNativeVLAN = 0xFFFF;	/* ditto			*/
 char		BootFile[128];		/* Boot File name			*/
 
 #if defined(CONFIG_CMD_PING)
-IPaddr_t	NetPingIP;		/* the ip address to ping 		*/
+IPaddr_t	NetPingIP;		/* the ip address to ping		*/
 
 static void PingStart(void);
 #endif
@@ -207,7 +207,7 @@ IPaddr_t	NetArpWaitReplyIP;
 uchar	       *NetArpWaitPacketMAC;	/* MAC address of waiting packet's destination	*/
 uchar	       *NetArpWaitTxPacket;	/* THE transmit packet			*/
 int		NetArpWaitTxPacketSize;
-uchar 		NetArpWaitPacketBuf[PKTSIZE_ALIGN + PKTALIGN];
+uchar		NetArpWaitPacketBuf[PKTSIZE_ALIGN + PKTALIGN];
 ulong		NetArpWaitTimerStart;
 int		NetArpWaitTry;
 
@@ -751,7 +751,7 @@ int PingSend(void)
 	s = &ip->udp_src;		/* XXX ICMP starts here */
 	s[0] = htons(0x0800);		/* echo-request, code */
 	s[1] = 0;			/* checksum */
-	s[2] = 0; 			/* identifier */
+	s[2] = 0;			/* identifier */
 	s[3] = htons(PingSeqNo++);	/* sequence number */
 	s[1] = ~NetCksum((uchar *)s, 8/2);
 
@@ -1390,7 +1390,7 @@ NetReceive(volatile uchar * inpkt, int len)
 		puts ("Got IP\n");
 #endif
 		if (len < IP_HDR_SIZE) {
-			debug ("len bad %d < %d\n", len, IP_HDR_SIZE);
+			debug ("len bad %d < %lu\n", len, (ulong)IP_HDR_SIZE);
 			return;
 		}
 		if (len < ntohs(ip->ip_len)) {
@@ -1405,6 +1405,10 @@ NetReceive(volatile uchar * inpkt, int len)
 			return;
 		}
 		if (ip->ip_off & htons(0x1fff)) { /* Can't deal w/ fragments */
+			return;
+		}
+		/* can't deal with headers > 20 bytes */
+		if ((ip->ip_hl_v & 0x0f) > 0x05) {
 			return;
 		}
 		if (!NetCksumOk((uchar *)ip, IP_HDR_SIZE_NO_UDP / 2)) {
@@ -1516,7 +1520,8 @@ NetReceive(volatile uchar * inpkt, int len)
 				xsum = (xsum & 0x0000ffff) + ((xsum >> 16) & 0x0000ffff);
 			}
 			if ((xsum != 0x00000000) && (xsum != 0x0000ffff)) {
-				printf(" UDP wrong checksum %08x %08x\n", xsum, ntohs(ip->udp_xsum));
+				printf(" UDP wrong checksum %08lx %08x\n",
+					xsum, ntohs(ip->udp_xsum));
 				return;
 			}
 		}

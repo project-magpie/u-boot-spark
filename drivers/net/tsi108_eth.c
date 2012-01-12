@@ -27,9 +27,6 @@
 
 #include <config.h>
 
-#if defined(CONFIG_CMD_NET) && defined(CONFIG_NET_MULTI) \
-	&& defined(CONFIG_TSI108_ETH)
-
 #if !defined(CONFIG_TSI108_ETH_NUM_PORTS) || (CONFIG_TSI108_ETH_NUM_PORTS > 2)
 #error "CONFIG_TSI108_ETH_NUM_PORTS must be defined as 1 or 2"
 #endif
@@ -902,7 +899,7 @@ static int tsi108_eth_send (struct eth_device *dev,
 	status = le32_to_cpu(tx_descr->config_status);
 	if ((status & DMA_DESCR_TX_OK) == 0) {
 #ifdef TX_PRINT_ERRORS
-		printf ("TX packet error: 0x%08x\n    %s%s%s%s\n", status,
+		printf ("TX packet error: 0x%08lx\n    %s%s%s%s\n", status,
 		       status & DMA_DESCR_TX_OK ? "tx error, " : "",
 		       status & DMA_DESCR_TX_RETRY_LIMIT ?
 		       "retry limit reached, " : "",
@@ -962,7 +959,7 @@ static int tsi108_eth_recv (struct eth_device *dev)
 		status = le32_to_cpu(rx_descr->config_status);
 		if (status & DMA_DESCR_RX_BAD_FRAME) {
 #ifdef RX_PRINT_ERRORS
-			printf ("RX packet error: 0x%08x\n    %s%s%s%s%s%s\n",
+			printf ("RX packet error: 0x%08lx\n    %s%s%s%s%s%s\n",
 			       status,
 			       status & DMA_DESCR_RX_FRAME_IS_TYPE ? "too big, "
 			       : "",
@@ -1032,5 +1029,3 @@ static void tsi108_eth_halt (struct eth_device *dev)
 	/* Put MAC into reset state. */
 	reg_MAC_CONFIG_1(base) = MAC_CONFIG_1_SOFT_RESET;
 }
-
-#endif

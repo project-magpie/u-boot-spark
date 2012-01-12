@@ -102,11 +102,12 @@ int cpu_post_test_cmp (void)
 {
     int ret = 0;
     unsigned int i;
+    int flag = disable_interrupts();
 
     for (i = 0; i < cpu_post_cmp_size && ret == 0; i++)
     {
 	struct cpu_post_cmp_s *test = cpu_post_cmp_table + i;
-    	unsigned long code[] =
+	unsigned long code[] =
 	{
 	    ASM_2C(test->cmd, test->cr, 3, 4),
 	    ASM_MFCR(3),
@@ -123,6 +124,9 @@ int cpu_post_test_cmp (void)
 	    post_log ("Error at cmp test %d !\n", i);
 	}
     }
+
+    if (flag)
+	enable_interrupts();
 
     return ret;
 }

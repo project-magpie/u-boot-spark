@@ -23,7 +23,9 @@
 
 include $(TOPDIR)/config.mk
 
-LIB 	:= $(obj)libusb.a
+LIB	:= $(obj)libusb.a
+
+COBJS-$(CONFIG_USB_R8A66597_HCD) += r8a66597-hcd.o
 
 COBJS-y += isp116x-hcd.o
 COBJS-y += sl811_usb.o
@@ -34,8 +36,8 @@ COBJS-y += usbdcore_mpc8xx.o
 COBJS-y += usbdcore_omap1510.o
 
 COBJS	:= $(COBJS-y)
-SRCS 	:= $(COBJS:.o=.c)
-OBJS 	:= $(addprefix $(obj),$(COBJS))
+SRCS	:= $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS))
 
 all:	$(LIB)
 

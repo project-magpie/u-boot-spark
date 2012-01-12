@@ -46,7 +46,7 @@ struct mtd_oob_buf {
 
 
 /* Types of automatic ECC/Checksum available */
-#define MTD_ECC_NONE		0 	/* No automatic ECC available */
+#define MTD_ECC_NONE		0	/* No automatic ECC available */
 #define MTD_ECC_RS_DiskOnChip	1	/* Automatic ECC on DiskOnChip */
 #define MTD_ECC_SW		2	/* SW ECC for Toshiba & Samsung devices */
 
@@ -55,7 +55,7 @@ struct mtd_oob_buf {
 #define MTD_NANDECC_PLACE	1	/* Use the given placement in the structure (YAFFS1 legacy mode) */
 #define MTD_NANDECC_AUTOPLACE	2	/* Use the default placement scheme */
 #define MTD_NANDECC_PLACEONLY	3	/* Use the given placement in the structure (Do not store ecc result on read) */
-#define MTD_NANDECC_AUTOPL_USR 	4	/* Use the given autoplacement scheme rather than using the default */
+#define MTD_NANDECC_AUTOPL_USR	4	/* Use the given autoplacement scheme rather than using the default */
 
 struct mtd_info_user {
 	uint8_t type;
@@ -89,13 +89,11 @@ struct region_info_user {
 #define MEMGETBADBLOCK		_IOW('M', 11, loff_t)
 #define MEMSETBADBLOCK		_IOW('M', 12, loff_t)
 
-#define MTD_NANDECC_MAX_OOBFREE	16	/* 16 for STMicroelectronics STi7xxx */
-#define MTD_NANDECC_MAX_ECCPOS	64	/* 64 for STMicroelectronics "Boot-Mode+B" (3+1/128) */
 struct nand_oobinfo {
 	uint32_t useecc;
 	uint32_t eccbytes;
-	uint32_t oobfree[MTD_NANDECC_MAX_OOBFREE][2];
-	uint32_t eccpos[MTD_NANDECC_MAX_ECCPOS];
+	uint32_t oobfree[NAND_MAX_OOBFREE][2];
+	uint32_t eccpos[NAND_MAX_OOBSIZE];
 };
 
 #endif /* __MTD_ABI_H__ */

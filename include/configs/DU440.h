@@ -345,8 +345,9 @@ int du440_phy_addr(int devnum);
 #define CONFIG_ZERO_BOOTDELAY_CHECK	/* check for keypress on bootdelay==0 */
 #define CONFIG_VERSION_VARIABLE 1	/* include version env variable */
 
-#define CONFIG_AUTOBOOT_KEYED 1
-#define CONFIG_AUTOBOOT_PROMPT "Press SPACE to abort autoboot in %d seconds\n"
+#define CONFIG_AUTOBOOT_KEYED	1
+#define CONFIG_AUTOBOOT_PROMPT	\
+	"Press SPACE to abort autoboot in %d seconds\n", bootdelay
 #define CONFIG_AUTOBOOT_DELAY_STR "d"
 #define CONFIG_AUTOBOOT_STOP_STR " "
 
@@ -375,11 +376,11 @@ int du440_phy_addr(int devnum);
 #define CFG_FLASH		CFG_FLASH_BASE
 
 #define CFG_CPLD_BASE		0xC0000000
-#define CFG_CPLD_RANGE 	        0x00000010
+#define CFG_CPLD_RANGE	        0x00000010
 #define CFG_DUMEM_BASE		0xC0100000
-#define CFG_DUMEM_RANGE 	0x00100000
+#define CFG_DUMEM_RANGE		0x00100000
 #define CFG_DUIO_BASE		0xC0200000
-#define CFG_DUIO_RANGE 	        0x00010000
+#define CFG_DUIO_RANGE	        0x00010000
 
 #define CFG_NAND0_CS		2		/* NAND chip connected to CSx */
 #define CFG_NAND1_CS		3		/* NAND chip connected to CSx */

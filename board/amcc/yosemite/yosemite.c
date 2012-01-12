@@ -200,7 +200,7 @@ int checkboard(void)
 }
 
 /*************************************************************************
- *  sdram_init -- doesn't use serial presence detect.
+ *  initdram -- doesn't use serial presence detect.
  *
  *  Assumes:    256 MB, ECC, non-registered
  *              PLB @ 133 MHz
@@ -281,7 +281,7 @@ void sdram_tr1_set(int ram_address, int* tr1_value)
 	*tr1_value = (first_good + last_bad) / 2;
 }
 
-void sdram_init(void)
+phys_size_t initdram(int board)
 {
 	register uint reg;
 	int tr1_bank1, tr1_bank2;
@@ -327,56 +327,10 @@ void sdram_init(void)
 
 	sdram_tr1_set(0x00000000, &tr1_bank1);
 	sdram_tr1_set(0x08000000, &tr1_bank2);
-	mtsdram(mem_tr1, (((tr1_bank1+tr1_bank2)/2) | 0x80800800) );
-}
+	mtsdram(mem_tr1, (((tr1_bank1+tr1_bank2)/2) | 0x80800800));
 
-/*************************************************************************
- *  long int initdram
- *
- ************************************************************************/
-long int initdram(int board)
-{
-	sdram_init();
 	return CFG_SDRAM_BANKS * (CFG_KBYTES_SDRAM * 1024);	/* return bytes */
 }
-
-#if defined(CFG_DRAM_TEST)
-int testdram(void)
-{
-	unsigned long *mem = (unsigned long *)0;
-	const unsigned long kend = (1024 / sizeof(unsigned long));
-	unsigned long k, n;
-
-	mtmsr(0);
-
-	for (k = 0; k < CFG_KBYTES_SDRAM;
-	     ++k, mem += (1024 / sizeof(unsigned long))) {
-		if ((k & 1023) == 0) {
-			printf("%3d MB\r", k / 1024);
-		}
-
-		memset(mem, 0xaaaaaaaa, 1024);
-		for (n = 0; n < kend; ++n) {
-			if (mem[n] != 0xaaaaaaaa) {
-				printf("SDRAM test fails at: %08x\n",
-				       (uint) & mem[n]);
-				return 1;
-			}
-		}
-
-		memset(mem, 0x55555555, 1024);
-		for (n = 0; n < kend; ++n) {
-			if (mem[n] != 0x55555555) {
-				printf("SDRAM test fails at: %08x\n",
-				       (uint) & mem[n]);
-				return 1;
-			}
-		}
-	}
-	printf("SDRAM test passes\n");
-	return 0;
-}
-#endif
 
 /*************************************************************************
  *  pci_pre_init
@@ -556,24 +510,3 @@ void board_reset(void)
 	/* give reset to BCSR */
 	*(unsigned char *)(CFG_BCSR_BASE | 0x06) = 0x09;
 }
-
-#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
-void ft_board_setup(void *blob, bd_t *bd)
-{
-	u32 val[4];
-	int rc;
-
-	ft_cpu_setup(blob, bd);
-
-	/* Fixup NOR mapping */
-	val[0] = 0;				/* chip select number */
-	val[1] = 0;				/* always 0 */
-	val[2] = gd->bd->bi_flashstart;
-	val[3] = gd->bd->bi_flashsize;
-	rc = fdt_find_and_setprop(blob, "/plb/opb/ebc", "ranges",
-				  val, sizeof(val), 1);
-	if (rc)
-		printf("Unable to update property NOR mapping, err=%s\n",
-		       fdt_strerror(rc));
-}
-#endif /* defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP) */

@@ -47,13 +47,15 @@ int board_early_init_f(void)
 
 int checkboard(void)
 {
-	puts("Board: MPC8641HPCN\n");
-
+	printf ("Board: MPC8641HPCN, System ID: 0x%02x, "
+		"System Version: 0x%02x, FPGA Version: 0x%02x\n",
+		in8(PIXIS_BASE + PIXIS_ID), in8(PIXIS_BASE + PIXIS_VER),
+		in8(PIXIS_BASE + PIXIS_PVER));
 	return 0;
 }
 
 
-long int
+phys_size_t
 initdram(int board_type)
 {
 	long dram_size = 0;
@@ -79,42 +81,6 @@ initdram(int board_type)
 	puts("    DDR: ");
 	return dram_size;
 }
-
-
-#if defined(CFG_DRAM_TEST)
-int
-testdram(void)
-{
-	uint *pstart = (uint *) CFG_MEMTEST_START;
-	uint *pend = (uint *) CFG_MEMTEST_END;
-	uint *p;
-
-	puts("SDRAM test phase 1:\n");
-	for (p = pstart; p < pend; p++)
-		*p = 0xaaaaaaaa;
-
-	for (p = pstart; p < pend; p++) {
-		if (*p != 0xaaaaaaaa) {
-			printf("SDRAM test fails at: %08x\n", (uint) p);
-			return 1;
-		}
-	}
-
-	puts("SDRAM test phase 2:\n");
-	for (p = pstart; p < pend; p++)
-		*p = 0x55555555;
-
-	for (p = pstart; p < pend; p++) {
-		if (*p != 0x55555555) {
-			printf("SDRAM test fails at: %08x\n", (uint) p);
-			return 1;
-		}
-	}
-
-	puts("SDRAM test passed.\n");
-	return 0;
-}
-#endif
 
 
 #if !defined(CONFIG_SPD_EEPROM)

@@ -6,9 +6,6 @@
 
 #include <common.h>
 
-#if defined(CONFIG_CMD_NET) \
-	&& (!defined(CONFIG_NET_MULTI)) && defined(CONFIG_BCM570x)
-
 #ifdef CONFIG_BMW
 #include <mpc824x.h>
 #endif
@@ -27,7 +24,7 @@
 /*
  * PCI memory base for Ethernet device as well as device Interrupt.
  */
-#define BCM570X_MBAR 	0x80100000
+#define BCM570X_MBAR	0x80100000
 #define BCM570X_ILINE   1
 
 #define SECOND_USEC	1000000
@@ -1599,5 +1596,3 @@ PQQ_ENTRY QQ_GetTail (PQQ_CONTAINER pQueue, unsigned int Idx)
 
 	return pQueue->Array[Idx];
 }
-
-#endif

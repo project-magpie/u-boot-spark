@@ -93,6 +93,11 @@ int board_early_init_f(void)
 #ifdef CONFIG_I2C_MULTI_BUS
 	sdr0_pfc1 |= ((sdr0_pfc1 & ~SDR0_PFC1_SIS_MASK) | SDR0_PFC1_SIS_IIC1_SEL);
 #endif
+	/* Two UARTs, so we need 4-pin mode.  Also, we want CTS/RTS mode. */
+	sdr0_pfc1 = (sdr0_pfc1 & ~SDR0_PFC1_U0IM_MASK) | SDR0_PFC1_U0IM_4PINS;
+	sdr0_pfc1 = (sdr0_pfc1 & ~SDR0_PFC1_U0ME_MASK) | SDR0_PFC1_U0ME_CTS_RTS;
+	sdr0_pfc1 = (sdr0_pfc1 & ~SDR0_PFC1_U1ME_MASK) | SDR0_PFC1_U1ME_CTS_RTS;
+
 	mfsdr(SDR0_PFC2, sdr0_pfc2);
 	sdr0_pfc2 = (sdr0_pfc2 & ~SDR0_PFC2_SELECT_MASK) |
 		SDR0_PFC2_SELECT_CONFIG_4;
@@ -329,44 +334,6 @@ int checkboard(void)
 	return (0);
 }
 
-#if defined(CFG_DRAM_TEST)
-int testdram(void)
-{
-	unsigned long *mem = (unsigned long *)0;
-	const unsigned long kend = (1024 / sizeof(unsigned long));
-	unsigned long k, n;
-
-	mtmsr(0);
-
-	for (k = 0; k < CFG_MBYTES_SDRAM;
-	     ++k, mem += (1024 / sizeof(unsigned long))) {
-		if ((k & 1023) == 0) {
-			printf("%3d MB\r", k / 1024);
-		}
-
-		memset(mem, 0xaaaaaaaa, 1024);
-		for (n = 0; n < kend; ++n) {
-			if (mem[n] != 0xaaaaaaaa) {
-				printf("SDRAM test fails at: %08x\n",
-				       (uint) & mem[n]);
-				return 1;
-			}
-		}
-
-		memset(mem, 0x55555555, 1024);
-		for (n = 0; n < kend; ++n) {
-			if (mem[n] != 0x55555555) {
-				printf("SDRAM test fails at: %08x\n",
-				       (uint) & mem[n]);
-				return 1;
-			}
-		}
-	}
-	printf("SDRAM test passes\n");
-	return 0;
-}
-#endif
-
 #if defined(CONFIG_PCI) && defined(CONFIG_PCI_PNP)
 /*
  * Assign interrupts to PCI devices.
@@ -547,24 +514,3 @@ int post_hotkeys_pressed(void)
 	return 0;	/* No hotkeys supported */
 }
 #endif /* CONFIG_POST */
-
-#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
-void ft_board_setup(void *blob, bd_t *bd)
-{
-	u32 val[4];
-	int rc;
-
-	ft_cpu_setup(blob, bd);
-
-	/* Fixup NOR mapping */
-	val[0] = 0;				/* chip select number */
-	val[1] = 0;				/* always 0 */
-	val[2] = gd->bd->bi_flashstart;
-	val[3] = gd->bd->bi_flashsize;
-	rc = fdt_find_and_setprop(blob, "/plb/opb/ebc", "ranges",
-				  val, sizeof(val), 1);
-	if (rc)
-		printf("Unable to update property NOR mapping, err=%s\n",
-		       fdt_strerror(rc));
-}
-#endif /* defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP) */

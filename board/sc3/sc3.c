@@ -446,7 +446,7 @@ static void printCSConfig(int reg,unsigned long ap,unsigned long cr)
 		printf(" at 0x%08lX", cr & 0xFFF00000U);
 		printf(" size: %u MB", banks[(cr & 0x000E0000) >> 17]);
 		printf(" rights: %s", bankaccess[(cr & 0x00018000) >> 15]);
-   	   	if (ap & 0x80000000) {
+		if (ap & 0x80000000) {
 			printf("\n -Burst device (%luns/%luns)",
 				(((ap & 0x7C000000) >> 26) + 1) * CYCLE,
 				(((ap & 0x03800000) >> 23) + 1) * CYCLE);
@@ -579,7 +579,7 @@ static int printSDRAMConfig(char reg, unsigned long cr)
 static unsigned int mbcf[] = {mem_mb0cf, mem_mb1cf, mem_mb2cf, mem_mb3cf};
 #endif
 
-long int initdram (int board_type)
+phys_size_t initdram (int board_type)
 {
 	unsigned int mems=0;
 	unsigned long ul1;

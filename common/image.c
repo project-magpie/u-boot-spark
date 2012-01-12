@@ -35,6 +35,10 @@
 #include <dataflash.h>
 #endif
 
+#ifdef CONFIG_LOGBUFFER
+#include <logbuff.h>
+#endif
+
 #if defined(CONFIG_TIMESTAMP) || defined(CONFIG_CMD_DATE)
 #include <rtc.h>
 #endif
@@ -184,7 +188,6 @@ int image_check_dcrc (image_header_t *hdr)
 
 	return (dcrc == image_get_dcrc (hdr));
 }
-
 
 /**
  * image_multi_count - get component (sub-image) count
@@ -431,11 +434,16 @@ ulong getenv_bootm_low(void)
 #endif
 }
 
-ulong getenv_bootm_size(void)
+phys_size_t getenv_bootm_size(void)
 {
 	char *s = getenv ("bootm_size");
 	if (s) {
-		ulong tmp = simple_strtoul (s, NULL, 16);
+		phys_size_t tmp;
+#ifdef CFG_64BIT_STRTOUL
+		tmp = (phys_size_t)simple_strtoull (s, NULL, 16);
+#else
+		tmp = (phys_size_t)simple_strtoul (s, NULL, 16);
+#endif
 		return tmp;
 	}
 
@@ -818,7 +826,7 @@ int boot_get_ramdisk (int argc, char *argv[], bootm_headers_t *images,
 			cfg_noffset = fit_conf_get_node (fit_hdr, fit_uname_config);
 			if (cfg_noffset < 0) {
 				debug ("*  ramdisk: no such config\n");
-				return 0;
+				return 1;
 			}
 
 			rd_noffset = fit_conf_get_ramdisk_node (fit_hdr, cfg_noffset);
@@ -863,7 +871,7 @@ int boot_get_ramdisk (int argc, char *argv[], bootm_headers_t *images,
 			if (!fit_check_format (fit_hdr)) {
 				puts ("Bad FIT ramdisk image format!\n");
 				show_boot_progress (-120);
-				return 0;
+				return 1;
 			}
 			show_boot_progress (121);
 
@@ -878,7 +886,7 @@ int boot_get_ramdisk (int argc, char *argv[], bootm_headers_t *images,
 				if (cfg_noffset < 0) {
 					puts ("Could not find configuration node\n");
 					show_boot_progress (-122);
-					return 0;
+					return 1;
 				}
 				fit_uname_config = fdt_get_name (fit_hdr, cfg_noffset, NULL);
 				printf ("   Using '%s' configuration\n", fit_uname_config);
@@ -893,20 +901,20 @@ int boot_get_ramdisk (int argc, char *argv[], bootm_headers_t *images,
 			if (rd_noffset < 0) {
 				puts ("Could not find subimage node\n");
 				show_boot_progress (-124);
-				return 0;
+				return 1;
 			}
 
 			printf ("   Trying '%s' ramdisk subimage\n", fit_uname_ramdisk);
 
 			show_boot_progress (125);
 			if (!fit_check_ramdisk (fit_hdr, rd_noffset, arch, images->verify))
-				return 0;
+				return 1;
 
 			/* get ramdisk image data address and length */
 			if (fit_image_get_data (fit_hdr, rd_noffset, &data, &size)) {
 				puts ("Could not find ramdisk subimage data!\n");
 				show_boot_progress (-127);
-				return 0;
+				return 1;
 			}
 			show_boot_progress (128);
 
@@ -916,7 +924,7 @@ int boot_get_ramdisk (int argc, char *argv[], bootm_headers_t *images,
 			if (fit_image_get_load (fit_hdr, rd_noffset, &rd_load)) {
 				puts ("Can't get ramdisk subimage load address!\n");
 				show_boot_progress (-129);
-				return 0;
+				return 1;
 			}
 			show_boot_progress (129);
 
@@ -1013,6 +1021,12 @@ int boot_ramdisk_high (struct lmb *lmb, ulong rd_data, ulong rd_len,
 		initrd_high = ~0;
 	}
 
+
+#ifdef CONFIG_LOGBUFFER
+	/* Prevent initrd from overwriting logbuffer */
+	lmb_reserve(lmb, logbuffer_base() - LOGBUFF_OVERHEAD, LOGBUFF_RESERVE);
+#endif
+
 	debug ("## initrd_high = 0x%08lx, copy_to_ram = %d\n",
 			initrd_high, initrd_copy_to_ram);
 
@@ -1024,9 +1038,9 @@ int boot_ramdisk_high (struct lmb *lmb, ulong rd_data, ulong rd_len,
 			lmb_reserve(lmb, rd_data, rd_len);
 		} else {
 			if (initrd_high)
-				*initrd_start = lmb_alloc_base (lmb, rd_len, 0x1000, initrd_high);
+				*initrd_start = (ulong)lmb_alloc_base (lmb, rd_len, 0x1000, initrd_high);
 			else
-				*initrd_start = lmb_alloc (lmb, rd_len, 0x1000);
+				*initrd_start = (ulong)lmb_alloc (lmb, rd_len, 0x1000);
 
 			if (*initrd_start == 0) {
 				puts ("ramdisk - allocation error\n");
@@ -1081,7 +1095,7 @@ int boot_get_cmdline (struct lmb *lmb, ulong *cmd_start, ulong *cmd_end,
 	char *cmdline;
 	char *s;
 
-	cmdline = (char *)lmb_alloc_base(lmb, CFG_BARGSIZE, 0xf,
+	cmdline = (char *)(ulong)lmb_alloc_base(lmb, CFG_BARGSIZE, 0xf,
 					 CFG_BOOTMAPSZ + bootmap_base);
 
 	if (cmdline == NULL)
@@ -1117,7 +1131,7 @@ int boot_get_cmdline (struct lmb *lmb, ulong *cmd_start, ulong *cmd_end,
  */
 int boot_get_kbd (struct lmb *lmb, bd_t **kbd, ulong bootmap_base)
 {
-	*kbd = (bd_t *)lmb_alloc_base(lmb, sizeof(bd_t), 0xf,
+	*kbd = (bd_t *)(ulong)lmb_alloc_base(lmb, sizeof(bd_t), 0xf,
 				      CFG_BOOTMAPSZ + bootmap_base);
 	if (*kbd == NULL)
 		return -1;

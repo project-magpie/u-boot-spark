@@ -23,7 +23,6 @@
  */
 
 #include <config.h>
-#include <version.h>
 #include <asm/regdef.h>
 #include <asm/mipsregs.h>
 
@@ -345,7 +344,7 @@ relocate_code:
 	jr	t0
 	nop
 
-	.word 	_gp
+	.word	_gp
 	.word	_GLOBAL_OFFSET_TABLE_
 	.word	uboot_end_data
 	.word	uboot_end

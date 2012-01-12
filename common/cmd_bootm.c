@@ -36,6 +36,10 @@
 #include <lmb.h>
 #include <asm/byteorder.h>
 
+#if defined(CONFIG_CMD_USB)
+#include <usb.h>
+#endif
+
 #ifdef CFG_HUSH_PARSER
 #include <hush.h>
 #endif
@@ -131,13 +135,13 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	ulong		os_data, os_len;
 	ulong		image_start, image_end;
 	ulong		load_start, load_end;
-	ulong		mem_start, mem_size;
+	ulong		mem_start;
+	phys_size_t	mem_size;
 
 	struct lmb lmb;
 
 	memset ((void *)&images, 0, sizeof (images));
 	images.verify = getenv_yesno ("verify");
-	images.autostart = getenv_yesno ("autostart");
 	images.lmb = &lmb;
 
 	lmb_init(&lmb);
@@ -145,7 +149,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	mem_start = getenv_bootm_low();
 	mem_size = getenv_bootm_size();
 
-	lmb_add(&lmb, mem_start, mem_size);
+	lmb_add(&lmb, (phys_addr_t)mem_start, mem_size);
 
 	board_lmb_reserve(&lmb);
 
@@ -216,6 +220,20 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	 */
 	iflag = disable_interrupts();
 
+#if defined(CONFIG_CMD_USB)
+	/*
+	 * turn off USB to prevent the host controller from writing to the
+	 * SDRAM while Linux is booting. This could happen (at least for OHCI
+	 * controller), because the HCCA (Host Controller Communication Area)
+	 * lies within the SDRAM and the host controller writes continously to
+	 * this area (as busmaster!). The HccaFrameNumber is for example
+	 * updated every 1 ms within the HCCA structure in SDRAM! For more
+	 * details see the OpenHCI specification.
+	 */
+	usb_stop();
+#endif
+
+
 #ifdef CONFIG_AMIGAONEG3SE
 	/*
 	 * We've possible left the caches enabled during
@@ -236,9 +254,8 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 			memmove_wd ((void *)load_start,
 				   (void *)os_data, os_len, CHUNKSZ);
-
-			load_end = load_start + os_len;
 		}
+		load_end = load_start + os_len;
 		break;
 	case IH_COMP_GZIP:
 		printf ("   Uncompressing %s ... ", type_name);
@@ -410,10 +427,9 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	show_boot_progress (-9);
 #ifdef DEBUG
 	puts ("\n## Control returned to monitor - resetting...\n");
-	if (images.autostart)
-		do_reset (cmdtp, flag, argc, argv);
+	do_reset (cmdtp, flag, argc, argv);
 #endif
-	if (!images.autostart && iflag)
+	if (iflag)
 		enable_interrupts();
 
 	return 1;
@@ -678,7 +694,7 @@ static void *boot_get_kernel (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]
 		return NULL;
 	}
 
-	debug ("   kernel data at 0x%08lx, len = 0x%08lx (%d)\n",
+	debug ("   kernel data at 0x%08lx, len = 0x%08lx (%ld)\n",
 			*os_data, *os_len, *os_len);
 
 	return (void *)img_addr;

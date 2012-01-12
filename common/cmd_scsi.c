@@ -171,7 +171,7 @@ removable:
 	if(scsi_max_devs>0)
 		scsi_curr_dev=0;
 	else
-		scsi_curr_dev=-1;
+		scsi_curr_dev = -1;
 }
 
 
@@ -212,7 +212,7 @@ int do_scsiboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	image_header_t *hdr;
 	int rcode = 0;
 #if defined(CONFIG_FIT)
-	const void *fit_hdr;
+	const void *fit_hdr = NULL;
 #endif
 
 	switch (argc) {
@@ -291,10 +291,6 @@ int do_scsiboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #if defined(CONFIG_FIT)
 	case IMAGE_FORMAT_FIT:
 		fit_hdr = (const void *)addr;
-		if (!fit_check_format (fit_hdr)) {
-			puts ("** Bad FIT image format\n");
-			return 1;
-		}
 		puts ("Fit image detected...\n");
 
 		cnt = fit_get_size (fit_hdr);
@@ -317,8 +313,13 @@ int do_scsiboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 #if defined(CONFIG_FIT)
 	/* This cannot be done earlier, we need complete FIT image in RAM first */
-	if (genimg_get_format ((void *)addr) == IMAGE_FORMAT_FIT)
-		fit_print_contents ((const void *)addr);
+	if (genimg_get_format ((void *)addr) == IMAGE_FORMAT_FIT) {
+		if (!fit_check_format (fit_hdr)) {
+			puts ("** Bad FIT image format\n");
+			return 1;
+		}
+		fit_print_contents (fit_hdr);
+	}
 #endif
 
 	/* Loading ok, update default load address */
@@ -393,7 +394,7 @@ int do_scsi (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			}
 			printf ("Usage:\n%s\n", cmdtp->usage);
 			return 1;
-  	case 3:
+	case 3:
 			if (strncmp(argv[1],"dev",3) == 0) {
 				int dev = (int)simple_strtoul(argv[2], NULL, 10);
 				printf ("\nSCSI device %d: ", dev);

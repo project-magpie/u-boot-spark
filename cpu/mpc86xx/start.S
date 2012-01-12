@@ -358,125 +358,6 @@ invalidate_bats:
 	sync
 	blr
 
-
-	/* setup_bats - set them up to some initial state */
-	/* Skip any BATS setup in early_bats */
-	.globl	setup_bats
-setup_bats:
-
-	addis	r0, r0, 0x0000
-
-	/* IBAT 0 */
-	addis	r4, r0, CFG_IBAT0L@h
-	ori	r4, r4, CFG_IBAT0L@l
-	addis	r3, r0, CFG_IBAT0U@h
-	ori	r3, r3, CFG_IBAT0U@l
-	mtspr	IBAT0L, r4
-	mtspr	IBAT0U, r3
-	isync
-
-	/* DBAT 0 */
-	addis	r4, r0, CFG_DBAT0L@h
-	ori	r4, r4, CFG_DBAT0L@l
-	addis	r3, r0, CFG_DBAT0U@h
-	ori	r3, r3, CFG_DBAT0U@l
-	mtspr	DBAT0L, r4
-	mtspr	DBAT0U, r3
-	isync
-
-	/* IBAT 1 */
-	addis	r4, r0, CFG_IBAT1L@h
-	ori	r4, r4, CFG_IBAT1L@l
-	addis	r3, r0, CFG_IBAT1U@h
-	ori	r3, r3, CFG_IBAT1U@l
-	mtspr	IBAT1L, r4
-	mtspr	IBAT1U, r3
-	isync
-
-	/* DBAT 1 */
-	addis	r4, r0, CFG_DBAT1L@h
-	ori	r4, r4, CFG_DBAT1L@l
-	addis	r3, r0, CFG_DBAT1U@h
-	ori	r3, r3, CFG_DBAT1U@l
-	mtspr	DBAT1L, r4
-	mtspr	DBAT1U, r3
-	isync
-
-	/* IBAT 2 */
-	addis	r4, r0, CFG_IBAT2L@h
-	ori	r4, r4, CFG_IBAT2L@l
-	addis	r3, r0, CFG_IBAT2U@h
-	ori	r3, r3, CFG_IBAT2U@l
-	mtspr	IBAT2L, r4
-	mtspr	IBAT2U, r3
-	isync
-
-	/* DBAT 2 */
-	addis	r4, r0, CFG_DBAT2L@h
-	ori	r4, r4, CFG_DBAT2L@l
-	addis	r3, r0, CFG_DBAT2U@h
-	ori	r3, r3, CFG_DBAT2U@l
-	mtspr	DBAT2L, r4
-	mtspr	DBAT2U, r3
-	isync
-
-	/* IBAT 3 */
-	addis	r4, r0, CFG_IBAT3L@h
-	ori	r4, r4, CFG_IBAT3L@l
-	addis	r3, r0, CFG_IBAT3U@h
-	ori	r3, r3, CFG_IBAT3U@l
-	mtspr	IBAT3L, r4
-	mtspr	IBAT3U, r3
-	isync
-
-	/* DBAT 3 */
-	addis	r4, r0, CFG_DBAT3L@h
-	ori	r4, r4, CFG_DBAT3L@l
-	addis	r3, r0, CFG_DBAT3U@h
-	ori	r3, r3, CFG_DBAT3U@l
-	mtspr	DBAT3L, r4
-	mtspr	DBAT3U, r3
-	isync
-
-	/* IBAT 4 */
-	addis	r4, r0, CFG_IBAT4L@h
-	ori	r4, r4, CFG_IBAT4L@l
-	addis	r3, r0, CFG_IBAT4U@h
-	ori	r3, r3, CFG_IBAT4U@l
-	mtspr	IBAT4L, r4
-	mtspr	IBAT4U, r3
-	isync
-
-	/* DBAT 4 */
-	addis	r4, r0, CFG_DBAT4L@h
-	ori	r4, r4, CFG_DBAT4L@l
-	addis	r3, r0, CFG_DBAT4U@h
-	ori	r3, r3, CFG_DBAT4U@l
-	mtspr	DBAT4L, r4
-	mtspr	DBAT4U, r3
-	isync
-
-	/* IBAT 7 */
-	addis	r4, r0, CFG_IBAT7L@h
-	ori	r4, r4, CFG_IBAT7L@l
-	addis	r3, r0, CFG_IBAT7U@h
-	ori	r3, r3, CFG_IBAT7U@l
-	mtspr	IBAT7L, r4
-	mtspr	IBAT7U, r3
-	isync
-
-	/* DBAT 7 */
-	addis	r4, r0, CFG_DBAT7L@h
-	ori	r4, r4, CFG_DBAT7L@l
-	addis	r3, r0, CFG_DBAT7U@h
-	ori	r3, r3, CFG_DBAT7U@l
-	mtspr	DBAT7L, r4
-	mtspr	DBAT7U, r3
-	isync
-
-	sync
-	blr
-
 /*
  * early_bats:
  *
@@ -486,25 +367,25 @@ setup_bats:
 	.globl  early_bats
 early_bats:
 	/* IBAT 5 */
-	lis   	r4, CFG_IBAT5L@h
+	lis	r4, CFG_IBAT5L@h
 	ori     r4, r4, CFG_IBAT5L@l
-	lis   	r3, CFG_IBAT5U@h
+	lis	r3, CFG_IBAT5U@h
 	ori     r3, r3, CFG_IBAT5U@l
 	mtspr   IBAT5L, r4
 	mtspr   IBAT5U, r3
 	isync
 
 	/* DBAT 5 */
-	lis   	r4, CFG_DBAT5L@h
+	lis	r4, CFG_DBAT5L@h
 	ori     r4, r4, CFG_DBAT5L@l
-	lis   	r3, CFG_DBAT5U@h
+	lis	r3, CFG_DBAT5U@h
 	ori     r3, r3, CFG_DBAT5U@l
 	mtspr   DBAT5L, r4
 	mtspr   DBAT5U, r3
 	isync
 
 	/* IBAT 6 */
-	lis   	r4, CFG_IBAT6L@h
+	lis	r4, CFG_IBAT6L@h
 	ori     r4, r4, CFG_IBAT6L@l
 	lis	r3, CFG_IBAT6U@h
 	ori     r3, r3, CFG_IBAT6U@l
@@ -513,9 +394,9 @@ early_bats:
 	isync
 
 	/* DBAT 6 */
-	lis   	r4, CFG_DBAT6L@h
+	lis	r4, CFG_DBAT6L@h
 	ori     r4, r4, CFG_DBAT6L@l
-	lis   	r3, CFG_DBAT6U@h
+	lis	r3, CFG_DBAT6U@h
 	ori     r3, r3, CFG_DBAT6U@l
 	mtspr   DBAT6L, r4
 	mtspr   DBAT6U, r3

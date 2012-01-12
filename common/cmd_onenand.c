@@ -58,8 +58,6 @@ int do_onenand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			} else {
 				start = simple_strtoul(argv[2], NULL, 10);
 				end = simple_strtoul(argv[3], NULL, 10);
-				start -= (unsigned long)onenand_chip.base;
-				end -= (unsigned long)onenand_chip.base;
 
 				start >>= onenand_chip.erase_shift;
 				end >>= onenand_chip.erase_shift;
@@ -70,14 +68,14 @@ int do_onenand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			if (!end || end < 0)
 				end = start;
 
-			printf("Erase block from %d to %d\n", start, end);
+			printf("Erase block from %lu to %lu\n", start, end);
 
 			for (block = start; block <= end; block++) {
 				instr.addr = block << onenand_chip.erase_shift;
 				instr.len = 1 << onenand_chip.erase_shift;
 				ret = onenand_erase(&onenand_mtd, &instr);
 				if (ret) {
-					printf("erase failed %d\n", block);
+					printf("erase failed %lu\n", block);
 					break;
 				}
 			}
@@ -91,8 +89,6 @@ int do_onenand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			size_t len = simple_strtoul(argv[4], NULL, 16);
 			size_t retlen = 0;
 			int oob = strncmp(argv[1], "read.oob", 8) ? 0 : 1;
-
-			ofs -= (unsigned long)onenand_chip.base;
 
 			if (oob)
 				onenand_read_oob(&onenand_mtd, ofs, len,
@@ -110,8 +106,6 @@ int do_onenand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 			ulong ofs = simple_strtoul(argv[3], NULL, 16);
 			size_t len = simple_strtoul(argv[4], NULL, 16);
 			size_t retlen = 0;
-
-			ofs -= (unsigned long)onenand_chip.base;
 
 			onenand_write(&onenand_mtd, ofs, len, &retlen,
 				      (u_char *) addr);

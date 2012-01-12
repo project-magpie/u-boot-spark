@@ -103,14 +103,6 @@
  */
 #define	CONFIG_SERIAL1	1	/* UART1 on H4 */
 
- /*
- * I2C configuration
- */
-#define	CONFIG_HARD_I2C
-#define	CFG_I2C_SPEED	100000
-#define	CFG_I2C_SLAVE	1
-#define	CONFIG_DRIVER_OMAP24XX_I2C
-
 /* allow to overwrite serial and ethaddr */
 #define	CONFIG_ENV_OVERWRITE
 #define	CONFIG_CONS_INDEX	1
@@ -174,7 +166,7 @@
 #define	CFG_MAXARGS	16	/* max number of command args */
 #define	CFG_BARGSIZE	CFG_CBSIZE	/* Boot Argument Buffer Size */
 
-#define	CFG_MEMTEST_START 	(OMAP2420_SDRC_CS0)	/* memtest works on */
+#define	CFG_MEMTEST_START	(OMAP2420_SDRC_CS0)	/* memtest works on */
 #define	CFG_MEMTEST_END		(OMAP2420_SDRC_CS0+SZ_31M)
 
 #undef	CFG_CLKS_IN_HZ	/* everything, incl board info, in Hz */

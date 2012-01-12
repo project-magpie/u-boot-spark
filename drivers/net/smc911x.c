@@ -23,14 +23,17 @@
  */
 
 #include <common.h>
-
-#ifdef CONFIG_DRIVER_SMC911X
-
 #include <command.h>
 #include <net.h>
 #include <miiphy.h>
 
-#ifdef CONFIG_DRIVER_SMC911X_32_BIT
+#if defined (CONFIG_DRIVER_SMC911X_32_BIT) && \
+	defined (CONFIG_DRIVER_SMC911X_16_BIT)
+#error "SMC911X: Only one of CONFIG_DRIVER_SMC911X_32_BIT and \
+	CONFIG_DRIVER_SMC911X_16_BIT shall be set"
+#endif
+
+#if defined (CONFIG_DRIVER_SMC911X_32_BIT)
 static inline u32 reg_read(u32 addr)
 {
 	return *(volatile u32*)addr;
@@ -39,9 +42,20 @@ static inline void reg_write(u32 addr, u32 val)
 {
 	*(volatile u32*)addr = val;
 }
+#elif defined (CONFIG_DRIVER_SMC911X_16_BIT)
+static inline u32 reg_read(u32 addr)
+{
+	volatile u16 *addr_16 = (u16 *)addr;
+	return ((*addr_16 & 0x0000ffff) | (*(addr_16 + 1) << 16));
+}
+static inline void reg_write(u32 addr, u32 val)
+{
+	*(volatile u16*)addr = (u16)val;
+	*(volatile u16*)(addr + 2) = (u16)(val >> 16);
+}
 #else
-#error "SMC911X: Only 32-bit bus is supported"
-#endif
+#error "SMC911X: undefined bus width"
+#endif /* CONFIG_DRIVER_SMC911X_16_BIT */
 
 #define mdelay(n)       udelay((n)*1000)
 
@@ -79,7 +93,7 @@ static inline void reg_write(u32 addr, u32 val)
 #define	RX_STS_MII_ERR				0x00000008
 #define	RX_STS_DRIBBLING			0x00000004
 #define	RX_STS_CRC_ERR				0x00000002
-#define RX_STATUS_FIFO_PEEK 	(CONFIG_DRIVER_SMC911X_BASE + 0x44)
+#define RX_STATUS_FIFO_PEEK	(CONFIG_DRIVER_SMC911X_BASE + 0x44)
 #define TX_STATUS_FIFO		(CONFIG_DRIVER_SMC911X_BASE + 0x48)
 #define	TX_STS_TAG				0xFFFF0000
 #define	TX_STS_ES				0x00008000
@@ -196,9 +210,9 @@ static inline void reg_write(u32 addr, u32 val)
 #define	HW_CFG_TX_FIF_SZ			0x000F0000  /* R/W */
 #define	HW_CFG_TR				0x00003000  /* R/W */
 #define	HW_CFG_PHY_CLK_SEL			0x00000060  /* R/W */
-#define	HW_CFG_PHY_CLK_SEL_INT_PHY 		0x00000000 /* R/W */
-#define	HW_CFG_PHY_CLK_SEL_EXT_PHY 		0x00000020 /* R/W */
-#define	HW_CFG_PHY_CLK_SEL_CLK_DIS 		0x00000040 /* R/W */
+#define	HW_CFG_PHY_CLK_SEL_INT_PHY		0x00000000 /* R/W */
+#define	HW_CFG_PHY_CLK_SEL_EXT_PHY		0x00000020 /* R/W */
+#define	HW_CFG_PHY_CLK_SEL_CLK_DIS		0x00000040 /* R/W */
 #define	HW_CFG_SMI_SEL				0x00000010  /* R/W */
 #define	HW_CFG_EXT_PHY_DET			0x00000008  /* RO */
 #define	HW_CFG_EXT_PHY_EN			0x00000004  /* R/W */
@@ -583,7 +597,7 @@ int eth_init(bd_t *bd)
 
 	val = reg_read(BYTE_TEST);
 	if (val != 0x87654321) {
-		printf(DRIVERNAME ": Invalid chip endian 0x08%x\n", val);
+		printf(DRIVERNAME ": Invalid chip endian 0x%08lx\n", val);
 		goto err_out;
 	}
 
@@ -592,7 +606,7 @@ int eth_init(bd_t *bd)
 		if (chip_ids[i].id == val) break;
 	}
 	if (!chip_ids[i].id) {
-		printf(DRIVERNAME ": Unknown chip ID %04x\n", val);
+		printf(DRIVERNAME ": Unknown chip ID %04lx\n", val);
 		goto err_out;
 	}
 
@@ -682,5 +696,3 @@ int eth_rx(void)
 
 	return 0;
 }
-
-#endif				/* CONFIG_DRIVER_SMC911X */

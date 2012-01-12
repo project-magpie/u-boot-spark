@@ -28,6 +28,8 @@
 #include <version.h>
 #include <net.h>
 #include <environment.h>
+#include <nand.h>
+#include <spi.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -240,12 +242,12 @@ void board_init_f(ulong bootflag)
 	addr_sp -= sizeof(bd_t);
 	bd = (bd_t *)addr_sp;
 	gd->bd = bd;
-	debug ("Reserving %d Bytes for Board Info at: %08lx\n",
+	debug ("Reserving %zu Bytes for Board Info at: %08lx\n",
 			sizeof(bd_t), addr_sp);
 
 	addr_sp -= sizeof(gd_t);
 	id = (gd_t *)addr_sp;
-	debug ("Reserving %d Bytes for Global Data at: %08lx\n",
+	debug ("Reserving %zu Bytes for Global Data at: %08lx\n",
 			sizeof (gd_t), addr_sp);
 
 	/* Reserve memory for boot params.
@@ -414,6 +416,17 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	if ((s = getenv ("bootfile")) != NULL) {
 		copy_filename (BootFile, s, sizeof (BootFile));
 	}
+#endif
+
+#ifdef CONFIG_CMD_NAND
+	puts ("NAND:  ");
+	nand_init ();		/* go init the NAND */
+#endif
+
+#ifdef CONFIG_CMD_SPI
+	puts ("SPI:   ");
+	spi_init ();		/* go init the SPI */
+	puts ("ready\n");
 #endif
 
 #if defined(CONFIG_MISC_INIT_R)

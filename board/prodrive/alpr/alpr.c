@@ -132,36 +132,6 @@ int checkboard (void)
 	return (0);
 }
 
-#if defined(CFG_DRAM_TEST)
-int testdram (void)
-{
-	uint *pstart = (uint *) 0x00000000;
-	uint *pend = (uint *) 0x08000000;
-	uint *p;
-
-	for (p = pstart; p < pend; p++)
-		*p = 0xaaaaaaaa;
-
-	for (p = pstart; p < pend; p++) {
-		if (*p != 0xaaaaaaaa) {
-			printf ("SDRAM test fails at: %08x\n", (uint) p);
-			return 1;
-		}
-	}
-
-	for (p = pstart; p < pend; p++)
-		*p = 0x55555555;
-
-	for (p = pstart; p < pend; p++) {
-		if (*p != 0x55555555) {
-			printf ("SDRAM test fails at: %08x\n", (uint) p);
-			return 1;
-		}
-	}
-	return 0;
-}
-#endif
-
 /*************************************************************************
  *  pci_pre_init
  *
@@ -317,24 +287,3 @@ int post_hotkeys_pressed(void)
 	return (ctrlc());
 }
 #endif
-
-#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP)
-void ft_board_setup(void *blob, bd_t *bd)
-{
-	u32 val[4];
-	int rc;
-
-	ft_cpu_setup(blob, bd);
-
-	/* Fixup NOR mapping */
-	val[0] = 0;				/* chip select number */
-	val[1] = 0;				/* always 0 */
-	val[2] = gd->bd->bi_flashstart;
-	val[3] = gd->bd->bi_flashsize;
-	rc = fdt_find_and_setprop(blob, "/plb/opb/ebc", "ranges",
-				  val, sizeof(val), 1);
-	if (rc)
-		printf("Unable to update property NOR mapping, err=%s\n",
-		       fdt_strerror(rc));
-}
-#endif /* defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP) */

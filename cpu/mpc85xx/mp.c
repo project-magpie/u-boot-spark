@@ -50,12 +50,12 @@ int cpu_status(int nr)
 
 	if (nr == id) {
 		table = (u32 *)get_spin_addr();
-		printf("table base @ 0x%08x\n", table);
+		printf("table base @ 0x%p\n", table);
 	} else {
 		table = (u32 *)get_spin_addr() + nr * NUM_BOOT_ENTRY;
 		printf("Running on cpu %d\n", id);
 		printf("\n");
-		printf("table @ 0x%08x:\n", table);
+		printf("table @ 0x%p\n", table);
 		printf("   addr - 0x%08x\n", table[BOOT_ENTRY_ADDR_LOWER]);
 		printf("   pir  - 0x%08x\n", table[BOOT_ENTRY_PIR]);
 		printf("   r3   - 0x%08x\n", table[BOOT_ENTRY_R3_LOWER]);
@@ -147,7 +147,7 @@ static void pq3_mp_up(unsigned long bootpg)
 	out_be32(&gur->devdisr, devdisr);
 
 	/* release the hounds */
-	up = ((1 << CONFIG_NR_CPUS) - 1);
+	up = ((1 << CONFIG_NUM_CPUS) - 1);
 	bpcr = in_be32(&ecm->eebpcr);
 	bpcr |= (up << 24);
 	out_be32(&ecm->eebpcr, bpcr);
@@ -157,7 +157,7 @@ static void pq3_mp_up(unsigned long bootpg)
 	/* wait for everyone */
 	while (timeout) {
 		int i;
-		for (i = 0; i < CONFIG_NR_CPUS; i++) {
+		for (i = 0; i < CONFIG_NUM_CPUS; i++) {
 			if (table[i * NUM_BOOT_ENTRY + BOOT_ENTRY_ADDR_LOWER])
 				cpu_up_mask |= (1 << i);
 		};

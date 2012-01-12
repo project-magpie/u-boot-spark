@@ -220,7 +220,6 @@ typedef struct bootm_headers {
 #endif
 
 	int		verify;		/* getenv("verify")[0] != 'n' */
-	int		autostart;	/* getenv("autostart")[0] != 'n' */
 	struct lmb	*lmb;		/* for memory mgmt */
 } bootm_headers_t;
 
@@ -379,7 +378,7 @@ int image_check_dcrc (image_header_t *hdr);
 #ifndef USE_HOSTCC
 int getenv_yesno (char *var);
 ulong getenv_bootm_low(void);
-ulong getenv_bootm_size(void);
+phys_size_t getenv_bootm_size(void);
 void memmove_wd (void *to, void *from, size_t len, ulong chunksz);
 #endif
 

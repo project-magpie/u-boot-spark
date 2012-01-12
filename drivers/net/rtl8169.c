@@ -58,9 +58,6 @@
 #include <asm/io.h>
 #include <pci.h>
 
-#if defined(CONFIG_CMD_NET) && defined(CONFIG_NET_MULTI) && \
-	defined(CONFIG_RTL8169)
-
 #undef DEBUG_RTL8169
 #undef DEBUG_RTL8169_TX
 #undef DEBUG_RTL8169_RX
@@ -395,7 +392,7 @@ static int rtl8169_init_board(struct eth_device *dev)
 
 	/* if unknown chip, assume array element #0, original RTL-8169 in this case */
 	printf("PCI device %s: unknown chip version, assuming RTL-8169\n", dev->name);
-	printf("PCI device: TxConfig = 0x%hX\n", (unsigned long) RTL_R32(TxConfig));
+	printf("PCI device: TxConfig = 0x%lX\n", (unsigned long) RTL_R32(TxConfig));
 	tpc->chipset = 0;
 
 match:
@@ -887,5 +884,3 @@ int rtl8169_initialize(bd_t *bis)
 	}
 	return card_number;
 }
-
-#endif

@@ -119,7 +119,7 @@ mmc_block_read(uchar * dst, ulong src, ulong len)
 	MMC_RDTO = 0xffff;
 	MMC_NOB = 1;
 	MMC_BLKLEN = len;
-	mmc_cmd(MMC_CMD_READ_BLOCK, argh, argl,
+	mmc_cmd(MMC_CMD_READ_SINGLE_BLOCK, argh, argl,
 		MMC_CMDAT_R1 | MMC_CMDAT_READ | MMC_CMDAT_BLOCK |
 		MMC_CMDAT_DATA_EN);
 
@@ -535,8 +535,10 @@ static void mmc_decode_csd(uint32_t * resp)
 	mmc_dev.removable = 0;
 	mmc_dev.block_read = mmc_bread;
 
-	printf("Detected: %u blocks of %u bytes (%uMB) ", mmc_dev.lba,
-	       mmc_dev.blksz, mmc_dev.lba * mmc_dev.blksz / (1024 * 1024));
+	printf("Detected: %lu blocks of %lu bytes (%luMB) ",
+		mmc_dev.lba,
+		mmc_dev.blksz,
+		mmc_dev.lba * mmc_dev.blksz / (1024 * 1024));
 }
 
 int
@@ -557,18 +559,13 @@ mmc_init(int verbose)
 	set_GPIO_mode(GPIO8_MMCCS0_MD);
 #endif
 	CKEN |= CKEN12_MMC;	/* enable MMC unit clock */
-#if defined(CONFIG_ADSVIX)
-	/* turn on the power */
-	GPCR(114) = GPIO_bit(114);
-	udelay(1000);
-#endif
 
 	MMC_CLKRT = MMC_CLKRT_0_3125MHZ;
 	MMC_RESTO = MMC_RES_TO_MAX;
 	MMC_SPI = MMC_SPI_DISABLE;
 
 	/* reset */
-	mmc_cmd(MMC_CMD_RESET, 0, 0, MMC_CMDAT_INIT | MMC_CMDAT_R0);
+	mmc_cmd(MMC_CMD_GO_IDLE_STATE, 0, 0, MMC_CMDAT_INIT | MMC_CMDAT_R0);
 	udelay(200000);
 	retries = 3;
 	while (retries--) {
@@ -578,7 +575,10 @@ mmc_init(int verbose)
 			break;
 		}
 
-		resp = mmc_cmd(SD_CMD_APP_OP_COND, 0x0020, 0, MMC_CMDAT_R3 | (retries < 2 ? 0 : MMC_CMDAT_INIT));	/* Select 3.2-3.3 and 3.3-3.4V */
+		/* Select 3.2-3.3 and 3.3-3.4V */
+		resp = mmc_cmd(SD_CMD_APP_SEND_OP_COND, 0x0020, 0,
+				MMC_CMDAT_R3 | (retries < 2 ? 0
+					: MMC_CMDAT_INIT));
 		if (resp[0] & 0x80000000) {
 			mmc_dev.if_type = IF_TYPE_SD;
 			debug("Detected SD card\n");
@@ -616,7 +616,7 @@ mmc_init(int verbose)
 		memcpy(cid_resp, resp, sizeof(cid_resp));
 
 		/* MMC exists, get CSD too */
-		resp = mmc_cmd(MMC_CMD_SET_RCA, 0, 0, MMC_CMDAT_R1);
+		resp = mmc_cmd(MMC_CMD_SET_RELATIVE_ADDR, 0, 0, MMC_CMDAT_R1);
 		if (IF_TYPE_SD == mmc_dev.if_type)
 			rca = ((resp[0] & 0xffff0000) >> 16);
 		resp = mmc_cmd(MMC_CMD_SEND_CSD, rca, 0, MMC_CMDAT_R2);

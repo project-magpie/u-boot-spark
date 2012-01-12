@@ -35,6 +35,7 @@
 #define CONFIG_MPC5200		1	/* More exactly a MPC5200 */
 #define CONFIG_MOTIONPRO	1	/* ... on Promess Motion-PRO board */
 
+#define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
 /*
  * BOOTP options
@@ -95,7 +96,7 @@
 #undef CONFIG_AUTOBOOT_DELAY_STR
 #undef CONFIG_BOOTARGS
 #define CONFIG_AUTOBOOT_PROMPT	"Autobooting in %d seconds, "		\
-					"press \"<Esc><Esc>\" to stop\n"
+				"press \"<Esc><Esc>\" to stop\n", bootdelay
 
 #define CONFIG_ETHADDR		00:50:C2:40:10:00
 #define CONFIG_OVERWRITE_ETHADDR_ONCE	1

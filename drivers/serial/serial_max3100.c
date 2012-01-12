@@ -26,8 +26,6 @@
 #include <common.h>
 #include <watchdog.h>
 
-#ifdef CONFIG_MAX3100_SERIAL
-
 DECLARE_GLOBAL_DATA_PTR;
 
 /**************************************************************/
@@ -94,7 +92,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define MAX3100_CTS	(1 <<  9)		/* clear-to-send bit (inverted ~CTS pin)   */
 
 /* data register bits (both directions) */
-#define MAX3100_R 	(1 << 15)		/* receive bit    */
+#define MAX3100_R	(1 << 15)		/* receive bit    */
 #define MAX3100_T	(1 << 14)		/* transmit bit   */
 #define MAX3100_P	(1 <<  8)		/* parity bit     */
 #define MAX3100_D_MASK	0x00FF                  /* data bits mask */
@@ -298,5 +296,3 @@ int serial_tstc(void)
 void serial_setbrg(void)
 {
 }
-
-#endif

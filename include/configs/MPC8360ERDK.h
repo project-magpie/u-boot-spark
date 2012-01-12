@@ -195,7 +195,7 @@
 			(2 << BR_PS_SHIFT) | /* 16 bit port size */ \
 			BR_V)	/* valid */
 #define CFG_OR0_PRELIM		((~(CFG_FLASH_SIZE - 1) << 20) | OR_UPM_XAM | \
-				OR_GPCM_CSNT | OR_GPCM_ACS_0b11 | \
+				OR_GPCM_CSNT | OR_GPCM_ACS_DIV2 | \
 				OR_GPCM_XACS | OR_GPCM_SCY_15 | \
 				OR_GPCM_TRLX | OR_GPCM_EHTR | OR_GPCM_EAD)
 
@@ -419,6 +419,8 @@
  * MMU Setup
  */
 
+#define CONFIG_HIGH_BATS	1	/* High BATs supported */
+
 /* DDR: cache cacheable */
 #define CFG_IBAT0L	(CFG_SDRAM_BASE | BATL_PP_10 | BATL_MEMCOHERENCE)
 #define CFG_IBAT0U	(CFG_SDRAM_BASE | BATU_BL_256M | BATU_VS | BATU_VP)
@@ -535,11 +537,11 @@
    "ubootfile=u-boot.bin\0"\
    "mtdparts=mtdparts=60000000.nand-flash:4096k(kernel),128k(dtb),-(rootfs)\0"\
    "setbootargs=setenv bootargs console=$consoledev,$baudrate "\
-   		"$mtdparts panic=1\0"\
+		"$mtdparts panic=1\0"\
    "adddhcpargs=setenv bootargs $bootargs ip=on\0"\
    "addnfsargs=setenv bootargs $bootargs ip=$ipaddr:$serverip:"\
-   		"$gatewayip:$netmask:$hostname:$netdev:off "\
-   		"root=/dev/nfs rw nfsroot=$serverip:$rootpath\0"\
+		"$gatewayip:$netmask:$hostname:$netdev:off "\
+		"root=/dev/nfs rw nfsroot=$serverip:$rootpath\0"\
    "addnandargs=setenv bootargs $bootargs root=/dev/mtdblock3 "\
 		"rootfstype=jffs2 rw\0"\
    "tftp_get_uboot=tftp 100000 $ubootfile\0"\
@@ -555,7 +557,7 @@
    "nand_read_kernel=nand read.jffs2 $loadaddr 0 400000\0"\
    "nand_read_dtb=nand read.jffs2 $fdtaddr 400000 20000\0"\
    "nor_reflash=protect off ff800000 ff87ffff ; erase ff800000 ff87ffff ; "\
-   		"cp.b 100000 ff800000 $filesize\0"\
+		"cp.b 100000 ff800000 $filesize\0"\
    "nand_reflash_kernel=run tftp_get_kernel nand_erase_kernel "\
 		"nand_write_kernel\0"\
    "nand_reflash_dtb=run tftp_get_dtb nand_erase_dtb nand_write_dtb\0"\

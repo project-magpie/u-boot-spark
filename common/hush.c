@@ -1,4 +1,3 @@
-/* vi: set sw=4 ts=4: */
 /*
  * sh.c -- a prototype Bourne shell grammar parser
  *      Intended to follow the original Thompson and Ritchie
@@ -954,7 +953,7 @@ static int b_adduint(o_string *o, unsigned int i)
 
 static int static_get(struct in_str *i)
 {
-	int ch=*i->p++;
+	int ch = *i->p++;
 	if (ch=='\0') return EOF;
 	return ch;
 }
@@ -1105,7 +1104,7 @@ static int file_get(struct in_str *i)
 	ch = 0;
 	/* If there is data waiting, eat it up */
 	if (i->p && *i->p) {
-		ch=*i->p++;
+		ch = *i->p++;
 	} else {
 		/* need to double check i->file because we might be doing something
 		 * more complicated by now, like sourcing or substituting. */
@@ -1122,7 +1121,7 @@ static int file_get(struct in_str *i)
 			i->__promptme = 0;
 #endif
 			if (i->p && *i->p) {
-				ch=*i->p++;
+				ch = *i->p++;
 			}
 #ifndef __U_BOOT__
 		} else {

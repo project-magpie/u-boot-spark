@@ -30,7 +30,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 flash_info_t flash_info[1];
 
-static void __flashprog flash_identify(uint16_t *flash, flash_info_t *info)
+static void flash_identify(uint16_t *flash, flash_info_t *info)
 {
 	unsigned long flags;
 
@@ -70,13 +70,13 @@ unsigned long flash_init(void)
 
 void flash_print_info(flash_info_t *info)
 {
-	printf("Flash: Vendor ID: 0x%02x, Product ID: 0x%02x\n",
+	printf("Flash: Vendor ID: 0x%02lx, Product ID: 0x%02lx\n",
 	       info->flash_id >> 16, info->flash_id & 0xffff);
 	printf("Size: %ld MB in %d sectors\n",
 	       info->size >> 10, info->sector_count);
 }
 
-int __flashprog flash_erase(flash_info_t *info, int s_first, int s_last)
+int flash_erase(flash_info_t *info, int s_first, int s_last)
 {
 	unsigned long flags;
 	unsigned long start_time;
@@ -154,7 +154,7 @@ int __flashprog flash_erase(flash_info_t *info, int s_first, int s_last)
 	return ERR_OK;
 }
 
-int __flashprog write_buff(flash_info_t *info, uchar *src,
+int write_buff(flash_info_t *info, uchar *src,
 			   ulong addr, ulong count)
 {
 	unsigned long flags;

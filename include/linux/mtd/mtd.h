@@ -13,7 +13,7 @@
 
 #define MAX_MTD_DEVICES 16
 
-#define MTD_ERASE_PENDING      	0x01
+#define MTD_ERASE_PENDING	0x01
 #define MTD_ERASING		0x02
 #define MTD_ERASE_SUSPEND	0x04
 #define MTD_ERASE_DONE          0x08
@@ -201,13 +201,13 @@ static inline void mtd_erase_callback(struct erase_info *instr)
 #define MTD_DEBUG_LEVEL3	(3)	/* Noisy   */
 
 #ifdef CONFIG_MTD_DEBUG
-#define DEBUG(n, args...)				\
- 	do {						\
+#define MTDDEBUG(n, args...)				\
+	do {						\
 		if (n <= CONFIG_MTD_DEBUG_VERBOSE)	\
 			printk(KERN_INFO args);		\
 	} while(0)
 #else /* CONFIG_MTD_DEBUG */
-#define DEBUG(n, args...) do { } while(0)
+#define MTDDEBUG(n, args...) do { } while(0)
 
 #endif /* CONFIG_MTD_DEBUG */
 

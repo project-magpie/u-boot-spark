@@ -39,27 +39,35 @@ int display_options (void)
 }
 
 /*
- * print sizes as "xxx KiB", "xxx.y KiB", "xxx MiB" or "xxx.y MiB" as needed;
- * allow for optional trailing string (like "\n")
+ * print sizes as "xxx KiB", "xxx.y KiB", "xxx MiB", "xxx.y MiB",
+ * xxx GiB, or xxx.y GiB as needed; allow for optional trailing string
+ * (like "\n")
  */
-void print_size (ulong size, const char *s)
+void print_size (phys_size_t size, const char *s)
 {
-	ulong m, n;
-	ulong d = 1 << 20;		/* 1 MiB */
-	char  c = 'M';
+	ulong m = 0, n;
+	phys_size_t d = 1 << 30;	/* 1 GiB */
+	char  c = 'G';
 
-	if (size < d) {			/* print in KiB */
-		c = 'K';
-		d = 1 << 10;
+	if (size < d) {			/* try MiB */
+		c = 'M';
+		d = 1 << 20;
+		if (size < d) {		/* print in KiB */
+			c = 'K';
+			d = 1 << 10;
+		}
 	}
 
 	n = size / d;
 
-	m = (10 * (size - (n * d)) + (d / 2) ) / d;
+	/* If there's a remainder, deal with it */
+	if(size % d) {
+		m = (10 * (size - (n * d)) + (d / 2) ) / d;
 
-	if (m >= 10) {
-		m -= 10;
-		n += 1;
+		if (m >= 10) {
+			m -= 10;
+			n += 1;
+		}
 	}
 
 	printf ("%3ld", n);
