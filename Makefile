@@ -3097,6 +3097,12 @@ spear1340_hurricane_usbtty_config \
 spear1340_hurricane_usbtty_nand_config :	unconfig
 	@$(MKCONFIG) -n $@ -t $(@:_config=) hurricane arm arm_cortexa8 hurricane spear spear13xx
 
+spear1340_lcad_config \
+spear1340_lcad_nand_config \
+spear1340_lcad_usbtty_config \
+spear1340_lcad_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear1340_lcad arm arm_cortexa8 spear1340_lcad spear spear13xx
+
 spear900_config \
 spear900_nand_config \
 spear900_usbtty_config \
