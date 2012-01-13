@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -70,7 +70,7 @@ static void display_pmb (void)
 	unsigned valid = 0;	/* assume all PMBs are invalid */
 #endif	/* DEBUG */
 
-	printf ("\ninfo: sizeof(LMI) = 0x%08x = %uMB (uses %u PMB slot%s)\n\n",
+	printf ("\ninfo: sizeof(LMI) = 0x%08x = %uMiB (uses %u PMB slot%s)\n\n",
 		CFG_SDRAM_SIZE, CFG_SDRAM_SIZE/1024/1024,
 		(CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES) ? 2 : 1,
 		(CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES) ? "s" : "");

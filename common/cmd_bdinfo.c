@@ -2,7 +2,7 @@
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * (C) Copyright 2009-2011 STMicroelectronics.
+ * (C) Copyright 2009-2012 STMicroelectronics.
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -559,7 +559,9 @@ static void print_mhz(const char *name, ulong value)
 #ifndef CONFIG_ARM
 static void print_lnum(const char *name, u64 value)
 {
-	printf ("%-12s= 0x%.8llX\n", name, value);
+	printf ("%-12s= 0x%.8llX\t(", name, value);
+	/* Also, print it in a 'human-friendly' format as well. */
+	print_size (value, ")\n");
 }
 #endif
 
