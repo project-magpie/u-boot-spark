@@ -2864,6 +2864,7 @@ extern unsigned int __machine_arch_type;
 #define MACH_TYPE_SPEAR1310            2881
 #define MACH_TYPE_SPEAR900             3061
 #define MACH_TYPE_SPEAR1340            3394
+#define MACH_TYPE_SPEAR1340_LCAD       3992
 #define MACH_TYPE_SPEARR1801E          3464
 #define MACH_TYPE_SPEAR320_HMI         3767
 #define MACH_TYPE_SPEAR1310_REVA       7777
@@ -37103,6 +37104,18 @@ extern unsigned int __machine_arch_type;
 # define machine_is_spear1340()	(machine_arch_type == MACH_TYPE_SPEAR1340)
 #else
 # define machine_is_spear1340()	(0)
+#endif
+
+#ifdef CONFIG_MACH_SPEAR1340_LCAD
+# ifdef machine_arch_type
+#  undef machine_arch_type
+#  define machine_arch_type	__machine_arch_type
+# else
+#  define machine_arch_type	MACH_TYPE_SPEAR1340_LCAD
+# endif
+# define machine_is_spear1340_lcad()	(machine_arch_type == MACH_TYPE_SPEAR1340_LCAD)
+#else
+# define machine_is_spear1340_lcad()	(0)
 #endif
 
 #ifdef CONFIG_MACH_SPEAR1310_REVA
