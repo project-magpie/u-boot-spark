@@ -5,7 +5,7 @@
  * DTF (Data Transfer Format) mechanism, over a JTAG link, to
  * a remote GDB debugger on a host machine.
  *
- *  Copyright (c) 2009  STMicroelectronics Limited
+ *  Copyright (c) 2009-2012  STMicroelectronics Limited
  *  Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -28,9 +28,6 @@
  */
 
 #include "common.h"
-
-
-#ifdef CONFIG_STM_DTF_SERIAL
 
 
 #ifdef CONFIG_STM_ASC_SERIAL
@@ -178,6 +175,3 @@ extern void serial_setbrg (void)
 {
 	/* do nothing */
 }
-
-
-#endif	/* CONFIG_STM_DTF_SERIAL */

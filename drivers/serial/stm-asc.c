@@ -3,7 +3,7 @@
  *
  * Support for Serial I/O using STMicroelectronics' on-chip ASC.
  *
- *  Copyright (c) 2004,2008,2011  STMicroelectronics Limited
+ *  Copyright (c) 2004,2008-2012  STMicroelectronics Limited
  *  Sean McGoogan <Sean.McGoogan@st.com>
  *  Copyright (C) 1999  Takeshi Yaegachi & Niibe Yutaka
  *
@@ -14,9 +14,6 @@
  */
 
 #include "common.h"
-
-#ifdef CONFIG_STM_ASC_SERIAL
-
 #include "asm/termbits.h"
 #include "asm/io.h"
 #include "asm/pio.h"
@@ -300,4 +297,3 @@ extern int hwflow_onoff (int on)
 }
 #endif	/* CONFIG_HWFLOW */
 
-#endif	/* CONFIG_STM_ASC_SERIAL */

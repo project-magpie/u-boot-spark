@@ -36,8 +36,8 @@ COBJS-y += serial_pl010.o
 COBJS-y += serial_pl011.o
 COBJS-$(CONFIG_XILINX_UARTLITE) += serial_xuartlite.o
 COBJS-y += serial_sh.o
-COBJS-y += stm-asc.o
-COBJS-y += stm-dtf.o
+COBJS-$(CONFIG_STM_ASC_SERIAL) += stm-asc.o
+COBJS-$(CONFIG_STM_DTF_SERIAL) += stm-dtf.o
 COBJS-$(CONFIG_USB_TTY) += usbtty.o
 
 COBJS	:= $(COBJS-y)
