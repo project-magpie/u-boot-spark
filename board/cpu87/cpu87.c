@@ -26,6 +26,7 @@
 #include <mpc8260.h>
 #include "cpu87.h"
 #include <pci.h>
+#include <netdev.h>
 
 /*
  * I/O Port configuration table
@@ -322,7 +323,6 @@ phys_size_t initdram (int board_type)
 }
 
 #if defined(CONFIG_CMD_DOC)
-extern void doc_probe (ulong physadr);
 void doc_init (void)
 {
 	doc_probe (CFG_DOC_BASE);
@@ -339,3 +339,8 @@ void pci_init_board(void)
 	pci_mpc8250_init(&hose);
 }
 #endif
+
+int board_eth_init(bd_t *bis)
+{
+	return pci_eth_init(bis);
+}

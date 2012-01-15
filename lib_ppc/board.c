@@ -106,12 +106,12 @@ extern int board_start_ide(void);
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CFG_ENV_IS_EMBEDDED)
+#if defined(CONFIG_ENV_IS_EMBEDDED)
 #define TOTAL_MALLOC_LEN	CFG_MALLOC_LEN
-#elif ( ((CFG_ENV_ADDR+CFG_ENV_SIZE) < CFG_MONITOR_BASE) || \
-	(CFG_ENV_ADDR >= (CFG_MONITOR_BASE + CFG_MONITOR_LEN)) ) || \
-      defined(CFG_ENV_IS_IN_NVRAM)
-#define	TOTAL_MALLOC_LEN	(CFG_MALLOC_LEN + CFG_ENV_SIZE)
+#elif ( ((CONFIG_ENV_ADDR+CONFIG_ENV_SIZE) < CFG_MONITOR_BASE) || \
+	(CONFIG_ENV_ADDR >= (CFG_MONITOR_BASE + CFG_MONITOR_LEN)) ) || \
+      defined(CONFIG_ENV_IS_IN_NVRAM)
+#define	TOTAL_MALLOC_LEN	(CFG_MALLOC_LEN + CONFIG_ENV_SIZE)
 #else
 #define	TOTAL_MALLOC_LEN	CFG_MALLOC_LEN
 #endif
@@ -166,19 +166,6 @@ void *sbrk (ptrdiff_t increment)
 	}
 	mem_malloc_brk = new;
 	return ((void *) old);
-}
-
-char *strmhz (char *buf, long hz)
-{
-	long l, n;
-	long m;
-
-	n = hz / 1000000L;
-	l = sprintf (buf, "%ld", n);
-	m = (hz % 1000000L) / 1000L;
-	if (m != 0)
-		sprintf (buf + l, ".%03ld", m);
-	return (buf);
 }
 
 /*
@@ -648,6 +635,16 @@ void board_init_f (ulong bootflag)
 	/* NOTREACHED - relocate_code() does not return */
 }
 
+int __is_sata_supported(void)
+{
+	/* For some boards, when sata disabled by the switch, and the
+	 * driver still access the sata registers, the cpu will hangup.
+	 * please define platform specific is_sata_supported() if your
+	 * board have such issue.*/
+	return 1;
+}
+int is_sata_supported(void) __attribute__((weak, alias("__is_sata_supported")));
+
 /************************************************************************
  *
  * This is the next part if the initialization sequence: we are now
@@ -664,7 +661,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	bd_t *bd;
 	int i;
 	extern void malloc_bin_reloc (void);
-#ifndef CFG_ENV_IS_NOWHERE
+#ifndef CONFIG_ENV_IS_NOWHERE
 	extern char * env_name_spec;
 #endif
 
@@ -726,7 +723,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 	}
 	/* there are some other pointer constants we must deal with */
-#ifndef CFG_ENV_IS_NOWHERE
+#ifndef CONFIG_ENV_IS_NOWHERE
 	env_name_spec += gd->reloc_off;
 #endif
 
@@ -835,7 +832,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	malloc_bin_reloc ();
 
 #ifdef CONFIG_SPI
-# if !defined(CFG_ENV_IS_IN_EEPROM)
+# if !defined(CONFIG_ENV_IS_IN_EEPROM)
 	spi_init_f ();
 # endif
 	spi_init_r ();
@@ -886,7 +883,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	sc3_read_eeprom();
 #endif
 
-#if defined (CFG_ID_EEPROM) || defined (CFG_I2C_MAC_OFFSET)
+#if defined (CONFIG_ID_EEPROM) || defined (CFG_I2C_MAC_OFFSET)
 	mac_read_from_eeprom();
 #endif
 
@@ -1118,8 +1115,10 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 
 #if defined(CONFIG_CMD_SATA)
-	puts ("SATA:  ");
-	sata_initialize ();
+	if (is_sata_supported()) {
+		puts("SATA:  ");
+		sata_initialize();
+	}
 #endif
 
 #ifdef CONFIG_LAST_STAGE_INIT

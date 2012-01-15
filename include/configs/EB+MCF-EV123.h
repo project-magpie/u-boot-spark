@@ -51,18 +51,18 @@
  * Environment is embedded in u-boot in the second sector of the flash
  */
 #ifndef CONFIG_MONITOR_IS_IN_RAM
-#define CFG_ENV_ADDR		0xF003C000	/* End of 256K */
-#define CFG_ENV_SECT_SIZE	0x4000
-#define CFG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		0xF003C000	/* End of 256K */
+#define CONFIG_ENV_SECT_SIZE	0x4000
+#define CONFIG_ENV_IS_IN_FLASH	1
 /*
-#define CFG_ENV_IS_EMBEDDED	1
-#define CFG_ENV_ADDR_REDUND		0xF0018000
-#define CFG_ENV_SECT_SIZE_REDUND	0x4000
+#define CONFIG_ENV_IS_EMBEDDED	1
+#define CONFIG_ENV_ADDR_REDUND		0xF0018000
+#define CONFIG_ENV_SECT_SIZE_REDUND	0x4000
 */
 #else
-#define CFG_ENV_ADDR		0xFFE04000
-#define CFG_ENV_SECT_SIZE	0x2000
-#define CFG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		0xFFE04000
+#define CONFIG_ENV_SECT_SIZE	0x2000
+#define CONFIG_ENV_IS_IN_FLASH	1
 #endif
 
 
@@ -252,7 +252,7 @@
 #define CFG_PEHLPAR		0xC0
 #define CFG_PUAPAR		0x0F		/* UA0..UA3 = Uart 0 +1 */
 #define CFG_DDRUA		0x05
-#define CFG_PJPAR		0xFF;
+#define CFG_PJPAR		0xFF
 
 /*-----------------------------------------------------------------------
  * CCM configuration

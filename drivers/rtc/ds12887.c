@@ -28,7 +28,7 @@
 #include <config.h>
 #include <rtc.h>
 
-#if defined(CONFIG_RTC_DS12887) && defined(CONFIG_CMD_DATE)
+#if defined(CONFIG_CMD_DATE)
 
 #define RTC_SECONDS			0x00
 #define RTC_SECONDS_ALARM		0x01
@@ -154,7 +154,7 @@ else
 	return 0;
 }
 
-void rtc_set (struct rtc_time *tmp)
+int rtc_set (struct rtc_time *tmp)
 {
 	uchar save_ctrl_b;
 	uchar sec, min, hour, mday, wday, mon, year;
@@ -202,6 +202,8 @@ void rtc_set (struct rtc_time *tmp)
 	/* enables the RTC to update the regs */
 	save_ctrl_b &= ~RTC_CB_SET;
 	rtc_write(RTC_CONTROL_B, save_ctrl_b);
+
+	return 0;
 }
 
 void rtc_reset (void)

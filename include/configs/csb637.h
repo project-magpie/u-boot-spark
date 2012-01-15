@@ -76,7 +76,7 @@
 /*
  * Size of malloc() pool
  */
-#define CFG_MALLOC_LEN	(CFG_ENV_SIZE + 128*1024)
+#define CFG_MALLOC_LEN	(CONFIG_ENV_SIZE + 128*1024)
 #define CFG_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 #define CONFIG_BAUDRATE 115200
@@ -179,7 +179,7 @@
 #define PHYS_FLASH_SIZE			0x800000  /* 8 megs main flash */
 #define CFG_FLASH_BASE			PHYS_FLASH_1
 #define CFG_FLASH_CFI		1	/* flash is CFI conformant	*/
-#define CFG_FLASH_CFI_DRIVER	1	/* use common cfi driver	*/
+#define CONFIG_FLASH_CFI_DRIVER	1	/* use common cfi driver	*/
 #define CFG_FLASH_EMPTY_INFO
 #define CFG_FLASH_USE_BUFFER_WRITE 1	/* use buffered writes (20x faster) */
 #define CFG_MAX_FLASH_BANKS	1	/* max # of memory banks	*/
@@ -191,17 +191,17 @@
 #define CFG_JFFS2_FIRST_SECTOR	3
 #define CFG_JFFS2_NUM_BANKS	1
 
-#undef	CFG_ENV_IS_IN_DATAFLASH
+#undef	CONFIG_ENV_IS_IN_DATAFLASH
 
-#ifdef CFG_ENV_IS_IN_DATAFLASH
-#define CFG_ENV_OFFSET			0x20000
-#define CFG_ENV_ADDR			(CFG_DATAFLASH_LOGIC_ADDR_CS0 + CFG_ENV_OFFSET)
-#define CFG_ENV_SIZE			0x2000  /* 0x8000 */
+#ifdef CONFIG_ENV_IS_IN_DATAFLASH
+#define CONFIG_ENV_OFFSET			0x20000
+#define CONFIG_ENV_ADDR			(CFG_DATAFLASH_LOGIC_ADDR_CS0 + CONFIG_ENV_OFFSET)
+#define CONFIG_ENV_SIZE			0x2000  /* 0x8000 */
 #else
-#define CFG_ENV_IS_IN_FLASH		1
-#define CFG_ENV_ADDR			(PHYS_FLASH_1 + 0x20000)  /* after u-boot.bin */
-#define CFG_ENV_SIZE			0x20000 /* sectors are 128K here */
-#endif	/* CFG_ENV_IS_IN_DATAFLASH */
+#define CONFIG_ENV_IS_IN_FLASH		1
+#define CONFIG_ENV_ADDR			(PHYS_FLASH_1 + 0x20000)  /* after u-boot.bin */
+#define CONFIG_ENV_SIZE			0x20000 /* sectors are 128K here */
+#endif	/* CONFIG_ENV_IS_IN_DATAFLASH */
 
 
 #define CFG_LOAD_ADDR		0x21000000  /* default load address */

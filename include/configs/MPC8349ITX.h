@@ -175,7 +175,7 @@
  */
 
 #define CFG_FLASH_CFI				/* use the Common Flash Interface */
-#define CFG_FLASH_CFI_DRIVER			/* use the CFI driver */
+#define CONFIG_FLASH_CFI_DRIVER			/* use the CFI driver */
 #define CFG_FLASH_BASE		0xFE000000	/* start of FLASH   */
 #define CFG_FLASH_EMPTY_INFO
 #define CFG_MAX_FLASH_SECT	135	/* 127 64KB sectors + 8 8KB sectors per device */
@@ -190,6 +190,7 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CFG_FLASH_BANKS_LIST	{CFG_FLASH_BASE, CFG_FLASH_BASE + 0x800000}
 #define CFG_FLASH_SIZE		16		/* FLASH size in MB */
 #define CFG_FLASH_SIZE_SHIFT	4		/* log2 of the above value */
+#define CFG_FLASH_PROTECTION	1		/* Use h/w Flash protection. */
 
 /* Vitesse 7385 */
 
@@ -274,7 +275,7 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CFG_GBL_DATA_OFFSET	(CFG_INIT_RAM_END - CFG_GBL_DATA_SIZE)
 #define CFG_INIT_SP_OFFSET	CFG_GBL_DATA_OFFSET
 
-/* CFG_MONITOR_LEN must be a multiple of CFG_ENV_SECT_SIZE */
+/* CFG_MONITOR_LEN must be a multiple of CONFIG_ENV_SECT_SIZE */
 #define CFG_MONITOR_LEN		(256 * 1024) /* Reserve 256 kB for Mon */
 #define CFG_MALLOC_LEN		(128 * 1024) /* Reserved for malloc */
 
@@ -413,16 +414,16 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_ENV_OVERWRITE
 
 #ifndef CFG_RAMBOOT
-  #define CFG_ENV_IS_IN_FLASH
-  #define CFG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
-  #define CFG_ENV_SECT_SIZE	0x10000 /* 64K (one sector) for environment */
-  #define CFG_ENV_SIZE		0x2000
+  #define CONFIG_ENV_IS_IN_FLASH
+  #define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
+  #define CONFIG_ENV_SECT_SIZE	0x10000 /* 64K (one sector) for environment */
+  #define CONFIG_ENV_SIZE		0x2000
 #else
   #define CFG_NO_FLASH		/* Flash is not usable now */
-  #undef  CFG_FLASH_CFI_DRIVER
-  #define CFG_ENV_IS_NOWHERE	/* Store ENV in memory only */
-  #define CFG_ENV_ADDR		(CFG_MONITOR_BASE - 0x1000)
-  #define CFG_ENV_SIZE		0x2000
+  #undef  CONFIG_FLASH_CFI_DRIVER
+  #define CONFIG_ENV_IS_NOWHERE	/* Store ENV in memory only */
+  #define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE - 0x1000)
+  #define CONFIG_ENV_SIZE		0x2000
 #endif
 
 #define CONFIG_LOADS_ECHO	/* echo on for serial download */

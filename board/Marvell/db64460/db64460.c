@@ -33,6 +33,7 @@
 #include "../include/pci.h"
 #include "../include/mv_gen_reg.h"
 #include <net.h>
+#include <netdev.h>
 
 #include "eth.h"
 #include "mpsc.h"
@@ -50,9 +51,6 @@
 #else
 #define DP(x)
 #endif
-
-extern void flush_data_cache (void);
-extern void invalidate_l1_instruction_cache (void);
 
 /* ------------------------------------------------------------------------- */
 
@@ -930,7 +928,10 @@ void board_prebootm_init ()
 	my_remap_gt_regs_bootm (CFG_GT_REGS, BRIDGE_REG_BASE_BOOTM);
 
 	icache_disable ();
-	invalidate_l1_instruction_cache ();
-	flush_data_cache ();
 	dcache_disable ();
+}
+
+int board_eth_init(bd_t *bis)
+{
+	return pci_eth_init(bis);
 }

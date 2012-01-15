@@ -78,7 +78,7 @@
  * FLASH on the Local Bus
  */
 #define CFG_FLASH_CFI				/* use the Common Flash Interface */
-#define CFG_FLASH_CFI_DRIVER			/* use the CFI driver */
+#define CONFIG_FLASH_CFI_DRIVER			/* use the CFI driver */
 #undef CFG_FLASH_CHECKSUM
 #define CFG_FLASH_BASE		0x80000000	/* start of FLASH   */
 #define CFG_FLASH_SIZE		8		/* FLASH size in MB */
@@ -213,7 +213,6 @@ extern int tqm834x_num_flash_banks;
 #define CFG_I2C_EEPROM_ADDR		0x50	/* 1010000x			*/
 #define CFG_I2C_EEPROM_ADDR_LEN		2	/* 16 bit			*/
 #define CFG_EEPROM_PAGE_WRITE_BITS	5	/* 32 bytes per write		*/
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	12	/* 10ms +/- 20%			*/
 #define CFG_I2C_MULTI_EEPROMS		1       /* more than one eeprom		*/
 
@@ -300,15 +299,15 @@ extern int tqm834x_num_flash_banks;
 #define CONFIG_ENV_OVERWRITE
 
 #ifndef CFG_RAMBOOT
-	#define CFG_ENV_IS_IN_FLASH	1
-	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + 0x40000)
-	#define CFG_ENV_SECT_SIZE	0x40000	/* 256K(one sector) for env */
-	#define CFG_ENV_SIZE		0x2000
+	#define CONFIG_ENV_IS_IN_FLASH	1
+	#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE + 0x40000)
+	#define CONFIG_ENV_SECT_SIZE	0x40000	/* 256K(one sector) for env */
+	#define CONFIG_ENV_SIZE		0x2000
 #else
 	#define CFG_NO_FLASH		1	/* Flash is not usable now */
-	#define CFG_ENV_IS_NOWHERE	1	/* Store ENV in memory only */
-	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE - 0x1000)
-	#define CFG_ENV_SIZE		0x2000
+	#define CONFIG_ENV_IS_NOWHERE	1	/* Store ENV in memory only */
+	#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE - 0x1000)
+	#define CONFIG_ENV_SIZE		0x2000
 #endif
 
 #define CONFIG_LOADS_ECHO		1	/* echo on for serial download */

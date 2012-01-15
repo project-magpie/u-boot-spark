@@ -109,7 +109,7 @@ int fixed_sdram(void)
 			return -1;
 		}
 	}
-	im->sysconf.ddrlaw[0].bar = ((CFG_DDR_SDRAM_BASE>>12) & 0xfffff);
+	im->sysconf.ddrlaw[0].bar = CFG_DDR_SDRAM_BASE & 0xfffff000;
 	im->sysconf.ddrlaw[0].ar = LAWAR_EN | ((ddr_size_log2 - 1) & LAWAR_SIZE);
 
 #if (CFG_DDR_SIZE != 256)
@@ -165,6 +165,15 @@ int fixed_sdram(void)
 
 int checkboard (void)
 {
+	/*
+	 * Warning: do not read the BCSR registers here
+	 *
+	 * There is a timing bug in the 8349E and 8349EA BCSR code
+	 * version 1.2 (read from BCSR 11) that will cause the CFI
+	 * flash initialization code to overwrite BCSR 0, disabling
+	 * the serial ports and gigabit ethernet
+	 */
+
 	puts("Board: Freescale MPC8349EMDS\n");
 	return 0;
 }

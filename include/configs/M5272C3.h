@@ -40,8 +40,8 @@
 
 #define CONFIG_MCFUART
 #define CFG_UART_PORT		(0)
-#define CONFIG_BAUDRATE		19200
-#define CFG_BAUDRATE_TABLE { 9600 , 19200 , 38400 , 57600, 115200 }
+#define CONFIG_BAUDRATE		115200
+#define CFG_BAUDRATE_TABLE	{ 9600 , 19200 , 38400 , 57600, 115200 }
 
 #undef CONFIG_WATCHDOG
 #define CONFIG_WATCHDOG_TIMEOUT 10000	/* timeout in milliseconds */
@@ -52,14 +52,14 @@
  * Environment is embedded in u-boot in the second sector of the flash
  */
 #ifndef CONFIG_MONITOR_IS_IN_RAM
-#define CFG_ENV_OFFSET		0x4000
-#define CFG_ENV_SECT_SIZE	0x2000
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_IS_EMBEDDED	1
+#define CONFIG_ENV_OFFSET		0x4000
+#define CONFIG_ENV_SECT_SIZE	0x2000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_IS_EMBEDDED	1
 #else
-#define CFG_ENV_ADDR		0xffe04000
-#define CFG_ENV_SECT_SIZE	0x2000
-#define CFG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		0xffe04000
+#define CONFIG_ENV_SECT_SIZE	0x2000
+#define CONFIG_ENV_IS_IN_FLASH	1
 #endif
 
 /*
@@ -91,6 +91,7 @@
 #ifdef CONFIG_MCFFEC
 #	define CONFIG_NET_MULTI		1
 #	define CONFIG_MII		1
+#	define CONFIG_MII_INIT		1
 #	define CFG_DISCOVER_PHY
 #	define CFG_RX_ETH_BUFFER	8
 #	define CFG_FAULT_ECHO_LINK_DOWN
@@ -155,8 +156,8 @@
  * You should know what you are doing if you make changes here.
  */
 #define CFG_MBAR		0x10000000	/* Register Base Addrs */
-#define CFG_SCR			0x0003;
-#define CFG_SPR			0xffff;
+#define CFG_SCR			0x0003
+#define CFG_SPR			0xffff
 
 /*-----------------------------------------------------------------------
  * Definitions for initial stack pointer and data area (in DPRAM)

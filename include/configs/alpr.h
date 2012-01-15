@@ -86,22 +86,22 @@
  * FLASH related
  *----------------------------------------------------------------------*/
 #define CFG_FLASH_CFI		1	/* The flash is CFI compatible		*/
-#define CFG_FLASH_CFI_DRIVER	1	/* Use common CFI driver		*/
+#define CONFIG_FLASH_CFI_DRIVER	1	/* Use common CFI driver		*/
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
 #define CFG_MAX_FLASH_SECT	512	/* max number of sectors on one chip	*/
 #define CFG_FLASH_USE_BUFFER_WRITE 1	/* use buffered writes (20x faster)	*/
 #define CFG_FLASH_EMPTY_INFO		/* print 'E' for empty sector on flinfo */
 #define CFG_FLASH_QUIET_TEST	1	/* don't warn upon unknown flash	*/
 
-#define CFG_ENV_IS_IN_FLASH     1	/* use FLASH for environment vars	*/
+#define CONFIG_ENV_IS_IN_FLASH     1	/* use FLASH for environment vars	*/
 
-#define CFG_ENV_SECT_SIZE	0x10000	/* size of one complete sector		*/
-#define CFG_ENV_ADDR		(CFG_MONITOR_BASE-CFG_ENV_SECT_SIZE)
-#define	CFG_ENV_SIZE		0x2000	/* Total Size of Environment Sector	*/
+#define CONFIG_ENV_SECT_SIZE	0x10000	/* size of one complete sector		*/
+#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE-CONFIG_ENV_SECT_SIZE)
+#define	CONFIG_ENV_SIZE		0x2000	/* Total Size of Environment Sector	*/
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR-CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR-CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 /*-----------------------------------------------------------------------
  * DDR SDRAM
@@ -133,7 +133,6 @@
 					/* 8 byte page write mode using */
 					/* last 3 bits of the address	*/
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	40   /* and takes up to 40 msec */
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 
 #define CONFIG_PREBOOT	"echo;"	\
 	"echo Type \"run kernelx\" to boot the system;"			\

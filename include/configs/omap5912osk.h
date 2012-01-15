@@ -53,7 +53,7 @@
 /*
  * Size of malloc() pool
  */
-#define CFG_MALLOC_LEN	(CFG_ENV_SIZE + 128*1024)
+#define CFG_MALLOC_LEN	(CONFIG_ENV_SIZE + 128*1024)
 #define CFG_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 /*
@@ -174,7 +174,7 @@
  * FLASH driver setup
  */
 #define CFG_FLASH_CFI          1       /* Flash memory is CFI compliant */
-#define CFG_FLASH_CFI_DRIVER   1       /* Use drivers/mtd/cfi_flash.c */
+#define CONFIG_FLASH_CFI_DRIVER   1       /* Use drivers/mtd/cfi_flash.c */
 
 #define CFG_FLASH_BANKS_LIST { PHYS_FLASH_1, PHYS_FLASH_2 }
 
@@ -194,11 +194,11 @@
 /*-----------------------------------------------------------------------
  * FLASH and environment organization
  */
-#define CFG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_IS_IN_FLASH	1
 /* addr of environment */
-#define CFG_ENV_ADDR	(CFG_FLASH_BASE + 0x020000)
+#define CONFIG_ENV_ADDR	(CFG_FLASH_BASE + 0x020000)
 
-#define CFG_ENV_SIZE	0x20000	/* Total Size of Environment Sector */
-#define CFG_ENV_OFFSET	0x20000	/* environment starts here  */
+#define CONFIG_ENV_SIZE	0x20000	/* Total Size of Environment Sector */
+#define CONFIG_ENV_OFFSET	0x20000	/* environment starts here  */
 
 #endif							/* __CONFIG_H */

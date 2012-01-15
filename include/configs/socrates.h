@@ -33,6 +33,11 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+/* new uImage format support */
+#define CONFIG_FIT		1
+#define CONFIG_OF_LIBFDT	1
+#define CONFIG_FIT_VERBOSE	1 /* enable fit_format_{error,warning}() */
+
 /* High Level Configuration Options */
 #define CONFIG_BOOKE		1	/* BOOKE			*/
 #define CONFIG_E500		1	/* BOOKE e500 family		*/
@@ -45,6 +50,7 @@
 #define CONFIG_TSEC_ENET		/* tsec ethernet support	*/
 
 #define CONFIG_MISC_INIT_R	1	/* Call misc_init_r		*/
+#define CONFIG_BOARD_EARLY_INIT_R 1	/* Call board_early_init_r	*/
 
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code */
 
@@ -81,8 +87,8 @@
 #define CFG_INIT_DBCR DBCR_IDM		/* Enable Debug Exceptions	*/
 
 #undef	CFG_DRAM_TEST			/* memory test, takes time	*/
-#define CFG_MEMTEST_START	0x00000000
-#define CFG_MEMTEST_END		0x10000000
+#define CFG_MEMTEST_START	0x00400000
+#define CFG_MEMTEST_END		0x00C00000
 
 /*
  * Base addresses -- Note these are effective addresses where the
@@ -93,11 +99,25 @@
 #define CFG_CCSRBAR_PHYS	CFG_CCSRBAR	/* physical addr of CCSRBAR */
 #define CFG_IMMR		CFG_CCSRBAR	/* PQII uses CFG_IMMR	*/
 
-/*
- * DDR Setup
- */
-#define CFG_DDR_SDRAM_BASE	0x00000000	/* DDR is system memory	*/
+/* DDR Setup */
+#define CONFIG_FSL_DDR2
+#undef CONFIG_FSL_DDR_INTERACTIVE
+#define CONFIG_SPD_EEPROM		/* Use SPD EEPROM for DDR setup */
+#define CONFIG_DDR_SPD
+
+#undef CONFIG_ECC_INIT_VIA_DDRCONTROLLER	/* DDR controller or DMA? */
+#define CONFIG_MEM_INIT_VALUE	0xDeadBeef
+
+#define CFG_DDR_SDRAM_BASE	0x00000000
 #define CFG_SDRAM_BASE		CFG_DDR_SDRAM_BASE
+#define CONFIG_VERY_BIG_RAM
+
+#define CONFIG_NUM_DDR_CONTROLLERS	1
+#define CONFIG_DIMM_SLOTS_PER_CTLR	1
+#define CONFIG_CHIP_SELECTS_PER_CTRL	2
+
+/* I2C addresses of SPD EEPROMs */
+#define SPD_EEPROM_ADDRESS	0x50	/* CTLR 0 DIMM 0 */
 
 #define CONFIG_DDR_DEFAULT_CL	30		/* CAS latency 3	*/
 
@@ -114,13 +134,6 @@
 #define CFG_DDR_CLK_CONTROL		0x03800000
 #define CFG_SDRAM_SIZE			256 /* in Megs */
 
-#define CONFIG_SPD_EEPROM	1 	/* Use SPD EEPROM for DDR setup*/
-#define SPD_EEPROM_ADDRESS	0x50		/* DDR DIMM */
-#define MPC85xx_DDR_SDRAM_CLK_CNTL	/* 85xx has clock control reg */
-
-/*
- * Flash on the Local Bus
- */
 /*
  * Flash on the LocalBus
  */
@@ -134,13 +147,12 @@
 #define CFG_FLASH_BASE		CFG_LBC_FLASH_BASE /* start of FLASH	*/
 
 #define CFG_BR0_PRELIM		0xfe001001	/* port size 16bit	*/
-#define CFG_OR0_PRELIM		0xfe000ff7	/* 32MB Flash		*/
+#define CFG_OR0_PRELIM		0xfe000030	/* 32MB Flash		*/
 #define CFG_BR1_PRELIM		0xfc001001	/* port size 16bit	*/
-#define CFG_OR1_PRELIM		0xfe000ff7	/* 32MB Flash		*/
+#define CFG_OR1_PRELIM		0xfe000030	/* 32MB Flash		*/
 
 #define CFG_FLASH_CFI				/* flash is CFI compat.	*/
-#define CFG_FLASH_CFI_DRIVER			/* Use common CFI driver*/
-#define CFG_FLASH_EMPTY_INFO		/* print 'E' for empty sector	*/
+#define CONFIG_FLASH_CFI_DRIVER			/* Use common CFI driver*/
 
 #define CFG_MAX_FLASH_BANKS	2		/* number of banks	*/
 #define CFG_MAX_FLASH_SECT	256		/* sectors per device	*/
@@ -150,7 +162,7 @@
 
 #define CFG_MONITOR_BASE	TEXT_BASE	/* start of monitor	*/
 
-#define CFG_LBC_LCRR		0x00030008    /* LB clock ratio reg	*/
+#define CFG_LBC_LCRR		0x00030004    /* LB clock ratio reg	*/
 #define CFG_LBC_LBCR		0x00000000    /* LB config reg		*/
 #define CFG_LBC_LSRT		0x20000000    /* LB sdram refresh timer	*/
 #define CFG_LBC_MRTPR		0x20000000    /* LB refresh timer presc.*/
@@ -164,8 +176,40 @@
 #define CFG_GBL_DATA_OFFSET	(CFG_INIT_RAM_END - CFG_GBL_DATA_SIZE)
 #define CFG_INIT_SP_OFFSET	CFG_GBL_DATA_OFFSET
 
-#define CFG_MONITOR_LEN		(256 * 1024)	/* Reserve 256kB for Mon*/
-#define CFG_MALLOC_LEN		(256 * 1024)	/* Reserved for malloc	*/
+#define CFG_MONITOR_LEN		(256 * 1024)	/* Reserve 256kB for Mon */
+#define CFG_MALLOC_LEN		(4 << 20)	/* Reserve 4 MB for malloc */
+
+/* FPGA and NAND */
+#define CFG_FPGA_BASE		0xc0000000
+#define CFG_FPGA_SIZE		0x00100000	/* 1 MB		*/
+#define CFG_HMI_BASE		0xc0010000
+#define CFG_BR3_PRELIM		0xc0001881	/* UPMA, 32-bit */
+#define CFG_OR3_PRELIM		0xfff00000	/* 1 MB 	*/
+
+#define CFG_NAND_BASE		(CFG_FPGA_BASE + 0x70)
+#define CFG_MAX_NAND_DEVICE	1
+#define NAND_MAX_CHIPS		1
+#define CONFIG_CMD_NAND
+
+/* LIME GDC */
+#define CFG_LIME_BASE		0xc8000000
+#define CFG_LIME_SIZE		0x04000000	/* 64 MB	*/
+#define CFG_BR2_PRELIM		0xc80018a1	/* UPMB, 32-bit	*/
+#define CFG_OR2_PRELIM		0xfc000000	/* 64 MB	*/
+
+#define CONFIG_VIDEO
+#define CONFIG_VIDEO_MB862xx
+#define CONFIG_CFB_CONSOLE
+#define CONFIG_VIDEO_LOGO
+#define CONFIG_VIDEO_BMP_LOGO
+#define CONFIG_CONSOLE_EXTRA_INFO
+#define VIDEO_FB_16BPP_PIXEL_SWAP
+#define CONFIG_VGA_AS_SINGLE_DEVICE
+#define CFG_CONSOLE_IS_IN_ENV
+#define CONFIG_VIDEO_SW_CURSOR
+#define CONFIG_SPLASH_SCREEN
+#define CONFIG_VIDEO_BMP_GZIP
+#define CFG_VIDEO_LOGO_MAX_SIZE	(2 << 20)	/* decompressed img */
 
 /* Serial Port */
 
@@ -197,14 +241,20 @@
 #define CONFIG_FSL_I2C		/* Use FSL common I2C driver */
 #define CONFIG_HARD_I2C			/* I2C with hardware support	*/
 #undef	CONFIG_SOFT_I2C			/* I2C bit-banged		*/
-#define CFG_I2C_SPEED		400000	/* I2C speed and slave address	*/
+#define CFG_I2C_SPEED		102124	/* I2C speed and slave address	*/
 #define CFG_I2C_SLAVE		0x7F
-#define CFG_I2C_NOPROBES	{0x48}	/* Don't probe these addrs	*/
 #define CFG_I2C_OFFSET		0x3000
+
+#define CONFIG_I2C_MULTI_BUS
+#define CONFIG_I2C_CMD_TREE
+#define CFG_I2C2_OFFSET		0x3100
 
 /* I2C RTC */
 #define CONFIG_RTC_RX8025		/* Use Epson rx8025 rtc via i2c	*/
 #define CFG_I2C_RTC_ADDR	0x32	/* at address 0x32		*/
+
+/* I2C W83782G HW-Monitoring IC */
+#define CFG_I2C_W83782G_ADDR	0x28	/* W83782G address 		*/
 
 /* I2C temp sensor */
 /* Socrates uses Maxim's	DS75, which is compatible with LM75 */
@@ -213,7 +263,6 @@
 #define CFG_DTT_MAX_TEMP	125
 #define CFG_DTT_LOW_TEMP	-55
 #define CFG_DTT_HYSTERESIS	3
-#define CFG_EEPROM_PAGE_WRITE_ENABLE	/* necessary for the LM75 chip */
 #define CFG_EEPROM_PAGE_WRITE_BITS	4
 
 /*
@@ -263,12 +312,12 @@
 /*
  * Environment
  */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_SECT_SIZE	0x20000 /* 128K(one sector) for env	*/
-#define CFG_ENV_ADDR		(CFG_MONITOR_BASE - CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE		0x4000
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR-CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_SECT_SIZE	0x20000 /* 128K(one sector) for env	*/
+#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE - CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE		0x4000
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR-CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download	*/
 #define CFG_LOADS_BAUD_CHANGE	1	/* allow baudrate change	*/
@@ -295,17 +344,18 @@
 #define CONFIG_CMD_DTT
 #undef CONFIG_CMD_EEPROM
 #define CONFIG_CMD_I2C
+#define CONFIG_CMD_SDRAM
 #define CONFIG_CMD_MII
 #define CONFIG_CMD_NFS
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SNTP
 #define CONFIG_CMD_USB
-
+#define CONFIG_CMD_EXT2		/* EXT2 Support			*/
+#define CONFIG_CMD_BMP
 
 #if defined(CONFIG_PCI)
     #define CONFIG_CMD_PCI
 #endif
-
 
 #undef CONFIG_WATCHDOG			/* watchdog disabled		*/
 
@@ -350,50 +400,69 @@
 
 #define CONFIG_LOADADDR	 200000		/* default addr for tftp & bootm*/
 
-#define CONFIG_BOOTDELAY 5		/* -1 disables auto-boot	*/
+#define CONFIG_BOOTDELAY 1		/* -1 disables auto-boot	*/
 
 #define CONFIG_PREBOOT	"echo;"	\
-	"echo Type \\\"run flash_nfs\\\" to mount root filesystem over NFS;" \
+	"echo Welcome on the ABB Socrates Board;" \
 	"echo"
 
 #undef	CONFIG_BOOTARGS		/* the boot command will set bootargs	*/
 
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
-	"bootfile=$hostname/uImage\0"					\
 	"netdev=eth0\0"							\
 	"consdev=ttyS0\0"						\
-	"hostname=socrates\0"						\
+	"uboot_file=/home/tftp/syscon3/u-boot.bin\0"			\
+	"bootfile=/home/tftp/syscon3/uImage\0"				\
+	"fdt_file=/home/tftp/syscon3/socrates.dtb\0"			\
+	"initrd_file=/home/tftp/syscon3/uinitrd.gz\0"			\
+	"uboot_addr=FFFA0000\0"						\
+	"kernel_addr=FE000000\0"					\
+	"fdt_addr=FE1E0000\0"						\
+	"ramdisk_addr=FE200000\0"					\
+	"fdt_addr_r=B00000\0"						\
+	"kernel_addr_r=200000\0"					\
+	"ramdisk_addr_r=400000\0"					\
+	"rootpath=/opt/eldk/ppc_85xxDP\0"				\
+	"ramargs=setenv bootargs root=/dev/ram rw\0"			\
 	"nfsargs=setenv bootargs root=/dev/nfs rw "			\
 		"nfsroot=$serverip:$rootpath\0"				\
-	"ramargs=setenv bootargs root=/dev/ram rw\0"			\
+	"addcons=setenv bootargs $bootargs "				\
+		"console=$consdev,$baudrate\0"				\
 	"addip=setenv bootargs $bootargs "				\
 		"ip=$ipaddr:$serverip:$gatewayip:$netmask"		\
 		":$hostname:$netdev:off panic=1\0"			\
-	"addcons=setenv bootargs $bootargs "				\
-		"console=$consdev,$baudrate\0"				\
-	"flash_self=run ramargs addip addcons;"				\
+	"boot_nor=run ramargs addcons;"					\
 		"bootm ${kernel_addr} ${ramdisk_addr} ${fdt_addr}\0"	\
-	"flash_nfs=run nfsargs addip addcons;"				\
-		"bootm ${kernel_addr} - ${fdt_addr}\0"			\
 	"net_nfs=tftp ${kernel_addr_r} ${bootfile}; "			\
 		"tftp ${fdt_addr_r} ${fdt_file}; "			\
 		"run nfsargs addip addcons;"				\
 		"bootm ${kernel_addr_r} - ${fdt_addr_r}\0"		\
-	"fdt_file=$hostname/socrates.dtb\0"				\
-	"fdt_addr_r=B00000\0"						\
-	"fdt_addr=FC1E0000\0"						\
-	"rootpath=/opt/eldk/ppc_85xxDP\0"				\
-	"kernel_addr=FC000000\0"					\
-	"kernel_addr_r=200000\0"					\
-	"ramdisk_addr=FC200000\0"					\
-	"ramdisk_addr_r=400000\0"					\
-	"load=tftp 100000 $hostname/u-boot.bin\0"		\
-	"update=protect off fffc0000 ffffffff;era fffc0000 ffffffff;"	\
-		"cp.b 100000 fffc0000 40000;"			        \
+	"update_uboot=tftp 100000 ${uboot_file};"			\
+		"protect off fffa0000 ffffffff;"			\
+		"era fffa0000 ffffffff;"				\
+		"cp.b 100000 fffa0000 ${filesize};"			\
 		"setenv filesize;saveenv\0"				\
-	"upd=run load update\0"						\
+	"update_kernel=tftp 100000 ${bootfile};"			\
+		"era fe000000 fe1dffff;"				\
+		"cp.b 100000 fe000000 ${filesize};"			\
+		"setenv filesize;saveenv\0"				\
+	"update_fdt=tftp 100000 ${fdt_file};" 				\
+		"era fe1e0000 fe1fffff;"				\
+		"cp.b 100000 fe1e0000 ${filesize};"			\
+		"setenv filesize;saveenv\0"				\
+	"update_initrd=tftp 100000 ${initrd_file};" 			\
+		"era fe200000 fe9fffff;"				\
+		"cp.b 100000 fe200000 ${filesize};"			\
+		"setenv filesize;saveenv\0"				\
+	"clean_data=era fea00000 fff5ffff\0"				\
+	"usbargs=setenv bootargs root=/dev/sda1 rw\0" 			\
+	"load_usb=usb start;" 						\
+		"ext2load usb 0:1 ${kernel_addr_r} /boot/uImage\0"	\
+	"boot_usb=run load_usb usbargs addcons;"			\
+		"bootm ${kernel_addr_r} - ${fdt_addr};"			\
+		"bootm ${kernel_addr} ${ramdisk_addr} ${fdt_addr}\0"	\
 	""
-#define CONFIG_BOOTCOMMAND	"run flash_self"
+#define CONFIG_BOOTCOMMAND	"run boot_nor"
 
 /* pass open firmware flat tree */
 #define CONFIG_OF_LIBFDT	1
@@ -403,20 +472,11 @@
 #define CONFIG_USB_OHCI_NEW		1
 #define CONFIG_PCI_OHCI			1
 #define CONFIG_PCI_OHCI_DEVNO		3 /* Number in PCI list */
+#define CONFIG_PCI_EHCI_DEVNO		(CONFIG_PCI_OHCI_DEVNO / 2)
 #define CFG_USB_OHCI_MAX_ROOT_PORTS	15
 #define CFG_USB_OHCI_SLOT_NAME		"ohci_pci"
 #define CFG_OHCI_SWAP_REG_ACCESS	1
 #define CONFIG_DOS_PARTITION		1
 #define CONFIG_USB_STORAGE		1
-
-/* FPGA and NAND */
-#define CFG_FPGA_BASE			0xc0000000
-#define CFG_BR3_PRELIM			0xc0001881 /* UPMA, 32-bit */
-#define CFG_OR3_PRELIM			0xfff00000  /* 1 MB */
-
-#define CFG_NAND_BASE			(CFG_FPGA_BASE + 0x70)
-#define CFG_MAX_NAND_DEVICE		1
-#define NAND_MAX_CHIPS			1
-#define CONFIG_CMD_NAND
 
 #endif	/* __CONFIG_H */

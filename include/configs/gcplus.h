@@ -57,7 +57,7 @@
 /*
  * Size of malloc() pool
  */
-#define CFG_MALLOC_LEN          (CFG_ENV_SIZE + 128*1024)
+#define CFG_MALLOC_LEN          (CONFIG_ENV_SIZE + 128*1024)
 #define CFG_GBL_DATA_SIZE       128     /* size rsrvd for initial data */
 
 
@@ -169,7 +169,7 @@
 #else
 /* REVISIT: This doesn't work on ADS GCPlus just yet: */
 #define CFG_FLASH_CFI           1       /* flash is CFI conformant      */
-#define CFG_FLASH_CFI_DRIVER    1       /* use common cfi driver        */
+#define CONFIG_FLASH_CFI_DRIVER    1       /* use common cfi driver        */
 #define CFG_FLASH_USE_BUFFER_WRITE 1    /* use buffered writes (20x faster) */
 #define CFG_MAX_FLASH_BANKS     1       /* max # of memory banks        */
 #define CFG_FLASH_INCREMENT     0       /* there is only one bank       */
@@ -178,8 +178,8 @@
 #define CFG_FLASH_BANKS_LIST    { CFG_FLASH_BASE }
 #endif
 
-#define	CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_ADDR		(PHYS_FLASH_1 + PHYS_FLASH_SECT_SIZE)	/* Addr of Environment Sector	*/
-#define CFG_ENV_SIZE		PHYS_FLASH_SECT_SIZE
+#define	CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		(PHYS_FLASH_1 + PHYS_FLASH_SECT_SIZE)	/* Addr of Environment Sector	*/
+#define CONFIG_ENV_SIZE		PHYS_FLASH_SECT_SIZE
 
 #endif	/* __CONFIG_H */

@@ -52,7 +52,7 @@
 #undef  CONFIG_SHOW_BOOT_PROGRESS
 
 /* SCIF */
-#define CFG_SCIF_CONSOLE        1
+#define CONFIG_SCIF_CONSOLE        1
 #define CONFIG_BAUDRATE         115200
 #define CONFIG_CONS_SCIF2		1
 
@@ -89,7 +89,7 @@
 #define CFG_BOOTMAPSZ		(8 * 1024 * 1024)
 
 #define CFG_FLASH_CFI
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #undef  CFG_FLASH_QUIET_TEST
 #define CFG_FLASH_EMPTY_INFO	/* print 'E' for empty sector on flinfo */
 /* Timeout for Flash erase operations (in ms) */
@@ -103,14 +103,14 @@
 /* Use hardware flash sectors protection instead of U-Boot software protection */
 #undef  CFG_FLASH_PROTECTION
 #undef  CFG_DIRECT_FLASH_TFTP
-#define CFG_ENV_IS_IN_FLASH
-#define CFG_ENV_SECT_SIZE	(128 * 1024)
-#define CFG_ENV_SIZE		(CFG_ENV_SECT_SIZE)
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + (1 * CFG_ENV_SECT_SIZE))
+#define CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_SECT_SIZE	(128 * 1024)
+#define CONFIG_ENV_SIZE		(CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + (1 * CONFIG_ENV_SECT_SIZE))
 /* Offset of env Flash sector relative to CFG_FLASH_BASE */
-#define CFG_ENV_OFFSET		(CFG_ENV_ADDR - CFG_FLASH_BASE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SECT_SIZE)
-#define CFG_ENV_ADDR_REDUND	(CFG_FLASH_BASE + (2 * CFG_ENV_SECT_SIZE))
+#define CONFIG_ENV_OFFSET		(CONFIG_ENV_ADDR - CFG_FLASH_BASE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_ADDR_REDUND	(CFG_FLASH_BASE + (2 * CONFIG_ENV_SECT_SIZE))
 
 /* Clock */
 #define CONFIG_SYS_CLK_FREQ	66666666

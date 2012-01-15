@@ -41,8 +41,8 @@
 
 #define CONFIG_MCFUART
 #define CFG_UART_PORT		(0)
-#define CONFIG_BAUDRATE		19200
-#define CFG_BAUDRATE_TABLE { 9600 , 19200 , 38400 , 57600, 115200 }
+#define CONFIG_BAUDRATE		115200
+#define CFG_BAUDRATE_TABLE	{ 9600 , 19200 , 38400 , 57600, 115200 }
 
 #undef  CONFIG_WATCHDOG
 
@@ -113,10 +113,10 @@
 #define CFG_GBL_DATA_OFFSET	(CFG_INIT_RAM_END - CFG_GBL_DATA_SIZE)
 #define CFG_INIT_SP_OFFSET	CFG_GBL_DATA_OFFSET
 
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_OFFSET		0x4000	/* Address of Environment Sector*/
-#define CFG_ENV_SIZE		0x2000	/* Total Size of Environment Sector	*/
-#define CFG_ENV_SECT_SIZE	0x2000 /* see README - env sector total size	*/
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_OFFSET		0x4000	/* Address of Environment Sector*/
+#define CONFIG_ENV_SIZE		0x2000	/* Total Size of Environment Sector	*/
+#define CONFIG_ENV_SECT_SIZE	0x2000 /* see README - env sector total size	*/
 
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
@@ -150,7 +150,7 @@
 #define CFG_FLASH_CFI
 #ifdef CFG_FLASH_CFI
 
-#	define CFG_FLASH_CFI_DRIVER	1
+#	define CONFIG_FLASH_CFI_DRIVER	1
 #	define CFG_FLASH_SIZE		0x1000000	/* Max size that the board might have */
 #	define CFG_FLASH_CFI_WIDTH	FLASH_CFI_16BIT
 #	define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks */

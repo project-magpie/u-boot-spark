@@ -59,6 +59,12 @@
 #include <i2c.h>
 #endif
 
+#ifdef CONFIG_CMD_SPI
+#include <spi.h>
+#endif
+
+#include <nand.h>
+
 DECLARE_GLOBAL_DATA_PTR;
 
 static char *failed = "*** failed ***\n";
@@ -69,10 +75,10 @@ extern flash_info_t flash_info[];
 
 #include <environment.h>
 
-#if ( ((CFG_ENV_ADDR+CFG_ENV_SIZE) < CFG_MONITOR_BASE) || \
-      (CFG_ENV_ADDR >= (CFG_MONITOR_BASE + CFG_MONITOR_LEN)) ) || \
-    defined(CFG_ENV_IS_IN_NVRAM)
-#define	TOTAL_MALLOC_LEN	(CFG_MALLOC_LEN + CFG_ENV_SIZE)
+#if ( ((CONFIG_ENV_ADDR+CONFIG_ENV_SIZE) < CFG_MONITOR_BASE) || \
+      (CONFIG_ENV_ADDR >= (CFG_MONITOR_BASE + CFG_MONITOR_LEN)) ) || \
+    defined(CONFIG_ENV_IS_IN_NVRAM)
+#define	TOTAL_MALLOC_LEN	(CFG_MALLOC_LEN + CONFIG_ENV_SIZE)
 #else
 #define	TOTAL_MALLOC_LEN	CFG_MALLOC_LEN
 #endif
@@ -136,23 +142,6 @@ void *sbrk (ptrdiff_t increment)
 	return ((void *)old);
 }
 
-char *strmhz(char *buf, long hz)
-{
-	long l, n;
-	long m;
-
-	n = hz / 1000000L;
-
-	l = sprintf (buf, "%ld", n);
-
-	m = (hz % 1000000L) / 1000L;
-
-	if (m != 0)
-		sprintf (buf+l, ".%03ld", m);
-
-	return (buf);
-}
-
 /*
  * All attempts to come up with a "common" initialization sequence
  * that works for all boards and architectures failed: some of the
@@ -212,6 +201,16 @@ static int init_func_i2c (void)
 }
 #endif
 
+#if defined(CONFIG_HARD_SPI)
+static int init_func_spi (void)
+{
+	puts ("SPI:   ");
+	spi_init ();
+	puts ("ready\n");
+	return (0);
+}
+#endif
+
 /***********************************************************************/
 
 /************************************************************************
@@ -230,6 +229,9 @@ init_fnc_t *init_sequence[] = {
 	checkboard,
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 	init_func_i2c,
+#endif
+#if defined(CONFIG_HARD_SPI)
+	init_func_spi,
 #endif
 	init_func_ram,
 #if defined(CFG_DRAM_TEST)
@@ -441,7 +443,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	int i;
 	extern void malloc_bin_reloc (void);
 
-#ifndef CFG_ENV_IS_NOWHERE
+#ifndef CONFIG_ENV_IS_NOWHERE
 	extern char * env_name_spec;
 #endif
 #ifndef CFG_NO_FLASH
@@ -492,7 +494,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 	}
 	/* there are some other pointer constants we must deal with */
-#ifndef CFG_ENV_IS_NOWHERE
+#ifndef CONFIG_ENV_IS_NOWHERE
 	env_name_spec += gd->reloc_off;
 #endif
 
@@ -566,7 +568,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	malloc_bin_reloc ();
 
 #ifdef CONFIG_SPI
-# if !defined(CFG_ENV_IS_IN_EEPROM)
+# if !defined(CONFIG_ENV_IS_IN_EEPROM)
 	spi_init_f ();
 # endif
 	spi_init_r ();

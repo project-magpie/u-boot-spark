@@ -31,7 +31,7 @@
 #include <command.h>
 #include <rtc.h>
 
-#if defined(CONFIG_RTC_MC146818) && defined(CONFIG_CMD_DATE)
+#if defined(CONFIG_CMD_DATE)
 
 static uchar rtc_read  (uchar reg);
 static void  rtc_write (uchar reg, uchar val);
@@ -105,7 +105,7 @@ int rtc_get (struct rtc_time *tmp)
 	return 0;
 }
 
-void rtc_set (struct rtc_time *tmp)
+int rtc_set (struct rtc_time *tmp)
 {
 #ifdef RTC_DEBUG
 	printf ( "Set DATE: %4d-%02d-%02d (wday=%d)  TIME: %2d:%02d:%02d\n",
@@ -127,6 +127,7 @@ void rtc_set (struct rtc_time *tmp)
 	rtc_write (RTC_SECONDS, bin2bcd(tmp->tm_sec ));
 	rtc_write(RTC_CONFIG_B,0x02); /* enables the RTC to update the regs */
 
+	return 0;
 }
 
 void rtc_reset (void)

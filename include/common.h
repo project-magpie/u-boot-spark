@@ -119,11 +119,13 @@ typedef volatile unsigned char	vu_char;
 #define debugX(level,fmt,args...)
 #endif	/* DEBUG */
 
+#ifndef BUG
 #define BUG() do { \
 	printf("BUG: failure at %s:%d/%s()!\n", __FILE__, __LINE__, __FUNCTION__); \
 	panic("BUG!"); \
 } while (0)
 #define BUG_ON(condition) do { if (unlikely((condition)!=0)) BUG(); } while(0)
+#endif /* BUG */
 
 typedef void (interrupt_handler_t)(void *);
 
@@ -222,7 +224,6 @@ void	board_init_r  (gd_t *, ulong) __attribute__ ((noreturn));
 int	checkboard    (void);
 int	checkflash    (void);
 int	checkdram     (void);
-char *	strmhz(char *buf, long hz);
 int	last_stage_init(void);
 extern ulong monitor_flash_len;
 int mac_read_from_eeprom(void);
@@ -234,6 +235,9 @@ void flash_perror (int);
 int	autoscript (ulong addr, const char *fit_uname);
 
 extern ulong load_addr;		/* Default Load Address */
+
+/* common/cmd_doc.c */
+void	doc_probe(unsigned long physadr);
 
 /* common/cmd_nvedit.c */
 int	env_init     (void);
@@ -490,7 +494,8 @@ int	prt_mpc8220_clks (void);
 ulong	get_OPB_freq (void);
 ulong	get_PCI_freq (void);
 #endif
-#if defined(CONFIG_S3C2400) || defined(CONFIG_S3C2410) || defined(CONFIG_LH7A40X)
+#if defined(CONFIG_S3C2400) || defined(CONFIG_S3C2410) || \
+	defined(CONFIG_LH7A40X) || defined(CONFIG_S3C6400)
 void	s3c2410_irq(void);
 #define ARM920_IRQ_CALLBACK s3c2410_irq
 ulong	get_FCLK (void);
@@ -614,6 +619,9 @@ void	panic(const char *fmt, ...)
 int	sprintf(char * buf, const char *fmt, ...)
 		__attribute__ ((format (__printf__, 2, 3)));
 int	vsprintf(char *buf, const char *fmt, va_list args);
+
+/* lib_generic/strmhz.c */
+char *	strmhz(char *buf, long hz);
 
 /* lib_generic/crc32.c */
 uint32_t crc32 (uint32_t, const unsigned char *, uint);

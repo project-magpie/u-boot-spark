@@ -1552,6 +1552,13 @@ typedef struct par_io {
  */
 typedef struct ccsr_gur {
 	uint	porpllsr;	/* 0xe0000 - POR PLL ratio status register */
+#ifdef CONFIG_MPC8536
+#define MPC85xx_PORPLLSR_DDR_RATIO	0x3e000000
+#define MPC85xx_PORPLLSR_DDR_RATIO_SHIFT	25
+#else
+#define MPC85xx_PORPLLSR_DDR_RATIO	0x00003e00
+#define MPC85xx_PORPLLSR_DDR_RATIO_SHIFT	9
+#endif
 	uint	porbmsr;	/* 0xe0004 - POR boot mode status register */
 #define MPC85xx_PORBMSR_HA		0x00070000
 	uint	porimpscr;	/* 0xe0008 - POR I/O impedance status and control register */
@@ -1560,6 +1567,7 @@ typedef struct ccsr_gur {
 #define MPC85xx_PORDEVSR_SGMII2_DIS	0x10000000
 #define MPC85xx_PORDEVSR_SGMII3_DIS	0x08000000
 #define MPC85xx_PORDEVSR_SGMII4_DIS	0x04000000
+#define MPC85xx_PORDEVSR_SRDS2_IO_SEL   0x38000000
 #define MPC85xx_PORDEVSR_IO_SEL		0x00380000
 #define MPC85xx_PORDEVSR_PCI2_ARB	0x00040000
 #define MPC85xx_PORDEVSR_PCI1_ARB	0x00020000
@@ -1571,7 +1579,7 @@ typedef struct ccsr_gur {
 #define MPC85xx_PORDEVSR_RIO_DEV_ID	0x00000007
 	uint	pordbgmsr;	/* 0xe0010 - POR debug mode status register */
 	uint	pordevsr2;	/* 0xe0014 - POR I/O device status regsiter 2 */
-#define MPC85xx_PORDEVSR2_SEC_CFG	0x00000020
+#define MPC85xx_PORDEVSR2_SEC_CFG	0x00000080
 	char	res1[8];
 	uint	gpporcr;	/* 0xe0020 - General-purpose POR configuration register */
 	char	res2[12];
@@ -1653,13 +1661,23 @@ typedef struct ccsr_gur {
 #define CFG_MPC85xx_PCIX_ADDR	(CFG_IMMR + CFG_MPC85xx_PCIX_OFFSET)
 #define CFG_MPC85xx_PCIX2_OFFSET	(0x9000)
 #define CFG_MPC85xx_PCIX2_ADDR	(CFG_IMMR + CFG_MPC85xx_PCIX2_OFFSET)
+#define CFG_MPC85xx_SATA1_OFFSET	(0x18000)
+#define CFG_MPC85xx_SATA1_ADDR	(CFG_IMMR + CFG_MPC85xx_SATA1_OFFSET)
+#define CFG_MPC85xx_SATA2_OFFSET	(0x19000)
+#define CFG_MPC85xx_SATA2_ADDR	(CFG_IMMR + CFG_MPC85xx_SATA2_OFFSET)
 #define CFG_MPC85xx_L2_OFFSET	(0x20000)
 #define CFG_MPC85xx_L2_ADDR	(CFG_IMMR + CFG_MPC85xx_L2_OFFSET)
 #define CFG_MPC85xx_DMA_OFFSET	(0x21000)
 #define CFG_MPC85xx_DMA_ADDR	(CFG_IMMR + CFG_MPC85xx_DMA_OFFSET)
+#define CFG_MPC85xx_ESDHC_OFFSET	(0x2e000)
+#define CFG_MPC85xx_ESDHC_ADDR	(CFG_IMMR + CFG_MPC85xx_ESDHC_OFFSET)
 #define CFG_MPC85xx_PIC_OFFSET	(0x40000)
 #define CFG_MPC85xx_PIC_ADDR	(CFG_IMMR + CFG_MPC85xx_PIC_OFFSET)
 #define CFG_MPC85xx_CPM_OFFSET	(0x80000)
 #define CFG_MPC85xx_CPM_ADDR	(CFG_IMMR + CFG_MPC85xx_CPM_OFFSET)
+#define CFG_MPC85xx_SERDES1_OFFSET	(0xE3000)
+#define CFG_MPC85xx_SERDES1_ADDR	(CFG_IMMR + CFG_MPC85xx_SERDES2_OFFSET)
+#define CFG_MPC85xx_SERDES2_OFFSET	(0xE3100)
+#define CFG_MPC85xx_SERDES2_ADDR	(CFG_IMMR + CFG_MPC85xx_SERDES2_OFFSET)
 
 #endif /*__IMMAP_85xx__*/

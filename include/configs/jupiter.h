@@ -184,14 +184,14 @@
 
 #define CFG_MAX_FLASH_SECT	128	/* max num of sects on one chip */
 
-#define CFG_ENV_ADDR		(TEXT_BASE + 0x40000) /* third sector */
+#define CONFIG_ENV_ADDR		(TEXT_BASE + 0x40000) /* third sector */
 
 #define CFG_FLASH_ERASE_TOUT	240000	/* Flash Erase Timeout (in ms)  */
 #define CFG_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (in ms)  */
 
 #define CFG_MAX_FLASH_BANKS	1	/* max num of flash banks */
 
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CFG_FLASH_EMPTY_INFO
 #define CFG_FLASH_CFI_WIDTH	FLASH_CFI_8BIT
@@ -201,14 +201,14 @@
 /*
  * Environment settings
  */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_SIZE		0x20000
-#define CFG_ENV_SECT_SIZE	0x20000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_SIZE		0x20000
+#define CONFIG_ENV_SECT_SIZE	0x20000
 #define CONFIG_ENV_OVERWRITE	1
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR + CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR + CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 /*
  * Memory map

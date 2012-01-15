@@ -23,6 +23,7 @@
 
 #include <common.h>
 #include <ide.h>
+#include <netdev.h>
 #include <asm/processor.h>
 #include <asm/io.h>
 #include <asm/pci.h>
@@ -75,4 +76,9 @@ static struct pci_controller hose;
 void pci_init_board(void)
 {
 	pci_sh7751_init(&hose);
+}
+
+int board_eth_init(bd_t *bis)
+{
+	return pci_eth_init(bis);
 }

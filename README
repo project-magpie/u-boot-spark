@@ -60,10 +60,10 @@ Where to get help:
 
 In case you have questions about, problems with or contributions for
 U-Boot you should send a message to the U-Boot mailing list at
-<u-boot-users@lists.sourceforge.net>. There is also an archive of
-previous traffic on the mailing list - please search the archive
-before asking FAQ's. Please see
-http://lists.sourceforge.net/lists/listinfo/u-boot-users/
+<u-boot@lists.denx.de>. There is also an archive of previous traffic
+on the mailing list - please search the archive before asking FAQ's.
+Please see http://lists.denx.de/pipermail/u-boot and
+http://dir.gmane.org/gmane.comp.boot-loaders.u-boot
 
 
 Where to get source code:
@@ -384,11 +384,11 @@ The following options need to be configured:
 		param header, the default value is zero if undefined.
 
 - Serial Ports:
-		CFG_PL010_SERIAL
+		CONFIG_PL010_SERIAL
 
 		Define this if you want support for Amba PrimeCell PL010 UARTs.
 
-		CFG_PL011_SERIAL
+		CONFIG_PL011_SERIAL
 
 		Define this if you want support for Amba PrimeCell PL011 UARTs.
 
@@ -1048,6 +1048,29 @@ The following options need to be configured:
 		the malloc area (as defined by CFG_MALLOC_LEN) should
 		be at least 4MB.
 
+		CONFIG_LZMA
+
+		If this option is set, support for lzma compressed
+		images is included.
+
+		Note: The LZMA algorithm adds between 2 and 4KB of code and it
+		requires an amount of dynamic memory that is given by the
+		formula:
+
+			(1846 + 768 << (lc + lp)) * sizeof(uint16)
+
+		Where lc and lp stand for, respectively, Literal context bits
+		and Literal pos bits.
+
+		This value is upper-bounded by 14MB in the worst case. Anyway,
+		for a ~4MB large kernel image, we have lc=3 and lp=0 for a
+		total amount of (1846 + 768 << (3 + 0)) * 2 = ~41KB... that is
+		a very small buffer.
+
+		Use the lzmainfo tool to determinate the lc and lp values and
+		then calculate the amount of needed dynamic memory (ensuring
+		the appropriate CFG_MALLOC_LEN value).
+
 - MII/PHY support:
 		CONFIG_PHY_ADDR
 
@@ -1395,6 +1418,12 @@ The following options need to be configured:
 
 		If defined, then this indicates the I2C bus number for the DTT.
 		If not defined, then U-Boot assumes that DTT is on I2C bus 0.
+
+		CFG_I2C_DTT_ADDR:
+
+		If defined, specifies the I2C address of the DTT device.
+		If not defined, then U-Boot uses predefined value for
+		specified DTT device.
 
 		CONFIG_FSL_I2C
 
@@ -2068,7 +2097,7 @@ Configuration Settings:
 		Define if the flash driver uses extra elements in the
 		common flash structure for storing flash geometry.
 
-- CFG_FLASH_CFI_DRIVER
+- CONFIG_FLASH_CFI_DRIVER
 		This option also enables the building of the cfi_flash driver
 		in the drivers directory
 
@@ -2102,7 +2131,7 @@ The following definitions that deal with the placement and management
 of environment data (variable area); in general, we support the
 following configurations:
 
-- CFG_ENV_IS_IN_FLASH:
+- CONFIG_ENV_IS_IN_FLASH:
 
 	Define this if the environment is in flash memory.
 
@@ -2118,22 +2147,22 @@ following configurations:
 	   environment in one of the last sectors, leaving a gap
 	   between U-Boot and the environment.
 
-	- CFG_ENV_OFFSET:
+	- CONFIG_ENV_OFFSET:
 
 	   Offset of environment data (variable area) to the
 	   beginning of flash memory; for instance, with bottom boot
 	   type flash chips the second sector can be used: the offset
 	   for this sector is given here.
 
-	   CFG_ENV_OFFSET is used relative to CFG_FLASH_BASE.
+	   CONFIG_ENV_OFFSET is used relative to CFG_FLASH_BASE.
 
-	- CFG_ENV_ADDR:
+	- CONFIG_ENV_ADDR:
 
 	   This is just another way to specify the start address of
 	   the flash sector containing the environment (instead of
-	   CFG_ENV_OFFSET).
+	   CONFIG_ENV_OFFSET).
 
-	- CFG_ENV_SECT_SIZE:
+	- CONFIG_ENV_SECT_SIZE:
 
 	   Size of the sector containing the environment.
 
@@ -2142,10 +2171,10 @@ following configurations:
 	   In such a case you don't want to spend a whole sector for
 	   the environment.
 
-	- CFG_ENV_SIZE:
+	- CONFIG_ENV_SIZE:
 
-	   If you use this in combination with CFG_ENV_IS_IN_FLASH
-	   and CFG_ENV_SECT_SIZE, you can specify to use only a part
+	   If you use this in combination with CONFIG_ENV_IS_IN_FLASH
+	   and CONFIG_ENV_SECT_SIZE, you can specify to use only a part
 	   of this flash sector for the environment. This saves
 	   memory for the RAM copy of the environment.
 
@@ -2159,8 +2188,8 @@ following configurations:
 	   wrong before the contents has been restored from a copy in
 	   RAM, your target system will be dead.
 
-	- CFG_ENV_ADDR_REDUND
-	  CFG_ENV_SIZE_REDUND
+	- CONFIG_ENV_ADDR_REDUND
+	  CONFIG_ENV_SIZE_REDUND
 
 	   These settings describe a second storage area used to hold
 	   a redundant copy of the environment data, so that there is
@@ -2172,14 +2201,14 @@ source code will make it necessary to adapt <board>/u-boot.lds*
 accordingly!
 
 
-- CFG_ENV_IS_IN_NVRAM:
+- CONFIG_ENV_IS_IN_NVRAM:
 
 	Define this if you have some non-volatile memory device
 	(NVRAM, battery buffered SRAM) which you want to use for the
 	environment.
 
-	- CFG_ENV_ADDR:
-	- CFG_ENV_SIZE:
+	- CONFIG_ENV_ADDR:
+	- CONFIG_ENV_SIZE:
 
 	  These two #defines are used to determine the memory area you
 	  want to use for environment. It is assumed that this memory
@@ -2197,13 +2226,13 @@ keep settings there always unmodified except somebody uses "saveenv"
 to save the current settings.
 
 
-- CFG_ENV_IS_IN_EEPROM:
+- CONFIG_ENV_IS_IN_EEPROM:
 
 	Use this if you have an EEPROM or similar serial access
 	device and a driver for it.
 
-	- CFG_ENV_OFFSET:
-	- CFG_ENV_SIZE:
+	- CONFIG_ENV_OFFSET:
+	- CONFIG_ENV_SIZE:
 
 	  These two #defines specify the offset and size of the
 	  environment area within the total memory of your EEPROM.
@@ -2240,39 +2269,39 @@ to save the current settings.
 	  The size in bytes of the EEPROM device.
 
 
-- CFG_ENV_IS_IN_DATAFLASH:
+- CONFIG_ENV_IS_IN_DATAFLASH:
 
 	Define this if you have a DataFlash memory device which you
 	want to use for the environment.
 
-	- CFG_ENV_OFFSET:
-	- CFG_ENV_ADDR:
-	- CFG_ENV_SIZE:
+	- CONFIG_ENV_OFFSET:
+	- CONFIG_ENV_ADDR:
+	- CONFIG_ENV_SIZE:
 
 	  These three #defines specify the offset and size of the
 	  environment area within the total memory of your DataFlash placed
 	  at the specified address.
 
-- CFG_ENV_IS_IN_NAND:
+- CONFIG_ENV_IS_IN_NAND:
 
 	Define this if you have a NAND device which you want to use
 	for the environment.
 
-	- CFG_ENV_OFFSET:
-	- CFG_ENV_SIZE:
+	- CONFIG_ENV_OFFSET:
+	- CONFIG_ENV_SIZE:
 
 	  These two #defines specify the offset and size of the environment
 	  area within the first NAND device.
 
-	- CFG_ENV_OFFSET_REDUND
+	- CONFIG_ENV_OFFSET_REDUND
 
-	  This setting describes a second storage area of CFG_ENV_SIZE
+	  This setting describes a second storage area of CONFIG_ENV_SIZE
 	  size used to hold a redundant copy of the environment data,
 	  so that there is a valid backup copy in case there is a
 	  power failure during a "saveenv" operation.
 
-	Note: CFG_ENV_OFFSET and CFG_ENV_OFFSET_REDUND must be aligned
-	to a block boundary, and CFG_ENV_SIZE must be a multiple of
+	Note: CONFIG_ENV_OFFSET and CONFIG_ENV_OFFSET_REDUND must be aligned
+	to a block boundary, and CONFIG_ENV_SIZE must be a multiple of
 	the NAND devices block size.
 
 - CFG_SPI_INIT_OFFSET
@@ -3034,8 +3063,9 @@ details; basically, the header defines the following image properties:
 
 * Target Operating System (Provisions for OpenBSD, NetBSD, FreeBSD,
   4.4BSD, Linux, SVR4, Esix, Solaris, Irix, SCO, Dell, NCR, VxWorks,
-  LynxOS, pSOS, QNX, RTEMS, ARTOS;
-  Currently supported: Linux, NetBSD, VxWorks, QNX, RTEMS, ARTOS, LynxOS).
+  LynxOS, pSOS, QNX, RTEMS, INTEGRITY;
+  Currently supported: Linux, NetBSD, VxWorks, QNX, RTEMS, LynxOS,
+  INTEGRITY).
 * Target CPU Architecture (Provisions for Alpha, ARM, AVR32, Intel x86,
   IA64, MIPS, NIOS, PowerPC, IBM S390, SuperH, Sparc, Sparc 64 Bit;
   Currently supported: ARM, AVR32, Intel x86, MIPS, NIOS, PowerPC).
@@ -3093,9 +3123,9 @@ But now you can ignore ALL boot loader code (in arch/ppc/mbxboot).
 
 Just make sure your machine specific header file (for instance
 include/asm-ppc/tqm8xx.h) includes the same definition of the Board
-Information structure as we define in include/u-boot.h, and make
-sure that your definition of IMAP_ADDR uses the same value as your
-U-Boot configuration in CFG_IMMR.
+Information structure as we define in include/asm-<arch>/u-boot.h,
+and make sure that your definition of IMAP_ADDR uses the same value
+as your U-Boot configuration in CFG_IMMR.
 
 
 Configuring the Linux kernel:

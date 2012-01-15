@@ -217,6 +217,10 @@ H: Rich Ireland
 E: r.ireland@computer.org
 D: FPGA device configuration driver
 
+H: Mark Jackson
+E: mpfj@mimc.co.uk
+D: Port to MIMC200 board
+
 N: Gary Jennejohn
 E: garyj@jennejohn.org, gj@denx.de
 D: Support for Samsung ARM920T S3C2400X, ARM920T "TRAB"
@@ -398,6 +402,12 @@ W: http://www.windriver.com
 N: Stelian Pop
 E: stelian.pop@leadtechdesign.com
 D: Atmel AT91CAP9ADK support
+
+N: Ricardo Ribalda Delgado
+E: ricardo.ribalda@uam.es
+D: PPC440x5 (Virtex5), ML507 Board, eeprom_simul, adt7460, v5fx30teval
+D: Virtex ppc440 generic architecture
+W: http://www.ii.uam.es/~rribalda
 
 N: Stefan Roese
 E: sr@denx.de

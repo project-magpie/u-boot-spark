@@ -28,8 +28,6 @@
 
 #include <common.h>
 
-#if defined(CONFIG_VIDEO_MB862xx)
-
 #include <asm/io.h>
 #include <pci.h>
 #include <video_fb.h>
@@ -359,7 +357,8 @@ void *video_hw_init (void)
 	board_disp_init();
 #endif
 
-#if defined(CONFIG_LWMON5) && !(CONFIG_POST & CFG_POST_SYSMON)
+#if (defined(CONFIG_LWMON5) || \
+     defined(CONFIG_SOCRATES)) && !(CONFIG_POST & CFG_POST_SYSMON)
 	/* Lamp on */
 	board_backlight_switch (1);
 #endif
@@ -416,4 +415,3 @@ void video_hw_bitblt (unsigned int bpp, unsigned int src_x, unsigned int src_y,
 	DE_WR_FIFO ((height << 16) | width);
 	de_wait (); /* sync */
 }
-#endif /* CONFIG_VIDEO_MB862xx */

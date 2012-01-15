@@ -145,9 +145,9 @@
 
 #define CFG_FLASH_BASE		0xFFE00000
 #define CFG_FLASH_SIZE		(2 * 1024 * 1024)	/* Unity has onboard 1MByte flash */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_OFFSET		0x00004000	/* Offset of Environment Sector */
-#define CFG_ENV_SIZE		0x00002000	/* Total Size of Environment Sector */
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_OFFSET		0x00004000	/* Offset of Environment Sector */
+#define CONFIG_ENV_SIZE		0x00002000	/* Total Size of Environment Sector */
 
 #define CFG_MALLOC_LEN		(512 << 10)	/* Reserve 512 kB for malloc()	*/
 
@@ -201,7 +201,7 @@
  */
 
 
-#define CFG_WINBOND_83C553	1	/*has a winbond bridge			*/
+#define CONFIG_WINBOND_83C553	1	/*has a winbond bridge			*/
 #define CFG_USE_WINBOND_IDE	0	/*use winbond 83c553 internal IDE ctrlr */
 #define CFG_WINBOND_ISA_CFG_ADDR    0x80005800	/*pci-isa bridge config addr	*/
 #define CFG_WINBOND_IDE_CFG_ADDR    0x80005900	/*ide config addr		*/
@@ -214,7 +214,7 @@
 /*
  * NS87308 Configuration
  */
-#define CFG_NS87308			/* Nat Semi super-io controller on ISA bus */
+#define CONFIG_NS87308			/* Nat Semi super-io controller on ISA bus */
 
 #define CFG_NS87308_BADDR_10	1
 

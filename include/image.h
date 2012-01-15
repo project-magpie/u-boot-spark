@@ -85,6 +85,7 @@
 #define IH_OS_RTEMS		18	/* RTEMS	*/
 #define IH_OS_ARTOS		19	/* ARTOS	*/
 #define IH_OS_UNITY		20	/* Unity OS	*/
+#define IH_OS_INTEGRITY		21	/* INTEGRITY	*/
 
 /*
  * CPU Architecture Codes (supported by Linux)
@@ -164,6 +165,7 @@
 #define IH_COMP_NONE		0	/*  No	 Compression Used	*/
 #define IH_COMP_GZIP		1	/* gzip	 Compression Used	*/
 #define IH_COMP_BZIP2		2	/* bzip2 Compression Used	*/
+#define IH_COMP_LZMA		3	/* lzma  Compression Used	*/
 
 #define IH_MAGIC	0x27051956	/* Image Magic Number		*/
 #define IH_NMLEN		32	/* Image Name Length		*/
@@ -186,6 +188,13 @@ typedef struct image_header {
 	uint8_t		ih_comp;	/* Compression Type		*/
 	uint8_t		ih_name[IH_NMLEN];	/* Image Name		*/
 } image_header_t;
+
+typedef struct image_info {
+	ulong		start, end;		/* start/end of blob */
+	ulong		image_start, image_len; /* start of image within blob, len of image */
+	ulong		load;			/* load addr for the image */
+	uint8_t		comp, type, os;		/* compression, type of image, os type */
+} image_info_t;
 
 /*
  * Legacy and FIT format headers used by do_bootm() and do_bootm_<os>()
@@ -219,8 +228,21 @@ typedef struct bootm_headers {
 #endif
 #endif
 
+	image_info_t	os;		/* os image info */
+	ulong		ep;		/* entry point of OS */
+
+	ulong		rd_start, rd_end;/* ramdisk start/end */
+
+#ifdef CONFIG_OF_LIBFDT
+	char		*ft_addr;	/* flat dev tree address */
+#endif
+	ulong		ft_len;		/* length of flat device tree */
+
 	int		verify;		/* getenv("verify")[0] != 'n' */
-	struct lmb	*lmb;		/* for memory mgmt */
+	int		valid;		/* set to 1 if we've set values in the header */
+#ifndef USE_HOSTCC
+	struct lmb	lmb;		/* for memory mgmt */
+#endif
 } bootm_headers_t;
 
 /*
@@ -268,6 +290,14 @@ ulong genimg_get_image (ulong img_addr);
 
 int boot_get_ramdisk (int argc, char *argv[], bootm_headers_t *images,
 		uint8_t arch, ulong *rd_start, ulong *rd_end);
+
+
+#ifdef CONFIG_OF_LIBFDT
+int boot_get_fdt (int flag, int argc, char *argv[], bootm_headers_t *images,
+		char **of_flat_tree, ulong *of_size);
+int boot_relocate_fdt (struct lmb *lmb, ulong bootmap_base,
+		char **of_flat_tree, ulong *of_size);
+#endif
 
 #if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_ST40)
 int boot_ramdisk_high (struct lmb *lmb, ulong rd_data, ulong rd_len,
@@ -545,6 +575,7 @@ int fit_image_hash_set_value (void *fit, int noffset, uint8_t *value,
 				int value_len);
 
 int fit_image_check_hashes (const void *fit, int noffset);
+int fit_all_image_check_hashes (const void *fit);
 int fit_image_check_os (const void *fit, int noffset, uint8_t os);
 int fit_image_check_arch (const void *fit, int noffset, uint8_t arch);
 int fit_image_check_type (const void *fit, int noffset, uint8_t type);

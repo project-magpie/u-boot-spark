@@ -32,7 +32,7 @@
 
 #define CONFIG_MCFUART
 #define CFG_UART_PORT		(0)
-#define CONFIG_BAUDRATE		19200
+#define CONFIG_BAUDRATE		115200
 #define CFG_BAUDRATE_TABLE	{ 9600 , 19200 , 38400 , 57600, 115200 }
 
 #undef CONFIG_WATCHDOG		/* disable watchdog */
@@ -43,13 +43,13 @@
  * Environment is embedded in u-boot in the second sector of the flash
  */
 #ifndef CONFIG_MONITOR_IS_IN_RAM
-#define CFG_ENV_OFFSET		0x4000
-#define CFG_ENV_SECT_SIZE	0x2000
-#define CFG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_OFFSET		0x4000
+#define CONFIG_ENV_SECT_SIZE	0x2000
+#define CONFIG_ENV_IS_IN_FLASH	1
 #else
-#define CFG_ENV_ADDR		0xffe04000
-#define CFG_ENV_SECT_SIZE	0x2000
-#define CFG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		0xffe04000
+#define CONFIG_ENV_SECT_SIZE	0x2000
+#define CONFIG_ENV_IS_IN_FLASH	1
 #endif
 
 /*
@@ -172,7 +172,7 @@
 #define CFG_FLASH_ERASE_TOUT	1000
 
 #define CFG_FLASH_CFI		1
-#define CFG_FLASH_CFI_DRIVER	1
+#define CONFIG_FLASH_CFI_DRIVER	1
 #define CFG_FLASH_SIZE		0x200000
 #define CFG_FLASH_CFI_WIDTH	FLASH_CFI_16BIT
 

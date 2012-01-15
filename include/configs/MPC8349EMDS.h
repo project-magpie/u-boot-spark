@@ -48,6 +48,11 @@
 #define CONFIG_83XX_CLKIN	33000000	/* in Hz */
 #endif
 
+#ifdef CONFIG_PCISLAVE
+#define CONFIG_PCI
+#define CONFIG_83XX_PCICLK	66666666	/* in Hz */
+#endif /* CONFIG_PCISLAVE */
+
 #ifndef CONFIG_SYS_CLK_FREQ
 #ifdef PCI_66M
 #define CONFIG_SYS_CLK_FREQ	66000000
@@ -148,9 +153,10 @@
  * FLASH on the Local Bus
  */
 #define CFG_FLASH_CFI				/* use the Common Flash Interface */
-#define CFG_FLASH_CFI_DRIVER			/* use the CFI driver */
+#define CONFIG_FLASH_CFI_DRIVER			/* use the CFI driver */
 #define CFG_FLASH_BASE		0xFE000000	/* start of FLASH   */
 #define CFG_FLASH_SIZE		32		/* max flash size in MB */
+#define CFG_FLASH_PROTECTION	1		/* Use h/w Flash protection. */
 /* #define CFG_FLASH_USE_BUFFER_WRITE */
 
 #define CFG_BR0_PRELIM		(CFG_FLASH_BASE |	/* flash Base address */ \
@@ -406,6 +412,8 @@
 
 #define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP		/* do pci plug-and-play */
+#define CONFIG_83XX_GENERIC_PCI
+#define CONFIG_83XX_PCI_STREAMING
 
 #undef CONFIG_EEPRO100
 #undef CONFIG_TULIP
@@ -417,7 +425,7 @@
 #endif
 
 #undef CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup */
-#define CFG_PCI_SUBSYS_VENDORID 0x1057  /* Motorola */
+#define CFG_PCI_SUBSYS_VENDORID 0x1957  /* Freescale */
 
 #endif	/* CONFIG_PCI */
 
@@ -458,20 +466,20 @@
  * Environment
  */
 #ifndef CFG_RAMBOOT
-	#define CFG_ENV_IS_IN_FLASH	1
-	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
-	#define CFG_ENV_SECT_SIZE	0x20000	/* 128K(one sector) for env */
-	#define CFG_ENV_SIZE		0x2000
+	#define CONFIG_ENV_IS_IN_FLASH	1
+	#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
+	#define CONFIG_ENV_SECT_SIZE	0x20000	/* 128K(one sector) for env */
+	#define CONFIG_ENV_SIZE		0x2000
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR + CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR + CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 #else
 	#define CFG_NO_FLASH		1	/* Flash is not usable now */
-	#define CFG_ENV_IS_NOWHERE	1	/* Store ENV in memory only */
-	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE - 0x1000)
-	#define CFG_ENV_SIZE		0x2000
+	#define CONFIG_ENV_IS_NOWHERE	1	/* Store ENV in memory only */
+	#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE - 0x1000)
+	#define CONFIG_ENV_SIZE		0x2000
 #endif
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download */
@@ -573,6 +581,20 @@
 	HRCWL_CORE_TO_CSB_1X1)
 #endif
 
+#ifdef CONFIG_PCISLAVE
+#define CFG_HRCW_HIGH (\
+	HRCWH_PCI_AGENT |\
+	HRCWH_64_BIT_PCI |\
+	HRCWH_PCI1_ARBITER_DISABLE |\
+	HRCWH_PCI2_ARBITER_DISABLE |\
+	HRCWH_CORE_ENABLE |\
+	HRCWH_FROM_0X00000100 |\
+	HRCWH_BOOTSEQ_DISABLE |\
+	HRCWH_SW_WATCHDOG_DISABLE |\
+	HRCWH_ROM_LOC_LOCAL_16BIT |\
+	HRCWH_TSEC1M_IN_GMII |\
+	HRCWH_TSEC2M_IN_GMII )
+#else
 #if defined(PCI_64BIT)
 #define CFG_HRCW_HIGH (\
 	HRCWH_PCI_HOST |\
@@ -599,7 +621,8 @@
 	HRCWH_ROM_LOC_LOCAL_16BIT |\
 	HRCWH_TSEC1M_IN_GMII |\
 	HRCWH_TSEC2M_IN_GMII )
-#endif
+#endif /* PCI_64BIT */
+#endif /* CONFIG_PCISLAVE */
 
 /*
  * System performance

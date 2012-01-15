@@ -138,8 +138,6 @@
 #define CFG_I2C_EEPROM_ADDR_LEN		1
 #define CFG_EEPROM_PAGE_WRITE_BITS	4
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10
-/* for LM81 */
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 
 /*
  * RTC configuration
@@ -162,13 +160,13 @@
 #define CFG_FLASH_SIZE		0x00800000 /* 8 MByte */
 #define CFG_MAX_FLASH_SECT	140	/* max num of sects on one chip */
 
-#define CFG_ENV_ADDR		(TEXT_BASE+0x40000) /* second sector */
+#define CONFIG_ENV_ADDR		(TEXT_BASE+0x40000) /* second sector */
 #define CFG_MAX_FLASH_BANKS	1	/* max num of flash banks
 					   (= chip selects) */
 #define CFG_FLASH_ERASE_TOUT	240000	/* Flash Erase Timeout (in ms)	*/
 #define CFG_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (in ms)	*/
 
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CFG_FLASH_EMPTY_INFO
 #define CFG_FLASH_CFI_AMD_RESET
@@ -176,11 +174,11 @@
 /*
  * Environment settings
  */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_SIZE		0x4000
-#define CFG_ENV_SECT_SIZE	0x10000
-#define CFG_ENV_OFFSET_REDUND   (CFG_ENV_OFFSET+CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND     (CFG_ENV_SIZE)
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_SIZE		0x4000
+#define CONFIG_ENV_SECT_SIZE	0x10000
+#define CONFIG_ENV_OFFSET_REDUND   (CONFIG_ENV_OFFSET+CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND     (CONFIG_ENV_SIZE)
 
 /*
  * Memory map

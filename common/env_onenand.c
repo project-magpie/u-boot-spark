@@ -22,9 +22,6 @@
  */
 
 #include <common.h>
-
-#if defined(CFG_ENV_IS_IN_ONENAND)	/* Environment is in OneNAND */
-
 #include <command.h>
 #include <environment.h>
 #include <linux/stddef.h>
@@ -40,7 +37,7 @@ extern struct onenand_chip onenand_chip;
 /* References to names in env_common.c */
 extern uchar default_environment[];
 
-#define ONENAND_ENV_SIZE(mtd)	(mtd.oobblock - ENV_HEADER_SIZE)
+#define ONENAND_ENV_SIZE(mtd)	(mtd.writesize - ENV_HEADER_SIZE)
 
 char *env_name_spec = "OneNAND";
 
@@ -65,15 +62,15 @@ void env_relocate_spec(void)
 	int use_default = 0;
 	size_t retlen;
 
-	env_addr = CFG_ENV_ADDR;
+	env_addr = CONFIG_ENV_ADDR;
 
 	/* Check OneNAND exist */
-	if (onenand_mtd.oobblock)
+	if (onenand_mtd.writesize)
 		/* Ignore read fail */
-		onenand_read(&onenand_mtd, env_addr, onenand_mtd.oobblock,
+		onenand_read(&onenand_mtd, env_addr, onenand_mtd.writesize,
 			     &retlen, (u_char *) env_ptr);
 	else
-		onenand_mtd.oobblock = MAX_ONENAND_PAGESIZE;
+		onenand_mtd.writesize = MAX_ONENAND_PAGESIZE;
 
 	if (crc32(0, env_ptr->data, ONENAND_ENV_SIZE(onenand_mtd)) !=
 	    env_ptr->crc)
@@ -92,13 +89,13 @@ void env_relocate_spec(void)
 
 int saveenv(void)
 {
-	unsigned long env_addr = CFG_ENV_ADDR;
+	unsigned long env_addr = CONFIG_ENV_ADDR;
 	struct erase_info instr = {
 		.callback	= NULL,
 	};
 	size_t retlen;
 
-	instr.len = CFG_ENV_SIZE;
+	instr.len = CONFIG_ENV_SIZE;
 	instr.addr = env_addr;
 	if (onenand_erase(&onenand_mtd, &instr)) {
 		printf("OneNAND: erase failed at 0x%08lx\n", env_addr);
@@ -109,7 +106,7 @@ int saveenv(void)
 	env_ptr->crc =
 	    crc32(0, env_ptr->data, ONENAND_ENV_SIZE(onenand_mtd));
 
-	if (onenand_write(&onenand_mtd, env_addr, onenand_mtd.oobblock, &retlen,
+	if (onenand_write(&onenand_mtd, env_addr, onenand_mtd.writesize, &retlen,
 	     (u_char *) env_ptr)) {
 		printf("OneNAND: write failed at 0x%08x\n", instr.addr);
 		return 2;
@@ -126,5 +123,3 @@ int env_init(void)
 
 	return 0;
 }
-
-#endif /* CFG_ENV_IS_IN_ONENAND */

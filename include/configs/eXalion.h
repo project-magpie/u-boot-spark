@@ -135,11 +135,11 @@
 #error Specific type of MPC824x must be defined (i.e. CONFIG_MPC8240)
 #endif
 
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_SECT_SIZE	0x20000 /* Size of one Flash sector */
-#define CFG_ENV_SIZE		CFG_ENV_SECT_SIZE	/* Use one Flash sector for enviroment	*/
-#define CFG_ENV_ADDR		0xFFFC0000
-#define CFG_ENV_OFFSET		0	/* starting right at the beginning  */
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_SECT_SIZE	0x20000 /* Size of one Flash sector */
+#define CONFIG_ENV_SIZE		CONFIG_ENV_SECT_SIZE	/* Use one Flash sector for enviroment	*/
+#define CONFIG_ENV_ADDR		0xFFFC0000
+#define CONFIG_ENV_OFFSET		0	/* starting right at the beginning  */
 
 #define CFG_MALLOC_LEN		(128 * 1024)	/* Reserve 128 kB for malloc()	*/
 
@@ -170,7 +170,7 @@
  */
 
 #define CFG_FLASH_CFI		1	/* Flash is CFI conformant		*/
-#define CFG_FLASH_CFI_DRIVER	1	/* Use the common driver		*/
+#define CONFIG_FLASH_CFI_DRIVER	1	/* Use the common driver		*/
 #define CFG_MAX_FLASH_SECT	64	/* max number of sectors on one chip	*/
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
 #define CFG_FLASH_INCREMENT	0	/* there is only one bank		*/

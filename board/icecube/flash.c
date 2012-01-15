@@ -23,7 +23,7 @@
 
 #include <common.h>
 
-#ifndef CFG_FLASH_CFI_DRIVER
+#ifndef CONFIG_FLASH_CFI_DRIVER
 flash_info_t	flash_info[CFG_MAX_FLASH_BANKS]; /* info for FLASH chips	*/
 
 /* NOTE - CONFIG_FLASH_16BIT means the CPU interface is 16-bit, it
@@ -88,12 +88,12 @@ unsigned long flash_init (void)
 		      flash_get_info(CFG_MONITOR_BASE));
 #endif
 
-#ifdef	CFG_ENV_IS_IN_FLASH
+#ifdef	CONFIG_ENV_IS_IN_FLASH
 	/* ENV protection ON by default */
 	flash_protect(FLAG_PROTECT_SET,
-		      CFG_ENV_ADDR,
-		      CFG_ENV_ADDR+CFG_ENV_SIZE-1,
-		      flash_get_info(CFG_ENV_ADDR));
+		      CONFIG_ENV_ADDR,
+		      CONFIG_ENV_ADDR+CONFIG_ENV_SIZE-1,
+		      flash_get_info(CONFIG_ENV_ADDR));
 #endif
 
 
@@ -490,4 +490,4 @@ static int write_word_amd (flash_info_t *info, FPWV *dest, FPW data)
 
 	return (res);
 }
-#endif /*CFG_FLASH_CFI_DRIVER*/
+#endif /*CONFIG_FLASH_CFI_DRIVER*/

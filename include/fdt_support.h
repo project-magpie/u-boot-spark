@@ -28,7 +28,8 @@
 
 #include <fdt.h>
 
-int fdt_chosen(void *fdt, ulong initrd_start, ulong initrd_end, int force);
+int fdt_chosen(void *fdt, int force);
+int fdt_initrd(void *fdt, ulong initrd_start, ulong initrd_end, int force);
 void do_fixup_by_path(void *fdt, const char *path, const char *prop,
 		      const void *val, int len, int create);
 void do_fixup_by_path_u32(void *fdt, const char *path, const char *prop,
@@ -45,7 +46,7 @@ void do_fixup_by_compat(void *fdt, const char *compat,
 void do_fixup_by_compat_u32(void *fdt, const char *compat,
 			    const char *prop, u32 val, int create);
 int fdt_fixup_memory(void *blob, u64 start, u64 size);
-void fdt_fixup_ethernet(void *fdt, bd_t *bd);
+void fdt_fixup_ethernet(void *fdt);
 int fdt_find_and_setprop(void *fdt, const char *node, const char *prop,
 			 const void *val, int len, int create);
 void fdt_fixup_qe_firmware(void *fdt);
@@ -67,6 +68,9 @@ void ft_board_setup(void *blob, bd_t *bd);
 void ft_cpu_setup(void *blob, bd_t *bd);
 void ft_pci_setup(void *blob, bd_t *bd);
 #endif
+
+void set_working_fdt_addr(void *addr);
+int fdt_resize(void *blob);
 
 #endif /* ifdef CONFIG_OF_LIBFDT */
 #endif /* ifndef __FDT_SUPPORT_H */

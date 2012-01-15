@@ -26,23 +26,20 @@
  * MA 02111-1307 USA
  */
 #include <common.h>
-
-#ifdef CFG_ENV_IS_IN_SPI_FLASH
-
 #include <environment.h>
 #include <spi_flash.h>
 
-#ifndef CFG_ENV_SPI_BUS
-# define CFG_ENV_SPI_BUS	0
+#ifndef CONFIG_ENV_SPI_BUS
+# define CONFIG_ENV_SPI_BUS	0
 #endif
-#ifndef CFG_ENV_SPI_CS
-# define CFG_ENV_SPI_CS		0
+#ifndef CONFIG_ENV_SPI_CS
+# define CONFIG_ENV_SPI_CS		0
 #endif
-#ifndef CFG_ENV_SPI_MAX_HZ
-# define CFG_ENV_SPI_MAX_HZ	1000000
+#ifndef CONFIG_ENV_SPI_MAX_HZ
+# define CONFIG_ENV_SPI_MAX_HZ	1000000
 #endif
-#ifndef CFG_ENV_SPI_MODE
-# define CFG_ENV_SPI_MODE	SPI_MODE_3
+#ifndef CONFIG_ENV_SPI_MODE
+# define CONFIG_ENV_SPI_MODE	SPI_MODE_3
 #endif
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -63,17 +60,25 @@ uchar env_get_char_spec(int index)
 
 int saveenv(void)
 {
+	u32 sector = 1;
+
 	if (!env_flash) {
 		puts("Environment SPI flash not initialized\n");
 		return 1;
 	}
 
+	if (CONFIG_ENV_SIZE > CONFIG_ENV_SECT_SIZE) {
+		sector = CONFIG_ENV_SIZE / CONFIG_ENV_SECT_SIZE;
+		if (CONFIG_ENV_SIZE % CONFIG_ENV_SECT_SIZE)
+			sector++;
+	}
+
 	puts("Erasing SPI flash...");
-	if (spi_flash_erase(env_flash, CFG_ENV_OFFSET, CFG_ENV_SIZE))
+	if (spi_flash_erase(env_flash, CONFIG_ENV_OFFSET, sector * CONFIG_ENV_SECT_SIZE))
 		return 1;
 
 	puts("Writing to SPI flash...");
-	if (spi_flash_write(env_flash, CFG_ENV_OFFSET, CFG_ENV_SIZE, env_ptr))
+	if (spi_flash_write(env_flash, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE, env_ptr))
 		return 1;
 
 	puts("done\n");
@@ -84,12 +89,12 @@ void env_relocate_spec(void)
 {
 	int ret;
 
-	env_flash = spi_flash_probe(CFG_ENV_SPI_BUS, CFG_ENV_SPI_CS,
-			CFG_ENV_SPI_MAX_HZ, CFG_ENV_SPI_MODE);
+	env_flash = spi_flash_probe(CONFIG_ENV_SPI_BUS, CONFIG_ENV_SPI_CS,
+			CONFIG_ENV_SPI_MAX_HZ, CONFIG_ENV_SPI_MODE);
 	if (!env_flash)
 		goto err_probe;
 
-	ret = spi_flash_read(env_flash, CFG_ENV_OFFSET, CFG_ENV_SIZE, env_ptr);
+	ret = spi_flash_read(env_flash, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE, env_ptr);
 	if (ret)
 		goto err_read;
 
@@ -107,7 +112,7 @@ err_probe:
 err_crc:
 	puts("*** Warning - bad CRC, using default environment\n\n");
 
-	if (default_environment_size > CFG_ENV_SIZE) {
+	if (default_environment_size > CONFIG_ENV_SIZE) {
 		gd->env_valid = 0;
 		puts("*** Error - default environment is too large\n\n");
 		return;
@@ -127,5 +132,3 @@ int env_init(void)
 
 	return 0;
 }
-
-#endif /* CFG_ENV_IS_IN_SPI_FLASH */

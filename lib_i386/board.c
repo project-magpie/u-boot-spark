@@ -108,19 +108,6 @@ void *sbrk (ptrdiff_t increment)
 	return ((void *) old);
 }
 
-char *strmhz (char *buf, long hz)
-{
-	long l, n;
-	long m;
-
-	n = hz / 1000000L;
-	l = sprintf (buf, "%ld", n);
-	m = (hz % 1000000L) / 1000L;
-	if (m != 0)
-		sprintf (buf + l, ".%03ld", m);
-	return (buf);
-}
-
 /************************************************************************
  * Init Utilities							*
  ************************************************************************
@@ -226,7 +213,7 @@ init_fnc_t *init_sequence[] = {
 	NULL,
 };
 
-gd_t *global_data;
+gd_t *gd;
 
 void start_i386boot (void)
 {
@@ -239,7 +226,7 @@ void start_i386boot (void)
 
 	show_boot_progress(0x21);
 
-	gd = global_data = &gd_data;
+	gd = &gd_data;
 	/* compiler optimization barrier needed for GCC >= 3.4 */
 	__asm__ __volatile__("": : :"memory");
 
@@ -279,7 +266,7 @@ void start_i386boot (void)
 		int i;
 		ulong reg;
 		char *s, *e;
-		uchar tmp[64];
+		char tmp[64];
 
 		i = getenv_r ("ethaddr", tmp, sizeof (tmp));
 		s = (i > 0) ? tmp : NULL;
@@ -425,7 +412,10 @@ void hang (void)
 unsigned long do_go_exec (ulong (*entry)(int, char *[]), int argc, char *argv[])
 {
 	/*
-	 * Nios function pointers are address >> 1
+	 * TODO: Test this function - changed to fix compiler error.
+	 * Original code was:
+	 *   return (entry >> 1) (argc, argv);
+	 * with a comment about Nios function pointers are address >> 1
 	 */
-	return (entry >> 1) (argc, argv);
+	return (entry) (argc, argv);
 }

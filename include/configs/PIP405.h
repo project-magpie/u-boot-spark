@@ -77,7 +77,7 @@
 #define CONFIG_CMD_BSP
 
 
-#define CFG_NAND_LEGACY
+#define CONFIG_NAND_LEGACY
 
 #define	 CFG_HUSH_PARSER
 #define	 CFG_PROMPT_HUSH_PS2 "> "
@@ -95,15 +95,14 @@
 
 #define CFG_I2C_EEPROM_ADDR	0x53
 #define CFG_I2C_EEPROM_ADDR_LEN	2
-#define CFG_ENV_IS_IN_EEPROM    1       /* use EEPROM for environment vars */
-#define CFG_ENV_OFFSET          0x000   /* environment starts at the beginning of the EEPROM */
-#define CFG_ENV_SIZE            0x800   /* 2 kBytes may be used for env vars */
+#define CONFIG_ENV_IS_IN_EEPROM    1       /* use EEPROM for environment vars */
+#define CONFIG_ENV_OFFSET          0x000   /* environment starts at the beginning of the EEPROM */
+#define CONFIG_ENV_SIZE            0x800   /* 2 kBytes may be used for env vars */
 
 #undef CFG_I2C_EEPROM_ADDR_OVERFLOW
 #define CFG_EEPROM_PAGE_WRITE_BITS 6	/* The Atmel 24C128/256 has	*/
 					/* 64 byte page write mode using*/
 					/* last	6 bits of the address	*/
-#define CFG_EEPROM_PAGE_WRITE_ENABLE	/* enable Page write */
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10	/* and takes up to 10 msec */
 
 
@@ -281,7 +280,6 @@
  ***********************************************************/
 #define CONFIG_MII		1	/* MII PHY management		*/
 #define CONFIG_PHY_ADDR		1	/* PHY address			*/
-#define CONFIG_CS8952_PHY	1	/* its a CS8952 PHY		*/
 /************************************************************
  * RTC
  ***********************************************************/

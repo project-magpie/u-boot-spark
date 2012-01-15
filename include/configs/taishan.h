@@ -83,13 +83,13 @@
 /*-----------------------------------------------------------------------
  * Environment
  *----------------------------------------------------------------------*/
-#define CFG_ENV_IS_IN_FLASH     1	/* use FLASH for environment vars	*/
+#define CONFIG_ENV_IS_IN_FLASH     1	/* use FLASH for environment vars	*/
 
 /*-----------------------------------------------------------------------
  * FLASH related
  *----------------------------------------------------------------------*/
 #define CFG_FLASH_CFI
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #define CFG_FLASH_EMPTY_INFO		/* print 'E' for empty sector on flinfo */
 #define CFG_FLASH_USE_BUFFER_WRITE 1	/* use buffered writes (20x faster)	*/
 
@@ -101,13 +101,13 @@
 #define CFG_FLASH_ERASE_TOUT	120000	/* Timeout for Flash Erase (in ms)	*/
 #define CFG_FLASH_WRITE_TOUT	500	/* Timeout for Flash Write (in ms)	*/
 
-#define CFG_ENV_SECT_SIZE	0x40000 /* size of one complete sector	*/
-#define CFG_ENV_ADDR		(CFG_MONITOR_BASE-CFG_ENV_SECT_SIZE)
-#define	CFG_ENV_SIZE		0x4000	/* Total Size of Environment Sector	*/
+#define CONFIG_ENV_SECT_SIZE	0x40000 /* size of one complete sector	*/
+#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE-CONFIG_ENV_SECT_SIZE)
+#define	CONFIG_ENV_SIZE		0x4000	/* Total Size of Environment Sector	*/
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR-CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR-CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 /*-----------------------------------------------------------------------
  * E2PROM bootstrap configure value
@@ -139,7 +139,6 @@
 #undef CFG_I2C_MULTI_EEPROMS
 #define CFG_I2C_EEPROM_ADDR	0x50
 #define CFG_I2C_EEPROM_ADDR_LEN 1
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 #define CFG_EEPROM_PAGE_WRITE_BITS 3
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS 10
 

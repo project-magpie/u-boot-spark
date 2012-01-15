@@ -137,6 +137,10 @@
 #define CFG_DDR_SDRAM_BASE	0x00000000	/* DDR is system memory	*/
 #define CFG_SDRAM_BASE		CFG_DDR_SDRAM_BASE
 
+#define CONFIG_NUM_DDR_CONTROLLERS	1
+#define CONFIG_DIMM_SLOTS_PER_CTLR	1
+#define CONFIG_CHIP_SELECTS_PER_CTRL	2
+
 #if defined(CONFIG_TQM8540) || defined(CONFIG_TQM8560)
 /* TQM8540 & 8560 need DLL-override */
 #define CONFIG_DDR_DLL				/* DLL fix needed	*/
@@ -204,7 +208,7 @@
 #endif /* CONFIG_TQM_BIGFLASH */
 
 #define CFG_FLASH_CFI			/* flash is CFI compat.		*/
-#define CFG_FLASH_CFI_DRIVER		/* Use common CFI driver	*/
+#define CONFIG_FLASH_CFI_DRIVER		/* Use common CFI driver	*/
 #define CFG_FLASH_EMPTY_INFO		/* print 'E' for empty sector	*/
 #define CFG_FLASH_QUIET_TEST	1	/* don't warn upon unknown flash*/
 #define CFG_FLASH_USE_BUFFER_WRITE	1 /* speed up output to Flash	*/
@@ -319,7 +323,6 @@
 #define CFG_I2C_EEPROM_ADDR		0x50	/* 1010000x		*/
 #define CFG_I2C_EEPROM_ADDR_LEN		2
 #define CFG_EEPROM_PAGE_WRITE_BITS	5	/* =32 Bytes per write	*/
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	20
 #define CFG_I2C_MULTI_EEPROMS		1	/* more than one eeprom	*/
 
@@ -345,7 +348,7 @@
 /* NAND FLASH */
 #ifdef CONFIG_NAND
 
-#undef CFG_NAND_LEGACY
+#undef CONFIG_NAND_LEGACY
 
 #define CONFIG_NAND_FSL_UPM	1
 
@@ -554,17 +557,17 @@
 /*
  * Environment
  */
-#define CFG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_IS_IN_FLASH	1
 
 #ifdef CONFIG_TQM_FLASH_N_TYPE
-#define CFG_ENV_SECT_SIZE	0x40000 /* 256K (one sector) for env	*/
+#define CONFIG_ENV_SECT_SIZE	0x40000 /* 256K (one sector) for env	*/
 #else /* !CONFIG_TQM_FLASH_N_TYPE */
-#define CFG_ENV_SECT_SIZE	0x20000 /* 128K (one sector) for env	*/
+#define CONFIG_ENV_SECT_SIZE	0x20000 /* 128K (one sector) for env	*/
 #endif /* CONFIG_TQM_FLASH_N_TYPE */
-#define CFG_ENV_ADDR		(CFG_MONITOR_BASE - CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE		0x2000
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR - CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE - CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE		0x2000
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR - CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download	*/
 #define CFG_LOADS_BAUD_CHANGE	1	/* allow baudrate change	*/
@@ -674,20 +677,20 @@
  * Setup some board specific values for the default environment variables
  */
 #ifdef CONFIG_CPM2
-#define CFG_ENV_CONSDEV		"consdev=ttyCPM0\0"
+#define CONFIG_ENV_CONSDEV		"consdev=ttyCPM0\0"
 #else
-#define CFG_ENV_CONSDEV		"consdev=ttyS0\0"
+#define CONFIG_ENV_CONSDEV		"consdev=ttyS0\0"
 #endif
-#define CFG_ENV_FDT_FILE	"fdt_file="MK_STR(CONFIG_HOSTNAME)"/" \
+#define CONFIG_ENV_FDT_FILE	"fdt_file="MK_STR(CONFIG_HOSTNAME)"/" \
 				MK_STR(CONFIG_HOSTNAME)".dtb\0"
-#define CFG_ENV_BOOTFILE	"bootfile="MK_STR(CONFIG_HOSTNAME)"/uImage\0"
-#define CFG_ENV_UBOOT		"uboot="MK_STR(CONFIG_HOSTNAME)"/u-boot.bin\0" \
+#define CONFIG_ENV_BOOTFILE	"bootfile="MK_STR(CONFIG_HOSTNAME)"/uImage\0"
+#define CONFIG_ENV_UBOOT		"uboot="MK_STR(CONFIG_HOSTNAME)"/u-boot.bin\0" \
 				"uboot_addr="MK_STR(TEXT_BASE)"\0"
 
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
-	CFG_ENV_BOOTFILE						\
-	CFG_ENV_FDT_FILE						\
-	CFG_ENV_CONSDEV							\
+	CONFIG_ENV_BOOTFILE						\
+	CONFIG_ENV_FDT_FILE						\
+	CONFIG_ENV_CONSDEV							\
 	"netdev=eth0\0"							\
 	"nfsargs=setenv bootargs root=/dev/nfs rw "			\
 		"nfsroot=$serverip:$rootpath\0"				\
@@ -711,7 +714,7 @@
 	"fdt_addr=ffec0000\0"						\
 	"kernel_addr=ffd00000\0"					\
 	"ramdisk_addr=ff800000\0"					\
-	CFG_ENV_UBOOT							\
+	CONFIG_ENV_UBOOT							\
 	"load=tftp 100000 $uboot\0"					\
 	"update=protect off $uboot_addr +$filesize;"			\
 		"erase $uboot_addr +$filesize;"				\

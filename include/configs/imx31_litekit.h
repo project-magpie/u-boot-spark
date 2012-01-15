@@ -53,7 +53,7 @@
 /*
  * Size of malloc() pool
  */
-#define CFG_MALLOC_LEN		(CFG_ENV_SIZE + 128 * 1024)
+#define CFG_MALLOC_LEN		(CONFIG_ENV_SIZE + 128 * 1024)
 #define CFG_GBL_DATA_SIZE	128  /* size in bytes reserved for initial data */
 
 /*
@@ -69,6 +69,9 @@
 #define CONFIG_DEFAULT_SPI_MODE	(SPI_MODE_2 | SPI_CS_HIGH)
 
 #define CONFIG_RTC_MC13783	1
+/* MC13783 connected to CSPI2 and SS0 */
+#define CONFIG_MC13783_SPI_BUS	1
+#define CONFIG_MC13783_SPI_CS	0
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -119,11 +122,9 @@
 #define CFG_MEMTEST_START	0  /* memtest works on */
 #define CFG_MEMTEST_END		0x10000
 
-#undef	CFG_CLKS_IN_HZ		/* everything, incl board info, in Hz */
-
 #define CFG_LOAD_ADDR		0 /* default load address */
 
-#define CFG_HZ			32000
+#define CFG_HZ			1000
 
 #define CONFIG_CMDLINE_EDITING	1
 
@@ -149,16 +150,16 @@
 #define CFG_MAX_FLASH_SECT	128	     /* max number of sectors on one chip */
 #define CFG_MONITOR_BASE	CFG_FLASH_BASE /* Monitor at beginning of flash */
 
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + 0x001f0000)
-#define	CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_SECT_SIZE	(64 * 1024)
-#define CFG_ENV_SIZE		(64 * 1024)
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + 0x001f0000)
+#define	CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_SECT_SIZE	(64 * 1024)
+#define CONFIG_ENV_SIZE		(64 * 1024)
 
 /*-----------------------------------------------------------------------
  * CFI FLASH driver setup
  */
 #define CFG_FLASH_CFI		1	/* Flash memory is CFI compliant */
-#define CFG_FLASH_CFI_DRIVER	1	/* Use drivers/cfi_flash.c */
+#define CONFIG_FLASH_CFI_DRIVER	1	/* Use drivers/cfi_flash.c */
 #define CFG_FLASH_USE_BUFFER_WRITE 1	/* Use buffered writes (~10x faster) */
 #define CFG_FLASH_PROTECTION	1	/* Use hardware sector protection */
 

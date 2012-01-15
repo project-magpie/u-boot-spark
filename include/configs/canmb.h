@@ -130,17 +130,17 @@
 #define CFG_FLASH_ERASE_TOUT	240000	/* Flash Erase Timeout (in ms)  */
 #define CFG_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (in ms)  */
 
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CFG_FLASH_EMPTY_INFO
 
 /*
  * Environment settings
  */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_OFFSET		(2*128*1024)
-#define CFG_ENV_SIZE		0x2000
-#define CFG_ENV_SECT_SIZE       (128*1024)
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_OFFSET		(2*128*1024)
+#define CONFIG_ENV_SIZE		0x2000
+#define CONFIG_ENV_SECT_SIZE       (128*1024)
 
 /*
  * Memory map

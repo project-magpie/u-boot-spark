@@ -51,7 +51,7 @@
 /*
  * Size of malloc() pool
  */
-#define CFG_MALLOC_LEN		(CFG_ENV_SIZE + 128 * 1024)
+#define CFG_MALLOC_LEN		(CONFIG_ENV_SIZE + 128 * 1024)
 #define CFG_GBL_DATA_SIZE	128  /* size in bytes reserved for initial data */
 
 /*
@@ -126,7 +126,7 @@
 
 #define CFG_LOAD_ADDR		0 /* default load address */
 
-#define CFG_HZ			32000
+#define CFG_HZ			1000
 
 #define CONFIG_CMDLINE_EDITING	1
 
@@ -152,9 +152,9 @@
 #define CFG_MAX_FLASH_SECT	259	     /* max number of sectors on one chip */
 #define CFG_MONITOR_BASE	CFG_FLASH_BASE /* Monitor at beginning of flash */
 
-#define	CFG_ENV_IS_IN_EEPROM		1
-#define CFG_ENV_OFFSET			0x00	/* environment starts here     */
-#define CFG_ENV_SIZE			4096
+#define	CONFIG_ENV_IS_IN_EEPROM		1
+#define CONFIG_ENV_OFFSET			0x00	/* environment starts here     */
+#define CONFIG_ENV_SIZE			4096
 #define CFG_I2C_EEPROM_ADDR		0x52
 #define CFG_EEPROM_PAGE_WRITE_BITS	5	/* 5 bits = 32 octets          */
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10	/* between stop and start      */
@@ -164,7 +164,7 @@
  * CFI FLASH driver setup
  */
 #define CFG_FLASH_CFI		1	/* Flash memory is CFI compliant */
-#define CFG_FLASH_CFI_DRIVER	1	/* Use drivers/cfi_flash.c */
+#define CONFIG_FLASH_CFI_DRIVER	1	/* Use drivers/cfi_flash.c */
 #define CFG_FLASH_USE_BUFFER_WRITE 1	/* Use buffered writes (~10x faster) */
 #define CFG_FLASH_PROTECTION	1	/* Use hardware sector protection */
 

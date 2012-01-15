@@ -54,7 +54,8 @@ void get_sys_info (sys_info_t * sysInfo)
 
 #ifdef CONFIG_DDR_CLK_FREQ
 	{
-		u32 ddr_ratio = ((gur->porpllsr) & 0x00003e00) >> 9;
+		u32 ddr_ratio = ((gur->porpllsr) & MPC85xx_PORPLLSR_DDR_RATIO)
+			>> MPC85xx_PORPLLSR_DDR_RATIO_SHIFT;
 		if (ddr_ratio != 0x7)
 			sysInfo->freqDDRBus = ddr_ratio * CONFIG_DDR_CLK_FREQ;
 	}
@@ -109,6 +110,10 @@ int get_clocks (void)
 	gd->i2c1_clk = sys_info.freqSystemBus / 2;
 #endif
 	gd->i2c2_clk = gd->i2c1_clk;
+
+#if defined(CONFIG_MPC8536)
+	gd->sdhc_clk = gd->bus_clk / 2;
+#endif
 
 #if defined(CONFIG_CPM2)
 	gd->vco_out = 2*sys_info.freqSystemBus;

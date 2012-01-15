@@ -40,17 +40,17 @@
 
 #define CONFIG_MCFUART
 #define CFG_UART_PORT		(0)
-#define CONFIG_BAUDRATE 19200
-#define CFG_BAUDRATE_TABLE { 9600 , 19200 , 38400 , 57600, 115200 }
+#define CONFIG_BAUDRATE		115200
+#define CFG_BAUDRATE_TABLE	{ 9600 , 19200 , 38400 , 57600, 115200 }
 
 #undef	CONFIG_MONITOR_IS_IN_RAM	/* define if monitor is started from a pre-loader */
 
 /* Configuration for environment
  * Environment is embedded in u-boot in the second sector of the flash
  */
-#define CFG_ENV_ADDR		0xffe04000
-#define CFG_ENV_SIZE		0x2000
-#define CFG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		0xffe04000
+#define CONFIG_ENV_SIZE		0x2000
+#define CONFIG_ENV_IS_IN_FLASH	1
 
 /*
  * BOOTP options
@@ -104,7 +104,7 @@
 #	define CONFIG_OVERWRITE_ETHADDR_ONCE
 #endif				/* CONFIG_MCFFEC */
 
-#define CONFIG_HOSTNAME		M5272C3
+#define CONFIG_HOSTNAME		M5282EVB
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	"netdev=eth0\0"				\
 	"loadaddr=10000\0"			\
@@ -134,7 +134,7 @@
 #define CFG_MEMTEST_START	0x400
 #define CFG_MEMTEST_END		0x380000
 
-#define CFG_HZ			1000000
+#define CFG_HZ			1000
 #define	CFG_CLK			64000000
 
 /* PLL Configuration: Ext Clock * 6 (see table 9-4 of MCF user manual) */
@@ -194,7 +194,7 @@
 #define CFG_FLASH_CFI
 #ifdef CFG_FLASH_CFI
 
-#	define CFG_FLASH_CFI_DRIVER	1
+#	define CONFIG_FLASH_CFI_DRIVER	1
 #	define CFG_FLASH_SIZE		0x1000000	/* Max size that the board might have */
 #	define CFG_FLASH_CFI_WIDTH	FLASH_CFI_16BIT
 #	define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks */
@@ -246,6 +246,6 @@
 #define CFG_PEHLPAR		0xC0
 #define CFG_PUAPAR		0x0F	/* UA0..UA3 = Uart 0 +1 */
 #define CFG_DDRUA		0x05
-#define CFG_PJPAR		0xFF;
+#define CFG_PJPAR		0xFF
 
 #endif				/* _CONFIG_M5282EVB_H */

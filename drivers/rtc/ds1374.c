@@ -35,7 +35,7 @@
 #include <rtc.h>
 #include <i2c.h>
 
-#if (defined(CONFIG_RTC_DS1374)) && defined(CONFIG_CMD_DATE)
+#if defined(CONFIG_CMD_DATE)
 
 /*---------------------------------------------------------------------*/
 #undef DEBUG_RTC
@@ -160,7 +160,7 @@ int rtc_get (struct rtc_time *tm){
 /*
  * Set the RTC
  */
-void rtc_set (struct rtc_time *tmp){
+int rtc_set (struct rtc_time *tmp){
 
 	unsigned long time;
 	unsigned i;
@@ -186,6 +186,8 @@ void rtc_set (struct rtc_time *tmp){
 
 	/* Start clock */
 	rtc_write(RTC_CTL_ADDR, RTC_CTL_BIT_EN_OSC, FALSE);
+
+	return 0;
 }
 
 /*

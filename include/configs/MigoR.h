@@ -67,7 +67,7 @@
 #define CFG_BAUDRATE_TABLE	{ 115200 }	/* List of legal baudrate settings for this board */
 
 /* SCIF */
-#define CFG_SCIF_CONSOLE	1
+#define CONFIG_SCIF_CONSOLE	1
 #define CONFIG_CONS_SCIF0	1
 #undef  CFG_CONSOLE_INFO_QUIET	/* Suppress display of console
 								   information at boot */
@@ -103,7 +103,7 @@
 
 /* FLASH */
 #define CFG_FLASH_CFI
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #undef  CFG_FLASH_QUIET_TEST
 /* print 'E' for empty sector on flinfo */
 #define CFG_FLASH_EMPTY_INFO
@@ -130,14 +130,14 @@
 #undef  CFG_DIRECT_FLASH_TFTP
 
 /* ENV setting */
-#define CFG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_IS_IN_FLASH
 #define CONFIG_ENV_OVERWRITE	1
-#define CFG_ENV_SECT_SIZE	(128 * 1024)
-#define CFG_ENV_SIZE		(CFG_ENV_SECT_SIZE)
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + CFG_MONITOR_LEN)
+#define CONFIG_ENV_SECT_SIZE	(128 * 1024)
+#define CONFIG_ENV_SIZE		(CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + CFG_MONITOR_LEN)
 /* Offset of env Flash sector relative to CFG_FLASH_BASE */
-#define CFG_ENV_OFFSET		(CFG_ENV_ADDR - CFG_FLASH_BASE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SECT_SIZE)
+#define CONFIG_ENV_OFFSET		(CONFIG_ENV_ADDR - CFG_FLASH_BASE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SECT_SIZE)
 
 /* Board Clock */
 #define CONFIG_SYS_CLK_FREQ	33333333

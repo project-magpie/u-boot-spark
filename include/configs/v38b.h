@@ -201,7 +201,7 @@
  * Flash configuration - use CFI driver
  */
 #define CFG_FLASH_CFI		1		/* Flash is CFI conformant */
-#define CFG_FLASH_CFI_DRIVER	1		/* Use the common driver */
+#define CONFIG_FLASH_CFI_DRIVER	1		/* Use the common driver */
 #define CFG_FLASH_CFI_AMD_RESET	1
 #define CFG_FLASH_BASE		0xFF000000
 #define CFG_MAX_FLASH_BANKS	1		/* max num of flash banks */
@@ -213,10 +213,10 @@
 /*
  * Environment settings
  */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + 0x00040000)
-#define CFG_ENV_SIZE		0x10000
-#define CFG_ENV_SECT_SIZE	0x10000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + 0x00040000)
+#define CONFIG_ENV_SIZE		0x10000
+#define CONFIG_ENV_SECT_SIZE	0x10000
 #define CONFIG_ENV_OVERWRITE	1
 
 /*

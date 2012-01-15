@@ -35,6 +35,7 @@
 #include <fpga.h>
 #include <environment.h>
 #include <fdt_support.h>
+#include <netdev.h>
 #include <asm/io.h>
 #include "fpga.h"
 #include "mvbc_p.h"
@@ -117,12 +118,12 @@ void mvbc_init_gpio(void)
 	out_be32(&gpio->simple_ode, SIMPLE_ODE);
 	out_be32(&gpio->simple_gpioe, SIMPLE_GPIOEN);
 
-	out_be32((u32*)&gpio->sint_ode, SINT_ODE);
-	out_be32((u32*)&gpio->sint_ddr, SINT_DDR);
-	out_be32((u32*)&gpio->sint_dvo, SINT_DVO);
-	out_be32((u32*)&gpio->sint_inten, SINT_INTEN);
-	out_be32((u32*)&gpio->sint_itype, SINT_ITYPE);
-	out_be32((u32*)&gpio->sint_gpioe, SINT_GPIOEN);
+	out_8(&gpio->sint_ode, SINT_ODE);
+	out_8(&gpio->sint_ddr, SINT_DDR);
+	out_8(&gpio->sint_dvo, SINT_DVO);
+	out_8(&gpio->sint_inten, SINT_INTEN);
+	out_be16(&gpio->sint_itype, SINT_ITYPE);
+	out_8(&gpio->sint_gpioe, SINT_GPIOEN);
 
 	out_8((u8*)MPC5XXX_WU_GPIO_ODE, WKUP_ODE);
 	out_8((u8*)MPC5XXX_WU_GPIO_DIR, WKUP_DIR);
@@ -323,4 +324,10 @@ void ft_board_setup(void *blob, bd_t *bd)
 {
 	ft_cpu_setup(blob, bd);
 	fdt_fixup_memory(blob, (u64)bd->bi_memstart, (u64)bd->bi_memsize);
+}
+
+int board_eth_init(bd_t *bis)
+{
+	cpu_eth_init(bis); /* Built in FEC comes first */
+	return pci_eth_init(bis);
 }

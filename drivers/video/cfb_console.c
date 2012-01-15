@@ -92,8 +92,6 @@ CONFIG_VIDEO_HW_CURSOR:	     - Uses the hardware cursor capability of the
 
 #include <common.h>
 
-#ifdef CONFIG_CFB_CONSOLE
-
 #include <malloc.h>
 
 /*****************************************************************************/
@@ -316,10 +314,10 @@ void	console_cursor (int state);
 #else
 #define SWAP16(x)	 (x)
 #define SWAP32(x)	 (x)
-#if !defined(VIDEO_FB_16BPP_PIXEL_SWAP)
-#define SHORTSWAP32(x)	 (x)
-#else
+#if defined(VIDEO_FB_16BPP_PIXEL_SWAP)
 #define SHORTSWAP32(x)	 ( ((x) >> 16) | ((x) << 16) )
+#else
+#define SHORTSWAP32(x)	 (x)
 #endif
 #endif
 
@@ -934,12 +932,12 @@ int video_display_bitmap (ulong bmp_image, int x, int y)
 				xcount = width;
 				while (xcount--) {
 					cte = bmp->color_table[*bmap++];
-#if !defined(VIDEO_FB_16BPP_PIXEL_SWAP)
-					FILL_15BIT_555RGB (cte.red, cte.green, cte.blue);
-#else
+#if defined(VIDEO_FB_16BPP_PIXEL_SWAP)
 					fill_555rgb_pswap (fb, xpos++, cte.red,
 							   cte.green, cte.blue);
 					fb += 2;
+#else
+					FILL_15BIT_555RGB (cte.red, cte.green, cte.blue);
 #endif
 				}
 				bmap += padded_line;
@@ -1008,12 +1006,12 @@ int video_display_bitmap (ulong bmp_image, int x, int y)
 				WATCHDOG_RESET ();
 				xcount = width;
 				while (xcount--) {
-#if !defined(VIDEO_FB_16BPP_PIXEL_SWAP)
-					FILL_15BIT_555RGB (bmap[2], bmap[1], bmap[0]);
-#else
+#if defined(VIDEO_FB_16BPP_PIXEL_SWAP)
 					fill_555rgb_pswap (fb, xpos++, bmap[2],
 							   bmap[1], bmap[0]);
 					fb += 2;
+#else
+					FILL_15BIT_555RGB (bmap[2], bmap[1], bmap[0]);
 #endif
 					bmap += 3;
 				}
@@ -1138,11 +1136,11 @@ void logo_plot (void *screen, int width, int x, int y)
 				*dest = ((r >> 5) << 5) | ((g >> 5) << 2) | (b >> 6);
 				break;
 			case GDF_15BIT_555RGB:
-#if !defined(VIDEO_FB_16BPP_PIXEL_SWAP)
+#if defined(VIDEO_FB_16BPP_PIXEL_SWAP)
+				fill_555rgb_pswap (dest, xpos++, r, g, b);
+#else
 				*(unsigned short *) dest =
 					SWAP16 ((unsigned short) (((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3)));
-#else
-				fill_555rgb_pswap (dest, xpos++, r, g, b);
 #endif
 				break;
 			case GDF_16BIT_565RGB:
@@ -1352,4 +1350,3 @@ int drv_video_init (void)
 	/* No console dev available */
 	return 0;
 }
-#endif /* CONFIG_CFB_CONSOLE */

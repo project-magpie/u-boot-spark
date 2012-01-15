@@ -25,9 +25,11 @@
  * MA 02111-1307 USA
  */
 
+#include <config.h>
 #include <common.h>
 #include <watchdog.h>
 #include <command.h>
+#include <tsec.h>
 #include <asm/cache.h>
 #include <asm/io.h>
 
@@ -36,6 +38,8 @@ DECLARE_GLOBAL_DATA_PTR;
 struct cpu_type cpu_type_list [] = {
 	CPU_TYPE_ENTRY(8533, 8533),
 	CPU_TYPE_ENTRY(8533, 8533_E),
+	CPU_TYPE_ENTRY(8536, 8536),
+	CPU_TYPE_ENTRY(8536, 8536_E),
 	CPU_TYPE_ENTRY(8540, 8540),
 	CPU_TYPE_ENTRY(8541, 8541),
 	CPU_TYPE_ENTRY(8541, 8541_E),
@@ -81,7 +85,8 @@ int checkcpu (void)
 	struct cpu_type *cpu;
 #ifdef CONFIG_DDR_CLK_FREQ
 	volatile ccsr_gur_t *gur = (void *)(CFG_MPC85xx_GUTS_ADDR);
-	u32 ddr_ratio = ((gur->porpllsr) & 0x00003e00) >> 9;
+	u32 ddr_ratio = ((gur->porpllsr) & MPC85xx_PORPLLSR_DDR_RATIO)
+		>> MPC85xx_PORPLLSR_DDR_RATIO_SHIFT;
 #else
 	u32 ddr_ratio = 0;
 #endif
@@ -89,6 +94,9 @@ int checkcpu (void)
 	svr = get_svr();
 	ver = SVR_SOC_VER(svr);
 	major = SVR_MAJ(svr);
+#ifdef CONFIG_MPC8536
+	major &= 0x7; /* the msb of this nibble is a mfg code */
+#endif
 	minor = SVR_MIN(svr);
 
 	puts("CPU:   ");
@@ -154,7 +162,8 @@ int checkcpu (void)
 #endif
 	clkdiv = lcrr & 0x0f;
 	if (clkdiv == 2 || clkdiv == 4 || clkdiv == 8) {
-#if defined(CONFIG_MPC8548) || defined(CONFIG_MPC8544)
+#if defined(CONFIG_MPC8548) || defined(CONFIG_MPC8544) || \
+    defined(CONFIG_MPC8572) || defined(CONFIG_MPC8536)
 		/*
 		 * Yes, the entire PQ38 family use the same
 		 * bit-representation for twice the clock divider values.
@@ -288,16 +297,16 @@ int dma_xfer(void *dest, uint count, void *src) {
 	return dma_check();
 }
 #endif
+
 /*
- * Configures a UPM. Currently, the loop fields in MxMR (RLF, WLF and TLF)
- * are hardcoded as "1"."size" is the number or entries, not a sizeof.
+ * Configures a UPM. The function requires the respective MxMR to be set
+ * before calling this function. "size" is the number or entries, not a sizeof.
  */
 void upmconfig (uint upm, uint * table, uint size)
 {
 	int i, mdr, mad, old_mad = 0;
 	volatile u32 *mxmr;
 	volatile ccsr_lbc_t *lbc = (void *)(CFG_MPC85xx_LBC_ADDR);
-	int loopval = 0x00004440;
 	volatile u32 *brp,*orp;
 	volatile u8* dummy = NULL;
 	int upmmask;
@@ -325,8 +334,8 @@ void upmconfig (uint upm, uint * table, uint size)
 		 i++, brp += 2, orp += 2) {
 
 		/* Look for a valid BR with selected UPM */
-		if ((in_be32(brp) & (BR_V | upmmask)) == (BR_V | upmmask)) {
-			dummy = (volatile u8*)(in_be32(brp) >> BR_BA_SHIFT);
+		if ((in_be32(brp) & (BR_V | BR_MSEL)) == (BR_V | upmmask)) {
+			dummy = (volatile u8*)(in_be32(brp) & BR_BA);
 			break;
 		}
 	}
@@ -338,7 +347,7 @@ void upmconfig (uint upm, uint * table, uint size)
 
 	for (i = 0; i < size; i++) {
 		/* 1 */
-		out_be32(mxmr, loopval | 0x10000000 | i); /* OP_WRITE */
+		out_be32(mxmr,  (in_be32(mxmr) & 0x4fffffc0) | MxMR_OP_WARR | i);
 		/* 2 */
 		out_be32(&lbc->mdr, table[i]);
 		/* 3 */
@@ -347,39 +356,23 @@ void upmconfig (uint upm, uint * table, uint size)
 		*(volatile u8 *)dummy = 0;
 		/* 5 */
 		do {
-			mad = in_be32(mxmr) & 0x3f;
+			mad = in_be32(mxmr) & MxMR_MAD_MSK;
 		} while (mad <= old_mad && !(!mad && i == (size-1)));
 		old_mad = mad;
 	}
-	out_be32(mxmr, loopval); /* OP_NORMAL */
+	out_be32(mxmr, (in_be32(mxmr) & 0x4fffffc0) | MxMR_OP_NORM);
 }
 
-#if defined(CONFIG_TSEC_ENET) || defined(CONFIGMPC85XX_FEC)
-/* Default initializations for TSEC controllers.  To override,
- * create a board-specific function called:
- * 	int board_eth_init(bd_t *bis)
+
+/*
+ * Initializes on-chip ethernet controllers.
+ * to override, implement board_eth_init()
  */
-
-extern int tsec_initialize(bd_t * bis, int index, char *devname);
-
 int cpu_eth_init(bd_t *bis)
 {
-#if defined(CONFIG_TSEC1)
-	tsec_initialize(bis, 0, CONFIG_TSEC1_NAME);
+#if defined(CONFIG_TSEC_ENET) || defined(CONFIG_MPC85xx_FEC)
+	tsec_standard_init(bis);
 #endif
-#if defined(CONFIG_TSEC2)
-	tsec_initialize(bis, 1, CONFIG_TSEC2_NAME);
-#endif
-#if defined(CONFIG_MPC85XX_FEC)
-	tsec_initialize(bis, 2, CONFIG_MPC85XX_FEC_NAME);
-#else
-#if defined(CONFIG_TSEC3)
-	tsec_initialize(bis, 2, CONFIG_TSEC3_NAME);
-#endif
-#if defined(CONFIG_TSEC4)
-	tsec_initialize(bis, 3, CONFIG_TSEC4_NAME);
-#endif
-#endif
+
 	return 0;
 }
-#endif

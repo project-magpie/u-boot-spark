@@ -186,7 +186,7 @@
 
 #define CFG_FLASH_BASE		0xFF800000
 #define CFG_FLASH_CFI
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #define CFG_MAX_FLASH_BANKS	1	/* max num of flash banks	*/
 #define CFG_MAX_FLASH_SECT	256	/* max num of sects on one chip */
 
@@ -214,12 +214,12 @@
 
 #define CFG_MONITOR_LEN		(256 << 10)	/* Reserve 256KB for Monitor */
 
-#define CFG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_IS_IN_FLASH
 
-#ifdef CFG_ENV_IS_IN_FLASH
-#define CFG_ENV_SECT_SIZE	0x20000
-#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
-#endif /* CFG_ENV_IS_IN_FLASH */
+#ifdef CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_SECT_SIZE	0x20000
+#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
+#endif /* CONFIG_ENV_IS_IN_FLASH */
 
 #define CFG_DEFAULT_IMMR	0x00010000
 

@@ -170,13 +170,13 @@
 #define CFG_FLASH_BASE	0xFF000000
 
 #if 1
-    #define CFG_FLASH_CFI_DRIVER
+    #define CONFIG_FLASH_CFI_DRIVER
 #else
-    #undef CFG_FLASH_CFI_DRIVER
+    #undef CONFIG_FLASH_CFI_DRIVER
 #endif
 
 
-#ifdef CFG_FLASH_CFI_DRIVER
+#ifdef CONFIG_FLASH_CFI_DRIVER
     #define CFG_FLASH_CFI 1
     #undef CFG_FLASH_USE_BUFFER_WRITE
     #define CFG_FLASH_BANKS_LIST {CFG_FLASH_BASE}
@@ -208,15 +208,15 @@
 #define CFG_FLASH_ERASE_TOUT	120000	/* Timeout for Flash Erase (in ms)	*/
 #define CFG_FLASH_WRITE_TOUT	500	/* Timeout for Flash Write (in ms)	*/
 
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_OFFSET	    0x00F40000	/*   Offset   of Environment Sector	absolute address 0xfff40000*/
-#define CFG_ENV_SECT_SIZE	0x40000	/* Total Size of Environment Sector	*/
-#define CFG_ENV_SIZE		CFG_ENV_SECT_SIZE
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + CFG_ENV_OFFSET)
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_OFFSET	    0x00F40000	/*   Offset   of Environment Sector	absolute address 0xfff40000*/
+#define CONFIG_ENV_SECT_SIZE	0x40000	/* Total Size of Environment Sector	*/
+#define CONFIG_ENV_SIZE		CONFIG_ENV_SECT_SIZE
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + CONFIG_ENV_OFFSET)
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_OFFSET_REDUND	(CFG_ENV_OFFSET+CFG_ENV_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET+CONFIG_ENV_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 /* FPGA */
 #define CONFIG_MISC_INIT_R

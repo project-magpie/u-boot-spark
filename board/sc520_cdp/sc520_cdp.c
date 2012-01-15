@@ -29,6 +29,7 @@
 #include <asm/ic/sc520.h>
 #include <asm/ic/ali512x.h>
 #include <spi.h>
+#include <netdev.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -113,7 +114,7 @@ static void irq_init(void)
 
 }
 
-
+#ifdef CONFIG_PCI
 /* PCI stuff */
 static void pci_sc520_cdp_fixup_irq(struct pci_controller *hose, pci_dev_t dev)
 {
@@ -128,7 +129,7 @@ static void pci_sc520_cdp_fixup_irq(struct pci_controller *hose, pci_dev_t dev)
 	};
 	static int next_irq_index=0;
 
-	char tmp_pin;
+	uchar tmp_pin;
 	int pin;
 
 	pci_hose_read_config_byte(hose, dev, PCI_INTERRUPT_PIN, &tmp_pin);
@@ -192,7 +193,7 @@ void pci_init_board(void)
 {
 	pci_sc520_init(&sc520_cdp_hose);
 }
-
+#endif
 
 static void silence_uart(int port)
 {
@@ -562,12 +563,12 @@ void spi_eeprom_probe(int x)
 {
 }
 
-int spi_eeprom_read(int x, int offset, char *buffer, int len)
+int spi_eeprom_read(int x, int offset, uchar *buffer, int len)
 {
        return 0;
 }
 
-int spi_eeprom_write(int x, int offset, char *buffer, int len)
+int spi_eeprom_write(int x, int offset, uchar *buffer, int len)
 {
        return 0;
 }
@@ -628,4 +629,9 @@ ssize_t spi_write(uchar *addr, int alen, uchar *buffer, int len)
 	res = 0;
 #endif
 	return res;
+}
+
+int board_eth_init(bd_t *bis)
+{
+	return pci_eth_init(bis);
 }

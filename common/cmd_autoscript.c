@@ -47,8 +47,6 @@
 #include <hush.h>
 #endif
 
-#if defined(CONFIG_AUTOSCRIPT) || defined(CONFIG_CMD_AUTOSCRIPT)
-
 int
 autoscript (ulong addr, const char *fit_uname)
 {
@@ -182,7 +180,7 @@ autoscript (ulong addr, const char *fit_uname)
 			if (*next == '\n') {
 				*next = '\0';
 				/* run only non-empty commands */
-				if ((next - line) > 1) {
+				if (*line) {
 					debug ("** exec: \"%s\"\n",
 						line);
 					if (run_command (line, 0) < 0) {
@@ -194,13 +192,13 @@ autoscript (ulong addr, const char *fit_uname)
 			}
 			++next;
 		}
+		if (rcode == 0 && *line)
+			rcode = (run_command(line, 0) >= 0);
 	}
 #endif
 	free (cmd);
 	return rcode;
 }
-
-#endif
 
 /**************************************************/
 #if defined(CONFIG_CMD_AUTOSCRIPT)

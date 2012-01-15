@@ -99,11 +99,76 @@ static int fdt_fixup_stdout(void *fdt, int chosenoff)
 }
 #endif
 
-int fdt_chosen(void *fdt, ulong initrd_start, ulong initrd_end, int force)
+int fdt_initrd(void *fdt, ulong initrd_start, ulong initrd_end, int force)
+{
+	int   nodeoffset;
+	int   err, j, total;
+	u32   tmp;
+	const char *path;
+	uint64_t addr, size;
+
+	/* Find the "chosen" node.  */
+	nodeoffset = fdt_path_offset (fdt, "/chosen");
+
+	/* If there is no "chosen" node in the blob return */
+	if (nodeoffset < 0) {
+		printf("fdt_initrd: %s\n", fdt_strerror(nodeoffset));
+		return nodeoffset;
+	}
+
+	/* just return if initrd_start/end aren't valid */
+	if ((initrd_start == 0) || (initrd_end == 0))
+		return 0;
+
+	total = fdt_num_mem_rsv(fdt);
+
+	/*
+	 * Look for an existing entry and update it.  If we don't find
+	 * the entry, we will j be the next available slot.
+	 */
+	for (j = 0; j < total; j++) {
+		err = fdt_get_mem_rsv(fdt, j, &addr, &size);
+		if (addr == initrd_start) {
+			fdt_del_mem_rsv(fdt, j);
+			break;
+		}
+	}
+
+	err = fdt_add_mem_rsv(fdt, initrd_start, initrd_end - initrd_start + 1);
+	if (err < 0) {
+		printf("fdt_initrd: %s\n", fdt_strerror(err));
+		return err;
+	}
+
+	path = fdt_getprop(fdt, nodeoffset, "linux,initrd-start", NULL);
+	if ((path == NULL) || force) {
+		tmp = __cpu_to_be32(initrd_start);
+		err = fdt_setprop(fdt, nodeoffset,
+			"linux,initrd-start", &tmp, sizeof(tmp));
+		if (err < 0) {
+			printf("WARNING: "
+				"could not set linux,initrd-start %s.\n",
+				fdt_strerror(err));
+			return err;
+		}
+		tmp = __cpu_to_be32(initrd_end);
+		err = fdt_setprop(fdt, nodeoffset,
+			"linux,initrd-end", &tmp, sizeof(tmp));
+		if (err < 0) {
+			printf("WARNING: could not set linux,initrd-end %s.\n",
+				fdt_strerror(err));
+
+			return err;
+		}
+	}
+
+	return 0;
+}
+
+int fdt_chosen(void *fdt, int force)
 {
 	int   nodeoffset;
 	int   err;
-	u32   tmp;		/* used to set 32 bit integer properties */
 	char  *str;		/* used to set string properties */
 	const char *path;
 
@@ -111,30 +176,6 @@ int fdt_chosen(void *fdt, ulong initrd_start, ulong initrd_end, int force)
 	if (err < 0) {
 		printf("fdt_chosen: %s\n", fdt_strerror(err));
 		return err;
-	}
-
-	if (initrd_start && initrd_end) {
-		uint64_t addr, size;
-		int  total = fdt_num_mem_rsv(fdt);
-		int  j;
-
-		/*
-		 * Look for an existing entry and update it.  If we don't find
-		 * the entry, we will j be the next available slot.
-		 */
-		for (j = 0; j < total; j++) {
-			err = fdt_get_mem_rsv(fdt, j, &addr, &size);
-			if (addr == initrd_start) {
-				fdt_del_mem_rsv(fdt, j);
-				break;
-			}
-		}
-
-		err = fdt_add_mem_rsv(fdt, initrd_start, initrd_end - initrd_start + 1);
-		if (err < 0) {
-			printf("fdt_chosen: %s\n", fdt_strerror(err));
-			return err;
-		}
 	}
 
 	/*
@@ -170,24 +211,6 @@ int fdt_chosen(void *fdt, ulong initrd_start, ulong initrd_end, int force)
 				"bootargs", str, strlen(str)+1);
 			if (err < 0)
 				printf("WARNING: could not set bootargs %s.\n",
-					fdt_strerror(err));
-		}
-	}
-	if (initrd_start && initrd_end) {
-		path = fdt_getprop(fdt, nodeoffset, "linux,initrd-start", NULL);
-		if ((path == NULL) || force) {
-			tmp = __cpu_to_be32(initrd_start);
-			err = fdt_setprop(fdt, nodeoffset,
-				"linux,initrd-start", &tmp, sizeof(tmp));
-			if (err < 0)
-				printf("WARNING: "
-					"could not set linux,initrd-start %s.\n",
-					fdt_strerror(err));
-			tmp = __cpu_to_be32(initrd_end);
-			err = fdt_setprop(fdt, nodeoffset,
-				"linux,initrd-end", &tmp, sizeof(tmp));
-			if (err < 0)
-				printf("WARNING: could not set linux,initrd-end %s.\n",
 					fdt_strerror(err));
 		}
 	}
@@ -368,78 +391,80 @@ int fdt_fixup_memory(void *blob, u64 start, u64 size)
 	return 0;
 }
 
-#if defined(CONFIG_HAS_ETH0) || defined(CONFIG_HAS_ETH1) ||\
-    defined(CONFIG_HAS_ETH2) || defined(CONFIG_HAS_ETH3)
-
-void fdt_fixup_ethernet(void *fdt, bd_t *bd)
+void fdt_fixup_ethernet(void *fdt)
 {
-	int node;
+	int node, i, j;
+	char enet[16], *tmp, *end;
+	char mac[16] = "ethaddr";
 	const char *path;
+	unsigned char mac_addr[6];
 
 	node = fdt_path_offset(fdt, "/aliases");
-	if (node >= 0) {
-#if defined(CONFIG_HAS_ETH0)
-		path = fdt_getprop(fdt, node, "ethernet0", NULL);
-		if (path) {
-			do_fixup_by_path(fdt, path, "mac-address",
-				bd->bi_enetaddr, 6, 0);
-			do_fixup_by_path(fdt, path, "local-mac-address",
-				bd->bi_enetaddr, 6, 1);
+	if (node < 0)
+		return;
+
+	i = 0;
+	while ((tmp = getenv(mac)) != NULL) {
+		sprintf(enet, "ethernet%d", i);
+		path = fdt_getprop(fdt, node, enet, NULL);
+		if (!path) {
+			debug("No alias for %s\n", enet);
+			sprintf(mac, "eth%daddr", ++i);
+			continue;
 		}
-#endif
-#if defined(CONFIG_HAS_ETH1)
-		path = fdt_getprop(fdt, node, "ethernet1", NULL);
-		if (path) {
-			do_fixup_by_path(fdt, path, "mac-address",
-				bd->bi_enet1addr, 6, 0);
-			do_fixup_by_path(fdt, path, "local-mac-address",
-				bd->bi_enet1addr, 6, 1);
+
+		for (j = 0; j < 6; j++) {
+			mac_addr[j] = tmp ? simple_strtoul(tmp, &end, 16) : 0;
+			if (tmp)
+				tmp = (*end) ? end+1 : end;
 		}
-#endif
-#if defined(CONFIG_HAS_ETH2)
-		path = fdt_getprop(fdt, node, "ethernet2", NULL);
-		if (path) {
-			do_fixup_by_path(fdt, path, "mac-address",
-				bd->bi_enet2addr, 6, 0);
-			do_fixup_by_path(fdt, path, "local-mac-address",
-				bd->bi_enet2addr, 6, 1);
-		}
-#endif
-#if defined(CONFIG_HAS_ETH3)
-		path = fdt_getprop(fdt, node, "ethernet3", NULL);
-		if (path) {
-			do_fixup_by_path(fdt, path, "mac-address",
-				bd->bi_enet3addr, 6, 0);
-			do_fixup_by_path(fdt, path, "local-mac-address",
-				bd->bi_enet3addr, 6, 1);
-		}
-#endif
+
+		do_fixup_by_path(fdt, path, "mac-address", &mac_addr, 6, 0);
+		do_fixup_by_path(fdt, path, "local-mac-address",
+				&mac_addr, 6, 1);
+
+		sprintf(mac, "eth%daddr", ++i);
 	}
 }
-#endif
 
 #ifdef CONFIG_HAS_FSL_DR_USB
 void fdt_fixup_dr_usb(void *blob, bd_t *bd)
 {
 	char *mode;
+	char *type;
 	const char *compat = "fsl-usb2-dr";
-	const char *prop = "dr_mode";
+	const char *prop_mode = "dr_mode";
+	const char *prop_type = "phy_type";
 	int node_offset;
 	int err;
 
 	mode = getenv("usb_dr_mode");
-	if (!mode)
+	type = getenv("usb_phy_type");
+	if (!mode && !type)
 		return;
 
 	node_offset = fdt_node_offset_by_compatible(blob, 0, compat);
-	if (node_offset < 0)
+	if (node_offset < 0) {
 		printf("WARNING: could not find compatible node %s: %s.\n",
 			compat, fdt_strerror(node_offset));
+		return;
+	}
 
-	err = fdt_setprop(blob, node_offset, prop, mode, strlen(mode) + 1);
-	if (err < 0)
-		printf("WARNING: could not set %s for %s: %s.\n",
-		       prop, compat, fdt_strerror(err));
+	if (mode) {
+		err = fdt_setprop(blob, node_offset, prop_mode, mode,
+				  strlen(mode) + 1);
+		if (err < 0)
+			printf("WARNING: could not set %s for %s: %s.\n",
+			       prop_mode, compat, fdt_strerror(err));
+	}
+
+	if (type) {
+		err = fdt_setprop(blob, node_offset, prop_type, type,
+				  strlen(type) + 1);
+		if (err < 0)
+			printf("WARNING: could not set %s for %s: %s.\n",
+			       prop_type, compat, fdt_strerror(err));
+	}
 }
 #endif /* CONFIG_HAS_FSL_DR_USB */
 
@@ -529,3 +554,42 @@ void fdt_fixup_crypto_node(void *blob, int sec_rev)
 		       fdt_strerror(err));
 }
 #endif /* defined(CONFIG_MPC83XX) || defined(CONFIG_MPC85xx) */
+
+/* Resize the fdt to its actual size + a bit of padding */
+int fdt_resize(void *blob)
+{
+	int i;
+	uint64_t addr, size;
+	int total, ret;
+	uint actualsize;
+
+	if (!blob)
+		return 0;
+
+	total = fdt_num_mem_rsv(blob);
+	for (i = 0; i < total; i++) {
+		fdt_get_mem_rsv(blob, i, &addr, &size);
+		if (addr == (uint64_t)(u32)blob) {
+			fdt_del_mem_rsv(blob, i);
+			break;
+		}
+	}
+
+	/* Calculate the actual size of the fdt */
+	actualsize = fdt_off_dt_strings(blob) +
+		fdt_size_dt_strings(blob);
+
+	/* Make it so the fdt ends on a page boundary */
+	actualsize = ALIGN(actualsize, 0x1000);
+	actualsize = actualsize - ((uint)blob & 0xfff);
+
+	/* Change the fdt header to reflect the correct size */
+	fdt_set_totalsize(blob, actualsize);
+
+	/* Add the new reservation */
+	ret = fdt_add_mem_rsv(blob, (uint)blob, actualsize);
+	if (ret < 0)
+		return ret;
+
+	return actualsize;
+}

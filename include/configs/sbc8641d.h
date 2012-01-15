@@ -61,8 +61,6 @@
 #define CONFIG_HIGH_BATS	1	/* High BATs supported and enabled */
 
 #undef CONFIG_SPD_EEPROM		/* Do not use SPD EEPROM for DDR setup*/
-#undef CONFIG_DDR_DLL			/* possible DLL fix needed */
-#define CONFIG_DDR_2T_TIMING		/* Sets the 2T timing bit */
 #undef CONFIG_DDR_ECC			/* only for ECC DDR module */
 #define CONFIG_ECC_INIT_VIA_DDRCONTROLLER	/* DDR controller or DMA? */
 #define CONFIG_MEM_INIT_VALUE		0xDeadBeef
@@ -113,6 +111,10 @@
 #define CONFIG_VERY_BIG_RAM
 
 #define MPC86xx_DDR_SDRAM_CLK_CNTL
+
+#define CONFIG_NUM_DDR_CONTROLLERS	2
+#define CONFIG_DIMM_SLOTS_PER_CTLR	2
+#define CONFIG_CHIP_SELECTS_PER_CTRL	(2 * CONFIG_DIMM_SLOTS_PER_CTLR)
 
 #if defined(CONFIG_SPD_EEPROM)
     /*
@@ -177,7 +179,7 @@
 
 #endif
 
-/* #define CFG_ID_EEPROM	1
+/* #define CONFIG_ID_EEPROM	1
 #define ID_EEPROM_ADDR 0x57 */
 
 /*
@@ -223,7 +225,7 @@
 #define CFG_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (ms) */
 #define CFG_MONITOR_BASE	TEXT_BASE	/* start of monitor */
 
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CFG_WRITE_SWAPPED_DATA
 #define CFG_FLASH_EMPTY_INFO
@@ -467,10 +469,10 @@
 /*
  * Environment
  */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + 0x40000)
-#define CFG_ENV_SECT_SIZE	0x40000	/* 256K(one sector) for env */
-#define CFG_ENV_SIZE		0x2000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE + 0x40000)
+#define CONFIG_ENV_SECT_SIZE	0x40000	/* 256K(one sector) for env */
+#define CONFIG_ENV_SIZE		0x2000
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download */
 #define CFG_LOADS_BAUD_CHANGE	1	/* allow baudrate change */

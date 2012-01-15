@@ -254,16 +254,16 @@
 /*-----------------------------------------------------------------------
  * NVRAM organization
  */
-#define CFG_ENV_IS_IN_NVRAM	1	/* use NVRAM for environment vars	*/
-#define CFG_ENV_SIZE		0x0ff8		/* Size of Environment vars	*/
-#define CFG_ENV_ADDR		\
-	(CFG_NVRAM_BASE_ADDR+CFG_NVRAM_SIZE-(CFG_ENV_SIZE+8))	/* Env	*/
+#define CONFIG_ENV_IS_IN_NVRAM	1	/* use NVRAM for environment vars	*/
+#define CONFIG_ENV_SIZE		0x0ff8		/* Size of Environment vars	*/
+#define CONFIG_ENV_ADDR		\
+	(CFG_NVRAM_BASE_ADDR+CFG_NVRAM_SIZE-(CONFIG_ENV_SIZE+8))	/* Env	*/
 
 #else /* Use EEPROM for environment variables */
 
-#define CFG_ENV_IS_IN_EEPROM	1	/* use EEPROM for environment vars */
-#define CFG_ENV_OFFSET		0x000	/* environment starts at the beginning of the EEPROM */
-#define CFG_ENV_SIZE		0x800	/* 2048 bytes may be used for env vars*/
+#define CONFIG_ENV_IS_IN_EEPROM	1	/* use EEPROM for environment vars */
+#define CONFIG_ENV_OFFSET		0x000	/* environment starts at the beginning of the EEPROM */
+#define CONFIG_ENV_SIZE		0x800	/* 2048 bytes may be used for env vars*/
 				   /* total size of a CAT24WC16 is 2048 bytes */
 #endif
 
@@ -286,7 +286,6 @@
 					/* 16 byte page write mode using*/
 					/* last 4 bits of the address	*/
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10   /* and takes up to 10 msec */
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 
 /*
  * Init Memory Controller:

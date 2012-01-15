@@ -188,11 +188,12 @@
  * FLASH on the Local Bus
  */
 #define CFG_FLASH_CFI		/* use the Common Flash Interface */
-#define CFG_FLASH_CFI_DRIVER	/* use the CFI driver */
+#define CONFIG_FLASH_CFI_DRIVER	/* use the CFI driver */
 #define CFG_FLASH_CFI_WIDTH	FLASH_CFI_16BIT
 
 #define CFG_FLASH_BASE		0xFE000000 /* FLASH base address */
 #define CFG_FLASH_SIZE		8 /* FLASH size is 8M */
+#define CFG_FLASH_PROTECTION	1		/* Use h/w Flash protection. */
 
 #define CFG_LBLAWBAR0_PRELIM	CFG_FLASH_BASE /* Window base at flash base */
 #define CFG_LBLAWAR0_PRELIM	0x80000016 /* 8MB window size */
@@ -321,6 +322,8 @@
 #define CONFIG_NET_MULTI	1
 #endif
 
+#define CONFIG_HAS_FSL_DR_USB
+
 /*
  * TSEC
  */
@@ -375,15 +378,15 @@
  * Environment
  */
 #ifndef CFG_RAMBOOT
-	#define CFG_ENV_IS_IN_FLASH	1
-	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
-	#define CFG_ENV_SECT_SIZE	0x10000 /* 64K(one sector) for env */
-	#define CFG_ENV_SIZE		0x2000
+	#define CONFIG_ENV_IS_IN_FLASH	1
+	#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
+	#define CONFIG_ENV_SECT_SIZE	0x10000 /* 64K(one sector) for env */
+	#define CONFIG_ENV_SIZE		0x2000
 #else
 	#define CFG_NO_FLASH		1	/* Flash is not usable now */
-	#define CFG_ENV_IS_NOWHERE	1	/* Store ENV in memory only */
-	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE - 0x1000)
-	#define CFG_ENV_SIZE		0x2000
+	#define CONFIG_ENV_IS_NOWHERE	1	/* Store ENV in memory only */
+	#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE - 0x1000)
+	#define CONFIG_ENV_SIZE		0x2000
 #endif
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download */

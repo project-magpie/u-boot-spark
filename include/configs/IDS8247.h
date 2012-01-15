@@ -227,7 +227,7 @@
 #define CFG_BOOTMAPSZ        (8 << 20)       /* Initial Memory map for Linux */
 
 #define CFG_FLASH_CFI				/* The flash is CFI compatible  */
-#define CFG_FLASH_CFI_DRIVER			/* Use common CFI driver        */
+#define CONFIG_FLASH_CFI_DRIVER			/* Use common CFI driver        */
 #define CFG_FLASH_BANKS_LIST	{ 0xFF800000 }
 #define CFG_MAX_FLASH_BANKS_DETECT	1
 /* What should the base address of the main FLASH be and how big is
@@ -251,10 +251,10 @@
 #define CFG_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (in ms)  */
 
 /* Environment in flash */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE+0x60000)
-#define CFG_ENV_SIZE		0x20000
-#define CFG_ENV_SECT_SIZE	0x20000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE+0x60000)
+#define CONFIG_ENV_SIZE		0x20000
+#define CONFIG_ENV_SECT_SIZE	0x20000
 
 /*-----------------------------------------------------------------------
  * NAND-FLASH stuff
@@ -262,7 +262,7 @@
  */
 #if defined(CONFIG_CMD_NAND)
 
-#define CFG_NAND_LEGACY
+#define CONFIG_NAND_LEGACY
 #define CFG_NAND0_BASE 0xE1000000
 
 #define CFG_MAX_NAND_DEVICE     1       /* Max number of NAND devices           */

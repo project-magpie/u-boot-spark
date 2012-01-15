@@ -118,13 +118,13 @@
 /*-----------------------------------------------------------------------
  * Environment
  *----------------------------------------------------------------------*/
-#define CFG_ENV_IS_IN_FLASH     1	/* use FLASH for environment vars	*/
+#define CONFIG_ENV_IS_IN_FLASH     1	/* use FLASH for environment vars	*/
 
 /*-----------------------------------------------------------------------
  * FLASH related
  *----------------------------------------------------------------------*/
 #define CFG_FLASH_CFI				/* The flash is CFI compatible	*/
-#define CFG_FLASH_CFI_DRIVER			/* Use common CFI driver	*/
+#define CONFIG_FLASH_CFI_DRIVER			/* Use common CFI driver	*/
 
 #define CFG_FLASH0		0xFC000000
 #define CFG_FLASH1		0xF8000000
@@ -142,13 +142,13 @@
 #define CFG_FLASH_EMPTY_INFO		/* print 'E' for empty sector on flinfo */
 #define CFG_FLASH_QUIET_TEST	1	/* don't warn upon unknown flash	*/
 
-#define CFG_ENV_SECT_SIZE	0x40000	/* size of one complete sector		*/
-#define CFG_ENV_ADDR		((-CFG_MONITOR_LEN)-CFG_ENV_SECT_SIZE)
-#define	CFG_ENV_SIZE		0x2000	/* Total Size of Environment Sector	*/
+#define CONFIG_ENV_SECT_SIZE	0x40000	/* size of one complete sector		*/
+#define CONFIG_ENV_ADDR		((-CFG_MONITOR_LEN)-CONFIG_ENV_SECT_SIZE)
+#define	CONFIG_ENV_SIZE		0x2000	/* Total Size of Environment Sector	*/
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR-CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR-CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 /*-----------------------------------------------------------------------
  * DDR SDRAM
@@ -267,7 +267,6 @@
 					/* 64 byte page write mode using*/
 					/* last 6 bits of the address	*/
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10   /* and takes up to 10 msec */
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 
 #define CONFIG_RTC_PCF8563	1		/* enable Philips PCF8563 RTC	*/
 #define CFG_I2C_RTC_ADDR	0x51		/* Philips PCF8563 RTC address	*/

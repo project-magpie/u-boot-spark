@@ -148,7 +148,6 @@
 					/* 32 byte page write mode using*/
 					/* last 5 bits of the address	*/
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10   /* and takes up to 10 msec */
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 
 #if defined (CONFIG_SOFT_I2C)
 #if 0 /* push-pull */
@@ -195,10 +194,10 @@
 #define CFG_GBL_DATA_OFFSET	(CFG_INIT_RAM_END - CFG_GBL_DATA_SIZE)
 #define CFG_INIT_SP_OFFSET	CFG_GBL_DATA_OFFSET
 
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_ADDR		0xFFC40000	/* Address of Environment Sector*/
-#define CFG_ENV_SIZE		0x10000	/* Total Size of Environment Sector	*/
-#define CFG_ENV_SECT_SIZE	0x10000 /* see README - env sector total size	*/
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		0xFFC40000	/* Address of Environment Sector*/
+#define CONFIG_ENV_SIZE		0x10000	/* Total Size of Environment Sector	*/
+#define CONFIG_ENV_SECT_SIZE	0x10000 /* see README - env sector total size	*/
 
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration

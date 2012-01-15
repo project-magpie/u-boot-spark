@@ -243,14 +243,14 @@
  * Environment settings
  */
 #define CONFIG_ENV_OVERWRITE
-#define CFG_ENV_IS_IN_NVRAM     1           /* use NVRAM for environment vars */
+#define CONFIG_ENV_IS_IN_NVRAM     1           /* use NVRAM for environment vars */
 #define CFG_NVRAM_SIZE          0x1ff0      /* NVRAM size (8kB), we must protect the clock data (16 bytes) */
-#define CFG_ENV_SIZE            0x400       /* Size of Environment vars (1kB) */
+#define CONFIG_ENV_SIZE            0x400       /* Size of Environment vars (1kB) */
 /*
  * We store the environment and an image of revision eeprom in the upper part of the NVRAM. Thus,
  * user applications can use the remaining space for other purposes.
  */
-#define CFG_ENV_ADDR            (CFG_NVRAM_SIZE +0x10 -0x800)
+#define CONFIG_ENV_ADDR            (CFG_NVRAM_SIZE +0x10 -0x800)
 #define CFG_NV_SROM_COPY_ADDR   (CFG_NVRAM_SIZE +0x10 -0x400)
 #define CFG_NVRAM_ACCESS_ROUTINE            /* This board needs a special routine to access the NVRAM */
 #define CFG_SROM_SIZE           0x100       /* shadow of revision info is in nvram */
@@ -338,7 +338,7 @@ extern unsigned char   scsi_sym53c8xx_ccf;
 /*
  * Winbond Configuration
  */
-#define CFG_WINBOND_83C553      1                       /* has a winbond bridge */
+#define CONFIG_WINBOND_83C553      1                       /* has a winbond bridge */
 #define CFG_USE_WINBOND_IDE     0                       /* use winbond 83c553 internal ide */
 #define CFG_WINBOND_ISA_CFG_ADDR    0x80005800          /* pci-isa bridge config addr */
 #define CFG_WINBOND_IDE_CFG_ADDR    0x80005900          /* ide config addr */
@@ -346,7 +346,7 @@ extern unsigned char   scsi_sym53c8xx_ccf;
 /*
  * NS87308 Configuration
  */
-#define CFG_NS87308                    /* Nat Semi super-io cntr on ISA bus */
+#define CONFIG_NS87308                    /* Nat Semi super-io cntr on ISA bus */
 #define CFG_NS87308_BADDR_10    1
 #define CFG_NS87308_DEVS        (CFG_NS87308_UART1   | \
 				 CFG_NS87308_UART2   | \

@@ -374,18 +374,18 @@
 #define FLASH_BANK_SIZE		0x01000000	/* 16 MB Total */
 #define CFG_FLASH_BANKS_LIST	{ CFG_FLASH_BASE, /* CFG_FLASH_BASE2 */ }
 
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CFG_WRITE_SWAPPED_DATA
 
 #define PHYS_FLASH_SIZE		0x01000000
 #define CFG_MAX_FLASH_SECT	(128)
 
-#define CFG_ENV_IS_IN_NVRAM
-#define CFG_ENV_ADDR		0xFC000000
+#define CONFIG_ENV_IS_IN_NVRAM
+#define CONFIG_ENV_ADDR		0xFC000000
 
-#define CFG_ENV_OFFSET	0x00000000	/* Offset of Environment Sector */
-#define CFG_ENV_SIZE	0x00000400	/* Total Size of Environment Space */
+#define CONFIG_ENV_OFFSET	0x00000000	/* Offset of Environment Sector */
+#define CONFIG_ENV_SIZE	0x00000400	/* Total Size of Environment Space */
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

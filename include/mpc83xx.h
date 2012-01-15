@@ -30,7 +30,9 @@
 
 /* IMMRBAR - Internal Memory Register Base Address
  */
+#ifndef CONFIG_DEFAULT_IMMR
 #define CONFIG_DEFAULT_IMMR		0xFF400000	/* Default IMMR base address */
+#endif
 #define IMMRBAR				0x0000		/* Register offset to immr */
 #define IMMRBAR_BASE_ADDR		0xFFF00000	/* Base address mask */
 #define IMMRBAR_RES			~(IMMRBAR_BASE_ADDR)
@@ -348,7 +350,9 @@
 /* ATR - Arbiter Timers Register
  */
 #define ATR_DTO				0x00FF0000	/* Data time out */
+#define ATR_DTO_SHIFT			16
 #define ATR_ATO				0x000000FF	/* Address time out */
+#define ATR_ATO_SHIFT			0
 
 /* AER - Arbiter Event Register
  */
@@ -362,10 +366,15 @@
 /* AEATR - Arbiter Event Address Register
  */
 #define AEATR_EVENT			0x07000000	/* Event type */
+#define AEATR_EVENT_SHIFT		24
 #define AEATR_MSTR_ID			0x001F0000	/* Master Id */
+#define AEATR_MSTR_ID_SHIFT		16
 #define AEATR_TBST			0x00000800	/* Transfer burst */
+#define AEATR_TBST_SHIFT		11
 #define AEATR_TSIZE			0x00000700	/* Transfer Size */
+#define AEATR_TSIZE_SHIFT		8
 #define AEATR_TTYPE			0x0000001F	/* Transfer Type */
+#define AEATR_TTYPE_SHIFT		0
 
 /* HRCWL - Hard Reset Configuration Word Low
  */
@@ -519,7 +528,7 @@
 #if defined(CONFIG_MPC834X)
 #define HRCWH_ROM_LOC_PCI2		0x00200000
 #endif
-#if defined(CONIFG_MPC837X)
+#if defined(CONFIG_MPC837X)
 #define HRCWH_ROM_LOC_ON_CHIP_ROM	0x00300000
 #endif
 #define HRCWH_ROM_LOC_LOCAL_8BIT	0x00500000

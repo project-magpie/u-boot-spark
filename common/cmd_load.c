@@ -38,7 +38,7 @@ static ulong load_serial_ymodem (ulong offset);
 #endif
 
 #if defined(CONFIG_CMD_LOADS)
-static ulong load_serial (ulong offset);
+static ulong load_serial (long offset);
 static int read_record (char *buf, ulong len);
 # if defined(CONFIG_CMD_SAVES)
 static int save_serial (ulong offset, ulong size);
@@ -53,7 +53,7 @@ static int do_echo = 1;
 #if defined(CONFIG_CMD_LOADS)
 int do_load_serial (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	ulong offset = 0;
+	long offset = 0;
 	ulong addr;
 	int i;
 	char *env_echo;
@@ -72,7 +72,7 @@ int do_load_serial (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 #ifdef	CFG_LOADS_BAUD_CHANGE
 	if (argc >= 2) {
-		offset = simple_strtoul(argv[1], NULL, 16);
+		offset = simple_strtol(argv[1], NULL, 16);
 	}
 	if (argc == 3) {
 		load_baudrate = (int)simple_strtoul(argv[2], NULL, 10);
@@ -95,7 +95,7 @@ int do_load_serial (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 #else	/* ! CFG_LOADS_BAUD_CHANGE */
 	if (argc == 2) {
-		offset = simple_strtoul(argv[1], NULL, 16);
+		offset = simple_strtol(argv[1], NULL, 16);
 	}
 #endif	/* CFG_LOADS_BAUD_CHANGE */
 
@@ -141,7 +141,7 @@ int do_load_serial (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 }
 
 static ulong
-load_serial (ulong offset)
+load_serial (long offset)
 {
 	char	record[SREC_MAXRECLEN + 1];	/* buffer for one S-Record	*/
 	char	binbuf[SREC_MAXBINLEN];		/* buffer for binary data	*/
@@ -423,8 +423,6 @@ write_record (char *buf)
 #define tochar(x) ((char) (((x) + SPACE) & 0xff))
 #define untochar(x) ((int) (((x) - SPACE) & 0xff))
 
-extern int os_data_count;
-
 static void set_kerm_bin_mode(unsigned long *);
 static int k_recv(void);
 static ulong load_serial_bin (ulong offset);
@@ -633,29 +631,24 @@ void send_nack (int n)
 void (*os_data_init) (void);
 void (*os_data_char) (char new_char);
 static int os_data_state, os_data_state_saved;
-int os_data_count;
-static int os_data_count_saved;
 static char *os_data_addr, *os_data_addr_saved;
 static char *bin_start_address;
 
 static void bin_data_init (void)
 {
 	os_data_state = 0;
-	os_data_count = 0;
 	os_data_addr = bin_start_address;
 }
 
 static void os_data_save (void)
 {
 	os_data_state_saved = os_data_state;
-	os_data_count_saved = os_data_count;
 	os_data_addr_saved = os_data_addr;
 }
 
 static void os_data_restore (void)
 {
 	os_data_state = os_data_state_saved;
-	os_data_count = os_data_count_saved;
 	os_data_addr = os_data_addr_saved;
 }
 
@@ -664,7 +657,6 @@ static void bin_data_char (char new_char)
 	switch (os_data_state) {
 	case 0:					/* data */
 		*os_data_addr++ = new_char;
-		--os_data_count;
 		break;
 	}
 }
@@ -815,7 +807,6 @@ static int k_recv (void)
 	int done;
 	int length;
 	int n, last_n;
-	int z = 0;
 	int len_lo, len_hi;
 
 	/* initialize some protocol parameters */
@@ -980,7 +971,6 @@ START:
 			if (k_state == BREAK_TYPE)
 				done = 1;
 		}
-		++z;
 	}
 	return ((ulong) os_data_addr - (ulong) bin_start_address);
 }

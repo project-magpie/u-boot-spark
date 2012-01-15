@@ -204,7 +204,7 @@
  * Flash configuration
  */
 #define CFG_FLASH_CFI		1	/* Flash is CFI conformant */
-#define CFG_FLASH_CFI_DRIVER	1	/* Use the common driver */
+#define CONFIG_FLASH_CFI_DRIVER	1	/* Use the common driver */
 #if CONFIG_TOTAL5200_REV==2
 #   define CFG_MAX_FLASH_BANKS	3	/* max num of flash banks */
 #   define CFG_FLASH_BANKS_LIST { CFG_CS5_START, CFG_CS4_START, CFG_BOOTCS_START }
@@ -224,17 +224,17 @@
 #endif /* CONFIG_TOTAL5200_REV */
 
 #if defined(CFG_LOWBOOT)
-#   define CFG_ENV_ADDR		0xFE040000
+#   define CONFIG_ENV_ADDR		0xFE040000
 #else	/* CFG_LOWBOOT */
-#   define CFG_ENV_ADDR		0xFFF40000
+#   define CONFIG_ENV_ADDR		0xFFF40000
 #endif	/* CFG_LOWBOOT */
 
 /*
  * Environment settings
  */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_SIZE		0x40000
-#define CFG_ENV_SECT_SIZE	0x40000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_SIZE		0x40000
+#define CONFIG_ENV_SECT_SIZE	0x40000
 #define CONFIG_ENV_OVERWRITE	1
 
 /*

@@ -221,7 +221,7 @@
 
 #define CFG_FLASH_BASE		0x20000000
 #define CFG_FLASH_CFI		/* The flash is CFI compatible */
-#define CFG_FLASH_CFI_DRIVER	/* Use common CFI driver */
+#define CONFIG_FLASH_CFI_DRIVER	/* Use common CFI driver */
 #define CFG_FLASH_PROTECTION
 #define CFG_MAX_FLASH_BANKS	1
 #define CFG_MAX_FLASH_SECT	71	/* some have 67 sectors (M29W320DB), but newer have 71 (M29W320EB) */
@@ -235,16 +235,16 @@
 #define CONFIG_STACKBASE	(CFG_GBL_DATA_ADDR  - 4)
 
 #if (CONFIG_BFIN_BOOT_MODE == BFIN_BOOT_SPI_MASTER)
-#define CFG_ENV_IS_IN_EEPROM	1
-#define CFG_ENV_OFFSET		0x4000
-#define CFG_ENV_HEADER		(CFG_ENV_OFFSET + 0x16e) /* 0x12A is the length of LDR file header */
+#define CONFIG_ENV_IS_IN_EEPROM	1
+#define CONFIG_ENV_OFFSET		0x4000
+#define CONFIG_ENV_HEADER		(CONFIG_ENV_OFFSET + 0x16e) /* 0x12A is the length of LDR file header */
 #else
-#define	CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_ADDR		0x20004000
-#define CFG_ENV_OFFSET		(CFG_ENV_ADDR - CFG_FLASH_BASE)
+#define	CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		0x20004000
+#define CONFIG_ENV_OFFSET		(CONFIG_ENV_ADDR - CFG_FLASH_BASE)
 #endif
-#define CFG_ENV_SIZE		0x2000
-#define	CFG_ENV_SECT_SIZE	0x2000	/* Total Size of Environment Sector */
+#define CONFIG_ENV_SIZE		0x2000
+#define	CONFIG_ENV_SECT_SIZE	0x2000	/* Total Size of Environment Sector */
 #define ENV_IS_EMBEDDED
 
 /* JFFS Partition offset set  */

@@ -214,7 +214,7 @@
 #define CFG_FLASH_INCREMENT	0x01000000
 
 #define CFG_FLASH_CFI         1       /* Flash is CFI conformant */
-#define CFG_FLASH_CFI_DRIVER  1       /* Use the common driver */
+#define CONFIG_FLASH_CFI_DRIVER  1       /* Use the common driver */
 #define CFG_FLASH_PROTECTION  1       /* don't use hardware protection        */
 #define CFG_FLASH_USE_BUFFER_WRITE 1  /* use buffered writes (20x faster)     */
 #define CFG_MAX_FLASH_BANKS   2       /* max num of flash banks */
@@ -244,9 +244,9 @@
 /*-----------------------------------------------------------------------
  * Environment Variable setup
  */
-#define CFG_ENV_IS_IN_EEPROM	1	/* use EEPROM for environment vars */
-#define CFG_ENV_OFFSET		0x000	/* environment starts at the beginning of the EEPROM */
-#define CFG_ENV_SIZE		0x800	/* 2048 bytes may be used for env vars*/
+#define CONFIG_ENV_IS_IN_EEPROM	1	/* use EEPROM for environment vars */
+#define CONFIG_ENV_OFFSET		0x000	/* environment starts at the beginning of the EEPROM */
+#define CONFIG_ENV_SIZE		0x800	/* 2048 bytes may be used for env vars*/
 				   /* total size of a CAT24WC16 is 2048 bytes */
 
 #define CFG_NVRAM_BASE_ADDR	0xF0000500		/* NVRAM base address	*/
@@ -267,7 +267,6 @@
 					/* 16 byte page write mode using*/
 					/* last 4 bits of the address	*/
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10   /* and takes up to 10 msec */
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 
 /*-----------------------------------------------------------------------
  * External Bus Controller (EBC) Setup

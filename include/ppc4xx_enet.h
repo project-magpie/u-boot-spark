@@ -153,6 +153,20 @@ typedef struct emac_4xx_hw_st {
 #define SDR0_PFC1_EM_1000	(0x00200000)
 #endif
 
+/*
+ * XMII bridge configurations for those systems (e.g. 405EX(r)) that do
+ * not have a pin function control (PFC) register to otherwise determine
+ * the bridge configuration.
+ */
+#define EMAC_PHY_MODE_NONE		0
+#define EMAC_PHY_MODE_NONE_RGMII	1
+#define EMAC_PHY_MODE_RGMII_NONE	2
+#define EMAC_PHY_MODE_RGMII_RGMII	3
+#define EMAC_PHY_MODE_NONE_GMII		4
+#define EMAC_PHY_MODE_GMII_NONE		5
+#define EMAC_PHY_MODE_NONE_MII		6
+#define EMAC_PHY_MODE_MII_NONE		7
+
 /* ZMII Bridge Register addresses */
 #if defined(CONFIG_440EP) || defined(CONFIG_440GR) || \
     defined(CONFIG_440EPX) || defined(CONFIG_440GRX) || \
@@ -218,12 +232,12 @@ typedef struct emac_4xx_hw_st {
 #endif
 
 /* RGMII Function Enable (FER) Register Bit Definitions */
-/* Note: for EMAC 2 and 3 only, 440GX only */
 #define RGMII_FER_DIS		(0x00)
 #define RGMII_FER_RTBI		(0x04)
 #define RGMII_FER_RGMII		(0x05)
 #define RGMII_FER_TBI		(0x06)
 #define RGMII_FER_GMII		(0x07)
+#define RGMII_FER_MII		(RGMII_FER_GMII)
 
 #define RGMII_FER_V(__x)	((__x - 2) * 4)
 
@@ -362,6 +376,7 @@ typedef struct emac_4xx_hw_st {
 #define EMAC_M1_APP		(0x08000000)
 #define EMAC_M1_RSVD		(0x06000000)
 #define EMAC_M1_IST		(0x01000000)
+#define EMAC_M1_MF_1000GPCS	(0x00C00000)
 #define EMAC_M1_MF_1000MBPS	(0x00800000)	/* 0's for 10MBPS */
 #define EMAC_M1_MF_100MBPS	(0x00400000)
 #define EMAC_M1_RFS_MASK	(0x00380000)
@@ -380,6 +395,8 @@ typedef struct emac_4xx_hw_st {
 #define EMAC_M1_MWSW		(0x00007000)
 #define EMAC_M1_JUMBO_ENABLE	(0x00000800)
 #define EMAC_M1_IPPA		(0x000007c0)
+#define EMAC_M1_IPPA_SET(id)	(((id) & 0x1f) << 6)
+#define EMAC_M1_IPPA_GET(id)	(((id) >> 6) & 0x1f)
 #define EMAC_M1_OBCI_GT100	(0x00000020)
 #define EMAC_M1_OBCI_100	(0x00000018)
 #define EMAC_M1_OBCI_83		(0x00000010)

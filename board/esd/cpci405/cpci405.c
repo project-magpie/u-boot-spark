@@ -255,11 +255,6 @@ int cpci405_version(void)
 	}
 }
 
-int misc_init_f (void)
-{
-	return 0;  /* dummy implementation */
-}
-
 int misc_init_r (void)
 {
 	unsigned long cntrl0Reg;
@@ -493,18 +488,6 @@ int checkboard (void)
 	return 0;
 }
 
-/* ------------------------------------------------------------------------- */
-
-phys_size_t initdram (int board_type)
-{
-	unsigned long val;
-
-	mtdcr(memcfga, mem_mb0cf);
-	val = mfdcr(memcfgd);
-
-	return (4*1024*1024 << ((val & 0x000e0000) >> 17));
-}
-
 void reset_phy(void)
 {
 #ifdef CONFIG_LXT971_NO_SLEEP
@@ -515,8 +498,6 @@ void reset_phy(void)
 	lxt971_no_sleep();
 #endif
 }
-
-/* ------------------------------------------------------------------------- */
 
 #ifdef CONFIG_CPCI405_VER2
 #ifdef CONFIG_IDE_RESET
@@ -710,7 +691,7 @@ U_BOOT_CMD(
 	);
 
 #define CFG_I2C_EEPROM_ADDR_2	0x51	/* EEPROM CAT28WC32		*/
-#define CFG_ENV_SIZE_2	0x800	/* 2048 bytes may be used for env vars*/
+#define CONFIG_ENV_SIZE_2	0x800	/* 2048 bytes may be used for env vars*/
 
 /*
  * Write backplane ip-address...
@@ -724,11 +705,11 @@ int do_get_bpip(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	char *ptr;
 	IPaddr_t ipaddr;
 
-	buf = malloc(CFG_ENV_SIZE_2);
-	if (eeprom_read(CFG_I2C_EEPROM_ADDR_2, 0, (uchar *)buf, CFG_ENV_SIZE_2)) {
+	buf = malloc(CONFIG_ENV_SIZE_2);
+	if (eeprom_read(CFG_I2C_EEPROM_ADDR_2, 0, (uchar *)buf, CONFIG_ENV_SIZE_2)) {
 		puts("\nError reading backplane EEPROM!\n");
 	} else {
-		crc = crc32(0, (uchar *)(buf+4), CFG_ENV_SIZE_2-4);
+		crc = crc32(0, (uchar *)(buf+4), CONFIG_ENV_SIZE_2-4);
 		if (crc != *(ulong *)buf) {
 			printf("ERROR: crc mismatch %08lx %08lx\n", crc, *(ulong *)buf);
 			return -1;
@@ -783,14 +764,14 @@ int do_set_bpip(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 
 	printf("Setting bp_ip to %s\n", argv[1]);
-	buf = malloc(CFG_ENV_SIZE_2);
-	memset(buf, 0, CFG_ENV_SIZE_2);
+	buf = malloc(CONFIG_ENV_SIZE_2);
+	memset(buf, 0, CONFIG_ENV_SIZE_2);
 	sprintf(str, "bp_ip=%s", argv[1]);
 	strcpy(buf+4, str);
-	crc = crc32(0, (uchar *)(buf+4), CFG_ENV_SIZE_2-4);
+	crc = crc32(0, (uchar *)(buf+4), CONFIG_ENV_SIZE_2-4);
 	*(ulong *)buf = crc;
 
-	if (eeprom_write(CFG_I2C_EEPROM_ADDR_2, 0, (uchar *)buf, CFG_ENV_SIZE_2)) {
+	if (eeprom_write(CFG_I2C_EEPROM_ADDR_2, 0, (uchar *)buf, CONFIG_ENV_SIZE_2)) {
 		puts("\nError writing backplane EEPROM!\n");
 	}
 

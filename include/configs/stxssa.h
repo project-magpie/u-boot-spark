@@ -47,10 +47,6 @@
 #define CONFIG_TSEC_ENET		/* tsec ethernet support*/
 #undef CONFIG_ETHER_ON_FCC		/* cpm FCC ethernet support */
 #define CONFIG_ENV_OVERWRITE
-#define CONFIG_SPD_EEPROM		/* Use SPD EEPROM for DDR setup */
-#undef	CONFIG_DDR_ECC			/* only for ECC DDR module */
-#undef CONFIG_DDR_DLL			/* possible DLL fix needed */
-#define CONFIG_DDR_2T_TIMING		/* Sets the 2T timing bit */
 
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code */
 
@@ -98,7 +94,7 @@
 #define CFG_OR0_PRELIM	(CFG_FLASH_BASE | 0x0FF7)
 
 #define CFG_FLASH_CFI		1
-#define CFG_FLASH_CFI_DRIVER	1
+#define CONFIG_FLASH_CFI_DRIVER	1
 #undef CFG_FLASH_USE_BUFFER_WRITE	/* use buffered writes (20x faster) */
 #define CFG_MAX_FLASH_SECT	256	/* max number of sectors on one chip */
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks	*/
@@ -131,19 +127,27 @@
 #define CFG_CCSRBAR_PHYS	CFG_CCSRBAR	/* physical addr of CCSRBAR */
 #define CFG_IMMR		CFG_CCSRBAR	/* PQII uses CFG_IMMR	*/
 
+/* DDR Setup */
+#define CONFIG_FSL_DDR1
+#define CONFIG_SPD_EEPROM		/* Use SPD EEPROM for DDR setup*/
+#define CONFIG_DDR_SPD
+#undef CONFIG_FSL_DDR_INTERACTIVE
 
-/*
- * DDR Setup
- */
+#undef	CONFIG_DDR_ECC			/* only for ECC DDR module */
+#undef CONFIG_DDR_DLL			/* possible DLL fix needed */
+#define CONFIG_DDR_2T_TIMING		/* Sets the 2T timing bit */
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CFG_DDR_SDRAM_BASE	0x00000000	/* DDR is system memory  */
+#define CONFIG_MEM_INIT_VALUE		0xDeadBeef
+
+#define CFG_DDR_SDRAM_BASE	0x00000000	/* DDR is system memory*/
 #define CFG_SDRAM_BASE		CFG_DDR_SDRAM_BASE
 
-#define SPD_EEPROM_ADDRESS	0x54		/*  DDR DIMM */
+#define CONFIG_NUM_DDR_CONTROLLERS	1
+#define CONFIG_DIMM_SLOTS_PER_CTLR	1
+#define CONFIG_CHIP_SELECTS_PER_CTRL	(2 * CONFIG_DIMM_SLOTS_PER_CTLR)
+
+/* I2C addresses of SPD EEPROMs */
+#define SPD_EEPROM_ADDRESS	0x54	/* CTLR 0 DIMM 0 */
 
 #undef CONFIG_CLOCKS_IN_MHZ
 
@@ -212,7 +216,6 @@
 #define CFG_I2C_EEPROM_ADDR		0x51	/* 1010001x		*/
 #define CFG_I2C_EEPROM_ADDR_LEN		2
 #define CFG_EEPROM_PAGE_WRITE_BITS	5	/* =32 Bytes per write	*/
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	20
 
 /*
@@ -309,20 +312,20 @@
 
 /* Environment - default config is in flash, see below */
 #if 0	/* in EEPROM */
-# define CFG_ENV_IS_IN_EEPROM	1
-# define CFG_ENV_OFFSET		0
-# define CFG_ENV_SIZE		2048
+# define CONFIG_ENV_IS_IN_EEPROM	1
+# define CONFIG_ENV_OFFSET		0
+# define CONFIG_ENV_SIZE		2048
 #else	/* in flash */
-# define CFG_ENV_IS_IN_FLASH	1
+# define CONFIG_ENV_IS_IN_FLASH	1
 # ifdef CONFIG_STXSSA_4M
-#  define CFG_ENV_SECT_SIZE	0x20000
+#  define CONFIG_ENV_SECT_SIZE	0x20000
 # else	/* default configuration - 64 MiB flash */
-#  define CFG_ENV_SECT_SIZE	0x40000
+#  define CONFIG_ENV_SECT_SIZE	0x40000
 # endif
-# define CFG_ENV_ADDR		(CFG_MONITOR_BASE - CFG_ENV_SECT_SIZE)
-# define CFG_ENV_SIZE		0x4000
-# define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR - CFG_ENV_SECT_SIZE)
-# define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+# define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE - CONFIG_ENV_SECT_SIZE)
+# define CONFIG_ENV_SIZE		0x4000
+# define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR - CONFIG_ENV_SECT_SIZE)
+# define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 #endif
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download	*/
@@ -422,7 +425,7 @@
  * but only little space is available, so we use a very simple setup.
  * With environment in flash, we use a more powerful default configuration.
  */
-#ifdef CFG_ENV_IS_IN_EEPROM		/* use restricted "standard" environment */
+#ifdef CONFIG_ENV_IS_IN_EEPROM		/* use restricted "standard" environment */
 
 #define CONFIG_BAUDRATE		38400
 
@@ -476,6 +479,6 @@
 	""
 #define CONFIG_BOOTCOMMAND	"run flash_self"
 
-#endif	/* CFG_ENV_IS_IN_EEPROM */
+#endif	/* CONFIG_ENV_IS_IN_EEPROM */
 
 #endif	/* __CONFIG_H */

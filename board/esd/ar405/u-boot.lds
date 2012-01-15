@@ -79,14 +79,13 @@ SECTIONS
     common/cmd_mem.o		(.text)
     common/cmd_nvedit.o		(.text)
     common/console.o		(.text)
-    common/lists.o		(.text)
     common/main.o		(.text)
 
 /*
     . = DEFINED(env_offset) ? env_offset : .;
-    common/environment.o	(.ppcenv)
+    common/env_embedded.o	(.ppcenv)
 */
-    common/environment.o	(.text)
+    common/env_embedded.o	(.text)
 
     *(.text)
     *(.fixup)

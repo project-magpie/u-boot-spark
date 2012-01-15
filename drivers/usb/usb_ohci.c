@@ -69,6 +69,7 @@
 #if defined(CONFIG_ARM920T) || \
     defined(CONFIG_S3C2400) || \
     defined(CONFIG_S3C2410) || \
+    defined(CONFIG_S3C6400) || \
     defined(CONFIG_440EP) || \
     defined(CONFIG_PCI_OHCI) || \
     defined(CONFIG_MPC5200) || \
@@ -141,6 +142,14 @@ static struct pci_device_id ohci_pci_ids[] = {
 	{0x1033, 0x0035},	/* NEC PCI OHCI module ids */
 	{0x1131, 0x1561},	/* Philips 1561 PCI OHCI module ids */
 	/* Please add supported PCI OHCI controller ids here */
+	{0, 0}
+};
+#endif
+
+#ifdef CONFIG_PCI_EHCI_DEVNO
+static struct pci_device_id ehci_pci_ids[] = {
+	{0x1131, 0x1562},	/* Philips 1562 PCI EHCI module ids */
+	/* Please add supported PCI EHCI controller ids here */
 	{0, 0}
 };
 #endif
@@ -1654,11 +1663,38 @@ int submit_int_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 
 static int hc_reset (ohci_t *ohci)
 {
+#ifdef CONFIG_PCI_EHCI_DEVNO
+	pci_dev_t pdev;
+#endif
 	int timeout = 30;
 	int smm_timeout = 50; /* 0,5 sec */
 
 	dbg("%s\n", __FUNCTION__);
 
+#ifdef CONFIG_PCI_EHCI_DEVNO
+	/*
+	 *  Some multi-function controllers (e.g. ISP1562) allow root hub
+	 * resetting via EHCI registers only.
+	 */
+	pdev = pci_find_devices(ehci_pci_ids, CONFIG_PCI_EHCI_DEVNO);
+	if (pdev != -1) {
+		u32 base;
+		int timeout = 1000;
+
+		pci_read_config_dword(pdev, PCI_BASE_ADDRESS_0, &base);
+		writel (readl(base + EHCI_USBCMD_OFF) | EHCI_USBCMD_HCRESET,
+			base + EHCI_USBCMD_OFF);
+
+		while (readl(base + EHCI_USBCMD_OFF) & EHCI_USBCMD_HCRESET) {
+			if (timeout-- <= 0) {
+				printf("USB RootHub reset timed out!");
+				break;
+			}
+			udelay(1);
+		}
+	} else
+		printf("No EHCI func at %d index!\n", CONFIG_PCI_EHCI_DEVNO);
+#endif
 	if (readl (&ohci->regs->control) & OHCI_CTRL_IR) { /* SMM owns the HC */
 		writel (OHCI_OCR, &ohci->regs->cmdstatus); /* request ownership */
 		info("USB HC TakeOver from SMM");
@@ -1992,7 +2028,9 @@ int usb_lowlevel_stop(void)
 	if(usb_cpu_stop())
 		return -1;
 #endif
-
+	/* This driver is no longer initialised. It needs a new low-level
+	 * init (board/cpu) before it can be used again. */
+	ohci_inited = 0;
 	return 0;
 }
 #endif /* CONFIG_USB_OHCI_NEW */

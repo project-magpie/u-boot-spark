@@ -150,8 +150,8 @@ int misc_init_r(void)
 
 	/* Env protection ON by default */
 	(void)flash_protect(FLAG_PROTECT_SET,
-			    CFG_ENV_ADDR_REDUND,
-			    CFG_ENV_ADDR_REDUND + 2*CFG_ENV_SECT_SIZE - 1,
+			    CONFIG_ENV_ADDR_REDUND,
+			    CONFIG_ENV_ADDR_REDUND + 2*CONFIG_ENV_SECT_SIZE - 1,
 			    &flash_info[0]);
 
 	return 0;
@@ -190,29 +190,6 @@ int checkboard(void)
 	return (0);
 }
 
-static u32 detect_sdram_size(void)
-{
-	u32 val;
-	u32 size;
-
-	mfsdram(mem_mb0cf, val);
-	size = (4 << 20) << ((val & 0x000e0000) >> 17);
-
-	/*
-	 * Check if 2nd bank is enabled too
-	 */
-	mfsdram(mem_mb1cf, val);
-	if (val & 1)
-		size += (4 << 20) << ((val & 0x000e0000) >> 17);
-
-	return size;
-}
-
-phys_size_t initdram (int board_type)
-{
-	return detect_sdram_size();
-}
-
 static int default_env_var(char *buf, char *var)
 {
 	char *ptr;
@@ -249,12 +226,12 @@ static int restore_default(void)
 	 * Unprotect and erase environment area
 	 */
 	flash_protect(FLAG_PROTECT_CLEAR,
-		      CFG_ENV_ADDR_REDUND,
-		      CFG_ENV_ADDR_REDUND + 2*CFG_ENV_SECT_SIZE - 1,
+		      CONFIG_ENV_ADDR_REDUND,
+		      CONFIG_ENV_ADDR_REDUND + 2*CONFIG_ENV_SECT_SIZE - 1,
 		      &flash_info[0]);
 
-	flash_sect_erase(CFG_ENV_ADDR_REDUND,
-			 CFG_ENV_ADDR_REDUND + 2*CFG_ENV_SECT_SIZE - 1);
+	flash_sect_erase(CONFIG_ENV_ADDR_REDUND,
+			 CONFIG_ENV_ADDR_REDUND + 2*CONFIG_ENV_SECT_SIZE - 1);
 
 	/*
 	 * Now restore default environment from U-Boot image

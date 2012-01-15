@@ -47,10 +47,6 @@
 #define CONFIG_TSEC_ENET		/* tsec ethernet support*/
 #undef  CONFIG_ETHER_ON_FCC             /* cpm FCC ethernet support */
 #define CONFIG_ENV_OVERWRITE
-#define CONFIG_SPD_EEPROM               /* Use SPD EEPROM for DDR setup */
-#undef  CONFIG_DDR_ECC			/* only for ECC DDR module */
-#define CONFIG_DDR_DLL                  /* possible DLL fix needed */
-#define CONFIG_DDR_2T_TIMING		/* Sets the 2T timing bit */
 
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code */
 
@@ -118,19 +114,27 @@
 #define CFG_CCSRBAR_PHYS	CFG_CCSRBAR	/* physical addr of CCSRBAR */
 #define CFG_IMMR		CFG_CCSRBAR	/* PQII uses CFG_IMMR	*/
 
+/* DDR Setup */
+#define CONFIG_FSL_DDR1
+#define CONFIG_SPD_EEPROM		/* Use SPD EEPROM for DDR setup*/
+#define CONFIG_DDR_SPD
+#undef CONFIG_FSL_DDR_INTERACTIVE
 
-/*
- * DDR Setup
- */
+#undef  CONFIG_DDR_ECC			/* only for ECC DDR module */
+#define CONFIG_DDR_DLL                  /* possible DLL fix needed */
+#define CONFIG_DDR_2T_TIMING		/* Sets the 2T timing bit */
 
-/*
- * Base addresses -- Note these are effective addresses where the
- * actual resources get mapped (not physical addresses)
- */
-#define CFG_DDR_SDRAM_BASE	0x00000000	/* DDR is system memory  */
+#define CONFIG_MEM_INIT_VALUE		0xDeadBeef
+
+#define CFG_DDR_SDRAM_BASE	0x00000000	/* DDR is system memory*/
 #define CFG_SDRAM_BASE		CFG_DDR_SDRAM_BASE
 
-#define SPD_EEPROM_ADDRESS	0x54		/*  DDR DIMM */
+#define CONFIG_NUM_DDR_CONTROLLERS	1
+#define CONFIG_DIMM_SLOTS_PER_CTLR	1
+#define CONFIG_CHIP_SELECTS_PER_CTRL	(2 * CONFIG_DIMM_SLOTS_PER_CTLR)
+
+/* I2C addresses of SPD EEPROMs */
+#define SPD_EEPROM_ADDRESS	0x54	/* CTLR 0 DIMM 0 */
 
 #undef CONFIG_CLOCKS_IN_MHZ
 
@@ -284,15 +288,15 @@
 /* We use the top boot sector flash, so we have some 16K sectors for env
  */
 #ifndef CFG_RAMBOOT
-  #define CFG_ENV_IS_IN_FLASH	1
-  #define CFG_ENV_ADDR		(CFG_MONITOR_BASE + 0x60000)
-  #define CFG_ENV_SECT_SIZE	0x4000	/* 16K (one top sector) for env */
-  #define CFG_ENV_SIZE		0x2000
+  #define CONFIG_ENV_IS_IN_FLASH	1
+  #define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE + 0x60000)
+  #define CONFIG_ENV_SECT_SIZE	0x4000	/* 16K (one top sector) for env */
+  #define CONFIG_ENV_SIZE		0x2000
 #else
   #define CFG_NO_FLASH		1	/* Flash is not usable now	*/
-  #define CFG_ENV_IS_NOWHERE	1	/* Store ENV in memory only	*/
-  #define CFG_ENV_ADDR		(CFG_MONITOR_BASE - 0x1000)
-  #define CFG_ENV_SIZE		0x2000
+  #define CONFIG_ENV_IS_NOWHERE	1	/* Store ENV in memory only	*/
+  #define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE - 0x1000)
+  #define CONFIG_ENV_SIZE		0x2000
 #endif
 
 #define CONFIG_BOOTARGS "root=/dev/nfs rw ip=any console=ttyS1,38400"

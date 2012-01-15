@@ -207,7 +207,7 @@
 #define CFG_DDR_MODE		((0x0440 << SDRAM_MODE_ESD_SHIFT) \
 				| (0x0442 << SDRAM_MODE_SD_SHIFT))
 				/* 0x04400442 */ /* DDR400 */
-#define CFG_DDR_MODE2		0x00000000;
+#define CFG_DDR_MODE2		0x00000000
 
 /*
  * Memory test
@@ -249,10 +249,11 @@
  * FLASH on the Local Bus
  */
 #define CFG_FLASH_CFI		/* use the Common Flash Interface */
-#define CFG_FLASH_CFI_DRIVER	/* use the CFI driver */
+#define CONFIG_FLASH_CFI_DRIVER	/* use the CFI driver */
 #define CFG_FLASH_BASE		0xFE000000 /* FLASH base address */
 #define CFG_FLASH_SIZE		8 /* max FLASH size is 32M */
 
+#define CFG_FLASH_PROTECTION	1		/* Use h/w Flash protection. */
 #define CFG_FLASH_EMPTY_INFO			/* display empty sectors */
 #define CFG_FLASH_USE_BUFFER_WRITE		/* buffer up multiple bytes */
 
@@ -442,15 +443,15 @@
  * Environment
  */
 #ifndef CFG_RAMBOOT
-	#define CFG_ENV_IS_IN_FLASH	1
-	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE+CFG_MONITOR_LEN)
-	#define CFG_ENV_SECT_SIZE	0x10000	/* 64K (one sector) for env */
-	#define CFG_ENV_SIZE		0x4000
+	#define CONFIG_ENV_IS_IN_FLASH	1
+	#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE+CFG_MONITOR_LEN)
+	#define CONFIG_ENV_SECT_SIZE	0x10000	/* 64K (one sector) for env */
+	#define CONFIG_ENV_SIZE		0x4000
 #else
 	#define CFG_NO_FLASH		1	/* Flash is not usable now */
-	#define CFG_ENV_IS_NOWHERE	1	/* Store ENV in memory only */
-	#define CFG_ENV_ADDR		(CFG_MONITOR_BASE-0x1000)
-	#define CFG_ENV_SIZE		0x2000
+	#define CONFIG_ENV_IS_NOWHERE	1	/* Store ENV in memory only */
+	#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE-0x1000)
+	#define CONFIG_ENV_SIZE		0x2000
 #endif
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download */
@@ -632,7 +633,7 @@
 #define CONFIG_FDTFILE		mpc8379_rdb.dtb
 
 #define CONFIG_LOADADDR		500000	/* default location for tftp and bootm */
-#define CONFIG_BOOTDELAY	-1	/* -1 disables auto-boot */
+#define CONFIG_BOOTDELAY	6	/* -1 disables auto-boot */
 #define CONFIG_BAUDRATE		115200
 
 #define XMK_STR(x)	#x

@@ -72,8 +72,8 @@
 /*
  * Size of malloc() pool
  */
-#define	CFG_ENV_SIZE SZ_128K	/* Total Size of Environment Sector */
-#define	CFG_MALLOC_LEN	(CFG_ENV_SIZE + SZ_128K)
+#define	CONFIG_ENV_SIZE SZ_128K	/* Total Size of Environment Sector */
+#define	CFG_MALLOC_LEN	(CONFIG_ENV_SIZE + SZ_128K)
 #define	CFG_GBL_DATA_SIZE	128	/* bytes reserved for initial data */
 
 /*
@@ -215,7 +215,7 @@
  * CFI FLASH driver setup
  */
 # define	CFG_FLASH_CFI	1	/* Flash memory is CFI compliant */
-# define	CFG_FLASH_CFI_DRIVER	1	/* Use drivers/cfi_flash.c */
+# define	CONFIG_FLASH_CFI_DRIVER	1	/* Use drivers/cfi_flash.c */
 /* #define CFG_FLASH_USE_BUFFER_WRITE 1 */ /* Use buffered writes (~10x faster) */
 # define	CFG_FLASH_PROTECTION	1	/* Use h/w sector protection*/
 
@@ -225,7 +225,7 @@
 
 /* OneNAND boot, OneNAND has CS0, NOR boot ONeNAND has CS2 */
 #define	CFG_ONENAND_BASE	0x00000000
-#define	CFG_ENV_IS_IN_ONENAND	1
-#define CFG_ENV_ADDR		0x00020000
+#define	CONFIG_ENV_IS_IN_ONENAND	1
+#define CONFIG_ENV_ADDR		0x00020000
 
 #endif /* __CONFIG_H */

@@ -269,7 +269,7 @@ extern int flash_banks;
 
 #define CFG_FLASH_BASE		0xFE000000
 #define CFG_FLASH_CFI		1	/* Flash is CFI conformant */
-#define CFG_FLASH_CFI_DRIVER	1	/* Use the common driver */
+#define CONFIG_FLASH_CFI_DRIVER	1	/* Use the common driver */
 #define CFG_MAX_FLASH_SECT	256	/* max num of sects on one chip */
 #define CFG_MAX_FLASH_BANKS	flash_banks /* max num of flash banks */
 					    /* updated in board_early_init_r */
@@ -291,10 +291,10 @@ extern int flash_banks;
 /*
  * Environment Variable setup
  */
-#define CFG_ENV_IS_IN_EEPROM	1	/* use EEPROM for environment vars */
-#define CFG_ENV_OFFSET		0x000	/* environment starts at the */
+#define CONFIG_ENV_IS_IN_EEPROM	1	/* use EEPROM for environment vars */
+#define CONFIG_ENV_OFFSET		0x000	/* environment starts at the */
 					/* beginning of the EEPROM */
-#define CFG_ENV_SIZE		0x800	/* 2048 bytes may be used for env vars*/
+#define CONFIG_ENV_SIZE		0x800	/* 2048 bytes may be used for env vars*/
 #define CONFIG_ENV_OVERWRITE	1	/* allow overwriting vendor vars */
 
 #define CFG_NVRAM_BASE_ADDR	0xF0000500	/* NVRAM base address */
@@ -315,7 +315,6 @@ extern int flash_banks;
 					/* 16 byte page write mode using*/
 					/* last	4 bits of the address */
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10 /* and takes up to 10 msec */
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 
 /*
  * External Bus Controller (EBC) Setup

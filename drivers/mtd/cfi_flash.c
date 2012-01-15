@@ -39,7 +39,6 @@
 #include <asm/io.h>
 #include <asm/byteorder.h>
 #include <environment.h>
-#ifdef	CFG_FLASH_CFI_DRIVER
 
 /*
  * This file implements a Common Flash Interface (CFI) driver for
@@ -102,6 +101,10 @@
 
 #define AMD_STATUS_TOGGLE		0x40
 #define AMD_STATUS_ERROR		0x20
+
+#define ATM_CMD_UNLOCK_SECT		0x70
+#define ATM_CMD_SOFTLOCK_START		0x80
+#define ATM_CMD_LOCK_SECT		0x40
 
 #define FLASH_OFFSET_MANUFACTURER_ID	0x00
 #define FLASH_OFFSET_DEVICE_ID		0x01
@@ -252,7 +255,7 @@ u64 flash_read64(void *addr)__attribute__((weak, alias("__flash_read64")));
 
 /*-----------------------------------------------------------------------
  */
-#if defined(CFG_ENV_IS_IN_FLASH) || defined(CFG_ENV_ADDR_REDUND) || (CFG_MONITOR_BASE >= CFG_FLASH_BASE)
+#if defined(CONFIG_ENV_IS_IN_FLASH) || defined(CONFIG_ENV_ADDR_REDUND) || (CFG_MONITOR_BASE >= CFG_FLASH_BASE)
 static flash_info_t *flash_get_info(ulong base)
 {
 	int i;
@@ -526,7 +529,7 @@ static int flash_isequal (flash_info_t * info, flash_sect_t sect,
 		retval = (flash_read16(addr) == cword.w);
 		break;
 	case FLASH_CFI_32BIT:
-		debug ("is= %8.8lx %8.8lx\n", flash_read32(addr), cword.l);
+		debug ("is= %8.8x %8.8lx\n", flash_read32(addr), cword.l);
 		retval = (flash_read32(addr) == cword.l);
 		break;
 	case FLASH_CFI_64BIT:
@@ -691,7 +694,7 @@ static int flash_full_status_check (flash_info_t * info, flash_sect_t sector,
 	case CFI_CMDSET_INTEL_PROG_REGIONS:
 	case CFI_CMDSET_INTEL_EXTENDED:
 	case CFI_CMDSET_INTEL_STANDARD:
-		if ((retcode == ERR_OK)
+		if ((retcode != ERR_OK)
 		    && !flash_isequal (info, sector, 0, FLASH_STATUS_DONE)) {
 			retcode = ERR_INVAL;
 			printf ("Flash %s error at address %lx\n", prompt,
@@ -833,8 +836,8 @@ static int flash_write_cfiword (flash_info_t * info, ulong dest,
 #ifdef CONFIG_FLASH_CFI_LEGACY
 	case CFI_CMDSET_AMD_LEGACY:
 #endif
-		flash_unlock_seq (info, 0);
-		flash_write_cmd (info, 0, info->addr_unlock1, AMD_CMD_WRITE);
+		flash_unlock_seq (info, sector);
+		flash_write_cmd (info, sector, info->addr_unlock1, AMD_CMD_WRITE);
 		break;
 	}
 
@@ -1379,12 +1382,52 @@ int flash_real_protect (flash_info_t * info, long sector, int prot)
 {
 	int retcode = 0;
 
-	flash_write_cmd (info, sector, 0, FLASH_CMD_CLEAR_STATUS);
-	flash_write_cmd (info, sector, 0, FLASH_CMD_PROTECT);
-	if (prot)
-		flash_write_cmd (info, sector, 0, FLASH_CMD_PROTECT_SET);
-	else
-		flash_write_cmd (info, sector, 0, FLASH_CMD_PROTECT_CLEAR);
+	switch (info->vendor) {
+		case CFI_CMDSET_INTEL_PROG_REGIONS:
+		case CFI_CMDSET_INTEL_STANDARD:
+		case CFI_CMDSET_INTEL_EXTENDED:
+			flash_write_cmd (info, sector, 0,
+					 FLASH_CMD_CLEAR_STATUS);
+			flash_write_cmd (info, sector, 0, FLASH_CMD_PROTECT);
+			if (prot)
+				flash_write_cmd (info, sector, 0,
+					FLASH_CMD_PROTECT_SET);
+			else
+				flash_write_cmd (info, sector, 0,
+					FLASH_CMD_PROTECT_CLEAR);
+			break;
+		case CFI_CMDSET_AMD_EXTENDED:
+		case CFI_CMDSET_AMD_STANDARD:
+			/* U-Boot only checks the first byte */
+			if (info->manufacturer_id == (uchar)ATM_MANUFACT) {
+				if (prot) {
+					flash_unlock_seq (info, 0);
+					flash_write_cmd (info, 0,
+							info->addr_unlock1,
+							ATM_CMD_SOFTLOCK_START);
+					flash_unlock_seq (info, 0);
+					flash_write_cmd (info, sector, 0,
+							ATM_CMD_LOCK_SECT);
+				} else {
+					flash_write_cmd (info, 0,
+							info->addr_unlock1,
+							AMD_CMD_UNLOCK_START);
+					if (info->device_id == ATM_ID_BV6416)
+						flash_write_cmd (info, sector,
+							0, ATM_CMD_UNLOCK_SECT);
+				}
+			}
+			break;
+#ifdef CONFIG_FLASH_CFI_LEGACY
+		case CFI_CMDSET_AMD_LEGACY:
+			flash_write_cmd (info, sector, 0, FLASH_CMD_CLEAR_STATUS);
+			flash_write_cmd (info, sector, 0, FLASH_CMD_PROTECT);
+			if (prot)
+				flash_write_cmd (info, sector, 0, FLASH_CMD_PROTECT_SET);
+			else
+				flash_write_cmd (info, sector, 0, FLASH_CMD_PROTECT_CLEAR);
+#endif
+	};
 
 	if ((retcode =
 	     flash_full_status_check (info, sector, info->erase_blk_tout,
@@ -1947,9 +1990,10 @@ ulong flash_get_size (ulong base, int banknum)
 			/* XXX - Need to test on x8/x16 in parallel. */
 			info->portwidth >>= 1;
 		}
+
+		flash_write_cmd (info, 0, 0, info->cmd_reset);
 	}
 
-	flash_write_cmd (info, 0, 0, info->cmd_reset);
 	return (info->size);
 }
 
@@ -2046,19 +2090,19 @@ unsigned long flash_init (void)
 #endif
 
 	/* Environment protection ON by default */
-#ifdef CFG_ENV_IS_IN_FLASH
+#ifdef CONFIG_ENV_IS_IN_FLASH
 	flash_protect (FLAG_PROTECT_SET,
-		       CFG_ENV_ADDR,
-		       CFG_ENV_ADDR + CFG_ENV_SECT_SIZE - 1,
-		       flash_get_info(CFG_ENV_ADDR));
+		       CONFIG_ENV_ADDR,
+		       CONFIG_ENV_ADDR + CONFIG_ENV_SECT_SIZE - 1,
+		       flash_get_info(CONFIG_ENV_ADDR));
 #endif
 
 	/* Redundant environment protection ON by default */
-#ifdef CFG_ENV_ADDR_REDUND
+#ifdef CONFIG_ENV_ADDR_REDUND
 	flash_protect (FLAG_PROTECT_SET,
-		       CFG_ENV_ADDR_REDUND,
-		       CFG_ENV_ADDR_REDUND + CFG_ENV_SIZE_REDUND - 1,
-		       flash_get_info(CFG_ENV_ADDR_REDUND));
+		       CONFIG_ENV_ADDR_REDUND,
+		       CONFIG_ENV_ADDR_REDUND + CONFIG_ENV_SIZE_REDUND - 1,
+		       flash_get_info(CONFIG_ENV_ADDR_REDUND));
 #endif
 
 #if defined(CFG_FLASH_AUTOPROTECT_LIST)
@@ -2073,5 +2117,3 @@ unsigned long flash_init (void)
 #endif
 	return (size);
 }
-
-#endif /* CFG_FLASH_CFI */

@@ -106,28 +106,28 @@
  * Environment
  *----------------------------------------------------------------------*/
 
-#undef	CFG_ENV_IS_IN_NVRAM
-#define  CFG_ENV_IS_IN_FLASH
-#undef	CFG_ENV_IS_IN_EEPROM
-#undef  CFG_ENV_IS_NOWHERE
+#undef	CONFIG_ENV_IS_IN_NVRAM
+#define  CONFIG_ENV_IS_IN_FLASH
+#undef	CONFIG_ENV_IS_IN_EEPROM
+#undef  CONFIG_ENV_IS_NOWHERE
 
-#ifdef  CFG_ENV_IS_IN_EEPROM
+#ifdef  CONFIG_ENV_IS_IN_EEPROM
 /* Put the environment after the SDRAM and bootstrap configuration */
 #define PROM_SIZE	2048
 #define CFG_BOOSTRAP_OPTION_OFFSET	 512
-#define CFG_ENV_OFFSET	 (CFG_BOOSTRAP_OPTION_OFFSET + 0x10)
-#define CFG_ENV_SIZE	(PROM_SIZE-CFG_ENV_OFFSET)
+#define CONFIG_ENV_OFFSET	 (CFG_BOOSTRAP_OPTION_OFFSET + 0x10)
+#define CONFIG_ENV_SIZE	(PROM_SIZE-CONFIG_ENV_OFFSET)
 #endif
 
-#ifdef CFG_ENV_IS_IN_FLASH
+#ifdef CONFIG_ENV_IS_IN_FLASH
 /* Put the environment in Flash */
-#define CFG_ENV_SECT_SIZE	0x10000 /* size of one complete sector	*/
-#define CFG_ENV_ADDR		((-CFG_MONITOR_LEN)-CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE		8*1024	/* 8 KB Environment Sector	*/
+#define CONFIG_ENV_SECT_SIZE	0x10000 /* size of one complete sector	*/
+#define CONFIG_ENV_ADDR		((-CFG_MONITOR_LEN)-CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE		8*1024	/* 8 KB Environment Sector	*/
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR-CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR-CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 #endif
 
@@ -163,7 +163,6 @@
 #define CFG_I2C_EEPROM_ADDR_OVERFLOW	0x07
 #define CFG_EEPROM_PAGE_WRITE_BITS 4
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS 10
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 #undef CFG_I2C_MULTI_EEPROMS
 
 
@@ -351,7 +350,7 @@
 
 /* Use common CFI driver */
 #define CFG_FLASH_CFI
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 /* board provides its own flash_init code */
 #define CONFIG_FLASH_CFI_LEGACY		1
 #define CFG_FLASH_CFI_WIDTH		FLASH_CFI_8BIT

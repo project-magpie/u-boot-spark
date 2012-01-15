@@ -119,7 +119,6 @@
 #define CFG_I2C_EEPROM_ADDR_LEN 2
 #define CFG_EEPROM_PAGE_WRITE_BITS	4
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10	/* and takes up to 10 msec */
-#define CFG_EEPROM_PAGE_WRITE_ENABLE	/* necessary for the LM75 chip */
 #define CFG_I2C_MULTI_EEPROMS		1	/* more than one eeprom */
 
 /* I2C RTC */
@@ -372,7 +371,7 @@
 #define CFG_MAX_FLASH_SECT	128	/* max num of sects on one chip */
 
 #define CFG_FLASH_CFI				/* flash is CFI compat.	*/
-#define CFG_FLASH_CFI_DRIVER			/* Use common CFI driver*/
+#define CONFIG_FLASH_CFI_DRIVER			/* Use common CFI driver*/
 #define CFG_FLASH_EMPTY_INFO		/* print 'E' for empty sector	*/
 #define CFG_FLASH_QUIET_TEST	1	/* don't warn upon unknown flash*/
 
@@ -381,12 +380,12 @@
 
 #define CFG_UPDATE_FLASH_SIZE
 
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + 0x40000)
-#define CFG_ENV_SIZE		0x20000
-#define CFG_ENV_SECT_SIZE	0x20000
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR + CFG_ENV_SIZE)
-#define CFG_ENV_SIZE_REDUND	0x20000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + 0x40000)
+#define CONFIG_ENV_SIZE		0x20000
+#define CONFIG_ENV_SECT_SIZE	0x20000
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR + CONFIG_ENV_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	0x20000
 
 /* Where is the Hardwareinformation Block (from Monitor Sources) */
 #define MON_RES_LENGTH		(0x0003FC00)

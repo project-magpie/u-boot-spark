@@ -152,7 +152,6 @@ static inline void ft_fixup_l2cache(void *blob)
 	}
 	fdt_setprop(blob, off, "cache-unified", NULL, 0);
 	fdt_setprop_cell(blob, off, "cache-block-size", line_size);
-	fdt_setprop_cell(blob, off, "cache-line-size", line_size);
 	fdt_setprop_cell(blob, off, "cache-size", size);
 	fdt_setprop_cell(blob, off, "cache-sets", num_sets);
 	fdt_setprop_cell(blob, off, "cache-level", 2);
@@ -181,7 +180,6 @@ static inline void ft_fixup_cache(void *blob)
 		dnum_sets = dsize / (dline_size * dnum_ways);
 
 		fdt_setprop_cell(blob, off, "d-cache-block-size", dline_size);
-		fdt_setprop_cell(blob, off, "d-cache-line-size", dline_size);
 		fdt_setprop_cell(blob, off, "d-cache-size", dsize);
 		fdt_setprop_cell(blob, off, "d-cache-sets", dnum_sets);
 
@@ -192,7 +190,6 @@ static inline void ft_fixup_cache(void *blob)
 		inum_sets = isize / (iline_size * inum_ways);
 
 		fdt_setprop_cell(blob, off, "i-cache-block-size", iline_size);
-		fdt_setprop_cell(blob, off, "i-cache-line-size", iline_size);
 		fdt_setprop_cell(blob, off, "i-cache-size", isize);
 		fdt_setprop_cell(blob, off, "i-cache-sets", inum_sets);
 
@@ -212,7 +209,7 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 
 #if defined(CONFIG_HAS_ETH0) || defined(CONFIG_HAS_ETH1) ||\
     defined(CONFIG_HAS_ETH2) || defined(CONFIG_HAS_ETH3)
-	fdt_fixup_ethernet(blob, bd);
+	fdt_fixup_ethernet(blob);
 #endif
 
 	do_fixup_by_prop_u32(blob, "device_type", "cpu", 4,

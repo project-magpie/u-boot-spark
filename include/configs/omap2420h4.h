@@ -70,8 +70,8 @@
 /*
  * Size of malloc() pool
  */
-#define CFG_ENV_SIZE             SZ_128K     /* Total Size of Environment Sector */
-#define CFG_MALLOC_LEN           (CFG_ENV_SIZE + SZ_128K)
+#define CONFIG_ENV_SIZE             SZ_128K     /* Total Size of Environment Sector */
+#define CFG_MALLOC_LEN           (CONFIG_ENV_SIZE + SZ_128K)
 #define CFG_GBL_DATA_SIZE        128  /* size in bytes reserved for initial data */
 
 /*
@@ -151,7 +151,7 @@
 /*
  *  Board NAND Info.
  */
-#define CFG_NAND_LEGACY
+#define CONFIG_NAND_LEGACY
 #define CFG_NAND_ADDR 0x04000000  /* physical address to access nand at CS0*/
 
 #define CFG_MAX_NAND_DEVICE 1	/* Max number of NAND devices */
@@ -270,20 +270,20 @@
 #define CFG_FLASH_BANKS_LIST	{ CFG_FLASH_BASE, CFG_FLASH_BASE + PHYS_FLASH_SIZE_1 }
 
 #ifdef CFG_NAND_BOOT
-#define CFG_ENV_IS_IN_NAND	1
-#define CFG_ENV_OFFSET	0x80000	/* environment starts here  */
+#define CONFIG_ENV_IS_IN_NAND	1
+#define CONFIG_ENV_OFFSET	0x80000	/* environment starts here  */
 #else
-#define CFG_ENV_ADDR             (CFG_FLASH_BASE + SZ_128K)
-#define	CFG_ENV_IS_IN_FLASH      1
-#define CFG_ENV_SECT_SIZE	PHYS_FLASH_SECT_SIZE
-#define CFG_ENV_OFFSET	( CFG_MONITOR_BASE + CFG_MONITOR_LEN ) /* Environment after Monitor */
+#define CONFIG_ENV_ADDR             (CFG_FLASH_BASE + SZ_128K)
+#define	CONFIG_ENV_IS_IN_FLASH      1
+#define CONFIG_ENV_SECT_SIZE	PHYS_FLASH_SECT_SIZE
+#define CONFIG_ENV_OFFSET	( CFG_MONITOR_BASE + CFG_MONITOR_LEN ) /* Environment after Monitor */
 #endif
 
 /*-----------------------------------------------------------------------
  * CFI FLASH driver setup
  */
 #define CFG_FLASH_CFI		1	/* Flash memory is CFI compliant */
-#define CFG_FLASH_CFI_DRIVER	1	/* Use drivers/mtd/cfi_flash.c */
+#define CONFIG_FLASH_CFI_DRIVER	1	/* Use drivers/mtd/cfi_flash.c */
 #define CFG_FLASH_USE_BUFFER_WRITE 1	/* Use buffered writes (~10x faster) */
 #define CFG_FLASH_PROTECTION	1	/* Use hardware sector protection */
 

@@ -183,7 +183,7 @@
  */
 #undef CONFIG_BKUP_FLASH
 #define CFG_FLASH_CFI				/* use the Common Flash Interface */
-#define CFG_FLASH_CFI_DRIVER			/* use the CFI driver */
+#define CONFIG_FLASH_CFI_DRIVER			/* use the CFI driver */
 #ifdef CONFIG_BKUP_FLASH
 #define CFG_FLASH_BASE		0xFF800000	/* start of FLASH   */
 #define CFG_FLASH_SIZE		0x00800000	/* max flash size in bytes */
@@ -210,6 +210,7 @@
 
 #define CFG_CS0_CFG		0x05059310	/* ALE active low, data size 4bytes */
 #define CFG_CS2_CFG		0x05059010	/* ALE active low, data size 1byte */
+#define CFG_CS_ALETIMING	0x00000005	/* Use alternative CS timing for CS0 and CS2 */
 
 /* Use SRAM for initial stack */
 #define CFG_INIT_RAM_ADDR	CFG_SRAM_BASE		/* Initial RAM address */
@@ -319,19 +320,19 @@
 /*
  * Environment
  */
-#define CFG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_IS_IN_FLASH	1
 /* This has to be a multiple of the Flash sector size */
-#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
-#define CFG_ENV_SIZE		0x2000
+#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
+#define CONFIG_ENV_SIZE		0x2000
 #ifdef CONFIG_BKUP_FLASH
-#define CFG_ENV_SECT_SIZE	0x20000	/* one sector (256K) for env */
+#define CONFIG_ENV_SECT_SIZE	0x20000	/* one sector (256K) for env */
 #else
-#define CFG_ENV_SECT_SIZE	0x40000	/* one sector (256K) for env */
+#define CONFIG_ENV_SECT_SIZE	0x40000	/* one sector (256K) for env */
 #endif
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR + CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR + CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download */
 #define CFG_LOADS_BAUD_CHANGE	1	/* allow baudrate change */
@@ -420,7 +421,7 @@
 
 #define CONFIG_HOSTNAME		ads5121
 #define CONFIG_BOOTFILE		ads5121/uImage
-#define CONFIG_ROOTPATH		/opt/eldk/pcc_6xx
+#define CONFIG_ROOTPATH		/opt/eldk/ppc_6xx
 
 #define CONFIG_LOADADDR		400000	/* default location for tftp and bootm */
 
@@ -435,16 +436,18 @@
 
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
 	"u-boot_addr_r=200000\0"					\
-	"kernel_addr_r=300000\0"					\
-	"fdt_addr_r=400000\0"						\
-	"ramdisk_addr_r=500000\0"					\
+	"kernel_addr_r=600000\0"					\
+	"fdt_addr_r=880000\0"						\
+	"ramdisk_addr_r=900000\0"					\
 	"u-boot_addr=FFF00000\0"					\
-	"kernel_addr=FC040000\0"					\
-	"fdt_addr=FC2C0000\0"						\
-	"ramdisk_addr=FC300000\0"					\
+	"kernel_addr=FFC40000\0"					\
+	"fdt_addr=FFEC0000\0"						\
+	"ramdisk_addr=FC040000\0"					\
 	"ramdiskfile=ads5121/uRamdisk\0"				\
-	"fdtfile=ads5121/ads5121.dtb\0"					\
 	"u-boot=ads5121/u-boot.bin\0"					\
+	"bootfile=ads5121/uImage\0"					\
+	"fdtfile=ads5121/ads5121.dtb\0"					\
+	"rootpath=/opt/eldk/ppc_6xx\n"					\
 	"netdev=eth0\0"							\
 	"consdev=ttyPSC0\0"						\
 	"nfsargs=setenv bootargs root=/dev/nfs rw "			\

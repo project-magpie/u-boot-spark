@@ -201,19 +201,19 @@
 /*-----------------------------------------------------------------------
  * FLASH organization
  */
-#define	CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_SECT_SIZE	0x10000
+#define	CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_SECT_SIZE	0x10000
 
-#define	CFG_ENV_ADDR		(CFG_FLASH_BASE + 0x00000000)
-#define CFG_ENV_OFFSET		0
-#define	CFG_ENV_SIZE		0x4000
+#define	CONFIG_ENV_ADDR		(CFG_FLASH_BASE + 0x00000000)
+#define CONFIG_ENV_OFFSET		0
+#define	CONFIG_ENV_SIZE		0x4000
 
-#define CFG_ENV_ADDR_REDUND	(CFG_FLASH_BASE + 0x00010000)
-#define CFG_ENV_OFFSET_REDUND	0
-#define CFG_ENV_SIZE_REDUND	CFG_ENV_SIZE
+#define CONFIG_ENV_ADDR_REDUND	(CFG_FLASH_BASE + 0x00010000)
+#define CONFIG_ENV_OFFSET_REDUND	0
+#define CONFIG_ENV_SIZE_REDUND	CONFIG_ENV_SIZE
 
 #define CFG_FLASH_CFI		1
-#define CFG_FLASH_CFI_DRIVER	1
+#define CONFIG_FLASH_CFI_DRIVER	1
 #undef CFG_FLASH_USE_BUFFER_WRITE	/* use buffered writes (20x faster) */
 #define CFG_MAX_FLASH_SECT	128	/* max number of sectors on one chip */
 #define CFG_MAX_FLASH_BANKS	2	/* max number of memory banks	*/
@@ -449,7 +449,7 @@
 /****************************************************************/
 
 /* NAND */
-#define CFG_NAND_LEGACY
+#define CONFIG_NAND_LEGACY
 #define CFG_NAND_BASE		NAND_BASE
 #define CONFIG_MTD_NAND_ECC_JFFS2
 #define CONFIG_MTD_NAND_VERIFY_WRITE
@@ -580,7 +580,6 @@ typedef unsigned int led_id_t;
 /* use board specific hardware */
 #undef	CONFIG_WATCHDOG			/* watchdog disabled		*/
 #define CONFIG_HW_WATCHDOG
-#define CONFIG_SHOW_ACTIVITY
 
 /*****************************************************************************/
 

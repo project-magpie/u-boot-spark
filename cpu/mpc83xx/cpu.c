@@ -32,6 +32,7 @@
 #include <mpc83xx.h>
 #include <asm/processor.h>
 #include <libfdt.h>
+#include <tsec.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -123,8 +124,8 @@ int checkcpu(void)
  * The 'dummy' variable is used to increment the MAD. 'dummy' is
  * supposed to be a pointer to the memory of the device being
  * programmed by the UPM.  The data in the MDR is written into
- * memory and the MAD is incremented every time there's a read
- * from 'dummy'. Unfortunately, the current prototype for this
+ * memory and the MAD is incremented every time there's a write
+ * to 'dummy'. Unfortunately, the current prototype for this
  * function doesn't allow for passing the address of this
  * device, and changing the prototype will break a number lots
  * of other code, so we need to use a round-about way of finding
@@ -173,8 +174,9 @@ void upmconfig (uint upm, uint *table, uint size)
 	for (i = 0; i < size; i++) {
 		lbus->mdr = table[i];
 		__asm__ __volatile__ ("sync");
-		*dummy;	/* Write the value to memory and increment MAD */
+		*dummy = 0;	/* Write the value to memory and increment MAD */
 		__asm__ __volatile__ ("sync");
+		while(((*mxmr & 0x3f) != ((i + 1) & 0x3f)));
 	}
 
 	/* Set the OP field in the MxMR to "normal" and the MAD field to 000000 */
@@ -358,22 +360,15 @@ int dma_xfer(void *dest, u32 count, void *src)
 }
 #endif /*CONFIG_DDR_ECC*/
 
-#ifdef CONFIG_TSEC_ENET
-/* Default initializations for TSEC controllers.  To override,
- * create a board-specific function called:
- * 	int board_eth_init(bd_t *bis)
+/*
+ * Initializes on-chip ethernet controllers.
+ * to override, implement board_eth_init()
  */
-
-extern int tsec_initialize(bd_t * bis, int index, char *devname);
-
 int cpu_eth_init(bd_t *bis)
 {
-#if defined(CONFIG_TSEC1)
-	tsec_initialize(bis, 0, CONFIG_TSEC1_NAME);
+#if defined(CONFIG_TSEC_ENET)
+	tsec_standard_init(bis);
 #endif
-#if defined(CONFIG_TSEC2)
-	tsec_initialize(bis, 1, CONFIG_TSEC2_NAME);
-#endif
+
 	return 0;
 }
-#endif

@@ -40,17 +40,10 @@
 #define CONFIG_PCI
 #define CONFIG_TSEC_ENET		/* tsec ethernet support */
 #define CONFIG_ENV_OVERWRITE
-#define CONFIG_SPD_EEPROM		/* Use SPD EEPROM for DDR setup*/
-#define CONFIG_DDR_DLL			/* possible DLL fix needed */
-#undef CONFIG_DDR_2T_TIMING		/* Sets the 2T timing bit */
-
-#define CONFIG_DDR_ECC			/* only for ECC DDR module */
-#define CONFIG_MEM_INIT_VALUE		0xDeadBeef
 
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code */
 
 #define CONFIG_FSL_VIA
-#define CONFIG_FSL_CDS_EEPROM
 
 /*
  * When initializing flash, if we cannot find the manufacturer ID,
@@ -58,8 +51,6 @@
  * This allows booting from a promjet.
  */
 #define CONFIG_ASSUME_AMD_FLASH
-
-#define MPC85xx_DDR_SDRAM_CLK_CNTL	/* 85xx has clock control reg */
 
 #ifndef __ASSEMBLY__
 extern unsigned long get_clock_freq(void);
@@ -85,13 +76,23 @@ extern unsigned long get_clock_freq(void);
 #define CFG_CCSRBAR_PHYS	CFG_CCSRBAR	/* physical addr of CCSRBAR */
 #define CFG_IMMR		CFG_CCSRBAR	/* PQII uses CFG_IMMR */
 
-/*
- * DDR Setup
- */
+/* DDR Setup */
+#define CONFIG_FSL_DDR1
+#define CONFIG_SPD_EEPROM		/* Use SPD EEPROM for DDR setup*/
+#define CONFIG_DDR_SPD
+#undef CONFIG_FSL_DDR_INTERACTIVE
+
+#define CONFIG_MEM_INIT_VALUE		0xDeadBeef
+
 #define CFG_DDR_SDRAM_BASE	0x00000000	/* DDR is system memory*/
 #define CFG_SDRAM_BASE		CFG_DDR_SDRAM_BASE
 
-#define SPD_EEPROM_ADDRESS	0x51		/* DDR DIMM */
+#define CONFIG_NUM_DDR_CONTROLLERS	1
+#define CONFIG_DIMM_SLOTS_PER_CTLR	1
+#define CONFIG_CHIP_SELECTS_PER_CTRL	(2 * CONFIG_DIMM_SLOTS_PER_CTLR)
+
+/* I2C addresses of SPD EEPROMs */
+#define SPD_EEPROM_ADDRESS	0x51	/* CTLR 0 DIMM 0 */
 
 /*
  * Make sure required options are set
@@ -101,7 +102,6 @@ extern unsigned long get_clock_freq(void);
 #endif
 
 #undef CONFIG_CLOCKS_IN_MHZ
-
 
 /*
  * Local Bus Definitions
@@ -154,7 +154,7 @@ extern unsigned long get_clock_freq(void);
 
 #define CFG_MONITOR_BASE	TEXT_BASE	/* start of monitor */
 
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CFG_FLASH_EMPTY_INFO
 
@@ -317,6 +317,9 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_OF_BOARD_SETUP		1
 #define CONFIG_OF_STDOUT_VIA_ALIAS	1
 
+#define CFG_64BIT_VSPRINTF	1
+#define CFG_64BIT_STRTOUL	1
+
 /*
  * I2C
  */
@@ -324,10 +327,16 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_HARD_I2C		/* I2C with hardware support*/
 #undef	CONFIG_SOFT_I2C			/* I2C bit-banged */
 #define CFG_I2C_SPEED		400000	/* I2C speed and slave address */
-#define CFG_I2C_EEPROM_ADDR	0x57
 #define CFG_I2C_SLAVE		0x7F
 #define CFG_I2C_NOPROBES        {0x69}	/* Don't probe these addrs */
 #define CFG_I2C_OFFSET		0x3000
+
+/* EEPROM */
+#define CONFIG_ID_EEPROM
+#define CFG_I2C_EEPROM_CCID
+#define CFG_ID_EEPROM
+#define CFG_I2C_EEPROM_ADDR     0x57
+#define CFG_I2C_EEPROM_ADDR_LEN 2
 
 /*
  * General PCI
@@ -396,10 +405,10 @@ extern unsigned long get_clock_freq(void);
 /*
  * Environment
  */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + 0x40000)
-#define CFG_ENV_SECT_SIZE	0x40000	/* 256K(one sector) for env */
-#define CFG_ENV_SIZE		0x2000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE + 0x40000)
+#define CONFIG_ENV_SECT_SIZE	0x40000	/* 256K(one sector) for env */
+#define CONFIG_ENV_SIZE		0x2000
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download */
 #define CFG_LOADS_BAUD_CHANGE	1	/* allow baudrate change */

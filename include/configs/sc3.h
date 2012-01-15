@@ -397,22 +397,22 @@ extern unsigned long offsetOfEnvironment;
 #define CFG_MAX_FLASH_SECT	256	/* max number of sectors on one chip	*/
 
 #define CFG_FLASH_CFI			/* flash is CFI compat.	*/
-#define CFG_FLASH_CFI_DRIVER		/* Use common CFI driver*/
+#define CONFIG_FLASH_CFI_DRIVER		/* Use common CFI driver*/
 #define CFG_FLASH_EMPTY_INFO		/* print 'E' for empty sector	*/
 #define CFG_FLASH_QUIET_TEST	1	/* don't warn upon unknown flash*/
 #define CFG_FLASH_ERASE_TOUT	120000	/* Timeout for Flash Erase (in ms)	*/
 #define CFG_FLASH_WRITE_TOUT	500	/* Timeout for Flash Write (in ms)	*/
 #define CFG_WRITE_SWAPPED_DATA		/* swap Databytes between reading/writing */
 
-#define CFG_ENV_IS_IN_FLASH	1
-#if CFG_ENV_IS_IN_FLASH
-#define CFG_ENV_OFFSET		0x00000000  /* Offset of Environment Sector in bottom type */
-#define CFG_ENV_SIZE		0x4000	    /* Total Size of Environment Sector	*/
-#define CFG_ENV_SECT_SIZE	0x4000	    /* see README - env sector total size	*/
+#define CONFIG_ENV_IS_IN_FLASH	1
+#ifdef CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_OFFSET		0x00000000  /* Offset of Environment Sector in bottom type */
+#define CONFIG_ENV_SIZE		0x4000	    /* Total Size of Environment Sector	*/
+#define CONFIG_ENV_SECT_SIZE	0x4000	    /* see README - env sector total size	*/
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_OFFSET_REDUND	(CFG_ENV_OFFSET+CFG_ENV_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET+CONFIG_ENV_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 #endif
 /* let us changing anything in our environment */

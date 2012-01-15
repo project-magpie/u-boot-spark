@@ -138,9 +138,10 @@ void reconfigure_pll(u32 new_cpu_freq)
 void
 cpu_init_f (void)
 {
-#if defined(CONFIG_WATCHDOG) || defined(CONFIG_460EX)
+#if defined(CONFIG_WATCHDOG) || defined(CONFIG_440GX) || defined(CONFIG_460EX)
 	u32 val;
 #endif
+
 	reconfigure_pll(CFG_PLL_RECONFIG);
 
 #if (defined(CONFIG_405EP) || defined (CONFIG_405EX)) && !defined(CFG_4xx_GPIO_TABLE)
@@ -273,6 +274,18 @@ cpu_init_f (void)
 	reset_4xx_watchdog();
 #endif /* CONFIG_WATCHDOG */
 
+#if defined(CONFIG_440GX)
+	/* Take the GX out of compatibility mode
+	 * Travis Sawyer, 9 Mar 2004
+	 * NOTE: 440gx user manual inconsistency here
+	 *       Compatibility mode and Ethernet Clock select are not
+	 *       correct in the manual
+	 */
+	mfsdr(sdr_mfr, val);
+	val &= ~0x10000000;
+	mtsdr(sdr_mfr,val);
+#endif /* CONFIG_440GX */
+
 #if defined(CONFIG_460EX)
 	/*
 	 * Set SDR0_AHB_CFG[A2P_INCR4] (bit 24) and
@@ -288,6 +301,19 @@ cpu_init_f (void)
 	val |= 0x400;
 	mtsdr(SDR0_USB2HOST_CFG, val);
 #endif /* CONFIG_460EX */
+
+#if defined(CONFIG_405EX) || \
+    defined(CONFIG_440SP) || defined(CONFIG_440SPE) || \
+    defined(CONFIG_460EX) || defined(CONFIG_460GT)  || \
+    defined(CONFIG_460SX)
+	/*
+	 * Set PLB4 arbiter (Segment 0 and 1) to 4 deep pipeline read
+	 */
+	mtdcr(plb0_acr, (mfdcr(plb0_acr) & ~plb0_acr_rdp_mask) |
+	      plb0_acr_rdp_4deep);
+	mtdcr(plb1_acr, (mfdcr(plb1_acr) & ~plb1_acr_rdp_mask) |
+	      plb1_acr_rdp_4deep);
+#endif /* CONFIG_440SP/SPE || CONFIG_460EX/GT || CONFIG_405EX */
 }
 
 /*

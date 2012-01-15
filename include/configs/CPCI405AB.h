@@ -144,6 +144,8 @@
 
 #define CFG_HZ		1000		/* decrementer freq: 1 ms ticks */
 
+#define CONFIG_CMDLINE_EDITING		/* add command line history	*/
+
 #define CONFIG_ZERO_BOOTDELAY_CHECK	/* check for keypress on bootdelay==0 */
 
 #define CONFIG_VERSION_VARIABLE 1	/* include version env variable */
@@ -215,6 +217,10 @@
  * the maximum mapped by the Linux kernel during initialization.
  */
 #define CFG_BOOTMAPSZ		(8 << 20)	/* Initial Memory map for Linux */
+
+#define CONFIG_OF_LIBFDT
+#define CONFIG_OF_BOARD_SETUP
+
 /*-----------------------------------------------------------------------
  * FLASH organization
  */
@@ -253,13 +259,12 @@
 					/* 32 byte page write mode using*/
 					/* last 5 bits of the address	*/
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10   /* and takes up to 10 msec */
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 
 /* Use EEPROM for environment variables */
 
-#define CFG_ENV_IS_IN_EEPROM	1	/* use EEPROM for environment vars */
-#define CFG_ENV_OFFSET		0x000	/* environment starts at the beginning of the EEPROM */
-#define CFG_ENV_SIZE		0x800	/* 2048 bytes may be used for env vars*/
+#define CONFIG_ENV_IS_IN_EEPROM	1	/* use EEPROM for environment vars */
+#define CONFIG_ENV_OFFSET		0x000	/* environment starts at the beginning of the EEPROM */
+#define CONFIG_ENV_SIZE		0x800	/* 2048 bytes may be used for env vars*/
 				   /* total size of a CAT24WC32 is 4096 bytes */
 
 #define CFG_NVRAM_BASE_ADDR	0xf0200000		/* NVRAM base address	*/

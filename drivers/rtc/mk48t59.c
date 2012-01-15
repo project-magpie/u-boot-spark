@@ -33,8 +33,6 @@
 #include <rtc.h>
 #include <mk48t59.h>
 
-#if defined(CONFIG_RTC_MK48T59)
-
 #if defined(CONFIG_BAB7xx)
 
 static uchar rtc_read (short reg)
@@ -187,7 +185,7 @@ int rtc_get (struct rtc_time *tmp)
 	return 0;
 }
 
-void rtc_set (struct rtc_time *tmp)
+int rtc_set (struct rtc_time *tmp)
 {
 	uchar save_ctrl_a;
 
@@ -212,6 +210,8 @@ void rtc_set (struct rtc_time *tmp)
 
 	save_ctrl_a &= ~RTC_CA_WRITE;
 	rtc_write(RTC_CONTROLA, save_ctrl_a); /* enables the RTC to update the regs */
+
+	return 0;
 }
 
 void rtc_reset (void)
@@ -236,4 +236,3 @@ void rtc_set_watchdog(short multi, short res)
 }
 
 #endif
-#endif	/* CONFIG_RTC_MK48T59 */

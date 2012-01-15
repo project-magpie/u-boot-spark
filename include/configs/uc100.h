@@ -230,7 +230,7 @@
  * FLASH organization
  */
 #define CFG_FLASH_CFI				/* The flash is CFI compatible  */
-#define CFG_FLASH_CFI_DRIVER			/* Use common CFI driver        */
+#define CONFIG_FLASH_CFI_DRIVER			/* Use common CFI driver        */
 #define CFG_FLASH_CFI_AMD_RESET	1		/* AMD RESET for STM 29W320DB!  */
 
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
@@ -241,14 +241,14 @@
 
 #define CFG_FLASH_EMPTY_INFO		/* print 'E' for empty sector on flinfo */
 
-#define	CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_ADDR		(CFG_MONITOR_BASE+CFG_MONITOR_LEN)
-#define CFG_ENV_SECT_SIZE	0x20000	/* size of one complete sector		*/
-#define	CFG_ENV_SIZE		0x4000	/* Total Size of Environment Sector	*/
+#define	CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE+CFG_MONITOR_LEN)
+#define CONFIG_ENV_SECT_SIZE	0x20000	/* size of one complete sector		*/
+#define	CONFIG_ENV_SIZE		0x4000	/* Total Size of Environment Sector	*/
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR+CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR+CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

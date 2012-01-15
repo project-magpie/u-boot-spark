@@ -52,15 +52,15 @@ int board_early_init_f(void)
 	 * Setup the GPIO pins
 	 */
 	out_be32((void*)GPIO0_OR, 0x00000000 | CFG_GPIO0_EP_EEP);
-	out_be32((void*)GPIO0_TCR, 0x0000000f | CFG_GPIO0_EP_EEP);
+	out_be32((void*)GPIO0_TCR, 0x0000001f | CFG_GPIO0_EP_EEP);
 	out_be32((void*)GPIO0_OSRL, 0x50055400);
-	out_be32((void*)GPIO0_OSRH, 0x550050aa);
+	out_be32((void*)GPIO0_OSRH, 0x55005000);
 	out_be32((void*)GPIO0_TSRL, 0x50055400);
 	out_be32((void*)GPIO0_TSRH, 0x55005000);
 	out_be32((void*)GPIO0_ISR1L, 0x50000000);
 	out_be32((void*)GPIO0_ISR1H, 0x00000000);
 	out_be32((void*)GPIO0_ISR2L, 0x00000000);
-	out_be32((void*)GPIO0_ISR2H, 0x00000100);
+	out_be32((void*)GPIO0_ISR2H, 0x00000000);
 	out_be32((void*)GPIO0_ISR3L, 0x00000000);
 	out_be32((void*)GPIO0_ISR3H, 0x00000000);
 
@@ -73,9 +73,9 @@ int board_early_init_f(void)
 		 CFG_GPIO1_LEDPOST |
 		 CFG_GPIO1_LEDDU);
 	out_be32((void*)GPIO1_ODR, CFG_GPIO1_LEDDU);
-	out_be32((void*)GPIO1_OSRL, 0x5c280000);
+	out_be32((void*)GPIO1_OSRL, 0x0c280000);
 	out_be32((void*)GPIO1_OSRH, 0x00000000);
-	out_be32((void*)GPIO1_TSRL, 0x0c000000);
+	out_be32((void*)GPIO1_TSRL, 0xcc000000);
 	out_be32((void*)GPIO1_TSRH, 0x00000000);
 	out_be32((void*)GPIO1_ISR1L, 0x00005550);
 	out_be32((void*)GPIO1_ISR1H, 0x00000000);
@@ -169,6 +169,7 @@ int misc_init_r(void)
 	unsigned long usb2d0cr = 0;
 	unsigned long usb2phy0cr, usb2h0cr = 0;
 	unsigned long sdr0_pfc1;
+	unsigned long sdr0_srst0, sdr0_srst1;
 	int i, j;
 
 	/* adjust flash start and offset */
@@ -223,10 +224,38 @@ int misc_init_r(void)
 	mtsdr(SDR0_USB2PHY0CR, usb2phy0cr);
 	mtsdr(SDR0_USB2H0CR, usb2h0cr);
 
-	/* clear resets */
-	udelay (1000);
+	/*
+	 * Take USB out of reset:
+	 * -Initial status = all cores are in reset
+	 * -deassert reset to OPB1, P4OPB0, OPB2, PLB42OPB1 OPB2PLB40 cores
+	 * -wait 1 ms
+	 * -deassert reset to PHY
+	 * -wait 1 ms
+	 * -deassert  reset to HOST
+	 * -wait 4 ms
+	 * -deassert all other resets
+	 */
+	mfsdr(SDR0_SRST1, sdr0_srst1);
+	sdr0_srst1 &= ~(SDR0_SRST1_OPBA1 |		\
+			SDR0_SRST1_P4OPB0 |		\
+			SDR0_SRST1_OPBA2 |		\
+			SDR0_SRST1_PLB42OPB1 |		\
+			SDR0_SRST1_OPB2PLB40);
+	mtsdr(SDR0_SRST1, sdr0_srst1);
+	udelay(1000);
+
+	mfsdr(SDR0_SRST1, sdr0_srst1);
+	sdr0_srst1 &= ~SDR0_SRST1_USB20PHY;
+	mtsdr(SDR0_SRST1, sdr0_srst1);
+	udelay(1000);
+
+	mfsdr(SDR0_SRST0, sdr0_srst0);
+	sdr0_srst0 &= ~SDR0_SRST0_USB2H;
+	mtsdr(SDR0_SRST0, sdr0_srst0);
+	udelay(4000);
+
+	/* finally all the other resets */
 	mtsdr(SDR0_SRST1, 0x00000000);
-	udelay (1000);
 	mtsdr(SDR0_SRST0, 0x00000000);
 
 	printf("USB:   Host(int phy)\n");
@@ -731,6 +760,12 @@ int do_setup_boot_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			 * -> not working when overclocking 533MHz chips
 			 * -> untested on 667MHz chips */
 			/* sdsdp[1]=0x095fa030; */
+			sdsdp[2] = 0x40082350;
+			sdsdp[3] = 0x0d050000;
+		} else if (!strcmp(argv[1], "667-166")) {
+			printf("Bootstrapping for 667-166MHz\n");
+			sdsdp[0] = 0x8778a252;
+			sdsdp[1] = 0x09d7a030;
 			sdsdp[2] = 0x40082350;
 			sdsdp[3] = 0x0d050000;
 		}

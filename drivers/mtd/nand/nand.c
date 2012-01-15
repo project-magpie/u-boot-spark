@@ -22,9 +22,6 @@
  */
 
 #include <common.h>
-
-#if defined(CONFIG_CMD_NAND) && !defined(CFG_NAND_LEGACY)
-
 #include <nand.h>
 
 #ifndef CFG_NAND_BASE_LIST
@@ -67,11 +64,11 @@ void nand_init(void)
 	unsigned int size = 0;
 	for (i = 0; i < CFG_MAX_NAND_DEVICE; i++) {
 		nand_init_chip(&nand_info[i], &nand_chip[i], base_address[i]);
-		size += nand_info[i].size;
+		size += nand_info[i].size / 1024;
 		if (nand_curr_device == -1)
 			nand_curr_device = i;
 	}
-	print_size (size, "\n");
+	printf("%u MiB\n", size / 1024);
 
 #ifdef CFG_NAND_SELECT_DEVICE
 	/*
@@ -80,5 +77,3 @@ void nand_init(void)
 	board_nand_select_device(nand_info[nand_curr_device].priv, nand_curr_device);
 #endif
 }
-
-#endif

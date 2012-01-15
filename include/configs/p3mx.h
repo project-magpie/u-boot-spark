@@ -128,7 +128,7 @@
  * FLASH related
  *----------------------------------------------------------------------*/
 #define CFG_FLASH_CFI			/* The flash is CFI compatible		*/
-#define CFG_FLASH_CFI_DRIVER		/* Use common CFI driver		*/
+#define CONFIG_FLASH_CFI_DRIVER		/* Use common CFI driver		*/
 #define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
 #define CFG_MAX_FLASH_SECT	512	/* max number of sectors on one chip	*/
 #define CFG_FLASH_ERASE_TOUT	120000	/* Timeout for Flash Erase (in ms)	*/
@@ -137,14 +137,14 @@
 #define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/
 #define CFG_FLASH_EMPTY_INFO		/* print 'E' for empty sector on flinfo */
 
-#define CFG_ENV_IS_IN_FLASH     1	/* use FLASH for environment vars	*/
+#define CONFIG_ENV_IS_IN_FLASH     1	/* use FLASH for environment vars	*/
 #if defined (CONFIG_P3M750)
-#define CFG_ENV_SECT_SIZE	0x20000	/* one sector (1 device)		*/
+#define CONFIG_ENV_SECT_SIZE	0x20000	/* one sector (1 device)		*/
 #elif defined (CONFIG_P3M7448)
-#define CFG_ENV_SECT_SIZE	0x40000	/* two sectors (2 devices parallel	*/
+#define CONFIG_ENV_SECT_SIZE	0x40000	/* two sectors (2 devices parallel	*/
 #endif
-#define	CFG_ENV_SIZE		0x2000	/* Total Size of Environment Sector	*/
-#define CFG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
+#define	CONFIG_ENV_SIZE		0x2000	/* Total Size of Environment Sector	*/
+#define CONFIG_ENV_ADDR		(CFG_MONITOR_BASE + CFG_MONITOR_LEN)
 
 /*-----------------------------------------------------------------------
  * DDR SDRAM

@@ -32,13 +32,12 @@
 #include <common.h>
 #include <74xx_7xx.h>
 #include <fdt_support.h>
+#include <netdev.h>
 
 #undef	DEBUG
 
 DECLARE_GLOBAL_DATA_PTR;
 
-extern void flush_data_cache (void);
-extern void invalidate_l1_instruction_cache (void);
 extern void tsi108_init_f (void);
 
 int display_mem_map (void);
@@ -94,3 +93,12 @@ ft_board_setup(void *blob, bd_t *bd)
 	fdt_fixup_memory(blob, (u64)bd->bi_memstart, (u64)bd->bi_memsize);
 }
 #endif
+
+int board_eth_init(bd_t *bis)
+{
+	int rc = 0;
+#if defined(CONFIG_TSI108_ETH)
+	rc = tsi108_eth_initialize(bis);
+#endif
+	return rc;
+}

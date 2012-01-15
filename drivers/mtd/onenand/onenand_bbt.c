@@ -15,9 +15,6 @@
  */
 
 #include <common.h>
-
-#ifdef CONFIG_CMD_ONENAND
-
 #include <linux/mtd/compat.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/onenand.h>
@@ -57,7 +54,7 @@ static int check_short_pattern(uint8_t * buf, int len, int paglen,
  * @param buf		temporary buffer
  * @param bd		descriptor for the good/bad block search pattern
  * @param chip		create the table for a specific chip, -1 read all chips.
- *              Applies only if NAND_BBT_PERCHIP option is set
+ *		Applies only if NAND_BBT_PERCHIP option is set
  *
  * Create a bad block table by scanning the device
  * for the given good/bad block identify pattern
@@ -71,6 +68,7 @@ static int create_bbt(struct mtd_info *mtd, uint8_t * buf,
 	int startblock;
 	loff_t from;
 	size_t readlen, ooblen;
+	struct mtd_oob_ops ops;
 
 	printk(KERN_INFO "Scanning device for bad blocks\n");
 
@@ -88,26 +86,27 @@ static int create_bbt(struct mtd_info *mtd, uint8_t * buf,
 	startblock = 0;
 	from = 0;
 
+	ops.mode = MTD_OOB_PLACE;
+	ops.ooblen = readlen;
+	ops.oobbuf = buf;
+	ops.len = ops.ooboffs = ops.retlen = ops.oobretlen = 0;
+
 	for (i = startblock; i < numblocks;) {
 		int ret;
 
 		for (j = 0; j < len; j++) {
-			size_t retlen;
-
 			/* No need to read pages fully,
 			 * just read required OOB bytes */
-			ret = onenand_read_oob(mtd,
-					     from + j * mtd->oobblock +
-					     bd->offs, readlen, &retlen,
-					     &buf[0]);
+			ret = onenand_bbt_read_oob(mtd,
+					     from + j * mtd->writesize +
+					     bd->offs, &ops);
 
-			if (ret && ret != -EAGAIN) {
-				printk("ret = %d\n", ret);
-				return ret;
-			}
+			/* If it is a initial bad block, just ignore it */
+			if (ret == ONENAND_BBT_READ_FATAL_ERROR)
+				return -EIO;
 
-			if (check_short_pattern
-			    (&buf[j * scanlen], scanlen, mtd->oobblock, bd)) {
+			if (ret || check_short_pattern
+			    (&buf[j * scanlen], scanlen, mtd->writesize, bd)) {
 				bbm->bbt[i >> 3] |= 0x03 << (i & 0x6);
 				printk(KERN_WARNING
 				       "Bad eraseblock %d at 0x%08x\n", i >> 1,
@@ -157,8 +156,8 @@ static int onenand_isbad_bbt(struct mtd_info *mtd, loff_t offs, int allowbbt)
 	res = (bbm->bbt[block >> 3] >> (block & 0x06)) & 0x03;
 
 	MTDDEBUG (MTD_DEBUG_LEVEL2,
-	          "onenand_isbad_bbt: bbt info for offs 0x%08x: (block %d) 0x%02x\n",
-	          (unsigned int)offs, block >> 1, res);
+		  "onenand_isbad_bbt: bbt info for offs 0x%08x: (block %d) 0x%02x\n",
+		  (unsigned int)offs, block >> 1, res);
 
 	switch ((int)res) {
 	case 0x00:
@@ -261,5 +260,3 @@ int onenand_default_bbt(struct mtd_info *mtd)
 
 	return onenand_scan_bbt(mtd, bbm->badblock_pattern);
 }
-
-#endif /* CFG_CMD_ONENAND */

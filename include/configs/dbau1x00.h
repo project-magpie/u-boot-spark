@@ -183,7 +183,7 @@
 #define CFG_FLASH_BANKS_LIST {PHYS_FLASH_1, PHYS_FLASH_2}
 
 #define CFG_FLASH_CFI           1
-#define CFG_FLASH_CFI_DRIVER    1
+#define CONFIG_FLASH_CFI_DRIVER    1
 
 /* The following #defines are needed to get flash environment right */
 #define	CFG_MONITOR_BASE	TEXT_BASE
@@ -198,11 +198,11 @@
 #define CFG_FLASH_ERASE_TOUT	(2 * CFG_HZ) /* Timeout for Flash Erase */
 #define CFG_FLASH_WRITE_TOUT	(2 * CFG_HZ) /* Timeout for Flash Write */
 
-#define	CFG_ENV_IS_NOWHERE	1
+#define	CONFIG_ENV_IS_NOWHERE	1
 
 /* Address and size of Primary Environment Sector	*/
-#define CFG_ENV_ADDR		0xB0030000
-#define CFG_ENV_SIZE		0x10000
+#define CONFIG_ENV_ADDR		0xB0030000
+#define CONFIG_ENV_SIZE		0x10000
 
 #define CONFIG_FLASH_16BIT
 

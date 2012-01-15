@@ -43,7 +43,7 @@
 /*
  * Size of malloc() pool
  */
-#define CFG_MALLOC_LEN	    (CFG_ENV_SIZE + 256*1024)
+#define CFG_MALLOC_LEN	    (CONFIG_ENV_SIZE + 256*1024)
 #define CFG_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 /*
@@ -217,7 +217,7 @@
 /*
  * NAND Flash
  */
-#undef CFG_NAND_LEGACY
+#undef CONFIG_NAND_LEGACY
 
 #define CFG_NAND0_BASE		0x0 /* 0x43100040 */ /* 0x10000000 */
 #undef CFG_NAND1_BASE
@@ -262,9 +262,9 @@
 
 #define CFG_NO_FLASH		1
 
-#define CFG_ENV_IS_IN_NAND	1
-#define CFG_ENV_OFFSET		0x40000
-#define CFG_ENV_OFFSET_REDUND	0x44000
-#define CFG_ENV_SIZE		0x4000
+#define CONFIG_ENV_IS_IN_NAND	1
+#define CONFIG_ENV_OFFSET		0x40000
+#define CONFIG_ENV_OFFSET_REDUND	0x44000
+#define CONFIG_ENV_SIZE		0x4000
 
 #endif	/* __CONFIG_H */

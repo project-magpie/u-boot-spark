@@ -202,7 +202,7 @@
  */
 #define CFG_FLASH_CFI
 #ifdef CFG_FLASH_CFI
-#	define CFG_FLASH_CFI_DRIVER	1
+#	define CONFIG_FLASH_CFI_DRIVER	1
 #	define CFG_FLASH_SIZE		0x800000	/* Max size that the board might have */
 #	define CFG_FLASH_CFI_WIDTH	FLASH_CFI_16BIT
 #	define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks */
@@ -228,10 +228,10 @@
 /* Configuration for environment
  * Environment is embedded in u-boot in the second sector of the flash
  */
-#define CFG_ENV_OFFSET		0x4000
-#define CFG_ENV_SECT_SIZE	0x2000
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_IS_EMBEDDED	1
+#define CONFIG_ENV_OFFSET		0x4000
+#define CONFIG_ENV_SECT_SIZE	0x2000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_IS_EMBEDDED	1
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

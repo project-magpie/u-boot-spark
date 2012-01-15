@@ -113,17 +113,17 @@
  * Environment
  */
 #if !defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL)
-#define CFG_ENV_IS_IN_FLASH	1	/* use FLASH for environ vars	*/
+#define CONFIG_ENV_IS_IN_FLASH	1	/* use FLASH for environ vars	*/
 #else
-#define CFG_ENV_IS_IN_NAND	1	/* use NAND for environ vars	*/
-#define CFG_ENV_IS_EMBEDDED	1	/* use embedded environment	*/
+#define CONFIG_ENV_IS_IN_NAND	1	/* use NAND for environ vars	*/
+#define CONFIG_ENV_IS_EMBEDDED	1	/* use embedded environment	*/
 #endif
 
 /*
  * FLASH related
  */
 #define CFG_FLASH_CFI			/* The flash is CFI compatible	*/
-#define CFG_FLASH_CFI_DRIVER		/* Use common CFI driver	*/
+#define CONFIG_FLASH_CFI_DRIVER		/* Use common CFI driver	*/
 
 #define CFG_FLASH_BANKS_LIST	{ CFG_FLASH_BASE }
 
@@ -139,14 +139,14 @@
 #define CFG_FLASH_EMPTY_INFO	      /* print 'E' for empty sector on flinfo */
 #define CFG_FLASH_QUIET_TEST	1	/* don't warn upon unknown flash      */
 
-#ifdef CFG_ENV_IS_IN_FLASH
-#define CFG_ENV_SECT_SIZE	0x20000	/* size of one complete sector	      */
-#define CFG_ENV_ADDR		((-CFG_MONITOR_LEN)-CFG_ENV_SECT_SIZE)
-#define	CFG_ENV_SIZE		0x2000	/* Total Size of Environment Sector   */
+#ifdef CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_SECT_SIZE	0x20000	/* size of one complete sector	      */
+#define CONFIG_ENV_ADDR		((-CFG_MONITOR_LEN)-CONFIG_ENV_SECT_SIZE)
+#define	CONFIG_ENV_SIZE		0x2000	/* Total Size of Environment Sector   */
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR-CFG_ENV_SECT_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR-CONFIG_ENV_SECT_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 #endif
 
 /*
@@ -179,7 +179,7 @@
  * Define the partitioning of the NAND chip (only RAM U-Boot is needed here)
  */
 #define CFG_NAND_U_BOOT_OFFS	(16 << 10)	/* Offset to RAM U-Boot image */
-#define CFG_NAND_U_BOOT_SIZE	(384 << 10)	/* Size of RAM U-Boot image   */
+#define CFG_NAND_U_BOOT_SIZE	(512 << 10)	/* Size of RAM U-Boot image   */
 
 /*
  * Now the NAND chip has to be defined (no autodetection used!)
@@ -197,14 +197,14 @@
 #define CFG_NAND_ECCTOTAL	(CFG_NAND_ECCBYTES * CFG_NAND_ECCSTEPS)
 #define CFG_NAND_ECCPOS		{0, 1, 2, 3, 6, 7}
 
-#ifdef CFG_ENV_IS_IN_NAND
+#ifdef CONFIG_ENV_IS_IN_NAND
 /*
  * For NAND booting the environment is embedded in the U-Boot image. Please take
  * look at the file board/amcc/sequoia/u-boot-nand.lds for details.
  */
-#define CFG_ENV_SIZE		CFG_NAND_BLOCK_SIZE
-#define CFG_ENV_OFFSET		(CFG_NAND_U_BOOT_OFFS + CFG_ENV_SIZE)
-#define CFG_ENV_OFFSET_REDUND	(CFG_ENV_OFFSET + CFG_ENV_SIZE)
+#define CONFIG_ENV_SIZE		CFG_NAND_BLOCK_SIZE
+#define CONFIG_ENV_OFFSET		(CFG_NAND_U_BOOT_OFFS + CONFIG_ENV_SIZE)
+#define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET + CONFIG_ENV_SIZE)
 #endif
 
 /*
@@ -225,7 +225,6 @@
 #define CFG_I2C_MULTI_EEPROMS
 #define CFG_I2C_EEPROM_ADDR	(0xa8>>1)
 #define CFG_I2C_EEPROM_ADDR_LEN 1
-#define CFG_EEPROM_PAGE_WRITE_ENABLE
 #define CFG_EEPROM_PAGE_WRITE_BITS 3
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS 10
 

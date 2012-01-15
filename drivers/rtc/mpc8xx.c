@@ -31,7 +31,7 @@
 #include <command.h>
 #include <rtc.h>
 
-#if defined(CONFIG_RTC_MPC8xx) && defined(CONFIG_CMD_DATE)
+#if defined(CONFIG_CMD_DATE)
 
 /* ------------------------------------------------------------------------- */
 
@@ -51,7 +51,7 @@ int rtc_get (struct rtc_time *tmp)
 	return 0;
 }
 
-void rtc_set (struct rtc_time *tmp)
+int rtc_set (struct rtc_time *tmp)
 {
 	volatile immap_t *immr = (immap_t *)CFG_IMMR;
 	ulong tim;
@@ -65,6 +65,8 @@ void rtc_set (struct rtc_time *tmp)
 
 	immr->im_sitk.sitk_rtck = KAPWR_KEY;
 	immr->im_sit.sit_rtc = tim;
+
+	return 0;
 }
 
 void rtc_reset (void)

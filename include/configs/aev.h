@@ -225,7 +225,7 @@
 
 /* use CFI flash driver if no module variant is spezified */
 #define CFG_FLASH_CFI		1	/* Flash is CFI conformant */
-#define CFG_FLASH_CFI_DRIVER	1	/* Use the common driver */
+#define CONFIG_FLASH_CFI_DRIVER	1	/* Use the common driver */
 #define CFG_FLASH_BANKS_LIST	{ CFG_BOOTCS_START }
 #define CFG_FLASH_EMPTY_INFO
 #define CFG_FLASH_SIZE		0x04000000 /* 64 MByte */
@@ -233,9 +233,9 @@
 #undef CFG_FLASH_USE_BUFFER_WRITE	/* not supported yet for AMD */
 
 #if !defined(CFG_LOWBOOT)
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + 0x00760000 + 0x00800000)
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + 0x00760000 + 0x00800000)
 #else	/* CFG_LOWBOOT */
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + 0x00060000)
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + 0x00060000)
 #endif	/* CFG_LOWBOOT */
 #define CFG_MAX_FLASH_BANKS	1	/* max num of flash banks
 					   (= chip selects) */
@@ -246,11 +246,11 @@
 /*
  * Environment settings
  */
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_SIZE		0x10000
-#define CFG_ENV_SECT_SIZE	0x20000
-#define CFG_ENV_ADDR_REDUND	(CFG_ENV_ADDR + CFG_ENV_SECT_SIZE)
-#define	CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_SIZE		0x10000
+#define CONFIG_ENV_SECT_SIZE	0x20000
+#define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR + CONFIG_ENV_SECT_SIZE)
+#define	CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 /*
  * Memory map

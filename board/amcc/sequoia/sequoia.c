@@ -25,12 +25,11 @@
 #include <common.h>
 #include <libfdt.h>
 #include <fdt_support.h>
-#include <ppc440.h>
+#include <ppc4xx.h>
 #include <asm/gpio.h>
 #include <asm/processor.h>
 #include <asm/io.h>
 #include <asm/bitops.h>
-#include <asm/ppc4xx-intvec.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -158,7 +157,7 @@ int misc_init_r(void)
 	 */
 	flash_get_size(gd->bd->bi_flashstart, 0);
 
-#ifdef CFG_ENV_IS_IN_FLASH
+#ifdef CONFIG_ENV_IS_IN_FLASH
 	/* Monitor protection ON by default */
 	(void)flash_protect(FLAG_PROTECT_SET,
 			    -CFG_MONITOR_LEN,
@@ -167,8 +166,8 @@ int misc_init_r(void)
 
 	/* Env protection ON by default */
 	(void)flash_protect(FLAG_PROTECT_SET,
-			    CFG_ENV_ADDR_REDUND,
-			    CFG_ENV_ADDR_REDUND + 2*CFG_ENV_SECT_SIZE - 1,
+			    CONFIG_ENV_ADDR_REDUND,
+			    CONFIG_ENV_ADDR_REDUND + 2*CONFIG_ENV_SECT_SIZE - 1,
 			    &flash_info[0]);
 #endif
 
@@ -340,7 +339,7 @@ int checkboard(void)
  */
 void sequoia_pci_fixup_irq(struct pci_controller *hose, pci_dev_t dev)
 {
-	pci_hose_write_config_byte(hose, dev, PCI_INTERRUPT_LINE, VECNUM_EIR2);
+	pci_hose_write_config_byte(hose, dev, PCI_INTERRUPT_LINE, VECNUM_EIRQ2);
 }
 #endif
 

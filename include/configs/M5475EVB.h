@@ -226,7 +226,7 @@
  */
 #define CFG_SDRAM_BASE		0x00000000
 #define CFG_SDRAM_CFG1		0x73711630
-#define CFG_SDRAM_CFG2		0x46370000
+#define CFG_SDRAM_CFG2		0x46770000
 #define CFG_SDRAM_CTRL		0xE10B0000
 #define CFG_SDRAM_EMOD		0x40010000
 #define CFG_SDRAM_MODE		0x018D0000
@@ -259,7 +259,7 @@
 #define CFG_FLASH_CFI
 #ifdef CFG_FLASH_CFI
 #	define CFG_FLASH_BASE		(CFG_CS0_BASE)
-#	define CFG_FLASH_CFI_DRIVER	1
+#	define CONFIG_FLASH_CFI_DRIVER	1
 #	define CFG_FLASH_CFI_WIDTH	FLASH_CFI_16BIT
 #	define CFG_MAX_FLASH_SECT	137	/* max number of sectors on one chip */
 #	define CFG_FLASH_PROTECTION	/* "Real" (hardware) sectors protection */
@@ -277,10 +277,10 @@
 /* Configuration for environment
  * Environment is embedded in u-boot in the second sector of the flash
  */
-#define CFG_ENV_OFFSET		0x2000
-#define CFG_ENV_SECT_SIZE	0x2000
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_IS_EMBEDDED	1
+#define CONFIG_ENV_OFFSET		0x2000
+#define CONFIG_ENV_SECT_SIZE	0x2000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_IS_EMBEDDED	1
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

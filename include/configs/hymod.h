@@ -288,7 +288,6 @@
 /* mask of address bits that overflow into the "EEPROM chip address"    */
 #define CFG_I2C_EEPROM_ADDR_OVERFLOW	0x07
 
-#define CFG_EEPROM_PAGE_WRITE_ENABLE	1	/* write eeprom in pages */
 #define CFG_EEPROM_PAGE_WRITE_BITS	4	/* 16 byte write page size */
 #define CFG_EEPROM_PAGE_WRITE_DELAY_MS	10	/* and takes up to 10 msec */
 
@@ -403,10 +402,10 @@
 #define CFG_FLASH_ERASE_TOUT	120000	/* Flash Erase Timeout (in ms)	*/
 #define CFG_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (in ms)	*/
 
-#define	CFG_ENV_IS_IN_FLASH	1
-#define	CFG_ENV_SIZE		0x40000	/* Total Size of Environment Sector */
-#define CFG_ENV_SECT_SIZE	0x40000	/* see README - env sect real size */
-#define	CFG_ENV_ADDR	(CFG_FLASH_BASE+CFG_MONITOR_LEN-CFG_ENV_SECT_SIZE)
+#define	CONFIG_ENV_IS_IN_FLASH	1
+#define	CONFIG_ENV_SIZE		0x40000	/* Total Size of Environment Sector */
+#define CONFIG_ENV_SECT_SIZE	0x40000	/* see README - env sect real size */
+#define	CONFIG_ENV_ADDR	(CFG_FLASH_BASE+CFG_MONITOR_LEN-CONFIG_ENV_SECT_SIZE)
 #define	CFG_USE_PPCENV			/* Environment embedded in sect .ppcenv */
 
 /*-----------------------------------------------------------------------

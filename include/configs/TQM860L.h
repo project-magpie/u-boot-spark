@@ -197,22 +197,24 @@
 
 /* use CFI flash driver */
 #define CFG_FLASH_CFI		1	/* Flash is CFI conformant */
-#define CFG_FLASH_CFI_DRIVER	1	/* Use the common driver */
+#define CONFIG_FLASH_CFI_DRIVER	1	/* Use the common driver */
 #define CFG_FLASH_BANKS_LIST	{ CFG_FLASH_BASE, CFG_FLASH_BASE+flash_info[0].size }
 #define CFG_FLASH_EMPTY_INFO
 #define CFG_FLASH_USE_BUFFER_WRITE	1
 #define CFG_MAX_FLASH_BANKS	2	/* max number of memory banks */
 #define CFG_MAX_FLASH_SECT	71	/* max number of sectors on one chip */
 
-#define	CFG_ENV_IS_IN_FLASH	1
-#define	CFG_ENV_OFFSET		0x8000	/*   Offset   of Environment Sector	*/
-#define	CFG_ENV_SIZE		0x4000	/* Total Size of Environment Sector	*/
+#define	CONFIG_ENV_IS_IN_FLASH	1
+#define	CONFIG_ENV_OFFSET		0x8000	/*   Offset   of Environment Sector	*/
+#define	CONFIG_ENV_SIZE		0x4000	/* Total Size of Environment Sector	*/
 
 /* Address and size of Redundant Environment Sector	*/
-#define CFG_ENV_OFFSET_REDUND	(CFG_ENV_OFFSET+CFG_ENV_SIZE)
-#define CFG_ENV_SIZE_REDUND	(CFG_ENV_SIZE)
+#define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET+CONFIG_ENV_SIZE)
+#define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 
 #define	CFG_USE_PPCENV			/* Environment embedded in sect .ppcenv */
+
+#define CONFIG_MISC_INIT_R		/* Make sure to remap flashes correctly */
 
 /*-----------------------------------------------------------------------
  * Dynamic MTD partition support
