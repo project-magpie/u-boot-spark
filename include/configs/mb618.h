@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008,2011 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -232,7 +232,7 @@
 /* M58LT256GT: 32MiB 259 blocks, 128 KiB block size */
 #ifndef CONFIG_CMD_NAND				/* NOR flash present ? */
 #	define CONFIG_CMD_JFFS2			/* enable JFFS2 support */
-#	define CFG_FLASH_CFI_DRIVER
+#	define CONFIG_FLASH_CFI_DRIVER
 #	define CFG_FLASH_CFI
 #	define CONFIG_FLASH_PROTECT_SINGLE_CELL
 #	define CONFIG_FLASH_SHOW_PROGRESS 45	/* count down from 45/5: 9..1		*/
@@ -282,18 +282,18 @@
  */
 
 #if 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
-#	define CFG_ENV_IS_IN_NAND		/* enviroment in NAND flash */
-#	define CFG_ENV_OFFSET	0		/* begining of NAND flash */
+#	define CONFIG_ENV_IS_IN_NAND		/* enviroment in NAND flash */
+#	define CONFIG_ENV_OFFSET	0		/* begining of NAND flash */
 #elif 1 && defined(CONFIG_CMD_FLASH)
-#	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
-#	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* After u-boot.bin */
+#	define CONFIG_ENV_IS_IN_FLASH		/* environment in NOR flash */
+#	define CONFIG_ENV_OFFSET	CFG_MONITOR_LEN	/* After u-boot.bin */
 #else
-#	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
+#	define CONFIG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
 #endif	/* CONFIG_CMD_NAND */
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + CFG_ENV_OFFSET)
-#define CFG_ENV_SIZE		0x10000
-#define CFG_ENV_SECT_SIZE	0x20000
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + CONFIG_ENV_OFFSET)
+#define CONFIG_ENV_SIZE		0x10000
+#define CONFIG_ENV_SECT_SIZE	0x20000
 
 /*----------------------------------------------------------------------
  * JFFS2 support

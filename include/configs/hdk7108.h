@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2011 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -301,7 +301,7 @@
 
 /* PC28Fxxx: 128MiB 1024 blocks, 128KiB block size */
 #ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
-#	define CFG_FLASH_CFI_DRIVER
+#	define CONFIG_FLASH_CFI_DRIVER
 #	define CFG_FLASH_CFI
 #	define CONFIG_FLASH_PROTECT_SINGLE_CELL
 #	define CONFIG_FLASH_SHOW_PROGRESS 45	/* count down from 45/5: 9..1		*/
@@ -453,24 +453,24 @@
  * Address, size, & location of U-boot's Environment Sector
  */
 
-#define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
+#define CONFIG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
 #if 1 && defined(CONFIG_CMD_FLASH)		/* NOR flash present ? */
-#	define CFG_ENV_IS_IN_FLASH		/* environment in NOR flash */
-#	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
-#	define CFG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
+#	define CONFIG_ENV_IS_IN_FLASH		/* environment in NOR flash */
+#	define CONFIG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
+#	define CONFIG_ENV_SECT_SIZE	0x20000	/* 128 KiB Sector size */
 #elif 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
-#	define CFG_ENV_IS_IN_NAND		/* environment in NAND flash */
-#	define CFG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
-#	if CFG_ENV_SIZE < 0x20000		/* needs to be a multiple of block-size */
-#		undef CFG_ENV_SIZE		/* give it just one large-page block */
-#		define CFG_ENV_SIZE	0x20000	/* 128 KiB of environment data */
-#	endif /* if CFG_ENV_SIZE < 0x20000 */
+#	define CONFIG_ENV_IS_IN_NAND		/* environment in NAND flash */
+#	define CONFIG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
+#	if CONFIG_ENV_SIZE < 0x20000		/* needs to be a multiple of block-size */
+#		undef CONFIG_ENV_SIZE		/* give it just one large-page block */
+#		define CONFIG_ENV_SIZE	0x20000	/* 128 KiB of environment data */
+#	endif /* if CONFIG_ENV_SIZE < 0x20000 */
 #elif 1 && defined(CONFIG_SPI_FLASH)		/* SPI serial flash present ? */
-#	define CFG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
-#	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
+#	define CONFIG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
+#	define CONFIG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #else
-#	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
+#	define CONFIG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
 #endif	/* CONFIG_CMD_NAND */
 

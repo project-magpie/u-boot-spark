@@ -5,7 +5,7 @@
  * (C) Copyright 2001 Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Andreas Heppel <aheppel@sysgo.de>
  *
- * (C) Copyright 2009,2010 STMicroelectronics Ltd.
+ * (C) Copyright 2009,2012 STMicroelectronics Ltd.
  * Sean McGoogan <Sean.McGoogan@st.com>
 
  * See file CREDITS for list of people who contributed to this
@@ -33,7 +33,7 @@
  * NOTE: For the ST40 series of SoCs, we use the "eeprom" set of
  * commands to access SPI serial flash memory devices.
  *
- * Hence we need to define CFG_ENV_IS_IN_EEPROM is we want the
+ * Hence we need to define CONFIG_ENV_IS_IN_EEPROM is we want the
  * environment stored in SPI serial flash.
  *
  * This file allows us to store U-boot's environment in SPI
@@ -61,7 +61,7 @@
  * stored in SPI, unless CFG_BOOT_FROM_SPI is also defined.
  */
 
-#if defined(CFG_ENV_IS_IN_EEPROM)
+#if defined(CONFIG_ENV_IS_IN_EEPROM)
 
 #include <command.h>
 #include <environment.h>
@@ -116,12 +116,12 @@ extern int env_init(void)
 	u32 *buf;		/* only do 32-bits per iteration */
 
 	/* read old CRC (from flash) */
-	crc = spiboot_get_u32(CFG_ENV_OFFSET + offsetof(env_t,crc));
+	crc = spiboot_get_u32(CONFIG_ENV_OFFSET + offsetof(env_t,crc));
 
 	/* compute current CRC */
 	new = 0;
 	len = ENV_SIZE;
-	off = CFG_ENV_OFFSET + offsetof(env_t,data);
+	off = CONFIG_ENV_OFFSET + offsetof(env_t,data);
 	while (len > 0)
 	{
 		int n = (len > sizeof(buf)) ? sizeof(buf) : len;
@@ -134,7 +134,7 @@ extern int env_init(void)
 	/* is the flash environment good ? */
 	if (crc == new)
 	{
-		gd->env_addr  = CFG_ENV_OFFSET + offsetof(env_t,data);
+		gd->env_addr  = CONFIG_ENV_OFFSET + offsetof(env_t,data);
 		gd->env_valid = 1;
 	}
 	else
@@ -180,7 +180,7 @@ extern int env_init_after_spi_done(void)
 
 	/* read old CRC */
 	eeprom_read (CFG_DEF_EEPROM_ADDR,
-		     CFG_ENV_OFFSET+offsetof(env_t,crc),
+		     CONFIG_ENV_OFFSET+offsetof(env_t,crc),
 		     (uchar *)&crc, sizeof(ulong));
 
 	new = 0;
@@ -189,7 +189,7 @@ extern int env_init_after_spi_done(void)
 	while (len > 0) {
 		int n = (len > sizeof(buf)) ? sizeof(buf) : len;
 
-		eeprom_read (CFG_DEF_EEPROM_ADDR, CFG_ENV_OFFSET+off, buf, n);
+		eeprom_read (CFG_DEF_EEPROM_ADDR, CONFIG_ENV_OFFSET+off, buf, n);
 		new = crc32 (new, buf, n);
 		len -= n;
 		off += n;
@@ -221,7 +221,7 @@ extern uchar env_get_char_spec (int index)
 		 * So the SPI is not yet initialized, so use the SPI-BOOT
 		 * controller to read the environment directly via the EMI.
 		 */
-		c = spiboot_get_byte(CFG_ENV_OFFSET + index);
+		c = spiboot_get_byte(CONFIG_ENV_OFFSET + index);
 	}
 	else
 #endif	/* CFG_BOOT_FROM_SPI */
@@ -232,7 +232,7 @@ extern uchar env_get_char_spec (int index)
 		 * to talk to the SPI serial flash device.
 		 */
 		eeprom_read (CFG_DEF_EEPROM_ADDR,
-			     CFG_ENV_OFFSET+index+offsetof(env_t,data),
+			     CONFIG_ENV_OFFSET+index+offsetof(env_t,data),
 			     &c, 1);
 	}
 
@@ -244,21 +244,21 @@ extern void env_relocate_spec (void)
 {
 	eeprom_read (
 		CFG_DEF_EEPROM_ADDR,
-		CFG_ENV_OFFSET,
+		CONFIG_ENV_OFFSET,
 		(uchar *)env_ptr,
-		CFG_ENV_SIZE);
+		CONFIG_ENV_SIZE);
 }
 
 
 extern int saveenv(void)
 {
 	return eeprom_write (CFG_DEF_EEPROM_ADDR,
-			     CFG_ENV_OFFSET,
+			     CONFIG_ENV_OFFSET,
 			     (uchar *)env_ptr,
-			     CFG_ENV_SIZE);
+			     CONFIG_ENV_SIZE);
 }
 
 
-#endif	/* CFG_ENV_IS_IN_EEPROM */
+#endif	/* CONFIG_ENV_IS_IN_EEPROM */
 
 

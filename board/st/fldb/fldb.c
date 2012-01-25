@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009-2010 STMicroelectronics.
+ * (C) Copyright 2009-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -204,7 +204,7 @@ extern int checkboard (void)
 #if defined(CONFIG_SPI)
 	/*
 	 * Configure for the SPI Serial Flash.
-	 * Note: for CFG_BOOT_FROM_SPI + CFG_ENV_IS_IN_EEPROM, this
+	 * Note: for CFG_BOOT_FROM_SPI + CONFIG_ENV_IS_IN_EEPROM, this
 	 * needs to be done after env_init(), hence it is done
 	 * here, and not in board_init().
 	 */

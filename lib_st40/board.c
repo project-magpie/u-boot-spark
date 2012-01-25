@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2010 STMicroelectronics.
+ * (C) Copyright 2004-2012 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -302,7 +302,7 @@ void start_sh4boot (void)
 #if defined(CONFIG_SPI)
 	puts ("SPI:  ");
 	spi_init ();		/* go init the SPI */
-#if defined(CFG_ENV_IS_IN_EEPROM) && !defined(CFG_BOOT_FROM_SPI)
+#if defined(CONFIG_ENV_IS_IN_EEPROM) && !defined(CFG_BOOT_FROM_SPI)
 	env_init_after_spi_done ();
 #endif
 #endif	/* defined(CONFIG_SPI) */

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2011 STMicroelectronics.
+ * (C) Copyright 2004-2012 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -814,7 +814,7 @@ sh_toggle_pmb_cacheability_offset:
 #endif	/* CONFIG_ST40_SE_MODE */
 
 
-#if defined(CFG_ENV_IS_IN_EEPROM)
+#if defined(CONFIG_ENV_IS_IN_EEPROM)
 	/*
 	 * The following is a hack to work around a awkward linker
 	 * dependency issue. We need to force "ld" to pull in the CPU
@@ -823,5 +823,5 @@ sh_toggle_pmb_cacheability_offset:
 	 * QQQ: try to solve this properly, or make it non-loadable!
 	 */
 	.long env_init	/* any reference to anything in "env_eeprom.o" */
-#endif /* CFG_ENV_IS_IN_EEPROM */
+#endif /* CONFIG_ENV_IS_IN_EEPROM */
 

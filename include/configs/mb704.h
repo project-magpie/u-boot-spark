@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009,2011 STMicroelectronics.
+ * (C) Copyright 2009-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -270,14 +270,14 @@
  * Address, size, & location of U-boot's Environment Sector
  */
 
-#define CFG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
+#define CONFIG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
 #if 1
-#	define CFG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
-#	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
+#	define CONFIG_ENV_IS_IN_EEPROM			/* ENV is stored in SPI Serial Flash */
+#	define CONFIG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #else
-#	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
-#	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
+#	define CONFIG_ENV_IS_NOWHERE			/* ENV is stored in volatile RAM */
+#	undef CONFIG_CMD_ENV				/* no need for "saveenv" */
 #endif
 
 #endif	/* __CONFIG_H */

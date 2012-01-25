@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2009,2011 STMicroelectronics.
+ * (C) Copyright 2007-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -235,7 +235,7 @@
  */
 
 /* M58LT256GT: 32MiB 259 blocks, 128 KiB block size plus parameter block */
-#define CFG_FLASH_CFI_DRIVER
+#define CONFIG_FLASH_CFI_DRIVER
 #define CFG_FLASH_CFI
 #define CONFIG_FLASH_PROTECT_SINGLE_CELL
 #define CONFIG_FLASH_SHOW_PROGRESS 45	/* count down from 45/5: 9..1		*/
@@ -248,10 +248,10 @@
  * Addresss, size, & location of U-boot's Environment Sector
  */
 
-#define CFG_ENV_IS_IN_FLASH	1
-#define CFG_ENV_OFFSET		CFG_MONITOR_LEN
-#define CFG_ENV_ADDR		(CFG_FLASH_BASE + CFG_ENV_OFFSET)
-#define CFG_ENV_SIZE		0x10000
-#define CFG_ENV_SECT_SIZE	0x20000
+#define CONFIG_ENV_IS_IN_FLASH	1
+#define CONFIG_ENV_OFFSET	CFG_MONITOR_LEN
+#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + CONFIG_ENV_OFFSET)
+#define CONFIG_ENV_SIZE		0x10000
+#define CONFIG_ENV_SECT_SIZE	0x20000
 
 #endif	/* __CONFIG_H */
