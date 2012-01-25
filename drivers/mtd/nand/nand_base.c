@@ -11,6 +11,7 @@
  *
  *  Copyright (C) 2000 Steven J. Hill (sjhill@realitydiluted.com)
  *		  2002-2006 Thomas Gleixner (tglx@linutronix.de)
+ *  Copyright (C) 2009-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  *  Credits:
  *	David Woodhouse for adding multichip support
@@ -1236,6 +1237,11 @@ static int nand_read(struct mtd_info *mtd, loff_t from, size_t len,
 
 	return ret;
 }
+extern int exported_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
+		     size_t *retlen, uint8_t *buf)
+{
+	return nand_read(mtd, from, len, retlen, buf);
+}
 
 /**
  * nand_read_oob_std - [REPLACABLE] the most common OOB data read function
@@ -1512,6 +1518,11 @@ static int nand_read_oob(struct mtd_info *mtd, loff_t from,
  out:
 	nand_release_device(mtd);
 	return ret;
+}
+extern int exported_nand_read_oob(struct mtd_info *mtd, loff_t from,
+			 struct mtd_oob_ops *ops)
+{
+	return nand_read_oob(mtd, from, ops);
 }
 
 
@@ -1872,6 +1883,11 @@ static int nand_write(struct mtd_info *mtd, loff_t to, size_t len,
 
 	return ret;
 }
+extern int exported_nand_write(struct mtd_info *mtd, loff_t to, size_t len,
+			  size_t *retlen, const uint8_t *buf)
+{
+	return nand_write(mtd, to, len, retlen, buf);
+}
 
 /**
  * nand_do_write_oob - [MTD Interface] NAND write out-of-band
@@ -1994,6 +2010,11 @@ static int nand_write_oob(struct mtd_info *mtd, loff_t to,
  out:
 	nand_release_device(mtd);
 	return ret;
+}
+extern int exported_nand_write_oob(struct mtd_info *mtd, loff_t to,
+			  struct mtd_oob_ops *ops)
+{
+	return nand_write_oob(mtd, to, ops);
 }
 
 /**
@@ -2708,10 +2729,15 @@ int nand_scan_tail(struct mtd_info *mtd)
 	mtd->erase = nand_erase;
 	mtd->point = NULL;
 	mtd->unpoint = NULL;
-	mtd->read = nand_read;
-	mtd->write = nand_write;
-	mtd->read_oob = nand_read_oob;
-	mtd->write_oob = nand_write_oob;
+	/* allow board-specific init to overwrite some MTD functions */
+	if (!mtd->read)
+		mtd->read = nand_read;
+	if (!mtd->write)
+		mtd->write = nand_write;
+	if (!mtd->read_oob)
+		mtd->read_oob = nand_read_oob;
+	if (!mtd->write_oob)
+		mtd->write_oob = nand_write_oob;
 	mtd->sync = nand_sync;
 	mtd->lock = NULL;
 	mtd->unlock = NULL;

@@ -49,12 +49,14 @@ extern void nand_release (struct mtd_info *mtd);
 extern void nand_wait_ready(struct mtd_info *mtd);
 
 /* read/write with ECC functions */
-extern int nand_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
-			  size_t * retlen, u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel);
-extern int nand_read_oob (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf);
-extern int nand_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
-			   size_t * retlen, const u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel);
-extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char *buf);
+extern int exported_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
+		     size_t *retlen, uint8_t *buf);
+extern int exported_nand_read_oob(struct mtd_info *mtd, loff_t from,
+			 struct mtd_oob_ops *ops);
+extern int exported_nand_write(struct mtd_info *mtd, loff_t to, size_t len,
+			  size_t *retlen, const uint8_t *buf);
+extern int exported_nand_write_oob(struct mtd_info *mtd, loff_t to,
+			  struct mtd_oob_ops *ops);
 
 /* The maximum number of NAND chips in an array */
 #ifndef NAND_MAX_CHIPS
