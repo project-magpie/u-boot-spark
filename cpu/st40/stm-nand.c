@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2011 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -70,6 +70,12 @@
 #	define CFG_STM_NAND_AFM4_ECC_WITH_AFM		1	/* Enable "AFM" tagging */
 #endif	/* CFG_STM_NAND_AFM4_ECC_WITH_AFM */
 
+#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+#	define ECC_BYTES			(3 + 1)		/* ECC 3+1/128, '+1' for 'B' tag */
+#else	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#	define ECC_BYTES			(3)		/* ECC 3/128 */
+#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+
 
 /*
  * Define the bad/good block scan pattern which are used while scanning
@@ -113,7 +119,7 @@ static struct nand_bbt_descr stm_nand_badblock_pattern_64 = {
 #if defined(CFG_NAND_ECC_HW3_128) || defined(CFG_NAND_ECC_AFM4)
 
 
-static void stm_nand_enable_hwecc (
+static void stm_nand_hwctl (
 	struct mtd_info *mtd,
 	int mode)
 {
@@ -121,7 +127,7 @@ static void stm_nand_enable_hwecc (
 }
 
 
-static int stm_nand_calculate_ecc (
+static int stm_nand_calculate (
 	struct mtd_info * const mtd,
 	const u_char * const dat,
 	u_char * const ecc_code)
@@ -137,7 +143,7 @@ static int stm_nand_calculate_ecc (
 	}
 	else
 #if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" */
-	if (this->eccmode==NAND_ECC_HW3_128)
+	if (this->ecc.mode==NAND_ECC_HW && this->ecc.size==128 && this->ecc.bytes==ECC_BYTES)
 	{	/* calculate 3 ECC bytes per 128 bytes of data */
 		const ecc_t computed_ecc = ecc_gen(dat, ECC_128);
 		/* poke them into the right place */
@@ -151,7 +157,7 @@ static int stm_nand_calculate_ecc (
 	else
 #endif /* CFG_NAND_ECC_HW3_128 */
 #if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
-	if (this->eccmode==NAND_ECC_HW7_512)
+	if (this->ecc.mode==NAND_ECC_HW && this->ecc.size==512 && this->ecc.bytes==7)
 	{	/* calculate 3 ECC bytes per 512 bytes of data */
 		const ecc_t computed_ecc = ecc_gen(dat, ECC_512);
 		/* poke them into the right place */
@@ -167,8 +173,8 @@ static int stm_nand_calculate_ecc (
 	else
 #endif /* CFG_NAND_ECC_AFM4 */
 	{
-		printf("ERROR: Can not calculate ECC: Internal Error (eccmode=%u)\n",
-			this->eccmode);
+		printf("ERROR: Can not calculate ECC: Internal Error (mode=%u,size=%u,bytes=%u)\n",
+			this->ecc.mode, this->ecc.size, this->ecc.bytes);
 		BUG();
 		return -1;	/* Note: caller ignores this value! */
 	}
@@ -177,7 +183,7 @@ static int stm_nand_calculate_ecc (
 }
 
 
-static int stm_nand_correct_data (
+static int stm_nand_correct (
 	struct mtd_info *mtd,
 	u_char *dat,
 	u_char *read_ecc,
@@ -189,7 +195,7 @@ static int stm_nand_correct_data (
 	enum ecc_size ecc_size;
 
 #if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" */
-	if (this->eccmode==NAND_ECC_HW3_128)
+	if (this->ecc.mode==NAND_ECC_HW && this->ecc.size==128 && this->ecc.bytes==ECC_BYTES)
 	{
 		/* do we need to try and correct anything ? */
 		if (    (read_ecc[0] == calc_ecc[0]) &&
@@ -229,7 +235,7 @@ static int stm_nand_correct_data (
 	else
 #endif /* CFG_NAND_ECC_HW3_128 */
 #if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
-	if (this->eccmode==NAND_ECC_HW7_512)
+	if (this->ecc.mode==NAND_ECC_HW && this->ecc.size==512 && this->ecc.bytes==7)
 	{
 		/*
 		 * Do we need to try and correct anything ?
@@ -282,8 +288,8 @@ static int stm_nand_correct_data (
 	else
 #endif /* CFG_NAND_ECC_AFM4 */
 	{
-		printf("ERROR: Can not correct ECC: Internal Error (eccmode=%u)\n",
-			this->eccmode);
+		printf("ERROR: Can not calculate ECC: Internal Error (mode=%u,size=%u,bytes=%u)\n",
+			this->ecc.mode, this->ecc.size, this->ecc.bytes);
 		BUG();
 		return -1;
 	}
@@ -333,8 +339,7 @@ static int stm_nand_correct_data (
 #ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
 
 	/* for SMALL-page devices */
-static struct nand_oobinfo stm_boot_oobinfo_16 = {
-	.useecc = MTD_NANDECC_AUTOPLACE,
+static struct nand_ecclayout stm_boot_ecclayout_16 = {
 #if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
 	.eccbytes = 16,			/* 16 out of 16 bytes = 100% of OOB */
 	.eccpos = {
@@ -355,8 +360,7 @@ static struct nand_oobinfo stm_boot_oobinfo_16 = {
 };
 
 	/* for LARGE-page devices */
-static struct nand_oobinfo stm_boot_oobinfo_64 = {
-	.useecc = MTD_NANDECC_AUTOPLACE,
+static struct nand_ecclayout stm_boot_ecclayout_64 = {
 #if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
 	.eccbytes = 64,			/* 64 out of 64 bytes = 100% of OOB */
 	.eccpos = {
@@ -428,22 +432,25 @@ static struct nand_oobinfo stm_boot_oobinfo_64 = {
  */
 struct stm_mtd_nand_ecc
 {
-	struct	/* holds differences in "struct nand_chip" */
+	struct		/* holds differences in "struct nand_chip" */
 	{
-		int			eccmode;
-		int			eccsize;
-		int			eccbytes;	/* for ECC + ID tags */
-		int			eccsteps;
-		struct nand_oobinfo	*autooob;
-		void (*enable_hwecc)(struct mtd_info *mtd, int mode);
-		int (*calculate_ecc)(struct mtd_info *, const u_char *, u_char *);
-		int (*correct_data)(struct mtd_info *, u_char *, u_char *, u_char *);
+		struct	/* holds differences in "struct nand_ecc_ctrl" */
+		{
+			int			mode;
+			int			size;
+			int			bytes;		/* for ECC + ID tags */
+			int			steps;
+			int			total;
+			struct nand_ecclayout	*layout;
+			void (*hwctl)(struct mtd_info *mtd, int mode);
+			int (*calculate)(struct mtd_info *, const u_char *, u_char *);
+			int (*correct)(struct mtd_info *, u_char *, u_char *, u_char *);
+		} ecc;
 	}	nand;
 	struct	/* holds differences in "struct mtd_info" */
 	{
 		u_int32_t		oobavail;
-		u_int32_t		eccsize;
-		struct nand_oobinfo	oobinfo;
+		struct nand_ecclayout	*ecclayout;
 	}	mtd;
 };
 
@@ -460,50 +467,52 @@ static void initialize_ecc_diffs (
 	const struct mtd_info * const mtd)
 {
 	const struct nand_chip * const this = (struct nand_chip *)(mtd->priv);
-	struct nand_oobinfo * autooob;
+	struct nand_ecclayout * layout = NULL;
 
 	/* choose the correct OOB info struct, depending on the OOB size */
-	if (mtd->oobsize > 16)
-		autooob = &stm_boot_oobinfo_64;	/* LARGE-page */
-	else
-		autooob = &stm_boot_oobinfo_16;	/* SMALL-page */
+	if (mtd->oobsize == 64)				/* large page device ? */
+		layout = &stm_boot_ecclayout_64;
+	else if (mtd->oobsize == 16)			/* small page device ? */
+		layout = &stm_boot_ecclayout_16;
+	else						/* unknown ? */
+		BUG();
 
-	BUG_ON (!this->calculate_ecc || !this->correct_data);
+	BUG_ON (!this->ecc.calculate || !this->ecc.correct);
 
 	/* fill in "default_ecc" from the current "live" (default) structures */
-	default_ecc.nand.eccmode	= this->eccmode;
-	default_ecc.nand.eccsize	= this->eccsize;
-	default_ecc.nand.eccbytes	= this->eccbytes;
-	default_ecc.nand.eccsteps	= this->eccsteps;
-	default_ecc.nand.autooob	= this->autooob;
-	default_ecc.nand.enable_hwecc	= this->enable_hwecc;
-	default_ecc.nand.calculate_ecc	= this->calculate_ecc;
-	default_ecc.nand.correct_data	= this->correct_data;
+	default_ecc.nand.ecc.mode	= this->ecc.mode;
+	default_ecc.nand.ecc.size	= this->ecc.size;
+	default_ecc.nand.ecc.bytes	= this->ecc.bytes;
+	default_ecc.nand.ecc.steps	= this->ecc.steps;
+	default_ecc.nand.ecc.total	= this->ecc.total;
+	default_ecc.nand.ecc.layout	= this->ecc.layout;
+	default_ecc.nand.ecc.hwctl	= this->ecc.hwctl;
+	default_ecc.nand.ecc.calculate	= this->ecc.calculate;
+	default_ecc.nand.ecc.correct	= this->ecc.correct;
 	default_ecc.mtd.oobavail	= mtd->oobavail;
-	default_ecc.mtd.eccsize		= mtd->eccsize;
-	memcpy(&default_ecc.mtd.oobinfo, &mtd->oobinfo, sizeof(struct nand_oobinfo));
+	default_ecc.mtd.ecclayout	= mtd->ecclayout;
 
 	/* fill in "special_ecc" for our special "hybrid" ECC paradigm */
-	special_ecc.nand.eccmode	= NAND_ECC_HW3_128;
-	special_ecc.nand.eccsize	= 128;
+	special_ecc.nand.ecc.mode	= NAND_ECC_HW;
+	special_ecc.nand.ecc.size	= 128;
 #if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
-	special_ecc.nand.eccbytes	= 3 + 1;	/* ECC 3+1/128, '+1' for 'B' */
+	special_ecc.nand.ecc.bytes	= 3 + 1;	/* ECC 3+1/128, '+1' for 'B' */
 #else	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
-	special_ecc.nand.eccbytes	= 3;		/* ECC 3/128 */
+	special_ecc.nand.ecc.bytes	= 3;		/* ECC 3/128 */
 #endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
-	special_ecc.nand.eccsteps	= mtd->oobblock / special_ecc.nand.eccsize;
-	special_ecc.nand.autooob	= autooob;
-	special_ecc.nand.enable_hwecc	= stm_nand_enable_hwecc;
-	special_ecc.nand.calculate_ecc	= stm_nand_calculate_ecc;
-	special_ecc.nand.correct_data	= stm_nand_correct_data;
+	special_ecc.nand.ecc.steps	= mtd->writesize / special_ecc.nand.ecc.size;
+	special_ecc.nand.ecc.total	= special_ecc.nand.ecc.steps * special_ecc.nand.ecc.bytes;
+	special_ecc.nand.ecc.layout	= layout;
+	special_ecc.nand.ecc.hwctl	= stm_nand_hwctl;
+	special_ecc.nand.ecc.calculate	= stm_nand_calculate;
+	special_ecc.nand.ecc.correct	= stm_nand_correct;
 	if (this->options & NAND_BUSWIDTH_16) {
-		special_ecc.mtd.oobavail= mtd->oobsize - (autooob->eccbytes + 2);
+		special_ecc.mtd.oobavail= mtd->oobsize - (layout->eccbytes + 2);
 		special_ecc.mtd.oobavail= special_ecc.mtd.oobavail & ~0x01;
 	} else {
-		special_ecc.mtd.oobavail= mtd->oobsize - (autooob->eccbytes + 1);
+		special_ecc.mtd.oobavail= mtd->oobsize - (layout->eccbytes + 1);
 	}
-	special_ecc.mtd.eccsize		= special_ecc.nand.eccsize;
-	memcpy(&special_ecc.mtd.oobinfo, autooob, sizeof(struct nand_oobinfo));
+	special_ecc.mtd.ecclayout	= layout;
 }
 
 
@@ -517,27 +526,24 @@ static void set_ecc_diffs (
 {
 	struct nand_chip * const this = (struct nand_chip *)(mtd->priv);
 
-	this->eccmode		= diffs->nand.eccmode;
-	this->eccsize		= diffs->nand.eccsize;
-	this->eccbytes		= diffs->nand.eccbytes;
-	this->eccsteps		= diffs->nand.eccsteps;
-	this->autooob		= diffs->nand.autooob;
-	this->enable_hwecc	= diffs->nand.enable_hwecc;
-	this->calculate_ecc	= diffs->nand.calculate_ecc;
-	this->correct_data	= diffs->nand.correct_data;
+	this->ecc.mode		= diffs->nand.ecc.mode;
+	this->ecc.size		= diffs->nand.ecc.size;
+	this->ecc.bytes		= diffs->nand.ecc.bytes;
+	this->ecc.steps		= diffs->nand.ecc.steps;
+	this->ecc.total		= diffs->nand.ecc.total;
+	this->ecc.layout	= diffs->nand.ecc.layout;
+	this->ecc.hwctl		= diffs->nand.ecc.hwctl;
+	this->ecc.calculate	= diffs->nand.ecc.calculate;
+	this->ecc.correct	= diffs->nand.ecc.correct;
 
 	mtd->oobavail		= diffs->mtd.oobavail;
-	mtd->eccsize		= diffs->mtd.eccsize;
-	memcpy(&mtd->oobinfo, &diffs->mtd.oobinfo, sizeof(struct nand_oobinfo));
-
-	/* also, we need to reinitialize oob_buf */
-	this->oobdirty		= 1;
+	mtd->ecclayout		= diffs->mtd.ecclayout;
 
 #if VERBOSE_ECC
 	printf("info: switching to NAND \"%s\" ECC (%u/%u)\n",
 		(diffs==&special_ecc) ? "BOOT-mode" : "NON-boot-mode",
-		this->eccbytes,
-		this->eccsize);
+		this->ecc.bytes,
+		this->ecc.size);
 #endif	/* VERBOSE_ECC */
 }
 
@@ -558,14 +564,14 @@ static int set_ecc_mode (
 	/* do we need to switch ECC mode ? */
 	if ( addr >= CFG_NAND_STM_BOOT_MODE_BOUNDARY )
 	{	/* entire range is *not* in "boot-mode" (i.e. default ECC) */
-		if (this->eccmode == NAND_ECC_HW3_128)
+		if (this->ecc.mode==NAND_ECC_HW && this->ecc.size==128 && this->ecc.bytes==ECC_BYTES)
 		{	/* we are in the wrong ECC mode, so change */
 			set_ecc_diffs (mtd, &default_ecc);
 		}
 	}
 	else if ( addr + len <= CFG_NAND_STM_BOOT_MODE_BOUNDARY )
 	{	/* entire range is in "boot-mode" (i.e. 3 bytes of ECC per 128 record */
-		if (this->eccmode != NAND_ECC_HW3_128)
+		if (!(this->ecc.mode==NAND_ECC_HW && this->ecc.size==128 && this->ecc.bytes==ECC_BYTES))
 		{	/* we are in the wrong ECC mode, so change */
 			set_ecc_diffs (mtd, &special_ecc);
 		}
@@ -592,44 +598,25 @@ static int stm_boot_read (struct mtd_info *mtd, loff_t from, size_t len, size_t 
 	}
 	else
 	{
-		result = nand_read_ecc (mtd, from, len, retlen, buf, NULL, NULL);
+		result = exported_nand_read (mtd, from, len, retlen, buf);
 	}
 
 	return result;
 }
 
 
-static int stm_boot_read_ecc (struct mtd_info *mtd, loff_t from, size_t len,
-	size_t * retlen, u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel)
+static int stm_boot_read_oob (struct mtd_info *mtd, loff_t from, struct mtd_oob_ops *ops)
 {
 	int result;
 
-	result = set_ecc_mode (mtd, from, len);
+	result = set_ecc_mode (mtd, from, ops->len);
 	if (result != 0)
 	{
-		*retlen = 0;
+		ops->retlen = 0;
 	}
 	else
 	{
-		result = nand_read_ecc (mtd, from, len, retlen, buf, eccbuf, oobsel);
-	}
-
-	return result;
-}
-
-
-static int stm_boot_read_oob (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf)
-{
-	int result;
-
-	result = set_ecc_mode (mtd, from, len);
-	if (result != 0)
-	{
-		*retlen = 0;
-	}
-	else
-	{
-		result = nand_read_oob (mtd, from, len, retlen, buf);
+		result = exported_nand_read_oob (mtd, from, ops);
 	}
 
 	return result;
@@ -647,44 +634,25 @@ static int stm_boot_write (struct mtd_info *mtd, loff_t to, size_t len, size_t *
 	}
 	else
 	{
-		result = nand_write_ecc (mtd, to, len, retlen, buf, NULL, NULL);
+		result = exported_nand_write (mtd, to, len, retlen, buf);
 	}
 
 	return result;
 }
 
 
-static int stm_boot_write_ecc (struct mtd_info *mtd, loff_t to, size_t len,
-	size_t * retlen, const u_char * buf, u_char * eccbuf, struct nand_oobinfo *oobsel)
+static int stm_boot_write_oob (struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops)
 {
 	int result;
 
-	result = set_ecc_mode (mtd, to, len);
+	result = set_ecc_mode (mtd, to, ops->len);
 	if (result != 0)
 	{
-		*retlen = 0;
+		ops->retlen = 0;
 	}
 	else
 	{
-		result = nand_write_ecc (mtd, to, len, retlen, buf, eccbuf, oobsel);
-	}
-
-	return result;
-}
-
-
-static int stm_boot_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t * retlen, const u_char *buf)
-{
-	int result;
-
-	result = set_ecc_mode (mtd, to, len);
-	if (result != 0)
-	{
-		*retlen = 0;
-	}
-	else
-	{
-		result = nand_write_oob (mtd, to, len, retlen, buf);
+		result = exported_nand_write_oob (mtd, to, ops);
 	}
 
 	return result;
@@ -705,8 +673,7 @@ static int stm_boot_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size
 
 
 	/* for SMALL-page devices */
-static struct nand_oobinfo stm_afm4_oobinfo_16 = {
-	.useecc = MTD_NANDECC_AUTOPLACE,
+static struct nand_ecclayout stm_afm4_ecclayout_16 = {
 	.eccbytes = 7,			/* 7 out of 16 bytes of OOB */
 	.eccpos = {			/* { HW_ECC0, HW_ECC1, HW_ECC2, 'A', 'F', 'M', SW_ECC } */
 		0, 1, 2, 3, 4, 5, 6,	/* 512-byte Record 0 */
@@ -715,8 +682,7 @@ static struct nand_oobinfo stm_afm4_oobinfo_16 = {
 };
 
 	/* for LARGE-page devices */
-static struct nand_oobinfo stm_afm4_oobinfo_64 = {
-	.useecc = MTD_NANDECC_AUTOPLACE,
+static struct nand_ecclayout stm_afm4_ecclayout_64 = {
 	.eccbytes = 28,			/* 28 out of 64 bytes of OOB */
 	.eccpos = {			/* { HW_ECC0, HW_ECC1, HW_ECC2, 'A', 'F', 'M', SW_ECC } */
 		0,   1,  2,  3,  4,  5,  6,	/* 512-byte Record 0 */
@@ -784,9 +750,11 @@ extern void stm_default_board_nand_init(
 	nand->priv = NULL;
 
 #if defined(CFG_NAND_ECC_AFM4)		/* for STM AFM4 ECC compatibility */
-	nand->eccmode       = NAND_ECC_HW7_512;	/* comptable with AFM4 (4+3/512) ECC */
+	nand->ecc.mode      = NAND_ECC_HW;	/* comptable with AFM4 (4+3/512) ECC */
+	nand->ecc.size      = 512;
+	nand->ecc.bytes     = 7;
 #else
-	nand->eccmode       = NAND_ECC_SOFT;	/* default is S/W 3/256 ECC */
+	nand->ecc.mode      = NAND_ECC_SOFT;	/* default is S/W 3/256 ECC */
 #endif /* CFG_NAND_ECC_AFM4 */
 	nand->options       = NAND_NO_AUTOINCR;
 #if 1	/* Enable to use a NAND-resident (non-volatile) Bad Block Table (BBT) */
@@ -805,16 +773,14 @@ extern void stm_default_board_nand_init(
 #if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" ECC */
 	mtd->read           = stm_boot_read;
 	mtd->write          = stm_boot_write;
-	mtd->read_ecc       = stm_boot_read_ecc;
-	mtd->write_ecc      = stm_boot_write_ecc;
 	mtd->read_oob       = stm_boot_read_oob;
 	mtd->write_oob      = stm_boot_write_oob;
 #endif /* CFG_NAND_ECC_HW3_128 */
 
 #if defined(CFG_NAND_ECC_AFM4)		/* for STM AFM4 ECC compatibility */
-	nand->enable_hwecc  = stm_nand_enable_hwecc;
-	nand->correct_data  = stm_nand_correct_data;
-	nand->calculate_ecc = stm_nand_calculate_ecc;
+	nand->ecc.hwctl     = stm_nand_hwctl;
+	nand->ecc.correct   = stm_nand_correct;
+	nand->ecc.calculate = stm_nand_calculate;
 #endif /* CFG_NAND_ECC_AFM4 */
 
 	/*
@@ -837,9 +803,9 @@ extern void stm_nand_chip_init(
 	struct nand_chip * const nand = mtd->priv;
 
 	if (mtd->oobsize == 64)				/* large page device ? */
-		nand->autooob = &stm_afm4_oobinfo_64;
+		nand->ecc.layout = &stm_afm4_ecclayout_64;
 	else if (mtd->oobsize == 16)			/* small page device ? */
-		nand->autooob = &stm_afm4_oobinfo_16;
+		nand->ecc.layout = &stm_afm4_ecclayout_16;
 	else						/* unknown ? */
 		BUG();
 #endif /* CFG_NAND_ECC_AFM4 */

@@ -63,13 +63,6 @@ extern int exported_nand_write_oob(struct mtd_info *mtd, loff_t to,
 #define NAND_MAX_CHIPS		8
 #endif
 
-/* This constant declares the max. oobsize / page, which
- * is supported now. If you add a chip with bigger oobsize/page
- * adjust this accordingly.
- */
-#define NAND_MAX_OOBSIZE	128
-#define NAND_MAX_PAGESIZE	4096
-
 /*
  * Constants for hardware specific CLE/ALE/NCE function
  *

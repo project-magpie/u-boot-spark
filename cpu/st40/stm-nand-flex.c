@@ -388,52 +388,6 @@ static u_char stm_flex_read_byte(
 
 
 /**
- * nand_write_byte - [DEFAULT] write one byte to the chip
- * @mtd:	MTD device structure
- * @byte:	pointer to data byte to write
- */
-static void stm_flex_write_byte(
-	struct mtd_info * const mtd,
-	u_char byte)
-{
-	u_int32_t reg;
-
-#if DEBUG_FLEX
-	printf("\t\t\t\t\t\t\t\t\tWRITE = 0x%02x\t%s\n", byte,
-		(flex.mode==flex_command) ? "command" :
-		((flex.mode==flex_address) ? "address" : "*UNKNOWN*"));
-#endif
-
-	switch (flex.mode)
-	{
-		case flex_command:
-			reg = byte | FLEX_BEAT_COUNT_1;
-			reg |= FLEX_CSn_STATUS;	/* deassert CSn after each flex command write */
-#if 0
-			reg |= FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
-#endif
-			*ST40_EMI_NAND_FLEX_CMD = reg;
-			break;
-
-		case flex_address:
-			reg = byte | FLEX_BEAT_COUNT_1;
-			reg |= FLEX_CSn_STATUS;	/* deassert CSn after each flex address write */
-#if 0
-			reg |= FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
-#endif
-			*ST40_EMI_NAND_FLEX_ADD_REG = reg;
-#if 0			/* QQQ: do we need this - I think not! */
-			while (!nand_device_ready()) ;	/* wait till NAND is ready */
-#endif
-			break;
-
-		default:
-			BUG();
-	}
-}
-
-
-/**
  * nand_read_buf - [DEFAULT] read chip data into buffer
  * @mtd:	MTD device structure
  * @buf:	buffer to store data
@@ -711,7 +665,6 @@ extern void stm_flex_init_nand(
 	nand->dev_ready   = stm_flex_device_ready;
 	nand->cmd_ctrl    = stm_flex_cmd_ctrl;
 	nand->read_byte   = stm_flex_read_byte;
-	nand->write_byte  = stm_flex_write_byte;
 	nand->read_buf    = stm_flex_read_buf;
 	nand->write_buf   = stm_flex_write_buf;
 }
