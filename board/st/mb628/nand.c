@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2006 DENX Software Engineering
- * (C) Copyright 2008-2011 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -35,27 +35,51 @@
  *	AL -> Emi_Addr(18)
  *	nCE is handled by EMI (not s/w controllable)
  */
-static void mb618_hwcontrol(struct mtd_info *mtdinfo, int cmd)
+static void mb628_cmd_ctrl (
+	struct mtd_info * const mtd,
+	const int byte,
+	const unsigned int ctrl)
 {
-	struct nand_chip* this = (struct nand_chip *)(mtdinfo->priv);
+	struct nand_chip * const this = (struct nand_chip *)(mtd->priv);
+	unsigned int addr = (unsigned int)this->IO_ADDR_W;
 
-	switch(cmd) {
+	if (ctrl & NAND_CTRL_CHANGE)			/* update the "control" lines ? */
+	{
+		if ( ctrl & NAND_CLE )			/* a COMMAND Cycle ? */
+		{
+#if defined(DEBUG_NAND_BIT_BANGING_CMD_CTRL)
+			printf("\t\t\t\t\t\t----START COMMAND----\n");
+			BUG_ON(ctrl & NAND_ALE);	/* just in case ... */
+#endif
+			addr |= (1u << 17);		/* set CLE */
+		}
+		else
+		{
+			addr &= ~(1u << 17);		/* clear CLE */
+		}
 
-	case NAND_CTL_SETCLE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W | (1u << 17));
-		break;
+		if ( ctrl & NAND_ALE )			/* an ADDRESS Cycle ? */
+		{
+#if defined(DEBUG_NAND_BIT_BANGING_CMD_CTRL)
+			printf("\t\t\t\t\t\t----START ADDRESS----\n");
+			BUG_ON(ctrl & NAND_CLE);	/* just in case ... */
+#endif
+			addr |= (1u << 18);		/* set ALE */
+		}
+		else
+		{
+			addr &= ~(1u << 18);		/* clear ALE */
+		}
 
-	case NAND_CTL_CLRCLE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W & ~(1u << 17));
-		break;
+		this->IO_ADDR_W = (void *)(addr);	/* now, store updated address back */
+	}
 
-	case NAND_CTL_SETALE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W | (1u << 18));
-		break;
-
-	case NAND_CTL_CLRALE:
-		this->IO_ADDR_W = (void *)((unsigned int)this->IO_ADDR_W & ~(1u << 18));
-		break;
+	if (byte != NAND_CMD_NONE)			/* write it ? */
+	{
+#if defined(DEBUG_NAND_BIT_BANGING_CMD_CTRL)
+		printf("\t\t\t\t\t\t----WRITING byte 0x%02x to 0x%08x ----\n", byte, addr);
+#endif
+		writeb(byte, addr);			/* write one byte */
 	}
 }
 
@@ -68,7 +92,7 @@ static void mb618_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 extern int board_nand_init(struct nand_chip * const nand)
 {
 		/* initialize for "bit-banging" */
-	stm_default_board_nand_init(nand, mb618_hwcontrol, NULL);
+	stm_default_board_nand_init(nand, mb628_cmd_ctrl, NULL);
 
 	nand->chip_delay = 25;
 

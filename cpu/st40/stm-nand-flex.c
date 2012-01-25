@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2011 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -57,13 +57,6 @@
 #define FLEX_CFG_CSn_STATUS		( 1u <<  4 )	/* Deasserts CSn in current Flex bank */
 
 
-enum stm_nand_flex_mode {
-	flex_quiecent,		/* next byte_write is *UNEXPECTED* */
-	flex_command,		/* next byte_write is a COMMAND */
-	flex_address		/* next byte_write is a ADDRESS */
-};
-
-
 /*
  * NAND device connected to STM NAND Controller operating in FLEX mode.
  * There may be several NAND device connected to the NAND controller.
@@ -83,7 +76,6 @@ struct stm_nand_flex_device {
 static struct stm_nand_flex_controller {
 	int			current_csn;	/* Currently Selected Device (CSn) */
 	int			next_csn;	/* First free NAND Device (CSn) */
-	enum stm_nand_flex_mode mode;
 	struct stm_nand_flex_device device[CFG_MAX_NAND_DEVICE];
 	uint8_t			*buf;		/* Bounce buffer for non-aligned xfers */
 } flex;
@@ -313,51 +305,54 @@ static void stm_flex_select_chip(
 }
 
 
-static void stm_flex_hwcontrol (
+static void stm_flex_cmd_ctrl (
 	struct mtd_info * const mtd,
-	int control)
+	const int byte,
+	const unsigned int ctrl)
 {
-	switch(control) {
+	u_int32_t reg;
 
-	case NAND_CTL_SETCLE:
+	if ( ctrl & NAND_CLE )			/* a COMMAND Cycle ? */
+	{
 #if DEBUG_FLEX
-		printf("\t\t\t\t\t\t----START COMMAND----\n");
-		if (flex.mode != flex_quiecent) BUG();
+		printf("\t\t\t\t\t\t----START COMMAND----  (byte=0x%02x)\n", byte);
+		BUG_ON(ctrl & NAND_ALE);	/* just in case ... */
+		BUG_ON(byte == NAND_CMD_NONE);	/* just in case ... */
 #endif
-		flex.mode = flex_command;
-		break;
-
+		reg = (byte & 0xFFu) | FLEX_BEAT_COUNT_1;
+		reg |= FLEX_CSn_STATUS;		/* deassert CSn after each flex command write */
+		*ST40_EMI_NAND_FLEX_CMD = reg;
+	}
+	else if ( ctrl & NAND_ALE )		/* an ADDRESS Cycle ? */
+	{
 #if DEBUG_FLEX
-	case NAND_CTL_CLRCLE:
-		printf("\t\t\t\t\t\t---- end  command----\n");
-		if (flex.mode != flex_command) BUG();
-		flex.mode = flex_quiecent;
-		break;
+		printf("\t\t\t\t\t\t----ADDRESS CYCLE----  (byte=0x%02x)\n", byte);
+		BUG_ON(ctrl & NAND_CLE);	/* just in case ... */
+		BUG_ON(byte == NAND_CMD_NONE);	/* just in case ... */
 #endif
-
-	case NAND_CTL_SETALE:
+		reg = (byte & 0xFFu) | FLEX_BEAT_COUNT_1;
+		reg |= FLEX_CSn_STATUS;		/* deassert CSn after each flex address write */
+		*ST40_EMI_NAND_FLEX_ADD_REG = reg;
+	}
+	else if (ctrl & NAND_CTRL_CHANGE)	/* only update the "control" lines ? */
+	{
+		/* for FLEX-mode, it now looks like nothing to do here! */
 #if DEBUG_FLEX
-		printf("\t\t\t\t\t\t----START ADDRESS----\n");
-		if (flex.mode != flex_quiecent) BUG();
+		printf("\t\t\t\t\t\t----IDLE----\n");
+		BUG_ON(ctrl & NAND_CLE);	/* just in case ... */
+		BUG_ON(ctrl & NAND_ALE);	/* just in case ... */
+		BUG_ON(byte != NAND_CMD_NONE);	/* just in case ... */
 #endif
-		flex.mode = flex_address;
-		break;
-
+	}
+	else					/* else, Errrrr? */
+	{
 #if DEBUG_FLEX
-	case NAND_CTL_CLRALE:
-		printf("\t\t\t\t\t\t---- end  address----\n");
-		if (flex.mode != flex_address) BUG();
-		flex.mode = flex_quiecent;
-		break;
-#endif
-
-#if DEBUG_FLEX
-	default:
-		printf("ERROR: Unexpected parameter (control=0x%x) in %s()\n",
-			control,
+		printf("ERROR: Unexpected arguments (byte=0x%x, ctrl=0x%x) in %s()\n",
+			byte,
+			ctrl,
 			__FUNCTION__);
-		BUG();
 #endif
+		BUG();
 	}
 }
 
@@ -672,7 +667,6 @@ extern void stm_flex_init_nand(
 	/* initialize the FLEX mode controller H/W */
 	init_flex_mode();
 	/* initialize the "flex" software structure */
-	flex.mode          = flex_quiecent;	/* nothing pending */
 	flex.current_csn   = -1;		/* no NAND device selected */
 						/* allocate a bounce buffer */
 	flex.buf = malloc(NAND_MAX_PAGESIZE + NAND_MAX_OOBSIZE);
@@ -715,7 +709,7 @@ extern void stm_flex_init_nand(
 	 */
 	nand->select_chip = stm_flex_select_chip;
 	nand->dev_ready   = stm_flex_device_ready;
-	nand->hwcontrol   = stm_flex_hwcontrol;
+	nand->cmd_ctrl    = stm_flex_cmd_ctrl;
 	nand->read_byte   = stm_flex_read_byte;
 	nand->write_byte  = stm_flex_write_byte;
 	nand->read_buf    = stm_flex_read_buf;

@@ -773,7 +773,7 @@ static int stm_nand_default_bbt (struct mtd_info * const mtd)
 
 extern void stm_default_board_nand_init(
 	struct nand_chip * const nand,
-	void (*hwcontrol)(struct mtd_info *mtdinfo, int cmd),
+	void (*cmd_ctrl)(struct mtd_info *mtdinfo, int dat, unsigned int ctrl),
 	int (*dev_ready)(struct mtd_info *mtd))
 {
 #if defined(CFG_NAND_FLEX_MODE) || defined(CFG_NAND_ECC_HW3_128)
@@ -798,7 +798,7 @@ extern void stm_default_board_nand_init(
 #if defined(CFG_NAND_FLEX_MODE)		/* for STM "flex-mode" (c.f. "bit-banging") */
 	stm_flex_init_nand(mtd, nand);
 #else					/* for "bit-banging" (c.f. STM "flex-mode")  */
-	nand->hwcontrol     = hwcontrol;
+	nand->cmd_ctrl      = cmd_ctrl;
 	nand->dev_ready     = dev_ready;
 #endif /* CFG_NAND_FLEX_MODE */
 

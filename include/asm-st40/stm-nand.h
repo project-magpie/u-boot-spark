@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2011 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -31,7 +31,7 @@ struct mtd_info;	/* defined elsewhere */
 
 extern void stm_default_board_nand_init(
 	struct nand_chip * const nand,
-	void (*hwcontrol)(struct mtd_info *mtdinfo, int cmd),
+	void (*cmd_ctrl)(struct mtd_info *mtdinfo, int dat, unsigned int ctrl),
 	int (*dev_ready)(struct mtd_info *mtd));
 
 extern void stm_flex_init_nand(
