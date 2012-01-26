@@ -310,7 +310,6 @@ static int bootm_load_os(image_info_t os, ulong *load_end, int boot_progress)
 		*load_end = load + image_len;
 		break;
 	case IH_COMP_GZIP:
-		printf ("   Uncompressing %s ... ", type_name);
 #if defined(CONFIG_ST40)
 {
 		const uchar * const isizep =		/* pointer to ISIZE */
@@ -356,10 +355,10 @@ static int bootm_load_os(image_info_t os, ulong *load_end, int boot_progress)
 		}
 
 #if 0
-		printf ("info: Cload = 0x%8x\n", PHYSADDR(Cload));
-		printf ("info: Cend  = 0x%8x\n", PHYSADDR(Cend) );
-		printf ("info: Uload = 0x%8x\n", PHYSADDR(Uload));
-		printf ("info: Uend  = 0x%8x\n", PHYSADDR(Uend) );
+		printf ("info: Cload = 0x%08lx\n", PHYSADDR(Cload));
+		printf ("info: Cend  = 0x%08lx\n", PHYSADDR(Cend) );
+		printf ("info: Uload = 0x%08lx\n", PHYSADDR(Uload));
+		printf ("info: Uend  = 0x%08lx\n", PHYSADDR(Uend) );
 		printf ("info: Cload > Uend = %d\n", PHYSADDR(Cload) > PHYSADDR(Uend) );
 		printf ("info: Uload > Cend = %d\n", PHYSADDR(Uload) > PHYSADDR(Cend) );
 #endif
@@ -374,6 +373,7 @@ static int bootm_load_os(image_info_t os, ulong *load_end, int boot_progress)
 		unc_len = Usize;	/* we now know that it will fit okay */
 }
 #endif	/* CONFIG_ST40 */
+		printf ("   Uncompressing %s ... ", type_name);
 		if (gunzip ((void *)load, unc_len,
 					(uchar *)image_start, &image_len) != 0) {
 			puts ("GUNZIP: uncompress or overwrite error "
