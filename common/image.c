@@ -1012,12 +1012,21 @@ int boot_ramdisk_high (struct lmb *lmb, ulong rd_data, ulong rd_len,
 	int	initrd_copy_to_ram = 1;
 
 	if ((s = getenv ("initrd_high")) != NULL) {
-		/* a value of "no" or a similar string will act like 0,
+		/*
+		 * Use the environment variable "initrd_high" (if defined).
+		 * A value of "no" or a similar string will act like 0,
 		 * turning the "load high" feature off. This is intentional.
+		 * A value of 0xFFFFFFFF will force *no* relocation at all!
+		 * Otherwise, we set an upper-limit on the initrd relocation.
+		 * Note: it looks like we also need to avoid using the very
+		 * last page that linux sees, so adjust down by one page
+		 * when we use "initrd_high" as the upper limit - just in case!
 		 */
 		initrd_high = simple_strtoul (s, NULL, 16);
 		if (initrd_high == ~0)
 			initrd_copy_to_ram = 0;
+		else if (initrd_high != 0)
+			initrd_high -= 0x1000;	/* exclude the LAST 4KiB page */
 	} else {
 		/* not set, no restrictions to load high */
 		initrd_high = ~0;
