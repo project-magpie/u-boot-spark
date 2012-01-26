@@ -40,8 +40,6 @@
 #endif
 
 
-extern int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[]);
-
 #define PAGE_OFFSET 0x1000
 
 #define MOUNT_ROOT_RDONLY	((unsigned long *) (param+0x000))
@@ -68,11 +66,9 @@ extern void sh_toggle_pmb_cacheability(void);
 #define CURRENT_SE_MODE 29	/* 29-bit (Traditional) Mode */
 #endif	/* CONFIG_ST40_SE_MODE */
 
-void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
-		     bootm_headers_t *images)
+extern int do_bootm_linux (int flag, int argc, char *argv[], bootm_headers_t *images)
 {
-	ulong initrd_start, initrd_end, initrd_len;
-	ulong param, ep = 0, load = 0;
+	ulong param;
 	void (*theKernel) (void);
 	const char * const commandline = getenv ("bootargs");
 	int ret;
@@ -80,48 +76,23 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	size_t i;
 #endif	/* CONFIG_ST40_SE_MODE */
 
-	/* find kernel entry point */
-	if (images->legacy_hdr_valid) {
-		ep   = image_get_ep   (&images->legacy_hdr_os_copy);
-		load = image_get_load (&images->legacy_hdr_os_copy);
-#if defined(CONFIG_FIT)
-	} else if (images->fit_uname_os) {
-		ret = fit_image_get_entry (images->fit_hdr_os,
-				images->fit_noffset_os, &ep);
-		if (ret) {
-			puts ("Can't get entry point property!\n");
-			goto error;
-		}
-#endif
-	} else {
-		puts ("Could not find kernel entry point!\n");
-		goto error;
-	}
-	theKernel = (void (*)(void))ep;	/* The Kernel's Entry Point */
-	param = load;			/* The kernel's "parameter" block */
+	/* find kernel entry point + load address */
+	theKernel = (void (*)(void))images->ep;	/* The Kernel's Entry Point */
+	param     = (ulong)images->os.load;	/* The kernel's "parameter" block */
 
 	/*
 	 * Check if there is a valid initrd image
 	 */
-	ret = boot_get_ramdisk (argc, argv, images, IH_ARCH_SH,
-			&initrd_start, &initrd_end);
-	initrd_len = initrd_end - initrd_start /* + 1 */;
-	if (ret) {
-		/* a RAM disk was found, but was corrupt or invalid */
-		puts("RAM Disk invalid (or corrupt)!\n");
-		goto error;
-	}
-
-	if (initrd_start) {
+	if (images->rd_start && images->rd_end) {
 		/*
 		 * Copy the ramdisk image into place
-		 * initrd_start points to start of initrd image
-		 * initrd_end points to end of initrd image
-		 * initrd_len gives length of initrd image
+		 * initrd_start points to start of relocated initrd image
+		 * initrd_end points to end of relocated initrd image
 		 */
-		const ulong orig_start = initrd_start;
-		const ulong orig_len   = initrd_len;
-		struct lmb * const lmb = images->lmb;
+		const ulong orig_start   = images->rd_start;
+		const ulong initrd_len   = images->rd_end - images->rd_start /* +1 */;
+		struct lmb * const lmb   = &images->lmb;
+		ulong initrd_start, initrd_end;
 		ulong sp;	/* holds the stack pointer (R15) */
 
 		/* reserve all the memory from just below the SP to end of RAM */
@@ -135,7 +106,7 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 		SHOW_BOOT_PROGRESS (12);
 
 		/* relocate the initrd, honoring 'initrd_high' (if it exists) */
-		ret = boot_ramdisk_high(lmb, orig_start, orig_len,
+		ret = boot_ramdisk_high(lmb, orig_start, initrd_len,
 					&initrd_start, &initrd_end);
 		if (ret) {
 			puts("### Failed to relocate RAM disk\n");
@@ -310,9 +281,7 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	/* now, finally, we pass control to the kernel itself ... */
 	theKernel ();
 	/* does not return */
-	return;
 
 error:
-	do_reset (cmdtp, flag, argc, argv);
-	return;
+	return 1;
 }
