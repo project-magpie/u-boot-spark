@@ -2402,8 +2402,12 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		}
 	}
 
-	if (!type)
+	if (!type) {
+		/* dump out some of the interesting data we probed */
+		printf ("Unknown NAND (Manufacturer=0x%02X, DeviceID=0x%02X)\n",
+			*maf_id, dev_id);
 		return ERR_PTR(-ENODEV);
+	}
 
 	if (!mtd->name)
 		mtd->name = type->name;
