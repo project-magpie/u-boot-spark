@@ -1198,27 +1198,6 @@ static struct nand_bbt_descr bbt_mirror_descr = {
 	.pattern = mirror_pattern
 };
 
-/* BBT descriptors for (Micron) on-die ECC */
-static struct nand_bbt_descr bbt_main_descr_ode = {
-	.options = NAND_BBT_LASTBLOCK | NAND_BBT_CREATE | NAND_BBT_WRITE
-		| NAND_BBT_2BIT | NAND_BBT_VERSION | NAND_BBT_PERCHIP,
-	.offs =	8 + 8,		/* need to shift by 8 due to on-die ECC */
-	.len = 4,
-	.veroffs = 12 + 8,	/* need to shift by 8 due to on-die ECC */
-	.maxblocks = 4,
-	.pattern = bbt_pattern
-};
-
-static struct nand_bbt_descr bbt_mirror_descr_ode = {
-	.options = NAND_BBT_LASTBLOCK | NAND_BBT_CREATE | NAND_BBT_WRITE
-		| NAND_BBT_2BIT | NAND_BBT_VERSION | NAND_BBT_PERCHIP,
-	.offs =	8 + 8,		/* need to shift by 8 due to on-die ECC */
-	.len = 4,
-	.veroffs = 12 + 8,	/* need to shift by 8 due to on-die ECC */
-	.maxblocks = 4,
-	.pattern = mirror_pattern
-};
-
 /**
  * nand_default_bbt - [NAND Interface] Select a default bad block table for the device
  * @mtd:	MTD device structure
@@ -1241,16 +1220,8 @@ int nand_default_bbt(struct mtd_info *mtd)
 	if (this->options & NAND_IS_AND) {
 		/* Use the default pattern descriptors */
 		if (!this->bbt_td) {
-			if (this->is_on_die_ecc)
-			{
-				this->bbt_td = &bbt_main_descr_ode;
-				this->bbt_md = &bbt_mirror_descr_ode;
-			}
-			else
-			{
-				this->bbt_td = &bbt_main_descr;
-				this->bbt_md = &bbt_mirror_descr;
-			}
+			this->bbt_td = &bbt_main_descr;
+			this->bbt_md = &bbt_mirror_descr;
 		}
 		this->options |= NAND_USE_FLASH_BBT;
 		return nand_scan_bbt(mtd, &agand_flashbased);
@@ -1260,16 +1231,8 @@ int nand_default_bbt(struct mtd_info *mtd)
 	if (this->options & NAND_USE_FLASH_BBT) {
 		/* Use the default pattern descriptors */
 		if (!this->bbt_td) {
-			if (this->is_on_die_ecc)
-			{
-				this->bbt_td = &bbt_main_descr_ode;
-				this->bbt_md = &bbt_mirror_descr_ode;
-			}
-			else
-			{
-				this->bbt_td = &bbt_main_descr;
-				this->bbt_md = &bbt_mirror_descr;
-			}
+			this->bbt_td = &bbt_main_descr;
+			this->bbt_md = &bbt_mirror_descr;
 		}
 		if (!this->badblock_pattern) {
 			this->badblock_pattern = (mtd->writesize > 512) ? &largepage_flashbased : &smallpage_flashbased;

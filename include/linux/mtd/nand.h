@@ -95,7 +95,6 @@ extern int exported_nand_write_oob(struct mtd_info *mtd, loff_t to,
 #define NAND_CMD_RNDIN		0x85
 #define NAND_CMD_READID		0x90
 #define NAND_CMD_ERASE2		0xd0
-#define NAND_CMD_SETFEATURES	0xef
 #define NAND_CMD_RESET		0xff
 
 /* Extended commands for large page devices */
@@ -130,9 +129,6 @@ extern int exported_nand_write_oob(struct mtd_info *mtd, loff_t to,
 #define NAND_STATUS_TRUE_READY	0x20
 #define NAND_STATUS_READY	0x40
 #define NAND_STATUS_WP		0x80
-
-/* Feature Addresses (for the "SET FEATURES" command) */
-#define NAND_FEATURE_MICRON_ARRAY_OPERATION_MODE	0x90
 
 /*
  * Constants for ECC_MODES
@@ -430,7 +426,6 @@ struct nand_chip {
 	struct nand_bbt_descr	*badblock_pattern;
 
 	void		*priv;
-	int		is_on_die_ecc;		/* boolean flag */
 };
 
 /*
