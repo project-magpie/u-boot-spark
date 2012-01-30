@@ -2372,52 +2372,94 @@ static void nand_set_defaults(struct nand_chip *chip, int busw)
 
 }
 
-/*
- * Get the flash and manufacturer id and lookup if the type is supported
- */
-static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
-						  struct nand_chip *chip,
-						  int busw, int *maf_id)
+#ifdef CONFIG_SYS_NAND_ONFI_DETECTION
+static u16 onfi_crc16(u16 crc, u8 const *p, size_t len)
 {
-	struct nand_flash_dev *type = NULL;
-	int i, dev_id, maf_idx;
+	int i;
 
-	/* Select the device */
-	chip->select_chip(mtd, 0);
+	while (len--) {
+		crc ^= *p++ << 8;
+		for (i = 0; i < 8; i++)
+			crc = (crc << 1) ^ ((crc & 0x8000) ? 0x8005 : 0);
+	}
 
-	/*
-	 * Reset the chip, required by some chips (e.g. Micron MT29FxGxxxxx)
-	 * after power-up
-	 */
-	chip->cmdfunc(mtd, NAND_CMD_RESET, -1, -1);
+	return crc;
+}
 
-	/* Send the command for reading device ID */
-	chip->cmdfunc(mtd, NAND_CMD_READID, 0x00, -1);
+/*
+ * Check if the NAND chip is ONFI compliant, returns 1 if it is, 0 otherwise
+ */
+static int nand_flash_detect_onfi(struct mtd_info *mtd,
+					struct nand_chip *chip,
+					int *busw)
+{
+	struct nand_onfi_params *p = &chip->onfi_params;
+	int i;
+	int val;
 
-	/* Read manufacturer and device IDs */
-	*maf_id = chip->read_byte(mtd);
-	dev_id = chip->read_byte(mtd);
+	chip->cmdfunc(mtd, NAND_CMD_READID, 0x20, -1);
+	if (chip->read_byte(mtd) != 'O' || chip->read_byte(mtd) != 'N' ||
+		chip->read_byte(mtd) != 'F' || chip->read_byte(mtd) != 'I')
+		return 0;
 
-	/* Lookup the flash id */
-	for (i = 0; nand_flash_ids[i].name != NULL; i++) {
-		if (dev_id == nand_flash_ids[i].id) {
-			type =  &nand_flash_ids[i];
+	printk(KERN_INFO "ONFI flash detected\n");
+	chip->cmdfunc(mtd, NAND_CMD_PARAM, 0, -1);
+	for (i = 0; i < 3; i++) {
+		chip->read_buf(mtd, (uint8_t *)p, sizeof(*p));
+		if (onfi_crc16(ONFI_CRC_BASE, (uint8_t *)p, 254) ==
+						le16_to_cpu(p->crc)) {
+			printk(KERN_INFO "ONFI param page %d valid\n", i);
 			break;
 		}
 	}
 
-	if (!type) {
-		/* dump out some of the interesting data we probed */
-		printf ("Unknown NAND (Manufacturer=0x%02X, DeviceID=0x%02X)\n",
-			*maf_id, dev_id);
-		return ERR_PTR(-ENODEV);
+	if (i == 3)
+		return 0;
+
+	/* check version */
+	val = le16_to_cpu(p->revision);
+	if (val == 1 || val > (1 << 4)) {
+		printk(KERN_INFO "%s: unsupported ONFI "
+					"version: %d\n", __func__, val);
+		return 0;
 	}
 
+	if (val & (1 << 4))
+		chip->onfi_version = 22;
+	else if (val & (1 << 3))
+		chip->onfi_version = 21;
+	else if (val & (1 << 2))
+		chip->onfi_version = 20;
+	else
+		chip->onfi_version = 10;
+
 	if (!mtd->name)
-		mtd->name = type->name;
+		mtd->name = p->model;
 
-	chip->chipsize = type->chipsize << 20;
+	mtd->writesize = le32_to_cpu(p->byte_per_page);
+	mtd->erasesize = le32_to_cpu(p->pages_per_block) * mtd->writesize;
+	mtd->oobsize = le16_to_cpu(p->spare_bytes_per_page);
+	chip->chipsize = le32_to_cpu(p->blocks_per_lun) * mtd->erasesize;
+	*busw = 0;
+	if (le16_to_cpu(p->features) & 1)
+		*busw = NAND_BUSWIDTH_16;
 
+	return 1;
+}
+#else
+static inline int nand_flash_detect_onfi(struct mtd_info *mtd,
+					struct nand_chip *chip,
+					int *busw)
+{
+	return 0;
+}
+#endif
+
+static void nand_flash_detect_non_onfi(struct mtd_info *mtd,
+					struct nand_chip *chip,
+					const struct nand_flash_dev *type,
+					int *busw)
+{
 	/* Newer devices have all the information in additional id bytes */
 	if (!type->pagesize) {
 		int extid;
@@ -2435,7 +2477,7 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		mtd->erasesize = (64 * 1024) << (extid & 0x03);
 		extid >>= 2;
 		/* Get buswidth information */
-		busw = (extid & 0x01) ? NAND_BUSWIDTH_16 : 0;
+		*busw = (extid & 0x01) ? NAND_BUSWIDTH_16 : 0;
 
 	} else {
 		/*
@@ -2444,8 +2486,70 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		mtd->erasesize = type->erasesize;
 		mtd->writesize = type->pagesize;
 		mtd->oobsize = mtd->writesize / 32;
-		busw = type->options & NAND_BUSWIDTH_16;
+		*busw = type->options & NAND_BUSWIDTH_16;
 	}
+}
+
+/*
+ * Get the flash and manufacturer id and lookup if the type is supported
+ */
+static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
+						  struct nand_chip *chip,
+						  int busw,
+						  int *maf_id, int *dev_id)
+{
+	struct nand_flash_dev *type = NULL;
+	int ret, i, maf_idx;
+
+	/* Select the device */
+	chip->select_chip(mtd, 0);
+
+	/*
+	 * Reset the chip, required by some chips (e.g. Micron MT29FxGxxxxx)
+	 * after power-up
+	 */
+	chip->cmdfunc(mtd, NAND_CMD_RESET, -1, -1);
+
+	/* Send the command for reading device ID */
+	chip->cmdfunc(mtd, NAND_CMD_READID, 0x00, -1);
+
+	/* Read manufacturer and device IDs */
+	*maf_id = chip->read_byte(mtd);
+	*dev_id = chip->read_byte(mtd);
+
+	/* Lookup the flash id */
+	for (i = 0; nand_flash_ids[i].name != NULL; i++) {
+		if (*dev_id == nand_flash_ids[i].id) {
+			type =  &nand_flash_ids[i];
+			break;
+		}
+	}
+
+	if (!type) {
+		/* dump out some of the interesting data we probed */
+		printf ("Unknown NAND (Manufacturer=0x%02X, DeviceID=0x%02X)\n",
+			*maf_id, *dev_id);
+		return ERR_PTR(-ENODEV);
+	}
+
+	if (!mtd->name)
+		mtd->name = type->name;
+
+	chip->chipsize = type->chipsize << 20;
+	chip->onfi_version = 0;
+
+	ret = nand_flash_detect_onfi(mtd, chip, &busw);
+	if (!ret)
+		nand_flash_detect_non_onfi(mtd, chip, type, &busw);
+
+	/* Get chip options, preserve non chip based options */
+	chip->options &= ~NAND_CHIPOPTIONS_MSK;
+	chip->options |= type->options & NAND_CHIPOPTIONS_MSK;
+
+	/*
+	 * Set chip as a default. Board drivers can override it, if necessary
+	 */
+	chip->options |= NAND_NO_AUTOINCR;
 
 	/* Try to identify manufacturer */
 	for (maf_idx = 0; nand_manuf_ids[maf_idx].id != 0x0; maf_idx++) {
@@ -2460,7 +2564,7 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 	if (busw != (chip->options & NAND_BUSWIDTH_16)) {
 		printk(KERN_INFO "NAND device: Manufacturer ID:"
 		       " 0x%02x, Chip ID: 0x%02x (%s %s)\n", *maf_id,
-		       dev_id, nand_manuf_ids[maf_idx].name, mtd->name);
+		       *dev_id, nand_manuf_ids[maf_idx].name, mtd->name);
 		printk(KERN_WARNING "NAND bus width %d instead %d bit\n",
 		       (chip->options & NAND_BUSWIDTH_16) ? 16 : 8,
 		       busw ? 16 : 8);
@@ -2480,15 +2584,6 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 	chip->badblockpos = mtd->writesize > 512 ?
 		NAND_LARGE_BADBLOCK_POS : NAND_SMALL_BADBLOCK_POS;
 
-	/* Get chip options, preserve non chip based options */
-	chip->options &= ~NAND_CHIPOPTIONS_MSK;
-	chip->options |= type->options & NAND_CHIPOPTIONS_MSK;
-
-	/*
-	 * Set chip as a default. Board drivers can override it, if necessary
-	 */
-	chip->options |= NAND_NO_AUTOINCR;
-
 	/* Check if chip is a not a samsung device. Do not clear the
 	 * options for chips which are not having an extended id.
 	 */
@@ -2506,7 +2601,7 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		chip->cmdfunc = nand_command_lp;
 
 	MTDDEBUG (MTD_DEBUG_LEVEL0, "NAND device: Manufacturer ID:"
-	          " 0x%02x, Chip ID: 0x%02x (%s %s)\n", *maf_id, dev_id,
+	          " 0x%02x, Chip ID: 0x%02x (%s %s)\n", *maf_id, *dev_id,
 	          nand_manuf_ids[maf_idx].name, type->name);
 
 	return type;
@@ -2524,7 +2619,7 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
  */
 int nand_scan_ident(struct mtd_info *mtd, int maxchips)
 {
-	int i, busw, nand_maf_id;
+	int i, busw, nand_maf_id, nand_dev_id;
 	struct nand_chip *chip = mtd->priv;
 	struct nand_flash_dev *type;
 
@@ -2534,7 +2629,7 @@ int nand_scan_ident(struct mtd_info *mtd, int maxchips)
 	nand_set_defaults(chip, busw);
 
 	/* Read the flash type */
-	type = nand_get_flash_type(mtd, chip, busw, &nand_maf_id);
+	type = nand_get_flash_type(mtd, chip, busw, &nand_maf_id, &nand_dev_id);
 
 	if (IS_ERR(type)) {
 		printk(KERN_WARNING "No NAND device found!!!\n");
@@ -2551,7 +2646,7 @@ int nand_scan_ident(struct mtd_info *mtd, int maxchips)
 		chip->cmdfunc(mtd, NAND_CMD_READID, 0x00, -1);
 		/* Read manufacturer and device IDs */
 		if (nand_maf_id != chip->read_byte(mtd) ||
-		    type->id != chip->read_byte(mtd))
+		    nand_dev_id != chip->read_byte(mtd))
 			break;
 	}
 	if (i > 1)
