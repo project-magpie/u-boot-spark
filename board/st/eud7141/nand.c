@@ -34,7 +34,7 @@
  *	AL -> Emi_Addr(18)
  *	nCE is handled by EMI (not s/w controllable)
  */
-#ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
+#if defined(CFG_ST40_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
 static void eud7141_cmd_ctrl (
 	struct mtd_info * const mtd,
 	const int byte,
@@ -82,20 +82,17 @@ static void eud7141_cmd_ctrl (
 		writeb(byte, addr);			/* write one byte */
 	}
 }
-#endif /* CFG_NAND_FLEX_MODE */
-
 
 /*
  * hardware specific access to the Ready/not_Busy signal.
  * Signal is routed through the EMI NAND Controller block.
  */
-#ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
 static int eud7141_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
 	return ((*ST40_EMI_NAND_HAM_RBN_STA) & (1ul<<1)) ? 1 : 0;
 }
-#endif /* CFG_NAND_FLEX_MODE */
+#endif /* CFG_ST40_NAND_USE_BIT_BANGING */
 
 
 /*
@@ -105,11 +102,11 @@ static int eud7141_device_ready(struct mtd_info *mtd)
  */
 extern int board_nand_init(struct nand_chip * const nand)
 {
-#if defined(CFG_NAND_FLEX_MODE)	/* for STM "flex-mode" */
-	stm_default_board_nand_init(nand, NULL, NULL);
-#else				/* for "bit-banging" */
+#if defined(CFG_ST40_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
 	stm_default_board_nand_init(nand, eud7141_cmd_ctrl, eud7141_device_ready);
-#endif
+#else						/* else, use a H/W driver */
+	stm_default_board_nand_init(nand, NULL, NULL);
+#endif /* CFG_ST40_NAND_USE_BIT_BANGING */
 
 	/*
 	 * Only enable the following to use a (volatile) RAM-based

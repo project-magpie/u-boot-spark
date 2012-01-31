@@ -35,6 +35,18 @@
 #include <asm/socregs.h>
 
 
+	/*
+	 * Ensure we have *exactly* ONE NAND driver configured.
+	 * Not less than one, and not more than one!
+	 */
+#if defined(CFG_ST40_NAND_USE_BIT_BANGING) && defined(CFG_ST40_NAND_USE_HAMMING)
+#	error You can only enable *one* NAND driver!
+#endif
+#if !defined(CFG_ST40_NAND_USE_BIT_BANGING) && !defined(CFG_ST40_NAND_USE_HAMMING)
+#	error You must enable one NAND driver if CONFIG_CMD_NAND is defined!
+#endif
+
+
 #define isprint(x)	( ((x)>=0x20u) && ((x)<0x7fu) )
 
 
@@ -742,7 +754,7 @@ extern void stm_default_board_nand_init(
 	void (*cmd_ctrl)(struct mtd_info *mtdinfo, int dat, unsigned int ctrl),
 	int (*dev_ready)(struct mtd_info *mtd))
 {
-#if defined(CFG_NAND_FLEX_MODE) || defined(CFG_NAND_ECC_HW3_128)
+#if defined(CFG_ST40_NAND_USE_HAMMING) || defined(CFG_NAND_ECC_HW3_128)
 	struct mtd_info * const mtd = (struct mtd_info *)(nand->priv);
 #endif
 
@@ -763,12 +775,12 @@ extern void stm_default_board_nand_init(
 	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
 	nand->scan_bbt      = stm_nand_default_bbt;
 
-#if defined(CFG_NAND_FLEX_MODE)		/* for STM "flex-mode" (c.f. "bit-banging") */
-	stm_flex_init_nand(mtd, nand);
-#else					/* for "bit-banging" (c.f. STM "flex-mode")  */
+#if defined(CFG_ST40_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
 	nand->cmd_ctrl      = cmd_ctrl;
 	nand->dev_ready     = dev_ready;
-#endif /* CFG_NAND_FLEX_MODE */
+#elif defined(CFG_ST40_NAND_USE_HAMMING)	/* for H/W Hamming ("flex") driver */
+	stm_flex_init_nand(mtd, nand);
+#endif /* CFG_ST40_NAND_USE_BIT_BANGING */
 
 #if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" ECC */
 	mtd->read           = stm_boot_read;

@@ -23,7 +23,7 @@
 #include <common.h>
 #include <malloc.h>
 
-#if defined(CONFIG_CMD_NAND) && defined(CFG_NAND_FLEX_MODE)
+#if defined(CONFIG_CMD_NAND) && defined(CFG_ST40_NAND_USE_HAMMING)
 
 #include <nand.h>
 #include <asm/stm-nand.h>
@@ -228,7 +228,7 @@ static void init_flex_mode(void)
 	 * attempting to use FLEX-mode accesses to talk to the Hamming
 	 * controller, when the BCH is enabled must be avoided!
 	 */
-#if defined(CFG_ST40_NAND_USE_HAMMING)
+#if defined(ST40_EMISS_REGS_BASE)
 	/* enable the Hamming controller (and disable BCH) */
 	*ST40_EMISS_CONFIG |= ST40_EMISS_NAND_HAMMING_NOT_BCH;
 #endif
@@ -670,4 +670,4 @@ extern void stm_flex_init_nand(
 }
 
 
-#endif	/* CONFIG_CMD_NAND && CFG_NAND_FLEX_MODE */
+#endif	/* CONFIG_CMD_NAND && CFG_ST40_NAND_USE_HAMMING */

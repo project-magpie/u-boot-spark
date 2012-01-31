@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2006 DENX Software Engineering
- * (C) Copyright 2008-2011 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -34,7 +34,9 @@
  * We use a "generic" STM function stm_default_board_nand_init() to do it.
  * However, we can easily override anything locally, if required.
  */
-#ifdef CFG_NAND_FLEX_MODE	/* for STM "flex-mode" (c.f. "bit-banging") */
+#if defined(CFG_ST40_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#error It is not possible to use bit-banging with NAND on the Freeman Ultra Development Board.
+#else						/* else, use a H/W driver */
 extern int board_nand_init(struct nand_chip * const nand)
 {
 	stm_default_board_nand_init(nand, NULL, NULL);
@@ -50,6 +52,4 @@ extern int board_nand_init(struct nand_chip * const nand)
 
 	return 0;
 }
-#else
-#error It is not possible to use bit-banging with NAND on the Freeman Ultra Development Board.
-#endif /* CFG_NAND_FLEX_MODE */
+#endif /* CFG_ST40_NAND_USE_BIT_BANGING */

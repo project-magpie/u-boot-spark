@@ -345,12 +345,17 @@
 	/*
 	 * Currently, there are 2 main modes to read/write from/to
 	 * NAND devices on STM SoCs:
-	 *	a) "bit-banging" (can NOT be used in boot-from-NAND)
-	 *	b) FLEX-mode (only supported means for boot-from-NAND)
-	 * If CFG_NAND_FLEX_MODE is defined, then FLEX-mode will be
-	 * used, otherwise, "bit-banging" will be used.
+	 *	1) using a S/W "bit-banging" driver
+	 *	   (can NOT be used with boot-from-NAND)
+	 *	2) using the H/W Hamming controller (flex-mode) driver
+	 *	   (only supported means for boot-from-NAND)
+	 * Either CFG_ST40_NAND_USE_BIT_BANGING or CFG_ST40_NAND_USE_HAMMING
+	 * should be defined, to select a single NAND driver.
+	 * If we are using FLEX-mode, we still need to #define the
+	 * address CFG_EMI_NAND_BASE, although the value is ignored!
 	 */
-#	define CFG_NAND_FLEX_MODE	/* define to use NAND FLEX-MODE */
+//#	define CFG_ST40_NAND_USE_BIT_BANGING		/* use S/W "bit-banging" driver */
+#	define CFG_ST40_NAND_USE_HAMMING		/* use H/W Hamming ("flex") driver */
 
 	/*
 	 * Do we want to read/write NAND Flash compatible with the ST40's
