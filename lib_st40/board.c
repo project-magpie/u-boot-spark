@@ -227,7 +227,7 @@ init_fnc_t *init_sequence[] = {
 };
 
 
-void start_sh4boot (void)
+void start_st40_boot (void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
 

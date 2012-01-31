@@ -781,9 +781,9 @@ clear_bss:
 	  mov.l	r0, @-r2
 done_bss:
 
-	/* prepare to call board init routine: start_sh4boot() */
-do_start_sh4boot:
-	mov.l	start_sh4boot_addr, r1
+	/* prepare to call board init routine: start_st40_boot() */
+do_start_st40_boot:
+	mov.l	start_st40_boot_addr, r1
 	jmp	@r1			/* never returns */
 	  mov r8, a0
 
@@ -801,7 +801,7 @@ hyperspace_addr:.long hyperspace
 skip_bb_offset:	.long skip_bb - _start
 #endif	/* CFG_BOOT_FROM_NAND && CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 
-start_sh4boot_addr:.long start_sh4boot
+start_st40_boot_addr:.long start_st40_boot
 
 	/* offsets for PIC calls */
 
