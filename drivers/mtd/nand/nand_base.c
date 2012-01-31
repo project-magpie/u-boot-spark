@@ -2503,7 +2503,7 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 						  int *maf_id, int *dev_id)
 {
 	struct nand_flash_dev *type = NULL;
-	int ret, i, maf_idx;
+	int ret, maf_idx;
 
 	/* Select the device */
 	chip->select_chip(mtd, 0);
@@ -2522,18 +2522,9 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 	*dev_id = chip->read_byte(mtd);
 
 	/* Lookup the flash id */
-	for (i = 0; nand_flash_ids[i].name != NULL; i++) {
-		if (*dev_id == nand_flash_ids[i].id) {
-			type =  &nand_flash_ids[i];
+	for (type = nand_flash_ids; type->name != NULL; type++) {
+		if (*dev_id == type->id)
 			break;
-		}
-	}
-
-	if (!type) {
-		/* dump out some of the interesting data we probed */
-		printf ("Unknown NAND (Manufacturer=0x%02X, DeviceID=0x%02X)\n",
-			*maf_id, *dev_id);
-		return ERR_PTR(-ENODEV);
 	}
 
 	if (!mtd->name)
@@ -2543,8 +2534,15 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 	chip->onfi_version = 0;
 
 	ret = nand_flash_detect_onfi(mtd, chip, &busw);
-	if (!ret)
+	if (!ret) {
+		if (!type->name) {
+			/* dump out some of the interesting data we probed */
+			printf ("Unknown NAND (Manufacturer=0x%02X, DeviceID=0x%02X)\n",
+				*maf_id, *dev_id);
+			return ERR_PTR(-ENODEV);
+		}
 		nand_flash_detect_non_onfi(mtd, chip, type, &busw);
+	}
 
 	/* Get chip options, preserve non chip based options */
 	chip->options &= ~NAND_CHIPOPTIONS_MSK;
