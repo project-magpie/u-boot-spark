@@ -94,7 +94,7 @@ static void mb680_cmd_ctrl (
 static int mb680_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
-	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
+	return ((*ST40_EMI_NAND_HAM_RBN_STA) & (1ul<<1)) ? 1 : 0;
 }
 #endif /* CFG_NAND_FLEX_MODE */
 

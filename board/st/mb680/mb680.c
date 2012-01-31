@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -218,9 +218,9 @@ int checkboard (void)
 
 #if 0	/* QQQ - DELETE */
 {
-const unsigned long nand_reg = *ST40_EMI_NAND_VERSION_REG;
+const unsigned long nand_reg = *ST40_EMI_NAND_HAM_VERSION_REG;
 const unsigned long epld_reg = epld_read(EPLD_SWITCH);
-	printf ("*ST40_EMI_NAND_VERSION_REG = %u.%u.%u\n",
+	printf ("*ST40_EMI_NAND_HAM_VERSION_REG = %u.%u.%u\n",
 		(nand_reg>>8)&0x0ful,
 		(nand_reg>>4)&0x0ful,
 		(nand_reg>>0)&0x0ful);
