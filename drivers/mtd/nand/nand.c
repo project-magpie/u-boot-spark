@@ -2,6 +2,7 @@
  * (C) Copyright 2005
  * 2N Telekomunikace, a.s. <www.2n.cz>
  * Ladislav Michl <michl@2n.cz>
+ * Copyright (C) 2009-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -24,6 +25,10 @@
 #include <common.h>
 #include <nand.h>
 
+#if defined(CONFIG_ST40)
+#include <asm/stm-nand.h>
+#endif
+
 #ifndef CFG_NAND_BASE_LIST
 #define CFG_NAND_BASE_LIST { CFG_NAND_BASE }
 #endif
@@ -37,6 +42,51 @@ static ulong base_address[CFG_MAX_NAND_DEVICE] = CFG_NAND_BASE_LIST;
 static const char default_nand_name[] = "nand";
 
 extern int board_nand_init(struct nand_chip *nand);
+
+
+
+#if defined(CONFIG_ST40)
+/**
+ * nand_scan - [NAND Interface] Scan for the NAND device
+ * @mtd:	MTD device structure
+ * @maxchips:	Number of chips to scan for
+ *
+ * This fills out all the uninitialized function pointers
+ * with the defaults.
+ * The flash ID is read and the mtd/chip structures are
+ * filled with the appropriate values.
+ * The mtd->owner field must be set to the module of the caller
+ *
+ */
+static int stm_nand_scan(struct mtd_info *mtd, int maxchips)
+{
+	int ret;
+
+	/*
+	 * Perform the first phase of the normal nand_scan() function.
+	 * It reads the flash ID and sets up MTD fields accordingly.
+	 */
+	ret = nand_scan_ident(mtd, maxchips);
+	if (ret)
+		return ret;
+
+	/*
+	 * Now that we have probed the physical NAND device, and we now know
+	 * the *actual* device ID, we can complete any other ST40-specific
+	 * structure fields properly (e.g. nand->ecc.layout).
+	 */
+	stm_nand_chip_init(mtd);
+
+	/*
+	 * Perform the second phase of the normal nand_scan() function.
+	 * If fills out the remaining uninitialized function pointers.
+	 */
+	ret = nand_scan_tail(mtd);
+	return ret;
+}
+#define nand_scan stm_nand_scan		/* kludge: map nand_scan() to stm_nand_scan() */
+#endif	/* CONFIG_ST40 */
+
 
 static void nand_init_chip(struct mtd_info *mtd, struct nand_chip *nand,
 			   ulong base_addr)

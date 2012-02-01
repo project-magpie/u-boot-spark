@@ -75,10 +75,6 @@
 #include <jffs2/jffs2.h>
 #endif
 
-#if defined(CONFIG_SH4)
-#include <asm/stm-nand.h>
-#endif
-
 /* Define default oob placement schemes for large and small page devices */
 static struct nand_ecclayout nand_oob_8 = {
 	.eccbytes = 3,
@@ -2657,15 +2653,6 @@ int nand_scan_ident(struct mtd_info *mtd, int maxchips)
 	/* Store the number of chips and calc total size for mtd */
 	chip->numchips = i;
 	mtd->size = i * chip->chipsize;
-
-	/*
-	 * Now that we have probed the NAND device, and we now know
-	 * the *actual* device ID, we can complete the other
-	 * structure fields properly (e.g. nand->ecc.layout).
-	 */
-#if defined(CONFIG_SH4)
-	stm_nand_chip_init(mtd, nand_maf_id, type->id);
-#endif
 
 	return 0;
 }

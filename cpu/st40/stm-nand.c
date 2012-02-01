@@ -807,9 +807,7 @@ extern void stm_default_board_nand_init(
 
 
 extern void stm_nand_chip_init(
-	struct mtd_info * const mtd,
-	const int nand_maf_id,
-	const int nand_dev_id)
+	struct mtd_info * const mtd)
 {
 #if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
 	struct nand_chip * const nand = mtd->priv;
