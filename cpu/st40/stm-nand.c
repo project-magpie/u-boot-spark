@@ -774,7 +774,7 @@ extern void stm_default_board_nand_init(
 	void (*cmd_ctrl)(struct mtd_info *mtdinfo, int dat, unsigned int ctrl),
 	int (*dev_ready)(struct mtd_info *mtd))
 {
-#if defined(CFG_ST40_NAND_USE_HAMMING) || defined(CFG_NAND_ECC_HW3_128)
+#if defined(CFG_ST40_NAND_USE_HAMMING)
 	struct mtd_info * const mtd = (struct mtd_info *)(nand->priv);
 #endif
 
