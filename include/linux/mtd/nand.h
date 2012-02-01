@@ -48,16 +48,6 @@ extern void nand_release (struct mtd_info *mtd);
 /* Internal helper for board drivers which need to override command function */
 extern void nand_wait_ready(struct mtd_info *mtd);
 
-/* read/write with ECC functions */
-extern int exported_nand_read(struct mtd_info *mtd, loff_t from, size_t len,
-		     size_t *retlen, uint8_t *buf);
-extern int exported_nand_read_oob(struct mtd_info *mtd, loff_t from,
-			 struct mtd_oob_ops *ops);
-extern int exported_nand_write(struct mtd_info *mtd, loff_t to, size_t len,
-			  size_t *retlen, const uint8_t *buf);
-extern int exported_nand_write_oob(struct mtd_info *mtd, loff_t to,
-			  struct mtd_oob_ops *ops);
-
 /* The maximum number of NAND chips in an array */
 #ifndef NAND_MAX_CHIPS
 #define NAND_MAX_CHIPS		8

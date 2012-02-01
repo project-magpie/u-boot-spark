@@ -599,6 +599,21 @@ static int set_ecc_mode (
 }
 
 
+	/*
+	 * function pointers to original (low-level) functions in
+	 * struct mtd_info, which are not exported from nand_base.c,
+	 * but a pointer to them is initialized in nand_scan_tail().
+	 */
+static int (*fn_mtd_read)
+		(struct mtd_info *mtd, loff_t from, size_t len, size_t *retlen, uint8_t *buf) = NULL;
+static int (*fn_mtd_read_oob)
+		(struct mtd_info *mtd, loff_t from, struct mtd_oob_ops *ops) = NULL;
+static int (*fn_mtd_write)
+		(struct mtd_info *mtd, loff_t to, size_t len, size_t *retlen, const uint8_t *buf) = NULL;
+static int (*fn_mtd_write_oob)
+		(struct mtd_info *mtd, loff_t to, struct mtd_oob_ops *ops) = NULL;
+
+
 static int stm_boot_read (struct mtd_info *mtd, loff_t from, size_t len, size_t * retlen, u_char * buf)
 {
 	int result;
@@ -610,7 +625,7 @@ static int stm_boot_read (struct mtd_info *mtd, loff_t from, size_t len, size_t 
 	}
 	else
 	{
-		result = exported_nand_read (mtd, from, len, retlen, buf);
+		result = (*fn_mtd_read) (mtd, from, len, retlen, buf);
 	}
 
 	return result;
@@ -628,7 +643,7 @@ static int stm_boot_read_oob (struct mtd_info *mtd, loff_t from, struct mtd_oob_
 	}
 	else
 	{
-		result = exported_nand_read_oob (mtd, from, ops);
+		result = (*fn_mtd_read_oob) (mtd, from, ops);
 	}
 
 	return result;
@@ -646,7 +661,7 @@ static int stm_boot_write (struct mtd_info *mtd, loff_t to, size_t len, size_t *
 	}
 	else
 	{
-		result = exported_nand_write (mtd, to, len, retlen, buf);
+		result = (*fn_mtd_write) (mtd, to, len, retlen, buf);
 	}
 
 	return result;
@@ -664,7 +679,7 @@ static int stm_boot_write_oob (struct mtd_info *mtd, loff_t to, struct mtd_oob_o
 	}
 	else
 	{
-		result = exported_nand_write_oob (mtd, to, ops);
+		result = (*fn_mtd_write_oob) (mtd, to, ops);
 	}
 
 	return result;
@@ -749,6 +764,11 @@ static int stm_nand_default_bbt (struct mtd_info * const mtd)
 }
 
 
+	/*
+	 * This function is called *before* nand_scan_ident(),
+	 * and hence, before nand_scan() (or stm_nand_scan()).
+	 * This function is called directly from board_nand_init().
+	 */
 extern void stm_default_board_nand_init(
 	struct nand_chip * const nand,
 	void (*cmd_ctrl)(struct mtd_info *mtdinfo, int dat, unsigned int ctrl),
@@ -782,13 +802,6 @@ extern void stm_default_board_nand_init(
 	stm_flex_init_nand(mtd, nand);
 #endif /* CFG_ST40_NAND_USE_BIT_BANGING */
 
-#if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" ECC */
-	mtd->read           = stm_boot_read;
-	mtd->write          = stm_boot_write;
-	mtd->read_oob       = stm_boot_read_oob;
-	mtd->write_oob      = stm_boot_write_oob;
-#endif /* CFG_NAND_ECC_HW3_128 */
-
 #if defined(CFG_NAND_ECC_AFM4)		/* for STM AFM4 ECC compatibility */
 	nand->ecc.hwctl     = stm_nand_hwctl;
 	nand->ecc.correct   = stm_nand_correct;
@@ -806,6 +819,10 @@ extern void stm_default_board_nand_init(
 }
 
 
+	/*
+	 * This function is called *after* nand_scan_ident(),
+	 * but *before* nand_scan_tail().
+	 */
 extern void stm_nand_chip_init(
 	struct mtd_info * const mtd)
 {
@@ -819,6 +836,27 @@ extern void stm_nand_chip_init(
 	else						/* unknown ? */
 		BUG();
 #endif /* CFG_NAND_ECC_AFM4 */
+}
+
+
+	/*
+	 * This function is called *after* nand_scan_tail().
+	 */
+extern void stm_nand_chip_init_end(
+	struct mtd_info * const mtd)
+{
+#if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" ECC */
+	/* first, copy original bottom-level function pointers safely */
+	fn_mtd_read      = mtd->read;
+	fn_mtd_read_oob  = mtd->read_oob;
+	fn_mtd_write     = mtd->write;
+	fn_mtd_write_oob = mtd->write_oob;
+	/* then, replace them all with encapsulated "wrapper" functions */
+	mtd->read        = stm_boot_read;
+	mtd->read_oob    = stm_boot_read_oob;
+	mtd->write       = stm_boot_write;
+	mtd->write_oob   = stm_boot_write_oob;
+#endif /* CFG_NAND_ECC_HW3_128 */
 }
 
 

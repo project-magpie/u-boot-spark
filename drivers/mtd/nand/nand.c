@@ -82,6 +82,14 @@ static int stm_nand_scan(struct mtd_info *mtd, int maxchips)
 	 * If fills out the remaining uninitialized function pointers.
 	 */
 	ret = nand_scan_tail(mtd);
+	if (ret)
+		return ret;
+
+	/*
+	 * Finally, perform any post-scanning initialization we want to do.
+	 */
+	stm_nand_chip_init_end(mtd);
+
 	return ret;
 }
 #define nand_scan stm_nand_scan		/* kludge: map nand_scan() to stm_nand_scan() */

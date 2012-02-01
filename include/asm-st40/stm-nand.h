@@ -41,5 +41,8 @@ extern void stm_flex_init_nand(
 extern void stm_nand_chip_init(
 	struct mtd_info * const mtd);
 
+extern void stm_nand_chip_init_end(
+	struct mtd_info * const mtd);
+
 
 #endif /* __ASM_ST40_STM_NAND_H */
