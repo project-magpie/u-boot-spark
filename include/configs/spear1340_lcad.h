@@ -199,10 +199,14 @@
 #if !defined(CONFIG_SPEAR1340)
 #define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
 #else
-#define CONFIG_FSMTDBLK				"/dev/mtdblock4 "
+#define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
 #endif
 
+#if defined(CONFIG_SPEAR1340)
+#define CONFIG_BOOTCOMMAND			"run bootusb; run bootupg; nand read.jffs2 0x800000 0x280000 0x800000; bootm 0x800000"
+#else
 #define CONFIG_BOOTCOMMAND			"bootm 0xe6050000"
+#endif
 
 #define CONFIG_SYS_MONITOR_BASE			CONFIG_SYS_FLASH_BASE
 #define CONFIG_ENV_ADDR				(CONFIG_SYS_MONITOR_BASE + \
@@ -212,27 +216,34 @@
  * Environment is in NAND
  */
 
-#define CONFIG_ENV_OFFSET			0x100000
-#define CONFIG_ENV_RANGE			0x10000
+#define CONFIG_ENV_OFFSET			0x480000
+#define CONFIG_ENV_RANGE			0x40000
 
 #if !defined(CONFIG_SPEAR1340)
-#define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
+#define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
 #else
-#define CONFIG_FSMTDBLK				"/dev/mtdblock8 "
+#define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
 #endif
 
-#define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
-						"0x80000 0x4C0000; " \
-						"bootm 0x1600000"
+#define CONFIG_BOOTCOMMAND			"run bootusb; run bootupg; nand read.jffs2 0x800000 0x280000 0x800000; bootm 0x800000"
+
 #endif
 
 #define CONFIG_BOOTARGS_NFS			"root=/dev/nfs ip=dhcp " \
 						"console=ttyAMA0,115200 " \
 						"init=/bin/sh"
+#if defined(CONFIG_SPEAR1340)
+#define CONFIG_BOOTARGS	"console=ttyAMA0,115200 " \
+						"mem=960M "  \
+						"noinitrd no_console_suspend androidboot.console=ttyAMA0 android.checkjni=0 " \
+						"root="CONFIG_FSMTDBLK "rw rootfstype=yaffs2 rootflags=inband-tags,tags-ecc-off " \
+						"rootdelay=3 video=db9000:800x480-32@0 init=/init"
+#else
 #define CONFIG_BOOTARGS				"console=ttyAMA0,115200 " \
 						"mem=128M "  \
 						"root="CONFIG_FSMTDBLK \
 						"rootfstype=jffs2"
+#endif
 
 #define CONFIG_NFSBOOTCOMMAND						\
 	"bootp; "							\
@@ -272,7 +283,7 @@
 #define CONFIG_SYS_GBL_DATA_SIZE		128
 #define CONFIG_IDENT_STRING			"-SPEAr"
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_SYS_PROMPT			"u-boot> "
+#define CONFIG_SYS_PROMPT			"android> "
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_CBSIZE			256
 #define CONFIG_SYS_PBSIZE			(CONFIG_SYS_CBSIZE + \
@@ -283,7 +294,10 @@
 #define CONFIG_SYS_CONSOLE_INFO_QUIET		1
 #define CONFIG_SYS_64BIT_VSPRINTF		1
 
-#define CONFIG_EXTRA_ENV_SETTINGS		CONFIG_EXTRA_ENV_USBTTY
+#define CONFIG_EXTRA_ENV_SETTINGS		\
+					CONFIG_EXTRA_ENV_USBTTY \
+					"bootusb=mw 0x0 0x0; usb start; fatload usb 0:2 0x0 run.img; source 0x0\0" \
+					"bootupg=mw 0x0 0x0; fatload usb 0:1 0x0 vInstaller/upgrade.img; source 0x0\0" \
 
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS			1
