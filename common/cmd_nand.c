@@ -40,6 +40,56 @@ int find_dev_and_part(const char *id, struct mtd_device **dev,
 		      u8 *part_num, struct part_info **part);
 #endif
 
+
+#if defined(CFG_ST40_NAND_USE_BCH)		/* for H/W BCH ("multi-bit ECC") driver */
+	/*
+	 * The BCH controller stores the DATA and ECC in "stripes". Hence
+	 * the in-band includes both DATA and ECC, and the same is true
+	 * for the OOB region as well. This function re-maps the DATA and ECC
+	 * to move all the DATA logically in-band, and all the ECC logically OOB.
+	 * This helps logically to see what is going on, but we are lying
+	 * to the user about what is happening physically. To see the *raw*
+	 * physical layout, then simply set the environment variable "bch_raw".
+	 *
+	 * Note: our caller mallocs space for "oobbuf", but *never* uses it.
+	 * We exploit this (effectively) "free" buffer, and use it as our temporary
+	 * buffer whilst we shuffle all the ECC to the end of the DATA section,
+	 * so it logically appears conveniently in the OOB region.
+	 */
+static void stm_remap_bch_buffers(
+	const nand_info_t * const nand,
+	u_char * const datbuf,
+	u_char * const oobbuf)
+{
+	const struct nand_chip * const nand_chip = nand->priv;
+	const int sectors_per_page = nand_chip->ecc.steps;
+	const int sector_size      = nand_chip->ecc.size;
+	const int ecc_size         = nand_chip->ecc.bytes;
+	size_t sector;
+	const char * const bch_raw = getenv("bch_raw");
+
+	if (ecc_size == 0)	/* no ECC bytes used ? */
+		return;		/* do nothing, if NO ECC used */
+
+	if (bch_raw)		/* does "bch_raw" exist as an environment variable ? */
+		return;		/* do nothing, if "bch_raw" exists */
+
+	/* copy *only* the ECC bytes, from the interleaved DATA+ECC stripes */
+	for(sector=0; sector<sectors_per_page; sector++) {
+		memcpy(&oobbuf[sector*ecc_size], &datbuf[sector_size+sector*(sector_size+ecc_size)], ecc_size);
+	}
+
+	/* abut data i.e. remove ECC bytes from interleaved DATA+ECC stripes */
+	for(sector=0; sector<sectors_per_page; sector++) {
+		memcpy(&datbuf[sector*sector_size], &datbuf[sector*(sector_size+ecc_size)], sector_size);
+	}
+
+	/* copy *only* the ECC bytes, to the OOB region (after pure DATA) */
+	memcpy(&datbuf[sector_size*sectors_per_page], oobbuf, ecc_size*sectors_per_page);
+}
+#endif /* CFG_ST40_NAND_USE_BCH */
+
+
 static int nand_dump(nand_info_t *nand, ulong off, int only_oob)
 {
 	int i;
@@ -67,6 +117,11 @@ static int nand_dump(nand_info_t *nand, ulong off, int only_oob)
 		free(oobbuf);
 		return 1;
 	}
+
+#if defined(CFG_ST40_NAND_USE_BCH)		/* for H/W BCH ("multi-bit ECC") driver */
+	stm_remap_bch_buffers(nand, datbuf, oobbuf);	/* optionally move ECC to OOB */
+#endif /* CFG_ST40_NAND_USE_BCH */
+
 	printf("Page %08lx dump:\n", off);
 	i = nand->writesize >> 4;
 	p = datbuf;
