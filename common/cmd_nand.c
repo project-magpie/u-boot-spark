@@ -81,11 +81,23 @@ static int nand_dump(nand_info_t *nand, ulong off, int only_oob)
 		p += 16;
 	}
 	puts("OOB:\n");
-	i = nand->oobsize >> 3;
-	while (i--) {
-		printf("\t%02x %02x %02x %02x %02x %02x %02x %02x\n",
-		       p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
-		p += 8;
+	if (nand->oobsize >= 16) {
+		i = nand->oobsize >> 4;
+		while (i--) {	/* print 16-bytes of OOB per line */
+			printf("\t%02x %02x %02x %02x %02x %02x %02x %02x"
+			       "  %02x %02x %02x %02x %02x %02x %02x %02x\n",
+			       p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+			       p[8], p[9], p[10], p[11], p[12], p[13], p[14],
+			       p[15]);
+			p += 16;
+		}
+	} else {
+		i = nand->oobsize >> 3;
+		while (i--) {	/* print 8-bytes of OOB per line */
+			printf("\t%02x %02x %02x %02x %02x %02x %02x %02x\n",
+			       p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
+			p += 8;
+		}
 	}
 	free(datbuf);
 	free(oobbuf);
