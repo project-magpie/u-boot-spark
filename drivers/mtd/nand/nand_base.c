@@ -2372,6 +2372,9 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd,
 	struct nand_onfi_params *p = &chip->onfi_params;
 	int i;
 	int val;
+	const char format[] = "%s, %lu MiB, page size %u+%u";
+	char model[sizeof(p->model)+1];
+	char description[sizeof(format) + sizeof(model) + 10 + 10 + 10 + 1 ];
 
 	chip->cmdfunc(mtd, NAND_CMD_READID, 0x20, -1);
 	if (chip->read_byte(mtd) != 'O' || chip->read_byte(mtd) != 'N' ||
@@ -2413,9 +2416,6 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd,
 		return 0;
 	}
 
-	if (!mtd->name)
-		mtd->name = p->model;
-
 	mtd->writesize = le32_to_cpu(p->byte_per_page);
 	mtd->erasesize = le32_to_cpu(p->pages_per_block) * mtd->writesize;
 	mtd->oobsize = le16_to_cpu(p->spare_bytes_per_page);
@@ -2423,6 +2423,26 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd,
 	*busw = 0;
 	if (le16_to_cpu(p->features) & 1)
 		*busw = NAND_BUSWIDTH_16;
+
+	/* copy model number from raw ONFI structure to local buffer */
+	memcpy(model, p->model, i=sizeof(p->model));
+	/* explicitly NULL terminate it */
+	model[i--] = 0;
+	/* trim all trailing space characters (0x20) from the string */
+	for( ; (i>0) && (model[i]==' '); i--)
+		model[i] = 0;
+	/* generate a single string that describes the NAND device based on ONFI info */
+	sprintf(description, format,
+		model,
+		chip->chipsize >> 20,	/* in MiB */
+		mtd->writesize,		/* in bytes */
+		mtd->oobsize);		/* in bytes */
+	printk(KERN_INFO "ONFI flash is %s, sector size %u KiB\n",
+		description,
+		mtd->erasesize >> 10);	/* in KiB */
+	/* get "mtd" to use this description, if not yet defined */
+	if (!mtd->name)
+		mtd->name = strdup(description);
 
 	return 1;
 }
