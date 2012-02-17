@@ -56,11 +56,11 @@
  * Derived Macros:
  * 	CFG_LOAD_ADDR       = CFG_SDRAM_BASE
  *	CFG_MEMTEST_START   = CFG_SDRAM_BASE
- *	CFG_MEMTEST_END     = CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 3MiB
+ *	CFG_MEMTEST_END     = CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 2MiB - CFG_MALLOC_LEN
  *	TEXT_BASE           = CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 1MiB
  *	CFG_SE_SDRAM_WINDOW = CFG_SDRAM_SIZE - 1
  *
- *	Note: The 3 MiB figure above should be confirmed!
+ *	Note: The 2MiB figure above should be confirmed!
  *
  * The "mtest" command will totally trash the system, if the address
  * U-Boot is running from (starting at TEXT_BASE) is included the
@@ -80,8 +80,8 @@
 #	warning CFG_MEMTEST_START != CFG_SDRAM_BASE
 #endif
 
-#if CFG_MEMTEST_END != (CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (3 << 20))
-#	warning CFG_MEMTEST_END != CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 3MiB
+#if CFG_MEMTEST_END != (CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (2 << 20) - CFG_MALLOC_LEN)
+#	warning CFG_MEMTEST_END != CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 2MiB - CFG_MALLOC_LEN
 #endif
 
 #if TEXT_BASE != (CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (1 << 20))

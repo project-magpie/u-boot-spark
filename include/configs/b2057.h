@@ -101,12 +101,12 @@
 #define CFG_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
 
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
-#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
+#define CFG_MALLOC_LEN		(4 << 20)	/* Reserve 4 MiB for malloc */
 #define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128 KiB */
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
 
 #define CFG_MEMTEST_START	CFG_SDRAM_BASE
-#define CFG_MEMTEST_END		(CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (3 << 20))
+#define CFG_MEMTEST_END		(CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (2 << 20) - CFG_MALLOC_LEN)
 
 #define CONFIG_BAUDRATE		115200
 #define CFG_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
