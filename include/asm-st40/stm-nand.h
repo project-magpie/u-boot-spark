@@ -38,11 +38,20 @@ extern void stm_flex_init_nand(
 	struct mtd_info * const mtd,
 	struct nand_chip * const nand);
 
+extern void stm_bch_init_nand(
+	struct mtd_info * const mtd,
+	struct nand_chip * const nand);
+
 extern void stm_nand_scan_post_ident(
 	struct mtd_info * const mtd);
 
 extern void stm_nand_scan_post_tail(
 	struct mtd_info * const mtd);
 
+extern int stm_bch_scan_read_raw(
+	struct mtd_info *mtd,
+	uint8_t *buf,
+	loff_t offs,
+	size_t len);
 
 #endif /* __ASM_ST40_STM_NAND_H */

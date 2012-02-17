@@ -261,7 +261,6 @@
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
 #define CONFIG_CMD_NAND		/* define for NAND flash */
 #define CONFIG_SPI_FLASH	/* define for SPI serial flash */
-#undef  CONFIG_CMD_NAND		/* QQQ - TO DO */
 
 /*-----------------------------------------------------------------------
  * NOR FLASH organization
@@ -293,28 +292,65 @@
 	"nand0=gen_nand.1"	/* First NAND flash device */
 
 	/*
-	 * Currently, there are 2 main modes to read/write from/to
+	 * Enable this, if support for probing of ONFI complaint NAND
+	 * devices is also required (typically recommended).
+	 */
+#	define CONFIG_SYS_NAND_ONFI_DETECTION	/* define for probing ONFI devices */
+
+	/*
+	 * With modern large NAND devices, we need to ensure that (if the
+	 * environment is stored in NAND) that it is in its own dedicated "block".
+	 * Hence, we need to define the erase size of the NAND device being used,
+	 * so that the environment section always starts on an erase-block boundary,
+	 * AND is a multiple of erase blocks.
+	 * In practice for a NAND device with an erase size of >= 256KiB,
+	 * a single dedicated block should always be sufficient!
+	 */
+#	define CFG_NAND_ERASE_SIZE	(512 << 10)	/* NAND erase block size is 512 KiB */
+
+	/*
+	 * Currently, there are 3 main modes to read/write from/to
 	 * NAND devices on STM SoCs:
 	 *	1) using a S/W "bit-banging" driver
 	 *	   (can NOT be used with boot-from-NAND)
 	 *	2) using the H/W Hamming controller (flex-mode) driver
-	 *	   (only supported means for boot-from-NAND)
-	 * Either CFG_ST40_NAND_USE_BIT_BANGING or CFG_ST40_NAND_USE_HAMMING
-	 * should be defined, to select a single NAND driver.
+	 *	   (also supports boot-from-NAND capability)
+	 *	3) using the H/W BCH controller (multi-bit ECC) driver
+	 *	   (also supports boot-from-NAND capability)
+	 * Either CFG_ST40_NAND_USE_BIT_BANGING, or CFG_ST40_NAND_USE_HAMMING,
+	 * or CFG_ST40_NAND_USE_BCH should be defined, to select a single NAND driver.
 	 * If we are using FLEX-mode, we still need to #define the
 	 * address CFG_EMI_NAND_BASE, although the value is ignored!
 	 */
 //#	define CFG_ST40_NAND_USE_BIT_BANGING		/* use S/W "bit-banging" driver */
-#	define CFG_ST40_NAND_USE_HAMMING		/* use H/W Hamming ("flex") driver */
+//#	define CFG_ST40_NAND_USE_HAMMING		/* use H/W Hamming ("flex") driver */
+#	define CFG_ST40_NAND_USE_BCH			/* use H/W BCH ("multi-bit") driver */
+
+	/*
+	 * If using BCH, then we also need choose the "potency" of the ECC
+	 * scheme to use. The BCH controller can correct up to a maximum of
+	 * either 18-bits, or 30-bits, (both per 1024 byte sector).
+	 * 18-bits of correction requires 32 bytes of OOB per 1KiB of data.
+	 * 30-bits of correction requires 54 bytes of OOB per 1KiB of data.
+	 * For BCH, please choose *only* ONE of the following ECC schemes.
+	 */
+//#	define CFG_ST40_NAND_USE_BCH_NO_ECC		/* use BCH with-OUT ECC -- not recommended! */
+//#	define CFG_ST40_NAND_USE_BCH_18_BIT_ECC		/* use BCH with 18-bit/1KiB sector ECC */
+#	define CFG_ST40_NAND_USE_BCH_30_BIT_ECC		/* use BCH with 30-bit/1KiB sector ECC */
 
 	/*
 	 * Do we want to read/write NAND Flash compatible with the ST40's
-	 * NAND Controller H/W IP block for "boot-mode"? If we want
+	 * NAND Hamming H/W IP block for "boot-mode"? If we want
 	 * to read/write NAND flash that is meant to support booting
 	 * from NAND, then we need to use 3 bytes of ECC per 128 byte
 	 * record.  If so, then define the "CFG_NAND_ECC_HW3_128" macro.
+	 * Note: do *not* define this if CFG_ST40_NAND_USE_BCH is defined,
+	 * as the Hamming boot-mode ECC is different to that of the BCH.
 	 */
 #	define CFG_NAND_ECC_HW3_128	/* define for "boot-from-NAND" compatibility */
+#	if defined(CFG_ST40_NAND_USE_BCH)
+#	undef CFG_NAND_ECC_HW3_128	/* explicitly un-define if using BCH */
+#	endif /* CFG_NAND_ECC_HW3_128 */
 
 	/*
 	 * Do we want to use STMicroelectronics' proprietary AFM4 (4+3/512)
@@ -410,11 +446,15 @@
 
 #if 0 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CONFIG_ENV_IS_IN_NAND		/* environment in NAND flash */
+#	if CFG_NAND_ENV_OFFSET < CFG_NAND_ERASE_SIZE	/* needs to be a multiple of block-size */
+#		undef CFG_NAND_ENV_OFFSET		/* offset of just one NAND erase block */
+#		define CFG_NAND_ENV_OFFSET CFG_NAND_ERASE_SIZE
+#	endif /* if CFG_NAND_ENV_OFFSET < CFG_NAND_ERASE_SIZE */
 #	define CONFIG_ENV_OFFSET	CFG_NAND_ENV_OFFSET
-#	if CONFIG_ENV_SIZE < 0x20000		/* needs to be a multiple of block-size */
-#		undef CONFIG_ENV_SIZE		/* give it just one large-page block */
-#		define CONFIG_ENV_SIZE	0x20000	/* 128 KiB of environment data */
-#	endif /* if CONFIG_ENV_SIZE < 0x20000 */
+#	if CONFIG_ENV_SIZE < CFG_NAND_ERASE_SIZE/* needs to be a multiple of block-size */
+#		undef CONFIG_ENV_SIZE		/* give it just one NAND erase block */
+#		define CONFIG_ENV_SIZE CFG_NAND_ERASE_SIZE
+#	endif /* if CONFIG_ENV_SIZE < CFG_NAND_ERASE_SIZE */
 #elif 1 && defined(CONFIG_SPI_FLASH)		/* SPI serial flash present ? */
 #	define CONFIG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
 #	define CONFIG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */

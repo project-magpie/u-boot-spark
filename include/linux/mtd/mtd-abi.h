@@ -107,7 +107,7 @@ struct otp_info {
  * in the OOB area.
  */
 #define NAND_MAX_OOBFREE	16	/* 16 regions for STMicroelectronics SoCs */
-#define NAND_MAX_OOBSIZE	128
+#define NAND_MAX_OOBSIZE	224	/* for some 4KiB (VLP) devices */
 #define NAND_MAX_PAGESIZE	4096	/* 4KiB, for Very Large Page (VLP) devices */
 
 
