@@ -823,7 +823,7 @@ extern void stm_default_board_nand_init(
 	 * This function is called *after* nand_scan_ident(),
 	 * but *before* nand_scan_tail().
 	 */
-extern void stm_nand_chip_init(
+extern void stm_nand_scan_post_ident(
 	struct mtd_info * const mtd)
 {
 #if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
@@ -842,7 +842,7 @@ extern void stm_nand_chip_init(
 	/*
 	 * This function is called *after* nand_scan_tail().
 	 */
-extern void stm_nand_chip_init_end(
+extern void stm_nand_scan_post_tail(
 	struct mtd_info * const mtd)
 {
 #if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" ECC */

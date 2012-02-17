@@ -75,7 +75,7 @@ static int stm_nand_scan(struct mtd_info *mtd, int maxchips)
 	 * the *actual* device ID, we can complete any other ST40-specific
 	 * structure fields properly (e.g. nand->ecc.layout).
 	 */
-	stm_nand_chip_init(mtd);
+	stm_nand_scan_post_ident(mtd);
 
 	/*
 	 * Perform the second phase of the normal nand_scan() function.
@@ -88,7 +88,7 @@ static int stm_nand_scan(struct mtd_info *mtd, int maxchips)
 	/*
 	 * Finally, perform any post-scanning initialization we want to do.
 	 */
-	stm_nand_chip_init_end(mtd);
+	stm_nand_scan_post_tail(mtd);
 
 	return ret;
 }

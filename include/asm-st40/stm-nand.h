@@ -38,10 +38,10 @@ extern void stm_flex_init_nand(
 	struct mtd_info * const mtd,
 	struct nand_chip * const nand);
 
-extern void stm_nand_chip_init(
+extern void stm_nand_scan_post_ident(
 	struct mtd_info * const mtd);
 
-extern void stm_nand_chip_init_end(
+extern void stm_nand_scan_post_tail(
 	struct mtd_info * const mtd);
 
 
