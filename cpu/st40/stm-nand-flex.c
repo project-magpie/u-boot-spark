@@ -38,25 +38,6 @@
 #define DEBUG_FLEX		0	/* Enable additional debugging of the FLEX controller */
 
 
-/* Flex-Mode Data {Read,Write} Config Registers & Flex-Mode {Command,Address} Registers */
-#define FLEX_WAIT_RBn			( 1u << 27 )	/* wait for RBn to be asserted (i.e. ready) */
-#define FLEX_BEAT_COUNT_1		( 1u << 28 )	/* One Beat */
-#define FLEX_BEAT_COUNT_2		( 2u << 28 )	/* Two Beats */
-#define FLEX_BEAT_COUNT_3		( 3u << 28 )	/* Three Beats */
-#define FLEX_BEAT_COUNT_4		( 0u << 28 )	/* Four Beats */
-#define FLEX_CSn_STATUS			( 1u << 31 )	/* Deasserts CSn after current operation completes */
-
-/* Flex-Mode Data-{Read,Write} Config Registers */
-#define FLEX_1_BYTE_PER_BEAT		( 0u << 30 )	/* One Byte per Beat */
-#define FLEX_2_BYTES_PER_BEAT		( 1u << 30 )	/* Two Bytes per Beat */
-
-/* Flex-Mode Configuration Register */
-#define FLEX_CFG_ENABLE_FLEX_MODE	( 1u <<  0 )	/* Enable Flex-Mode operations */
-#define FLEX_CFG_ENABLE_AFM		( 2u <<  0 )	/* Enable Advanced-Flex-Mode operations */
-#define FLEX_CFG_SW_RESET		( 1u <<  3 )	/* Enable Software Reset */
-#define FLEX_CFG_CSn_STATUS		( 1u <<  4 )	/* Deasserts CSn in current Flex bank */
-
-
 /*
  * NAND device connected to STM NAND Controller operating in FLEX mode.
  * There may be several NAND device connected to the NAND controller.
@@ -238,7 +219,7 @@ static void init_flex_mode(void)
 
 	/* Perform a S/W reset the FLEX-mode controller */
 	/* need to assert it for at least one (EMI) clock cycle. */
-	*ST40_EMI_NAND_HAM_FLEXMODE_CFG = FLEX_CFG_SW_RESET;
+	*ST40_EMI_NAND_HAM_FLEXMODE_CFG = STM_NAND_FLEX_CFG_SW_RESET;
 	udelay(1);	/* QQQ: can we do something shorter ??? */
 	*ST40_EMI_NAND_HAM_FLEXMODE_CFG = 0;
 
@@ -246,7 +227,7 @@ static void init_flex_mode(void)
 	*ST40_EMI_NAND_HAM_INT_EN = 0;
 
 	/* Set FLEX-mode controller to enable FLEX-mode */
-	*ST40_EMI_NAND_HAM_FLEXMODE_CFG = FLEX_CFG_ENABLE_FLEX_MODE;
+	*ST40_EMI_NAND_HAM_FLEXMODE_CFG = STM_NAND_FLEX_CFG_ENABLE_FLEX_MODE;
 
 	/*
 	 * Configure (pervading) FLEX_DATA to write 4-bytes at a time.
@@ -257,10 +238,10 @@ static void init_flex_mode(void)
 	 * can not guarantee the buffer is in RAM (or not in the EMI).
 	 * Note: we could run memcpy() in write_buf() instead.
 	 */
-	reg = FLEX_BEAT_COUNT_4 | FLEX_1_BYTE_PER_BEAT;
-	reg |= FLEX_CSn_STATUS;		/* deassert CSn after each flex data write */
+	reg = STM_NAND_FLEX_BEAT_COUNT_4 | STM_NAND_FLEX_1_BYTE_PER_BEAT;
+	reg |= STM_NAND_FLEX_CSn_STATUS;	/* deassert CSn after each flex data write */
 #if 0
-	reg |= FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
+	reg |= STM_NAND_FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
 #endif
 	*ST40_EMI_NAND_HAM_FLEX_DATAWRT_CFG = reg;
 }
@@ -319,8 +300,8 @@ static void stm_flex_cmd_ctrl (
 		BUG_ON(ctrl & NAND_ALE);	/* just in case ... */
 		BUG_ON(byte == NAND_CMD_NONE);	/* just in case ... */
 #endif
-		reg = (byte & 0xFFu) | FLEX_BEAT_COUNT_1;
-		reg |= FLEX_CSn_STATUS;		/* deassert CSn after each flex command write */
+		reg = (byte & 0xFFu) | STM_NAND_FLEX_BEAT_COUNT_1;
+		reg |= STM_NAND_FLEX_CSn_STATUS;	/* deassert CSn after each flex command write */
 		*ST40_EMI_NAND_HAM_FLEX_CMD = reg;
 	}
 	else if ( ctrl & NAND_ALE )		/* an ADDRESS Cycle ? */
@@ -330,8 +311,8 @@ static void stm_flex_cmd_ctrl (
 		BUG_ON(ctrl & NAND_CLE);	/* just in case ... */
 		BUG_ON(byte == NAND_CMD_NONE);	/* just in case ... */
 #endif
-		reg = (byte & 0xFFu) | FLEX_BEAT_COUNT_1;
-		reg |= FLEX_CSn_STATUS;		/* deassert CSn after each flex address write */
+		reg = (byte & 0xFFu) | STM_NAND_FLEX_BEAT_COUNT_1;
+		reg |= STM_NAND_FLEX_CSn_STATUS;	/* deassert CSn after each flex address write */
 		*ST40_EMI_NAND_HAM_FLEX_ADD_REG = reg;
 	}
 	else if (ctrl & NAND_CTRL_CHANGE)	/* only update the "control" lines ? */
@@ -368,10 +349,10 @@ static u_char stm_flex_read_byte(
 	u_int32_t reg;
 
 	/* read 1-byte at a time */
-	reg = FLEX_BEAT_COUNT_1 | FLEX_1_BYTE_PER_BEAT;
-	reg |= FLEX_CSn_STATUS;		/* deassert CSn after each flex data read */
+	reg = STM_NAND_FLEX_BEAT_COUNT_1 | STM_NAND_FLEX_1_BYTE_PER_BEAT;
+	reg |= STM_NAND_FLEX_CSn_STATUS;	/* deassert CSn after each flex data read */
 #if 0
-	reg |= FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
+	reg |= STM_NAND_FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
 #endif
 	*ST40_EMI_NAND_HAM_FLEX_DATA_RD_CFG = reg;
 
@@ -412,10 +393,10 @@ static void stm_flex_read_buf(
 #endif
 
 	/* configure to read 4-bytes at a time */
-	reg = FLEX_BEAT_COUNT_4 | FLEX_1_BYTE_PER_BEAT;
-	reg |= FLEX_CSn_STATUS;		/* deassert CSn after each flex data read */
+	reg = STM_NAND_FLEX_BEAT_COUNT_4 | STM_NAND_FLEX_1_BYTE_PER_BEAT;
+	reg |= STM_NAND_FLEX_CSn_STATUS;	/* deassert CSn after each flex data read */
 #if 0
-	reg |= FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
+	reg |= STM_NAND_FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
 #endif
 	*ST40_EMI_NAND_HAM_FLEX_DATA_RD_CFG = reg;
 
