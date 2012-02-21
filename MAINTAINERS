@@ -657,6 +657,7 @@ Vipin Kumar <vipin.kumar@st.com>
 	spear300	ARM926EJS (spear300 Soc)
 	spear310	ARM926EJS (spear310 Soc)
 	spear320	ARM926EJS (spear320 Soc)
+	spear320_hmi	ARM926EJS (spear320 Soc)
 	spear600	ARM926EJS (spear600 Soc)
 
 Sergey Lapin <slapin@ossfans.org>

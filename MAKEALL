@@ -594,6 +594,7 @@ LIST_ARM9="			\
 	spear300		\
 	spear310		\
 	spear320		\
+	spear320_hmi		\
 	spear600		\
 	suen3			\
 	trab			\

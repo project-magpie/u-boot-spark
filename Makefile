@@ -24,7 +24,7 @@
 VERSION = 2010
 PATCHLEVEL = 03
 SUBLEVEL =
-EXTRAVERSION =-lsp-3.2.2
+EXTRAVERSION =-lsp-3.2.3-rc1
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -3061,6 +3061,12 @@ spear320_usbtty_config \
 spear320_usbtty_nand_config :	unconfig
 	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs spear320 spear spear
 
+spear320_hmi_config \
+spear320_hmi_nand_config \
+spear320_hmi_usbtty_config \
+spear320_hmi_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs spear320_hmi spear spear
+
 spear600_config \
 spear600_nand_config \
 spear600_usbtty_config \
@@ -3084,6 +3090,12 @@ spear1340_nand_config \
 spear1340_usbtty_config \
 spear1340_usbtty_nand_config :	unconfig
 	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1340 spear spear13xx
+
+spear1340_hurricane_config \
+spear1340_hurricane_nand_config \
+spear1340_hurricane_usbtty_config \
+spear1340_hurricane_usbtty_nand_config :	unconfig
+	@$(MKCONFIG) -n $@ -t $(@:_config=) hurricane arm arm_cortexa8 hurricane spear spear13xx
 
 spear900_config \
 spear900_nand_config \

@@ -58,6 +58,10 @@ Build options
 	make spear320_nand_config
 	make spear320_usbtty_config
 	make spear320_usbtty_nand_config
+	make spear320_hmi_config
+	make spear320_hmi_nand_config
+	make spear320_hmi_usbtty_config
+	make spear320_hmi_usbtty_nand_config
 
 	make spear1300_config
 	make spear1300_nand_config

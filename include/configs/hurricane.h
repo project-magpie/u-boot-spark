@@ -24,42 +24,18 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#if defined(CONFIG_MK_spear1300)
-#define CONFIG_SPEAR13XX			1
-#define CONFIG_SPEAR1300			1
-#endif
-
-#if defined(CONFIG_MK_spear1310) && defined(CONFIG_MK_reva)
-#define CONFIG_SPEAR13XX			1
-#define CONFIG_SPEAR1310_REVA			1
-#endif
-
-#if defined(CONFIG_MK_spear1340)
 #define CONFIG_SPEAR13XX			1
 #define CONFIG_SPEAR1340			1
-#endif
-
-#if defined(CONFIG_MK_spear900)
-#define CONFIG_SPEAR13XX			1
-#define CONFIG_SPEAR900			1
-#endif
-
+#define CONFIG_MACH_SPEAR_HURRICANE	1
 
 #if defined(CONFIG_MK_usbtty)
-#define CONFIG_SPEAR_USBTTY			1
+#define CONFIG_SPEAR_USBTTY		1
 #endif
 
 #if defined(CONFIG_MK_nand)
-#define CONFIG_ENV_IS_IN_NAND			1
+#define CONFIG_ENV_IS_IN_NAND		1
 #else
-#define CONFIG_ENV_IS_IN_FLASH			1
-#endif
-
-#if !defined(CONFIG_SPEAR_USBTTY)
-#if !defined(CONFIG_SPEAR1340)
-/* Solve issue #101435 - UHC blocks the BUSMATRIX */
-#define CONFIG_SPEAR1300_ISSUE_101435		1
-#endif
+#define CONFIG_ENV_IS_IN_FLASH		1
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
@@ -75,30 +51,17 @@
 #define CONFIG_MII
 #define CONFIG_DESIGNWARE_ETH
 #define CONFIG_NET_MULTI
-#define CONFIG_DW_ALTDESCRIPTOR			1
-#ifdef CONFIG_SPEAR1340
-#define CONFIG_DW0_PHY				1
-#define CONFIG_SPEAR_RGMII
-#else
-#define CONFIG_DW0_PHY				5
-#endif
-#define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
+#define CONFIG_DW_ALTDESCRIPTOR	1
+#define CONFIG_DW0_PHY			1
+#define CONFIG_DW_SEARCH_PHY		1
+#define CONFIG_PHY_RESET_DELAY		(10000)		/* in usec */
 #define CONFIG_DW_AUTONEG			1
-
-#ifdef CONFIG_SPEAR1340
-#define CONFIG_DW_SEARCH_PHY			1
-#endif
-
 #endif
 
 /* USBD driver configuration */
 #if (defined(CONFIG_SPEAR_USBTTY))
 #define CONFIG_USB_DEVICE
-#ifdef CONFIG_SPEAR1340
 #define CONFIG_DW_OTG
-#else
-#define CONFIG_DW_UDC
-#endif
 #define CONFIG_USBD_HS
 #define CONFIG_USB_TTY
 
@@ -156,11 +119,8 @@
 #define CONFIG_NAND_FSMC			1
 #define CONFIG_SYS_FSMC_NAND_8BIT		1
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
-#if defined(CONFIG_SPEAR1340)
+#define CONFIG_MTD_NAND_VERIFY_WRITE		1
 #define CONFIG_SYS_NAND_BASE			(0xB0800000)
-#else
-#define CONFIG_SYS_NAND_BASE			(0xA0000000)
-#endif
 #define CONFIG_SYS_NAND_ONFI_DETECTION		1
 #define CONFIG_SYS_NAND_QUIET_TEST		1
 #define CONFIG_CMD_NAND
@@ -214,11 +174,7 @@
 #define CONFIG_SYS_MONITOR_LEN			0x00040000
 #define CONFIG_ENV_SECT_SIZE			0x00010000
 
-#if !defined(CONFIG_SPEAR1340)
 #define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
-#else
-#define CONFIG_FSMTDBLK				"/dev/mtdblock4 "
-#endif
 
 #define CONFIG_BOOTCOMMAND			"bootm 0xe6050000"
 
@@ -229,14 +185,10 @@
  * Environment is in NAND
  */
 
-#define CONFIG_ENV_OFFSET			0x60000
-#define CONFIG_ENV_RANGE			0x10000
+#define CONFIG_ENV_OFFSET			0xc0000
+#define CONFIG_ENV_RANGE			0x20000
 
-#if !defined(CONFIG_SPEAR1340)
 #define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
-#else
-#define CONFIG_FSMTDBLK				"/dev/mtdblock8 "
-#endif
 
 #define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
 						"0x80000 0x4C0000; " \
