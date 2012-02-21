@@ -40,7 +40,50 @@
 #include <asm/socregs.h>
 #include <asm/st40reg.h>
 
+
 /*
+ *	The ST40 Memory Map
+ *	===================
+ *
+ *	Base:			Size:			Comment:
+ *	-----			-----			--------
+ *
+ *	CFG_SDRAM_BASE+CFG_SDRAM_SIZE			Top Of DRAM Memory
+ *
+ *	TEXT_BASE		1MiB			entry point
+ *
+ *	mem_malloc_start	CFG_MALLOC_LEN		"heap" used by malloc() and friends
+ *
+ *	gd			sizeof(gd_t)		struct global_data
+ *
+ *	gd->bd			sizeof(bd_t)		struct bd_info
+ *
+ *	small "hole"		CFG_GBL_DATA_SIZE-(sizeof(gd_t)+sizeof(bd_t))
+ *
+ *	stack_addr					Stack (growing downwards, towards CFG_MEMTEST_END)
+ *							stack_addr = TEXT_BASE-(CFG_GBL_DATA_SIZE+CFG_MALLOC_LEN)
+ *
+ *	CFG_MEMTEST_END					default upper-bound for "mtest"
+ *
+ *	CFG_MEMTEST_START				default lower-bound for "mtest"
+ *
+ *	CFG_SDRAM_BASE					Bottom Of DRAM Memory
+ *
+ *
+ *	Note: the above assumes that:
+ *
+ *		1) sizeof(gd_t) + sizeof(bd_t) <= CFG_GBL_DATA_SIZE
+ *
+ *		2) CFG_MEMTEST_END is ~ 1MiB below "stack_addr"
+ */
+
+/*
+ * The "mtest" command will totally trash the system, if the address
+ * U-Boot is running from (starting at TEXT_BASE) is included the
+ * range of memory we are testing. We ensure here that the "default"
+ * range that "mtest" uses is not stupid!
+ * This is done only as a compile-time test.
+ *
  * Currently, there are several macros which define where SDRAM
  * starts, how big it is, and where various things in RAM are located.
  * Unfortunately, it is possible to define these different
@@ -54,19 +97,33 @@
  *	CFG_SDRAM_BASE, CFG_SDRAM_SIZE
  *
  * Derived Macros:
- * 	CFG_LOAD_ADDR       = CFG_SDRAM_BASE
+ *	CFG_LOAD_ADDR       = CFG_SDRAM_BASE
  *	CFG_MEMTEST_START   = CFG_SDRAM_BASE
- *	CFG_MEMTEST_END     = CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 2MiB - CFG_MALLOC_LEN
+ *	CFG_MEMTEST_END     = TEXT_BASE - CFG_MALLOC_LEN - 1MiB
  *	TEXT_BASE           = CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 1MiB
  *	CFG_SE_SDRAM_WINDOW = CFG_SDRAM_SIZE - 1
  *
- *	Note: The 2MiB figure above should be confirmed!
+ * Note: Both 1MiB figures above are probably "too safe", and
+ * could (if needed) be reduced somewhat.
  *
- * The "mtest" command will totally trash the system, if the address
- * U-Boot is running from (starting at TEXT_BASE) is included the
- * range of memory we are testing. We ensure here that the "default"
- * range that "mtest" uses is not stupid!
- * This is done only as a compile-time test.
+ * The 1MiB figure in CFG_MEMTEST_END really only needs to be
+ * CFG_GBL_DATA_SIZE plus the size of the maximum stack size!
+ * Where CFG_GBL_DATA_SIZE could be reduced to be exactly:
+ * sizeof(gd_t) + sizeof(bd_t), removing the "small hole" in the
+ * memory map. However, using 1MiB should be uber-conservative.
+ * It is essential that "mtest" does not trash the stack!
+ *
+ * The 1MiB figure in verifying TEXT_BASE, is just a "nice round number".
+ * It could probably be reduced to be just the size of the raw u-boot.bin
+ * binary image, plus the size of the (zero-initialized) ".bss" section!
+ * However, having it over-sized is very convenient, as it means the
+ * entry point is always just 1MiB below the "top of RAM".
+ *
+ * It is recommended that all include/config/<board>.h files
+ * use the following two definitions:
+ *
+ *	#define CFG_MEMTEST_START	CFG_SDRAM_BASE
+ *	#define CFG_MEMTEST_END		(TEXT_BASE - CFG_MALLOC_LEN - (1 << 20))
  */
 #if (TEXT_BASE >= CFG_MEMTEST_START) && (TEXT_BASE < CFG_MEMTEST_END)
 #	warning "mtest" will fail when CFG_MEMTEST_START < TEXT_BASE < CFG_MEMTEST_END!
@@ -80,8 +137,8 @@
 #	warning CFG_MEMTEST_START != CFG_SDRAM_BASE
 #endif
 
-#if CFG_MEMTEST_END != (CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (2 << 20) - CFG_MALLOC_LEN)
-#	warning CFG_MEMTEST_END != CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 2MiB - CFG_MALLOC_LEN
+#if CFG_MEMTEST_END != (TEXT_BASE - CFG_MALLOC_LEN - (1 << 20))
+#	warning CFG_MEMTEST_END != TEXT_BASE - CFG_MALLOC_LEN - 1MiB
 #endif
 
 #if TEXT_BASE != (CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (1 << 20))
