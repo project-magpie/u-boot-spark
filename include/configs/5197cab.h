@@ -63,7 +63,6 @@
 #define CFG_MONITOR_BASE	0		/* Offset in SPI for u-boot.bin */
 #define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
 #define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
-#define CFG_BOOTPARAMS_LEN	(128 << 10)	/* 128 KiB */
 #define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
 
 #define CFG_MEMTEST_START	CFG_SDRAM_BASE

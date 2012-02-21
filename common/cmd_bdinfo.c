@@ -375,7 +375,6 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #endif
 	bd_t *bd = gd->bd;
 
-	print_num ("boot_params",	(ulong)bd->bi_boot_params);
 	print_num ("memstart",		(ulong)bd->bi_memstart);
 	print_lnum ("memsize",		(u64)bd->bi_memsize);
 #ifndef CFG_NO_FLASH

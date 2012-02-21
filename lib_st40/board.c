@@ -254,10 +254,9 @@ void start_st40_boot (void)
 	bd = (bd_t *) addr;
 	gd->bd = bd;
 
-	/* Reserve memory for boot params.
+	/*
+	 * Call all the functions in init_sequence[] in turn ...
 	 */
-
-	addr -= CFG_BOOTPARAMS_LEN;
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
 		if ((*init_fnc_ptr) () != 0) {
 			hang ();
@@ -277,7 +276,6 @@ void start_st40_boot (void)
 #endif /* CFG_NO_FLASH */
 
 	bd = gd->bd;
-	bd->bi_boot_params = addr;
 	bd->bi_memstart = CFG_SDRAM_BASE;	/* start of  DRAM memory */
 	bd->bi_memsize = gd->ram_size;	/* size  of  DRAM memory in bytes */
 	bd->bi_baudrate = gd->baudrate;	/* Console Baudrate */

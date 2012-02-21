@@ -793,7 +793,7 @@ do_start_st40_boot:
 .balign 4
 _start_offset:	.long . - _start
 target_addr:	.long TEXT_BASE
-stack_addr:	.long TEXT_BASE - (CFG_GBL_DATA_SIZE + CFG_MALLOC_LEN + CFG_BOOTPARAMS_LEN)
+stack_addr:	.long TEXT_BASE - (CFG_GBL_DATA_SIZE + CFG_MALLOC_LEN)
 bss_start:	.long __bss_start
 bss_end:	.long __bss_end
 hyperspace_addr:.long hyperspace
