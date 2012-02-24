@@ -181,12 +181,26 @@
 #define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
 						"0x80000 0x4C0000; " \
 						"bootm 0x1600000"
+
+#elif defined(CONFIG_ENV_IS_NOWHERE)
+/*
+ * Environment is in NAND/FLASH, saveenv command supported
+ */
+
+#define CONFIG_ENV_RANGE			0x10000
+#define CONFIG_ENV_SECT_SIZE			0x10000
+#endif
+
+#ifdef CONFIG_FSMTDBLK
+#define ROOT_FSMTD				"root="CONFIG_FSMTDBLK \
+						"rootfstype=jffs2"
+#else
+#define ROOT_FSMTD				""
 #endif
 
 #define CONFIG_BOOTARGS				"console=ttyAMA0,115200 " \
 						"mem=128M "  \
-						"root="CONFIG_FSMTDBLK \
-						"rootfstype=jffs2"
+						ROOT_FSMTD
 
 #define CONFIG_NFSBOOTCOMMAND						\
 	"bootp; "							\
@@ -200,8 +214,7 @@
 #define CONFIG_RAMBOOTCOMMAND						\
 	"setenv bootargs root=/dev/ram rw "				\
 		"console=ttyAMA0,115200 $(othbootargs);"		\
-	CONFIG_BOOTCOMMAND
-
+	"bootm; "
 
 #define CONFIG_ENV_SIZE				0x02000
 #define CONFIG_SYS_MONITOR_BASE			TEXT_BASE

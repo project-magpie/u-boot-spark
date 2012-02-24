@@ -44,14 +44,21 @@
 	#endif
 #endif
 
-#if defined(CONFIG_MK_usbtty)
-#define CONFIG_SPEAR_USBTTY			1
-#endif
-
 #if defined(CONFIG_MK_nand)
 #define CONFIG_ENV_IS_IN_NAND			1
 #else
 #define CONFIG_ENV_IS_IN_FLASH			1
+#endif
+
+#if defined(CONFIG_MK_usbtty)
+#define CONFIG_SPEAR_USBTTY			1
+
+#undef CONFIG_ENV_IS_IN_NAND
+#undef CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_IS_NOWHERE			1
+/*
+ * To support saveenv command
+ */
 #endif
 
 #include <configs/spear-common.h>

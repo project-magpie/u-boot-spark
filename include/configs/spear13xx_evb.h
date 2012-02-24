@@ -44,15 +44,20 @@
 #define CONFIG_SPEAR900			1
 #endif
 
-
-#if defined(CONFIG_MK_usbtty)
-#define CONFIG_SPEAR_USBTTY			1
-#endif
-
 #if defined(CONFIG_MK_nand)
 #define CONFIG_ENV_IS_IN_NAND			1
 #else
 #define CONFIG_ENV_IS_IN_FLASH			1
+#endif
+
+#if defined(CONFIG_MK_usbtty)
+#define CONFIG_SPEAR_USBTTY			1
+#undef CONFIG_ENV_IS_IN_NAND
+#undef CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_IS_NOWHERE			1
+/*
+ * To support saveenv command
+ */
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
@@ -241,11 +246,20 @@
 #define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
 						"0x80000 0x4C0000; " \
 						"bootm 0x1600000"
+#elif defined(CONFIG_ENV_IS_NOWHERE)
+#define CONFIG_ENV_RANGE			0x10000
+#define CONFIG_ENV_SECT_SIZE			0x10000
 #endif
 
-#define CONFIG_BOOTARGS				"console=ttyAMA0,115200 " \
-						"root="CONFIG_FSMTDBLK \
+#ifdef CONFIG_FSMTDBLK
+#define ROOT_FSMTD				"root="CONFIG_FSMTDBLK \
 						"rootfstype=jffs2"
+#else
+#define ROOT_FSMTD				""
+#endif
+
+#define CONFIG_BOOTARGS			"console=ttyAMA0,115200 " \
+						ROOT_FSMTD
 
 #define CONFIG_NFSBOOTCOMMAND						\
 	"bootp; "							\
@@ -259,7 +273,7 @@
 #define CONFIG_RAMBOOTCOMMAND						\
 	"setenv bootargs root=/dev/ram rw "				\
 		"console=ttyAMA0,115200 $(othbootargs);"		\
-	CONFIG_BOOTCOMMAND
+	"bootm; "
 
 #define CONFIG_ENV_SIZE				0x02000
 #define CONFIG_SYS_MONITOR_BASE			TEXT_BASE
