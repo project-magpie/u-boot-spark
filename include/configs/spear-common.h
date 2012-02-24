@@ -188,7 +188,11 @@
  */
 
 #define CONFIG_ENV_RANGE			0x10000
+#if defined(CONFIG_SPEAR_EMI)
+#define CONFIG_ENV_SECT_SIZE			0x20000
+#else
 #define CONFIG_ENV_SECT_SIZE			0x10000
+#endif
 #endif
 
 #ifdef CONFIG_FSMTDBLK
