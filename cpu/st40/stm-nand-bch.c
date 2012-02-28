@@ -74,6 +74,41 @@
 #define NANDI_BCH_ALIGN_BUFFER(x)		( (((unsigned long)(x))+NANDI_BCH_DMA_ALIGNMENT-1u) & ~(NANDI_BCH_DMA_ALIGNMENT-1u) )
 
 
+/*
+ * Hamming/BCH controller interrupts
+ */
+
+/* NANDxxx_INT_EN/NANDxxx_INT_STA */
+/*      Common */
+#define NAND_INT_ENABLE				(0x1 << 0)
+#define NAND_INT_RBN				(0x1 << 2)
+#define NAND_INT_SEQCHECK			(0x1 << 5)
+/*      Hamming only */
+#define NANDHAM_INT_DATA_DREQ			(0x1 << 3)
+#define NANDHAM_INT_SEQ_DREQ			(0x1 << 4)
+#define NANDHAM_INT_ECC_FIX_REQ			(0x1 << 6)
+/*      BCH only */
+#define NANDBCH_INT_SEQNODESOVER		(0x1 << 7)
+#define NANDBCH_INT_ECCTHRESHOLD		(0x1 << 8)
+
+/* NANDxxx_INT_CLR */
+/*      Common */
+#define NAND_INT_CLR_RBN			(0x1 << 2)
+#define NAND_INT_CLR_SEQCHECK			(0x1 << 3)
+/*      Hamming only */
+#define NANDHAM_INT_CLR_ECC_FIX_REQ		(0x1 << 4)
+#define NANDHAM_INT_CLR_DATA_DREQ		(0x1 << 5)
+#define NANDHAM_INT_CLR_SEQ_DREQ		(0x1 << 6)
+/*      BCH only */
+#define NANDBCH_INT_CLR_SEQNODESOVER		(0x1 << 5)
+#define NANDBCH_INT_CLR_ECCTHRESHOLD		(0x1 << 6)
+
+/* NANDxxx_INT_EDGE_CFG */
+#define NAND_EDGE_CFG_RBN_RISING		0x1
+#define NAND_EDGE_CFG_RBN_FALLING		0x2
+#define NAND_EDGE_CFG_RBN_ANY			0x3
+
+
 /*************************************************************************
  *******************	static (global) variables	******************
  *************************************************************************/
@@ -196,6 +231,10 @@ static void nandi_init_bch(const int emi_bank)
 	writel(0x00000002, ST40_EMISS_NAND_WR_DMA_MIN_OPCODE_SIZE);
 	writel(0x00000001, ST40_EMISS_NAND_WR_DMA_MAX_CHUNK_SIZE);
 	writel(0x00000000, ST40_EMISS_NAND_WR_DMA_MAX_MESSAGE_SIZE);
+
+	/* Enable the SEQ_NODES_OVER interrupt for the BCH (we will poll on it!) */
+	writel(NAND_INT_ENABLE | NANDBCH_INT_SEQNODESOVER,
+		ST40_EMI_NAND_BCH_INT_EN);
 }
 
 
@@ -623,13 +662,16 @@ static inline void bch_load_prog_cpu(const struct bch_prog * const prog)
 static inline void bch_wait_till_completion(void)
 {
 	/*
-	 * QQQ - to do - poll on INTERRUPT status bit instead -- should be safer!
-	 * e.g. using NANDBCH_INT_SEQNODESOVER
+	 * Poll on the SEQ_NODES_OVER interrupt bit, as this is safer than
+	 * just using the Sequence Status RUN_STATUS bit, as the DMA of page
+	 * reads complete *after* the BCH engine has actually finished!
+	 * We simply wait for SEQ_NODES_OVER to be asserted, and clear it afterwards.
 	 */
-	while (readl(ST40_EMI_NAND_BCH_SEQ_STA) & SEQ_STA_RUN)
+	while ((readl(ST40_EMI_NAND_BCH_INT_STA) & NANDBCH_INT_SEQNODESOVER) == 0)
 		;	/* do nothing */
 
-	return;		/* RUN_STATUS bit is now clear */
+	/* finally, clear the SEQ_NODES_OVER interrupt status bit, for next time */
+	writel(NANDBCH_INT_CLR_SEQNODESOVER, ST40_EMI_NAND_BCH_INT_CLR);
 }
 
 
