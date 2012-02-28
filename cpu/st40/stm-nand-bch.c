@@ -183,8 +183,7 @@ static void nandi_init_hamming(const int emi_bank)
 	/* Enable FLEX mode */
 	writel(CFG_ENABLE_FLEX, ST40_EMI_NAND_HAM_FLEXMODE_CFG);
 
-	/* Configure FLEX_DATA_READ/WRITE for 1-byte access */
-	/* QQQ - ensure following is pervasive, if possible!!! */
+	/* Configure pervading FLEX_DATA_READ/WRITE as 1-byte accesses */
 	writel(STM_NAND_FLEX_BEAT_COUNT_1 | STM_NAND_FLEX_1_BYTE_PER_BEAT | STM_NAND_FLEX_CSn_STATUS,
 	       ST40_EMI_NAND_HAM_FLEX_DATA_RD_CFG);
 	writel(STM_NAND_FLEX_BEAT_COUNT_1 | STM_NAND_FLEX_1_BYTE_PER_BEAT | STM_NAND_FLEX_CSn_STATUS,
