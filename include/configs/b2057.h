@@ -36,21 +36,28 @@
 
 /*-----------------------------------------------------------------------
  *	Switch settings to select between the SoC's main boot-modes:
- *		1) boot from 8-bit NAND, 4KiB page, long address, BCH controller
- *		2) boot from SPI serial flash
  *
- *	Note: Only boot from SPI is currently supported.
- *	The switch setting for boot-from-NAND are currently unverified.
+ *		1) Boot from 8-bit SLC NAND, 4KiB pages, 5 address cycles, with
+ *		   the (multi-bit ECC) BCH controller (not Hamming).
+ *		   There are three different possible BCH ECC modes:
+ *			a) NO ECC (i.e. for "error free" NAND)
+ *			b) 18-bits of ECC per 1KiB sector (needs 32 bytes OOB/1KiB)
+ *			c) 30-bits of ECC per 1KiB sector (needs 54 bytes OOB/1KiB)
  *
- *			Boot-From-FLASH
- *	Jumper		NAND	SPI		Signal
- *	------		----	---		------
- *	JF3		qqq	CSB		NAND_CS#
- *	JF6-1		qqq	off		MODE[6]
- *	JF5-2		qqq	off		MODE[5]
- *	JF5-1		qqq	 ON		MODE[4]
- *	JF4-2		qqq	off		MODE[3]
- *	JF4-1		qqq	 ON		MODE[2]
+ *		2) Boot from SPI Serial (NOR) FLASH
+ *
+ *	Note: Using NAND withOUT is not recommended!
+ *
+ *				Boot-From-FLASH
+ *			NAND	NAND	NAND	SPI
+ *	Jumper		NO ECC	(18)	(30)	NOR		Signal
+ *	------		------	----	----	---		------
+ *	JF3		CSA	CSA	CSA	CSB		NAND_CS#
+ *	JF6-1		 ON	 ON	 ON	off		MODE[6]
+ *	JF5-2		off	off	off	off		MODE[5]
+ *	JF5-1		 ON	 ON	 ON	 ON		MODE[4]
+ *	JF4-2		 ON	 ON	off	off		MODE[3]
+ *	JF4-1		 ON	off	 ON	 ON		MODE[2]
  */
 
 
@@ -60,6 +67,7 @@
  * otherwise (e.g. SPI Flash booting), do not define it.
  */
 #undef	CFG_BOOT_FROM_NAND		/* define to build a NAND-bootable image */
+#define CFG_BOOT_FROM_NAND		/* assume we ARE booting from NAND */
 
 
 /*-----------------------------------------------------------------------
@@ -68,7 +76,6 @@
  * otherwise (e.g. for NAND Flash booting), do not define it.
  */
 #undef CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
-#define CFG_BOOT_FROM_SPI		/* assume we ARE booting from SPI */
 
 
 /*-----------------------------------------------------------------------
@@ -81,6 +88,7 @@
 #	define CFG_EMI_SPI_BASE	0xB0000000	/* CSA: SPI Flash,  Physical 0x00000000 (4MiB) */
 #	define CFG_NAND_FLEX_CSn_MAP	{ 1 }	/* NAND is on Chip Select CSB */
 #elif defined(CFG_BOOT_FROM_NAND)	/* we are booting from NAND */
+#	define CFG_EMI_NAND_BASE 0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (4MiB) */
 #	define CFG_NAND_FLEX_CSn_MAP	{ 0 }	/* NAND is on Chip Select CSA */
 #else
 #	error Either CFG_BOOT_FROM_SPI or CFG_BOOT_FROM_NAND must be defined!
@@ -318,7 +326,7 @@
 	 *	   (also supports boot-from-NAND capability)
 	 * Either CFG_ST40_NAND_USE_BIT_BANGING, or CFG_ST40_NAND_USE_HAMMING,
 	 * or CFG_ST40_NAND_USE_BCH should be defined, to select a single NAND driver.
-	 * If we are using FLEX-mode, we still need to #define the
+	 * If we are using FLEX or BCH, we still need to #define the
 	 * address CFG_EMI_NAND_BASE, although the value is ignored!
 	 */
 //#	define CFG_ST40_NAND_USE_BIT_BANGING		/* use S/W "bit-banging" driver */
@@ -443,7 +451,7 @@
 
 #define CONFIG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
 
-#if 0 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
+#if 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CONFIG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	if CFG_NAND_ENV_OFFSET < CFG_NAND_ERASE_SIZE	/* needs to be a multiple of block-size */
 #		undef CFG_NAND_ENV_OFFSET		/* offset of just one NAND erase block */
