@@ -1168,7 +1168,15 @@ extern void stm_bch_init_nand(
 	struct mtd_info * const mtd,
 	struct nand_chip * const chip)
 {
-	const int emi_bank = 1;			/* QQQQ do properly! - use CFG_NAND_FLEX_CSn_MAP ??? */
+	int emi_bank = 0;		/* use first CSn */
+#if defined(CFG_NAND_FLEX_CSn_MAP)
+	const int csn_map[CFG_MAX_NAND_DEVICE] = CFG_NAND_FLEX_CSn_MAP;
+#endif	/* CFG_NAND_FLEX_CSn_MAP */
+
+#if defined(CFG_NAND_FLEX_CSn_MAP)
+	/* Re-map to different CSn if needed */
+	emi_bank = csn_map[emi_bank];
+#endif	/* CFG_NAND_FLEX_CSn_MAP */
 
 	/* initialize the BCH controller H/W */
 	nandi_init_bch(emi_bank);
@@ -1179,18 +1187,6 @@ extern void stm_bch_init_nand(
 	/* Configure MTD/NAND interface */
 	nandi_set_mtd_defaults(mtd, chip);
 
-#if 0	/* QQQQ TO DO */
-	int csn;
-#ifdef CFG_NAND_FLEX_CSn_MAP
-	const int csn_map[CFG_MAX_NAND_DEVICE] = CFG_NAND_FLEX_CSn_MAP;
-#endif	/* CFG_NAND_FLEX_CSn_MAP */
-	csn = flex.next_csn++;		/* first free CSn */
-	nand->priv = data = &(flex.device[csn]);	/* first free "private" structure */
-	if (csn >= CFG_MAX_NAND_DEVICE) BUG();
-#ifdef CFG_NAND_FLEX_CSn_MAP
-	csn = csn_map[csn];				/* Re-map to different CSn if needed */
-#endif	/* CFG_NAND_FLEX_CSn_MAP */
-#endif	/* QQQQ TO DO */
 }
 
 #endif	/* CONFIG_CMD_NAND && CFG_ST40_NAND_USE_BCH */
