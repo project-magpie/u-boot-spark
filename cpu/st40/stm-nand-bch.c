@@ -147,6 +147,14 @@ static void emiss_nandi_select(const enum nandi_controllers controller)
 	}
 
 	writel(v, ST40_EMISS_CONFIG);	/* select the chosen controller */
+
+	/*
+	 * Ensure the writel() has completed before we attempt to make
+	 * any further accesses to the newly selected NAND controller,
+	 * by simply reading it back again.
+	 * This was empirically required by Linux on the Freeman Ultra.
+	 * We will do this on all ST40 systems -- best to be safe!
+	 */
 	readl(ST40_EMISS_CONFIG);
 }
 
