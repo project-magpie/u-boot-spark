@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2011 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -95,8 +95,18 @@ struct stx7108_ethernet_config
 		stx7108_ethernet_mode_rmii,
 		stx7108_ethernet_mode_reverse_mii
 	} mode;
-	int ext_clk;
-	int phy_bus;
+	int ext_clk : 1;	/* boolean */
+	int phy_bus : 5;	/* 0x00 .. 0x1f */
+};
+struct stxh205_ethernet_config {
+	enum {
+		stxh205_ethernet_mode_mii,
+		stxh205_ethernet_mode_rmii,
+		stxh205_ethernet_mode_reverse_mii
+	} mode;
+	int ext_clk : 1;	/* boolean */
+	int no_txer : 1;	/* boolean */
+	int phy_bus : 5;	/* 0x00 .. 0x1f */
 };
 struct stxh415_ethernet_config {
 	enum {
@@ -107,8 +117,8 @@ struct stxh415_ethernet_config {
 		stxh415_ethernet_mode_rgmii_gtx,
 		stxh415_ethernet_mode_reverse_mii
 	} mode;
-	int ext_clk;
-	int phy_bus;
+	int ext_clk : 1;	/* boolean */
+	int phy_bus : 5;	/* 0x00 .. 0x1f */
 };
 
 /*
@@ -144,6 +154,9 @@ extern void fli7540_configure_ethernet(
 	const enum fli7540_ethernet_mode mode,
 	const int ext_clk,
 	const int phy_bus);
+extern void stxh205_configure_ethernet(
+	const int port,
+	const struct stxh205_ethernet_config * const config);
 extern void stxh415_configure_ethernet(
 	const int port,
 	const struct stxh415_ethernet_config * const config);

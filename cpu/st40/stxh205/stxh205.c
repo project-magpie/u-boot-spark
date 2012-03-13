@@ -121,14 +121,14 @@ extern void stxh205_pioalt_select(const int port, const int pin, const int alt)
 
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("ante: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 	sysconf = readl(sysconfReg);
 	SET_SYSCONF_BITS(sysconf, TRUE, pin*4,(pin*4)+3, alt,alt);
 	writel(sysconf, sysconfReg);
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("post: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 }
 
@@ -199,14 +199,14 @@ void stxh205_pioalt_pad(int port, const int pin,
 		/* set the "Output Enable" pad control */
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("ante: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 	sysconf = readl(sysconfReg);
 	SET_SYSCONF_BIT(sysconf, oe, bit);
 	writel(sysconf, sysconfReg);
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("post: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 
 	sysconfReg += stride;	/* skip to next set of syscfg registers */
@@ -214,14 +214,14 @@ void stxh205_pioalt_pad(int port, const int pin,
 		/* set the "Pull Up" pad control */
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("ante: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 	sysconf = readl(sysconfReg);
 	SET_SYSCONF_BIT(sysconf, pu, bit);
 	writel(sysconf, sysconfReg);
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("post: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 
 	sysconfReg += stride;	/* skip to next set of syscfg registers */
@@ -229,14 +229,14 @@ void stxh205_pioalt_pad(int port, const int pin,
 		/* set the "Open Drain Enable" pad control */
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("ante: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 	sysconf = readl(sysconfReg);
 	SET_SYSCONF_BIT(sysconf, od, bit);
 	writel(sysconf, sysconfReg);
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("post: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 }
 
@@ -328,181 +328,277 @@ static void stxh205_pioalt_retime(const int port, const int pin,
 	}
 }
 
+
+/* --------------------------------------------------------------------
+ *           Ethernet MAC resources (PAD and Retiming)
+ * --------------------------------------------------------------------*/
+
+
+struct stm_pad_sysconf {
+	volatile unsigned long * const address;
+	const int lsb;
+	const int msb;
+	      unsigned long value;
+};
+
+#define STM_PAD_SYSCONF(_reg, _lsb, _msb, _value) \
+	{ \
+		.address = _reg, \
+		.lsb     = _lsb, \
+		.msb     = _msb, \
+		.value   = _value, \
+	}
+#define SYSCONF(_reg)	((unsigned long*)STXH205_SYSCFG(_reg))
+
+
 struct stxh205_gmac_pin {
 	struct {
-		unsigned char port, pin, alt;
-	} pio[2];
-	enum { BYPASS = 1, CLOCK, PHY_CLOCK, DATA, DGTX, RMII_TXD,
-	       RMII_MDINT, RMII_MDIO, RMII_MDC, RMII_RXD, RMII_PHY_CLOCK
-	} type;
+		const unsigned char port, pin;
+		      unsigned char alt;
+	} pio;
+	const char phy_clock:1;
+	const char txer:1;
 	enum stm_pad_gpio_direction direction;
+	const struct stm_pio_control_retime_config * const retime;
 };
 
-#if 0	/* QQQ - TO DO */
-static struct stxh205_gmac_pin stxh205_gmac_mii_pins[] = {
-	{ { { 9, 3, 1 }, { 15, 5, 2 } }, PHY_CLOCK, },		/* PHYCLK */
-	{ { { 6, 0, 1 }, { 16, 0, 2 } }, DATA, OUT},		/* TXD[0] */
-	{ { { 6, 1, 1 }, { 16, 1, 2 } }, DATA, OUT },		/* TXD[1] */
-	{ { { 6, 2, 1 }, { 16, 2, 2 } }, DATA, OUT },		/* TXD[2] */
-	{ { { 6, 3, 1 }, { 16, 3, 2 } }, DATA, OUT },		/* TXD[3] */
-	{ { { 7, 0, 1 }, { 17, 1, 2 } }, DATA, OUT },		/* TXER */
-	{ { { 7, 1, 1 }, { 15, 7, 2 } }, DATA, OUT },		/* TXEN */
-	{ { { 7, 2, 1 }, { 17, 0, 2 } }, CLOCK, IN },		/* TXCLK */
-	{ { { 7, 3, 1 }, { 17, 3, 2 } }, BYPASS, IN },		/* COL */
-	{ { { 7, 4, 1 }, { 17, 4, 2 } }, BYPASS, BIDIR },	/* MDIO */
-	{ { { 7, 5, 1 }, { 17, 5, 2 } }, CLOCK, OUT },		/* MDC */
-	{ { { 7, 6, 1 }, { 17, 2, 2 } }, BYPASS, IN },		/* CRS */
-	{ { { 7, 7, 1 }, { 15, 6, 2 } }, BYPASS, IN },		/* MDINT */
-	{ { { 8, 0, 1 }, { 18, 0, 2 } }, DATA, IN },		/* RXD[0] */
-	{ { { 8, 1, 1 }, { 18, 1, 2 } }, DATA, IN },		/* RXD[1] */
-	{ { { 8, 2, 1 }, { 18, 2, 2 } }, DATA, IN },		/* RXD[2] */
-	{ { { 8, 3, 1 }, { 18, 3, 2 } }, DATA, IN },		/* RXD[3] */
-	{ { { 9, 0, 1 }, { 17, 6, 2 } }, DATA, IN },		/* RXDV */
-	{ { { 9, 1, 1 }, { 17, 7, 2 } }, DATA, IN },		/* RX_ER */
-	{ { { 9, 2, 1 }, { 19, 0, 2 } }, CLOCK, IN },		/* RXCLK */
+#define stm_pad_set_pio_ignored(_pin)				\
+	do {							\
+		(_pin)->direction = IGNORED;			\
+	} while(0)
+
+#define stm_pad_set_pio_out(_pin, _func)			\
+	do {							\
+		(_pin)->direction = OUT;			\
+		(_pin)->pio.alt = (_func);			\
+	} while(0)
+
+#define stm_pad_set_pio_in(_pin, _func)				\
+	do {							\
+		(_pin)->direction = IN;				\
+		(_pin)->pio.alt = (_func);			\
+	} while(0)
+
+
+#define DATA_IN(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = IN, \
+		.retime    = _retiming, \
+	}
+
+#define DATA_OUT(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = OUT, \
+		.retime    = _retiming, \
+	}
+
+/* Give TXER an additional "flag" so we can refer to it later. */
+#define TXER(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.txer      = 1, \
+		.direction = OUT, \
+		.retime    = _retiming, \
+	}
+
+/*
+ * On some boards the MDIO line is missing a pull-up resistor. Enabling
+ * weak internal pull-up overcomes the issue.
+ */
+#define DATA_OUT_PU(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = IN_WITH_PU, \
+		.retime    = _retiming, \
+	}
+
+#define CLOCK_IN(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = IN, \
+		.retime    = _retiming, \
+	}
+
+#define CLOCK_OUT(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = OUT, \
+		.retime    = _retiming, \
+	}
+
+/* Give PHY_CLOCK an additional "flag" so we can refer to it later. */
+#define PHY_CLOCK(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.phy_clock = 1, \
+		.direction = UNKNOWN, \
+		.retime    = _retiming, \
+	}
+
+/*
+ * Find first pin which is tagged as being a "PHY CLOCK", and return it.
+ * Otherwise return NULL, if none found!
+ */
+static struct stxh205_gmac_pin * find_phy_clock(
+	struct stxh205_gmac_pin * const array,
+	const size_t count)
+{
+	size_t i;
+
+	for(i=0; i<count; i++)
+	{
+		if (array[i].phy_clock)
+			return &array[i];	/* found it */
+	}
+
+	BUG();
+	return NULL;				/* not found! */
+}
+
+/*
+ * Find first pin which is tagged as being a "TXER", and return it.
+ * Otherwise return NULL, if none found!
+ */
+static struct stxh205_gmac_pin * find_txer(
+	struct stxh205_gmac_pin * const array,
+	const size_t count)
+{
+	size_t i;
+
+	for(i=0; i<count; i++)
+	{
+		if (array[i].txer)
+			return &array[i];	/* found it */
+	}
+
+	BUG();
+	return NULL;				/* not found! */
+}
+
+static struct stxh205_gmac_pin stxh205_ethernet_mii_pad_configs[] = {
+		DATA_OUT(0, 0, 1, RET_BYPASS(0)),/* TXD[0] */
+		DATA_OUT(0, 1, 1, RET_BYPASS(0)),/* TXD[1] */
+		DATA_OUT(0, 2, 1, RET_BYPASS(0)),/* TXD[2] */
+		DATA_OUT(0, 3, 1, RET_BYPASS(0)),/* TXD[3] */
+		TXER(0, 4, 1, RET_BYPASS(0)),/* TXER */
+		DATA_OUT(0, 5, 1, RET_BYPASS(0)),/* TXEN */
+		CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK */
+		DATA_IN(0, 7, 1, RET_BYPASS(0)),/* COL */
+		DATA_OUT_PU(1, 0, 1, RET_BYPASS(0)),/* MDIO*/
+		CLOCK_OUT(1, 1, 1, RET_NICLK(0)),/* MDC */
+		DATA_IN(1, 2, 1, RET_BYPASS(0)),/* CRS */
+		DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
+		DATA_IN(1, 4, 1, RET_BYPASS(0)),/* RXD[0] */
+		DATA_IN(1, 5, 1, RET_BYPASS(0)),/* RXD[1] */
+		DATA_IN(1, 6, 1, RET_BYPASS(0)),/* RXD[2] */
+		DATA_IN(1, 7, 1, RET_BYPASS(0)),/* RXD[3] */
+		DATA_IN(2, 0, 1, RET_BYPASS(0)),/* RXDV */
+		DATA_IN(2, 1, 1, RET_BYPASS(0)),/* RX_ER */
+		CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
+		PHY_CLOCK(2, 3, 1, RET_NICLK(0)),/* PHYCLK */
+};
+static struct stm_pad_sysconf stxh205_ethernet_mii_pad_sysconfs[] = {
+		/* ETH_POWERDOWN_REQ */
+		STM_PAD_SYSCONF(SYSCONF(23), 0, 0, 0),
+		/* ETH_MII_PHY_SEL */
+		STM_PAD_SYSCONF(SYSCONF(23), 2, 4, 0),
+		/* ETH_ENMII */
+		STM_PAD_SYSCONF(SYSCONF(23), 5, 5, 1),
+		/* ETH_SEL_TXCLK_NOT_CLK125 */
+		STM_PAD_SYSCONF(SYSCONF(23), 6, 6, 1),
+		/* ETH_SEL_INTERNAL_NOTEXT_PHYCLK */
+		STM_PAD_SYSCONF(SYSCONF(23), 7, 7, 1),
+		/* ETH_SEL_TX_RETIMING_CLK */
+		STM_PAD_SYSCONF(SYSCONF(23), 8, 8, 0),
+		/* ETH_GMAC_EN */
+		STM_PAD_SYSCONF(SYSCONF(23), 9, 9, 1),
 };
 
-static struct stxh205_gmac_pin stxh205_gmac_gmii_pins[] = {
-	{ { { 9, 3, 1 }, { 15, 5, 2 } }, PHY_CLOCK, },		/* PHYCLK */
-	{ { { 6, 0, 1 }, { 16, 0, 2 } }, DATA, OUT },		/* TXD[0] */
-	{ { { 6, 1, 1 }, { 16, 1, 2 } }, DATA, OUT },		/* TXD[1] */
-	{ { { 6, 2, 1 }, { 16, 2, 2 } }, DATA, OUT },		/* TXD[2] */
-	{ { { 6, 3, 1 }, { 16, 3, 2 } }, DATA, OUT },		/* TXD[3] */
-	{ { { 6, 4, 1 }, { 16, 4, 2 } }, DATA, OUT },		/* TXD[4] */
-	{ { { 6, 5, 1 }, { 16, 5, 2 } }, DATA, OUT },		/* TXD[5] */
-	{ { { 6, 6, 1 }, { 16, 6, 2 } }, DATA, OUT },		/* TXD[6] */
-	{ { { 6, 7, 1 }, { 16, 7, 2 } }, DATA, OUT },		/* TXD[7] */
-	{ { { 7, 0, 1 }, { 17, 1, 2 } }, DATA, OUT },		/* TXER */
-	{ { { 7, 1, 1 }, { 15, 7, 2 } }, DATA, OUT },		/* TXEN */
-	{ { { 7, 2, 1 }, { 17, 0, 2 } }, CLOCK, IN },		/* TXCLK */
-	{ { { 7, 3, 1 }, { 17, 3, 2 } }, BYPASS, IN },		/* COL */
-	{ { { 7, 4, 1 }, { 17, 4, 2 } }, BYPASS, BIDIR },	/* MDIO */
-	{ { { 7, 5, 1 }, { 17, 5, 2 } }, CLOCK, OUT },		/* MDC */
-	{ { { 7, 6, 1 }, { 17, 2, 2 } }, BYPASS, IN },		/* CRS */
-	{ { { 7, 7, 1 }, { 15, 6, 2 } }, BYPASS, IN },		/* MDINT */
-	{ { { 8, 0, 1 }, { 18, 0, 2 } }, DATA, IN }, 		/* RXD[0] */
-	{ { { 8, 1, 1 }, { 18, 1, 2 } }, DATA, IN }, 		/* RXD[1] */
-	{ { { 8, 2, 1 }, { 18, 2, 2 } }, DATA, IN }, 		/* RXD[2] */
-	{ { { 8, 3, 1 }, { 18, 3, 2 } }, DATA, IN }, 		/* RXD[3] */
-	{ { { 8, 4, 1 }, { 18, 4, 2 } }, DATA, IN }, 		/* RXD[4] */
-	{ { { 8, 5, 1 }, { 18, 5, 2 } }, DATA, IN }, 		/* RXD[5] */
-	{ { { 8, 6, 1 }, { 18, 6, 2 } }, DATA, IN }, 		/* RXD[6] */
-	{ { { 8, 7, 1 }, { 18, 7, 2 } }, DATA, IN }, 		/* RXD[7] */
-	{ { { 9, 0, 1 }, { 17, 6, 2 } }, DATA, IN },		/* RXDV */
-	{ { { 9, 1, 1 }, { 17, 7, 2 } }, DATA, IN },		/* RX_ER */
-	{ { { 9, 2, 1 }, { 19, 0, 2 } }, CLOCK, IN  },		/* RXCLK */
+static struct stxh205_gmac_pin stxh205_ethernet_rmii_pad_configs[] = {
+		DATA_OUT(0, 0, 1, RET_BYPASS(0)),/* TXD[0] */
+		DATA_OUT(0, 1, 1, RET_BYPASS(0)),/* TXD[1] */
+		DATA_OUT(0, 5, 1, RET_BYPASS(0)),/* TXEN */
+		DATA_OUT_PU(1, 0, 1, RET_BYPASS(0)),/* MDIO */
+		CLOCK_OUT(1, 1, 1, RET_NICLK(0)),/* MDC */
+		DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
+		DATA_IN(1, 4, 1, RET_BYPASS(0)),/* RXD.0 */
+		DATA_IN(1, 5, 1, RET_BYPASS(0)),/* RXD.1 */
+		DATA_IN(2, 0, 1, RET_BYPASS(0)),/* RXDV */
+		DATA_IN(2, 1, 1, RET_BYPASS(0)),/* RX_ER */
+		PHY_CLOCK(2, 3, 2, RET_NICLK(0)),/* PHYCLK */
+};
+static struct stm_pad_sysconf stxh205_ethernet_rmii_pad_sysconfs[] = {
+		/* ETH_POWERDOWN_REQ */
+		STM_PAD_SYSCONF(SYSCONF(23), 0, 0, 0),
+		/* ETH_MII_PHY_SEL */
+		STM_PAD_SYSCONF(SYSCONF(23), 2, 4, 4),
+		/* ETH_ENMII */
+		STM_PAD_SYSCONF(SYSCONF(23), 5, 5, 1),
+		/* ETH_SEL_TXCLK_NOT_CLK125 */
+		STM_PAD_SYSCONF(SYSCONF(23), 6, 6, 1),
+		/* ETH_SEL_INTERNAL_NOTEXT_PHYCLK */
+		STM_PAD_SYSCONF(SYSCONF(23), 7, 7, 1),
+		/* ETH_SEL_TX_RETIMING_CLK */
+		STM_PAD_SYSCONF(SYSCONF(23), 8, 8, 1),
+		/* ETH_GMAC_EN */
+		STM_PAD_SYSCONF(SYSCONF(23), 9, 9, 1),
 };
 
-static struct stxh205_gmac_pin stxh205_gmac_gmii_gtx_pins[] = {
-	{ { { 9, 3, 3 }, { 15, 5, 4 } }, PHY_CLOCK, },		/* PHYCLK */
-	{ { { 6, 0, 1 }, { 16, 0, 2 } }, DATA, OUT },		/* TXD[0] */
-	{ { { 6, 1, 1 }, { 16, 1, 2 } }, DATA, OUT },		/* TXD[1] */
-	{ { { 6, 2, 1 }, { 16, 2, 2 } }, DATA, OUT },		/* TXD[2] */
-	{ { { 6, 3, 1 }, { 16, 3, 2 } }, DATA, OUT },		/* TXD[3] */
-	{ { { 6, 4, 1 }, { 16, 4, 2 } }, DGTX, OUT },		/* TXD[4] */
-	{ { { 6, 5, 1 }, { 16, 5, 2 } }, DGTX, OUT },		/* TXD[5] */
-	{ { { 6, 6, 1 }, { 16, 6, 2 } }, DGTX, OUT },		/* TXD[6] */
-	{ { { 6, 7, 1 }, { 16, 7, 2 } }, DGTX, OUT },		/* TXD[7] */
-	{ { { 7, 0, 1 }, { 17, 1, 2 } }, DATA, OUT },		/* TXER */
-	{ { { 7, 1, 1 }, { 15, 7, 2 } }, DATA, OUT },		/* TXEN */
-	{ { { 7, 2, 1 }, { 17, 0, 2 } }, CLOCK, IN },		/* TXCLK */
-	{ { { 7, 3, 1 }, { 17, 3, 2 } }, BYPASS, IN },		/* COL */
-	{ { { 7, 4, 1 }, { 17, 4, 2 } }, BYPASS, BIDIR },	/* MDIO */
-	{ { { 7, 5, 1 }, { 17, 5, 2 } }, CLOCK, OUT },		/* MDC */
-	{ { { 7, 6, 1 }, { 17, 2, 2 } }, BYPASS, IN },		/* CRS */
-	{ { { 7, 7, 1 }, { 15, 6, 2 } }, BYPASS, IN },		/* MDINT */
-	{ { { 8, 0, 1 }, { 18, 0, 2 } }, DATA, IN }, 		/* RXD[0] */
-	{ { { 8, 1, 1 }, { 18, 1, 2 } }, DATA, IN }, 		/* RXD[1] */
-	{ { { 8, 2, 1 }, { 18, 2, 2 } }, DATA, IN }, 		/* RXD[2] */
-	{ { { 8, 3, 1 }, { 18, 3, 2 } }, DATA, IN }, 		/* RXD[3] */
-	{ { { 8, 4, 1 }, { 18, 4, 2 } }, DGTX, IN }, 		/* RXD[4] */
-	{ { { 8, 5, 1 }, { 18, 5, 2 } }, DGTX, IN }, 		/* RXD[5] */
-	{ { { 8, 6, 1 }, { 18, 6, 2 } }, DGTX, IN }, 		/* RXD[6] */
-	{ { { 8, 7, 1 }, { 18, 7, 2 } }, DGTX, IN }, 		/* RXD[7] */
-	{ { { 9, 0, 1 }, { 17, 6, 2 } }, DATA, IN },		/* RXDV */
-	{ { { 9, 1, 1 }, { 17, 7, 2 } }, DATA, IN },		/* RX_ER */
-	{ { { 9, 2, 1 }, { 19, 0, 2 } }, CLOCK, IN  },		/* RXCLK */
+/* TODO */
+static struct stxh205_gmac_pin stxh205_ethernet_reverse_mii_pad_configs[] = {
+		DATA_OUT(0, 0, 1, RET_BYPASS(0)),/* TXD[0] */
+		DATA_OUT(0, 1, 1, RET_BYPASS(0)),/* TXD[1] */
+		DATA_OUT(0, 2, 1, RET_BYPASS(0)),/* TXD[2] */
+		DATA_OUT(0, 3, 1, RET_BYPASS(0)),/* TXD[3] */
+		TXER(0, 4, 1, RET_BYPASS(0)),/* TXER */
+		DATA_OUT(0, 5, 1, RET_BYPASS(0)),/* TXEN */
+		CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK */
+		DATA_OUT(0, 7, 1, RET_BYPASS(0)),/* COL */
+		DATA_OUT_PU(1, 0, 1, RET_BYPASS(0)),/* MDIO*/
+		CLOCK_IN(1, 1, 1, RET_NICLK(0)),/* MDC */
+		DATA_OUT(1, 2, 1, RET_BYPASS(0)),/* CRS */
+		DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
+		DATA_IN(1, 4, 1, RET_BYPASS(0)),/* RXD[0] */
+		DATA_IN(1, 5, 1, RET_BYPASS(0)),/* RXD[1] */
+		DATA_IN(1, 6, 1, RET_BYPASS(0)),/* RXD[2] */
+		DATA_IN(1, 7, 1, RET_BYPASS(0)),/* RXD[3] */
+		DATA_IN(2, 0, 1, RET_BYPASS(0)),/* RXDV */
+		DATA_IN(2, 1, 1, RET_BYPASS(0)),/* RX_ER */
+		CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
+		PHY_CLOCK(2, 3, 1, RET_NICLK(0)),/* PHYCLK */
+};
+static struct stm_pad_sysconf stxh205_ethernet_reverse_mii_pad_sysconfs[] = {
+		/* ETH_POWERDOWN_REQ */
+		STM_PAD_SYSCONF(SYSCONF(23), 0, 0, 0),
+		/* ETH_MII_PHY_SEL */
+		STM_PAD_SYSCONF(SYSCONF(23), 2, 4, 0),
+		/* ETH_ENMII */
+		STM_PAD_SYSCONF(SYSCONF(23), 5, 5, 0),
+		/* ETH_SEL_TXCLK_NOT_CLK125 */
+		STM_PAD_SYSCONF(SYSCONF(23), 6, 6, 1),
+		/* ETH_SEL_INTERNAL_NOTEXT_PHYCLK */
+		STM_PAD_SYSCONF(SYSCONF(23), 7, 7, 1),
+		/* ETH_SEL_TX_RETIMING_CLK */
+		STM_PAD_SYSCONF(SYSCONF(23), 8, 8, 0),
+		/* ETH_GMAC_EN */
+		STM_PAD_SYSCONF(SYSCONF(23), 9, 9, 1),
 };
 
-static struct stxh205_gmac_pin stxh205_gmac_rmii_pins[] = {
-	{ { { 9, 3, 2 }, { 15, 5, 3 } }, RMII_PHY_CLOCK, },	/* PHYCLK */
-	{ { { 6, 0, 1 }, { 16, 0, 2 } }, RMII_TXD, OUT },	/* TXD[0] */
-	{ { { 6, 1, 1 }, { 16, 1, 2 } }, RMII_TXD, OUT },	/* TXD[1] */
-	{ { { 7, 0, 1 }, { 17, 1, 2 } }, RMII_TXD, OUT },	/* TXER */
-	{ { { 7, 1, 1 }, { 15, 7, 2 } }, RMII_TXD, OUT },	/* TXEN */
-	{ { { 7, 4, 1 }, { 17, 4, 2 } }, RMII_MDIO, BIDIR },	/* MDIO */
-	{ { { 7, 5, 1 }, { 17, 5, 2 } }, RMII_MDC, OUT },	/* MDC */
-	{ { { 7, 7, 1 }, { 15, 6, 2 } }, RMII_MDINT, IN  },	/* MDINT */
-	{ { { 8, 0, 1 }, { 18, 0, 2 } }, RMII_RXD, IN  },	/* RXD[0] */
-	{ { { 8, 1, 1 }, { 18, 1, 2 } }, RMII_RXD, IN  },	/* RXD[1] */
-	{ { { 9, 0, 1 }, { 17, 6, 2 } }, RMII_RXD, IN  },	/* RXDV */
-	{ { { 9, 1, 1 }, { 17, 7, 2 } }, RMII_RXD, IN  },	/* RX_ER */
-};
-
-static struct stxh205_gmac_pin stxh205_gmac_reverse_mii_pins[] = {
-	{ { { 9, 3, 1 }, { 15, 5, 2 } }, PHY_CLOCK, },		/* PHYCLK */
-	{ { { 6, 0, 1 }, { 16, 0, 2 } }, DATA, OUT },		/* TXD[-1] */
-	{ { { 6, 1, 1 }, { 16, 1, 2 } }, DATA, OUT },		/* TXD[1] */
-	{ { { 6, 2, 1 }, { 16, 2, 2 } }, DATA, OUT },		/* TXD[2] */
-	{ { { 6, 3, 1 }, { 16, 3, 2 } }, DATA, OUT },		/* TXD[3] */
-	{ { { 7, 0, 1 }, { 17, 1, 2 } }, DATA, OUT },		/* TXER */
-	{ { { 7, 1, 1 }, { 15, 7, 2 } }, DATA, OUT },		/* TXEN */
-	{ { { 7, 2, 1 }, { 17, 0, 2 } }, CLOCK, IN },		/* TXCLK */
-	{ { { 7, 3, 2 }, { 17, 3, 3 } }, BYPASS, OUT },		/* COL */
-	{ { { 7, 4, 1 }, { 17, 4, 2 } }, BYPASS, BIDIR },	/* MDIO */
-	{ { { 7, 5, 2 }, { 17, 5, 3 } }, CLOCK, IN },		/* MDC */
-	{ { { 7, 6, 2 }, { 17, 2, 3 } }, BYPASS, OUT },		/* CRS */
-	{ { { 7, 7, 1 }, { 15, 6, 2 } }, BYPASS, IN },		/* MDINT */
-	{ { { 8, 0, 1 }, { 18, 0, 2 } }, DATA, IN },		/* RXD[0] */
-	{ { { 8, 1, 1 }, { 18, 1, 2 } }, DATA, IN },		/* RXD[1] */
-	{ { { 8, 2, 1 }, { 18, 2, 2 } }, DATA, IN },		/* RXD[2] */
-	{ { { 8, 3, 1 }, { 18, 3, 2 } }, DATA, IN },		/* RXD[3] */
-	{ { { 9, 0, 1 }, { 17, 6, 2 } }, DATA, IN },		/* RXDV */
-	{ { { 9, 1, 1 }, { 17, 7, 2 } }, DATA, IN },		/* RX_ER */
-	{ { { 9, 2, 1 }, { 19, 0, 2 } }, CLOCK, IN },		/* RXCLK */
-};
-#endif	/* QQQ - TO DO */
-
-#if 0	/* QQQ - TO DO */
-#define MAC_SPEED_SEL		1	/* [1:1] */
-#define PHY_SEL			2,4	/* [4:2] */
-#define ENMII			5	/* [5:5] */
-
-#define ENABLE_GMAC		0	/* [0:0] */
-#endif	/* QQQ - TO DO */
 
 extern int stmac_default_pbl(void)
 {
-#if 0	/* QQQ - TO DO */
 	return 32;
-#endif	/* QQQ - TO DO */
 }
-
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0 */
-#	define STX7108_MII_SYSGFG(x)	(STX7108_BANK2_SYSCFG(x))
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1 */
-#	define STX7108_MII_SYSGFG(x)	(STX7108_BANK4_SYSCFG(x))
-#else
-#error Unknown base address for the STM GMAC
-#endif
 
 extern void stmac_set_mac_speed(int speed)
 {
-#if 0	/* QQQ - TO DO */
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0 */
-	unsigned long * const sysconfReg = (void*)STX7108_MII_SYSGFG(27);
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1 */
-	unsigned long * const sysconfReg = (void*)STX7108_MII_SYSGFG(23);
-#else
-#error Unknown base address for the STM GMAC
-#endif
-	unsigned long sysconf = *sysconfReg;
-
-	/* MIIx_MAC_SPEED_SEL = 0|1 */
-	SET_SYSCONF_BIT(sysconf, (speed==100), MAC_SPEED_SEL);
-
-	*sysconfReg = sysconf;
-#endif	/* QQQ - TO DO */
+	/*
+	 * No Gigabit, so we do not need to worry about switching between 100/1000 speeds.
+	 * However, what about 10/100 switching ?
+	 * QQQ - need to do something here if we are using a very slow 10Mbps hub!
+	 */
 }
 
 /* ETH MAC pad configuration */
@@ -510,173 +606,125 @@ extern void stxh205_configure_ethernet(
 	const int port,
 	const struct stxh205_ethernet_config * const config)
 {
-#if 0	/* QQQ - TO DO */
-	unsigned long sysconf;
+	struct stxh205_gmac_pin * pad_config;
+	struct stxh205_gmac_pin * phy_clock;
+	struct stm_pad_sysconf * sys_config;
+	size_t num_pads, num_sys, i;
 
-	int sc_regnum;
-	struct stxh205_gmac_pin *pins;
-	int pins_num;
-	unsigned char phy_sel, enmii;
-	int i;
-
-	switch (port) {
-	case 0:
-		sc_regnum = 27;
-		/* ENABLE_GMAC0 */
-		sysconf = *STX7108_MII_SYSGFG(53);
-		SET_SYSCONF_BIT(sysconf, TRUE, ENABLE_GMAC);
-		*STX7108_MII_SYSGFG(53) = sysconf;
-		break;
-	case 1:
-		sc_regnum = 23;
-		/* ENABLE_GMAC1 */
-		sysconf = *STX7108_MII_SYSGFG(67);
-		SET_SYSCONF_BIT(sysconf, TRUE, ENABLE_GMAC);
-		*STX7108_MII_SYSGFG(67) = sysconf;
-		break;
-	default:
-		BUG();
-		return;
-	};
+	BUG_ON(!config);
+	BUG_ON(port != 0);
 
 	switch (config->mode) {
+
 	case stxh205_ethernet_mode_mii:
-		phy_sel = 0;
-		enmii = 1;
-		pins = stxh205_gmac_mii_pins;
-		pins_num = ARRAY_SIZE(stxh205_gmac_mii_pins);
+		pad_config = stxh205_ethernet_mii_pad_configs;
+		num_pads = ARRAY_SIZE(stxh205_ethernet_mii_pad_configs);
+		sys_config = stxh205_ethernet_mii_pad_sysconfs;
+		num_sys = ARRAY_SIZE(stxh205_ethernet_mii_pad_sysconfs);
+		phy_clock = find_phy_clock(pad_config, num_pads);
+
+		if (config->ext_clk)
+			stm_pad_set_pio_ignored(phy_clock);
+		else
+			stm_pad_set_pio_out(phy_clock, 1);
+		if (config->no_txer)
+			stm_pad_set_pio_ignored(find_txer(pad_config, num_pads));
 		break;
+
 	case stxh205_ethernet_mode_rmii:
-		phy_sel = 4;
-		enmii = 1;
-		pins = stxh205_gmac_rmii_pins;
-		pins_num = ARRAY_SIZE(stxh205_gmac_rmii_pins);
+		pad_config = stxh205_ethernet_rmii_pad_configs;
+		num_pads = ARRAY_SIZE(stxh205_ethernet_rmii_pad_configs);
+		sys_config = stxh205_ethernet_rmii_pad_sysconfs;
+		num_sys = ARRAY_SIZE(stxh205_ethernet_rmii_pad_sysconfs);
+		phy_clock = find_phy_clock(pad_config, num_pads);
+
+		if (config->ext_clk) {
+			stm_pad_set_pio_in(phy_clock, 2);
+			/* ETH_SEL_INTERNAL_NOTEXT_PHYCLK */
+			sys_config[4].value = 0;
+		} else {
+			stm_pad_set_pio_out(phy_clock, 1);
+			/* ETH_SEL_INTERNAL_NOTEXT_PHYCLK */
+			sys_config[4].value = 1;
+		}
 		break;
-	case stxh205_ethernet_mode_gmii:
-		phy_sel = 0;
-		enmii = 1;
-		pins = stxh205_gmac_gmii_pins;
-		pins_num = ARRAY_SIZE(stxh205_gmac_gmii_pins);
-		break;
-	case stxh205_ethernet_mode_gmii_gtx:
-		phy_sel = 0;
-		enmii = 1;
-		pins = stxh205_gmac_gmii_gtx_pins;
-		pins_num = ARRAY_SIZE(stxh205_gmac_gmii_gtx_pins);
-		break;
+
 	case stxh205_ethernet_mode_reverse_mii:
-		phy_sel = 0;
-		enmii = 0;
-		pins = stxh205_gmac_reverse_mii_pins;
-		pins_num = ARRAY_SIZE(stxh205_gmac_reverse_mii_pins);
+		pad_config = stxh205_ethernet_reverse_mii_pad_configs;
+		num_pads = ARRAY_SIZE(stxh205_ethernet_reverse_mii_pad_configs);
+		sys_config = stxh205_ethernet_reverse_mii_pad_sysconfs;
+		num_sys = ARRAY_SIZE(stxh205_ethernet_reverse_mii_pad_sysconfs);
+		phy_clock = find_phy_clock(pad_config, num_pads);
+
+		if (config->ext_clk)
+			stm_pad_set_pio_ignored(phy_clock);
+		else
+			stm_pad_set_pio_out(phy_clock, 1);
+		if (config->no_txer)
+			stm_pad_set_pio_ignored(find_txer(pad_config, num_pads));
 		break;
+
 	default:
 		BUG();
 		return;
 	}
 
-	/* MIIx_PHY_SEL */
-	sysconf = *STX7108_MII_SYSGFG(sc_regnum);
-	SET_SYSCONF_BITS(sysconf, TRUE, 2,4, phy_sel,phy_sel);
-	*STX7108_MII_SYSGFG(sc_regnum) = sysconf;
+		/* now configure all the PIOs */
+	for (i = 0; i < num_pads; i++)
+	{
+		const struct stxh205_gmac_pin * const pad = &pad_config[i];
+		const int portno = pad->pio.port;
+		const int pinno = pad->pio.pin;
 
-	/* ENMIIx */
-	sysconf = *STX7108_MII_SYSGFG(sc_regnum);
-	SET_SYSCONF_BIT(sysconf, enmii, ENMII);
-	*STX7108_MII_SYSGFG(sc_regnum) = sysconf;
+#ifdef DEBUG_PAD_CONFIGS
+	if (debug_pad_configs)
+		printf("%2u: PIO%03u[%u] %-7s, alt=%u, retime=%p\n",
+			i+1,
+			portno, pinno,
+			(pad->direction==IN) ? "in" :
+				(pad->direction==IN_WITH_PU) ? "in+pu" :
+				(pad->direction==OUT) ? "out" :
+				(pad->direction==BIDIR) ? "bidir" :
+				(pad->direction==IGNORED) ? "ignore" :
+				"BAD-BAD",
+			pad->pio.alt,
+			pad->retime
+		);
+#endif
 
-	pins[0].direction = config->ext_clk ? IN : OUT;
+		if (pad->direction == IGNORED)
+			continue;	/* skip all "ignored" pads */
 
-	for (i = 0; i < pins_num; i++) {
-		const struct stxh205_gmac_pin *pin = &pins[i];
-		int portno = pin->pio[port].port;
-		int pinno = pin->pio[port].pin;
-		struct stxh205_pioalt_retime_cfg retime_cfg = {
-			-1, -1, -1, -1, -1, -1 /* -1 means "do not set" */
-		};
-
-		stxh205_pioalt_select(portno, pinno, pin->pio[port].alt);
-
-		stxh205_pioalt_pad(portno, pinno, pin->direction);
-
-		switch (pin->type) {
-		case BYPASS:
-			retime_cfg.clknotdata = 0;
-			retime_cfg.retime = 0;
-			break;
-		case CLOCK:
-			retime_cfg.clknotdata = 1;
-			retime_cfg.clk1notclk0 = port;
-			break;
-		case PHY_CLOCK:
-			retime_cfg.clknotdata = 1;
-			if (config->mode == stxh205_ethernet_mode_gmii_gtx) {
-				retime_cfg.clk1notclk0 = 1;
-				retime_cfg.double_edge = 0;
-			} else {
-				retime_cfg.clk1notclk0 = 0;
-			}
-			break;
-		case DGTX: /* extra configuration for GMII (GTK CLK) */
-			if (port == 1) {
-				retime_cfg.retime = 1;
-				retime_cfg.clk1notclk0 = 1;
-				retime_cfg.double_edge = 0;
-				retime_cfg.clknotdata = 0;
-			} else {
-				retime_cfg.retime = 1;
-				retime_cfg.clk1notclk0 = 0;
-				retime_cfg.double_edge = 0;
-				retime_cfg.clknotdata = 0;
-			}
-			break;
-		case DATA:
-			retime_cfg.clknotdata = 0;
-			retime_cfg.retime = 1;
-			retime_cfg.clk1notclk0 = port;
-			break;
-		case RMII_TXD:
-			retime_cfg.retime = 1;
-			retime_cfg.clk1notclk0 = 1;
-			retime_cfg.clknotdata = 0;
-			retime_cfg.double_edge = 0;
-			retime_cfg.invertclk = 0;
-			retime_cfg.delay_input = 0;
-			break;
-		case RMII_RXD:
-			retime_cfg.retime = 1;
-			retime_cfg.clk1notclk0 = 1;
-			retime_cfg.clknotdata = 0;
-			retime_cfg.double_edge = 0;
-			retime_cfg.invertclk = 0;
-			retime_cfg.delay_input = 2;
-			break;
-		case RMII_MDINT:
-			retime_cfg.retime = 0;
-			retime_cfg.clknotdata = 0;
-			retime_cfg.delay_input = 0;
-			break;
-		case RMII_MDIO:
-			retime_cfg.retime = 0;
-			retime_cfg.clknotdata = 0;
-			retime_cfg.delay_input = 3;
-			break;
-		case RMII_MDC:
-			/* fallthru */
-		case RMII_PHY_CLOCK:
-			retime_cfg.retime = 1;
-			retime_cfg.clk1notclk0 = 0;
-			retime_cfg.clknotdata = 1;
-			retime_cfg.invertclk = 0;
-			retime_cfg.delay_input = 0;
-			break;
-		default:
-			BUG();
-			break;
-		}
-		stxh205_pioalt_retime(portno, pinno, &retime_cfg);
+		stxh205_pioalt_select(portno, pinno, pad->pio.alt);
+		stxh205_pioalt_pad(portno, pinno, pad->direction);
+		stxh205_pioalt_retime(portno, pinno, pad->retime);
 	}
-#endif	/* QQQ - TO DO */
+
+		/* now configure the relevant SYS_CONFIGs */
+	for (i = 0; i < num_sys; i++)
+	{
+		const struct stm_pad_sysconf * const sys = &sys_config[i];
+		unsigned long sysconf;
+
+#ifdef DEBUG_PAD_CONFIGS
+		if (debug_pad_configs) {
+			printf("%2u: SYSCFG=%p,  [%u:%u]\t0x%08lx\n",
+				i+1,
+				sys->address,
+				sys->msb, sys->lsb,
+				sys->value
+			);
+			printf("ante: *%p = 0x%08lx\n", sys->address, *sys->address);
+		}
+#endif
+		sysconf = readl(sys->address);
+		SET_SYSCONF_BITS(sysconf, TRUE, sys->lsb, sys->msb, sys->value,sys->value);
+		writel(sysconf, sys->address);
+#ifdef DEBUG_PAD_CONFIGS
+		if (debug_pad_configs)
+			printf("post: *%p = 0x%08lx\n", sys->address, *sys->address);
+#endif
+	}
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 

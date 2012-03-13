@@ -167,36 +167,25 @@
  */
 
 /*
- * There is one on-chip ST-GMAC, which is routed to:
+ * There is one on-chip ST-GMAC, which is connected to an in-package PHY,
+ * which is normally a IC+ IP101G (but possibly could be a IP101A).
+ * This Ethernet PHY is wired to the on-board RJ-45 connector (JP2).
  *
- *	1)	on-package die (i.e. IC+ IP101A PHY), and ultimately
- *		to the on-board RJ-45 (JP2)
- *
- *	2)	on-board (2x22) MII connector (JP1), for an
- *		external off-board PHY.
- *
- *	Currently, we only support the on-package die option (JP2),
- *	i.e. the on-board IC+ IP101A PHY.
+ * Note: There is no support for any off-package (on-board) PHY.
  */
 
 /* are we using the internal ST GMAC device ? */
 #define CONFIG_DRIVER_NET_STM_GMAC
-#undef CONFIG_DRIVER_NET_STM_GMAC	/* QQQ - TO DO */
 
 /*
  * Select the appropriate base address for the GMAC.
- * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC0_BASE	0xfda88000ul	/* MII #0 */
-#	define CFG_STM_STMAC_BASE	CFG_STM_STMAC0_BASE
-#	if 1					/* use the on-package PHY ? */
-#		define CONFIG_STMAC_IP101A	/* IC+ IP101A (JP2) */
-#	else					/* else, off-board, MII connector (JP1) */
-#		define CONFIG_STMAC_xxx		/* NOTE: users need to specify this! */
-#	endif
+#	define CFG_STM_STMAC_BASE	0xfda88000ul
+//#	define CONFIG_STMAC_IP101G	/* IC+ IP101G (via JP2) */
+#	define CONFIG_STMAC_IP101A	/* IC+ IP101A (via JP2) */
 #else
-#	undef CONFIG_CMD_NET			/* remove all networking support */
+#	undef CONFIG_CMD_NET		/* remove all networking support */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user

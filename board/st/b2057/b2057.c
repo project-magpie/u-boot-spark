@@ -50,6 +50,11 @@ do							\
 	stxh205_pioalt_pad((port), (pin), (dir));	\
 } while(0)
 
+
+#define TX_ER_FXSD		0, 4	/* PIO0[4] == TX_ER_FXSD (or MII_TXER or ISOL) */
+#define POWER_ON_ETH		2, 5	/* PIO2[5] == POWER_ON_ETH (a.k.a. ETH_RESET) */
+
+
 static void configPIO(void)
 {
 	/* Setup PIOs for ASC device */
@@ -74,52 +79,67 @@ static void configPIO(void)
 #error Unknown ASC port selected!
 #endif	/* CFG_STM_ASC_BASE == STXH205_ASCx_BASE */
 
-#if 0	/* QQQ - TO DO */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
 	 * Configure the Ethernet PHY Reset signal
-	 *	PIO3[6] == POWER_ON_ETH (a.k.a. ETH_RESET)
 	 */
-	SET_PIO_PIN(ST40_PIO_BASE(3), 6, STPIO_OUT);
+	SET_PIO_PIN2(POWER_ON_ETH, STPIO_OUT);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
-#endif	/* QQQ - TO DO */
 }
 
-#if 0	/* QQQ - TO DO */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 extern void stmac_phy_reset(void)
 {
 	/*
 	 * Reset the Ethernet PHY.
-	 *
-	 *	PIO3[6] = POWER_ON_ETH (a.k.a. ETH_RESET)
 	 */
-	STPIO_SET_PIN(ST40_PIO_BASE(3), 6, 0);
+	STPIO_SET_PIN2(POWER_ON_ETH, 0);
 	udelay(10000);				/* 10 ms */
-	STPIO_SET_PIN(ST40_PIO_BASE(3), 6, 1);
+	STPIO_SET_PIN2(POWER_ON_ETH, 1);
+	udelay(10000);				/* 10 ms */
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
-#endif	/* QQQ - TO DO */
 
 extern int board_init(void)
 {
 	configPIO();
 
-#if 0	/* QQQ - TO DO */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
+#if defined(CONFIG_STMAC_IP101A)
+	/*
+	 * This is a work around for the problem that on parts with an
+	 * IC+101A, the pin marked as TX_ER_FXSD (AA23) is actually
+	 * ISOL, which appears to be driven high at boot time despite the
+	 * internal pull down in the IC+101A.
+	 * In MII mode this doesn't appear to be a problem because the
+	 * STxH207 is driving the pin, and so it remains low, however
+	 * just in case the GMAC were to assert this sgnal for whatever
+	 * reason, we still drive treat it as a gpio pin.
+	 */
+	SET_PIO_PIN2(TX_ER_FXSD, STPIO_OUT);
+	STPIO_SET_PIN2(TX_ER_FXSD, 0);		/* deassert ISOL */
+#endif /* CONFIG_STMAC_IP101A */
 	/* Reset the PHY */
 	stmac_phy_reset();
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE
-		/* MII0: RMII with 25MHz External Clock  */
+	/*
+	 * Normally, we will use MII with an External Clock.
+	 * It is possible to use either MII or RMII to communicate with
+	 * the IC+101 Ethernet PHY mounted inside the STxH207.
+	 * This mode must also match the jumper settings on the board:
+	 *	Jumper		MII		RMII
+	 *	------		---		----
+	 *	SP1		1-2 (MII)	2-3 (RMII)
+	 *	JP3-1		ON		off
+	 *	JP3-2		off		ON
+	 */
 	stxh205_configure_ethernet(0, &(struct stxh205_ethernet_config) {
-			.mode = stxh205_ethernet_mode_rmii,
-			.ext_clk = 1,
+			.mode = stxh205_ethernet_mode_mii,	/* MII */
+			.ext_clk = 1,				/* External Clock */
+#if defined(CONFIG_STMAC_IP101A)
+			.no_txer = 1,				/* NO TXER from MAC */
+#endif /* CONFIG_STMAC_IP101A */
 			.phy_bus = 0, });
-#else
-#error Unknown base address for the STM GMAC
-#endif
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
-#endif	/* QQQ - TO DO */
 
 #if defined(CONFIG_CMD_I2C)
 	stxh205_configure_i2c();
