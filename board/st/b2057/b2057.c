@@ -108,19 +108,18 @@ extern int board_init(void)
 #if defined(CONFIG_STMAC_IP101A)
 	/*
 	 * This is a work around for the problem that on parts with an
-	 * IC+101A, the pin marked as TX_ER_FXSD (AA23) is actually
+	 * IC+ IP101A, the pin marked as TX_ER_FXSD (AA23) is actually
 	 * ISOL, which appears to be driven high at boot time despite the
-	 * internal pull down in the IC+101A.
+	 * internal pull down in the IC+ IP101A.
 	 * In MII mode this doesn't appear to be a problem because the
 	 * STxH207 is driving the pin, and so it remains low, however
-	 * just in case the GMAC were to assert this sgnal for whatever
-	 * reason, we still drive treat it as a gpio pin.
+	 * just in case the GMAC were to assert this signal for whatever
+	 * reason, we still treat it as a gpio pin.
+	 * This w/a is *not* required on parts that use a IC+ IP101G.
 	 */
 	SET_PIO_PIN2(TX_ER_FXSD, STPIO_OUT);
 	STPIO_SET_PIN2(TX_ER_FXSD, 0);		/* deassert ISOL */
 #endif /* CONFIG_STMAC_IP101A */
-	/* Reset the PHY */
-	stmac_phy_reset();
 	/*
 	 * Normally, we will use MII with an External Clock.
 	 * It is possible to use either MII or RMII to communicate with
@@ -139,6 +138,11 @@ extern int board_init(void)
 			.no_txer = 1,				/* NO TXER from MAC */
 #endif /* CONFIG_STMAC_IP101A */
 			.phy_bus = 0, });
+	/*
+	 * Now we will perform a H/W reset of the PHY.
+	 * For some PHYs (e.g. IC+ IP101G), we apparently need to do this *after* configuring the MAC.
+	 */
+	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 #if defined(CONFIG_CMD_I2C)

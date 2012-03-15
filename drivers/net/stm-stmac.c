@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2006-2011 STMicroelectronics Limited
+ *  Copyright (c) 2006-2012 STMicroelectronics Limited
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -181,11 +181,12 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define IP1001_PHY_ID		0x02430d90u
 #define IP1001_PHY_ID_MASK	0xfffffff0u
 
-#elif defined(CONFIG_STMAC_IP101A)	/* IC+ IP101A */
+#elif defined(CONFIG_STMAC_IP101A) || defined(CONFIG_STMAC_IP101G)	/* IC+ IP101A or IP101G */
 
-/* IC+ IP101A phy identifier values */
-#define IP101A_PHY_ID		0x02430c54u
-#define IP101A_PHY_ID_MASK	0xffffffffu
+/* IC+ IP101A and IP101G phy identifier values are the *same*! */
+#define IP101x_PHY_ID		0x02430c54u
+#define IP101x_PHY_ID_MASK	0xffffffffu
+#define IP101G_PAGE_CONTROL_REG	20	/* Page Control Register */
 
 #elif defined(CONFIG_STMAC_78Q2123)	/* TERIDIAN 78Q2123 */
 
@@ -296,6 +297,9 @@ static unsigned int stmac_phy_check_speed (int phy_addr)
 static unsigned int stmac_phy_get_addr (void)
 {
 	unsigned int i, id;
+#if defined(CONFIG_STMAC_IP101A) || defined(CONFIG_STMAC_IP101G)
+	const char * deviceName = "IP101A";	/* assume an "A" part */
+#endif
 
 	for (i = 0; i < 32; i++) {
 		unsigned int phyaddr = (i + 1u) % 32u;
@@ -362,9 +366,12 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "IC+ IP1001 found\n");
 			return phyaddr;
 		}
-#elif defined(CONFIG_STMAC_IP101A)
-		if ((id & IP101A_PHY_ID_MASK) == IP101A_PHY_ID) {
-			printf (STMAC "IC+ IP101A found\n");
+#elif defined(CONFIG_STMAC_IP101A) || defined(CONFIG_STMAC_IP101G)
+		if ((id & IP101x_PHY_ID_MASK) == IP101x_PHY_ID) {
+			const unsigned int page = stmac_mii_read (phyaddr, IP101G_PAGE_CONTROL_REG);
+			if (page == 16)		/* page 16 ? */
+				deviceName = "IP101G";	/* assume a "G" part */
+			printf (STMAC "IC+ %s found\n", deviceName);
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_78Q2123)
@@ -430,8 +437,8 @@ static int stmac_phy_init (void)
 	/* The IC+ IP1001 does not appear to support
 	 * reading the H/W PHY address from any register.  */
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
-#elif defined(CONFIG_STMAC_IP101A)
-	/* The IC+ IP1001 does not appear to support
+#elif defined(CONFIG_STMAC_IP101A) || defined(CONFIG_STMAC_IP101G)
+	/* The IC+ IP101 does not appear to support
 	 * reading the H/W PHY address from any register.  */
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #elif defined(CONFIG_STMAC_78Q2123)

@@ -171,6 +171,15 @@
  * which is normally a IC+ IP101G (but possibly could be a IP101A).
  * This Ethernet PHY is wired to the on-board RJ-45 connector (JP2).
  *
+ * Note: If an IC+ IP101A PHY is present, then failure to enable the
+ * specific workarounds included when CONFIG_STMAC_IP101A is
+ * defined, may result in the device not working correctly.
+ * However, if CONFIG_STMAC_IP101A is defined, and a IC+ IP101G
+ * is used, then this will *probably* not cause any issues.
+ * Hence, using CONFIG_STMAC_IP101A is more likely to work on
+ * an unspecified IP101x PHY, than defining CONFIG_STMAC_IP101G is.
+ * It is recommended that the correct macro is always defined.
+ *
  * Note: There is no support for any off-package (on-board) PHY.
  */
 
