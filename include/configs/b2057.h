@@ -180,6 +180,18 @@
  * an unspecified IP101x PHY, than defining CONFIG_STMAC_IP101G is.
  * It is recommended that the correct macro is always defined.
  *
+ * By default, we assume we will use MII with an External Clock.
+ * It is possible to use either MII or RMII to communicate with
+ * the IC+ IP101x Ethernet PHY mounted inside the STxH207 package.
+ * This mode must also match the jumper settings on the board:
+ *	Jumper		MII		RMII
+ *	------		---		----
+ *	SP1		1-2 (MII)	2-3 (RMII)
+ *	JP3-1		ON		off
+ *	JP3-2		off		ON
+ * To use RMII (with an external clock), then ensure that you
+ * define the macro CONFIG_STM_USE_RMII_MODE below.
+ *
  * Note: There is no support for any off-package (on-board) PHY.
  */
 
@@ -191,6 +203,7 @@
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #	define CFG_STM_STMAC_BASE	0xfda88000ul
+//#	define CONFIG_STM_USE_RMII_MODE	/* define only for RMII mode */
 //#	define CONFIG_STMAC_IP101G	/* IC+ IP101G (via JP2) */
 #	define CONFIG_STMAC_IP101A	/* IC+ IP101A (via JP2) */
 #else

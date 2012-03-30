@@ -121,18 +121,14 @@ extern int board_init(void)
 	STPIO_SET_PIN2(TX_ER_FXSD, 0);		/* deassert ISOL */
 #endif /* CONFIG_STMAC_IP101A */
 	/*
-	 * Normally, we will use MII with an External Clock.
-	 * It is possible to use either MII or RMII to communicate with
-	 * the IC+101 Ethernet PHY mounted inside the STxH207.
-	 * This mode must also match the jumper settings on the board:
-	 *	Jumper		MII		RMII
-	 *	------		---		----
-	 *	SP1		1-2 (MII)	2-3 (RMII)
-	 *	JP3-1		ON		off
-	 *	JP3-2		off		ON
+	 * Normally, we will use MII (or RMII) with an External Clock.
 	 */
 	stxh205_configure_ethernet(0, &(struct stxh205_ethernet_config) {
+#if defined(CONFIG_STM_USE_RMII_MODE)
+			.mode = stxh205_ethernet_mode_rmii,	/* RMII */
+#else
 			.mode = stxh205_ethernet_mode_mii,	/* MII */
+#endif	/* CONFIG_STM_USE_RMII_MODE */
 			.ext_clk = 1,				/* External Clock */
 #if defined(CONFIG_STMAC_IP101A)
 			.no_txer = 1,				/* NO TXER from MAC */
