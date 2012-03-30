@@ -1388,20 +1388,6 @@ static int stmac_reset_eth (bd_t * bd)
 {
 	int err;
 
-		/*
-		 * Initialize the PHY (and complete an auto-negotiation)
-		 * *before* we reset the MAC. This is needed in case the
-		 * PHY auto-negotiated to giga-bit, but the MAC is configured
-		 * for the slower 100Mps (using MII).
-		 * This combination results in the lack of TX clock from the PHY,
-		 * (to the MAC) and can result in the GMAC not being resettable!
-		 * Specifically, the DMA reset code needs a good TX clk present.
-		 */
-	if (stmac_phy_init () < 0) {
-		printf (STMAC "ERROR: no PHY detected\n");
-		return -1;
-	}
-
 	/* MAC Software reset */
 	stmac_dma_reset ();		/* Must be done early  */
 
@@ -1413,6 +1399,11 @@ static int stmac_reset_eth (bd_t * bd)
 		memset (bd->bi_enetaddr, 0, 6);
 		/* upper code ignores return value, but NOT bi_enetaddr */
 		return (-1);
+	}
+
+	if (stmac_phy_init () < 0) {
+		printf (STMAC "ERROR: no PHY detected\n");
+		return -1;
 	}
 
 	init_dma_desc_rings ();
