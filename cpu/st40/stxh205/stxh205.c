@@ -250,6 +250,7 @@ static void stxh205_pioalt_retime(const int port, const int pin,
 	unsigned long sysconf, *sysconfReg;
 
 #ifdef DEBUG_PAD_CONFIGS
+	unsigned long onEntry[2];
 	if (debug_pad_configs)
 		printf("%s(port=%d, pin=%d, retime=%d, clk1notclk0=%d, "
 			"clknotdata=%d, double_edge=%d, invertclk=%d, "
@@ -281,6 +282,10 @@ static void stxh205_pioalt_retime(const int port, const int pin,
 	}
 
 	sysconfReg += 0;	/* use retime configuration register #0 */
+#ifdef DEBUG_PAD_CONFIGS
+	onEntry[0] = sysconfReg[0];
+	onEntry[1] = sysconfReg[1];
+#endif
 
 	if (cfg->clk1notclk0 >= 0)
 	{
@@ -326,6 +331,14 @@ static void stxh205_pioalt_retime(const int port, const int pin,
 		SET_SYSCONF_BIT(sysconf, cfg->double_edge, 24 + pin);
 		writel(sysconf, sysconfReg);
 	}
+
+#ifdef DEBUG_PAD_CONFIGS
+	if (debug_pad_configs)
+		printf("RETIMING: %p:%p   old = %08lx:%08lx  ->  new = %08x:%08x\n",
+			sysconfReg-1, sysconfReg,
+			onEntry[0], onEntry[1],
+			readl(sysconfReg-1), readl(sysconfReg));
+#endif
 }
 
 
