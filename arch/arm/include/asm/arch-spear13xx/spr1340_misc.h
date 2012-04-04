@@ -239,6 +239,7 @@ struct misc_regs {
 /* PHERIP1_CLOCK ENABLE */
 #define GPT1_CLKEN                     0x00200000
 #define I2C_CLKEN                      0x00040000
+#define SSP_CLKEN                      0x00020000
 #define UART_CLKEN                     0x00008000
 #define UDC_UPD_CLKEN                  0x00000800
 #define UHC1_CLKEN                     0x00000200
