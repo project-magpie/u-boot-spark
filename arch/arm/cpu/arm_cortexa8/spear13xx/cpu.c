@@ -85,6 +85,10 @@ int arch_cpu_init(void)
 	perip1_clk_enb |= SMI_CLKEN;
 #endif
 
+#if defined(CONFIG_PL022_SPI)
+	perip1_clk_enb |= SSP_CLKEN;
+#endif
+
 #if defined(CONFIG_SPEAR_MMC)
 	perip_cfg = readl(&misc_p->perip_cfg);
 	perip_cfg &= ~MCIF_MSK;
