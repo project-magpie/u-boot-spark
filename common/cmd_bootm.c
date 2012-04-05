@@ -1224,7 +1224,7 @@ next_bank:	;
 		if ((!nand->name) || (!nand->size))
 			continue;
 
-		data = malloc(nand->erasesize);
+		data = malloc(nand->writesize);
 		if (!data) {
 			puts("No memory available to list NAND images\n");
 			return 0;
@@ -1254,6 +1254,7 @@ next_bank:	;
 			img_size += hdr_size;
 
 			while (img_size > 0) {
+				int blockoff = 0;
 
 				while (nand_block_isbad(nand, off)) {
 					off += nand->erasesize;
@@ -1261,15 +1262,19 @@ next_bank:	;
 						goto out;
 				}
 
-				read_len = min(img_size, nand->erasesize);
-				ret = nand_read(nand, off, &read_len, data);
-				if (ret < 0 && ret != -EUCLEAN)
-					break;
+				do {
+					read_len = min(img_size, nand->writesize);
+					ret = nand_read(nand, off + blockoff, &read_len, data);
+					if (ret < 0 && ret != -EUCLEAN)
+						break;
 
-				crc = crc32(crc, data + hdr_size,
-						read_len - hdr_size);
-				img_size -= read_len;
-				hdr_size = 0;
+					crc = crc32(crc, data + hdr_size,
+							read_len - hdr_size);
+					img_size -= read_len;
+					blockoff += read_len;
+					hdr_size = 0;
+				} while (img_size &&
+						(blockoff < nand->erasesize));
 
 				off += nand->erasesize;
 				if (off >= nand->size)
