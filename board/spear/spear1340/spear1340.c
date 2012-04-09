@@ -123,9 +123,9 @@ void phy_init(void)
 	writel(temp, &misc_regs_p->perip1_clk_enb);
 
 	/* OTG HRESET deassert */
-	temp = readl(&misc_regs_p->perip1_clk_enb);
-	temp &= ~UDC_UPD_CLKEN;
-	writel(temp, &misc_regs_p->perip1_clk_enb);
+	temp = readl(&misc_regs_p->perip1_sw_rst);
+	temp &= ~UDC_UPD_SWRST;
+	writel(temp, &misc_regs_p->perip1_sw_rst);
 
 	/* OTG HCLK Enable */
 	temp = readl(&misc_regs_p->perip1_clk_enb);

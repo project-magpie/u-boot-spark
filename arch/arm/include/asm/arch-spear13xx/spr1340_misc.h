@@ -248,6 +248,9 @@ struct misc_regs {
 #define SMI_CLKEN                      0x00000020
 #define FSMC_CLKEN                     0x00000010
 
+/* perip1_sw_rst */
+#define UDC_UPD_SWRST                  0x00000800
+
 /*
  * Platform specific defines (SPEAr)
  */
