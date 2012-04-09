@@ -106,12 +106,16 @@ int arch_cpu_init(void)
 
 #if defined(CONFIG_NAND_FSMC)
 	fsmc_cfg = readl(&misc_p->fsmc_cfg);
+#if defined(CONFIG_SPEAR1310)
+	fsmc_cfg &= ~DEV_SEL_NANDCS0_NORCS4;
+#else
 	fsmc_cfg &= ~DEV_SEL_MSK;
 	fsmc_cfg |= DEV_SEL_NAND;
 #if defined(CONFIG_SYS_FSMC_NAND_16BIT)
 	fsmc_cfg |= DEV_WIDTH_16;
 #elif defined(CONFIG_SYS_FSMC_NAND_8BIT)
 	fsmc_cfg |= DEV_WIDTH_8;
+#endif
 #endif
 	writel(fsmc_cfg, &misc_p->fsmc_cfg);
 

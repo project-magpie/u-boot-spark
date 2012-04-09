@@ -26,8 +26,11 @@
 
 #ifdef CONFIG_SPEAR1340
 #include <asm/arch/spr1340_misc.h>
-#else
 
+#elif CONFIG_SPEAR1310
+#include <asm/arch/spear1310.h>
+
+#else
 struct misc_regs {
 	u32 soc_cfg;				/* 0x000 */
 	u32 bootstrap_cfg;			/* 0x004 */

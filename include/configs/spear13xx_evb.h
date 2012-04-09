@@ -39,6 +39,11 @@
 #define CONFIG_SPEAR1340			1
 #endif
 
+#if defined(CONFIG_MK_spear1310)
+#define CONFIG_SPEAR13XX			1
+#define CONFIG_SPEAR1310			1
+#endif
+
 #if defined(CONFIG_MK_spear900)
 #define CONFIG_SPEAR13XX			1
 #define CONFIG_SPEAR900			1
@@ -61,7 +66,7 @@
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
-#if !defined(CONFIG_SPEAR1340)
+#if !defined(CONFIG_SPEAR1340) && !defined(CONFIG_SPEAR1310)
 /* Solve issue #101435 - UHC blocks the BUSMATRIX */
 #define CONFIG_SPEAR1300_ISSUE_101435		1
 #endif
@@ -169,7 +174,7 @@
 #define CONFIG_NAND_FSMC			1
 #define CONFIG_SYS_FSMC_NAND_8BIT		1
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
-#if defined(CONFIG_SPEAR1340)
+#if defined(CONFIG_SPEAR1340) || defined(CONFIG_SPEAR1310)
 #define CONFIG_SYS_NAND_BASE			(0xB0800000)
 #else
 #define CONFIG_SYS_NAND_BASE			(0xA0000000)
@@ -227,7 +232,7 @@
 #define CONFIG_SYS_MONITOR_LEN			0x00040000
 #define CONFIG_ENV_SECT_SIZE			0x00010000
 
-#if !defined(CONFIG_SPEAR1340)
+#if !defined(CONFIG_SPEAR1340) && !defined(CONFIG_SPEAR1310)
 #define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
 #else
 #define CONFIG_FSMTDBLK				"/dev/mtdblock4 "
@@ -245,7 +250,7 @@
 #define CONFIG_ENV_OFFSET			0x60000
 #define CONFIG_ENV_RANGE			0x10000
 
-#if !defined(CONFIG_SPEAR1340)
+#if !defined(CONFIG_SPEAR1340) && !defined(CONFIG_SPEAR1310)
 #define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
 #else
 #define CONFIG_FSMTDBLK				"/dev/mtdblock8 "
