@@ -57,9 +57,13 @@
 #define SSP_CR0_SPO		(0x1 << 6)
 #define SSP_CR0_SPH		(0x1 << 7)
 #define SSP_CR0_8BIT_MODE	(0x07)
+#define SSP_SCR_MAX		(0xFF)
+#define SSP_SCR_SHFT		8
 
 /* SSP Control Register 0  - SSP_CR1 */
 #define SSP_CR1_MASK_SSE	(0x1 << 1)
+
+#define SSP_CPSR_MAX		(0xFE)
 
 /* SSP Status Register - SSP_SR */
 #define SSP_SR_MASK_TFE		(0x1 << 0) /* Transmit FIFO empty */
@@ -126,7 +130,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 			unsigned int max_hz, unsigned int mode)
 {
 	struct pl022_spi_slave	*ps;
-	u16			cr0 = 0, cpsr = 0;
+	u16 scr = 1, prescaler, cr0 = 0, cpsr = 0;
 
 	if (!spi_cs_is_valid(bus, cs))
 		return NULL;
@@ -177,8 +181,32 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	writew(cr0, ps->regs + SSP_CR0);
 
 	/* Program the SSPClk frequency */
-	cpsr = ((CONFIG_SYS_SPI_CLK / ps->freq) - 1) & 0xFF;
+	prescaler = CONFIG_SYS_SPI_CLK / ps->freq;
+
+	if (prescaler <= 0xFF)
+		cpsr = prescaler;
+	else {
+		for (scr = 1; scr <= SSP_SCR_MAX; scr++) {
+			if (!(prescaler % scr)) {
+				cpsr = prescaler / scr;
+				if (cpsr <= SSP_CPSR_MAX)
+					break;
+			}
+		}
+
+		if (scr > SSP_SCR_MAX) {
+			scr = SSP_SCR_MAX;
+			cpsr = prescaler / scr;
+			cpsr &= SSP_CPSR_MAX;
+		}
+	}
+
+	if (cpsr & 0x1)
+		cpsr++;
+
 	writew(cpsr, ps->regs + SSP_CPSR);
+	cr0 = readw(ps->regs + SSP_CR0);
+	writew(cr0 | (scr - 1) << SSP_SCR_SHFT, ps->regs + SSP_CR0);
 
 	return &ps->slave;
 }
