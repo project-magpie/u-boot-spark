@@ -87,22 +87,27 @@ static inline struct pl022_spi_slave *to_pl022_spi(struct spi_slave *slave)
  * Following three functions should be provided by the
  * board support package.
  */
-#ifdef CONFIG_SYS_SPI_CS_DEF
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
+	__attribute__((weak, alias("__spi_cs_is_valid")));
+void spi_cs_activate(struct spi_slave *slave)
+	__attribute__((weak, alias("__spi_cs_activate")));
+void spi_cs_deactivate(struct spi_slave *slave)
+	__attribute__((weak, alias("__spi_cs_deactivate")));
+
+int __spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
 	return 1;
 }
 
-void spi_cs_activate(struct spi_slave *slave)
+void __spi_cs_activate(struct spi_slave *slave)
 {
 	/* do nothing */
 }
 
-void spi_cs_deactivate(struct spi_slave *slave)
+void __spi_cs_deactivate(struct spi_slave *slave)
 {
 	/* do nothing */
 }
-#endif
 
 void spi_init()
 {
