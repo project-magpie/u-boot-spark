@@ -305,6 +305,10 @@ struct misc_regs {
 #define USB_PLL_LOCK		(1 << 24)
 
 /* perip_cfg definitions */
+#define HS_SSP_EN		0x00200000
+#define HS_SSP_SW_CS		0x00100000
+#define SSP_CS_EN_MSK		0x000C0000
+#define SSP_CS_EN_SHFT		18
 #define MCIF_MSK		0x00000003
 #define MCIF_SD			0x00000001
 

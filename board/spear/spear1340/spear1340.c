@@ -25,13 +25,12 @@
 #include <miiphy.h>
 #include <netdev.h>
 #include <nand.h>
+#include <spi.h>
 #include <linux/mtd/st_smi.h>
 #include <linux/mtd/fsmc_nand.h>
 #include <asm/arch/hardware.h>
-#ifdef CONFIG_DW_OTG
 #include <asm/arch/spr_misc.h>
 #include <asm/io.h>
-#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -79,10 +78,11 @@ int board_eth_init(bd_t *bis)
 	return ret;
 }
 #endif
-#ifdef CONFIG_DW_OTG
+
 static struct misc_regs *const misc_regs_p =
 	(struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 
+#ifdef CONFIG_DW_OTG
 void phy_init(void)
 {
 	u32 temp;
@@ -136,5 +136,40 @@ void phy_init(void)
 	temp = readl(&misc_regs_p->perip1_clk_enb);
 	temp |= UDC_UPD_CLKEN;
 	writel(temp, &misc_regs_p->perip1_clk_enb);
+}
+#endif
+
+#if defined(CONFIG_PL022_SPI)
+int spi_cs_is_valid(unsigned int bus, unsigned int cs)
+{
+	u32 perip_cfg;
+
+	perip_cfg = readl(&misc_regs_p->perip_cfg);
+	perip_cfg &= ~SSP_CS_EN_MSK;
+	perip_cfg |= cs << SSP_CS_EN_SHFT;
+
+	perip_cfg |= HS_SSP_SW_CS;
+	perip_cfg |= HS_SSP_EN;
+	writel(perip_cfg, &misc_regs_p->perip_cfg);
+
+	return 1;
+}
+
+void spi_cs_activate(struct spi_slave *slave)
+{
+	u32 perip_cfg;
+
+	perip_cfg = readl(&misc_regs_p->perip_cfg);
+	perip_cfg &= ~HS_SSP_SW_CS;
+	writel(perip_cfg, &misc_regs_p->perip_cfg);
+}
+
+void spi_cs_deactivate(struct spi_slave *slave)
+{
+	u32 perip_cfg;
+
+	perip_cfg = readl(&misc_regs_p->perip_cfg);
+	perip_cfg |= HS_SSP_SW_CS;
+	writel(perip_cfg, &misc_regs_p->perip_cfg);
 }
 #endif
