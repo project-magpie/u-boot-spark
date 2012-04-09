@@ -245,8 +245,8 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 		const void *dout, void *din, unsigned long flags)
 {
 	struct pl022_spi_slave *ps = to_pl022_spi(slave);
-	u32		len_tx, len;
-	u32		status, ret = 0;
+	u32		len_tx = 0, len_rx = 0, len;
+	u32		ret = 0;
 	const u8	*txp = dout;
 	u8		*rxp = din, value;
 
@@ -275,35 +275,33 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 	if (flags & SPI_XFER_BEGIN)
 		spi_cs_activate(slave);
 
-	for (len_tx = 0; len_tx < len; ) {
-		status = readw(ps->regs + SSP_SR);
-
-		if (len_tx < len && (status & SSP_SR_MASK_TNF)) {
+	while (len_tx < len) {
+		if (readw(ps->regs + SSP_SR) & SSP_SR_MASK_TNF) {
 			value = (txp != NULL) ? *txp++ : 0;
 			writew(value, ps->regs + SSP_DR);
 			len_tx++;
 		}
 
-		if (rxp) {
-			while (!(readw(ps->regs + SSP_SR) & SSP_SR_MASK_RNE))
-				;
+		if (readw(ps->regs + SSP_SR) & SSP_SR_MASK_RNE) {
 			value = readw(ps->regs + SSP_DR);
-			*rxp++ = value;
+			if (rxp)
+				*rxp++ = value;
+			len_rx++;
+		}
+	}
+
+	while (len_rx < len_tx) {
+		if (readw(ps->regs + SSP_SR) & SSP_SR_MASK_RNE) {
+			value = readw(ps->regs + SSP_DR);
+			if (rxp)
+				*rxp++ = value;
+			len_rx++;
 		}
 	}
 
 out:
-	if (flags & SPI_XFER_END) {
-		/*
-		 * Wait until the transfer is completely done before
-		 * we deactivate CS.
-		 */
-		do {
-			status = readw(ps->regs + SSP_SR);
-		} while (!(status & SSP_SR_MASK_TFE));
-
+	if (flags & SPI_XFER_END)
 		spi_cs_deactivate(slave);
-	}
 
 	return ret;
 }
