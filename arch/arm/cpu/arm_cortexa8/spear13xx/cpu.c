@@ -36,7 +36,10 @@ int arch_cpu_init(void)
 {
 	struct misc_regs *const misc_p =
 	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	u32 perip1_clk_enb, perip2_clk_enb, perip3_clk_enb;
+	u32 perip1_clk_enb, perip2_clk_enb;
+#ifdef CONFIG_SPEAR1340
+	u32 perip3_clk_enb;
+#endif
 	u32 perip_clk_cfg;
 #if defined(CONFIG_SPEAR_MMC)
 	u32 perip_cfg;
