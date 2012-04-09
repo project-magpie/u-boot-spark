@@ -117,11 +117,6 @@ void phy_init(void)
 
 	udelay(1);
 
-	/* otg prstnt deassert */
-	temp = readl(&misc_regs_p->usbphy_gen_cfg);
-	temp |= USBPHY_PRSNT;
-	writel(temp, &misc_regs_p->usbphy_gen_cfg);
-	udelay(1);
 	/* OTG HCLK Disable */
 	temp = readl(&misc_regs_p->perip1_clk_enb);
 	temp &= ~UDC_UPD_CLKEN;
