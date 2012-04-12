@@ -891,18 +891,15 @@ extern void stm_default_board_nand_init(
 extern void stm_nand_scan_post_ident(
 	struct mtd_info * const mtd)
 {
-#if defined(CFG_NAND_ECC_AFM4) || defined(CFG_ST40_NAND_USE_BCH)
-
 	struct nand_chip * const nand = mtd->priv;
 
+#if defined(CFG_NAND_ECC_AFM4) || defined(CFG_ST40_NAND_USE_BCH)
 #if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
 	if (mtd->oobsize == 64)				/* large page device ? */
 		nand->ecc.layout = &stm_afm4_ecclayout_64;
 	else if (mtd->oobsize == 16)			/* small page device ? */
 		nand->ecc.layout = &stm_afm4_ecclayout_16;
-#endif /* CFG_NAND_ECC_AFM4 */
-
-#if defined(CFG_ST40_NAND_USE_BCH)		/* for H/W BCH ("multi-bit ECC") driver */
+#else				/* for H/W BCH ("multi-bit ECC") driver */
 	/*
 	 * Note: for BCH we can just use a single "one-size-fits-all"
 	 * structure (stm_bch_ecclayout_64), as nand->ecc.layout, for any NAND
@@ -911,13 +908,13 @@ extern void stm_nand_scan_post_ident(
 	 */
 	if (mtd->oobsize >= 64)				/* (at least a) large page device ? */
 		nand->ecc.layout = &stm_bch_ecclayout_64;
-#endif /* CFG_ST40_NAND_USE_BCH */
-
+#endif /* CFG_NAND_ECC_AFM4 */
 	else						/* unknown ? */
 	{
 		printf("Error: unexpected OOB size of %u bytes\n", mtd->oobsize);
 		BUG();
 	}
+#endif /* CFG_NAND_ECC_AFM4 || CFG_ST40_NAND_USE_BCH */
 
 		/*
 		 * Ensure sizeof(OOB) is not too big!
@@ -955,8 +952,6 @@ extern void stm_nand_scan_post_ident(
 #else
 	nand->ecc.mode      = NAND_ECC_SOFT;	/* default is S/W 3/256 ECC */
 #endif /* CFG_NAND_ECC_AFM4 */
-
-#endif /* CFG_NAND_ECC_AFM4 || CFG_ST40_NAND_USE_BCH */
 }
 
 
