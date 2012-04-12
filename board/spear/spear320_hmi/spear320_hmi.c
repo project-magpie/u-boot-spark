@@ -83,7 +83,7 @@ int board_eth_init(bd_t *bis)
 {
 	struct misc_regs *const misc_regs_p =
 		(struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	int ret = 0, val;
+	int ret = 0;
 
 #if defined(CONFIG_MACB)
 	/* Enable AMEM clock for memory port access */

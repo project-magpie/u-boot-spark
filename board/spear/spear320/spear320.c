@@ -85,7 +85,7 @@ int board_eth_init(bd_t *bis)
 {
 	struct misc_regs *const misc_regs_p =
 		(struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	int ret = 0, val;
+	int ret = 0;
 	u32 interface = PHY_INTERFACE_MODE_MII;
 #if defined(CONFIG_DESIGNWARE_ETH)
 	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY,

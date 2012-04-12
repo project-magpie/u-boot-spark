@@ -606,7 +606,7 @@ void usbd_dealloc_urb (struct urb *urb)
  */
 void usbd_device_event_irq (struct usb_device_instance *device, usb_device_event_t event, int data)
 {
-	usb_device_state_t state;
+	usb_device_state_t __attribute__((unused)) state;
 
 	if (!device || !device->bus) {
 		usberr("(%p,%d) NULL device or device->bus", device, event);
