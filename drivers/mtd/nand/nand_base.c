@@ -2524,9 +2524,6 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 			break;
 	}
 
-	if (!mtd->name)
-		mtd->name = type->name;
-
 	chip->chipsize = type->chipsize << 20;
 	chip->onfi_version = 0;
 
@@ -2540,6 +2537,10 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 		}
 		nand_flash_detect_non_onfi(mtd, chip, type, &busw);
 	}
+
+	/* use the name from nand_flash_ids[], only if ONFI probing did not generate one */
+	if (!mtd->name)
+		mtd->name = type->name;
 
 	/* Get chip options, preserve non chip based options */
 	chip->options &= ~NAND_CHIPOPTIONS_MSK;
