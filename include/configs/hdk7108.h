@@ -325,7 +325,7 @@
  * NAND FLASH organization
  */
 
-/* NAND01GW3B: 1GiB  8-bit, large page (128KiB) */
+/* NAND08GW3B2CN6: 1GiB  8-bit, large page (2048+64), sector size 128 KiB */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CFG_MAX_NAND_DEVICE	1
 #	define NAND_MAX_CHIPS		CFG_MAX_NAND_DEVICE
@@ -341,28 +341,57 @@
 	"nand0=gen_nand.1"	/* First NAND flash device */
 
 	/*
-	 * Currently, there are 2 main modes to read/write from/to
-	 * NAND devices on STM SoCs:
+	 * Enable this, if support for probing of ONFI complaint NAND
+	 * devices is also required (typically recommended).
+	 */
+#	define CONFIG_SYS_NAND_ONFI_DETECTION	/* define for probing ONFI devices */
+
+	/*
+	 * Currently, there are (potentially) 3 main modes to read/write
+	 * from/to NAND devices on STM SoCs:
 	 *	1) using a S/W "bit-banging" driver
 	 *	   (can NOT be used with boot-from-NAND)
 	 *	2) using the H/W Hamming controller (flex-mode) driver
-	 *	   (only supported means for boot-from-NAND)
-	 * Either CFG_ST40_NAND_USE_BIT_BANGING or CFG_ST40_NAND_USE_HAMMING
-	 * should be defined, to select a single NAND driver.
-	 * If we are using FLEX-mode, we still need to #define the
+	 *	   (also supports boot-from-NAND capability)
+	 *	3) using the H/W BCH controller (multi-bit ECC) driver
+	 *	   (also supports boot-from-NAND capability)
+	 * Either CFG_ST40_NAND_USE_BIT_BANGING, or CFG_ST40_NAND_USE_HAMMING,
+	 * or CFG_ST40_NAND_USE_BCH should be defined, to select a single NAND driver.
+	 * If we are using FLEX or BCH, we still need to #define the
 	 * address CFG_EMI_NAND_BASE, although the value is ignored!
+	 *
+	 * NOTE: The use of BCH is only supported on STx7108 on cut 2.x of the
+	 * STx7108.  That is, cut 1.x of the STx7108 does *not* support BCH.
 	 */
 //#	define CFG_ST40_NAND_USE_BIT_BANGING		/* use S/W "bit-banging" driver */
 #	define CFG_ST40_NAND_USE_HAMMING		/* use H/W Hamming ("flex") driver */
+//#	define CFG_ST40_NAND_USE_BCH			/* use H/W BCH ("multi-bit") driver */
+
+	/*
+	 * If using BCH, then we also need choose the "potency" of the ECC
+	 * scheme to use. The BCH controller can correct up to a maximum of
+	 * either 18-bits, or 30-bits, (both per 1024 byte sector).
+	 * 18-bits of correction requires 32 bytes of OOB per 1KiB of data.
+	 * 30-bits of correction requires 54 bytes of OOB per 1KiB of data.
+	 * For BCH, please choose *only* ONE of the following ECC schemes.
+	 */
+//#	define CFG_ST40_NAND_USE_BCH_NO_ECC		/* use BCH with-OUT ECC -- not recommended! */
+#	define CFG_ST40_NAND_USE_BCH_18_BIT_ECC		/* use BCH with 18-bit/1KiB sector ECC */
+//#	define CFG_ST40_NAND_USE_BCH_30_BIT_ECC		/* use BCH with 30-bit/1KiB sector ECC */
 
 	/*
 	 * Do we want to read/write NAND Flash compatible with the ST40's
-	 * NAND Controller H/W IP block for "boot-mode"? If we want
+	 * NAND Hamming H/W IP block for "boot-mode"? If we want
 	 * to read/write NAND flash that is meant to support booting
 	 * from NAND, then we need to use 3 bytes of ECC per 128 byte
 	 * record.  If so, then define the "CFG_NAND_ECC_HW3_128" macro.
+	 * Note: do *not* define this if CFG_ST40_NAND_USE_BCH is defined,
+	 * as the Hamming boot-mode ECC is different to that of the BCH.
 	 */
 #	define CFG_NAND_ECC_HW3_128	/* define for "boot-from-NAND" compatibility */
+#	if defined(CFG_ST40_NAND_USE_BCH)
+#	undef CFG_NAND_ECC_HW3_128	/* explicitly un-define if using BCH */
+#	endif /* CFG_NAND_ECC_HW3_128 */
 
 	/*
 	 * Do we want to use STMicroelectronics' proprietary AFM4 (4+3/512)

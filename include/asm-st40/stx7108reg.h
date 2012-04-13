@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2008,2010
+ * Copyright (C) STMicroelectronics Ltd. 2008,2010-2012
  *
  * All rights reserved.
  */
@@ -61,6 +61,9 @@
 #ifndef ST40_EMI_SIZE			/* total addressable size of EMI */
 #define ST40_EMI_SIZE			(256 << 20)	/* 256 MiB */
 #endif
+
+/* EMISS (aka EMIPCISS) Register Configuration Space */
+#define ST40_EMISS_REGS_BASE		0xfdaa8000
 
 /* System Architecture Volume 4: I/O Devices */
 #ifndef ST40_PIO0_REGS_BASE
