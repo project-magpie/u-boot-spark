@@ -74,6 +74,19 @@ __memory_setup_table:
 	 * mode. Hence the additional modification in the previous
 	 * paragraph may now be ignored if now using newer TargetPacks.
 	 *
+	 * Update (April 2012), when using a revision V2.2 board, then
+	 * it is essential that you also post-pend the "romgen" command
+	 * with the ",boardrev=3" option. e.g.:
+	 *
+	 * host% romgen --show-comment dummy:hdk7108stx7108:host,boardrev=3
+	 *
+	 * Update (April 2012), when using recent versions of the TargetPacks,
+	 * it is now possible to get romgen *not* to configure the 32-bit mode
+	 * + PMB register settings, by post-pending the "romgen" command with the
+	 * ",se=0" option. This then removes the need to hand-edit the "*.romgen"
+	 * file to add the "#if 0" and "#endif" lines mentioned above. e.g.:
+	 *
+	 * host% romgen --show-comment dummy:hdk7108stx7108:host,boardrev=3,se=0
 	 */
 #include "hdk7108-stx7108.romgen"
 

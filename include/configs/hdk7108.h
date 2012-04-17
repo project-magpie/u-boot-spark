@@ -37,7 +37,7 @@
 /*-----------------------------------------------------------------------
  *	Switch settings to select between the SoC's main 3 boot-modes:
  *		a) boot from 16-bit NOR flash
- *		b) boot from 8-bit NAND flash, small-page, long address
+ *		b) boot from 8-bit NAND flash, small-page, long address, 1-bit ECC
  *		c) boot from SPI serial flash
  *
  *	Jumper	NOR	NAND	SPI
@@ -51,6 +51,18 @@
  *
  *	For boot-from-NOR, both JF2 and JF3 switches closer to CPU.
  *	For boot-from-NAND/SPI, both JF2 and JF3 switches closer to SCART.
+ *
+ *	Note: Although cut 2.x of the STx7108 SoC supports the BCH
+ *	(multi-bit ECC) NAND controller, and U-Boot also supports the
+ *	BCH controller, the HDK-7108 boards do not directly support
+ *	booting from NAND with the BCH controller, as MODE[6] is not
+ *	directly controllable with a switch/jumper. Hence, to boot from
+ *	BCH NAND, a small board modification is required to change the
+ *	strapping resistors for MODE[6]. As a result of this need, the
+ *	above table's jumper settings for NAND, only document for the legacy
+ *	Hamming (single-bit ECC) controller, and not the BCH (multi-boot ECC)
+ *	NAND controller. Without modifying the board, BCH NAND can only be
+ *	used with boot-from-NOR, or boot-from-SPI (or GDB via JTAG).
  */
 
 
