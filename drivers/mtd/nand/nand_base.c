@@ -2459,15 +2459,16 @@ static inline int nand_flash_detect_onfi(struct mtd_info *mtd,
 static void nand_flash_detect_non_onfi(struct mtd_info *mtd,
 					struct nand_chip *chip,
 					const struct nand_flash_dev *type,
-					int *busw)
+					int *busw,
+					const u8 * const id_data)
 {
 	/* Newer devices have all the information in additional id bytes */
 	if (!type->pagesize) {
 		int extid;
 		/* The 3rd id byte holds MLC / multichip data */
-		chip->cellinfo = chip->read_byte(mtd);
+		chip->cellinfo = id_data[2];
 		/* The 4th id byte is the important one */
-		extid = chip->read_byte(mtd);
+		extid = id_data[3];
 		/* Calc pagesize */
 		mtd->writesize = 1024 << (extid & 0x3);
 		extid >>= 2;
@@ -2501,6 +2502,8 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 {
 	struct nand_flash_dev *type = NULL;
 	int ret, maf_idx;
+	size_t i;
+	u8 id_data[4];
 
 	/* Select the device */
 	chip->select_chip(mtd, 0);
@@ -2515,8 +2518,10 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 	chip->cmdfunc(mtd, NAND_CMD_READID, 0x00, -1);
 
 	/* Read manufacturer and device IDs */
-	*maf_id = chip->read_byte(mtd);
-	*dev_id = chip->read_byte(mtd);
+	for(i=0; i<sizeof(id_data); i++)
+		id_data[i] = chip->read_byte(mtd);
+	*maf_id = id_data[0];
+	*dev_id = id_data[1];
 
 	/* Lookup the flash id */
 	for (type = nand_flash_ids; type->name != NULL; type++) {
@@ -2535,7 +2540,7 @@ static struct nand_flash_dev *nand_get_flash_type(struct mtd_info *mtd,
 				*maf_id, *dev_id);
 			return ERR_PTR(-ENODEV);
 		}
-		nand_flash_detect_non_onfi(mtd, chip, type, &busw);
+		nand_flash_detect_non_onfi(mtd, chip, type, &busw, id_data);
 	}
 
 	/* use the name from nand_flash_ids[], only if ONFI probing did not generate one */
