@@ -52,27 +52,6 @@
 #define CONFIG_CMD_MMC
 #endif
 
-#if !defined(CONFIG_SPEAR_USBTTY)
-/* Ethernet configuration */
-#define CONFIG_MII
-#define CONFIG_DESIGNWARE_ETH
-#define CONFIG_NET_MULTI
-#define CONFIG_DW_ALTDESCRIPTOR			1
-#ifdef CONFIG_SPEAR1340
-#define CONFIG_DW0_PHY				1
-#define CONFIG_SPEAR_RGMII
-#else
-#define CONFIG_DW0_PHY				5
-#endif
-#define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
-#define CONFIG_DW_AUTONEG			1
-
-#ifdef CONFIG_SPEAR1340
-#define CONFIG_DW_SEARCH_PHY			1
-#endif
-
-#endif
-
 /* USBD driver configuration */
 #if (defined(CONFIG_SPEAR_USBTTY))
 #define CONFIG_USB_DEVICE
@@ -154,26 +133,20 @@
 #define CONFIG_CMD_RUN
 
 #if !defined(CONFIG_SPEAR_USBTTY)
-#define CONFIG_CMD_NET
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_DHCP
-
 #if defined(CONFIG_USB_STORAGE) || defined(CONFIG_MMC)
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 #define CONFIG_ISO_PARTITION
 #endif
-
 #endif
 
 /* This must be included AFTER the definition of CONFIG_COMMANDS (if any) */
 #include <config_cmd_default.h>
 
-#if defined(CONFIG_SPEAR_USBTTY)
 #undef CONFIG_CMD_NET
 #undef CONFIG_CMD_NFS
-#endif
+#undef CONFIG_CMD_XIMG
+#undef CONFIG_CMD_LOADS
 
 /*
  * Default Environment Varible definitions
