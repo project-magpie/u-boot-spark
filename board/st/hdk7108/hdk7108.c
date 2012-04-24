@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2011 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -126,8 +126,8 @@ extern int board_init(void)
 			.phy_bus = 0, });
 #elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1, IC+ IP1001 (UP1) */
 	stx7108_configure_ethernet(1, &(struct stx7108_ethernet_config) {
-			.mode = stx7108_ethernet_mode_mii,
-		//QQQ	.mode = stx7108_ethernet_mode_gmii_gtx,
+			.mode = stx7108_ethernet_mode_mii,	/* for MII */
+//			.mode = stx7108_ethernet_mode_rmii,	/* for RMII */
 			.ext_clk = 0,
 			.phy_bus = 1, });
 #else
