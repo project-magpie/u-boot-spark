@@ -28,7 +28,7 @@
 #include <asm/arch/spr1340_misc.h>
 
 #elif CONFIG_SPEAR1310
-#include <asm/arch/spear1310.h>
+#include <asm/arch/spr1310_misc.h>
 
 #else
 struct misc_regs {
