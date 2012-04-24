@@ -392,6 +392,8 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 		return -1;
 	}
 
+	writel(readl(&smicntl->smi_sr) & ~(ERF1 | ERF2), &smicntl->smi_sr);
+
 	if (smi_wait_till_ready(banknum, CONFIG_SYS_FLASH_WRITE_TOUT))
 		return -EBUSY;
 
