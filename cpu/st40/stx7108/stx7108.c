@@ -783,14 +783,18 @@ extern void stx7108_configure_ethernet(
 	const struct stm_pad_sysconf * sys_config;
 	size_t num_pads, num_sys, i;
 
-	BUG_ON(!config);
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+		/* CLK_ETH_PHY_0 divider is channel #10 in "A1", using PLL1 */
+	const unsigned long divider_reg = 0xfdab8800 + 0x300 + 0x4*10;
 	BUG_ON(port != 0);
 #elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+		/* CLK_ETH_PHY_1 divider is channel #14 in "A0", using PLL1 */
+	const unsigned long divider_reg = 0xfde98800 + 0x300 + 0x4*14;
 	BUG_ON(port != 1);
 #else
 #error Unknown base address for the STM GMAC
 #endif
+	BUG_ON(!config);
 
 	switch (config->mode) {
 
@@ -821,8 +825,16 @@ extern void stx7108_configure_ethernet(
 			 * i.e. CLK_ETH_PHY_0 (PIO9[3]) or CLK_ETH_PHY_1 (PIO15[5])
 			 * (as appropriate) should be 50MHz for RMII mode.
 			 *
-			 * NOTE: We assume the TargetPack has done this for us!
+			 * NOTE: We assume the TargetPack has already set the frequency
+			 * to 25MHz (for MII), and hence we simply just half
+			 * the divider, to double the frequency to 50MHz for RMII.
+			 * WARNING: RMII will fail, if this assumption is untrue!
 			 */
+			unsigned long divider = readl(divider_reg);
+			divider  += 1;	/* canonical to numerical form */
+			divider >>= 1;	/* half the divider, double the frequency */
+			divider  -= 1;	/* numerical to canonical form */
+			writel(divider, divider_reg);
 			stm_pad_set_pio_out(phy_clock, port + 1);
 		}
 		break;
