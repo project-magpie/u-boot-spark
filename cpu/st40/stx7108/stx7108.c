@@ -280,20 +280,7 @@ static void stx7108_pioalt_retime(const int port, const int pin,
  * --------------------------------------------------------------------*/
 
 
-struct stm_pad_sysconf {
-	volatile unsigned long * const address;
-	const int lsb;
-	const int msb;
-	const unsigned long value;
-};
-
-#define STM_PAD_SYS_CFG_BANK(_bank, _reg, _lsb, _msb, _value) \
-	{ \
-		.address = ((unsigned long*)STX7108_BANK##_bank##_SYSCFG(_reg)), \
-		.lsb     = _lsb, \
-		.msb     = _msb, \
-		.value   = _value, \
-	}
+#define SYSCONF(_bank,_reg)	((unsigned long*)STX7108_BANK##_bank##_SYSCFG(_reg))
 
 
 struct stx7108_gmac_pin {
@@ -780,7 +767,7 @@ extern void stx7108_configure_ethernet(
 {
 	struct stx7108_gmac_pin * pad_config;
 	struct stx7108_gmac_pin * phy_clock;
-	const struct stm_pad_sysconf * sys_config;
+	const struct stm_pad_sysconf * sys_configs;
 	size_t num_pads, num_sys, i;
 
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
@@ -801,7 +788,7 @@ extern void stx7108_configure_ethernet(
 	case stx7108_ethernet_mode_mii:
 		pad_config = stx7108_ethernet_mii_pad_configs;
 		num_pads = ARRAY_SIZE(stx7108_ethernet_mii_pad_configs);
-		sys_config = stx7108_ethernet_mii_pad_sysconfs;
+		sys_configs = stx7108_ethernet_mii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stx7108_ethernet_mii_pad_sysconfs);
 		phy_clock = find_phy_clock(pad_config, num_pads);
 		if (config->ext_clk)
@@ -813,7 +800,7 @@ extern void stx7108_configure_ethernet(
 	case stx7108_ethernet_mode_rmii: /* only GMAC #1 tested */
 		pad_config = stx7108_ethernet_rmii_pad_configs;
 		num_pads = ARRAY_SIZE(stx7108_ethernet_rmii_pad_configs);
-		sys_config = stx7108_ethernet_rmii_pad_sysconfs;
+		sys_configs = stx7108_ethernet_rmii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stx7108_ethernet_rmii_pad_sysconfs);
 		phy_clock = find_phy_clock(pad_config, num_pads);
 		if (config->ext_clk)
@@ -892,30 +879,7 @@ extern void stx7108_configure_ethernet(
 	}
 
 		/* now configure the relevant SYS_CONFIGs */
-	for (i = 0; i < num_sys; i++)
-	{
-		const struct stm_pad_sysconf * const sys = &sys_config[i];
-		unsigned long sysconf;
-
-#ifdef DEBUG_PAD_CONFIGS
-		if (debug_pad_configs) {
-			printf("%2u: SYSCFG=%p,  [%u:%u]\t0x%08x\n",
-				i+1,
-				sys->address,
-				sys->msb, sys->lsb,
-				sys->value
-			);
-			printf("ante: *%p = 0x%08x\n", sys->address, *sys->address);
-		}
-#endif
-		sysconf = readl(sys->address);
-		SET_SYSCONF_BITS(sysconf, TRUE, sys->lsb, sys->msb, sys->value,sys->value);
-		writel(sysconf, sys->address);
-#ifdef DEBUG_PAD_CONFIGS
-		if (debug_pad_configs)
-			printf("post: *%p = 0x%08x\n", sys->address, *sys->address);
-#endif
-	}
+	stm_configure_sysconfs(sys_configs, num_sys);
 
 		/* need to do this *after* the SYSCONF initialization! */
 	stx7108_ethernet_bus_setup();

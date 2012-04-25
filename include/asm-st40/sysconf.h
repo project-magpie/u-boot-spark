@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009-2010 STMicroelectronics.
+ * (C) Copyright 2009-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -68,6 +68,33 @@
 			reg |= ((no)<<(lsb));		\
 		}					\
 	} while (0)
+
+
+struct stm_pad_sysconf {
+	volatile	unsigned long * const address;
+	const		int lsb;
+	const		int msb;
+			unsigned long value;
+};
+
+#define STM_PAD_SYSCONF(_reg, _lsb, _msb, _value) \
+	{ \
+		.address = _reg, \
+		.lsb     = _lsb, \
+		.msb     = _msb, \
+		.value   = _value, \
+	}
+#define STM_PAD_SYS_CFG_BANK(_bank, _reg, _lsb, _msb, _value) \
+	{ \
+		.address = SYSCONF(_bank,_reg), \
+		.lsb     = _lsb, \
+		.msb     = _msb, \
+		.value   = _value, \
+	}
+
+extern void stm_configure_sysconfs(
+	const struct stm_pad_sysconf * const sys_configs,
+	const size_t num_sys);
 
 
 #endif	/* __ASM_ST40_SYSCONF_H */

@@ -347,20 +347,6 @@ static void stxh205_pioalt_retime(const int port, const int pin,
  * --------------------------------------------------------------------*/
 
 
-struct stm_pad_sysconf {
-	volatile unsigned long * const address;
-	const int lsb;
-	const int msb;
-	      unsigned long value;
-};
-
-#define STM_PAD_SYSCONF(_reg, _lsb, _msb, _value) \
-	{ \
-		.address = _reg, \
-		.lsb     = _lsb, \
-		.msb     = _msb, \
-		.value   = _value, \
-	}
 #define SYSCONF(_reg)	((unsigned long*)STXH205_SYSCFG(_reg))
 
 
@@ -621,7 +607,7 @@ extern void stxh205_configure_ethernet(
 {
 	struct stxh205_gmac_pin * pad_config;
 	struct stxh205_gmac_pin * phy_clock;
-	struct stm_pad_sysconf * sys_config;
+	struct stm_pad_sysconf * sys_configs;
 	size_t num_pads, num_sys, i;
 
 	BUG_ON(!config);
@@ -632,7 +618,7 @@ extern void stxh205_configure_ethernet(
 	case stxh205_ethernet_mode_mii:
 		pad_config = stxh205_ethernet_mii_pad_configs;
 		num_pads = ARRAY_SIZE(stxh205_ethernet_mii_pad_configs);
-		sys_config = stxh205_ethernet_mii_pad_sysconfs;
+		sys_configs = stxh205_ethernet_mii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stxh205_ethernet_mii_pad_sysconfs);
 		phy_clock = find_phy_clock(pad_config, num_pads);
 
@@ -647,25 +633,25 @@ extern void stxh205_configure_ethernet(
 	case stxh205_ethernet_mode_rmii:
 		pad_config = stxh205_ethernet_rmii_pad_configs;
 		num_pads = ARRAY_SIZE(stxh205_ethernet_rmii_pad_configs);
-		sys_config = stxh205_ethernet_rmii_pad_sysconfs;
+		sys_configs = stxh205_ethernet_rmii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stxh205_ethernet_rmii_pad_sysconfs);
 		phy_clock = find_phy_clock(pad_config, num_pads);
 
 		if (config->ext_clk) {
 			stm_pad_set_pio_in(phy_clock, 2);
 			/* ETH_SEL_INTERNAL_NOTEXT_PHYCLK */
-			sys_config[4].value = 0;
+			sys_configs[4].value = 0;
 		} else {
 			stm_pad_set_pio_out(phy_clock, 1);
 			/* ETH_SEL_INTERNAL_NOTEXT_PHYCLK */
-			sys_config[4].value = 1;
+			sys_configs[4].value = 1;
 		}
 		break;
 
 	case stxh205_ethernet_mode_reverse_mii:
 		pad_config = stxh205_ethernet_reverse_mii_pad_configs;
 		num_pads = ARRAY_SIZE(stxh205_ethernet_reverse_mii_pad_configs);
-		sys_config = stxh205_ethernet_reverse_mii_pad_sysconfs;
+		sys_configs = stxh205_ethernet_reverse_mii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stxh205_ethernet_reverse_mii_pad_sysconfs);
 		phy_clock = find_phy_clock(pad_config, num_pads);
 
@@ -714,30 +700,7 @@ extern void stxh205_configure_ethernet(
 	}
 
 		/* now configure the relevant SYS_CONFIGs */
-	for (i = 0; i < num_sys; i++)
-	{
-		const struct stm_pad_sysconf * const sys = &sys_config[i];
-		unsigned long sysconf;
-
-#ifdef DEBUG_PAD_CONFIGS
-		if (debug_pad_configs) {
-			printf("%2u: SYSCFG=%p,  [%u:%u]\t0x%08lx\n",
-				i+1,
-				sys->address,
-				sys->msb, sys->lsb,
-				sys->value
-			);
-			printf("ante: *%p = 0x%08lx\n", sys->address, *sys->address);
-		}
-#endif
-		sysconf = readl(sys->address);
-		SET_SYSCONF_BITS(sysconf, TRUE, sys->lsb, sys->msb, sys->value,sys->value);
-		writel(sysconf, sys->address);
-#ifdef DEBUG_PAD_CONFIGS
-		if (debug_pad_configs)
-			printf("post: *%p = 0x%08lx\n", sys->address, *sys->address);
-#endif
-	}
+	stm_configure_sysconfs(sys_configs, num_sys);
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 

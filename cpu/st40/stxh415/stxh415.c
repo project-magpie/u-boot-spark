@@ -336,20 +336,6 @@ static void stxh415_pioalt_retime(const int port, const int pin,
  * --------------------------------------------------------------------*/
 
 
-struct stm_pad_sysconf {
-	volatile unsigned long * const address;
-	const int lsb;
-	const int msb;
-	const unsigned long value;
-};
-
-#define STM_PAD_SYSCONF(_reg, _lsb, _msb, _value) \
-	{ \
-		.address = _reg, \
-		.lsb     = _lsb, \
-		.msb     = _msb, \
-		.value   = _value, \
-	}
 #define SYSCONF(_reg)	((unsigned long*)STXH415_SYSCFG(_reg))
 
 
@@ -858,7 +844,7 @@ extern void stxh415_configure_ethernet(
 {
 	struct stxh415_gmac_pin * pad_config;
 	struct stxh415_gmac_pin * phy_clock;
-	const struct stm_pad_sysconf * sys_config;
+	const struct stm_pad_sysconf * sys_configs;
 	size_t num_pads, num_sys, i;
 
 	BUG_ON(!config);
@@ -875,7 +861,7 @@ extern void stxh415_configure_ethernet(
 	case stxh415_ethernet_mode_mii:
 		pad_config = stxh415_ethernet_mii_pad_configs;
 		num_pads = ARRAY_SIZE(stxh415_ethernet_mii_pad_configs);
-		sys_config = stxh415_ethernet_mii_pad_sysconfs;
+		sys_configs = stxh415_ethernet_mii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stxh415_ethernet_mii_pad_sysconfs);
 		phy_clock = find_phy_clock(pad_config, num_pads);
 		if (config->ext_clk)
@@ -887,7 +873,7 @@ extern void stxh415_configure_ethernet(
 	case stxh415_ethernet_mode_rmii:  {
 		pad_config = stxh415_ethernet_rmii_pad_configs;
 		num_pads = ARRAY_SIZE(stxh415_ethernet_rmii_pad_configs);
-		sys_config = stxh415_ethernet_rmii_pad_sysconfs;
+		sys_configs = stxh415_ethernet_rmii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stxh415_ethernet_rmii_pad_sysconfs);
 
 		/* we assume we *always* use the internal clock for RMII! */
@@ -956,30 +942,7 @@ extern void stxh415_configure_ethernet(
 	}
 
 		/* now configure the relevant SYS_CONFIGs */
-	for (i = 0; i < num_sys; i++)
-	{
-		const struct stm_pad_sysconf * const sys = &sys_config[i];
-		unsigned long sysconf;
-
-#ifdef DEBUG_PAD_CONFIGS
-		if (debug_pad_configs) {
-			printf("%2u: SYSCFG=%p,  [%u:%u]\t0x%08x\n",
-				i+1,
-				sys->address,
-				sys->msb, sys->lsb,
-				sys->value
-			);
-			printf("ante: *%p = 0x%08x\n", sys->address, *sys->address);
-		}
-#endif
-		sysconf = readl(sys->address);
-		SET_SYSCONF_BITS(sysconf, TRUE, sys->lsb, sys->msb, sys->value,sys->value);
-		writel(sysconf, sys->address);
-#ifdef DEBUG_PAD_CONFIGS
-		if (debug_pad_configs)
-			printf("post: *%p = 0x%08x\n", sys->address, *sys->address);
-#endif
-	}
+	stm_configure_sysconfs(sys_configs, num_sys);
 
 		/* need to do this *after* the SYSCONF initialization! */
 	stxh415_ethernet_bus_setup();

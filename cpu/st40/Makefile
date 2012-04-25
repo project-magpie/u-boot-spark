@@ -27,6 +27,7 @@ LIB	= $(obj)lib$(CPU).a
 
 START	= start.o
 COBJS	= cpu.o interrupts.o usb.o cmd_pmb.o
+COBJS	+= stm-sysconf.o
 COBJS	+= ecc.o stm-nand.o cmd_copybbt.o	# NAND
 COBJS	+= stm-nand-flex.o stm-nand-bch.o	# NAND
 COBJS	+= sata-init.o sata-probe.o		# SATA
