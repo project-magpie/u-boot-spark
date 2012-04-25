@@ -94,7 +94,7 @@
 #define CONFIG_DESIGNWARE_ETH
 #define CONFIG_NET_MULTI
 #define CONFIG_DW_ALTDESCRIPTOR			1
-#ifdef CONFIG_SPEAR1340
+#if defined(CONFIG_SPEAR1340) || defined(CONFIG_SPEAR1310)
 #define CONFIG_DW0_PHY				1
 #define CONFIG_SPEAR_RGMII
 #else
@@ -103,7 +103,7 @@
 #define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
 #define CONFIG_DW_AUTONEG			1
 
-#ifdef CONFIG_SPEAR1340
+#if defined(CONFIG_SPEAR1340) || defined(CONFIG_SPEAR1310)
 #define CONFIG_DW_SEARCH_PHY			1
 #endif
 
@@ -112,7 +112,7 @@
 /* USBD driver configuration */
 #if (defined(CONFIG_SPEAR_USBTTY))
 #define CONFIG_USB_DEVICE
-#ifdef CONFIG_SPEAR1340
+#if defined(CONFIG_SPEAR1340) || defined(CONFIG_SPEAR1310)
 #define CONFIG_DW_OTG
 #else
 #define CONFIG_DW_UDC
