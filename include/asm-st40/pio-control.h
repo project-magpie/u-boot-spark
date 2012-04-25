@@ -23,16 +23,6 @@ struct stm_pio_control_retime_config {
 	int delay_input:3;
 };
 
-enum stm_pad_gpio_direction {
-	stm_pad_direction_unknown,		/* oe=?, pu=?, od=? */
-	stm_pad_direction_ignored,		/* oe=?, pu=?, od=? */
-	stm_pad_direction_input,		/* oe=0, pu=0, od=0 */
-	stm_pad_direction_input_with_pullup,	/* oe=0, pu=1, od=0 */
-	stm_pad_direction_output,		/* oe=1, pu=0, od=0 */
-	stm_pad_direction_bidir_no_pullup,	/* oe=1, pu=0, od=1 */
-	stm_pad_direction_bidir_with_pullup	/* oe=1, pu=1, od=1 */
-};
-
 /* 	Generic Retime Padlogic possible modes
  * Refer to GRP Functional specs (ADCS 8198257) for more details */
 

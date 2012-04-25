@@ -32,6 +32,8 @@
 #include <asm/pio.h>
 #include <asm/stbus.h>
 #include <asm/sysconf.h>
+#include <asm/pad.h>
+#include <asm/pio-control.h>
 #include <ata.h>
 #include <spi.h>
 
@@ -134,14 +136,6 @@ extern void stxh205_pioalt_select(const int port, const int pin, const int alt)
 
 /* Pad configuration */
 
-#define IN		stm_pad_direction_input
-#define IN_WITH_PU	stm_pad_direction_input_with_pullup
-#define OUT		stm_pad_direction_output
-#define BIDIR		stm_pad_direction_bidir_no_pullup
-#define BIDIR_WITH_PU	stm_pad_direction_bidir_with_pullup
-#define IGNORED		stm_pad_direction_ignored
-#define UNKNOWN		stm_pad_direction_unknown
-
 void stxh205_pioalt_pad(int port, const int pin,
 		const enum stm_pad_gpio_direction direction)
 {
@@ -151,16 +145,16 @@ void stxh205_pioalt_pad(int port, const int pin,
 	unsigned long sysconf, *sysconfReg;
 
 	switch (direction) {
-	case IN:
+	case stm_pad_direction_input:
 		oe = 0; pu = 0; od = 0;
 		break;
-	case IN_WITH_PU:
+	case stm_pad_direction_input_with_pullup:
 		oe = 0; pu = 1; od = 0;
 		break;
-	case OUT:
+	case stm_pad_direction_output:
 		oe = 1; pu = 0; od = 0;
 		break;
-	case BIDIR:
+	case stm_pad_direction_bidir_no_pullup:
 		oe = 1; pu = 0; od = 1;
 		break;
 	default:
@@ -350,46 +344,17 @@ static void stxh205_pioalt_retime(const int port, const int pin,
 #define SYSCONF(_reg)	((unsigned long*)STXH205_SYSCFG(_reg))
 
 
-struct stxh205_gmac_pin {
-	struct {
-		const unsigned char port, pin;
-		      unsigned char alt;
-	} pio;
-	const char phy_clock:1;
-	const char txer:1;
-	enum stm_pad_gpio_direction direction;
-	const struct stm_pio_control_retime_config * const retime;
-};
-
-#define stm_pad_set_pio_ignored(_pin)				\
-	do {							\
-		(_pin)->direction = IGNORED;			\
-	} while(0)
-
-#define stm_pad_set_pio_out(_pin, _func)			\
-	do {							\
-		(_pin)->direction = OUT;			\
-		(_pin)->pio.alt = (_func);			\
-	} while(0)
-
-#define stm_pad_set_pio_in(_pin, _func)				\
-	do {							\
-		(_pin)->direction = IN;				\
-		(_pin)->pio.alt = (_func);			\
-	} while(0)
-
-
 #define DATA_IN(_port, _pin, _func, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _func, }, \
-		.direction = IN, \
+		.direction = stm_pad_direction_input, \
 		.retime    = _retiming, \
 	}
 
 #define DATA_OUT(_port, _pin, _func, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _func, }, \
-		.direction = OUT, \
+		.direction = stm_pad_direction_output, \
 		.retime    = _retiming, \
 	}
 
@@ -398,7 +363,7 @@ struct stxh205_gmac_pin {
 	{ \
 		.pio       = { _port, _pin, _func, }, \
 		.txer      = 1, \
-		.direction = OUT, \
+		.direction = stm_pad_direction_output, \
 		.retime    = _retiming, \
 	}
 
@@ -409,21 +374,21 @@ struct stxh205_gmac_pin {
 #define DATA_OUT_PU(_port, _pin, _func, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _func, }, \
-		.direction = IN_WITH_PU, \
+		.direction = stm_pad_direction_input_with_pullup, \
 		.retime    = _retiming, \
 	}
 
 #define CLOCK_IN(_port, _pin, _func, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _func, }, \
-		.direction = IN, \
+		.direction = stm_pad_direction_input, \
 		.retime    = _retiming, \
 	}
 
 #define CLOCK_OUT(_port, _pin, _func, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _func, }, \
-		.direction = OUT, \
+		.direction = stm_pad_direction_output, \
 		.retime    = _retiming, \
 	}
 
@@ -432,51 +397,12 @@ struct stxh205_gmac_pin {
 	{ \
 		.pio       = { _port, _pin, _func, }, \
 		.phy_clock = 1, \
-		.direction = UNKNOWN, \
+		.direction = stm_pad_direction_unknown, \
 		.retime    = _retiming, \
 	}
 
-/*
- * Find first pin which is tagged as being a "PHY CLOCK", and return it.
- * Otherwise return NULL, if none found!
- */
-static struct stxh205_gmac_pin * find_phy_clock(
-	struct stxh205_gmac_pin * const array,
-	const size_t count)
-{
-	size_t i;
 
-	for(i=0; i<count; i++)
-	{
-		if (array[i].phy_clock)
-			return &array[i];	/* found it */
-	}
-
-	BUG();
-	return NULL;				/* not found! */
-}
-
-/*
- * Find first pin which is tagged as being a "TXER", and return it.
- * Otherwise return NULL, if none found!
- */
-static struct stxh205_gmac_pin * find_txer(
-	struct stxh205_gmac_pin * const array,
-	const size_t count)
-{
-	size_t i;
-
-	for(i=0; i<count; i++)
-	{
-		if (array[i].txer)
-			return &array[i];	/* found it */
-	}
-
-	BUG();
-	return NULL;				/* not found! */
-}
-
-static struct stxh205_gmac_pin stxh205_ethernet_mii_pad_configs[] = {
+static struct stm_gmac_pin stxh205_ethernet_mii_pad_configs[] = {
 		DATA_OUT(0, 0, 1, RET_BYPASS(0)),/* TXD[0] */
 		DATA_OUT(0, 1, 1, RET_BYPASS(0)),/* TXD[1] */
 		DATA_OUT(0, 2, 1, RET_BYPASS(0)),/* TXD[2] */
@@ -515,7 +441,7 @@ static struct stm_pad_sysconf stxh205_ethernet_mii_pad_sysconfs[] = {
 		STM_PAD_SYSCONF(SYSCONF(23), 9, 9, 1),
 };
 
-static struct stxh205_gmac_pin stxh205_ethernet_rmii_pad_configs[] = {
+static struct stm_gmac_pin stxh205_ethernet_rmii_pad_configs[] = {
 		DATA_OUT(0, 0, 1, RET_BYPASS(0)),/* TXD[0] */
 		DATA_OUT(0, 1, 1, RET_BYPASS(0)),/* TXD[1] */
 		DATA_OUT(0, 5, 1, RET_BYPASS(0)),/* TXEN */
@@ -546,7 +472,7 @@ static struct stm_pad_sysconf stxh205_ethernet_rmii_pad_sysconfs[] = {
 };
 
 /* TODO */
-static struct stxh205_gmac_pin stxh205_ethernet_reverse_mii_pad_configs[] = {
+static struct stm_gmac_pin stxh205_ethernet_reverse_mii_pad_configs[] = {
 		DATA_OUT(0, 0, 1, RET_BYPASS(0)),/* TXD[0] */
 		DATA_OUT(0, 1, 1, RET_BYPASS(0)),/* TXD[1] */
 		DATA_OUT(0, 2, 1, RET_BYPASS(0)),/* TXD[2] */
@@ -605,8 +531,8 @@ extern void stxh205_configure_ethernet(
 	const int port,
 	const struct stxh205_ethernet_config * const config)
 {
-	struct stxh205_gmac_pin * pad_config;
-	struct stxh205_gmac_pin * phy_clock;
+	struct stm_gmac_pin * pad_config;
+	struct stm_gmac_pin * phy_clock;
 	struct stm_pad_sysconf * sys_configs;
 	size_t num_pads, num_sys, i;
 
@@ -620,14 +546,14 @@ extern void stxh205_configure_ethernet(
 		num_pads = ARRAY_SIZE(stxh205_ethernet_mii_pad_configs);
 		sys_configs = stxh205_ethernet_mii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stxh205_ethernet_mii_pad_sysconfs);
-		phy_clock = find_phy_clock(pad_config, num_pads);
+		phy_clock = stm_gmac_find_phy_clock(pad_config, num_pads);
 
 		if (config->ext_clk)
 			stm_pad_set_pio_ignored(phy_clock);
 		else
 			stm_pad_set_pio_out(phy_clock, 1);
 		if (config->no_txer)
-			stm_pad_set_pio_ignored(find_txer(pad_config, num_pads));
+			stm_pad_set_pio_ignored(stm_gmac_find_txer(pad_config, num_pads));
 		break;
 
 	case stxh205_ethernet_mode_rmii:
@@ -635,7 +561,7 @@ extern void stxh205_configure_ethernet(
 		num_pads = ARRAY_SIZE(stxh205_ethernet_rmii_pad_configs);
 		sys_configs = stxh205_ethernet_rmii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stxh205_ethernet_rmii_pad_sysconfs);
-		phy_clock = find_phy_clock(pad_config, num_pads);
+		phy_clock = stm_gmac_find_phy_clock(pad_config, num_pads);
 
 		if (config->ext_clk) {
 			stm_pad_set_pio_in(phy_clock, 2);
@@ -653,14 +579,14 @@ extern void stxh205_configure_ethernet(
 		num_pads = ARRAY_SIZE(stxh205_ethernet_reverse_mii_pad_configs);
 		sys_configs = stxh205_ethernet_reverse_mii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stxh205_ethernet_reverse_mii_pad_sysconfs);
-		phy_clock = find_phy_clock(pad_config, num_pads);
+		phy_clock = stm_gmac_find_phy_clock(pad_config, num_pads);
 
 		if (config->ext_clk)
 			stm_pad_set_pio_ignored(phy_clock);
 		else
 			stm_pad_set_pio_out(phy_clock, 1);
 		if (config->no_txer)
-			stm_pad_set_pio_ignored(find_txer(pad_config, num_pads));
+			stm_pad_set_pio_ignored(stm_gmac_find_txer(pad_config, num_pads));
 		break;
 
 	default:
@@ -671,7 +597,7 @@ extern void stxh205_configure_ethernet(
 		/* now configure all the PIOs */
 	for (i = 0; i < num_pads; i++)
 	{
-		const struct stxh205_gmac_pin * const pad = &pad_config[i];
+		const struct stm_gmac_pin * const pad = &pad_config[i];
 		const int portno = pad->pio.port;
 		const int pinno = pad->pio.pin;
 
@@ -680,18 +606,18 @@ extern void stxh205_configure_ethernet(
 		printf("%2u: PIO%03u[%u] %-7s, alt=%u, retime=%p\n",
 			i+1,
 			portno, pinno,
-			(pad->direction==IN) ? "in" :
-				(pad->direction==IN_WITH_PU) ? "in+pu" :
-				(pad->direction==OUT) ? "out" :
-				(pad->direction==BIDIR) ? "bidir" :
-				(pad->direction==IGNORED) ? "ignore" :
+			(pad->direction==stm_pad_direction_input) ? "in" :
+				(pad->direction==stm_pad_direction_input_with_pullup) ? "in+pu" :
+				(pad->direction==stm_pad_direction_output) ? "out" :
+				(pad->direction==stm_pad_direction_bidir_no_pullup) ? "bidir" :
+				(pad->direction==stm_pad_direction_ignored) ? "ignore" :
 				"BAD-BAD",
 			pad->pio.alt,
 			pad->retime
 		);
 #endif
 
-		if (pad->direction == IGNORED)
+		if (pad->direction == stm_pad_direction_ignored)
 			continue;	/* skip all "ignored" pads */
 
 		stxh205_pioalt_select(portno, pinno, pad->pio.alt);
@@ -768,14 +694,14 @@ extern int stxh205_usb_init(const int port)
 			    usb_pins[port].pwr.pin,
 			    usb_pins[port].pwr.alt);
 	stxh205_pioalt_pad(usb_pins[port].pwr.port,
-			  usb_pins[port].pwr.pin, OUT);
+			  usb_pins[port].pwr.pin, stm_pad_direction_output);
 
 	/* route the USB over-current (input) signal */
 	stxh205_pioalt_select(usb_pins[port].oc.port,
 			    usb_pins[port].oc.pin,
 			    usb_pins[port].oc.alt);
 	stxh205_pioalt_pad(usb_pins[port].oc.port,
-			  usb_pins[port].oc.pin, IN);
+			  usb_pins[port].oc.pin, stm_pad_direction_input);
 
 	/* start the USB Wrapper Host Controller */
 #if 1	/* QQQ - DELETE */

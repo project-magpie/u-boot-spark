@@ -27,7 +27,7 @@
 #define	__ASM_ST40_SOC_H
 
 
-#include <asm/pio-control.h>
+#include <asm/pad.h>
 
 
 /*

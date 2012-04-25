@@ -32,6 +32,8 @@
 #include <asm/pio.h>
 #include <asm/stbus.h>
 #include <asm/sysconf.h>
+#include <asm/pad.h>
+#include <asm/pio-control.h>
 #include <ata.h>
 #include <spi.h>
 
@@ -105,14 +107,6 @@ extern void stx7108_pioalt_select(const int port, const int pin, const int alt)
 
 /* Pad configuration */
 
-#define IN		stm_pad_direction_input
-#define IN_WITH_PU	stm_pad_direction_input_with_pullup
-#define OUT		stm_pad_direction_output
-#define BIDIR		stm_pad_direction_bidir_no_pullup
-#define BIDIR_WITH_PU	stm_pad_direction_bidir_with_pullup
-#define IGNORED		stm_pad_direction_ignored
-#define UNKNOWN		stm_pad_direction_unknown
-
 void stx7108_pioalt_pad(int port, const int pin,
 		const enum stm_pad_gpio_direction direction)
 {
@@ -121,16 +115,16 @@ void stx7108_pioalt_pad(int port, const int pin,
 	unsigned long sysconf, *sysconfReg;
 
 	switch (direction) {
-	case IN:
+	case stm_pad_direction_input:
 		oe = 0; pu = 0; od = 0;
 		break;
-	case IN_WITH_PU:
+	case stm_pad_direction_input_with_pullup:
 		oe = 0; pu = 1; od = 0;
 		break;
-	case OUT:
+	case stm_pad_direction_output:
 		oe = 1; pu = 0; od = 0;
 		break;
-	case BIDIR:
+	case stm_pad_direction_bidir_no_pullup:
 		oe = 1; pu = 0; od = 1;
 		break;
 	default:
@@ -283,46 +277,17 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 #define SYSCONF(_bank,_reg)	((unsigned long*)STX7108_BANK##_bank##_SYSCFG(_reg))
 
 
-struct stx7108_gmac_pin {
-	struct {
-		const unsigned char port, pin;
-		      unsigned char alt;
-	} pio;
-	const char phy_clock:1;
-	const char tx_clock:1;
-	enum stm_pad_gpio_direction direction;
-	const struct stm_pio_control_retime_config * const retime;
-};
-
-#define stm_pad_set_pio_ignored(_pin)				\
-	do {							\
-		(_pin)->direction = IGNORED;			\
-	} while(0)
-
-#define stm_pad_set_pio_out(_pin, _func)			\
-	do {							\
-		(_pin)->direction = OUT;			\
-		(_pin)->pio.alt = (_func);			\
-	} while(0)
-
-#define stm_pad_set_pio_in(_pin, _func)				\
-	do {							\
-		(_pin)->direction = IN;				\
-		(_pin)->pio.alt = (_func);			\
-	} while(0)
-
-
 #define DATA_IN(_gmac, _port, _pin, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _gmac + 1, }, \
-		.direction = IN, \
+		.direction = stm_pad_direction_input, \
 		.retime    = _retiming, \
 	}
 
 #define DATA_OUT(_gmac, _port, _pin, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _gmac + 1, }, \
-		.direction = OUT, \
+		.direction = stm_pad_direction_output, \
 		.retime    = _retiming, \
 	}
 
@@ -333,21 +298,21 @@ struct stx7108_gmac_pin {
 #define DATA_OUT_PU(_gmac, _port, _pin, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _gmac + 1, }, \
-		.direction = IN_WITH_PU, \
+		.direction = stm_pad_direction_input_with_pullup, \
 		.retime    = _retiming, \
 	}
 
 #define CLOCK_IN(_gmac, _port, _pin, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _gmac + 1, }, \
-		.direction = IN, \
+		.direction = stm_pad_direction_input, \
 		.retime    = _retiming, \
 	}
 
 #define CLOCK_OUT(_gmac, _port, _pin, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _gmac + 1, }, \
-		.direction = OUT, \
+		.direction = stm_pad_direction_output, \
 		.retime    = _retiming, \
 	}
 
@@ -356,7 +321,7 @@ struct stx7108_gmac_pin {
 	{ \
 		.pio       = { _port, _pin, 0 /* filled in later */, }, \
 		.phy_clock = 1, \
-		.direction = UNKNOWN, \
+		.direction = stm_pad_direction_unknown, \
 		.retime    = _retiming, \
 	}
 
@@ -365,32 +330,13 @@ struct stx7108_gmac_pin {
 	{ \
 		.pio       = { _port, _pin, _gmac + 1, }, \
 		.tx_clock  = 1, \
-		.direction = IN, \
+		.direction = stm_pad_direction_input, \
 		.retime    = _retiming, \
 	}
 
-/*
- * Find first pin which is tagged as being a "PHY CLOCK", and return it.
- * Otherwise return NULL, if none found!
- */
-static struct stx7108_gmac_pin * find_phy_clock(
-	struct stx7108_gmac_pin * const array,
-	const size_t count)
-{
-	size_t i;
-
-	for(i=0; i<count; i++)
-	{
-		if (array[i].phy_clock)
-			return &array[i];	/* found it */
-	}
-
-	BUG();
-	return NULL;				/* not found! */
-}
 
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
-static struct stx7108_gmac_pin stx7108_ethernet_mii_pad_configs[] = {
+static struct stm_gmac_pin stx7108_ethernet_mii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 6, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[2] */
@@ -421,7 +367,7 @@ static struct stm_pad_sysconf stx7108_ethernet_mii_pad_sysconfs[] = {
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
 #elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
-static struct stx7108_gmac_pin stx7108_ethernet_mii_pad_configs[] = {
+static struct stm_gmac_pin stx7108_ethernet_mii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0)),/* PHYCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(1, 15, 7, RET_SE_NICLK_IO(0, 1)),/* TXEN */
@@ -455,7 +401,7 @@ static struct stm_pad_sysconf stx7108_ethernet_mii_pad_sysconfs[] = {
 
 #if 0	/* assume not required in U-Boot */
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
-static struct stx7108_gmac_pin stx7108_ethernet_gmii_pad_configs[] = {
+static struct stm_gmac_pin stx7108_ethernet_gmii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(3, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[1] */
 			DATA_OUT(0, 6, 2, RET_SE_NICLK_IO(3, 0)),/* TXD[2] */
@@ -494,7 +440,7 @@ static struct stm_pad_sysconf stx7108_ethernet_gmii_pad_sysconfs[] = {
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
 #elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
-static struct stx7108_gmac_pin stx7108_ethernet_gmii_pad_configs[] = {
+static struct stm_gmac_pin stx7108_ethernet_gmii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(1)), /* GTXCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(1, 15, 7, RET_SE_NICLK_IO(3, 1)),/* TXEN */
@@ -537,7 +483,7 @@ static struct stm_pad_sysconf stx7108_ethernet_gmii_pad_sysconfs[] = {
 
 #if 0	/* assume not required in U-Boot */
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
-static struct stx7108_gmac_pin stx7108_ethernet_rgmii_pad_configs[] = {
+static struct stm_gmac_pin stx7108_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_DE_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_DE_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 6, 2, RET_DE_IO(0, 0)),/* TXD[2] */
@@ -566,7 +512,7 @@ static struct stm_pad_sysconf stx7108_ethernet_rgmii_pad_sysconfs[] = {
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
 #elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
-static struct stx7108_gmac_pin stx7108_ethernet_rgmii_pad_configs[] = {
+static struct stm_gmac_pin stx7108_ethernet_rgmii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(1)), /* GTXCLK*/
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(1, 15, 7, RET_DE_IO(0, 1)),/* TXEN */
@@ -598,7 +544,7 @@ static struct stm_pad_sysconf stx7108_ethernet_rgmii_pad_sysconfs[] = {
 #endif	/* if 0 */
 
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
-static struct stx7108_gmac_pin stx7108_ethernet_rmii_pad_configs[] = {
+static struct stm_gmac_pin stx7108_ethernet_rmii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(0, 1)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[1] */
 			DATA_OUT(0, 7, 0, RET_SE_NICLK_IO(0, 1)),/* TXER */
@@ -623,7 +569,7 @@ static struct stm_pad_sysconf stx7108_ethernet_rmii_pad_sysconfs[] = {
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
 #elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
-static struct stx7108_gmac_pin stx7108_ethernet_rmii_pad_configs[] = {
+static struct stm_gmac_pin stx7108_ethernet_rmii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0)),/* PHYCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(1, 15, 7, RET_SE_NICLK_IO(0, 0)),/* TXEN */
@@ -651,7 +597,7 @@ static struct stm_pad_sysconf stx7108_ethernet_rmii_pad_sysconfs[] = {
 
 #if 0	/* assume not required in U-Boot */
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
-static struct stx7108_gmac_pin stx7108_ethernet_reverse_mii_pad_configs[] = {
+static struct stm_gmac_pin stx7108_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 6, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[2] */
@@ -682,7 +628,7 @@ static struct stm_pad_sysconf stx7108_ethernet_reverse_mii_pad_sysconfs[] = {
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 0),
 };
 #elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
-static struct stx7108_gmac_pin stx7108_ethernet_reverse_mii_pad_configs[] = {
+static struct stm_gmac_pin stx7108_ethernet_reverse_mii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0)),/* PHYCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(1, 15, 7, RET_SE_NICLK_IO(0, 1)),/* TXEN */
@@ -765,8 +711,8 @@ extern void stx7108_configure_ethernet(
 	const int port,
 	const struct stx7108_ethernet_config * const config)
 {
-	struct stx7108_gmac_pin * pad_config;
-	struct stx7108_gmac_pin * phy_clock;
+	struct stm_gmac_pin * pad_config;
+	struct stm_gmac_pin * phy_clock;
 	const struct stm_pad_sysconf * sys_configs;
 	size_t num_pads, num_sys, i;
 
@@ -790,7 +736,7 @@ extern void stx7108_configure_ethernet(
 		num_pads = ARRAY_SIZE(stx7108_ethernet_mii_pad_configs);
 		sys_configs = stx7108_ethernet_mii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stx7108_ethernet_mii_pad_sysconfs);
-		phy_clock = find_phy_clock(pad_config, num_pads);
+		phy_clock = stm_gmac_find_phy_clock(pad_config, num_pads);
 		if (config->ext_clk)
 			stm_pad_set_pio_ignored(phy_clock);
 		else
@@ -802,7 +748,7 @@ extern void stx7108_configure_ethernet(
 		num_pads = ARRAY_SIZE(stx7108_ethernet_rmii_pad_configs);
 		sys_configs = stx7108_ethernet_rmii_pad_sysconfs;
 		num_sys = ARRAY_SIZE(stx7108_ethernet_rmii_pad_sysconfs);
-		phy_clock = find_phy_clock(pad_config, num_pads);
+		phy_clock = stm_gmac_find_phy_clock(pad_config, num_pads);
 		if (config->ext_clk)
 			stm_pad_set_pio_in(phy_clock, port + 2);
 		else
@@ -850,7 +796,7 @@ extern void stx7108_configure_ethernet(
 		/* now configure all the PIOs */
 	for (i = 0; i < num_pads; i++)
 	{
-		const struct stx7108_gmac_pin * const pad = &pad_config[i];
+		const struct stm_gmac_pin * const pad = &pad_config[i];
 		const int portno = pad->pio.port;
 		const int pinno = pad->pio.pin;
 
@@ -859,18 +805,18 @@ extern void stx7108_configure_ethernet(
 		printf("%2u: PIO%03u[%u] %-7s, alt=%u, retime=%p\n",
 			i+1,
 			portno, pinno,
-			(pad->direction==IN) ? "in" :
-				(pad->direction==IN_WITH_PU) ? "in+pu" :
-				(pad->direction==OUT) ? "out" :
-				(pad->direction==BIDIR) ? "bidir" :
-				(pad->direction==IGNORED) ? "ignore" :
+			(pad->direction==stm_pad_direction_input) ? "in" :
+				(pad->direction==stm_pad_direction_input_with_pullup) ? "in+pu" :
+				(pad->direction==stm_pad_direction_output) ? "out" :
+				(pad->direction==stm_pad_direction_bidir_no_pullup) ? "bidir" :
+				(pad->direction==stm_pad_direction_ignored) ? "ignore" :
 				"BAD-BAD",
 			pad->pio.alt,
 			pad->retime
 		);
 #endif
 
-		if (pad->direction == IGNORED)
+		if (pad->direction == stm_pad_direction_ignored)
 			continue;	/* skip all "ignored" pads */
 
 		stx7108_pioalt_select(portno, pinno, pad->pio.alt);
@@ -947,14 +893,14 @@ extern int stx7108_usb_init(const int port)
 			    usb_pins[port].pwr.pin,
 			    usb_pins[port].pwr.alt);
 	stx7108_pioalt_pad(usb_pins[port].pwr.port,
-			  usb_pins[port].pwr.pin, OUT);
+			  usb_pins[port].pwr.pin, stm_pad_direction_output);
 
 	/* route the USB over-current (input) signal */
 	stx7108_pioalt_select(usb_pins[port].oc.port,
 			    usb_pins[port].oc.pin,
 			    usb_pins[port].oc.alt);
 	stx7108_pioalt_pad(usb_pins[port].oc.port,
-			  usb_pins[port].oc.pin, IN);
+			  usb_pins[port].oc.pin, stm_pad_direction_input);
 
 	/* start the USB Wrapper Host Controller */
 #if 1	/* QQQ - DELETE */
