@@ -557,8 +557,6 @@ int designware_initialize(u32 id, ulong base_addr, u32 phy_addr, u32 interface)
 	if (mac_reset(dev) < 0)
 		return -1;
 
-	configure_phy(dev);
-
 	dev->init = dw_eth_init;
 	dev->send = dw_eth_send;
 	dev->recv = dw_eth_recv;
