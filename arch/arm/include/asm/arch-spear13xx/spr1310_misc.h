@@ -90,7 +90,8 @@ struct misc_regs {
 	u32 usbphy_p2_cfg;			/* 0x39c */
 	u32 usbphy_p3_cfg;			/* 0x3a0 */
 	u32 pcie_sata_cfg;			/* 0x3a4 */
-	u32 pcie_miphy_cfg;			/* 0x3a8 */
+	u32 pcie_miphy_cfg_1;			/* 0x3a8 */
+	u32 pcie_miphy_cfg_2;			/* 0x3ac */
 	u32 perip_cfg;				/* 0x3b0 */
 	u32 fsmc_cfg;				/* 0x3b4 */
 	u32 mpmc_cfg;				/* 0x3b8 */
