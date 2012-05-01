@@ -201,6 +201,9 @@ static void enable_pads_for_ip(int ip)
 			break;
 		}
 	case USBD:
+		{
+			break;
+		}
 	default:
 		{
 			const struct sh_ip_sel sh_ip_sel_def = {
