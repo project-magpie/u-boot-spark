@@ -236,7 +236,7 @@
 #define CONFIG_SYS_MONITOR_LEN			0x00040000
 #define CONFIG_ENV_SECT_SIZE			0x00010000
 
-#if !defined(CONFIG_SPEAR1340) && !defined(CONFIG_SPEAR1310)
+#if !defined(CONFIG_SPEAR1340)
 #define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
 #else
 #define CONFIG_FSMTDBLK				"/dev/mtdblock4 "
@@ -254,7 +254,7 @@
 #define CONFIG_ENV_OFFSET			0x60000
 #define CONFIG_ENV_RANGE			0x10000
 
-#if !defined(CONFIG_SPEAR1340) && !defined(CONFIG_SPEAR1310)
+#if !defined(CONFIG_SPEAR1340)
 #define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
 #else
 #define CONFIG_FSMTDBLK				"/dev/mtdblock8 "
