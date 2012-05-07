@@ -39,7 +39,7 @@
 #define CONFIG_SPEAR1340			1
 #endif
 
-#if defined(CONFIG_MK_spear1310)
+#if defined(CONFIG_MK_spear1310) && !defined(CONFIG_MK_reva)
 #define CONFIG_SPEAR13XX			1
 #define CONFIG_SPEAR1310			1
 #endif
