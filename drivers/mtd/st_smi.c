@@ -395,7 +395,9 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 		return -EIO;
 
 	/* Perform the write command */
-	while (length--) {
+	while (length) {
+		int i;
+
 		if (((ulong) (dst_addr) % SFLASH_PAGE_SIZE) == 0) {
 			if (smi_wait_till_ready(banknum,
 						CONFIG_SYS_FLASH_WRITE_TOUT))
@@ -405,7 +407,10 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 				return -EIO;
 		}
 
-		*dst_addr++ = *src_addr++;
+		for (i = 0; i < min(SFLASH_PAGE_SIZE_WORDS, length); i++)
+			*dst_addr++ = *src_addr++;
+
+		length -= min(SFLASH_PAGE_SIZE_WORDS, length);
 
 		if ((readl(&smicntl->smi_sr) & (ERF1 | ERF2)))
 			return -EIO;
