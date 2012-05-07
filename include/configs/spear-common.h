@@ -98,6 +98,22 @@
 
 #define CONFIG_SYS_LOADS_BAUD_CHANGE
 
+/*
+ * USB/EHCI
+ */
+#if !defined(CONFIG_SPEAR_USBTTY)
+#define CONFIG_USB_EHCI				/* Enable EHCI USB support */
+#define CONFIG_USB_EHCI_SPEAR
+#define CONFIG_USB_STORAGE
+#define CONFIG_CMD_USB				/* Enable USB Commands */
+#endif
+
+#if defined(CONFIG_USB_STORAGE)
+#define CONFIG_CMD_FAT
+#define CONFIG_DOS_PARTITION
+#define CONFIG_ISO_PARTITION
+#endif
+
 /* NAND FLASH Configuration */
 #define CONFIG_NAND_FSMC			1
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
