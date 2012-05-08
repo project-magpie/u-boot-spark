@@ -570,6 +570,7 @@ int ep0_recv_setup (struct urb *urb)
 			}
 			device->address = address;
 #ifdef CONFIG_DW_OTG
+			extern void udc_set_address_controller(u32);
 			/*
 			 * not a good way to do it. Will correct during
 			 * board debug.
@@ -596,6 +597,7 @@ int ep0_recv_setup (struct urb *urb)
 			/*dbg_ep0(2, "set configuration: %d", device->configuration); */
 			/*serial_printf("DEVICE_CONFIGURED.. event?\n"); */
 #ifdef CONFIG_DW_OTG
+			 extern void udc_set_configuration_controller(u32);
 			/*
 			 * not a good way to do it. Will correct during
 			 * board debug.
