@@ -1311,7 +1311,7 @@ int usb_hub_configure(struct usb_device *dev)
 				break;
 
 			wait_ms(100);
-		} while (get_timer(start) < CONFIG_SYS_HZ * 5);
+		} while (get_timer(start) < CONFIG_SYS_HZ * 10);
 
 		if (ret < 0)
 			continue;
