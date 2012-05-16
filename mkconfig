@@ -64,7 +64,8 @@ fi
 #
 # Create include file for Make
 #
-echo "ARCH   = $2" >  config.mk
+echo "TARGET = $1" >  config.mk
+echo "ARCH   = $2" >> config.mk
 echo "CPU    = $3" >> config.mk
 echo "BOARD  = $4" >> config.mk
 

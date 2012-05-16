@@ -133,9 +133,9 @@ endif
 
 ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk))
 
-# load ARCH, BOARD, and CPU configuration
+# load TARGET, ARCH, BOARD, and CPU configuration
 include $(obj)include/config.mk
-export	ARCH CPU BOARD VENDOR SOC
+export	TARGET ARCH CPU BOARD VENDOR SOC
 
 ifndef CROSS_COMPILE
 ifeq ($(HOSTARCH),$(ARCH))
