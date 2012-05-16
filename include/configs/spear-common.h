@@ -143,8 +143,10 @@
 
 #if defined(CONFIG_SPEAR_USBTTY)
 #undef CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
 #endif
+#undef CONFIG_CMD_NFS
+#undef CONFIG_CMD_XIMG
+#undef CONFIG_CMD_LOADS
 
 /*
  * Default Environment Varible definitions
