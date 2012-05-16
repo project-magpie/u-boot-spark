@@ -37,7 +37,7 @@
 /*-----------------------------------------------------------------------
  *	Switch settings to select between the SoC's main boot-modes:
  *
- *		1) Boot from 8-bit SLC NAND, 4KiB pages, 5 address cycles, with
+ *		1) Boot from 8-bit SLC NAND, 2KiB pages, 5 address cycles, with
  *		   the (multi-bit ECC) BCH controller (not Hamming).
  *		   There are three different possible BCH ECC modes:
  *			a) NO ECC (i.e. for "error free" NAND)
@@ -48,16 +48,23 @@
  *
  *	Note:	Using NAND withOUT ECC is not recommended!
  *
+ *	Note:	The default NAND on the B2067 is *not* capable
+ *		of being used with 30-bits of ECC per 1KiB of data.
+ *		Hence, using 18-bit mode is always recommended.
+ *
  *				Boot-From-FLASH
  *			NAND	NAND	NAND	SPI
  *	Jumper		NO ECC	(18)	(30)	NOR		Signal
  *	------		------	----	----	---		------
  *	JF3		CSA	CSA	CSA	CSB		NAND_CS#
  *	JF6-1		 ON	 ON	 ON	off		MODE[6]
- *	JF5-2		off	off	off	off		MODE[5]
- *	JF5-1		 ON	 ON	 ON	 ON		MODE[4]
+ *	JF5-2		 ON	 ON	 ON	off		MODE[5]
+ *	JF5-1		off	off	off	 ON		MODE[4]
  *	JF4-2		 ON	 ON	off	off		MODE[3]
  *	JF4-1		 ON	off	 ON	 ON		MODE[2]
+ *
+ *	Note:	JF3 set to nearer the CPU is using CSA (for boot-from-NAND)
+ *		JF3 set further from CPU is using CSB (for boot-from-SPI)
  */
 
 
@@ -121,7 +128,7 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD b2057
+#define BOARD b2067
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 		"board=" XSTR(BOARD) "\0" \
@@ -159,7 +166,7 @@
 #if 1
 #	define CFG_STM_ASC_BASE		STXH205_ASC10_BASE	/* JM5, on-board DB9 */
 #else
-#	define CFG_STM_ASC_BASE		STXH205_ASC1_BASE	/* JK1, off-board */
+#	define CFG_STM_ASC_BASE		STXH205_ASC1_BASE	/* JK1/JB4, off-board */
 #endif
 
 /*---------------------------------------------------------------
@@ -171,26 +178,7 @@
  * which is normally a IC+ IP101G (but possibly could be a IP101A).
  * This Ethernet PHY is wired to the on-board RJ-45 connector (JP2).
  *
- * Note: If an IC+ IP101A PHY is present, then failure to enable the
- * specific workarounds included when CONFIG_STMAC_IP101A is
- * defined, may result in the device not working correctly.
- * However, if CONFIG_STMAC_IP101A is defined, and a IC+ IP101G
- * is used, then this will *probably* not cause any issues.
- * Hence, using CONFIG_STMAC_IP101A is more likely to work on
- * an unspecified IP101x PHY, than defining CONFIG_STMAC_IP101G is.
- * It is recommended that the correct macro is always defined.
- *
  * By default, we assume we will use MII with an External Clock.
- * It is possible to use either MII or RMII to communicate with
- * the IC+ IP101x Ethernet PHY mounted inside the STxH207 package.
- * This mode must also match the jumper settings on the board:
- *	Jumper		MII		RMII
- *	------		---		----
- *	SP1		1-2 (MII)	2-3 (RMII)
- *	JP3-1		ON		off
- *	JP3-2		off		ON
- * To use RMII (with an external clock), then ensure that you
- * define the macro CONFIG_STM_USE_RMII_MODE below.
  *
  * Note: There is no support for any off-package (on-board) PHY.
  */
@@ -203,9 +191,7 @@
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #	define CFG_STM_STMAC_BASE	0xfda88000ul
-//#	define CONFIG_STM_USE_RMII_MODE	/* define only for RMII mode */
-//#	define CONFIG_STMAC_IP101G	/* IC+ IP101G (via JP2) */
-#	define CONFIG_STMAC_IP101A	/* IC+ IP101A (via JP2) */
+#	define CONFIG_STMAC_IP101G	/* IC+ IP101G (via JP2) */
 #else
 #	undef CONFIG_CMD_NET		/* remove all networking support */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
@@ -255,7 +241,7 @@
 #define CFG_HUSH_PARSER		1
 #define CONFIG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"B2057> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"B2067> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
@@ -324,7 +310,7 @@
 	 * In practice for a NAND device with an erase size of >= 256KiB,
 	 * a single dedicated block should always be sufficient!
 	 */
-#	define CFG_NAND_ERASE_SIZE	(512 << 10)	/* NAND erase block size is 512 KiB */
+#	define CFG_NAND_ERASE_SIZE	(128 << 10)	/* NAND erase block size is 128 KiB */
 
 	/*
 	 * Currently, there are 3 main modes to read/write from/to
@@ -353,8 +339,8 @@
 	 * For BCH, please choose *only* ONE of the following ECC schemes.
 	 */
 //#	define CFG_ST40_NAND_USE_BCH_NO_ECC		/* use BCH with-OUT ECC -- not recommended! */
-//#	define CFG_ST40_NAND_USE_BCH_18_BIT_ECC		/* use BCH with 18-bit/1KiB sector ECC */
-#	define CFG_ST40_NAND_USE_BCH_30_BIT_ECC		/* use BCH with 30-bit/1KiB sector ECC */
+#	define CFG_ST40_NAND_USE_BCH_18_BIT_ECC		/* use BCH with 18-bit/1KiB sector ECC */
+//#	define CFG_ST40_NAND_USE_BCH_30_BIT_ECC		/* use BCH with 30-bit/1KiB sector ECC */
 
 	/*
 	 * Do we want to read/write NAND Flash compatible with the ST40's
@@ -428,10 +414,10 @@
  */
 
 /*
- *	Name	Manuf	Device
- *	-----	-----	------
- *	UM6	ST	N25Q128
- *	UM7	ST	N25Q256
+ *	Name	Device
+ *	-----	------
+ *	U4	N25Q256
+ *	U12	MX25L256
  */
 #if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
 #	define CONFIG_SPI_FLASH_ST		/* ST N25Qxxx */

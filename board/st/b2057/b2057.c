@@ -150,7 +150,14 @@ extern int board_init(void)
 
 int checkboard (void)
 {
-	printf ("\n\nBoard: STiH207-HDK (B2057)"
+	printf ("\n\nBoard: "
+#if defined(CONFIG_ST40_B2057)			/* B2057 ? */
+		"STiH207-HDK (B2057)"
+#elif defined(CONFIG_ST40_B2067)		/* B2067 ? */
+		"STiH238-HDK (B2067)"
+#else
+#	error Unknown BOARD Variant for B2057!
+#endif	/* CONFIG_ST40_B2057 */
 #ifdef CONFIG_ST40_SE_MODE
 		"  [32-bit mode]"
 #else

@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2008,2010-2011 STMicroelectronics.
+# (C) Copyright 2008,2010-2012 STMicroelectronics.
 # Sean McGoogan <Sean.McGoogan@st.com>
 #
 # See file CREDITS for list of people who contributed to this
@@ -23,6 +23,7 @@
 
 #
 # STiH207-HDK (B2057) board:
+# STiH238-HDK (B2067) board:
 #
 #	Valid values for TEXT_BASE are:
 #
