@@ -435,6 +435,7 @@ static int usb_stor_CB_reset(struct us_data *us)
 	result = usb_control_msg(us->pusb_dev, usb_sndctrlpipe(us->pusb_dev,0),
 				 US_CBI_ADSC, USB_TYPE_CLASS | USB_RECIP_INTERFACE,
 				 0, us->ifnum, cmd, sizeof(cmd), USB_CNTL_TIMEOUT*5);
+	(void)result;	/* silence: set but not used [-Wunused-but-set-variable] */
 
 	/* long wait for reset */
 	wait_ms(1500);

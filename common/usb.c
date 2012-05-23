@@ -335,7 +335,6 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
 	struct usb_descriptor_header *head;
 	int index, ifno, epno, curr_if_num;
 	int i;
-	unsigned char *ch;
 
 	ifno = -1;
 	epno = -1;
@@ -385,7 +384,9 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
 					return 1;
 				USB_PRINTF("unknown Description Type : %x\n", head->bDescriptorType);
 				{
-					ch = (unsigned char *)head;
+#ifdef USB_DEBUG
+					unsigned char *ch = (unsigned char *)head;
+#endif
 					for(i = 0; i < head->bLength; i++)
 						USB_PRINTF("%02X ", *ch++);
 					USB_PRINTF("\n\n\n");
@@ -1063,7 +1064,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 {
 	struct usb_device *usb;
 	struct usb_port_status portsts;
-	unsigned short portstatus, portchange;
+	unsigned short portstatus;
 
 	/* Check status */
 	if (usb_get_port_status(dev, port + 1, &portsts)<0) {
@@ -1072,8 +1073,9 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 	}
 
 	portstatus = le16_to_cpu(portsts.wPortStatus);
-	portchange = le16_to_cpu(portsts.wPortChange);
-	USB_HUB_PRINTF("portstatus %x, change %x, %s\n", portstatus, portchange,
+	USB_HUB_PRINTF("portstatus %x, change %x, %s\n",
+		portstatus,
+		le16_to_cpu(portsts.wPortChange),
 		portstatus&(1<<USB_PORT_FEAT_LOWSPEED) ? "Low Speed" : "High Speed");
 
 	/* Clear the connection change status */
@@ -1116,7 +1118,9 @@ int usb_hub_configure(struct usb_device *dev)
 {
 	unsigned char buffer[USB_BUFSIZ], *bitmap;
 	struct usb_hub_descriptor *descriptor;
+#ifdef USB_HUB_DEBUG
 	struct usb_hub_status *hubsts;
+#endif
 	int i;
 	struct usb_hub_device *hub;
 
@@ -1206,7 +1210,9 @@ int usb_hub_configure(struct usb_device *dev)
 		USB_HUB_PRINTF("usb_hub_configure: failed to get Status %lX\n",dev->status);
 		return -1;
 	}
+#ifdef USB_HUB_DEBUG
 	hubsts = (struct usb_hub_status *)buffer;
+#endif
 	USB_HUB_PRINTF("get_hub_status returned status %X, change %X\n",
 		le16_to_cpu(hubsts->wHubStatus),le16_to_cpu(hubsts->wHubChange));
 	USB_HUB_PRINTF("local power source is %s\n",

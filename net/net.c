@@ -591,11 +591,16 @@ startAgainHandler(uchar * pkt, unsigned dest, unsigned src, unsigned len)
 void NetStartAgain (void)
 {
 	char *nretry;
-	int noretry = 0, once = 0;
+	int noretry = 0;
+#ifdef CONFIG_NET_MULTI
+	int once = 0;
+#endif
 
 	if ((nretry = getenv ("netretry")) != NULL) {
 		noretry = (strcmp (nretry, "no") == 0);
+#ifdef CONFIG_NET_MULTI
 		once = (strcmp (nretry, "once") == 0);
+#endif
 	}
 	if (noretry) {
 		eth_halt ();

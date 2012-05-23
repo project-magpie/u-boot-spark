@@ -98,7 +98,6 @@ static int console_setfile (int file, device_t * dev)
 void serial_printf (const char *fmt, ...)
 {
 	va_list args;
-	uint i;
 	char printbuffer[CFG_PBSIZE];
 
 	va_start (args, fmt);
@@ -106,7 +105,7 @@ void serial_printf (const char *fmt, ...)
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	i = vsprintf (printbuffer, fmt, args);
+	(void)vsprintf (printbuffer, fmt, args);
 	va_end (args);
 
 	serial_puts (printbuffer);
@@ -143,7 +142,6 @@ void fputs (int file, const char *s)
 void fprintf (int file, const char *fmt, ...)
 {
 	va_list args;
-	uint i;
 	char printbuffer[CFG_PBSIZE];
 
 	va_start (args, fmt);
@@ -151,7 +149,7 @@ void fprintf (int file, const char *fmt, ...)
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	i = vsprintf (printbuffer, fmt, args);
+	(void)vsprintf (printbuffer, fmt, args);
 	va_end (args);
 
 	/* Send to desired file */
@@ -237,7 +235,6 @@ void puts (const char *s)
 void printf (const char *fmt, ...)
 {
 	va_list args;
-	uint i;
 	char printbuffer[CFG_PBSIZE];
 
 	va_start (args, fmt);
@@ -245,7 +242,7 @@ void printf (const char *fmt, ...)
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	i = vsprintf (printbuffer, fmt, args);
+	(void)vsprintf (printbuffer, fmt, args);
 	va_end (args);
 
 	/* Print the string */
@@ -254,13 +251,12 @@ void printf (const char *fmt, ...)
 
 void vprintf (const char *fmt, va_list args)
 {
-	uint i;
 	char printbuffer[CFG_PBSIZE];
 
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	i = vsprintf (printbuffer, fmt, args);
+	(void)vsprintf (printbuffer, fmt, args);
 
 	/* Print the string */
 	puts (printbuffer);

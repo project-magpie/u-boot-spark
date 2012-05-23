@@ -475,6 +475,7 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	}
 
 	if (strcmp(cmd, "lock") == 0) {
+#if 0
 		int tight  = 0;
 		int status = 0;
 		if (argc == 3) {
@@ -488,7 +489,6 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
  *
  * TODO: must be implemented and tested by someone with HW
  */
-#if 0
 		if (status) {
 			ulong block_start = 0;
 			ulong off;
