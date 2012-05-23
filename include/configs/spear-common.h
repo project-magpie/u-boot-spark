@@ -196,8 +196,14 @@
 #define CONFIG_ENV_RANGE			0x10000
 #define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
 
+#if defined(CONFIG_SPEAR310)
+#define CONFIG_OSBOOTOFF			"0x200000 "
+#else
+#define CONFIG_OSBOOTOFF			"0x80000 "
+#endif
+
 #define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
-						"0x80000 0x4C0000; " \
+						CONFIG_OSBOOTOFF "0x4C0000; " \
 						"bootm 0x1600000"
 
 #elif defined(CONFIG_ENV_IS_NOWHERE)
