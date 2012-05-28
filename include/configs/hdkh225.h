@@ -42,12 +42,12 @@
 
 #if defined(CFG_BOOT_FROM_NAND)          /* we are booting from NAND, so *DO* swap CSA and CSB */
 #define CFG_EMI_NAND_BASE       0xA0000000      /* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NOR_BASE        0xA4000000      /* CSB: NOR Flash,  Physical 0x04000000 (32MiB) */
-#define CFG_NAND_FLEX_CSn_MAP   { 1 }           /* NAND is on Chip Select CSA */
+#define CFG_EMI_NOR_BASE        0xA4000000      /* CSB/C: NOR Flash, Physical 0x04000000 (16MiB) */
+#define CFG_NAND_FLEX_CSn_MAP   { 0 }           /* NAND is on Chip Select CSA */
 #else
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
-#define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSC */
+#define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
 #endif
 
 #ifdef CONFIG_SH_SE_MODE
