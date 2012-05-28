@@ -2791,6 +2791,17 @@ eud7141se_config :		unconfig
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/eud7141/config.tmp)
 	@$(MKCONFIG) -a eud7141 sh sh eud7141 st stx7141
 
+hdkh225_config \
+hdkh225se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/hdkh225
+	@echo "#define CONFIG_SH_STX7141   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_SH_HDKH225   1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_SH_SE_MODE   1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hdkh225/config.tmp)
+	@$(MKCONFIG) -a hdkh225 sh sh hdkh225 st stx7141
+
 mb671_config \
 mb671se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/mb671

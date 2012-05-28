@@ -60,6 +60,7 @@
        defined(CONFIG_SH_HDK7111)	|| \
        defined(CONFIG_SH_MB628)		|| \
        defined(CONFIG_SH_EUD7141)	|| \
+       defined(CONFIG_SH_HDKH225)	|| \
        defined(CONFIG_SH_MB671)		|| \
        defined(CONFIG_SH_MB680)		|| \
        defined(CONFIG_SH_PDK7105)	|| \
