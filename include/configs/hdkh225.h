@@ -33,18 +33,22 @@
 #define CONFIG_SH4	1		/* This is an SH4 CPU		*/
 #define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 
-
 /*-----------------------------------------------------------------------
- * Start addresses for the final memory configuration
- * Assume we run out of uncached memory for the moment
- *
- * See board/mb628/config.mk for details of the memory map.
- */
+ *  * Are we booting directly from a NAND Flash device ?
+ *   * If so, then define the "CFG_BOOT_FROM_NAND" macro,
+ *    * otherwise (e.g. NOR/SPI Flash booting), do not define it.
+ *     */
+#undef CFG_BOOT_FROM_NAND               /* define to build a NAND-bootable image */
 
-/* QQQ: The following assumes boot-from-NOR */
+#if defined(CFG_BOOT_FROM_NAND)          /* we are booting from NAND, so *DO* swap CSA and CSB */
+#define CFG_EMI_NAND_BASE       0xA0000000      /* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NOR_BASE        0xA4000000      /* CSB: NOR Flash,  Physical 0x04000000 (32MiB) */
+#define CFG_NAND_FLEX_CSn_MAP   { 1 }           /* NAND is on Chip Select CSA */
+#else
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NAND_BASE	0xA4800000	/* CSC: NAND Flash, Physical 0x04400000 (8MiB) */
+#define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
 #define CFG_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSC */
+#endif
 
 #ifdef CONFIG_SH_SE_MODE
 #define CFG_FLASH_BASE		CFG_EMI_NOR_BASE/* FLASH (uncached) via PMB */
@@ -169,9 +173,9 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_SH_STx7141_USB
+#define CONFIG_SH_STB7100_USB
 
-#ifdef CONFIG_SH_STx7141_USB
+#ifdef CONFIG_SH_STB7100_USB
 #       define CONFIG_CMD_USB
 #       define CONFIG_CMD_FAT
 #       define CONFIG_USB_OHCI_NEW
@@ -185,7 +189,7 @@
 #       define CFG_USB_OHCI_SLOT_NAME           "ohci"
 #       define CFG_USB_OHCI_MAX_ROOT_PORTS      1
 #       define LITTLEENDIAN
-#endif  /* ifdef CONFIG_SH_STx7141_USB */
+#endif  /* ifdef CONFIG_SH_STB7100_USB */
 
 /*---------------------------------------------------------------
  * SATA driver config
@@ -207,7 +211,7 @@
 #endif	/* CONFIG_SH_STM_SATA */
 
 #if defined(CONFIG_SH_STM_SATA) ||	\
-    defined(CONFIG_SH_STx7141_USB)
+    defined(CONFIG_SH_STB7100_USB)
 #	define CFG_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION

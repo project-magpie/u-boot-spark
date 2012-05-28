@@ -412,60 +412,57 @@ int soc_init(void)
 #if defined(CONFIG_USB_OHCI_NEW)
 extern void stx7141_usb_init(void)
 {
-#ifdef QQQ	/* QQQ - TO DO */
 	unsigned long reg, req_reg;
+        /* USB edge rise and DC shift - STLinux Bugzilla 10991 */
+        reg = readl(STX7141_SYSCONF_SYS_CFG07);
+        reg &= 0xA;
+        writel(reg, STX7141_SYSCONF_SYS_CFG07);
+
+	reg = readl(STX7141_SYSCONF_SYS_CFG04);
+        /* clock at 48MHx */
+        reg |= 3ul << 4;
+        reg |= 1ul << 10;
+        /* OC polarities */
+	reg &= ~(1ul<<6);
+        reg |= 1ul << 7;
+        /* enable resets */
+        reg |= 1ul << 8;
+        reg |= 1ul << 13;
+        reg |= 1ul << 1;
+        reg |= 1ul << 14;
+	writel(reg, STX7141_SYSCONF_SYS_CFG04);
 
 	/* Power on the USB */
 	reg = readl(STX7141_SYSCONF_SYS_CFG32);
-	reg &= ~(1ul<<4); /* USB_POWER_DOWN_REQ = 0 */
+	reg &= ~(3ul<<7);
 	writel(reg, STX7141_SYSCONF_SYS_CFG32);
 
-	/* Work around for USB over-current detection chip being
-	 * active low, and the 7141 being active high.
-	 * Note this is an undocumented bit, which apparently enables
-	 * an inverter on the overcurrent signal.
-	 */
-	reg = readl(STX7141_SYSCONF_SYS_CFG06);
-	reg |= 1ul<<29;
-	writel(reg, STX7141_SYSCONF_SYS_CFG06);
+        /* configure the pios */
+	reg = readl(STX7141_SYSCONF_SYS_CFG20);
+        reg |= 3ul << 13;
+        reg |= 1ul << 15;
+        reg &= ~(1ul << 16);
+        reg |= 1ul << 17;
+        reg &=~(1ul << 18);
+	writel(reg, STX7141_SYSCONF_SYS_CFG20);
 
 	/* USB oc */
-	SET_PIO_PIN(PIO_PORT(5), 6, STPIO_IN);
+	SET_PIO_PIN(PIO_PORT(4), 6, STPIO_IN);
+	SET_PIO_PIN(PIO_PORT(5), 0, STPIO_IN);
 	/* USB power */
-	SET_PIO_PIN(PIO_PORT(5), 7, STPIO_ALT_OUT);
-	STPIO_SET_PIN(PIO_PORT(5), 7, 1);
+	SET_PIO_PIN(PIO_PORT(4), 7, STPIO_OUT);
+	SET_PIO_PIN(PIO_PORT(5), 1, STPIO_OUT);
 
-	/* Set strap mode */
-#define STRAP_MODE	AHB2STBUS_STRAP_16_BIT
-	reg = readl(AHB2STBUS_STRAP);
-#if STRAP_MODE == 0
-	reg &= ~AHB2STBUS_STRAP_16_BIT;
-#else
-	reg |= STRAP_MODE;
-#endif
-	writel(reg, AHB2STBUS_STRAP);
+	STPIO_SET_PIN(PIO_PORT(4), 7, 1);
+	STPIO_SET_PIN(PIO_PORT(5), 1, 1);
 
-	/* Start PLL */
-	reg = readl(AHB2STBUS_STRAP);
-	writel(reg | AHB2STBUS_STRAP_PLL, AHB2STBUS_STRAP);
-	udelay(100000);	/* QQQ: can this delay be shorter ? */
-	writel(reg & (~AHB2STBUS_STRAP_PLL), AHB2STBUS_STRAP);
-	udelay(100000);	/* QQQ: can this delay be shorter ? */
-
-	req_reg =
-		(1<<21) |  /* Turn on read-ahead */
-		(5<<16) |  /* Opcode is store/load 32 */
-		(0<<15) |  /* Turn off write posting */
-		(1<<14) |  /* Enable threshold */
-		(3<<9)  |  /* 2**3 Packets in a chunk */
-		(0<<4)  |  /* No messages */
-		(8<<0);    /* Threshold is 256 */
-
-	do {
-		writel(req_reg, AHB2STBUS_STBUS_CONFIG);
-		reg = readl(AHB2STBUS_STBUS_CONFIG);
-	} while ((reg & 0x7FFFFFFF) != req_reg);
-#endif		/* QQQ - TO DO */
+       /* start the USB Wrapper Host Controller */
+       ST40_start_host_control(
+                USB_FLAGS_STRAP_16BIT |
+                USB_FLAGS_STRAP_PLL |
+                USB_FLAGS_STBUS_CONFIG_THRESHOLD256 |
+                USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_8 |
+                USB_FLAGS_STBUS_CONFIG_OPCODE_LD32_ST32);
 }
 
 #endif /* defined(CONFIG_USB_OHCI_NEW) */
