@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -33,12 +33,48 @@
 #define CONFIG_SH4	1		/* This is an SH4 CPU		*/
 #define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 
+
 /*-----------------------------------------------------------------------
- *  * Are we booting directly from a NAND Flash device ?
- *   * If so, then define the "CFG_BOOT_FROM_NAND" macro,
- *    * otherwise (e.g. NOR/SPI Flash booting), do not define it.
- *     */
-#undef CFG_BOOT_FROM_NAND               /* define to build a NAND-bootable image */
+ *	Switch settings to select between the SoCs main 3 boot-modes:
+ *		a) boot from 16-bit parallel NOR flash
+ *		b) boot from 8-bit NAND flash, large-page, long address, 1-bit ECC
+ *		c) boot from SPI serial flash
+ *
+ *	Jumper	NOR	NAND	SPI
+ *	------	---	----	---
+ *	J2	1-2	2-3	???		NOR_notCS
+ *	J3	1-2	2-3	???		NAND_notCS
+ *	J5-2	 ON	 ON	???		MODE[17]
+ *	J5-1	 ON	off	???		MODE[16]
+ *	J8-2	 ON	off	???		MODE[14]
+ *
+ *	For boot-from-NOR:  J3 to front; J2 to back.
+ *	For boot-from-NAND: J3 to back;  J2 to front.
+ *
+ *	Front means side of board near the 7-segment LED display.
+ *	Back means side of board with RJ-45 and auto connectors.
+ *
+ *	NOTE: In  order to boot-from-NAND, then it is required that MODE[11]
+ *	is correctly strapped. On the B2042A, MODE[11] is pulled-down,
+ *	indicative of a small-page NAND, whereas the NAND is large-page.
+ *	Hence, to boot-from-NAND on this board, it is required to modify
+ *	the board to invert the strapping option. This can be done by
+ *	un-soldering resistor R70, and soldering it on R15 instead.
+ */
+
+
+/*-----------------------------------------------------------------------
+ * Are we booting directly from a NAND Flash device ?
+ * If so, then define the "CFG_BOOT_FROM_NAND" macro,
+ * otherwise (e.g. NOR/SPI Flash booting), do not define it.
+ */
+#undef CFG_BOOT_FROM_NAND		/* define to build a NAND-bootable image */
+
+
+/*-----------------------------------------------------------------------
+ * Start addresses for the final memory configuration
+ * Assume we run out of uncached memory for the moment
+ */
 
 #if defined(CFG_BOOT_FROM_NAND)          /* we are booting from NAND, so *DO* swap CSA and CSB */
 #define CFG_EMI_NAND_BASE       0xA0000000      /* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
