@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -118,7 +118,7 @@ extern int board_init(void)
 
 extern int checkboard (void)
 {
-	printf ("\n\nBoard: HDKH225 STx7141"
+	printf ("\n\nBoard: STiH225-HDK (B2042)"
 #ifdef CONFIG_SH_SE_MODE
 		"  [32-bit mode]"
 #else
