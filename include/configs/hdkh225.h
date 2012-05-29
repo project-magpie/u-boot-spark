@@ -42,17 +42,19 @@
  *
  *	Jumper	NOR	NAND	SPI
  *	------	---	----	---
- *	J2	1-2	2-3	???		NOR_notCS
- *	J3	1-2	2-3	???		NAND_notCS
- *	J5-2	 ON	 ON	???		MODE[17]
- *	J5-1	 ON	off	???		MODE[16]
- *	J8-2	 ON	off	???		MODE[14]
+ *	J2	1-2	2-3	2-3		NOR_notCS
+ *	J3	1-2	2-3	2-3		NAND_notCS
+ *	J5-2	 ON	 ON	off		MODE[17]
+ *	J5-1	 ON	off	 ON		MODE[16]
+ *	J8-2	 ON	off	xxx		MODE[14]
  *
- *	For boot-from-NOR:  J3 to front; J2 to back.
- *	For boot-from-NAND: J3 to back;  J2 to front.
+ *	For boot-from-NOR:      J3 to front; J2 to back.
+ *	For boot-from-NAND/SPI: J3 to back;  J2 to front.
  *
  *	Front means side of board near the 7-segment LED display.
  *	Back means side of board with RJ-45 and auto connectors.
+ *
+ *	And "xxx" means do not care.
  *
  *	NOTE: In  order to boot-from-NAND, then it is required that MODE[11]
  *	is correctly strapped. On the B2042A, MODE[11] is pulled-down,
@@ -72,14 +74,27 @@
 
 
 /*-----------------------------------------------------------------------
+ * Are we booting directly from a SPI Serial Flash device ?
+ * If so, then define the "CFG_BOOT_FROM_SPI" macro,
+ * otherwise (e.g. for NOR/NAND Flash booting), do not define it.
+ */
+#undef CFG_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
+
+
+/*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
 
-#if defined(CFG_BOOT_FROM_NAND)          /* we are booting from NAND, so *DO* swap CSA and CSB */
-#define CFG_EMI_NAND_BASE       0xA0000000      /* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
-#define CFG_EMI_NOR_BASE        0xA4000000      /* CSB/C: NOR Flash, Physical 0x04000000 (16MiB) */
-#define CFG_NAND_FLEX_CSn_MAP   { 0 }           /* NAND is on Chip Select CSA */
+#if defined(CFG_BOOT_FROM_SPI)		/* we are booting from SPI */
+#define CFG_EMI_SPI_BASE	0xA8000000	/* CSA: SPI Flash,  Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB: NOR Flash,  Physical 0x04000000 (8MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSB */
+#elif defined(CFG_BOOT_FROM_NAND)	/* we are booting from NAND, so *DO* swap CSA and CSB */
+#define CFG_EMI_NAND_BASE	0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (64MiB) */
+#define CFG_EMI_NOR_BASE	0xA4000000	/* CSB/C: NOR Flash, Physical 0x04000000 (16MiB) */
+#define CFG_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #else
 #define CFG_EMI_NOR_BASE	0xA0000000	/* CSA: NOR Flash,  Physical 0x00000000 (64MiB) */
 #define CFG_EMI_NAND_BASE	0xA4000000	/* CSB: NAND Flash, Physical 0x04000000 (8MiB) */
@@ -277,15 +292,15 @@
  * FLASH organization
  */
 
-/* Choose if we want FLASH Support (NAND &/or NOR devices)
- * We may use *both* NOR and NAND flash, at the same time, if we want.
+/* Choose if we want FLASH Support (NAND, NOR & SPI devices),
+ * all three, or none, or any other combination.
  *
  * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
  */
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
-
 #define CONFIG_CMD_FLASH	/* define for NOR flash */
 #define CONFIG_CMD_NAND		/* define for NAND flash */
+#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
 
 /*-----------------------------------------------------------------------
  * NOR FLASH organization
@@ -388,6 +403,42 @@
 
 
 /*-----------------------------------------------------------------------
+ * SPI SERIAL FLASH organization
+ */
+
+/*
+ *	Name	Manuf	Device
+ *	-----	-----	------
+ *	U36	ST	N25Q128
+ */
+#if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
+#	define CONFIG_SPI_FLASH_ST		/* ST N25Qxxx (U36) */
+#	define CONFIG_SPI			/* enable the SPI driver */
+#	define CONFIG_CMD_EEPROM		/* enable the "eeprom" command set */
+#	define CFG_I2C_FRAM			/* to minimize performance degradation */
+#	undef  CFG_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
+
+	/* choose either the H/W SSC, or S/W "bit-banging" */
+#if 1
+#	define CONFIG_STM_SSC_SPI		/* Use H/W SSC (not S/W "bit-banging" PIO) */
+#else
+#	define CONFIG_SOFT_SPI			/* Use S/W "bit-banging" PIO (not the SSC) */
+#endif
+
+#if defined(CONFIG_SOFT_SPI)			/* Use "bit-banging" for SPI */
+#	define SPI_SCL(val)	do { stx7141_spi_scl((val)); } while (0)
+#	define SPI_SDA(val)	do { stx7141_spi_sda((val)); } while (0)
+#	define SPI_DELAY	do { udelay(1); } while (0)	/* QQQ: only 500 kHz ??? */
+#	define SPI_READ		stx7141_spi_read()
+#elif defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
+#	define CFG_STM_SPI_SSC_BASE	ST40_SSC0_REGS_BASE	/* SSC #0 */
+#	define CFG_STM_SPI_FREQUENCY	(5*1000*1000)		/* 5 MHz */
+#endif	/* CONFIG_SOFT_SPI */
+
+#endif	/* CONFIG_SPI_FLASH */
+
+
+/*-----------------------------------------------------------------------
  * Address, size, & location of U-boot's Environment Sector
  */
 
@@ -404,6 +455,9 @@
 #		undef CFG_ENV_SIZE		/* give it just one large-page block */
 #		define CFG_ENV_SIZE	0x20000	/* 128 KiB of environment data */
 #	endif /* if CFG_ENV_SIZE < 0x20000 */
+#elif 1 && defined(CONFIG_SPI_FLASH)		/* SPI serial flash present ? */
+#	define CFG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
+#	define CFG_ENV_OFFSET	CFG_MONITOR_LEN	/* immediately after u-boot.bin */
 #else
 #	define CFG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
