@@ -219,6 +219,18 @@
 #endif
 #endif
 
+#ifdef CONFIG_SPEAR310
+#undef CONFIG_FSMTDBLK
+
+#if defined(CONFIG_ENV_IS_IN_FLASH)
+#define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
+
+#elif defined(CONFIG_ENV_IS_IN_NAND)
+#define CONFIG_FSMTDBLK				"/dev/mtdblock11 "
+#endif
+
+#endif /* CONFIG_SPEAR310 */
+
 #ifdef CONFIG_FSMTDBLK
 #define ROOT_FSMTD				"root="CONFIG_FSMTDBLK \
 						"rootfstype=jffs2"
