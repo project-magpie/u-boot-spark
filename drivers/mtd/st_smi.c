@@ -75,6 +75,7 @@ static struct flash_device flash_devices[] = {
 	FLASH_ID("st m45pe20"    , 0xd8, 0x00124020, 0x100, 0x10000, 0x40000),
 	FLASH_ID("st m45pe40"    , 0xd8, 0x00134020, 0x100, 0x10000, 0x80000),
 	FLASH_ID("st m45pe80"    , 0xd8, 0x00144020, 0x100, 0x10000, 0x100000),
+	FLASH_ID("mcr n25q128"   , 0xd8, 0x0018BA20, 0x100, 0x10000, 0x1000000),
 	FLASH_ID("sp s25fl004"   , 0xd8, 0x00120201, 0x100, 0x10000, 0x80000),
 	FLASH_ID("sp s25fl008"   , 0xd8, 0x00130201, 0x100, 0x10000, 0x100000),
 	FLASH_ID("sp s25fl016"   , 0xd8, 0x00140201, 0x100, 0x10000, 0x200000),
@@ -364,28 +365,25 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 		     unsigned int length, ulong bank_addr)
 {
 	int banknum;
-	unsigned int WM;
 
 	switch (bank_addr) {
 	case SMIBANK0_BASE:
 		banknum = BANK0;
-		WM = WM0;
 		break;
 	case SMIBANK1_BASE:
 		banknum = BANK1;
-		WM = WM1;
 		break;
 	case SMIBANK2_BASE:
 		banknum = BANK2;
-		WM = WM2;
 		break;
 	case SMIBANK3_BASE:
 		banknum = BANK3;
-		WM = WM3;
 		break;
 	default:
 		return -1;
 	}
+
+	writel(readl(&smicntl->smi_sr) & ~(ERF1 | ERF2), &smicntl->smi_sr);
 
 	if (smi_wait_till_ready(banknum, CONFIG_SYS_FLASH_WRITE_TOUT))
 		return -EBUSY;
@@ -397,7 +395,9 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 		return -EIO;
 
 	/* Perform the write command */
-	while (length--) {
+	while (length) {
+		int i;
+
 		if (((ulong) (dst_addr) % SFLASH_PAGE_SIZE) == 0) {
 			if (smi_wait_till_ready(banknum,
 						CONFIG_SYS_FLASH_WRITE_TOUT))
@@ -407,7 +407,10 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 				return -EIO;
 		}
 
-		*dst_addr++ = *src_addr++;
+		for (i = 0; i < min(SFLASH_PAGE_SIZE_WORDS, length); i++)
+			*dst_addr++ = *src_addr++;
+
+		length -= min(SFLASH_PAGE_SIZE_WORDS, length);
 
 		if ((readl(&smicntl->smi_sr) & (ERF1 | ERF2)))
 			return -EIO;

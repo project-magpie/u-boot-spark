@@ -24,6 +24,7 @@
 #include <common.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/spr_generic.h>
+#include <asm/arch/sys_proto.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -46,7 +47,7 @@ int misc_init_r(void)
 	setenv("stderr", "usbtty");
 
 #ifndef CONFIG_SYS_NO_DCACHE
-	invalidate_dcache();
+	invalidate_dcache(get_device_type());
 	dcache_enable();
 #endif
 #endif

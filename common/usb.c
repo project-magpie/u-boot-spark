@@ -321,7 +321,7 @@ int usb_parse_config(struct usb_device *dev, unsigned char *buffer, int cfgno)
 	struct usb_descriptor_header *head;
 	int index, ifno, epno, curr_if_num;
 	int i;
-	unsigned char *ch;
+	unsigned char __attribute__((unused)) *ch;
 
 	ifno = -1;
 	epno = -1;
@@ -1115,7 +1115,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 {
 	struct usb_device *usb;
 	struct usb_port_status portsts;
-	unsigned short portstatus, portchange;
+	unsigned short portstatus, __attribute__((unused)) portchange;
 
 	/* Check status */
 	if (usb_get_port_status(dev, port + 1, &portsts) < 0) {
@@ -1174,7 +1174,7 @@ int usb_hub_configure(struct usb_device *dev)
 {
 	unsigned char buffer[USB_BUFSIZ], *bitmap;
 	struct usb_hub_descriptor *descriptor;
-	struct usb_hub_status *hubsts;
+	struct usb_hub_status __attribute__((unused)) *hubsts;
 	int i;
 	struct usb_hub_device *hub;
 
@@ -1293,14 +1293,29 @@ int usb_hub_configure(struct usb_device *dev)
 	for (i = 0; i < dev->maxchild; i++) {
 		struct usb_port_status portsts;
 		unsigned short portstatus, portchange;
+		int ret;
+		ulong start = get_timer(0);
 
-		if (usb_get_port_status(dev, i + 1, &portsts) < 0) {
-			USB_HUB_PRINTF("get_port_status failed\n");
+		do {
+			ret = usb_get_port_status(dev, i + 1, &portsts);
+			if (ret < 0) {
+				USB_HUB_PRINTF("get_port_status failed\n");
+				break;
+			}
+
+			portstatus = le16_to_cpu(portsts.wPortStatus);
+			portchange = le16_to_cpu(portsts.wPortChange);
+
+			if ((portchange & USB_PORT_STAT_C_CONNECTION) &&
+				(portstatus & USB_PORT_STAT_CONNECTION))
+				break;
+
+			wait_ms(100);
+		} while (get_timer(start) < CONFIG_SYS_HZ * 10);
+
+		if (ret < 0)
 			continue;
-		}
 
-		portstatus = le16_to_cpu(portsts.wPortStatus);
-		portchange = le16_to_cpu(portsts.wPortChange);
 		USB_HUB_PRINTF("Port %d Status %X Change %X\n",
 				i + 1, portstatus, portchange);
 

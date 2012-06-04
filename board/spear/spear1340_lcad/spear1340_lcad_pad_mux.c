@@ -1,6 +1,6 @@
 /*
- *  (C) Copyright 2009
- *  Vipin Kumar, ST Micoelectronics, vipin.kumar@st.com.
+ * (C) Copyright 2012
+ * Vincenzo Frascino, ST Micoelectronics, vincenzo.frascino@st.com.
  *
  *  See file CREDITS for list of people who contributed to this
  *  project.
@@ -47,29 +47,12 @@ static void enable_pad(u8 pad_num)
 		writel(readl(reg) | (1 << (pad_num % 32)), reg);
 }
 
-static void enable_alternate_pad(u8 bit_num)
-{
-	u32 *shrd_pad_enb_0 = (u32 *)CONFIG_SPEAR_SHAREDIPENB0;
-	u32 *reg;
-
-	reg = shrd_pad_enb_0 + (bit_num / 32);
-	writel(readl(reg) | (1 << (bit_num % 32)), reg);
-}
-
 void enable_pads(u8 *pads, u32 count)
 {
 	int i;
 
 	for (i = 0; i < count; i++)
 		enable_pad(pads[i] + 1);
-}
-
-void enable_alternate_pads(u8 *bits, u32 count)
-{
-	int i;
-
-	for (i = 0; i < count; i++)
-		enable_alternate_pad(bits[i]);
 }
 
 void enable_serial_pad(void)
@@ -85,15 +68,6 @@ void enable_mmc_pad(void)
 		228, 229, 230, 231, 232, 237};
 
 	enable_pads(pads, sizeof(pads));
-}
-
-void enable_spi_pad(void)
-{
-	u8 spi_pads[] = {24, 80, 81, 82, 83};
-	u8 spi_alt_pads[] = {5};
-
-	enable_pads(spi_pads, sizeof(spi_pads));
-	enable_alternate_pads(spi_alt_pads, sizeof(spi_alt_pads));
 }
 
 void enable_smi_pad(void)
@@ -172,9 +146,5 @@ void enable_pad_mux(void)
 
 #if defined(CONFIG_DW_I2C)
 	enable_i2c_pad();
-#endif
-
-#if defined(CONFIG_PL022_SPI)
-	enable_spi_pad();
 #endif
 }

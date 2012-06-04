@@ -83,7 +83,6 @@ mmc_bwrite(int dev_num, ulong start, lbaint_t blkcnt, const void*src)
 	struct mmc_cmd cmd;
 	struct mmc_data data;
 	int err;
-	int stoperr = 0;
 	struct mmc *mmc = find_mmc_device(dev_num);
 	int blklen;
 
@@ -129,7 +128,7 @@ mmc_bwrite(int dev_num, ulong start, lbaint_t blkcnt, const void*src)
 		cmd.cmdarg = 0;
 		cmd.resp_type = MMC_RSP_R1b;
 		cmd.flags = 0;
-		stoperr = mmc_send_cmd(mmc, &cmd, NULL);
+		mmc_send_cmd(mmc, &cmd, NULL);
 	}
 
 	return blkcnt;

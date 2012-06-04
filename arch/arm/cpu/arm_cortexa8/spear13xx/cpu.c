@@ -36,7 +36,10 @@ int arch_cpu_init(void)
 {
 	struct misc_regs *const misc_p =
 	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	u32 perip1_clk_enb, perip2_clk_enb, perip3_clk_enb;
+	u32 perip1_clk_enb, perip2_clk_enb;
+#ifdef CONFIG_SPEAR1340
+	u32 perip3_clk_enb;
+#endif
 	u32 perip_clk_cfg;
 #if defined(CONFIG_SPEAR_MMC)
 	u32 perip_cfg;
@@ -85,6 +88,10 @@ int arch_cpu_init(void)
 	perip1_clk_enb |= SMI_CLKEN;
 #endif
 
+#if defined(CONFIG_PL022_SPI)
+	perip1_clk_enb |= SSP_CLKEN;
+#endif
+
 #if defined(CONFIG_SPEAR_MMC)
 	perip_cfg = readl(&misc_p->perip_cfg);
 	perip_cfg &= ~MCIF_MSK;
@@ -99,12 +106,16 @@ int arch_cpu_init(void)
 
 #if defined(CONFIG_NAND_FSMC)
 	fsmc_cfg = readl(&misc_p->fsmc_cfg);
+#if defined(CONFIG_SPEAR1310)
+	fsmc_cfg &= ~DEV_SEL_NANDCS0_NORCS4;
+#else
 	fsmc_cfg &= ~DEV_SEL_MSK;
 	fsmc_cfg |= DEV_SEL_NAND;
 #if defined(CONFIG_SYS_FSMC_NAND_16BIT)
 	fsmc_cfg |= DEV_WIDTH_16;
 #elif defined(CONFIG_SYS_FSMC_NAND_8BIT)
 	fsmc_cfg |= DEV_WIDTH_8;
+#endif
 #endif
 	writel(fsmc_cfg, &misc_p->fsmc_cfg);
 
@@ -165,6 +176,8 @@ int print_cpuinfo(void)
 	printf("CPU:   SPEAr1300\n");
 #elif defined(CONFIG_SPEAR1310_REVA)
 	printf("CPU:   SPEAr1310_REVA\n");
+#elif defined(CONFIG_SPEAR1310)
+	printf("CPU:   SPEAr1310\n");
 #elif defined(CONFIG_SPEAR1340)
 	printf("CPU:   SPEAr1340\n");
 #elif defined(CONFIG_SPEAR900)

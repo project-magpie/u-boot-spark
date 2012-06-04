@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009
+ * (C) Copyright 2010
  * Vipin Kumar, ST Micoelectronics, vipin.kumar@st.com.
  *
  * See file CREDITS for list of people who contributed to this
@@ -22,18 +22,20 @@
  */
 
 #include <common.h>
-#include <miiphy.h>
 #include <netdev.h>
 #include <nand.h>
-#include <asm/io.h>
+#include <linux/mtd/st_smi.h>
 #include <linux/mtd/fsmc_nand.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/spr_defs.h>
-#include <asm/arch/spr_misc.h>
+
+DECLARE_GLOBAL_DATA_PTR;
 
 int board_init(void)
 {
-	return spear_board_init(MACH_TYPE_SPEAR600);
+	gd->bd->bi_arch_number = MACH_TYPE_SPEAR900_LCAD;
+	gd->bd->bi_boot_params = CONFIG_BOOT_PARAMS_ADDR;
+
+	return 0;
 }
 
 /*
@@ -45,27 +47,21 @@ int board_init(void)
 
 int board_nand_init(struct nand_chip *nand)
 {
-	struct misc_regs *const misc_regs_p =
-	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-
 #if defined(CONFIG_NAND_FSMC)
-	if (!(readl(&misc_regs_p->auto_cfg_reg) & MISC_NANDDIS))
-		return fsmc_nand_init(nand);
-#endif
+	return fsmc_nand_init(nand);
+#else
 	return -1;
+#endif
 }
 
+#if defined(CONFIG_CMD_NET)
 int board_eth_init(bd_t *bis)
 {
 	int ret = 0;
 #if defined(CONFIG_DESIGNWARE_ETH)
-	u32 interface = PHY_INTERFACE_MODE_MII;
-#if defined(CONFIG_DW_AUTONEG)
-	interface = PHY_INTERFACE_MODE_GMII;
-#endif
-	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY,
-				interface) >= 0)
+	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY) >= 0)
 		ret++;
 #endif
 	return ret;
 }
+#endif

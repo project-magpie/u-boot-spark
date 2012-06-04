@@ -24,7 +24,7 @@
 #ifndef __DW_OTG_H
 #define __DW_OTG_H
 /* temp def: will be removed TBD */
-#undef APH_BOARD	1
+#undef APH_BOARD
 #ifdef APG_BOARD
 #include "types.h"
 #define CONFIG_USBD_HS	1
@@ -468,9 +468,9 @@ struct dwc_pcd {
 	/* Array of EPs. */
 	struct dwc_ep ep0;
 	/* Array of IN EPs. */
-	struct dwc_ep in_ep[MAX_EPS_CHANNELS - 1];
+	struct dwc_ep in_ep[MAX_EPS_CHANNELS];
 	/* Array of OUT EPs. */
-	struct dwc_ep out_ep[MAX_EPS_CHANNELS - 1];
+	struct dwc_ep out_ep[MAX_EPS_CHANNELS];
 };
 
 /*

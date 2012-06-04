@@ -452,7 +452,7 @@ ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer,
 		token = hc32_to_cpu(vtd->qt_token);
 		if (!(token & 0x80))
 			break;
-	} while (get_timer(ts) < CONFIG_SYS_HZ);
+	} while (get_timer(ts) < 5 * CONFIG_SYS_HZ);
 
 	/* Disable async schedule. */
 	cmd = ehci_readl(&hcor->or_usbcmd);

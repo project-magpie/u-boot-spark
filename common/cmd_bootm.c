@@ -1213,65 +1213,84 @@ next_bank:	;
 	u_char *data;
 
 	/* the following commands operate on the current device */
-	if (nand_dev < 0 || nand_dev >= CONFIG_SYS_MAX_NAND_DEVICE ||
-			!nand_info[nand_dev].name) {
+	if (nand_dev < 0 || nand_dev >= CONFIG_SYS_MAX_NAND_DEVICE) {
 		puts("\nNo NAND devices available\n");
 		return 0;
 	}
-	nand = &nand_info[nand_dev];
 
-	data = malloc(nand->erasesize);
-	if (!data) {
-		puts("No memory available to list NAND images\n");
-		return 0;
-	}
+	for (nand_dev = 0; nand_dev < CONFIG_SYS_MAX_NAND_DEVICE; nand_dev++) {
 
-	for (off = 0; off < nand->size; off += nand->erasesize) {
-		hdr_size = sizeof(image_header_t);
-
-		if (nand_block_isbad(nand, off) ||
-			nand_read(nand, off, &hdr_size, (u_char *)header) ||
-				!image_check_hcrc(header))
+		nand = &nand_info[nand_dev];
+		if ((!nand->name) || (!nand->size))
 			continue;
 
+		data = malloc(nand->writesize);
+		if (!data) {
+			puts("No memory available to list NAND images\n");
+			return 0;
+		}
 
-		printf("Legacy Image at offset %08lX:\n", (ulong)off);
-		image_print_contents(header);
-
-		puts("   Verifying Checksum ... ");
-		crc = 0;
-		img_size = ntohl(header->ih_size);
-		img_size += hdr_size;
-
-		while (img_size > 0) {
+		for (off = 0; off < nand->size; off += nand->erasesize) {
 			int ret;
 
-			while (nand_block_isbad(nand, off)) {
+			if (nand_block_isbad(nand, off))
+				continue;
+
+			hdr_size = sizeof(image_header_t);
+			ret = nand_read(nand, off, &hdr_size, (u_char *)header);
+			if (ret < 0 && ret != -EUCLEAN)
+				continue;
+
+			if (!image_check_hcrc(header))
+				continue;
+
+			printf("Legacy Image at NAND device %d offset %08lX:\n",
+					nand_dev, (ulong)off);
+			image_print_contents(header);
+
+			puts("   Verifying Checksum ... ");
+			crc = 0;
+			img_size = ntohl(header->ih_size);
+			img_size += hdr_size;
+
+			while (img_size > 0) {
+				int blockoff = 0;
+
+				while (nand_block_isbad(nand, off)) {
+					off += nand->erasesize;
+					if (off >= nand->size)
+						goto out;
+				}
+
+				do {
+					read_len = min(img_size, nand->writesize);
+					ret = nand_read(nand, off + blockoff, &read_len, data);
+					if (ret < 0 && ret != -EUCLEAN)
+						break;
+
+					crc = crc32(crc, data + hdr_size,
+							read_len - hdr_size);
+					img_size -= read_len;
+					blockoff += read_len;
+					hdr_size = 0;
+				} while (img_size &&
+						(blockoff < nand->erasesize));
+
 				off += nand->erasesize;
 				if (off >= nand->size)
 					goto out;
 			}
 
-			read_len = min(img_size, nand->erasesize);
-			ret = nand_read(nand, off, &read_len, data);
-			if (ret < 0 && ret != -EUCLEAN)
-				break;
-
-			crc = crc32(crc, data + hdr_size, read_len - hdr_size);
-			img_size -= read_len;
-			hdr_size = 0;
-
-			off += nand->erasesize;
-			if (off >= nand->size)
-				goto out;
-		}
+			off -= nand->erasesize;
 out:
-		if (crc != ntohl(header->ih_dcrc))
-			puts("   Bad Data CRC\n");
-		else
-			puts("OK\n");
+			if (crc != ntohl(header->ih_dcrc))
+				puts("   Bad Data CRC\n");
+			else
+				puts("OK\n");
+		}
+		free(data);
 	}
-	free(data);
+
 #endif
 	return (0);
 }

@@ -1,6 +1,6 @@
 /*
- * (C) Copyright 2000-2009
- * Vipul Kumar Samar, ST Microelectronics, vipulkumar.samar@st.com
+ * (C) Copyright 2012
+ * Amit Virdi, ST Microelectronics, amit.virdi@st.com
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __SPR1340_MISC_H
-#define __SPR1340_MISC_H
+#ifndef __SPR1310_REVC_MISC_H
+#define __SPR1310_REVC_MISC_H
 
 struct misc_regs {
 	u32 soc_cfg;				/* 0x000 */
@@ -53,61 +53,70 @@ struct misc_regs {
 	u32 gmac_clk_cfg;			/* 0x248 */
 	u32 i2s_clk_cfg;			/* 0x24c */
 	u32 c3_clk_synt;			/* 0x250 */
-	u32 uart1_clk_synt;			/* 0x254 */
-	u32 uart2_clk_synt;			/* 0x258 */
-	u32 gmac_clk_synt;			/* 0x25c */
-	u32 mcif_sd_clk_synt;			/* 0x260 */
-	u32 mcif_cfxd_clk_synt;			/* 0x264 */
-	u32 cec1_clk_synt;			/* 0x268 */
-	u32 cec2_clk_synt;			/* 0x26c */
-	u32 adc_clk_synt;			/* 0x270 */
-	u32 amba_clk_sscg;			/* 0x274 */
-	u32 amba_clk_sscg_mod;			/* 0x278 */
-	u32 clcd_clk_sscg;			/* 0x27c */
-	u32 clcd_clk_sscg_mod;			/* 0x280 */
-	u32 cpu_clk_sscg;			/* 0x284 */
-	u32 cpu_clk_sscg_mod;			/* 0x288 */
-	u32 gen_clk_sscg0;			/* 0x28C */
-	u32 gen_clk_sscg0_mod;			/* 0x290 */
-	u32 gen_clk_sscg1;			/* 0x294 */
-	u32 gen_clk_sscg1_mod;			/* 0x298 */
-	u32 gen_clk_sscg2;			/* 0x29c */
-	u8  reserved_3[0x300 - 0x2A0];
-	u32 gen_clk_sscg2_mod;			/* 0x300 */
-	u32 gen_clk_sscg3;			/* 0x304 */
-	u32 gen_clk_sscg3_mod;			/* 0x308 */
-	u32 perip1_clk_enb;			/* 0x30c */
-	u32 perip2_clk_enb;			/* 0x310 */
-	u32 perip3_clk_enb;			/* 0x314 */
-	u32 perip1_sw_rst;			/* 0x318 */
-	u32 perip2_sw_rst;			/* 0x31c */
-	u32 perip3_sw_rst;			/* 0x320 */
-	u8  reserved_4[0x400 - 0x324];
-	u32 dmac_hs_sel;			/* 0x400 */
-	u32 dmac_sel;				/* 0x404 */
-	u32 dmac_flow_sel;			/* 0x408 */
-	u32 dmac_dir_sel;			/* 0x40c */
-	u32 endianess_cfg;			/* 0x410 */
-	u32 usbphy_gen_cfg;			/* 0x414 */
-	u32 usbphy_p1_cfg;			/* 0x418 */
-	u32 usbphy_p2_cfg;			/* 0x41c */
-	u32 usbphy_p3_cfg;			/* 0x420 */
-	u32 pcie_sata_cfg;			/* 0x424 */
-	u32 pcie_miphy_cfg;			/* 0x428 */
-	u32 perip_cfg;				/* 0x42c */
-	u32 fsmc_cfg;				/* 0x430 */
-	u32 mpmc_cfg;				/* 0x434 */
-	u32 mpmc_ctr_sts;			/* 0x438 */
-	u32 sata_core_id;			/* 0x43c */
-	u32 mali_gen_purpose_1;			/* 0x440 */
-	u32 mali_gen_purpose_2;			/* 0x444 */
-	u8  reserved_5[0x500 - 0x448];
+	u32 uart_clk_synt;			/* 0x254 */
+	u32 gmac_clk_synt;			/* 0x258 */
+	u32 mcif_sd_clk_synt;			/* 0x25c */
+	u32 mcif_cfxd_clk_synt;			/* 0x260 */
+	u32 adc_clk_synt;			/* 0x264 */
+	u32 amba_clk_sscg;			/* 0x268 */
+	u32 amba_clk_sscg_mod;			/* 0x26c */
+	u32 clcd_clk_sscg;			/* 0x270 */
+	u32 expi_cpu_sscg_mod;			/* 0x274 */
+	u32 gen_clk_sscg0;			/* 0x278 */
+	u32 gen_clk_sscg0_mod;			/* 0x27c */
+	u32 gen_clk_sscg1;			/* 0x280 */
+	u32 gen_clk_sscg1_mod;			/* 0x284 */
+	u32 gen_clk_sscg2;			/* 0x288 */
+	u32 gen_clk_sscg2_mod;			/* 0x28C */
+	u32 gen_clk_sscg3;			/* 0x290 */
+	u32 clcd_clk_sscg_mod;			/* 0x294 */
+	u32 expi_cpu_sscg;			/* 0x298 */
+	u32 gen_clk_sscg3_mod;			/* 0x29c */
+	u8 reserved_3[0x300 - 0x2a0];
+	u32 perip1_clk_enb;			/* 0x300 */
+	u32 perip2_clk_enb;			/* 0x304 */
+	u32 perip1_sw_rst;			/* 0x308 */
+	u32 perip2_sw_rst;			/* 0x30c */
+	u32 ras_clk_enb;			/* 0x310 */
+	u32 ras_sw_rst;				/* 0x314 */
+	u8  reserved_4[0x380 - 0x318];
+	u32 dmac_hs_sel;			/* 0x380 */
+	u32 dmac_sel;				/* 0x384 */
+	u32 dmac_flow_sel;			/* 0x388 */
+	u32 dmac_dir_sel;			/* 0x38c */
+	u32 endianess_cfg;			/* 0x390 */
+	u32 usbphy_gen_cfg;			/* 0x394 */
+	u32 usbphy_p1_cfg;			/* 0x398 */
+	u32 usbphy_p2_cfg;			/* 0x39c */
+	u32 usbphy_p3_cfg;			/* 0x3a0 */
+	u32 pcie_sata_cfg;			/* 0x3a4 */
+	u32 pcie_miphy_cfg_1;			/* 0x3a8 */
+	u32 pcie_miphy_cfg_2;			/* 0x3ac */
+	u32 perip_cfg;				/* 0x3b0 */
+	u32 fsmc_cfg;				/* 0x3b4 */
+	u32 mpmc_cfg;				/* 0x3b8 */
+	u32 mpmc_ctr_sts;			/* 0x3bc */
+	u8  reserved_5[0x400 - 0x3c0];
+	u32 expif_clk_cfg;			/* 0x400 */
+	u32 expif_cfg;				/* 0x404 */
+	u32 expif_dmachs_flex;			/* 0x408 */
+	u8 reserved_6[0x41c - 0x40c];
+	u32 expif_dmachs_simple;		/* 0x41c */
+	u32 expif_addr_expansion_tab_0;		/* 0x420 */
+	u32 expif_addr_expansion_tab_1;		/* 0x424 */
+	u32 expif_addr_expansion_tab_2;		/* 0x428 */
+	u32 expif_addr_expansion_tab_3;		/* 0x42c */
+	u32 expif_addr_expansion_tab_4;		/* 0x430 */
+	u32 expif_addr_expansion_tab_5;		/* 0x434 */
+	u32 expif_addr_expansion_tab_6;		/* 0x438 */
+	u32 expif_addr_expansion_tab_7;		/* 0x43c */
+	u8 reserved_7[0x500 - 0x440];
 	u32 prc1_lock_ctr;			/* 0x500 */
 	u32 prc2_lock_ctr;			/* 0x504 */
 	u32 prc1_irq_ctr;			/* 0x508 */
-	u8  reserved_6[0x51c - 0x50c];
+	u8  reserved_8[0x51c - 0x50c];
 	u32 prc2_irq_ctr;			/* 0x51c */
-	u8  reserved_7[0x600 - 0x520];
+	u8  reserved_9[0x600 - 0x520];
 	u32 pad_pu_cfg_1;			/* 0x600 */
 	u32 pad_pu_cfg_2;			/* 0x604 */
 	u32 pad_pu_cfg_3;			/* 0x608 */
@@ -124,34 +133,24 @@ struct misc_regs {
 	u32 pad_pd_cfg_6;			/* 0x634 */
 	u32 pad_pd_cfg_7;			/* 0x638 */
 	u32 pad_pd_cfg_8;			/* 0x63c */
-	u8  reserved_8[0x648 - 0x640];
-	u32 pad_drv_cfg_1;			/* 0x648 */
-	u32 pad_drv_cfg_2;			/* 0x64c */
-	u32 pad_drv_cfg_3;			/* 0x650 */
-	u32 pad_drv_cfg_4;			/* 0x654 */
-	u32 pad_drv_cfg_5;			/* 0x658 */
-	u32 pad_slew_cfg_1;			/* 0x65c */
-	u32 pad_slew_cfg_2;			/* 0x660 */
-	u32 pad_slew_cfg_3;			/* 0x664 */
-	u32 pad_function_en_1;			/* 0x668 */
-	u32 pad_function_en_2;			/* 0x66c */
-	u32 pad_function_en_3;			/* 0x670 */
-	u32 pad_function_en_4;			/* 0x674 */
-	u8  reserved_9[0x690 - 0x678];
-	u32 pad_function_en_5;			/* 0x690 */
-	u32 pad_function_en_6;			/* 0x694 */
-	u32 pad_function_en_7;			/* 0x698 */
-	u32 pad_function_en_8;			/* 0x69c */
-	u32 pad_shared_ip_en_1;			/* 0x6A0 */
-	u32 pad_shared_ip_en_2;			/* 0x6A4 */
-	u32 ddr_pad_cfg;			/* 0x6A8 */
-	u8  reserved_10[0x700 - 0x6Ac];
-	u32 compensation_1v8_3v3_1_cfg;		/* 0x700 */
-	u32 compensation_1v8_3v3_2_cfg;		/* 0x704 */
+	u32 pad_sleep_cfg;			/* 0x640 */
+	u32 pad_hyst_cfg;			/* 0x644 */
+	u32 pad_drv_cfg;			/* 0x648 */
+	u32 pad_slew_cfg;			/* 0x64c */
+	u32 pad_function_en_1;			/* 0x650 */
+	u32 pad_function_en_2;			/* 0x654 */
+	u32 pad_function_en_3;			/* 0x658 */
+	u32 pad_dir_sel_1;			/* 0x65c */
+	u32 pad_dir_sel_2;			/* 0x660 */
+	u32 pad_dir_sel_3;			/* 0x664 */
+	u32 ddr_pad_cfg;			/* 0x668 */
+	u8  reserved_10[0x700 - 0x66c];
+	u32 compensation_1v8_2v5_3v3_1_cfg;	/* 0x700 */
+	u32 compensation_1v8_2v5_3v3_2_cfg;	/* 0x704 */
 	u32 compensation_3v3_1_cfg;		/* 0x708 */
 	u32 compensation_3v3_2_cfg;		/* 0x70c */
-	u32 compensation_ddr_cfg;		/* 0x710 */
-	u32 compensation_2v5_3v3_1_cfg;		/* 0x714 */
+	u32 compensation_3v3_3_cfg;		/* 0x710 */
+	u32 compensation_ddr_cfg;		/* 0x714 */
 	u8  reserved_11[0x800 - 0x718];
 	u32 otp_prog_ctr;			/* 0x800 */
 	u32 otp_wdata1_1;			/* 0x804 */
@@ -215,7 +214,12 @@ struct misc_regs {
 	u32 die_id_2;				/* 0xa04 */
 	u32 die_id_3;				/* 0xa08 */
 	u32 die_id_4;				/* 0xa0c */
-	u8  reserved_14[0xc00 - 0xa10];
+	u8  reserved_14[0xb00 - 0xa10];
+	u32 ras1_gpp_inp;			/* 0xb00 */
+	u32 ras2_gpp_inp;			/* 0xb04 */
+	u32 ras1_gpp_out;			/* 0xb08 */
+	u32 ras2_gpp_out;			/* 0xb0c */
+	u8  reserved_15[0xc00 - 0xa10];
 	u32 axi_cache_user_ctrl_0;		/* 0xc00 */
 	u32 axi_cache_user_ctrl_1;		/* 0xc04 */
 	u32 axi_cache_user_ctrl_2;		/* 0xc08 */
@@ -228,13 +232,10 @@ struct misc_regs {
 	u32 ahb_cache_user_ctrl_5;		/* 0xc24 */
 	u32 ahb_cache_user_ctrl_6;		/* 0xc28 */
 	u32 ahb_cache_user_ctrl_7;		/* 0xc2c */
-	u8  reserved_15[0x1000 - 0xc30];
-	u32 miphy_test;				/* 0x1000 */
-	u32 usb_test;				/* 0x1004 */
-	u32 misc_cfg;				/* 0x1008 */
+	u8  reserved_16[0x1000 - 0xc30];
+	u32 usb_test;				/* 0x1000 */
+	u32 misc_cfg;				/* 0x1004 */
 };
-
-#define CONFIG_SPEAR_GPIOEN0		0xE2800000
 
 /* PHERIP1_CLOCK ENABLE */
 #define GPT1_CLKEN                     0x00200000
@@ -251,54 +252,19 @@ struct misc_regs {
 /* perip1_sw_rst */
 #define UDC_UPD_SWRST                  0x00000800
 
-/*
- * Platform specific defines (SPEAr)
- */
-#define CONFIG_SPEAR_GPT0       0x00200000
-#define CONFIG_SPEAR_UART       0x00008000
-#define CONFIG_SPEAR_USBD       0x00000800
-#define CONFIG_SPEAR_SDMMC      0x00000020
-#define CONFIG_SPEAR_FSMC       0x00000010
-
-#define SYS_MODE_MASK		0x00000007
-#define SYS_MODE_REQ_DOZE	0x00000001
-#define SYS_MODE_REQ_SLOW	0x00000002
-#define SYS_MODE_REQ_NORMAL	0x00000004
-#define PLL_TIMEOUT_ENB		0x00000008
-#define XTAL_TIMEOUT_ENB	0x00000010
-#define SYS_STATE_MASK		0x000F0000
-#define SYS_STATE_NORMAL	0x000F0000
-
-/* sys_clk_*timer definitions */
-#define PLL_TIM			(0xff << 3)
-#define OSCI_TIM		(0xff << 3)
-
-/* pll_freq definitions in MHz */
-#define FREQ_1000		0x7D000006
-#define FREQ_996		0x53000004
-#define FREQ_332		0x53000203
-
-/* pll_ctr definitions */
-#define PLLLOCK			0x00000001
-#define PLLENABLE		0x00000004
-
 /* perip_clk_cfg definitions */
 #define CONFIG_SPEAR_UART48M	0
 #define CONFIG_SPEAR_UARTCLKMSK	(0x3 << 4)
-#define CONFIG_SPEAR_GPTCLKSRC	0x00000100
-#define MPMC_CLK_PLL4		0x00000400
-#define CEC_CLK_PLL2		0x00010000
 
 /* gmac_clk_cfg definitions */
-
 #define PHY_IF_GMII		0x00000000
-#define PHY_IF_RGMII		0x00000008
-#define PHY_IF_SGMII		0x00000010
-#define PHY_IF_RMII		0x00000020
-#define GMII_SYNT_ENB		0x00000004
+#define PHY_IF_RGMII		0x00000010
+#define PHY_IF_SGMII		0x00000020
+#define PHY_IF_RMII		0x00000040
+#define GMII_SYNT_ENB		0x00000008
 #define CLK_SEL_PAD		0x00000000
-#define CLK_SEL_PLL2		0x00000001
-#define CLK_SEL_OSCI3		0x00000002
+#define CLK_SEL_PLL2		0x00000002
+#define CLK_SEL_OSCI3		0x00000004
 
 /* usbphy_gen_cfg definitions */
 #define COMMON_PWDN		(1 << 0)
@@ -308,24 +274,14 @@ struct misc_regs {
 #define USB_PLL_LOCK		(1 << 24)
 
 /* perip_cfg definitions */
-#define HS_SSP_EN		0x00200000
-#define HS_SSP_SW_CS		0x00100000
-#define SSP_CS_EN_MSK		0x000C0000
-#define SSP_CS_EN_SHFT		18
-#define MCIF_MSK		0x00000003
-#define MCIF_SD			0x00000001
+#define MCIF_MSK		0x00000060
+#define MCIF_SD			0x00000020
 
 /* fsmc_cfg definitions */
-#define DEV_SEL_NOR		0x00000000
-#define DEV_SEL_NAND		0x00000001
-#define DEV_SEL_SRAM		0x00000002
-#define DEV_SEL_MSK		0x00000003
-#define NAND_BANK_0		0x00000000
-#define NAND_BANK_1		0x00000004
-#define NAND_BANK_2		0x00000008
-#define NAND_BANK_3		0x0000000C
-#define DEV_WIDTH_8		0x00000000
-#define DEV_WIDTH_16		0x00000010
+#define DEV_SEL_NANDCS0_NORCS4	0x00000001
+#define DEV_SEL_NANDCS0_NORCS5	0x00000002
+#define DEV_SEL_NANDCS0_NORCS6	0x00000004
+#define DEV_SEL_NANDCS0_NORCS7	0x00000008
 
 /* synth registers definitions */
 #define SYNT_CLK_ENB		0x80000000
@@ -336,16 +292,12 @@ struct misc_regs {
 #define SYNT_Y_5		0x00000005
 #define SYNT_Y_21		0x00000015
 
-#define CONFIG_SPEAR_FUNCENB0		(0xE0700668)
-#define CONFIG_SPEAR_FUNCENB1		(0xE070066C)
-#define CONFIG_SPEAR_FUNCENB2		(0xE0700670)
-#define CONFIG_SPEAR_FUNCENB3		(0xE0700674)
-#define CONFIG_SPEAR_FUNCENB4		(0xE0700690)
-#define CONFIG_SPEAR_FUNCENB5		(0xE0700694)
-#define CONFIG_SPEAR_FUNCENB6		(0xE0700698)
-#define CONFIG_SPEAR_FUNCENB7		(0xE070069C)
-
-#define CONFIG_SPEAR_SHAREDIPENB0	(0xE07006A0)
-#define CONFIG_SPEAR_SHAREDIPENB1	(0xE07006A4)
+/* Padmux Registers */
+#define CONFIG_SPEAR_FUNCENB0		(0xE0700650)
+#define CONFIG_SPEAR_FUNCENB1		(0xE0700654)
+#define CONFIG_SPEAR_FUNCENB2		(0xE0700658)
+#define CONFIG_SPEAR_DIRSEL0		(0xE070065C)
+#define CONFIG_SPEAR_DIRSEL1		(0xE0700660)
+#define CONFIG_SPEAR_DIRSEL2		(0xE0700664)
 
 #endif

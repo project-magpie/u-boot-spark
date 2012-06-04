@@ -24,7 +24,7 @@
  * MA 02111-1307 USA
  */
 /* temp def: will be removed TBD*/
-#undef APG_BOARD	1
+#undef APG_BOARD
 
 #ifndef APG_BOARD
 #include <common.h>

@@ -478,7 +478,8 @@ int do_mem_base (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 int do_mem_loop (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	ulong	addr, length, i, junk;
+	ulong	__attribute__((unused)) junk;
+	ulong	addr, length, i;
 	int	size;
 	volatile uint	*longp;
 	volatile ushort *shortp;

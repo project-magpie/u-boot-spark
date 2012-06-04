@@ -184,7 +184,6 @@ static int ep0_get_descriptor (struct usb_device_instance *device,
 			       int index)
 {
 	int port = 0;		/* XXX compound device */
-	char *cp;
 
 	/*dbg_ep0(3, "max: %x type: %x index: %x", max, descriptor_type, index); */
 
@@ -196,7 +195,6 @@ static int ep0_get_descriptor (struct usb_device_instance *device,
 
 	/* setup tx urb */
 	urb->actual_length = 0;
-	cp = (char*)urb->buffer;
 
 	dbg_ep0 (2, "%s", USBD_DEVICE_DESCRIPTORS (descriptor_type));
 
@@ -572,6 +570,7 @@ int ep0_recv_setup (struct urb *urb)
 			}
 			device->address = address;
 #ifdef CONFIG_DW_OTG
+			extern void udc_set_address_controller(u32);
 			/*
 			 * not a good way to do it. Will correct during
 			 * board debug.
@@ -598,6 +597,7 @@ int ep0_recv_setup (struct urb *urb)
 			/*dbg_ep0(2, "set configuration: %d", device->configuration); */
 			/*serial_printf("DEVICE_CONFIGURED.. event?\n"); */
 #ifdef CONFIG_DW_OTG
+			 extern void udc_set_configuration_controller(u32);
 			/*
 			 * not a good way to do it. Will correct during
 			 * board debug.

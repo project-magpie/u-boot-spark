@@ -1,6 +1,6 @@
 /*
- * (C) Copyright 2010
- * Vipin Kumar, STMicroelectronics, <vipin.kumar@st.com>
+ * (C) Copyright 2012
+ * Vincenzo Frascino, STMicroelectronics, <vincenzo.frascino@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -24,50 +24,42 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#if defined(CONFIG_MK_spearR1801e)
 #define CONFIG_SPEAR13XX			1
-#define CONFIG_SPEAR1310_REVA			1
-#define CONFIG_MACH_SPEARR1801E	1
-#endif
-
+#define CONFIG_SPEAR1340			1
+#define CONFIG_SPEAR1340_LCAD			1
+#define CONFIG_MACH_SPEAR1340_LCAD	1
 
 #if defined(CONFIG_MK_usbtty)
 #define CONFIG_SPEAR_USBTTY			1
 #endif
 
+#define CONFIG_ENV_IS_IN_NAND			1
+
+#define CONFIG_YAFFS2			1
+
 #if !defined(CONFIG_SPEAR_USBTTY)
+#if !defined(CONFIG_SPEAR1340)
 /* Solve issue #101435 - UHC blocks the BUSMATRIX */
 #define CONFIG_SPEAR1300_ISSUE_101435		1
+#endif
 #endif
 
 #if !defined(CONFIG_SPEAR_USBTTY)
 /* MMC configuration */
-
-#if 0
 #define CONFIG_MMC
 #define CONFIG_GENERIC_MMC
 #define CONFIG_SPEAR_MMC
 #define CONFIG_CMD_MMC
 #endif
 
-#endif
-
-#if !defined(CONFIG_SPEAR_USBTTY)
-/* Ethernet configuration */
-#define CONFIG_MII
-#define CONFIG_DESIGNWARE_ETH
-#define CONFIG_NET_MULTI
-#define CONFIG_DW_ALTDESCRIPTOR			1
-#define CONFIG_DW_SEARCH_PHY			1			/* SOM has only one phy */
-#define CONFIG_DW0_PHY				0
-#define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
-#define CONFIG_DW_AUTONEG			1
-#endif
-
 /* USBD driver configuration */
-#if defined(CONFIG_SPEAR_USBTTY)
-#define CONFIG_DW_UDC
+#if (defined(CONFIG_SPEAR_USBTTY))
 #define CONFIG_USB_DEVICE
+#ifdef CONFIG_SPEAR1340
+#define CONFIG_DW_OTG
+#else
+#define CONFIG_DW_UDC
+#endif
 #define CONFIG_USBD_HS
 #define CONFIG_USB_TTY
 
@@ -81,9 +73,6 @@
 /* Timer, HZ specific defines */
 #define CONFIG_SYS_HZ				(1000)
 
-/* NOT NEEDED??? */
-#define CONFIG_SYS_NO_FLASH		1
-#if 0
 /* Flash configuration */
 #define CONFIG_ST_SMI				1
 #define CONFIG_SYS_MAX_FLASH_BANKS		2
@@ -97,7 +86,6 @@
 #define CONFIG_SYS_FLASH_EMPTY_INFO		1
 #define CONFIG_SYS_FLASH_ERASE_TOUT		(3 * CONFIG_SYS_HZ)
 #define CONFIG_SYS_FLASH_WRITE_TOUT		(3 * CONFIG_SYS_HZ)
-#endif
 
 /*
  * Serial Configuration (PL011)
@@ -113,8 +101,6 @@
 #define CONFIG_SYS_LOADS_BAUD_CHANGE
 #define CONFIG_PL01x_PORTS			{(void *)CONFIG_SYS_SERIAL0}
 
-/* NOT NEEDED??? */
-#if 0
 /*
  * USB/EHCI
  */
@@ -124,16 +110,18 @@
 #define CONFIG_USB_STORAGE
 #define CONFIG_CMD_USB				/* Enable USB Commands */
 #endif
-#endif
 
 /*
  * NAND FLASH Configuration
  */
-#define CONFIG_NAND_FSMC					1
-#define CONFIG_SYS_FSMC_NAND_16BIT		1
+#define CONFIG_NAND_FSMC			1
+#define CONFIG_SYS_FSMC_NAND_8BIT		1
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
-#define CONFIG_MTD_NAND_VERIFY_WRITE		1
+#if defined(CONFIG_SPEAR1340)
+#define CONFIG_SYS_NAND_BASE			(0xB0800000)
+#else
 #define CONFIG_SYS_NAND_BASE			(0xA0000000)
+#endif
 #define CONFIG_SYS_NAND_ONFI_DETECTION		1
 #define CONFIG_SYS_NAND_QUIET_TEST		1
 #define CONFIG_CMD_NAND
@@ -145,29 +133,17 @@
 #define CONFIG_CMD_RUN
 
 #if !defined(CONFIG_SPEAR_USBTTY)
-#define CONFIG_CMD_NET
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_DHCP
-
-/* NOT NEEDED??? */
-#if 0
 #if defined(CONFIG_USB_STORAGE) || defined(CONFIG_MMC)
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 #define CONFIG_ISO_PARTITION
 #endif
-
-#endif
-
 #endif
 
 /* This must be included AFTER the definition of CONFIG_COMMANDS (if any) */
 #include <config_cmd_default.h>
 
-#if defined(CONFIG_SPEAR_USBTTY)
 #undef CONFIG_CMD_NET
-#endif
 #undef CONFIG_CMD_NFS
 #undef CONFIG_CMD_XIMG
 #undef CONFIG_CMD_LOADS
@@ -183,29 +159,82 @@
 #endif
 
 #define CONFIG_ENV_OVERWRITE
+/*
+ * Environment placing
+ */
+#if defined(CONFIG_ENV_IS_IN_FLASH)
+/*
+ * Environment is in serial NOR flash
+ */
+#define CONFIG_SYS_MONITOR_LEN			0x00040000
+#define CONFIG_ENV_SECT_SIZE			0x00010000
 
+#if !defined(CONFIG_SPEAR1340)
+#define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
+#else
+#define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
+#endif
+
+#if defined(CONFIG_SPEAR1340)
+#define CONFIG_BOOTCOMMAND			"run bootusb; run bootupg; nand read.jffs2 0x800000 0x280000 0x800000; bootm 0x800000"
+#else
+#define CONFIG_BOOTCOMMAND			"bootm 0xe6050000"
+#endif
+
+#define CONFIG_SYS_MONITOR_BASE			CONFIG_SYS_FLASH_BASE
+#define CONFIG_ENV_ADDR				(CONFIG_SYS_MONITOR_BASE + \
+						CONFIG_SYS_MONITOR_LEN)
+#elif defined(CONFIG_ENV_IS_IN_NAND)
 /*
  * Environment is in NAND
  */
-#define CONFIG_ENV_IS_IN_NAND			1
 
-#define CONFIG_ENV_OFFSET			0x60000
-#define CONFIG_ENV_RANGE			0x10000
-#define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
+#define CONFIG_ENV_OFFSET			0x480000
+#define CONFIG_ENV_RANGE			0x40000
 
-#define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
-						"0xe0000 0x208000; " \
-						"bootm 0x1600000"
+#if !defined(CONFIG_SPEAR1340)
+#define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
+#else
+#define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
+#endif
+
+#define CONFIG_BOOTCOMMAND			"run bootusb; run bootupg; nand read.jffs2 0x800000 0x280000 0x800000; bootm 0x800000"
+
+#endif
 
 #define CONFIG_BOOTARGS_NFS			"root=/dev/nfs ip=dhcp " \
 						"console=ttyAMA0,115200 " \
 						"init=/bin/sh"
+#if defined(CONFIG_SPEAR1340)
+#define CONFIG_BOOTARGS	"console=ttyAMA0,115200 " \
+						"mem=960M "  \
+						"noinitrd no_console_suspend androidboot.console=ttyAMA0 android.checkjni=0 " \
+						"root="CONFIG_FSMTDBLK "rw rootfstype=yaffs2 rootflags=inband-tags,tags-ecc-off " \
+						"rootdelay=3 video=db9000:800x480-32@0 init=/init"
+#else
 #define CONFIG_BOOTARGS				"console=ttyAMA0,115200 " \
-						"mem=1G "  \
-						"root=/dev/sda1 " \
-						"ip=dhcp"
+						"mem=128M "  \
+						"root="CONFIG_FSMTDBLK \
+						"rootfstype=jffs2"
+#endif
+
+#define CONFIG_NFSBOOTCOMMAND						\
+	"bootp; "							\
+	"setenv bootargs root=/dev/nfs rw "				\
+	"nfsroot=$(serverip):$(rootpath) "				\
+	"ip=$(ipaddr):$(serverip):$(gatewayip):"			\
+			"$(netmask):$(hostname):$(netdev):off "		\
+			"console=ttyAMA0,115200 $(othbootargs);"	\
+	"bootm; "
+
+#define CONFIG_RAMBOOTCOMMAND						\
+	"setenv bootargs root=/dev/ram rw "				\
+		"console=ttyAMA0,115200 $(othbootargs);"		\
+	CONFIG_BOOTCOMMAND
 
 #define CONFIG_ENV_SIZE				0x02000
+#define CONFIG_SYS_MONITOR_BASE			TEXT_BASE
+#define CONFIG_MONITOR_IS_IN_RAM		1
 
 /* Miscellaneous configurable options */
 #define CONFIG_ARCH_CPU_INIT			1
@@ -223,11 +252,11 @@
 
 #define CONFIG_SYS_MEMTEST_START		0x00800000
 #define CONFIG_SYS_MEMTEST_END			0x04000000
-#define CONFIG_SYS_MALLOC_LEN			(4*1024*1024)
+#define CONFIG_SYS_MALLOC_LEN			(1024*1024)
 #define CONFIG_SYS_GBL_DATA_SIZE		128
 #define CONFIG_IDENT_STRING			"-SPEAr"
 #define CONFIG_SYS_LONGHELP
-#define CONFIG_SYS_PROMPT			"u-boot> "
+#define CONFIG_SYS_PROMPT			"android> "
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_CBSIZE			256
 #define CONFIG_SYS_PBSIZE			(CONFIG_SYS_CBSIZE + \
@@ -238,22 +267,14 @@
 #define CONFIG_SYS_CONSOLE_INFO_QUIET		1
 #define CONFIG_SYS_64BIT_VSPRINTF		1
 
-#define CONFIG_EXTRA_ENV_SETTINGS		CONFIG_EXTRA_ENV_USBTTY
-
+#define CONFIG_EXTRA_ENV_SETTINGS		\
+					CONFIG_EXTRA_ENV_USBTTY \
+					"bootusb=mw 0x0 0x0; usb start; fatload usb 0:2 0x0 run.img; source 0x0\0" \
+					"bootupg=mw 0x0 0x0; fatload usb 0:1 0x0 vInstaller/upgrade.img; source 0x0\0" \
 
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS			1
 #define PHYS_SDRAM_1				0x00000000
 #define PHYS_SDRAM_1_MAXSIZE			0x40000000
-
-/* usb configuration */
-#define CONFIG_USB_DEVICE
-#define CONFIG_USB_TTY
-#define CONFIG_USBD_PRODUCT_NAME		"SPEAr SoC"
-#define CONFIG_USBD_MANUFACTURER		"ST Microelectronics"
-#define CONFIG_USBD_HS
-
-/* misc */
-#define CONFIG_DW_UDC
 
 #endif

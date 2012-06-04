@@ -64,10 +64,10 @@ int board_init(void)
 
 int board_nand_init(struct nand_chip *nand)
 {
+#if defined(CONFIG_NAND_FSMC)
 	struct misc_regs *const misc_regs_p =
 	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 
-#if defined(CONFIG_NAND_FSMC)
 	if (((readl(&misc_regs_p->auto_cfg_reg) & MISC_SOCCFGMSK) ==
 	     MISC_SOCCFG30) ||
 	    ((readl(&misc_regs_p->auto_cfg_reg) & MISC_SOCCFGMSK) ==
@@ -81,11 +81,11 @@ int board_nand_init(struct nand_chip *nand)
 
 int board_eth_init(bd_t *bis)
 {
+	int ret = 0;
+#if defined(CONFIG_MACB)
 	struct misc_regs *const misc_regs_p =
 		(struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	int ret = 0, val;
 
-#if defined(CONFIG_MACB)
 	/* Enable AMEM clock for memory port access */
 	writel(readl(&misc_regs_p->amem_cfg_ctrl) | 0x1,
 			&misc_regs_p->amem_cfg_ctrl);

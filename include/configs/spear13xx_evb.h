@@ -39,14 +39,14 @@
 #define CONFIG_SPEAR1340			1
 #endif
 
+#if defined(CONFIG_MK_spear1310) && !defined(CONFIG_MK_reva)
+#define CONFIG_SPEAR13XX			1
+#define CONFIG_SPEAR1310			1
+#endif
+
 #if defined(CONFIG_MK_spear900)
 #define CONFIG_SPEAR13XX			1
 #define CONFIG_SPEAR900			1
-#endif
-
-
-#if defined(CONFIG_MK_usbtty)
-#define CONFIG_SPEAR_USBTTY			1
 #endif
 
 #if defined(CONFIG_MK_nand)
@@ -55,12 +55,30 @@
 #define CONFIG_ENV_IS_IN_FLASH			1
 #endif
 
+#if defined(CONFIG_MK_usbtty)
+#define CONFIG_SPEAR_USBTTY			1
+#undef CONFIG_ENV_IS_IN_NAND
+#undef CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_IS_NOWHERE			1
+/*
+ * To support saveenv command
+ */
+#endif
+
 #if !defined(CONFIG_SPEAR_USBTTY)
-#if !defined(CONFIG_SPEAR1340)
+#if !defined(CONFIG_SPEAR1340) && !defined(CONFIG_SPEAR1310)
 /* Solve issue #101435 - UHC blocks the BUSMATRIX */
 #define CONFIG_SPEAR1300_ISSUE_101435		1
 #endif
 #endif
+
+#define CONFIG_PL022_SPI		1
+#define CONFIG_SYS_SPI_BASE		0xE0100000
+#define CONFIG_SYS_SPI_CLK		83000000
+#define CONFIG_CMD_SPI			1
+#define CONFIG_CMD_SF
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_STMICRO
 
 #if !defined(CONFIG_SPEAR_USBTTY)
 /* MMC configuration */
@@ -76,16 +94,18 @@
 #define CONFIG_DESIGNWARE_ETH
 #define CONFIG_NET_MULTI
 #define CONFIG_DW_ALTDESCRIPTOR			1
+
 #ifdef CONFIG_SPEAR1340
 #define CONFIG_DW0_PHY				1
 #define CONFIG_SPEAR_RGMII
 #else
 #define CONFIG_DW0_PHY				5
 #endif
+
 #define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
 #define CONFIG_DW_AUTONEG			1
 
-#ifdef CONFIG_SPEAR1340
+#if defined(CONFIG_SPEAR1340) || defined(CONFIG_SPEAR1310)
 #define CONFIG_DW_SEARCH_PHY			1
 #endif
 
@@ -94,7 +114,7 @@
 /* USBD driver configuration */
 #if (defined(CONFIG_SPEAR_USBTTY))
 #define CONFIG_USB_DEVICE
-#ifdef CONFIG_SPEAR1340
+#if defined(CONFIG_SPEAR1340) || defined(CONFIG_SPEAR1310)
 #define CONFIG_DW_OTG
 #else
 #define CONFIG_DW_UDC
@@ -156,7 +176,7 @@
 #define CONFIG_NAND_FSMC			1
 #define CONFIG_SYS_FSMC_NAND_8BIT		1
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
-#if defined(CONFIG_SPEAR1340)
+#if defined(CONFIG_SPEAR1340) || defined(CONFIG_SPEAR1310)
 #define CONFIG_SYS_NAND_BASE			(0xB0800000)
 #else
 #define CONFIG_SYS_NAND_BASE			(0xA0000000)
@@ -190,8 +210,10 @@
 
 #if defined(CONFIG_SPEAR_USBTTY)
 #undef CONFIG_CMD_NET
-#undef CONFIG_CMD_NFS
 #endif
+#undef CONFIG_CMD_NFS
+#undef CONFIG_CMD_XIMG
+#undef CONFIG_CMD_LOADS
 
 /*
  * Default Environment Varible definitions
@@ -238,14 +260,29 @@
 #define CONFIG_FSMTDBLK				"/dev/mtdblock8 "
 #endif
 
-#define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
-						"0x80000 0x4C0000; " \
-						"bootm 0x1600000"
+#if defined(CONFIG_SPEAR1340)
+#define CONFIG_OSBOOTOFF			"0x500000 "
+#else
+#define CONFIG_OSBOOTOFF			"0x200000 "
 #endif
 
-#define CONFIG_BOOTARGS				"console=ttyAMA0,115200 " \
-						"root="CONFIG_FSMTDBLK \
+#define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
+						CONFIG_OSBOOTOFF "0x4C0000; " \
+						"bootm 0x1600000"
+#elif defined(CONFIG_ENV_IS_NOWHERE)
+#define CONFIG_ENV_RANGE			0x10000
+#define CONFIG_ENV_SECT_SIZE			0x10000
+#endif
+
+#ifdef CONFIG_FSMTDBLK
+#define ROOT_FSMTD				"root="CONFIG_FSMTDBLK \
 						"rootfstype=jffs2"
+#else
+#define ROOT_FSMTD				""
+#endif
+
+#define CONFIG_BOOTARGS			"console=ttyAMA0,115200 " \
+						ROOT_FSMTD
 
 #define CONFIG_NFSBOOTCOMMAND						\
 	"bootp; "							\
@@ -259,7 +296,7 @@
 #define CONFIG_RAMBOOTCOMMAND						\
 	"setenv bootargs root=/dev/ram rw "				\
 		"console=ttyAMA0,115200 $(othbootargs);"		\
-	CONFIG_BOOTCOMMAND
+	"bootm; "
 
 #define CONFIG_ENV_SIZE				0x02000
 #define CONFIG_SYS_MONITOR_BASE			TEXT_BASE
