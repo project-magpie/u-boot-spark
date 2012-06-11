@@ -412,11 +412,13 @@ int soc_init(void)
 #if defined(CONFIG_USB_OHCI_NEW)
 extern void stx7141_usb_init(void)
 {
-	unsigned long reg, req_reg;
+	unsigned long reg;
+
         /* USB edge rise and DC shift - STLinux Bugzilla 10991 */
-        reg = readl(STX7141_SYSCONF_SYS_CFG07);
-        reg &= 0xA;
-        writel(reg, STX7141_SYSCONF_SYS_CFG07);
+	reg = readl(STX7141_SYSCONF_SYS_CFG07);
+	reg &= ~( (0x3u<<2) | (0x3u<<0) );	/* mask:  3,3 */
+	reg |=  ( (0x2u<<2) | (0x2u<<0) );	/* value: 2,2 */
+	writel(reg, STX7141_SYSCONF_SYS_CFG07);
 
 	reg = readl(STX7141_SYSCONF_SYS_CFG04);
         /* clock at 48MHx */
