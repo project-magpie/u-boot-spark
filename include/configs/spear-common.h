@@ -196,8 +196,9 @@
 #define CONFIG_ENV_RANGE			0x10000
 #define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
 
-#if defined(CONFIG_SPEAR310)
+#if defined(CONFIG_SPEAR310) || defined(CONFIG_SPEAR320_HMI)
 #define CONFIG_OSBOOTOFF			"0x200000 "
+
 #else
 #define CONFIG_OSBOOTOFF			"0x80000 "
 #endif
