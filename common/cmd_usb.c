@@ -466,7 +466,6 @@ int do_usb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 	int i;
 	struct usb_device *dev = NULL;
-	extern char usb_started;
 #ifdef CONFIG_USB_STORAGE
 	block_dev_desc_t *stor_dev;
 #endif

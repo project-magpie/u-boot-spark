@@ -178,6 +178,10 @@ void uhci_show_temp_int_td(void);
 
 block_dev_desc_t *usb_stor_get_dev(int index)
 {
+	if (!usb_started) {
+		printf("USB not running ... try 'usb start'!\n");
+		return NULL;
+	}
 	return (index < USB_MAX_STOR_DEV) ? &usb_dev_desc[index] : NULL;
 }
 
@@ -195,7 +199,7 @@ int usb_stor_info(void)
 {
 	int i;
 
-	if (usb_max_devs > 0) {
+	if (usb_started && (usb_max_devs > 0)) {
 		for (i = 0; i < usb_max_devs; i++) {
 			printf ("  Device %d: ", i);
 			dev_print(&usb_dev_desc[i]);

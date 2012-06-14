@@ -208,6 +208,7 @@ int usb_kbd_deregister(void);
 /* routines */
 int usb_init(void); /* initialize the USB Controller */
 int usb_stop(void); /* stop the USB Controller */
+extern char usb_started; /* flag for the started/stopped USB status */
 
 
 int usb_set_protocol(struct usb_device *dev, int ifnum, int protocol);
