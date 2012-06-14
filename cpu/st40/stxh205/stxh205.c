@@ -649,11 +649,14 @@ extern int soc_init(void)
 
 
 #if defined(CONFIG_USB_OHCI_NEW)
+
+#define SYSCONF_BITS(lsb,msb,value)					\
+do {									\
+	SET_SYSCONF_BITS(sysconf,1,(lsb),(msb),(value),(value));	\
+} while(0)
+
 extern int stxh205_usb_init(const int port)
 {
-#if 0	/* QQQ - TO DO */
-//QQQ	DECLARE_GLOBAL_DATA_PTR;
-//QQQ	bd_t *bd = gd->bd;
 	static int initialized = 0;
 	unsigned int flags;
 	const struct {
@@ -661,32 +664,61 @@ extern int stxh205_usb_init(const int port)
 			unsigned char port, pin, alt;
 		} oc, pwr;
 	} usb_pins[] = {
-		{ .oc = { 23, 6, 1 }, .pwr = { 23, 7, 1 } },
-		{ .oc = { 24, 0, 1 }, .pwr = { 24, 1, 1 } },
-		{ .oc = { 24, 2, 1 }, .pwr = { 24, 3, 1 } },
+		{ .oc = { 4, 2, 1 }, .pwr = { 4, 3, 1 } },
+		{ .oc = { 4, 4, 1 }, .pwr = { 4, 5, 1 } },
 	};
 
-	if (port < 0 || port >= 3)	/* invalid port number ? */
+	if (port < 0 || port >= 2)	/* invalid port number ? */
 		return -1;		/* failed to initialize! */
 
 	if (!initialized)		/* first time ? */
-	{	/* set USB2TRIPPHY_OSCIOK = 1 */
-		unsigned long * const sysconfReg = (unsigned long*)STX7108_BANK4_SYSCFG(44);
-		unsigned long sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, TRUE, 6);
+	{
+		unsigned long *sysconfReg, sysconf;
+
+		sysconfReg = (unsigned long*)STXH205_SYSCFG(501);
+		sysconf = readl(sysconfReg);
+		SYSCONF_BITS(  1,  3, 4);	/* COMPDISTUNE0 */
+		SYSCONF_BITS(  4,  6, 4);	/* COMPDISTUNE1 */
+		SYSCONF_BITS(  7,  7, 1);	/* OTGDISABLE0 */
+		SYSCONF_BITS(  8, 10, 4);	/* OTGTUNE0 */
+		SYSCONF_BITS( 11, 11, 1);	/* SLEEPM0 */
+		SYSCONF_BITS( 12, 12, 1);	/* SLEEPM1 */
+		SYSCONF_BITS( 13, 15, 3);	/* SQRXTUNE0 */
+		SYSCONF_BITS( 16, 18, 3);	/* SQRXTUNE1 */
+		SYSCONF_BITS( 19, 22, 3);	/* TXFSLSTUNE0 */
+		SYSCONF_BITS( 23, 23, 0);	/* TXPREEMPHASISTUNE0 */
+		SYSCONF_BITS( 24, 24, 0);	/* TXPREEMPHASISTUNE1 */
+		SYSCONF_BITS( 25, 25, 0);	/* TXRISETUNE0 */
+		SYSCONF_BITS( 26, 26, 0);	/* TXRISETUNE1 */
+		SYSCONF_BITS( 27, 30, 8);	/* TXVREFTUNE0 */
 		writel(sysconf, sysconfReg);
+
+		sysconfReg = (unsigned long*)STXH205_SYSCFG(502);
+		sysconf = readl(sysconfReg);
+		SYSCONF_BITS(  0,  3, 8);	/* TXVREFTUNE1 */
+		SYSCONF_BITS(  4,  7, 3);	/* TXFSLSTUNE1 */
+		SYSCONF_BITS(  8,  9, 3);	/* TXHSXVTUNE0 */
+		SYSCONF_BITS( 10, 11, 3);	/* TXHSXVTUNE1 */
+		writel(sysconf, sysconfReg);
+
+		/* QQQ - unclear if this needs to be done *last* or not! */
+		sysconfReg = (unsigned long*)STXH205_SYSCFG(501);
+		sysconf = readl(sysconfReg);
+		SYSCONF_BITS(  0,  0, 0);	/* COMMONONN */
+		writel(sysconf, sysconfReg);
+
 		initialized = 1;	/* do this just once */
 	}
 
 	/* Power up the USB port, i.e. set USB_x_POWERDOWN_REQ = 0 */
 	{
-		unsigned long * const sysconfReg = (unsigned long*)STX7108_BANK4_SYSCFG(46);
+		unsigned long * const sysconfReg = (unsigned long*)STXH205_SYSCFG(449);
 		unsigned long sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, FALSE, port);
+		SET_SYSCONF_BIT(sysconf, FALSE, 0+port);
 		writel(sysconf, sysconfReg);
 	}
 	/* wait until USBx_PWR_DWN_GRANT == 0 */
-	while (*STX7108_BANK4_SYSSTS(2) & (1u<<port))
+	while (*STXH205_SYSSTS(423) & (1u<<(3+port)))
 		;	/* just wait ... */
 
 	/* route the USB power enable (output) signal */
@@ -704,28 +736,10 @@ extern int stxh205_usb_init(const int port)
 			  usb_pins[port].oc.pin, stm_pad_direction_input);
 
 	/* start the USB Wrapper Host Controller */
-#if 1	/* QQQ - DELETE */
 	flags = USB_FLAGS_STRAP_8BIT | USB_FLAGS_STBUS_CONFIG_THRESHOLD128;
-#else	/* QQQ - DELETE */
-	if (STX7108_DEVICEID_CUT(bd->bi_devid) < 2)
-	{		/* for cut 1.x */
-		flags = USB_FLAGS_STRAP_8BIT |
-			USB_FLAGS_STBUS_CONFIG_OPCODE_LD64_ST64 |
-			USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_1 |
-			USB_FLAGS_STBUS_CONFIG_THRESHOLD_64;
-	}
-	else
-	{		/* for cut 2.x */
-		flags = USB_FLAGS_STRAP_8BIT |
-			USB_FLAGS_STBUS_CONFIG_OPCODE_LD64_ST64 |
-			USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_2 |
-			USB_FLAGS_STBUS_CONFIG_THRESHOLD_128;
-	}
-#endif	/* QQQ - DELETE */
 	ST40_start_host_control(flags);
 
 	return 0;
-#endif	/* QQQ - TO DO */
 }
 
 #endif /* defined(CONFIG_USB_OHCI_NEW) */

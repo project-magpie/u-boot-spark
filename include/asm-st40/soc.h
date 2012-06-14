@@ -202,6 +202,7 @@ extern void stx7141_usb_init(void);
 extern void stx7200_usb_init(void);
 extern void fli7510_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode);
 extern void fli7540_usb_init(const int port, const enum fli7540_usb_ovrcur_mode ovrcur_mode);
+extern int  stxh205_usb_init(const int port);
 
 
 /*
