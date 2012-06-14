@@ -918,8 +918,6 @@ extern int soc_init(void)
 extern int stxh415_usb_init(const int port)
 {
 #if 0	/* QQQ - TO IMPLEMENT */
-//QQQ	DECLARE_GLOBAL_DATA_PTR;
-//QQQ	bd_t *bd = gd->bd;
 	static int initialized = 0;
 	unsigned int flags;
 	const struct {
@@ -970,24 +968,7 @@ extern int stxh415_usb_init(const int port)
 			  usb_pins[port].oc.pin, stm_pad_direction_input);
 
 	/* start the USB Wrapper Host Controller */
-#if 1	/* QQQ - DELETE */
 	flags = USB_FLAGS_STRAP_8BIT | USB_FLAGS_STBUS_CONFIG_THRESHOLD128;
-#else	/* QQQ - DELETE */
-	if (STX7108_DEVICEID_CUT(bd->bi_devid) < 2)
-	{		/* for cut 1.x */
-		flags = USB_FLAGS_STRAP_8BIT |
-			USB_FLAGS_STBUS_CONFIG_OPCODE_LD64_ST64 |
-			USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_1 |
-			USB_FLAGS_STBUS_CONFIG_THRESHOLD_64;
-	}
-	else
-	{		/* for cut 2.x */
-		flags = USB_FLAGS_STRAP_8BIT |
-			USB_FLAGS_STBUS_CONFIG_OPCODE_LD64_ST64 |
-			USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_2 |
-			USB_FLAGS_STBUS_CONFIG_THRESHOLD_128;
-	}
-#endif	/* QQQ - DELETE */
 	ST40_start_host_control(flags);
 
 	return 0;
