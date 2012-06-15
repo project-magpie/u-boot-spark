@@ -1280,7 +1280,6 @@ next_bank:	;
 				if (off >= nand->size)
 					goto out;
 			}
-
 			off -= nand->erasesize;
 out:
 			if (crc != ntohl(header->ih_dcrc))
