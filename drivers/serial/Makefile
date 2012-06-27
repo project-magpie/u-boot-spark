@@ -40,6 +40,7 @@ COBJS-$(CONFIG_SCIF_CONSOLE) += serial_sh.o
 COBJS-$(CONFIG_STM_ASC_SERIAL) += stm-asc.o
 COBJS-$(CONFIG_STM_DTF_SERIAL) += stm-dtf.o
 COBJS-$(CONFIG_USB_TTY) += usbtty.o
+COBJS-$(CONFIG_VCTH_SERIAL) += vcth.o
 
 COBJS	:= $(sort $(COBJS-y))
 SRCS	:= $(COBJS:.o=.c)

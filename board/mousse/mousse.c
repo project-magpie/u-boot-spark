@@ -30,6 +30,7 @@
 #include <mpc824x.h>
 #include <netdev.h>
 #include <asm/processor.h>
+#include <timestamp.h>
 
 #include "mousse.h"
 #include "m48t59y.h"
@@ -42,7 +43,7 @@ int checkboard (void)
 	char buf[32];
 
 	puts ("Board: MOUSSE MPC8240/KAHLUA - CHRP (MAP B)\n");
-	printf ("Built: %s at %s\n", __DATE__, __TIME__);
+	printf ("Built: %s at %s\n", U_BOOT_DATE, U_BOOT_TIME);
 	printf ("MPLD:  Revision %d\n", SYS_REVID_GET ());
 	printf ("Local Bus:  %s MHz\n", strmhz (buf, busfreq));
 
@@ -58,7 +59,7 @@ int checkflash (void)
 
 phys_size_t initdram (int board_type)
 {
-	return CFG_RAM_SIZE;
+	return CONFIG_SYS_RAM_SIZE;
 }
 
 

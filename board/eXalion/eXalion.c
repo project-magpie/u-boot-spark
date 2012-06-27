@@ -31,6 +31,7 @@
 #include <pci.h>
 #include <ide.h>
 #include <netdev.h>
+#include <timestamp.h>
 #include "piix_pci.h"
 #include "eXalion.h"
 
@@ -40,7 +41,7 @@ int checkboard (void)
 	char buf[32];
 
 	printf ("Board: eXalion MPC824x - CHRP (MAP B)\n");
-	printf ("Built: %s at %s\n", __DATE__, __TIME__);
+	printf ("Built: %s at %s\n", U_BOOT_DATE, U_BOOT_TIME);
 	printf ("Local Bus:  %s MHz\n", strmhz (buf, busfreq));
 
 	return 0;
@@ -56,12 +57,12 @@ int checkflash (void)
 phys_size_t initdram (int board_type)
 {
 	int i, cnt;
-	volatile uchar *base = CFG_SDRAM_BASE;
+	volatile uchar *base = CONFIG_SYS_SDRAM_BASE;
 	volatile ulong *addr;
 	ulong save[32];
 	ulong val, ret = 0;
 
-	for (i = 0, cnt = (CFG_MAX_RAM_SIZE / sizeof (long)) >> 1; cnt > 0;
+	for (i = 0, cnt = (CONFIG_SYS_MAX_RAM_SIZE / sizeof (long)) >> 1; cnt > 0;
 	     cnt >>= 1) {
 		addr = (volatile ulong *) base + cnt;
 		save[i++] = *addr;
@@ -77,7 +78,7 @@ phys_size_t initdram (int board_type)
 		goto Done;
 	}
 
-	for (cnt = 1; cnt <= CFG_MAX_RAM_SIZE / sizeof (long); cnt <<= 1) {
+	for (cnt = 1; cnt <= CONFIG_SYS_MAX_RAM_SIZE / sizeof (long); cnt <<= 1) {
 		addr = (volatile ulong *) base + cnt;
 		val = *addr;
 		*addr = save[--i];
@@ -100,7 +101,7 @@ phys_size_t initdram (int board_type)
 		}
 	}
 
-	ret = CFG_MAX_RAM_SIZE;
+	ret = CONFIG_SYS_MAX_RAM_SIZE;
       Done:
 	return ret;
 }

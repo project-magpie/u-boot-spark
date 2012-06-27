@@ -130,6 +130,10 @@ Jon Diekema <jon.diekema@smiths-aerospace.com>
 
 	sbc8260		MPC8260
 
+Dirk Eibach <eibach@gdsys.de>
+
+	neo		PPC405EP
+
 Dave Ellis <DGE@sixnetio.com>
 
 	SXNI855T	MPC8xx
@@ -315,7 +319,8 @@ Ricardo Ribalda <ricardo.ribalda@uam.es>
 
 	ml507 		PPC440x5
 	v5fx30teval	PPC440x5
-	xilinx-pp440-generic	PPC440x5
+	xilinx-ppc405-generic	PPC405
+	xilinx-ppc440-generic	PPC440x5
 
 Stefan Roese <sr@denx.de>
 
@@ -361,6 +366,10 @@ Travis Sawyer (travis.sawyer@sandburst.com>
 	METROBOX	PPC440GX
 	XPEDITE1K	PPC440GX
 
+Georg Schardt <schardt@team-ctech.de>
+
+	fx12mm		PPC405
+
 Heiko Schocher <hs@denx.de>
 
 	ids8247		MPC8247
@@ -402,6 +411,10 @@ Rune Torgersen <runet@innovsys.com>
 
 	MPC8266ADS	MPC8266
 
+Peter Tyser <ptyser@xes-inc.com>
+
+	XPEDITE5200	MPC8548
+	XPEDITE5370	MPC8572
 
 David Updegraff <dave@cray.com>
 
@@ -607,6 +620,10 @@ Alex Züpke <azu@sysgo.de>
 	lart		SA1100
 	dnp1110		SA1110
 
+Sergey Lapin <slapin@ossfans.org>
+
+	afeb9260	ARM926EJS (AT91SAM9260 SoC)
+
 -------------------------------------------------------------------------
 
 Unknown / orphaned boards:
@@ -691,7 +708,6 @@ Yasushi Shoji <yashi@atmark-techno.com>
 Michal Simek <monstr@monstr.eu>
 
 	ML401		MicroBlaze
-	XUPV2P		MicroBlaze
 
 #########################################################################
 # Coldfire Systems:							#
@@ -713,6 +729,7 @@ TsiChung Liew <Tsi-Chung.Liew@freescale.com>
 	M52277EVB	mcf5227x
 	M5235EVB	mcf52x2
 	M5253DEMO	mcf52x2
+	M53017EVB	mcf532x
 	M5329EVB	mcf532x
 	M5373EVB	mcf532x
 	M54455EVB	mcf5445x

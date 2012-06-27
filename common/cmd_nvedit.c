@@ -72,7 +72,7 @@ DECLARE_GLOBAL_DATA_PTR;
 /*
  * Table with supported baudrates (defined in config_xyz.h)
  */
-static const unsigned long baudrate_table[] = CFG_BAUDRATE_TABLE;
+static const unsigned long baudrate_table[] = CONFIG_SYS_BAUDRATE_TABLE;
 #define	N_BAUDRATES (sizeof(baudrate_table) / sizeof(baudrate_table[0]))
 
 
@@ -213,6 +213,11 @@ int _do_setenv (int flag, int argc, char *argv[])
 				return 1;
 			}
 
+#ifdef CONFIG_CONSOLE_MUX
+			i = iomux_doenv(console, argv[2]);
+			if (i)
+				return i;
+#else
 			/* Try assigning specified device */
 			if (console_assign (console, argv[2]) < 0)
 				return 1;
@@ -221,6 +226,7 @@ int _do_setenv (int flag, int argc, char *argv[])
 			if (serial_assign (argv[2]) < 0)
 				return 1;
 #endif
+#endif /* CONFIG_CONSOLE_MUX */
 		}
 
 		/*
@@ -416,9 +422,9 @@ int do_setenv (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #if defined(CONFIG_CMD_ASKENV)
 int do_askenv ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	extern char console_buffer[CFG_CBSIZE];
-	char message[CFG_CBSIZE];
-	int size = CFG_CBSIZE - 1;
+	extern char console_buffer[CONFIG_SYS_CBSIZE];
+	char message[CONFIG_SYS_CBSIZE];
+	int size = CONFIG_SYS_CBSIZE - 1;
 	int len;
 	char *local_args[4];
 
@@ -464,8 +470,8 @@ int do_askenv ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		break;
 	}
 
-	if (size >= CFG_CBSIZE)
-		size = CFG_CBSIZE - 1;
+	if (size >= CONFIG_SYS_CBSIZE)
+		size = CONFIG_SYS_CBSIZE - 1;
 
 	if (size <= 0)
 		return 1;
@@ -580,7 +586,7 @@ int envmatch (uchar *s1, int i2)
 /**************************************************/
 
 U_BOOT_CMD(
-	printenv, CFG_MAXARGS, 1,	do_printenv,
+	printenv, CONFIG_SYS_MAXARGS, 1,	do_printenv,
 	"printenv- print environment variables\n",
 	"\n    - print values of all environment variables\n"
 	"printenv name ...\n"
@@ -588,7 +594,7 @@ U_BOOT_CMD(
 );
 
 U_BOOT_CMD(
-	setenv, CFG_MAXARGS, 0,	do_setenv,
+	setenv, CONFIG_SYS_MAXARGS, 0,	do_setenv,
 	"setenv  - set environment variables\n",
 	"name value ...\n"
 	"    - set environment variable 'name' to 'value ...'\n"
@@ -612,7 +618,7 @@ U_BOOT_CMD(
 #if defined(CONFIG_CMD_ASKENV)
 
 U_BOOT_CMD(
-	askenv,	CFG_MAXARGS,	1,	do_askenv,
+	askenv,	CONFIG_SYS_MAXARGS,	1,	do_askenv,
 	"askenv  - get environment variables from stdin\n",
 	"name [message] [size]\n"
 	"    - get environment variable 'name' from stdin (max 'size' chars)\n"
@@ -629,7 +635,7 @@ U_BOOT_CMD(
 #if defined(CONFIG_CMD_RUN)
 int do_run (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 U_BOOT_CMD(
-	run,	CFG_MAXARGS,	1,	do_run,
+	run,	CONFIG_SYS_MAXARGS,	1,	do_run,
 	"run     - run commands in an environment variable\n",
 	"var [...]\n"
 	"    - run the commands in the environment variable(s) 'var'\n"

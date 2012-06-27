@@ -61,7 +61,7 @@ static inline struct soft_spi_slave *to_soft_spi(struct spi_slave *slave)
 void spi_init (void)
 {
 #ifdef	SPI_INIT
-	volatile immap_t *immr = (immap_t *)CFG_IMMR;
+	volatile immap_t *immr = (immap_t *)CONFIG_SYS_IMMR;
 
 	SPI_INIT;
 #endif
@@ -97,8 +97,8 @@ void spi_free_slave(struct spi_slave *slave)
 
 int spi_claim_bus(struct spi_slave *slave)
 {
-#ifdef CFG_IMMR
-	volatile immap_t *immr = (immap_t *)CFG_IMMR;
+#ifdef CONFIG_SYS_IMMR
+	volatile immap_t *immr = (immap_t *)CONFIG_SYS_IMMR;
 #endif
 	struct soft_spi_slave *ss = to_soft_spi(slave);
 
@@ -134,8 +134,8 @@ void spi_release_bus(struct spi_slave *slave)
 int  spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 		const void *dout, void *din, unsigned long flags)
 {
-#ifdef CFG_IMMR
-	volatile immap_t *immr = (immap_t *)CFG_IMMR;
+#ifdef CONFIG_SYS_IMMR
+	volatile immap_t *immr = (immap_t *)CONFIG_SYS_IMMR;
 #endif
 	struct soft_spi_slave *ss = to_soft_spi(slave);
 	uchar		tmpdin  = 0;

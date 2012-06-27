@@ -75,7 +75,7 @@ struct fsl_elbc_ctrl {
 	struct fsl_elbc_mtd *chips[MAX_BANKS];
 
 	/* device info */
-	lbus83xx_t *regs;
+	fsl_lbus_t *regs;
 	u8 __iomem *addr;        /* Address of assigned FCM buffer        */
 	unsigned int page;       /* Last page written to / read from      */
 	unsigned int read_bytes; /* Number of bytes read during command   */
@@ -171,7 +171,7 @@ static void set_addr(struct mtd_info *mtd, int column, int page_addr, int oob)
 	struct nand_chip *chip = mtd->priv;
 	struct fsl_elbc_mtd *priv = chip->priv;
 	struct fsl_elbc_ctrl *ctrl = priv->ctrl;
-	lbus83xx_t *lbc = ctrl->regs;
+	fsl_lbus_t *lbc = ctrl->regs;
 	int buf_num;
 
 	ctrl->page = page_addr;
@@ -211,7 +211,7 @@ static int fsl_elbc_run_command(struct mtd_info *mtd)
 	struct nand_chip *chip = mtd->priv;
 	struct fsl_elbc_mtd *priv = chip->priv;
 	struct fsl_elbc_ctrl *ctrl = priv->ctrl;
-	lbus83xx_t *lbc = ctrl->regs;
+	fsl_lbus_t *lbc = ctrl->regs;
 	long long end_tick;
 	u32 ltesr;
 
@@ -261,7 +261,7 @@ static void fsl_elbc_do_read(struct nand_chip *chip, int oob)
 {
 	struct fsl_elbc_mtd *priv = chip->priv;
 	struct fsl_elbc_ctrl *ctrl = priv->ctrl;
-	lbus83xx_t *lbc = ctrl->regs;
+	fsl_lbus_t *lbc = ctrl->regs;
 
 	if (priv->page_size) {
 		out_be32(&lbc->fir,
@@ -295,7 +295,7 @@ static void fsl_elbc_cmdfunc(struct mtd_info *mtd, unsigned int command,
 	struct nand_chip *chip = mtd->priv;
 	struct fsl_elbc_mtd *priv = chip->priv;
 	struct fsl_elbc_ctrl *ctrl = priv->ctrl;
-	lbus83xx_t *lbc = ctrl->regs;
+	fsl_lbus_t *lbc = ctrl->regs;
 
 	ctrl->use_mdr = 0;
 
@@ -633,7 +633,7 @@ static int fsl_elbc_wait(struct mtd_info *mtd, struct nand_chip *chip)
 {
 	struct fsl_elbc_mtd *priv = chip->priv;
 	struct fsl_elbc_ctrl *ctrl = priv->ctrl;
-	lbus83xx_t *lbc = ctrl->regs;
+	fsl_lbus_t *lbc = ctrl->regs;
 
 	if (ctrl->status != LTESR_CC)
 		return NAND_STATUS_FAIL;
@@ -693,13 +693,15 @@ static struct fsl_elbc_ctrl *elbc_ctrl;
 
 static void fsl_elbc_ctrl_init(void)
 {
-	immap_t *im = (immap_t *)CFG_IMMR;
-
 	elbc_ctrl = kzalloc(sizeof(*elbc_ctrl), GFP_KERNEL);
 	if (!elbc_ctrl)
 		return;
 
-	elbc_ctrl->regs = &im->lbus;
+#ifdef CONFIG_MPC85xx
+	elbc_ctrl->regs = (void *)CONFIG_SYS_MPC85xx_LBC_ADDR;
+#else
+	elbc_ctrl->regs = &((immap_t *)CONFIG_SYS_IMMR)->lbus;
+#endif
 
 	/* clear event registers */
 	out_be32(&elbc_ctrl->regs->ltesr, LTESR_NAND_MASK);
@@ -716,7 +718,7 @@ static void fsl_elbc_ctrl_init(void)
 int board_nand_init(struct nand_chip *nand)
 {
 	struct fsl_elbc_mtd *priv;
-	uint32_t br, or;
+	uint32_t br = 0, or = 0;
 
 	if (!elbc_ctrl) {
 		fsl_elbc_ctrl_init();
@@ -735,11 +737,13 @@ int board_nand_init(struct nand_chip *nand)
 	 * if we could pass more than one datum to the NAND driver...
 	 */
 	for (priv->bank = 0; priv->bank < MAX_BANKS; priv->bank++) {
+		phys_addr_t base_addr = virt_to_phys(nand->IO_ADDR_R);
+
 		br = in_be32(&elbc_ctrl->regs->bank[priv->bank].br);
 		or = in_be32(&elbc_ctrl->regs->bank[priv->bank].or);
 
 		if ((br & BR_V) && (br & BR_MSEL) == BR_MS_FCM &&
-		    (br & or & BR_BA) == (phys_addr_t)nand->IO_ADDR_R)
+		    (br & or & BR_BA) == BR_PHYS_ADDR(base_addr))
 			break;
 	}
 
@@ -775,6 +779,20 @@ int board_nand_init(struct nand_chip *nand)
 	nand->ecc.read_page = fsl_elbc_read_page;
 	nand->ecc.write_page = fsl_elbc_write_page;
 
+#ifdef CONFIG_FSL_ELBC_FMR
+	priv->fmr = CONFIG_FSL_ELBC_FMR;
+#else
+	priv->fmr = (15 << FMR_CWTO_SHIFT) | (2 << FMR_AL_SHIFT);
+
+	/*
+	 * Hardware expects small page has ECCM0, large page has ECCM1
+	 * when booting from NAND.  Board config can override if not
+	 * booting from NAND.
+	 */
+	if (or & OR_FCM_PGS)
+		priv->fmr |= FMR_ECCM;
+#endif
+
 	/* If CS Base Register selects full hardware ECC then use it */
 	if ((br & BR_DECC) == BR_DECC_CHK_GEN) {
 		nand->ecc.mode = NAND_ECC_HW;
@@ -790,8 +808,6 @@ int board_nand_init(struct nand_chip *nand)
 		/* otherwise fall back to default software ECC */
 		nand->ecc.mode = NAND_ECC_SOFT;
 	}
-
-	priv->fmr = (15 << FMR_CWTO_SHIFT) | (2 << FMR_AL_SHIFT);
 
 	/* Large-page-specific setup */
 	if (or & OR_FCM_PGS) {

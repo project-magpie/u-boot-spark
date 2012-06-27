@@ -28,11 +28,12 @@
 #include <fdt_support.h>
 #include <asm/processor.h>
 
+DECLARE_GLOBAL_DATA_PTR;
+
 extern void ft_qe_setup(void *blob);
 
 #ifdef CONFIG_MP
 #include "mp.h"
-DECLARE_GLOBAL_DATA_PTR;
 
 void ft_fixup_cpu(void *blob, u64 memory_limit)
 {
@@ -83,7 +84,7 @@ void ft_fixup_cpu(void *blob, u64 memory_limit)
 /* return size in kilobytes */
 static inline u32 l2cache_size(void)
 {
-	volatile ccsr_l2cache_t *l2cache = (void *)CFG_MPC85xx_L2_ADDR;
+	volatile ccsr_l2cache_t *l2cache = (void *)CONFIG_SYS_MPC85xx_L2_ADDR;
 	volatile u32 l2siz_field = (l2cache->l2ctl >> 28) & 0x3;
 	u32 ver = SVR_SOC_VER(get_svr());
 
@@ -201,6 +202,15 @@ static inline void ft_fixup_cache(void *blob)
 }
 
 
+void fdt_add_enet_stashing(void *fdt)
+{
+	do_fixup_by_compat(fdt, "gianfar", "bd-stash", NULL, 0, 1);
+
+	do_fixup_by_compat_u32(fdt, "gianfar", "rx-stash-len", 96, 1);
+
+	do_fixup_by_compat_u32(fdt, "gianfar", "rx-stash-idx", 0, 1);
+}
+
 void ft_cpu_setup(void *blob, bd_t *bd)
 {
 	/* delete crypto node if not on an E-processor */
@@ -210,6 +220,8 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 #if defined(CONFIG_HAS_ETH0) || defined(CONFIG_HAS_ETH1) ||\
     defined(CONFIG_HAS_ETH2) || defined(CONFIG_HAS_ETH3)
 	fdt_fixup_ethernet(blob);
+
+	fdt_add_enet_stashing(blob);
 #endif
 
 	do_fixup_by_prop_u32(blob, "device_type", "cpu", 4,
@@ -220,13 +232,18 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 		"clock-frequency", bd->bi_intfreq, 1);
 	do_fixup_by_prop_u32(blob, "device_type", "soc", 4,
 		"bus-frequency", bd->bi_busfreq, 1);
+
+	do_fixup_by_compat_u32(blob, "fsl,pq3-localbus",
+		"bus-frequency", gd->lbc_clk, 1);
+	do_fixup_by_compat_u32(blob, "fsl,elbc",
+		"bus-frequency", gd->lbc_clk, 1);
 #ifdef CONFIG_QE
 	ft_qe_setup(blob);
 #endif
 
-#ifdef CFG_NS16550
+#ifdef CONFIG_SYS_NS16550
 	do_fixup_by_compat_u32(blob, "ns16550",
-		"clock-frequency", CFG_NS16550_CLK, 1);
+		"clock-frequency", CONFIG_SYS_NS16550_CLK, 1);
 #endif
 
 #ifdef CONFIG_CPM2

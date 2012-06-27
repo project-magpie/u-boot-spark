@@ -3,7 +3,7 @@
  * (C) Copyright 2000-2003
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * Copyright (C) 2004-2007 Freescale Semiconductor, Inc.
+ * Copyright (C) 2004-2008 Freescale Semiconductor, Inc.
  * TsiChung Liew (Tsi-Chung.Liew@freescale.com)
  *
  * See file CREDITS for list of people who contributed to this
@@ -56,6 +56,24 @@ int checkcpu(void)
 	msk = (ccm->cir >> 6);
 	ver = (ccm->cir & 0x003f);
 	switch (msk) {
+#ifdef CONFIG_MCF5301x
+	case 0x78:
+		id = 53010;
+		break;
+	case 0x77:
+		id = 53012;
+		break;
+	case 0x76:
+		id = 53015;
+		break;
+	case 0x74:
+		id = 53011;
+		break;
+	case 0x73:
+		id = 53013;
+		break;
+#endif
+#ifdef CONFIG_MCF532x
 	case 0x54:
 		id = 5329;
 		break;
@@ -77,14 +95,17 @@ int checkcpu(void)
 	case 0x6B:
 		id = 5372;
 		break;
+#endif
 	}
 
 	if (id) {
+		char buf1[32], buf2[32];
+
 		printf("Freescale MCF%d (Mask:%01x Version:%x)\n", id, msk,
 		       ver);
-		printf("       CPU CLK %d Mhz BUS CLK %d Mhz\n",
-		       (int)(gd->cpu_clk / 1000000),
-		       (int)(gd->bus_clk / 1000000));
+		printf("       CPU CLK %s MHz BUS CLK %s MHz\n",
+		       strmhz(buf1, gd->cpu_clk),
+		       strmhz(buf2, gd->bus_clk));
 	}
 
 	return 0;
@@ -117,7 +138,7 @@ int watchdog_init(void)
 	u32 wdog_module = 0;
 
 	/* set timeout and enable watchdog */
-	wdog_module = ((CFG_CLK / 1000) * CONFIG_WATCHDOG_TIMEOUT);
+	wdog_module = ((CONFIG_SYS_CLK / 1000) * CONFIG_WATCHDOG_TIMEOUT);
 #ifdef CONFIG_M5329
 	wdp->mr = (wdog_module / 8192);
 #else

@@ -60,7 +60,6 @@ COBJS	+= usb.o
 COBJS	+= usb_ohci.o
 COBJS	+= usbdev.o
 ifndef CONFIG_XILINX_440
-COBJS	+= 4xx_enet.o
 COBJS	+= 4xx_uart.o
 COBJS	+= gpio.o
 COBJS	+= miiphy.o
