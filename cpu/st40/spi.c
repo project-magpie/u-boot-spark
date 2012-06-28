@@ -119,10 +119,10 @@ static struct spi_slave * MyDefaultSlave = NULL;	/* QQQ - TO DO SOMETHING HERE ?
 #define SPI_MODE_3		(SPI_CPOL|SPI_CPHA)
 
 /* SPI Controller's Base Address */
-#if !defined(CFG_STM_SPI_SSC_BASE)
-#error Please define CFG_STM_SPI_SSC_BASE (e.g. ST40_SSC0_REGS_BASE)
+#if !defined(CONFIG_SYS_STM_SPI_SSC_BASE)
+#error Please define CONFIG_SYS_STM_SPI_SSC_BASE (e.g. ST40_SSC0_REGS_BASE)
 #endif
-static const unsigned long ssc = CFG_STM_SPI_SSC_BASE;	/* SSC base */
+static const unsigned long ssc = CONFIG_SYS_STM_SPI_SSC_BASE;	/* SSC base */
 
 /* SPI Controller Register's Accessors */
 #define ssc_write(offset, value)	writel((value), (ssc)+(offset))
@@ -521,7 +521,7 @@ static int spi_probe_serial_flash(
 	status = spi_read_status(slave);
 	if (
 		(status == 0xffu)	/* nothing talking to us ? */	||
-		( (status & CFG_STM_SPI_DEVICE_MASK) != CFG_STM_SPI_DEVICE_VAL )
+		( (status & CONFIG_SYS_STM_SPI_DEVICE_MASK) != CONFIG_SYS_STM_SPI_DEVICE_VAL )
 	   )
 	{
 		printf("ERROR: Unknown SPI Device detected, status = 0x%02x\n",
@@ -830,15 +830,15 @@ extern void spi_init(void)
 	/* initialize the H/W SSC for SPI. */
 	unsigned long reg;
 	const unsigned long bits_per_word = 8;	/* one word == 8-bits */
-	const unsigned long mode = CFG_STM_SPI_MODE /* | SPI_LOOP */;
+	const unsigned long mode = CONFIG_SYS_STM_SPI_MODE /* | SPI_LOOP */;
 	const unsigned long fcomms = get_peripheral_clk_rate();
-	const unsigned long hz = CFG_STM_SPI_FREQUENCY;
+	const unsigned long hz = CONFIG_SYS_STM_SPI_FREQUENCY;
 	      unsigned long sscbrg = fcomms/(2*hz);
 
 #if defined(CONFIG_ST40_STX5197)
 	/* configure SSC0 to use the SPI pads (not PIO1[7:6]) */
 	reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
-	reg |= 1ul<<14;	/* CFG_CTRL_M.SPI_BOOTNOTCOMMS = 1 [14] */
+	reg |= 1ul<<14;	/* CONFIG_SYS_CTRL_M.SPI_BOOTNOTCOMMS = 1 [14] */
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;
 #endif	/* CONFIG_ST40_STX5197 */
 

@@ -80,7 +80,7 @@ static void stxh205_clocks(void)
 	 * Note: for the SBC, we expect this will always be 30MHz, so this
 	 * is *less* than a gross hack! The "gross hack" is for the other cases!
 	 */
-#if (CFG_STM_ASC_BASE==STXH205_ASC10_BASE) || (CFG_STM_ASC_BASE==STXH205_ASC11_BASE)
+#if (CONFIG_SYS_STM_ASC_BASE==STXH205_ASC10_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH205_ASC11_BASE)
 	bd->bi_emifrq = 30;	/* use 30 MHz */
 #else
 	bd->bi_emifrq = 100;	/* use 100 MHz */
@@ -337,7 +337,7 @@ static void stxh205_pioalt_retime(const int port, const int pin,
 
 
 /* --------------------------------------------------------------------
- *           Ethernet MAC resources (PAD and Retiming)
+ *		Ethernet MAC resources (PAD and Retiming)
  * --------------------------------------------------------------------*/
 
 
@@ -774,7 +774,7 @@ extern int stxh205_i2c_read(void)
 #if defined(CONFIG_I2C_CMD_TREE)
 extern unsigned int i2c_get_bus_speed(void)
 {
-	return CFG_I2C_SPEED;
+	return CONFIG_SYS_I2C_SPEED;
 }
 extern int i2c_set_bus_speed(unsigned int speed)
 {

@@ -292,10 +292,10 @@ static int read_abs_bbt(struct mtd_info *mtd, uint8_t *buf, struct nand_bbt_desc
 static int scan_read_raw(struct mtd_info *mtd, uint8_t *buf, loff_t offs,
 			 size_t len)
 {
-#if defined(CFG_ST40_NAND_USE_BCH)		/* for H/W BCH ("multi-bit ECC") driver */
+#if defined(CONFIG_SYS_ST40_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
 	/* call STMicroelectronics specific version instead */
 	return stm_bch_scan_read_raw(mtd, buf, offs, len);
-#else /* CFG_ST40_NAND_USE_BCH */
+#else /* CONFIG_SYS_ST40_NAND_USE_BCH */
 	struct mtd_oob_ops ops;
 
 	ops.mode = MTD_OOB_RAW;
@@ -306,7 +306,7 @@ static int scan_read_raw(struct mtd_info *mtd, uint8_t *buf, loff_t offs,
 	ops.len = len;
 
 	return mtd->read_oob(mtd, offs, &ops);
-#endif /* CFG_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_ST40_NAND_USE_BCH */
 }
 
 /*

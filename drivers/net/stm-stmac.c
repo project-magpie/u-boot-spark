@@ -66,7 +66,7 @@ static int cur_rx;
 static int eth_phy_addr;
 static char miidevice[] = "stmacphy";
 
-#define MAX_ETH_FRAME_SIZE      1536
+#define MAX_ETH_FRAME_SIZE	1536
 #define MAX_PAUSE_TIME (MAC_FLOW_CONTROL_PT_MASK>>MAC_FLOW_CONTROL_PT_SHIFT)
 
 static void stmac_mii_write (int phy_addr, int reg, int value);
@@ -104,40 +104,40 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 /******************************************************************************
  * IEEE Standard 802.3-2002 vendor specific registers (0x10-0x1e) STe10xP
  *****************************************************************************/
-#define MII_XCIIS                0x11	/* Config info & int status register */
-#define MII_XIE                  0x12	/* Interrupt enable register */
-#define MII_100CTR               0x13	/* 100BaseX control register */
-#define MII_XMC                  0x14	/* Mode control register */
+#define MII_XCIIS		0x11	/* Config info & int status register */
+#define MII_XIE			0x12	/* Interrupt enable register */
+#define MII_100CTR		0x13	/* 100BaseX control register */
+#define MII_XMC			0x14	/* Mode control register */
 
 /******************************************************************************
  * 100BaseX Auxiliary Status register defines
  *****************************************************************************/
-#define XCIIS_FIFO_OVR           0x0800	/* FIFO Overrun */
-#define XCIIS_SPEED              0x0200	/* Speed */
-#define XCIIS_DUPLEX             0x0100	/* Duplex */
-#define XCIIS_PAUSE              0x0080	/* Pause */
-#define XCIIS_ANEG_INT           0x0040	/* Auto Negotiation Interrupt */
-#define XCIIS_RFAULT             0x0020	/* Remote Fault Interrupt */
-#define XCIIS_LDOWN              0x0010	/* Link Down Interrupt */
-#define XCIIS_LCWR               0x0008	/* Link Code Word Received Interrupt */
-#define XCIIS_PFAULT             0x0004	/* Parallel Detection Fault */
-#define XCIIS_ANEG_PAGE          0x0002	/* Auto Negotiation Page Rec Intr */
-#define XCIIS_REF_INTR           0x0001	/* Ref Interrupt */
+#define XCIIS_FIFO_OVR		0x0800	/* FIFO Overrun */
+#define XCIIS_SPEED		0x0200	/* Speed */
+#define XCIIS_DUPLEX		0x0100	/* Duplex */
+#define XCIIS_PAUSE		0x0080	/* Pause */
+#define XCIIS_ANEG_INT		0x0040	/* Auto Negotiation Interrupt */
+#define XCIIS_RFAULT		0x0020	/* Remote Fault Interrupt */
+#define XCIIS_LDOWN		0x0010	/* Link Down Interrupt */
+#define XCIIS_LCWR		0x0008	/* Link Code Word Received Interrupt */
+#define XCIIS_PFAULT		0x0004	/* Parallel Detection Fault */
+#define XCIIS_ANEG_PAGE		0x0002	/* Auto Negotiation Page Rec Intr */
+#define XCIIS_REF_INTR		0x0001	/* Ref Interrupt */
 
 /******************************************************************************
  * XCVR Mode Control register defines
  *****************************************************************************/
-#define XMC_LDETECT              0x0800	/* Link Detect */
-#define XMC_PHY_ADDR_MSK         0x00f8	/* PHY Address Mask */
-#define XMC_PHY_ADDR_SHIFT       3	/* PHY Address Mask */
-#define XMC_PRE_SUP              0x0002	/* Preamble Suppression */
+#define XMC_LDETECT		0x0800	/* Link Detect */
+#define XMC_PHY_ADDR_MSK	0x00f8	/* PHY Address Mask */
+#define XMC_PHY_ADDR_SHIFT	3	/* PHY Address Mask */
+#define XMC_PRE_SUP		0x0002	/* Preamble Suppression */
 #define PHY_ADDR_MSK		XMC_PHY_ADDR_MSK	/* PHY Address Mask */
 #define PHY_ADDR_SHIFT		XMC_PHY_ADDR_SHIFT	/* PHY Address Mask */
 
 /* MII mode */
-#define MII_TSTAT_SMII  0x1000
-#define MII_TSTAT_RMII  0x0800
-#define MII_TSTAT_MII   0x0400
+#define MII_TSTAT_SMII		0x1000
+#define MII_TSTAT_RMII		0x0800
+#define MII_TSTAT_MII		0x0400
 
 #elif defined(CONFIG_STMAC_LAN8700)	/* SMSC LAN8700 */
 
@@ -210,7 +210,7 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 
 
 /* MII mode */
-#define MII_ADVERTISE_PAUSE 0x0400	/* supports the pause command */
+#define MII_ADVERTISE_PAUSE	0x0400	/* supports the pause command */
 
 
 #ifndef CONFIG_PHY_LOOPBACK
@@ -307,11 +307,11 @@ static unsigned int stmac_phy_get_addr (void)
 		unsigned int id2 = stmac_mii_read (phyaddr, MII_PHYSID2);
 		id  = (id1 << 16) | (id2);
 
-#if	0						&& \
-	defined(CONFIG_ST40_STXH415)			&& \
-	defined(CONFIG_ST40_B2000)			&& \
-	defined(CONFIG_STMAC_IP1001)			&& \
-	(CFG_STM_STMAC_BASE==CFG_STM_STMAC0_BASE)
+#if	0							&& \
+	defined(CONFIG_ST40_STXH415)				&& \
+	defined(CONFIG_ST40_B2000)				&& \
+	defined(CONFIG_STMAC_IP1001)				&& \
+	(CONFIG_SYS_STM_STMAC_BASE==CONFIG_SYS_STM_STMAC0_BASE)
 		/*
 		 * See comment in stmac_mii_read() for details ...
 		 * The code there is probably a better solution!
@@ -591,7 +591,7 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 #if	defined(CONFIG_ST40_STXH415)					&& \
 	defined(CONFIG_ST40_B2000)					&& \
 	(defined(CONFIG_STMAC_IP1001)||defined(CONFIG_STMAC_IP101A))	&& \
-	(CFG_STM_STMAC_BASE==CFG_STM_STMAC0_BASE)
+	(CONFIG_SYS_STM_STMAC_BASE==CONFIG_SYS_STM_STMAC0_BASE)
 		/*
 		 * On the B2000 board (STxH415), using a suitable
 		 * daughter-board PHY (e.g. B2032), connected to GMAC #0 (CN22),
@@ -659,13 +659,13 @@ static void gmac_dump_regs(void)
 		"\t  %s registers (base addr = 0x%8x)\n"
 		"\t----------------------------------------------\n";
 
-	printf (header, "MAC CORE", (unsigned int)CFG_STM_STMAC_BASE);
+	printf (header, "MAC CORE", (unsigned int)CONFIG_SYS_STM_STMAC_BASE);
 	for (i = 0; i < 18; i++) {
 		int offset = i * 4;
 		printf(fmt, i, offset, STMAC_READ (offset));
 	}
 
-	printf (header, "MAC DMA", (unsigned int)CFG_STM_STMAC_BASE);
+	printf (header, "MAC DMA", (unsigned int)CONFIG_SYS_STM_STMAC_BASE);
 	for (i = 0; i < 9; i++) {
 		int offset = i * 4;
 		printf (fmt, i, (DMA_BUS_MODE + offset),
@@ -674,7 +674,7 @@ static void gmac_dump_regs(void)
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	printf ("\tSTBus bridge register (0x%08x) = 0x%08x\n",
-		(unsigned int)(CFG_STM_STMAC_BASE + STBUS_BRIDGE_OFFSET),
+		(unsigned int)(CONFIG_SYS_STM_STMAC_BASE + STBUS_BRIDGE_OFFSET),
 		STMAC_READ (STBUS_BRIDGE_OFFSET));
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 }
@@ -818,7 +818,7 @@ static void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed)
 
 	STMAC_WRITE (flow, MAC_FLOW_CONTROL);
 	STMAC_WRITE (ctrl, MAC_CONTROL);
-	
+
 	/* ensure the SoC knows the correct speed */
 	stmac_set_mac_speed (speed);
 
@@ -850,7 +850,7 @@ static void stmac_mac_core_init (void)
 }
 
 /* ----------------------------------------------------------------------------
- *  			DESCRIPTORS functions
+ *			DESCRIPTORS functions
  * ---------------------------------------------------------------------------*/
 
 #ifdef DEBUG

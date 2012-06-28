@@ -376,21 +376,21 @@ static int bootm_load_os(image_info_t os, ulong *load_end, int boot_progress)
 		}
 #endif	/* CONFIG_ST40_SE_MODE */
 
-		/* assert (Uload >= CFG_SDRAM_BASE); */
-		if ( PHYSADDR(Uload) < PHYSADDR(CFG_SDRAM_BASE) )
+		/* assert (Uload >= CONFIG_SYS_SDRAM_BASE); */
+		if ( PHYSADDR(Uload) < PHYSADDR(CONFIG_SYS_SDRAM_BASE) )
 		{
 			printf ("\nERROR: Uncompressed image (0x%08lx) is below RAM (0x%08x)\n",
 				Uload,
-				CFG_SDRAM_BASE);
+				CONFIG_SYS_SDRAM_BASE);
 			return 1;	/* unable to proceed */
 		}
 
-		/* assert (Uend < CFG_MEMTEST_END); */
-		if ( PHYSADDR(Uend) >= PHYSADDR(CFG_MEMTEST_END) )
+		/* assert (Uend < CONFIG_SYS_MEMTEST_END); */
+		if ( PHYSADDR(Uend) >= PHYSADDR(CONFIG_SYS_MEMTEST_END) )
 		{
 			printf ("\nERROR: Uncompressed image (0x%08lx) is beyond safe RAM (0x%08x)\n",
 				Uend,
-				CFG_MEMTEST_END);
+				CONFIG_SYS_MEMTEST_END);
 			return 1;	/* unable to proceed */
 		}
 

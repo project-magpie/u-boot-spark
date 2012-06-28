@@ -55,9 +55,9 @@ do							\
  *	MII0: PIO106[2] = GMII0_notRESET
  *	MII1: PIO4[7]   = GMII1_notRESET	(needs J39 fitted)
  */
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0, on CN22 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0, on CN22 */
 #	define GMII_PHY_NOT_RESET	106, 2
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1, on CN23 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1, on CN23 */
 #	define GMII_PHY_NOT_RESET	4, 7
 #endif
 
@@ -66,7 +66,7 @@ static void configPIO(void)
 {
 	/* Setup PIOs for ASC device */
 
-#if CFG_STM_ASC_BASE == STXH415_ASC2_BASE
+#if CONFIG_SYS_STM_ASC_BASE == STXH415_ASC2_BASE
 
 	/* Route UART2 via PIO17 for TX, RX, CTS & RTS (Alternative #1) */
 	PIOALT(17, 4, 2, stm_pad_direction_output);	/* UART2-TX */
@@ -74,7 +74,7 @@ static void configPIO(void)
 	PIOALT(17, 7, 2, stm_pad_direction_output);	/* UART2-RTS */
 	PIOALT(17, 6, 2, stm_pad_direction_input);	/* UART2-CTS */
 
-#elif CFG_STM_ASC_BASE == STXH415_SBC_ASC0_BASE
+#elif CONFIG_SYS_STM_ASC_BASE == STXH415_SBC_ASC0_BASE
 
 	/* Route SBC_UART0 via PIO3 for TX, RX, CTS & RTS (Alternative #1) */
 	PIOALT(3, 4, 1, stm_pad_direction_output);	/* SBC_UART0-TX */
@@ -82,7 +82,7 @@ static void configPIO(void)
 	PIOALT(3, 7, 1, stm_pad_direction_output);	/* SBC_UART0-RTS */
 	PIOALT(3, 6, 1, stm_pad_direction_input);	/* SBC_UART0-CTS */
 
-#elif CFG_STM_ASC_BASE == STXH415_SBC_ASC1_BASE
+#elif CONFIG_SYS_STM_ASC_BASE == STXH415_SBC_ASC1_BASE
 
 	/* Route SBC_UART1 via PIO2,3 for TX, RX, CTS & RTS (Alternative #3) */
 	PIOALT(2, 6, 3, stm_pad_direction_output);	/* SBC_UART1-TX */
@@ -92,7 +92,7 @@ static void configPIO(void)
 
 #else
 #error Unknown ASC port selected!
-#endif	/* CFG_STM_ASC_BASE == STXH415_ASCx_REGS_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == STXH415_ASCx_REGS_BASE */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
@@ -148,7 +148,7 @@ extern int board_init(void)
  * distribution source trees for: arch/sh/boards/mach-b2000/setup.c
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0, on CN22 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0, on CN22 */
 #	if defined(CONFIG_STMAC_IP1001)		/* IC+ IP1001 (B2032) */
 	stxh415_configure_ethernet(0, &(struct stxh415_ethernet_config) {
 			.mode = stxh415_ethernet_mode_mii,
@@ -162,7 +162,7 @@ extern int board_init(void)
 #	else
 #	error Unknown PHY type associated with STM GMAC #0
 #	endif	/* CONFIG_STMAC_IP1001 || CONFIG_STMAC_IP101A */
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1, on CN23 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1, on CN23 */
 #	if defined(CONFIG_STMAC_IP1001)		/* IC+ IP1001 (B2032) */
 	stxh415_configure_ethernet(1, &(struct stxh415_ethernet_config) {
 			.mode = stxh415_ethernet_mode_mii,
@@ -204,7 +204,7 @@ int checkboard (void)
 #if defined(CONFIG_SOFT_SPI)
 	/*
 	 * Configure for the SPI Serial Flash.
-	 * Note: for CFG_BOOT_FROM_SPI + CONFIG_ENV_IS_IN_EEPROM, this
+	 * Note: for CONFIG_SYS_BOOT_FROM_SPI + CONFIG_ENV_IS_IN_EEPROM, this
 	 * needs to be done after env_init(), hence it is done
 	 * here, and not in board_init().
 	 */

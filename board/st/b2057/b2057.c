@@ -59,7 +59,7 @@ static void configPIO(void)
 {
 	/* Setup PIOs for ASC device */
 
-#if CFG_STM_ASC_BASE == STXH205_ASC1_BASE
+#if CONFIG_SYS_STM_ASC_BASE == STXH205_ASC1_BASE
 
 	/* Route UART #1 via PIO11 for TX & RX (JK1, 4-pin header) */
 	PIOALT(11, 0, 3, stm_pad_direction_output);	/* UART1-TX */
@@ -67,7 +67,7 @@ static void configPIO(void)
 //	PIOALT(11, 2, 3, stm_pad_direction_output);	/* UART1-RTS */
 //	PIOALT(11, 4, 3, stm_pad_direction_input);	/* UART1-CTS */
 
-#elif CFG_STM_ASC_BASE == STXH205_ASC10_BASE
+#elif CONFIG_SYS_STM_ASC_BASE == STXH205_ASC10_BASE
 
 	/* Route UART #10 via PIO3 for TX & RX (JM5, DB9) */
 	PIOALT(3, 5, 2, stm_pad_direction_output);	/* UART10-TX */
@@ -77,7 +77,7 @@ static void configPIO(void)
 
 #else
 #error Unknown ASC port selected!
-#endif	/* CFG_STM_ASC_BASE == STXH205_ASCx_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == STXH205_ASCx_BASE */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
@@ -168,7 +168,7 @@ int checkboard (void)
 #if defined(CONFIG_SOFT_SPI)
 	/*
 	 * Configure for the SPI Serial Flash.
-	 * Note: for CFG_BOOT_FROM_SPI + CONFIG_ENV_IS_IN_EEPROM, this
+	 * Note: for CONFIG_SYS_BOOT_FROM_SPI + CONFIG_ENV_IS_IN_EEPROM, this
 	 * needs to be done after env_init(), hence it is done
 	 * here, and not in board_init().
 	 */

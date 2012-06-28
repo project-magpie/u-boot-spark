@@ -43,7 +43,7 @@
  *	DMA Controller registers	0x400 - 0x7FF
  *	SATA Host Controller		0x800 - 0xBFF
  */
-#define SATA_BASE_ADDR				(CFG_ATA_BASE_ADDR & ~0xfff)	/* 4K aligned */
+#define SATA_BASE_ADDR				(CONFIG_SYS_ATA_BASE_ADDR & ~0xfff)	/* 4K aligned */
 #define SATA_AHB2STBUS_BASE			(SATA_BASE_ADDR + 0x000)
 #define SATA_AHBDMA_BASE			(SATA_BASE_ADDR + 0x400)
 #define SATA_AHBHOST_BASE			(SATA_BASE_ADDR + 0x800)
@@ -108,9 +108,9 @@ extern int stm_sata_probe(void)
 	/* WAS Chunk size = 2 packet when 1, now 0 */
 	writel(2, SATA_AHB2STBUS_CHUNK_SIZE_CONFIG);
 
-        // PC_GLUE_LOGIC
-        // 7:0  -- 0xFF = Set as reset value, 256 STBus Clock Cycles
-        // 8    -- 1  = Time out enabled
+	// PC_GLUE_LOGIC
+	// 7:0  -- 0xFF = Set as reset value, 256 STBus Clock Cycles
+	// 8    -- 1  = Time out enabled
 	// (has bit 8 moved to bit 16 on 7109 cut2?)
 	/* time out count = 0xa0(160 dec)
 	 * time out enable = 1

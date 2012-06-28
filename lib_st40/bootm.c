@@ -99,7 +99,7 @@ extern int do_bootm_linux (int flag, int argc, char *argv[], bootm_headers_t *im
 		asm ("mov r15, %0": "=r" (sp):);
 		debug ("## Current stack ends at 0x%08lX\n", sp);
 		sp -= 64 * 1024;	/* just to be sure */
-		lmb_reserve(lmb, sp, (CFG_SDRAM_BASE + CFG_SDRAM_SIZE - sp));
+		lmb_reserve(lmb, sp, (CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE - sp));
 
 		debug ("## ORIGINAL  initrd at 0x%08lX ... 0x%08lX\n",
 		       orig_start, orig_start+initrd_len);
@@ -224,7 +224,7 @@ extern int do_bootm_linux (int flag, int argc, char *argv[], bootm_headers_t *im
 	 * we then invalidate PMB[2], leaving just one (uncached) PMB
 	 * still valid - the one mapping the kernel itself (PMB[0]).
 	 *
-	 * Note: if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES is true, then
+	 * Note: if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES is true, then
 	 * please read the previous comment as:
 	 *
 	 * We also need to enter the kernel running out of an UNCACHED
@@ -239,20 +239,20 @@ extern int do_bootm_linux (int flag, int argc, char *argv[], bootm_headers_t *im
 	 * peripherals, including the serial console - so we can not
 	 * safely call puts(), printf(), etc. from this point onwards.
 	 */
-#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	/* set PMB[n].V = 0, for n == 4..15 */
 	for(i=4; i<16; i++)
 	{
 		*PMB_ADDR(i) = 0;	/* PMB[i].V = 0 */
 	}
-#else	/* CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES */
+#else	/* CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES */
 	/* set PMB[n].V = 0, for n == 1, 3..15 */
 	*PMB_ADDR(1) = 0;		/* PMB[1].V = 0 */
 	for(i=3; i<16; i++)
 	{
 		*PMB_ADDR(i) = 0;	/* PMB[i].V = 0 */
 	}
-#endif	/* CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES */
+#endif	/* CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES */
 
 	/*
 	 * Now run out of the UN-cached PMB array #0 (and #1).
@@ -261,14 +261,14 @@ extern int do_bootm_linux (int flag, int argc, char *argv[], bootm_headers_t *im
 	 */
 	sh_toggle_pmb_cacheability();
 
-#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	/* now invalidate PMB entry #2, #3, leaving just PMB #0, #1 valid */
 	*PMB_ADDR(2) = 0;	/* PMB[2].V = 0 */
 	*PMB_ADDR(3) = 0;	/* PMB[3].V = 0 */
-#else	/* CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES */
+#else	/* CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES */
 	/* now invalidate PMB entry #2, leaving just PMB #0 valid */
 	*PMB_ADDR(2) = 0;	/* PMB[2].V = 0 */
-#endif	/* CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES */
+#endif	/* CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES */
 
 	/*
 	 * we need to ensure that the ITLB is flushed, and not

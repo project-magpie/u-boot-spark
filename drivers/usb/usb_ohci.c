@@ -81,14 +81,14 @@
  * In 29-bit mode, we just zero the top 3 bits of the virtual address.
  *
  * In 32-bit mode, we need to honour the PMB mappings.
- * 	i.e. VA 0x80000000 == PA 0x40000000
+ *	i.e. VA 0x80000000 == PA 0x40000000
  *
  * Note: We must not modify at all if the address is 0x00000000.
  */
 #ifdef __SH4__
 #if defined(CONFIG_ST40_SE_MODE)
 #	define PHYSICAL_ADDR(addr)	\
-	((__u32)(addr) ? ((0x1ffffffful&(__u32)(addr))|(CFG_SE_PHYSICAL_BASE)) : 0ul)
+	((__u32)(addr) ? ((0x1ffffffful&(__u32)(addr))|(CONFIG_SYS_SE_PHYSICAL_BASE)) : 0ul)
 #else
 #	define PHYSICAL_ADDR(addr)	( 0x1ffffffful & (__u32)(addr) )
 #endif	/* CONFIG_ST40_SE_MODE */

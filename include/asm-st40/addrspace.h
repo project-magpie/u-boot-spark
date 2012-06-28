@@ -61,13 +61,13 @@
 		SE-Mode memory alias translations
    ---------------------------------------------------------------------------*/
 #ifdef CONFIG_ST40_SE_MODE
-#if !defined(CFG_SE_SDRAM_WINDOW) || !defined(CFG_SE_PHYSICAL_BASE) || !defined(CFG_SE_UNACHED_BASE)
+#if !defined(CONFIG_SYS_SE_SDRAM_WINDOW) || !defined(CONFIG_SYS_SE_PHYSICAL_BASE) || !defined(CONFIG_SYS_SE_UNACHED_BASE)
 #error	SH-4 SE Memory Mappings needs to be defined!
 #endif
 	/*
 	 *	Convert VIRTUAL (cached) address to a UN-CACHED one.
 	 */
-#define P2SEGADDR(a)	(((unsigned long)(a)&CFG_SE_SDRAM_WINDOW)|CFG_SE_UNACHED_BASE)
+#define P2SEGADDR(a)	(((unsigned long)(a)&CONFIG_SYS_SE_SDRAM_WINDOW)|CONFIG_SYS_SE_UNACHED_BASE)
 	/*
 	 *	Convert VIRTUAL address to a PHYSICAL one.
 	 *	Our normal convention is that SDRAM is mapped in PMB virtual
@@ -80,12 +80,12 @@
 	 *	all the PMB slots to decode each PMB slot, and the match on the
 	 *	correct one. In practice, the above should suffice!
 	 */
-#define PHYSADDR(a)								\
-(										\
-	/* SDRAM is 0x80 to 0x9F, just check the top 3 bits */			\
-	(((unsigned long)(a)&0xE0000000ul)==0x80000000ul)		?	\
-	(((unsigned long)(a)&CFG_SE_SDRAM_WINDOW)|CFG_SE_PHYSICAL_BASE)	:	\
-	((unsigned long)(a))							\
+#define PHYSADDR(a)										\
+(												\
+	/* SDRAM is 0x80 to 0x9F, just check the top 3 bits */					\
+	(((unsigned long)(a)&0xE0000000ul)==0x80000000ul)				?	\
+	(((unsigned long)(a)&CONFIG_SYS_SE_SDRAM_WINDOW)|CONFIG_SYS_SE_PHYSICAL_BASE)	:	\
+	((unsigned long)(a))									\
 )
 #endif	/* CONFIG_ST40_SE_MODE */
 

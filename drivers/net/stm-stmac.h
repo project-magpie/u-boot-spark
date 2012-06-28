@@ -432,28 +432,28 @@ typedef struct stmac_dma_des_t stmac_dma_des;
  *---------------------------------------------------------------------------*/
 
 /* MAC Register Accessors */
-#define STMAC_READ(REG)		readl(CFG_STM_STMAC_BASE+(REG))
-#define STMAC_WRITE(V, REG)	writel((V), CFG_STM_STMAC_BASE+(REG))
+#define STMAC_READ(REG)		readl(CONFIG_SYS_STM_STMAC_BASE+(REG))
+#define STMAC_WRITE(V, REG)	writel((V), CONFIG_SYS_STM_STMAC_BASE+(REG))
 
 /* max delay to wait after performing a MII Register read/write */
 #ifndef CONFIG_STMAC_MII_POLL_BUSY_DELAY
-#define CONFIG_STMAC_MII_POLL_BUSY_DELAY 1000		/* ticks */
+#define CONFIG_STMAC_MII_POLL_BUSY_DELAY 1000			/* ticks */
 #endif
 
 /* max delay to wait for a PHY Auto-Negotiate to take */
 #ifndef CONFIG_STMAC_AUTONEG_TIMEOUT
-#define CONFIG_STMAC_AUTONEG_TIMEOUT	(10*CFG_HZ)	/* 10 seconds */
+#define CONFIG_STMAC_AUTONEG_TIMEOUT	(10*CONFIG_SYS_HZ)	/* 10 seconds */
 #endif
 
 /* max delay to wait for a TX to take */
 #ifndef CONFIG_STMAC_TX_TIMEOUT
-#define CONFIG_STMAC_TX_TIMEOUT		(5*CFG_HZ)	/* 5 seconds */
+#define CONFIG_STMAC_TX_TIMEOUT		(5*CONFIG_SYS_HZ)	/* 5 seconds */
 #endif
 
 /* Recommended STBus Bridge Values for GMAC */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #define STBUS_BRIDGE_OFFSET		0x00007000
-#define STBUS_BRIDGE_MAGIC		0x25C608	/* from validation */
+#define STBUS_BRIDGE_MAGIC		0x25C608		/* from validation */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 

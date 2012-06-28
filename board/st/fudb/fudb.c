@@ -47,10 +47,10 @@ extern void flashWriteDisable (void)
 #ifdef CONFIG_STM_ASC_SERIAL
 static void configSerial (void)
 {
-#if (CFG_STM_ASC_BASE == ST40_ASC0_REGS_BASE)	/* UART #1 */
+#if (CONFIG_SYS_STM_ASC_BASE == ST40_ASC0_REGS_BASE)	/* UART #1 */
 	/* Route UART #1 via PIO9 for TX, RX, CTS & RTS */
 	SET_PIO_ASC(PIO_PORT(9), 3, 2, STPIO_NO_PIN, STPIO_NO_PIN);
-#elif (CFG_STM_ASC_BASE == ST40_ASC1_REGS_BASE)	/* UART #2 */
+#elif (CONFIG_SYS_STM_ASC_BASE == ST40_ASC1_REGS_BASE)	/* UART #2 */
 	/* Route UART #2 via PIO25 for TX, RX, CTS & RTS */
 	SET_PIO_ASC(PIO_PORT(25), 5, 4, 3, 2);
 #else
@@ -66,12 +66,12 @@ static void configSpi(void)
 	unsigned long sysconf;
 
 	/*
-	 * CFG_COMMS_CONFIG_2[13] = spi_enable = 0
+	 * CONFIG_SYS_COMMS_CONFIG_2[13] = spi_enable = 0
 	 * i.e. disable the SPI boot-controller.
 	 */
-	sysconf = readl(CFG_COMMS_CONFIG_2);
+	sysconf = readl(CONFIG_SYS_COMMS_CONFIG_2);
 	sysconf &= ~(1ul<<13);
-	writel(sysconf, CFG_COMMS_CONFIG_2);
+	writel(sysconf, CONFIG_SYS_COMMS_CONFIG_2);
 
 	/*
 	 *	For both S/W "bit-banging" and H/W SSC, the SPI is on PIO17[5:0].
@@ -160,7 +160,7 @@ extern int fli7540_i2c_read(void)
 #if defined(CONFIG_I2C_CMD_TREE)
 extern unsigned int i2c_get_bus_speed(void)
 {
-	return CFG_I2C_SPEED;
+	return CONFIG_SYS_I2C_SPEED;
 }
 extern int i2c_set_bus_speed(unsigned int speed)
 {
@@ -201,7 +201,7 @@ extern int checkboard (void)
 #if defined(CONFIG_SPI)
 	/*
 	 * Configure for the SPI Serial Flash.
-	 * Note: for CFG_BOOT_FROM_SPI + CONFIG_ENV_IS_IN_EEPROM, this
+	 * Note: for CONFIG_SYS_BOOT_FROM_SPI + CONFIG_ENV_IS_IN_EEPROM, this
 	 * needs to be done after env_init(), hence it is done
 	 * here, and not in board_init().
 	 */

@@ -54,7 +54,7 @@ static void stx7105_clocks(void)
 #define EXT_MDIO		(1ul<<17)
 #define RMII_MODE		(1ul<<18)
 #define PHY_CLK_EXT		(1ul<<19)
-#define MAC_SPEED_SEL           (1ul<<20)
+#define MAC_SPEED_SEL		(1ul<<20)
 #define PHY_INTF_SEL_MASK	(0x3ul<<25)
 #define ENMII			(1ul<<27)
 /* Remaining bits define pad functions, default appears to work */
@@ -234,7 +234,7 @@ extern int stx7105_usb_init(int port, int over_current, int power_ctrl)
 		reg &= ~(1ul<<(3+port));
 		/* USBn_PRT_OVCURR_IN = 0 = PIO4[oc_pins[port]] */
 		reg &= ~(1ul<<(5+port));
-		/* CFG_USBn_OVRCURR_ENABLE = 1 = OC Enabled */
+		/* CONFIG_SYS_USBn_OVRCURR_ENABLE = 1 = OC Enabled */
 		reg |= 1ul<<(11+port);
 		writel(reg, STX7105_SYSCONF_SYS_CFG04);
 

@@ -58,13 +58,13 @@
 	 * More recent EPLD versions have the EPLD in EMI space,
 	 * using CSCn (EMI Bank #2), nominally at physical 0x04800000.
 	 */
-#if !defined(CFG_EPLD_PHYSICAL_BASE)
-#	define CFG_EPLD_PHYSICAL_BASE	0x04800000	/* CSCn (EMI Bank #2) */
-#endif /* CFG_EPLD_PHYSICAL_BASE */
+#if !defined(CONFIG_SYS_EPLD_PHYSICAL_BASE)
+#	define CONFIG_SYS_EPLD_PHYSICAL_BASE	0x04800000	/* CSCn (EMI Bank #2) */
+#endif /* CONFIG_SYS_EPLD_PHYSICAL_BASE */
 	/* map the physical address to UN-cached virtual address */
-#if !defined(CFG_EPLD_BASE)
-#	define CFG_EPLD_BASE		( 0xa0000000 | (CFG_EPLD_PHYSICAL_BASE) )
-#endif /* CFG_EPLD_BASE */
+#if !defined(CONFIG_SYS_EPLD_BASE)
+#	define CONFIG_SYS_EPLD_BASE		( 0xa0000000 | (CONFIG_SYS_EPLD_PHYSICAL_BASE) )
+#endif /* CONFIG_SYS_EPLD_BASE */
 	/*
 	 * following are the offsets within the EMI EPLD (IC21),
 	 * for the MB705 Peripheral board.
@@ -80,13 +80,13 @@
 static inline void epld_write(unsigned long value, unsigned long offset)
 {
 	/* 16-bit write to EPLD registers */
-	writew(value, CFG_EPLD_BASE + offset);
+	writew(value, CONFIG_SYS_EPLD_BASE + offset);
 }
 
 static inline unsigned long epld_read(unsigned long offset)
 {
 	/* 16-bit read from EPLD registers */
-	return readw(CFG_EPLD_BASE + offset);
+	return readw(CONFIG_SYS_EPLD_BASE + offset);
 }
 
 static int mb705_init_epld(void)
@@ -158,7 +158,7 @@ static void configPIO(void)
 {
 	/* Setup PIOs for ASC device */
 
-#if CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE
+#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC2_REGS_BASE
 
 	/* Route UART2 via PIO14 for TX, RX, CTS & RTS (Alternative #1) */
 	PIOALT(14, 4, 1, stm_pad_direction_output);	/* UART2-TX */
@@ -166,7 +166,7 @@ static void configPIO(void)
 	PIOALT(14, 6, 1, stm_pad_direction_output);	/* UART2-RTS */
 	PIOALT(14, 7, 1, stm_pad_direction_input);	/* UART2-CTS */
 
-#elif CFG_STM_ASC_BASE == ST40_ASC3_REGS_BASE
+#elif CONFIG_SYS_STM_ASC_BASE == ST40_ASC3_REGS_BASE
 
 	/* Route UART3 via PIO21 for TX, RX, CTS & RTS (Alternative #2) */
 	PIOALT(21, 0, 2, stm_pad_direction_output);	/* UART3-TX */
@@ -176,7 +176,7 @@ static void configPIO(void)
 
 #else
 #error Unknown ASC port selected!
-#endif	/* CFG_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
 }
 
 extern int board_init(void)
@@ -189,13 +189,13 @@ extern int board_init(void)
 #endif	/* CONFIG_ST40_STM_SATA */
 #endif		/* QQQ - DELETE */
 
-#ifdef CONFIG_DRIVER_NET_STM_GMAC	
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0, on CN18 */
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0, on CN18 */
 	stx7108_configure_ethernet(0, &(struct stx7108_ethernet_config) {
 			.mode = stx7108_ethernet_mode_mii,
 			.ext_clk = 1,
 			.phy_bus = 0, });
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1, on CN19 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1, on CN19 */
 	stx7108_configure_ethernet(1, &(struct stx7108_ethernet_config) {
 			.mode = stx7108_ethernet_mode_mii,
 			.ext_clk = 1,
@@ -226,8 +226,8 @@ extern int board_init(void)
 	 *
 	 * An alternative solution may be to enable the FET switches
 	 * permanently, by setting J5A and J5B as follows:
-	 * 	J5A: remove	(default is 2-3)
-	 * 	J5B: 1-2	(default is 2-3)
+	 *	J5A: remove	(default is 2-3)
+	 *	J5B: 1-2	(default is 2-3)
 	 */
 #if 1
 	*ST40_EMI_BANK2_EMICONFIGDATA2 &= ~(0xfu << 16);

@@ -40,43 +40,43 @@
  */
 
 #ifdef CONFIG_ST40_SE_MODE
-#define CFG_FLASH_BASE		0xA0000000	/* FLASH (uncached) via PMB */
-#define CFG_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
-#define CFG_SDRAM_BASE		0x80000000      /* LMI    Cached addr via PMB */
-#define CFG_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
-#define CFG_SE_SDRAM_WINDOW	(CFG_SDRAM_SIZE-1)
+#define CONFIG_SYS_FLASH_BASE		0xA0000000	/* FLASH (uncached) via PMB */
+#define CONFIG_SYS_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
+#define CONFIG_SYS_SDRAM_BASE		0x80000000	/* LMI    Cached addr via PMB */
+#define CONFIG_SYS_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
+#define CONFIG_SYS_SE_SDRAM_WINDOW	(CONFIG_SYS_SDRAM_SIZE-1)
 #else
-#define CFG_FLASH_BASE		0xA0000000	/* FLASH in P2 region */
-#define CFG_SDRAM_BASE		0x8C000000      /* SDRAM in P1 region */
+#define CONFIG_SYS_FLASH_BASE		0xA0000000	/* FLASH in P2 region */
+#define CONFIG_SYS_SDRAM_BASE		0x8C000000	/* SDRAM in P1 region */
 #endif
 
-#define CFG_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI SDRAM */
+#define CONFIG_SYS_SDRAM_SIZE		0x08000000	/* 128 MiB of LMI SDRAM */
 
-#define CFG_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
-#define CFG_MONITOR_BASE        CFG_FLASH_BASE
-#define CFG_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
-#define CFG_GBL_DATA_SIZE	1024		/* Global data structures */
+#define CONFIG_SYS_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
+#define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_FLASH_BASE
+#define CONFIG_SYS_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
+#define CONFIG_SYS_GBL_DATA_SIZE	1024		/* Global data structures */
 
-#define CFG_MEMTEST_START	CFG_SDRAM_BASE
-#define CFG_MEMTEST_END		(TEXT_BASE - CFG_MALLOC_LEN - (1 << 20))
+#define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
+#define CONFIG_SYS_MEMTEST_END		(TEXT_BASE - CONFIG_SYS_MALLOC_LEN - (1 << 20))
 
-#define CONFIG_BAUDRATE		115200
-#define CFG_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
+#define CONFIG_BAUDRATE			115200
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
 #define BOARD mb618
 
-#if CFG_MONITOR_LEN == 0x00008000		/* 32 KiB */
+#if CONFIG_SYS_MONITOR_LEN == 0x00008000	/* 32 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
-#elif CFG_MONITOR_LEN == 0x00010000		/* 64 KiB */
+#elif CONFIG_SYS_MONITOR_LEN == 0x00010000	/* 64 KiB */
 #	define MONITOR_SECTORS	"1:0-1"		/* 2 sectors */
-#elif CFG_MONITOR_LEN == 0x00018000		/* 96 KiB */
+#elif CONFIG_SYS_MONITOR_LEN == 0x00018000	/* 96 KiB */
 #	define MONITOR_SECTORS	"1:0-2"		/* 3 sectors */
-#elif CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
+#elif CONFIG_SYS_MONITOR_LEN == 0x00020000	/* 128 KiB */
 #	define MONITOR_SECTORS	"1:0-3"		/* 4 sectors */
-#elif CFG_MONITOR_LEN == 0x00040000		/* 256 KiB */
+#elif CONFIG_SYS_MONITOR_LEN == 0x00040000	/* 256 KiB */
 #	define MONITOR_SECTORS	"1:0-4"		/* 5 sectors */
 #else						/* unknown */
 #	error "Unable to determine sectors for monitor"
@@ -84,10 +84,10 @@
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 		"board=" XSTR(BOARD) "\0" \
-		"monitor_base=" XSTR(CFG_MONITOR_BASE) "\0" \
-		"monitor_len=" XSTR(CFG_MONITOR_LEN) "\0" \
+		"monitor_base=" XSTR(CONFIG_SYS_MONITOR_BASE) "\0" \
+		"monitor_len=" XSTR(CONFIG_SYS_MONITOR_LEN) "\0" \
 		"monitor_sec=" MONITOR_SECTORS "\0" \
-		"load_addr=" XSTR(CFG_LOAD_ADDR) "\0" \
+		"load_addr=" XSTR(CONFIG_SYS_LOAD_ADDR) "\0" \
 		"unprot=" \
 		  "protect off $monitor_sec\0" \
 		"update=" \
@@ -125,9 +125,9 @@
 
 /* choose which ST ASC UART to use */
 #if 1
-#	define CFG_STM_ASC_BASE		0xfd032000ul	/* UART2 */
+#	define CONFIG_SYS_STM_ASC_BASE	0xfd032000ul	/* UART2 */
 #else
-#	define CFG_STM_ASC_BASE		0xfd033000ul	/* UART3 */
+#	define CONFIG_SYS_STM_ASC_BASE	0xfd033000ul	/* UART3 */
 #endif
 
 /*---------------------------------------------------------------
@@ -149,8 +149,8 @@
  * Also, choose which PHY to use.
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-#	define CFG_STM_STMAC_BASE	 0xfd110000ul	/* MAC = STM GMAC0 */
-#	define CONFIG_STMAC_LAN8700			/* PHY = SMSC LAN8700 */
+#	define CONFIG_SYS_STM_STMAC_BASE	0xfd110000ul	/* MAC = STM GMAC0 */
+#	define CONFIG_STMAC_LAN8700				/* PHY = SMSC LAN8700 */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user
@@ -171,11 +171,11 @@
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_OHCI_NEW
 #	define CONFIG_USB_STORAGE
-#	define CFG_USB_OHCI_CPU_INIT
-#	define CFG_USB_BASE			0xfe100000
-#	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
-#	define CFG_USB_OHCI_SLOT_NAME		"ohci"
-#	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
+#	define CONFIG_SYS_USB_OHCI_CPU_INIT
+#	define CONFIG_SYS_USB_BASE			0xfe100000
+#	define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
+#	define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
+#	define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
 #	define LITTLEENDIAN
 #endif	/* ifdef CONFIG_ST40_STM_USB */
 
@@ -184,7 +184,7 @@
  */
 
 #if defined(CONFIG_ST40_STM_USB)
-#	define CFG_64BIT_LBA
+#	define CONFIG_SYS_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION
 #	define CONFIG_CMD_EXT2
@@ -194,17 +194,17 @@
  * Miscellaneous configurable options
  */
 
-#define CFG_HUSH_PARSER		1
-#define CONFIG_AUTO_COMPLETE	1
-#define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"MB618> "	/* Monitor Command Prompt	*/
-#define CFG_PROMPT_HUSH_PS2	"> "
-#define CFG_CBSIZE		1024
-#define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
-#define CFG_MAXARGS		16		/* max number of command args	*/
-#define CFG_HZ			1000		/* HZ for timer ticks	*/
-#define CFG_LOAD_ADDR		CFG_SDRAM_BASE	/* default load address		*/
-#define CONFIG_BOOTDELAY	10		/* default delay before executing bootcmd */
+#define CONFIG_SYS_HUSH_PARSER		1
+#define CONFIG_AUTO_COMPLETE		1
+#define CONFIG_SYS_LONGHELP		1			/* undef to save memory		*/
+#define CONFIG_SYS_PROMPT		"MB618> "		/* Monitor Command Prompt	*/
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
+#define CONFIG_SYS_CBSIZE		1024
+#define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16) /* Print Buffer Size	*/
+#define CONFIG_SYS_MAXARGS		16			/* max number of command args	*/
+#define CONFIG_SYS_HZ			1000			/* HZ for timer ticks	*/
+#define CONFIG_SYS_LOAD_ADDR		CONFIG_SYS_SDRAM_BASE	/* default load address		*/
+#define CONFIG_BOOTDELAY		10			/* default delay before executing bootcmd */
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 
 #define CONFIG_CMDLINE_EDITING
@@ -220,7 +220,7 @@
  * on-board Flash (for either the on-board NOR or NAND flash).
  *
  * i.e.		ON-board NOR FLASH:	J30A:2-3, J34:2-3
- *	 	ON-board NAND FLASH:	J30A:2-3, J34:1-2
+ *		ON-board NAND FLASH:	J30A:2-3, J34:1-2
  */
 //#define CONFIG_CMD_NAND		/* define for NAND flash */
 
@@ -232,13 +232,13 @@
 #ifndef CONFIG_CMD_NAND				/* NOR flash present ? */
 #	define CONFIG_CMD_JFFS2			/* enable JFFS2 support */
 #	define CONFIG_FLASH_CFI_DRIVER
-#	define CFG_FLASH_CFI
+#	define CONFIG_SYS_FLASH_CFI
 #	define CONFIG_FLASH_PROTECT_SINGLE_CELL
-#	define CONFIG_FLASH_SHOW_PROGRESS 45	/* count down from 45/5: 9..1		*/
-#	define CFG_FLASH_PROTECTION	1	/* use hardware flash protection	*/
-#	define CFG_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
-#	define CFG_MAX_FLASH_SECT	259	/* max number of sectors on one chip	*/
-#	define CFG_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
+#	define CONFIG_FLASH_SHOW_PROGRESS	45	/* count down from 45/5: 9..1		*/
+#	define CONFIG_SYS_FLASH_PROTECTION	1	/* use hardware flash protection	*/
+#	define CONFIG_SYS_MAX_FLASH_BANKS	1	/* max number of memory banks		*/
+#	define CONFIG_SYS_MAX_FLASH_SECT	259	/* max number of sectors on one chip	*/
+#	define CONFIG_SYS_FLASH_EMPTY_INFO		/* test if each sector is empty		*/
 #define MTDPARTS_DEFAULT						\
 	"mtdparts="							\
 	"physmap-flash:"	/* First NOR flash device */		\
@@ -258,13 +258,13 @@
 /* NAND512W4A: 64MiB 16-bit, 4096 Blocks (16KiB+512B) of 32 Pages (512+16) */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CONFIG_CMD_JFFS2			/* enable JFFS2 support */
-#	define CFG_MAX_NAND_DEVICE	1
-#	define NAND_MAX_CHIPS		CFG_MAX_NAND_DEVICE
-#	define CFG_NAND0_BASE		CFG_FLASH_BASE	/* Occludes NOR flash */
-#	define CFG_NAND_BASE_LIST	{ CFG_NAND0_BASE }
+#	define CONFIG_SYS_MAX_NAND_DEVICE	1
+#	define NAND_MAX_CHIPS			CONFIG_SYS_MAX_NAND_DEVICE
+#	define CONFIG_SYS_NAND0_BASE		CONFIG_SYS_FLASH_BASE	/* Occludes NOR flash */
+#	define CONFIG_SYS_NAND_BASE_LIST	{ CONFIG_SYS_NAND0_BASE }
 #	undef CONFIG_CMD_FLASH			/* NOR-flash specific */
 #	undef CONFIG_CMD_IMLS			/* NOR-flash specific */
-#	define CFG_NO_FLASH			/* no NOR-flash when using NAND-flash */
+#	define CONFIG_SYS_NO_FLASH		/* no NOR-flash when using NAND-flash */
 #define MTDPARTS_DEFAULT						\
 	"mtdparts="							\
 	"gen_nand.1:"		/* First NAND flash device */		\
@@ -282,15 +282,15 @@
 
 #if 1 && defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CONFIG_ENV_IS_IN_NAND		/* enviroment in NAND flash */
-#	define CONFIG_ENV_OFFSET	0		/* begining of NAND flash */
+#	define CONFIG_ENV_OFFSET	0	/* begining of NAND flash */
 #elif 1 && defined(CONFIG_CMD_FLASH)
 #	define CONFIG_ENV_IS_IN_FLASH		/* environment in NOR flash */
-#	define CONFIG_ENV_OFFSET	CFG_MONITOR_LEN	/* After u-boot.bin */
+#	define CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN	/* After u-boot.bin */
 #else
 #	define CONFIG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
 #endif	/* CONFIG_CMD_NAND */
-#define CONFIG_ENV_ADDR		(CFG_FLASH_BASE + CONFIG_ENV_OFFSET)
+#define CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + CONFIG_ENV_OFFSET)
 #define CONFIG_ENV_SIZE		0x10000
 #define CONFIG_ENV_SECT_SIZE	0x20000
 

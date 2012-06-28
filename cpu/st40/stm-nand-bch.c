@@ -26,7 +26,7 @@
 #include <malloc.h>
 #include <linux/ctype.h>
 
-#if defined(CONFIG_CMD_NAND) && defined(CFG_ST40_NAND_USE_BCH)
+#if defined(CONFIG_CMD_NAND) && defined(CONFIG_SYS_ST40_NAND_USE_BCH)
 
 #include <nand.h>
 #include <asm/stm-nand.h>
@@ -57,11 +57,11 @@
 #define BOOT_CFG_RESET				(0x1 << 3)
 
 /* NANDBCH_CONTROLLER_CFG/NANDHAM_FLEXMODE_CFG */
-#define CFG_ENABLE_FLEX				(0x1)
-#define CFG_ENABLE_AFM				(0x2)
-#define CFG_RESET				(0x1 << 3)
-#define CFG_RESET_ECC(x)			(0x1 << (7 + (x)))
-#define CFG_RESET_ECC_ALL			(0xff << 7)
+#define CONFIG_SYS_ENABLE_FLEX			(0x1)
+#define CONFIG_SYS_ENABLE_AFM			(0x2)
+#define CONFIG_SYS_RESET			(0x1 << 3)
+#define CONFIG_SYS_RESET_ECC(x)			(0x1 << (7 + (x)))
+#define CONFIG_SYS_RESET_ECC_ALL		(0xff << 7)
 
 /* NANDi BCH Controller properties */
 #define NANDI_BCH_MAX_BUF_LIST			8u	/* H/W supports 8 buffers */
@@ -170,7 +170,7 @@ static void nandi_init_hamming(const int emi_bank)
 	writel(0x00000000, ST40_EMI_NAND_HAM_BOOTBANK_CFG);
 
 	/* Reset controller */
-	writel(CFG_RESET, ST40_EMI_NAND_HAM_FLEXMODE_CFG);
+	writel(CONFIG_SYS_RESET, ST40_EMI_NAND_HAM_FLEXMODE_CFG);
 	udelay(1);
 	writel(0x00000000, ST40_EMI_NAND_HAM_FLEXMODE_CFG);
 
@@ -181,7 +181,7 @@ static void nandi_init_hamming(const int emi_bank)
 	writel(0x1 << emi_bank, ST40_EMI_NAND_HAM_FLEX_MUXCTRL);
 
 	/* Enable FLEX mode */
-	writel(CFG_ENABLE_FLEX, ST40_EMI_NAND_HAM_FLEXMODE_CFG);
+	writel(CONFIG_SYS_ENABLE_FLEX, ST40_EMI_NAND_HAM_FLEXMODE_CFG);
 
 	/* Configure pervading FLEX_DATA_READ/WRITE as 1-byte accesses */
 	writel(STM_NAND_FLEX_BEAT_COUNT_1 | STM_NAND_FLEX_1_BYTE_PER_BEAT | STM_NAND_FLEX_CSn_STATUS,
@@ -202,7 +202,7 @@ static void nandi_init_bch(const int emi_bank)
 	writel(0x00000000, ST40_EMI_NAND_BCH_BOOTBANK_CFG);
 
 	/* Reset AFM controller */
-	writel(CFG_RESET, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
+	writel(CONFIG_SYS_RESET, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
 	udelay(1);
 	writel(0x00000000, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
 
@@ -214,7 +214,7 @@ static void nandi_init_bch(const int emi_bank)
 	udelay(1);
 
 	/* Enable AFM */
-	writel(CFG_ENABLE_AFM, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
+	writel(CONFIG_SYS_ENABLE_AFM, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
 
 	/* Timing parameters */
 	/* Values from validation found not to work on some parts.  Awaiting
@@ -806,8 +806,8 @@ static int bch_ecc_read_page (
 	dma_buffer_list[0] = PHYSADDR(buffer) | (sectors_per_page - 1);
 
 	/* Reset ECC stats */
-	writel(CFG_RESET_ECC_ALL | CFG_ENABLE_AFM, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
-	writel(CFG_ENABLE_AFM, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
+	writel(CONFIG_SYS_RESET_ECC_ALL | CONFIG_SYS_ENABLE_AFM, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
+	writel(CONFIG_SYS_ENABLE_AFM, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
 
 	/* Make sure buffer (and buffer list) agrees with real memory */
 	flush_cache((ulong)buffer, page_size);
@@ -1168,14 +1168,14 @@ extern void stm_bch_init_nand(
 	struct nand_chip * const chip)
 {
 	int emi_bank = 0;		/* use first CSn */
-#if defined(CFG_NAND_FLEX_CSn_MAP)
-	const int csn_map[CFG_MAX_NAND_DEVICE] = CFG_NAND_FLEX_CSn_MAP;
-#endif	/* CFG_NAND_FLEX_CSn_MAP */
+#if defined(CONFIG_SYS_NAND_FLEX_CSn_MAP)
+	const int csn_map[CONFIG_SYS_MAX_NAND_DEVICE] = CONFIG_SYS_NAND_FLEX_CSn_MAP;
+#endif	/* CONFIG_SYS_NAND_FLEX_CSn_MAP */
 
-#if defined(CFG_NAND_FLEX_CSn_MAP)
+#if defined(CONFIG_SYS_NAND_FLEX_CSn_MAP)
 	/* Re-map to different CSn if needed */
 	emi_bank = csn_map[emi_bank];
-#endif	/* CFG_NAND_FLEX_CSn_MAP */
+#endif	/* CONFIG_SYS_NAND_FLEX_CSn_MAP */
 
 	/* initialize the BCH controller H/W */
 	nandi_init_bch(emi_bank);
@@ -1188,6 +1188,6 @@ extern void stm_bch_init_nand(
 
 }
 
-#endif	/* CONFIG_CMD_NAND && CFG_ST40_NAND_USE_BCH */
+#endif	/* CONFIG_CMD_NAND && CONFIG_SYS_ST40_NAND_USE_BCH */
 
 

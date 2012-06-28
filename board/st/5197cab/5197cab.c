@@ -59,7 +59,7 @@ static void configSerial (void)
 {
 	unsigned long sysconf;
 
-#if (CFG_STM_ASC_BASE == CFG_STM_ASC2_BASE)
+#if (CONFIG_SYS_STM_ASC_BASE == CONFIG_SYS_STM_ASC2_BASE)
 	/* Setup PIO of ASC device */
 	SET_PIO_ASC(PIO_PORT(1), 2, 3, 5, 4);  /* UART2 - AS0 */
 	/* Route UART2 via PIO1 for TX, RX, CTS & RTS */
@@ -69,7 +69,7 @@ static void configSerial (void)
 	ALTFOP(sysconf,1,4,1);		/* PIO1[4] AltFunction = 1 */
 	ALTFOP(sysconf,1,5,1);		/* PIO1[5] AltFunction = 1 */
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_F = sysconf;
-#elif (CFG_STM_ASC_BASE == CFG_STM_ASC3_BASE)
+#elif (CONFIG_SYS_STM_ASC_BASE == CONFIG_SYS_STM_ASC3_BASE)
 	/* Setup PIO of ASC device */
 	SET_PIO_ASC(PIO_PORT(2), 0, 1, 2, 5);  /* UART3 - AS1 */
 	/* Route UART3 via PIO2 for TX, RX, CTS & RTS */

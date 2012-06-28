@@ -63,7 +63,7 @@ extern void stmac_set_mac_speed(const int speed)
 	sysconf = *STX5197_HD_CONF_MON_CONFIG_CONTROL_E;
 
 	/* MAC speed*/
-	/* CFG_CTRL_E.MAC_SPEED_SEL = speed==100 ? 1 : 0 [1] */
+	/* CONFIG_SYS_CTRL_E.MAC_SPEED_SEL = speed==100 ? 1 : 0 [1] */
 	SET_SYSCONF_BIT(sysconf, speed==100, 1);
 
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_E = sysconf;
@@ -77,19 +77,19 @@ static void stmac_eth_hw_setup(const int rmii, const int ext_clk, const int phy_
 	sysconf = *STX5197_HD_CONF_MON_CONFIG_CONTROL_E;
 
 	/* Ethernet interface on */
-	/* CFG_CTRL_E.ETHERNET_INTERFACE_ON = 1 [0] */
+	/* CONFIG_SYS_CTRL_E.ETHERNET_INTERFACE_ON = 1 [0] */
 	SET_SYSCONF_BIT(sysconf, 1, 0);
 
 	/* MII plyclk out enable: 0=output, 1=input */
-	/* CFG_CTRL_E.MII_PHYCLK_OUT_EN = ext_clk ? 1 : 0 [6] */
+	/* CONFIG_SYS_CTRL_E.MII_PHYCLK_OUT_EN = ext_clk ? 1 : 0 [6] */
 	SET_SYSCONF_BIT(sysconf, ext_clk, 6);
 
 	/* RMII/MII pin mode */
-	/* CFG_CTRL_E.MII_ETHERNET_SEL = rmii ? 2 : 3 [8:7] */
+	/* CONFIG_SYS_CTRL_E.MII_ETHERNET_SEL = rmii ? 2 : 3 [8:7] */
 	SET_SYSCONF_BITS(sysconf, rmii, 7, 8, 0x2, 0x3);
 
 	/* MII mode */
-	/* CFG_CTRL_E.MII_MODE = rmii ? 0 : 1 [2] */
+	/* CONFIG_SYS_CTRL_E.MII_MODE = rmii ? 0 : 1 [2] */
 	SET_SYSCONF_BIT(sysconf, !rmii, 2);
 
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_E = sysconf;
@@ -104,12 +104,12 @@ extern void stx5197_usb_init(void)
 
 	/* USB power down */
 	sysconf = *STX5197_HD_CONF_MON_CONFIG_CONTROL_H;
-	sysconf &= ~(1ul<<8);	/* CFG_CTRL_H.USB_POWERDOWN_REQ = 0 [8] */
+	sysconf &= ~(1ul<<8);	/* CONFIG_SYS_CTRL_H.USB_POWERDOWN_REQ = 0 [8] */
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_H = sysconf;
 
 	/* DDR enable for ULPI */
 	sysconf = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
-	sysconf &= ~(1ul<<12);	/* CFG_CTRL_M.ULPI_DDR_EN_I = 0 [12] */
+	sysconf &= ~(1ul<<12);	/* CONFIG_SYS_CTRL_M.ULPI_DDR_EN_I = 0 [12] */
 				/* 0=8-bit SDR ULPI, 1=4-bit DDR ULPI */
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = sysconf;
 
@@ -142,7 +142,7 @@ extern void spi_cs_activate(struct spi_slave * const slave)
 {
 	unsigned long reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
 
-	reg &= ~(1ul<<13);	/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 0 [13] */
+	reg &= ~(1ul<<13);	/* CONFIG_SYS_CTRL_M.SPI_CS_WHEN_SSC_USED = 0 [13] */
 
 	/* assert SPI CSn */
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;
@@ -154,7 +154,7 @@ extern void spi_cs_deactivate(struct spi_slave * const slave)
 {
 	unsigned long reg = *STX5197_HD_CONF_MON_CONFIG_CONTROL_M;
 
-	reg |= 1ul<<13;		/* CFG_CTRL_M.SPI_CS_WHEN_SSC_USED = 1 [13] */
+	reg |= 1ul<<13;		/* CONFIG_SYS_CTRL_M.SPI_CS_WHEN_SSC_USED = 1 [13] */
 
 	/* DE-assert SPI CSn */
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = reg;

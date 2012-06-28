@@ -38,16 +38,16 @@
 #define ARRAY_SIZE(x)		(sizeof(x) / sizeof((x)[0]))
 
 
-#define USB_XTAL_VALID		1	/* CFG_SPARE_1[1]            = USB_xtal_valid */
+#define USB_XTAL_VALID		1	/* CONFIG_SYS_SPARE_1[1]            = USB_xtal_valid */
 
-#define USB_POWERDOWN_REQ	8	/* CFG_COMMS_CONFIG_1[8 ]    = usb_powerdown_req */
-#define CONF_PIO24_ALTERNATE	17	/* CFG_COMMS_CONFIG_1[18:17] = conf_pio24_alternate */
+#define USB_POWERDOWN_REQ	8	/* CONFIG_SYS_COMMS_CONFIG_1[8 ]    = usb_powerdown_req */
+#define CONF_PIO24_ALTERNATE	17	/* CONFIG_SYS_COMMS_CONFIG_1[18:17] = conf_pio24_alternate */
 
-#define GMAC_MII_ENABLE		8	/* CFG_COMMS_CONFIG_2[8]     = gmac_mii_enable */
-#define GMAC_PHY_CLOCK_SEL	9	/* CFG_COMMS_CONFIG_2[9]     = gmac_phy_clock_sel */
-#define GMAC_ENABLE		24	/* CFG_COMMS_CONFIG_2[24]    = gmac_enable */
-#define GMAC_MAC_SPEED		25	/* CFG_COMMS_CONFIG_2[25]    = gmac_mac_speed */
-#define PHY_INTF_SEL		26	/* CFG_COMMS_CONFIG_2[28:26] = phy_intf_sel */
+#define GMAC_MII_ENABLE		8	/* CONFIG_SYS_COMMS_CONFIG_2[8]     = gmac_mii_enable */
+#define GMAC_PHY_CLOCK_SEL	9	/* CONFIG_SYS_COMMS_CONFIG_2[9]     = gmac_phy_clock_sel */
+#define GMAC_ENABLE		24	/* CONFIG_SYS_COMMS_CONFIG_2[24]    = gmac_enable */
+#define GMAC_MAC_SPEED		25	/* CONFIG_SYS_COMMS_CONFIG_2[25]    = gmac_mac_speed */
+#define PHY_INTF_SEL		26	/* CONFIG_SYS_COMMS_CONFIG_2[28:26] = phy_intf_sel */
 
 
 static void fli7540_clocks(void)
@@ -168,11 +168,11 @@ extern void stmac_set_mac_speed(const int speed)
 {
 	unsigned long sysconf;
 
-	/* CFG_COMMS_CONFIG_2[25] = gmac_mac_speed */
+	/* CONFIG_SYS_COMMS_CONFIG_2[25] = gmac_mac_speed */
 	/* gmac_mac_speed = speed==100 ? 1 : 0 */
-	sysconf = readl(CFG_COMMS_CONFIG_2);
+	sysconf = readl(CONFIG_SYS_COMMS_CONFIG_2);
 	SET_SYSCONF_BIT(sysconf, speed==100, GMAC_MAC_SPEED);
-	writel(sysconf, CFG_COMMS_CONFIG_2);
+	writel(sysconf, CONFIG_SYS_COMMS_CONFIG_2);
 }
 
 
@@ -191,10 +191,10 @@ extern void fli7540_configure_ethernet(
 	unsigned long sysconf;
 
 	/* Ethernet interface on */
-	/* CFG_COMMS_CONFIG_2[24] = gmac_enable */
-	sysconf = readl(CFG_COMMS_CONFIG_2);
+	/* CONFIG_SYS_COMMS_CONFIG_2[24] = gmac_enable */
+	sysconf = readl(CONFIG_SYS_COMMS_CONFIG_2);
 	SET_SYSCONF_BIT(sysconf, 1, GMAC_ENABLE);
-	writel(sysconf, CFG_COMMS_CONFIG_2);
+	writel(sysconf, CONFIG_SYS_COMMS_CONFIG_2);
 
 	switch (mode) {
 	case fli7540_ethernet_mii:
@@ -214,11 +214,11 @@ extern void fli7540_configure_ethernet(
 		enmii = 1;
 		pins = fli7540_gmac_gmii_pins;
 		pins_num = ARRAY_SIZE(fli7540_gmac_gmii_pins);
-		/* CFG_COMMS_CONFIG_1[18:17] = conf_pio24_alternate */
-		sysconf = readl(CFG_COMMS_CONFIG_1);
+		/* CONFIG_SYS_COMMS_CONFIG_1[18:17] = conf_pio24_alternate */
+		sysconf = readl(CONFIG_SYS_COMMS_CONFIG_1);
 		sysconf &= ~(0x3ul<<CONF_PIO24_ALTERNATE);
 		sysconf |= (0x2ul<<CONF_PIO24_ALTERNATE);
-		writel(sysconf, CFG_COMMS_CONFIG_1);
+		writel(sysconf, CONFIG_SYS_COMMS_CONFIG_1);
 		break;
 	case fli7540_ethernet_reverse_mii:
 		phy_sel = 0;
@@ -231,21 +231,21 @@ extern void fli7540_configure_ethernet(
 		return;
 	}
 
-	/* CFG_COMMS_CONFIG_2[28:26] = phy_intf_sel */
-	sysconf = readl(CFG_COMMS_CONFIG_2);
+	/* CONFIG_SYS_COMMS_CONFIG_2[28:26] = phy_intf_sel */
+	sysconf = readl(CONFIG_SYS_COMMS_CONFIG_2);
 	sysconf &= ~(0x7ul<<PHY_INTF_SEL);
 	sysconf |= (phy_sel<<PHY_INTF_SEL);
-//	writel(sysconf, CFG_COMMS_CONFIG_2);
+//	writel(sysconf, CONFIG_SYS_COMMS_CONFIG_2);
 
-	/* CFG_COMMS_CONFIG_2[8]     = gmac_mii_enable */
-//	sysconf = readl(CFG_COMMS_CONFIG_2);
+	/* CONFIG_SYS_COMMS_CONFIG_2[8]     = gmac_mii_enable */
+//	sysconf = readl(CONFIG_SYS_COMMS_CONFIG_2);
 	SET_SYSCONF_BIT(sysconf, enmii, GMAC_MII_ENABLE);
-//	writel(sysconf, CFG_COMMS_CONFIG_2);
+//	writel(sysconf, CONFIG_SYS_COMMS_CONFIG_2);
 
-	/* CFG_COMMS_CONFIG_2[9]     = gmac_phy_clock_sel */
-//	sysconf = readl(CFG_COMMS_CONFIG_2);
+	/* CONFIG_SYS_COMMS_CONFIG_2[9]     = gmac_phy_clock_sel */
+//	sysconf = readl(CONFIG_SYS_COMMS_CONFIG_2);
 	SET_SYSCONF_BIT(sysconf, ext_clk, GMAC_PHY_CLOCK_SEL);
-	writel(sysconf, CFG_COMMS_CONFIG_2);
+	writel(sysconf, CONFIG_SYS_COMMS_CONFIG_2);
 
 	/* choose the correct direction for PHYCLK */
 	pins[0].dir = (ext_clk) ? STPIO_IN : STPIO_ALT_OUT;
@@ -271,13 +271,13 @@ extern void fli7540_usb_init(
 
 	if (!xtal_initialized++)
 	{
-		sysconf = readl(CFG_SPARE_1);
+		sysconf = readl(CONFIG_SYS_SPARE_1);
 #if defined(CONFIG_ST40_FLI7510)
 		SET_SYSCONF_BIT(sysconf, 0, USB_XTAL_VALID);
 #else
 		SET_SYSCONF_BIT(sysconf, 1, USB_XTAL_VALID);
 #endif	/* CONFIG_ST40_FLI7510 */
-		writel(sysconf, CFG_SPARE_1);
+		writel(sysconf, CONFIG_SYS_SPARE_1);
 	}
 
 	switch (port) {
@@ -311,43 +311,43 @@ extern void fli7540_usb_init(
 	}
 
 #if !defined(CONFIG_ST40_FLI7510)
-	sysconf = readl(CFG_COMMS_CONFIG_1);
-		/* CFG_COMMS_CONFIG_1[22,21] = conf_usb_clk_en */
+	sysconf = readl(CONFIG_SYS_COMMS_CONFIG_1);
+		/* CONFIG_SYS_COMMS_CONFIG_1[22,21] = conf_usb_clk_en */
 	SET_SYSCONF_BIT(sysconf, 1, clken);
-		/* CFG_COMMS_CONFIG_1[24,23] = conf_usb_rst_n */
+		/* CONFIG_SYS_COMMS_CONFIG_1[24,23] = conf_usb_rst_n */
 	SET_SYSCONF_BIT(sysconf, 1, rstn);
-	writel(sysconf, CFG_COMMS_CONFIG_1);
+	writel(sysconf, CONFIG_SYS_COMMS_CONFIG_1);
 #endif	/* CONFIG_ST40_FLI7510 */
 
 switch (ovrcur_mode) {
 	case fli7540_usb_ovrcur_disabled:
-		/* CFG_COMMS_CONFIG_1[12,15] = usbX_enable_pad_override */
-		sysconf = readl(CFG_COMMS_CONFIG_1);
+		/* CONFIG_SYS_COMMS_CONFIG_1[12,15] = usbX_enable_pad_override */
+		sysconf = readl(CONFIG_SYS_COMMS_CONFIG_1);
 		SET_SYSCONF_BIT(sysconf, 1, override);
-		writel(sysconf, CFG_COMMS_CONFIG_1);
+		writel(sysconf, CONFIG_SYS_COMMS_CONFIG_1);
 
-		/* CFG_COMMS_CONFIG_1[13,16] = usbX_ovrcur */
-		sysconf = readl(CFG_COMMS_CONFIG_1);
+		/* CONFIG_SYS_COMMS_CONFIG_1[13,16] = usbX_ovrcur */
+		sysconf = readl(CONFIG_SYS_COMMS_CONFIG_1);
 		SET_SYSCONF_BIT(sysconf, 1, ovrcur);
-		writel(sysconf, CFG_COMMS_CONFIG_1);
+		writel(sysconf, CONFIG_SYS_COMMS_CONFIG_1);
 		break;
 	default:
-		/* CFG_COMMS_CONFIG_1[12,15] = usbX_enable_pad_override */
-		sysconf = readl(CFG_COMMS_CONFIG_1);
+		/* CONFIG_SYS_COMMS_CONFIG_1[12,15] = usbX_enable_pad_override */
+		sysconf = readl(CONFIG_SYS_COMMS_CONFIG_1);
 		SET_SYSCONF_BIT(sysconf, 0, override);
-		writel(sysconf, CFG_COMMS_CONFIG_1);
+		writel(sysconf, CONFIG_SYS_COMMS_CONFIG_1);
 
-		/* CFG_COMMS_CONFIG_1[11,14] = usbX_ovrcur_polarity */
+		/* CONFIG_SYS_COMMS_CONFIG_1[11,14] = usbX_ovrcur_polarity */
 		switch (ovrcur_mode) {
 		case fli7540_usb_ovrcur_active_high:
-			sysconf = readl(CFG_COMMS_CONFIG_1);
+			sysconf = readl(CONFIG_SYS_COMMS_CONFIG_1);
 			SET_SYSCONF_BIT(sysconf, 0, polarity);
-			writel(sysconf, CFG_COMMS_CONFIG_1);
+			writel(sysconf, CONFIG_SYS_COMMS_CONFIG_1);
 			break;
 		case fli7540_usb_ovrcur_active_low:
-			sysconf = readl(CFG_COMMS_CONFIG_1);
+			sysconf = readl(CONFIG_SYS_COMMS_CONFIG_1);
 			SET_SYSCONF_BIT(sysconf, 1, polarity);
-			writel(sysconf, CFG_COMMS_CONFIG_1);
+			writel(sysconf, CONFIG_SYS_COMMS_CONFIG_1);
 			break;
 		default:
 			BUG();
@@ -435,7 +435,7 @@ extern int soc_init(void)
 	fli7540_clocks();
 
 	/* obtain the chip cut + device id */
-	bd->bi_devid = readl(CFG_DEVICE_ID);
+	bd->bi_devid = readl(CONFIG_SYS_DEVICE_ID);
 
 	return 0;
 }

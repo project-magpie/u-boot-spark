@@ -270,7 +270,7 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 
 
 /* --------------------------------------------------------------------
- *           Ethernet MAC resources (PAD and Retiming)
+ *		Ethernet MAC resources (PAD and Retiming)
  * --------------------------------------------------------------------*/
 
 
@@ -335,7 +335,7 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 	}
 
 
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stx7108_ethernet_mii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
@@ -366,7 +366,7 @@ static struct stm_pad_sysconf stx7108_ethernet_mii_pad_sysconfs[] = {
 			/* ENMIIx */
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stx7108_ethernet_mii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0)),/* PHYCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
@@ -397,10 +397,10 @@ static struct stm_pad_sysconf stx7108_ethernet_mii_pad_sysconfs[] = {
 			/* ENMIIx */
 			STM_PAD_SYS_CFG_BANK(4, 23, 5, 5, 1),
 };
-#endif				/* CFG_STM_STMAC_BASE == GMAC #1 */
+#endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 
 #if 0	/* assume not required in U-Boot */
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stx7108_ethernet_gmii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(3, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[1] */
@@ -439,7 +439,7 @@ static struct stm_pad_sysconf stx7108_ethernet_gmii_pad_sysconfs[] = {
 			/* ENMIIx */
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stx7108_ethernet_gmii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(1)), /* GTXCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
@@ -478,11 +478,11 @@ static struct stm_pad_sysconf stx7108_ethernet_gmii_pad_sysconfs[] = {
 			/* ENMIIx */
 			STM_PAD_SYS_CFG_BANK(4, 23, 5, 5, 1),
 };
-#endif				/* CFG_STM_STMAC_BASE == GMAC #1 */
+#endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 #endif	/* if 0 */
 
 #if 0	/* assume not required in U-Boot */
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stx7108_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_DE_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_DE_IO(0, 0)),/* TXD[1] */
@@ -511,7 +511,7 @@ static struct stm_pad_sysconf stx7108_ethernet_rgmii_pad_sysconfs[] = {
 			/* ENMIIx */
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stx7108_ethernet_rgmii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(1)), /* GTXCLK*/
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
@@ -540,10 +540,10 @@ static struct stm_pad_sysconf stx7108_ethernet_rgmii_pad_sysconfs[] = {
 			/* ENMIIx */
 			STM_PAD_SYS_CFG_BANK(4, 23, 5, 5, 1),
 };
-#endif				/* CFG_STM_STMAC_BASE == GMAC #1 */
+#endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 #endif	/* if 0 */
 
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stx7108_ethernet_rmii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(0, 1)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[1] */
@@ -568,7 +568,7 @@ static struct stm_pad_sysconf stx7108_ethernet_rmii_pad_sysconfs[] = {
 			/* ENMIIx */
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stx7108_ethernet_rmii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0)),/* PHYCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
@@ -593,10 +593,10 @@ static struct stm_pad_sysconf stx7108_ethernet_rmii_pad_sysconfs[] = {
 			/* ENMIIx */
 			STM_PAD_SYS_CFG_BANK(4, 23, 5, 5, 1),
 };
-#endif				/* CFG_STM_STMAC_BASE == GMAC #1 */
+#endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 
 #if 0	/* assume not required in U-Boot */
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stx7108_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
@@ -627,7 +627,7 @@ static struct stm_pad_sysconf stx7108_ethernet_reverse_mii_pad_sysconfs[] = {
 			/* ENMIIx */
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 0),
 };
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stx7108_ethernet_reverse_mii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0)),/* PHYCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
@@ -658,7 +658,7 @@ static struct stm_pad_sysconf stx7108_ethernet_reverse_mii_pad_sysconfs[] = {
 			/* ENMIIx */
 			STM_PAD_SYS_CFG_BANK(4, 23, 5, 5, 1),
 };
-#endif				/* CFG_STM_STMAC_BASE == GMAC #1 */
+#endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 #endif	/* if 0 */
 
 
@@ -670,7 +670,7 @@ extern int stmac_default_pbl(void)
 	return 32;
 }
 
-#define GMAC_AHB_CONFIG         0x7000
+#define GMAC_AHB_CONFIG		0x7000
 static void stx7108_ethernet_bus_setup(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
@@ -684,16 +684,16 @@ static void stx7108_ethernet_bus_setup(void)
 	 *	2.0	|	0x00264207
 	 */
 	if (STX7108_DEVICEID_CUT(bd->bi_devid) < 2)	/* for cut 1.x */
-		writel(0x00264006, CFG_STM_STMAC_BASE + GMAC_AHB_CONFIG);
+		writel(0x00264006, CONFIG_SYS_STM_STMAC_BASE + GMAC_AHB_CONFIG);
 	else						/* for cut 2.x */
-		writel(0x00264207, CFG_STM_STMAC_BASE + GMAC_AHB_CONFIG);
+		writel(0x00264207, CONFIG_SYS_STM_STMAC_BASE + GMAC_AHB_CONFIG);
 }
 
 extern void stmac_set_mac_speed(int speed)
 {
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0 */
 	unsigned long * const sysconfReg = (void*)STX7108_BANK2_SYSCFG(27);
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1 */
 	unsigned long * const sysconfReg = (void*)STX7108_BANK4_SYSCFG(23);
 #else
 #error Unknown base address for the STM GMAC
@@ -716,11 +716,11 @@ extern void stx7108_configure_ethernet(
 	const struct stm_pad_sysconf * sys_configs;
 	size_t num_pads, num_sys, i;
 
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 		/* CLK_ETH_PHY_0 divider is channel #10 in "A1", using PLL1 */
 	const unsigned long divider_reg = 0xfdab8800 + 0x300 + 0x4*10;
 	BUG_ON(port != 0);
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 		/* CLK_ETH_PHY_1 divider is channel #14 in "A0", using PLL1 */
 	const unsigned long divider_reg = 0xfde98800 + 0x300 + 0x4*14;
 	BUG_ON(port != 1);
@@ -1047,7 +1047,7 @@ extern int stx7108_i2c_read(void)
 #if defined(CONFIG_I2C_CMD_TREE)
 extern unsigned int i2c_get_bus_speed(void)
 {
-	return CFG_I2C_SPEED;
+	return CONFIG_SYS_I2C_SPEED;
 }
 extern int i2c_set_bus_speed(unsigned int speed)
 {

@@ -39,14 +39,14 @@
 	 * Ensure we have *exactly* ONE NAND driver configured.
 	 * Not less than one, and not more than one!
 	 */
-#if defined(CFG_ST40_NAND_USE_BIT_BANGING) && defined(CFG_ST40_NAND_USE_HAMMING)
+#if defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING) && defined(CONFIG_SYS_ST40_NAND_USE_HAMMING)
 #	error You can only enable *one* NAND driver!
-#elif defined(CFG_ST40_NAND_USE_BIT_BANGING) && defined(CFG_ST40_NAND_USE_BCH)
+#elif defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING) && defined(CONFIG_SYS_ST40_NAND_USE_BCH)
 #	error You can only enable *one* NAND driver!
-#elif defined(CFG_ST40_NAND_USE_BCH) && defined(CFG_ST40_NAND_USE_HAMMING)
+#elif defined(CONFIG_SYS_ST40_NAND_USE_BCH) && defined(CONFIG_SYS_ST40_NAND_USE_HAMMING)
 #	error You can only enable *one* NAND driver!
 #endif
-#if !defined(CFG_ST40_NAND_USE_BIT_BANGING) && !defined(CFG_ST40_NAND_USE_HAMMING) && !defined(CFG_ST40_NAND_USE_BCH)
+#if !defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING) && !defined(CONFIG_SYS_ST40_NAND_USE_HAMMING) && !defined(CONFIG_SYS_ST40_NAND_USE_BCH)
 #	error You must enable one NAND driver if CONFIG_CMD_NAND is defined!
 #endif
 
@@ -62,10 +62,10 @@
 	 * schemes that the Hamming controller used, so we complain
 	 * if we are configured for such an invalid combination.
 	 */
-#if defined(CFG_ST40_NAND_USE_BCH) && defined(CFG_NAND_ECC_HW3_128)
+#if defined(CONFIG_SYS_ST40_NAND_USE_BCH) && defined(CONFIG_SYS_NAND_ECC_HW3_128)
 #	error boot-mode ECC (3/128) is not supportable with the BCH controller
 #endif
-#if defined(CFG_ST40_NAND_USE_BCH) && defined(CFG_NAND_ECC_AFM4)
+#if defined(CONFIG_SYS_ST40_NAND_USE_BCH) && defined(CONFIG_SYS_NAND_ECC_AFM4)
 #	error AFM4 ECC (4+3/512) is not supportable with the BCH controller
 #endif
 
@@ -78,18 +78,18 @@
 	 *
 	 * Ensure we do not define more than (or less than) one such scheme!
 	 */
-#if defined(CFG_ST40_NAND_USE_BCH)
-#if defined(CFG_ST40_NAND_USE_BCH_18_BIT_ECC) && defined(CFG_ST40_NAND_USE_BCH_30_BIT_ECC)
+#if defined(CONFIG_SYS_ST40_NAND_USE_BCH)
+#if defined(CONFIG_SYS_ST40_NAND_USE_BCH_18_BIT_ECC) && defined(CONFIG_SYS_ST40_NAND_USE_BCH_30_BIT_ECC)
 #	error You can only enable *one* BCH ECC scheme!
-#elif defined(CFG_ST40_NAND_USE_BCH_18_BIT_ECC) && defined(CFG_ST40_NAND_USE_BCH_NO_ECC)
+#elif defined(CONFIG_SYS_ST40_NAND_USE_BCH_18_BIT_ECC) && defined(CONFIG_SYS_ST40_NAND_USE_BCH_NO_ECC)
 #	error You can only enable *one* BCH ECC scheme!
-#elif defined(CFG_ST40_NAND_USE_BCH_NO_ECC) && defined(CFG_ST40_NAND_USE_BCH_30_BIT_ECC)
+#elif defined(CONFIG_SYS_ST40_NAND_USE_BCH_NO_ECC) && defined(CONFIG_SYS_ST40_NAND_USE_BCH_30_BIT_ECC)
 #	error You can only enable *one* BCH ECC scheme!
 #endif
-#if !defined(CFG_ST40_NAND_USE_BCH_18_BIT_ECC) && !defined(CFG_ST40_NAND_USE_BCH_30_BIT_ECC) && !defined(CFG_ST40_NAND_USE_BCH_NO_ECC)
-#	error You must select only one BCH ECC scheme if CFG_ST40_NAND_USE_BCH is defined!
+#if !defined(CONFIG_SYS_ST40_NAND_USE_BCH_18_BIT_ECC) && !defined(CONFIG_SYS_ST40_NAND_USE_BCH_30_BIT_ECC) && !defined(CONFIG_SYS_ST40_NAND_USE_BCH_NO_ECC)
+#	error You must select only one BCH ECC scheme if CONFIG_SYS_ST40_NAND_USE_BCH is defined!
 #endif
-#endif /* CFG_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_ST40_NAND_USE_BCH */
 
 
 #define isprint(x)	( ((x)>=0x20u) && ((x)<0x7fu) )
@@ -120,18 +120,18 @@
  * It is ill-advised to use the redundant top 6-bits in the 4th byte - beware!
  * In addition, a 3-byte tag is also stored along with the ECC, hence 4+3/512 ECC.
  */
-#if !defined(CFG_STM_NAND_BOOT_MODE_ECC_WITH_B)
-#	define CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	1	/* Enable 'B' tagging */
-#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
-#if !defined(CFG_STM_NAND_AFM4_ECC_WITH_AFM)
-#	define CFG_STM_NAND_AFM4_ECC_WITH_AFM		1	/* Enable "AFM" tagging */
-#endif	/* CFG_STM_NAND_AFM4_ECC_WITH_AFM */
+#if !defined(CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B)
+#	define CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B	1	/* Enable 'B' tagging */
+#endif	/* CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#if !defined(CONFIG_SYS_STM_NAND_AFM4_ECC_WITH_AFM)
+#	define CONFIG_SYS_STM_NAND_AFM4_ECC_WITH_AFM	1	/* Enable "AFM" tagging */
+#endif	/* CONFIG_SYS_STM_NAND_AFM4_ECC_WITH_AFM */
 
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
-#	define ECC_BYTES			(3 + 1)		/* ECC 3+1/128, '+1' for 'B' tag */
-#else	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
-#	define ECC_BYTES			(3)		/* ECC 3/128 */
-#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#if CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B
+#	define ECC_BYTES				(3 + 1)	/* ECC 3+1/128, '+1' for 'B' tag */
+#else	/* CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#	define ECC_BYTES				(3)	/* ECC 3/128 */
+#endif	/* CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B */
 
 
 /*
@@ -173,7 +173,7 @@ static struct nand_bbt_descr stm_nand_badblock_pattern_64 = {
  *****************************************************************************************/
 
 
-#if defined(CFG_NAND_ECC_HW3_128) || defined(CFG_NAND_ECC_AFM4)
+#if defined(CONFIG_SYS_NAND_ECC_HW3_128) || defined(CONFIG_SYS_NAND_ECC_AFM4)
 
 
 static void stm_nand_hwctl (
@@ -199,7 +199,7 @@ static int stm_nand_calculate (
 		return -1;	/* Note: caller ignores this value! */
 	}
 	else
-#if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" */
+#if defined(CONFIG_SYS_NAND_ECC_HW3_128)	/* for STM "boot-mode" */
 	if (this->ecc.mode==NAND_ECC_HW && this->ecc.size==128 && this->ecc.bytes==ECC_BYTES)
 	{	/* calculate 3 ECC bytes per 128 bytes of data */
 		const ecc_t computed_ecc = ecc_gen(dat, ECC_128);
@@ -207,13 +207,13 @@ static int stm_nand_calculate (
 		ecc_code[0] = computed_ecc.byte[0];
 		ecc_code[1] = computed_ecc.byte[1];
 		ecc_code[2] = computed_ecc.byte[2];
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+#if CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B
 		ecc_code[3] = 'B';	/* append ASCII 'B', for Boot-mode */
-#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#endif	/* CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B */
 	}
 	else
-#endif /* CFG_NAND_ECC_HW3_128 */
-#if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
+#endif /* CONFIG_SYS_NAND_ECC_HW3_128 */
+#if defined(CONFIG_SYS_NAND_ECC_AFM4)		/* for STM AFM4 (4+3/512) ECC compatibility */
 	if (this->ecc.mode==NAND_ECC_HW && this->ecc.size==512 && this->ecc.bytes==7)
 	{	/* calculate 3 ECC bytes per 512 bytes of data */
 		const ecc_t computed_ecc = ecc_gen(dat, ECC_512);
@@ -228,7 +228,7 @@ static int stm_nand_calculate (
 		ecc_code[6] = computed_ecc.byte[2] & 0x03;	/* set top 6-bits to zero */
 	}
 	else
-#endif /* CFG_NAND_ECC_AFM4 */
+#endif /* CONFIG_SYS_NAND_ECC_AFM4 */
 	{
 		printf("ERROR: Can not calculate ECC: Internal Error (mode=%u,size=%u,bytes=%u)\n",
 			this->ecc.mode, this->ecc.size, this->ecc.bytes);
@@ -251,7 +251,7 @@ static int stm_nand_correct (
 	const struct nand_chip const * this = mtd->priv;
 	enum ecc_size ecc_size;
 
-#if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" */
+#if defined(CONFIG_SYS_NAND_ECC_HW3_128)	/* for STM "boot-mode" */
 	if (this->ecc.mode==NAND_ECC_HW && this->ecc.size==128 && this->ecc.bytes==ECC_BYTES)
 	{
 		/* do we need to try and correct anything ? */
@@ -290,8 +290,8 @@ static int stm_nand_correct (
 		ecc_size = ECC_128;		/* 128 bytes/record */
 	}
 	else
-#endif /* CFG_NAND_ECC_HW3_128 */
-#if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
+#endif /* CONFIG_SYS_NAND_ECC_HW3_128 */
+#if defined(CONFIG_SYS_NAND_ECC_AFM4)		/* for STM AFM4 (4+3/512) ECC compatibility */
 	if (this->ecc.mode==NAND_ECC_HW && this->ecc.size==512 && this->ecc.bytes==7)
 	{
 		/*
@@ -343,7 +343,7 @@ static int stm_nand_correct (
 		ecc_size = ECC_512;		/* 512 bytes/record */
 	}
 	else
-#endif /* CFG_NAND_ECC_AFM4 */
+#endif /* CONFIG_SYS_NAND_ECC_AFM4 */
 	{
 		printf("ERROR: Can not calculate ECC: Internal Error (mode=%u,size=%u,bytes=%u)\n",
 			this->ecc.mode, this->ecc.size, this->ecc.bytes);
@@ -383,7 +383,7 @@ static int stm_nand_correct (
 }
 
 
-#endif /* CFG_NAND_ECC_HW3_128 || CFG_NAND_ECC_AFM4 */
+#endif /* CONFIG_SYS_NAND_ECC_HW3_128 || CONFIG_SYS_NAND_ECC_AFM4 */
 
 
 /*****************************************************************************************
@@ -393,11 +393,11 @@ static int stm_nand_correct (
  *****************************************************************************************/
 
 
-#ifdef CFG_NAND_ECC_HW3_128	/* for STM "boot-mode" */
+#ifdef CONFIG_SYS_NAND_ECC_HW3_128	/* for STM "boot-mode" */
 
 	/* for SMALL-page devices */
 static struct nand_ecclayout stm_boot_ecclayout_16 = {
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+#if CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B
 	.eccbytes = 16,			/* 16 out of 16 bytes = 100% of OOB */
 	.eccpos = {
 		 0,  1,  2,  3,		/* 128-byte Record 0: ECC0, ECC1, ECC2, 'B' */
@@ -405,7 +405,7 @@ static struct nand_ecclayout stm_boot_ecclayout_16 = {
 		 8,  9, 10, 11,		/* 128-byte Record 2: ECC0, ECC1, ECC2, 'B' */
 		12, 13, 14, 15},	/* 128-byte Record 3: ECC0, ECC1, ECC2, 'B' */
 	.oobfree = { {0, 0} }		/* No free space in OOB! */
-#else	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#else	/* CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B */
 	.eccbytes = 12,			/* 12 out of 16 bytes = 75% of OOB */
 	.eccpos = {
 		 0,  1,  2,		/* 128-byte Record 0: ECC0, ECC1, ECC2 */
@@ -413,12 +413,12 @@ static struct nand_ecclayout stm_boot_ecclayout_16 = {
 		 8,  9, 10,		/* 128-byte Record 2: ECC0, ECC1, ECC2 */
 		12, 13, 14}		/* 128-byte Record 3: ECC0, ECC1, ECC2 */
 	.oobfree = { {3, 1}, {7, 1}, {11, 1}, {15, 1} }	/* 4 free bytes in the OOB */
-#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#endif	/* CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B */
 };
 
 	/* for LARGE-page devices */
 static struct nand_ecclayout stm_boot_ecclayout_64 = {
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+#if CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B
 	.eccbytes = 64,			/* 64 out of 64 bytes = 100% of OOB */
 	.eccpos = {
 		 0,  1,  2,  3,		/* 128-byte Record  0: ECC0, ECC1, ECC2, 'B' */
@@ -438,7 +438,7 @@ static struct nand_ecclayout stm_boot_ecclayout_64 = {
 		56, 57, 58, 59,		/* 128-byte Record 14: ECC0, ECC1, ECC2, 'B' */
 		60, 61, 62, 63},	/* 128-byte Record 15: ECC0, ECC1, ECC2, 'B' */
 	.oobfree = { {0, 0} }		/* No free space in OOB! */
-#else	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#else	/* CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B */
 	.eccbytes = 48,			/* 48 out of 64 bytes = 75% of OOB */
 	.eccpos = {
 		 0,  1,  2,		/* 128-byte Record  0: ECC0, ECC1, ECC2 */
@@ -462,7 +462,7 @@ static struct nand_ecclayout stm_boot_ecclayout_64 = {
 		{19, 1}, {23, 1}, {27, 1}, {31, 1},
 		{35, 1}, {39, 1}, {43, 1}, {47, 1},
 		{51, 1}, {55, 1}, {59, 1}, {63, 1} }	/* 16 free bytes in the OOB */
-#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#endif	/* CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B */
 };
 
 
@@ -552,11 +552,11 @@ static void initialize_ecc_diffs (
 	/* fill in "special_ecc" for our special "hybrid" ECC paradigm */
 	special_ecc.nand.ecc.mode	= NAND_ECC_HW;
 	special_ecc.nand.ecc.size	= 128;
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B
+#if CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B
 	special_ecc.nand.ecc.bytes	= 3 + 1;	/* ECC 3+1/128, '+1' for 'B' */
-#else	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#else	/* CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B */
 	special_ecc.nand.ecc.bytes	= 3;		/* ECC 3/128 */
-#endif	/* CFG_STM_NAND_BOOT_MODE_ECC_WITH_B */
+#endif	/* CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B */
 	special_ecc.nand.ecc.steps	= mtd->writesize / special_ecc.nand.ecc.size;
 	special_ecc.nand.ecc.total	= special_ecc.nand.ecc.steps * special_ecc.nand.ecc.bytes;
 	special_ecc.nand.ecc.layout	= layout;
@@ -619,14 +619,14 @@ static int set_ecc_mode (
 	}
 
 	/* do we need to switch ECC mode ? */
-	if ( addr >= CFG_NAND_STM_BOOT_MODE_BOUNDARY )
+	if ( addr >= CONFIG_SYS_NAND_STM_BOOT_MODE_BOUNDARY )
 	{	/* entire range is *not* in "boot-mode" (i.e. default ECC) */
 		if (this->ecc.mode==NAND_ECC_HW && this->ecc.size==128 && this->ecc.bytes==ECC_BYTES)
 		{	/* we are in the wrong ECC mode, so change */
 			set_ecc_diffs (mtd, &default_ecc);
 		}
 	}
-	else if ( addr + len <= CFG_NAND_STM_BOOT_MODE_BOUNDARY )
+	else if ( addr + len <= CONFIG_SYS_NAND_STM_BOOT_MODE_BOUNDARY )
 	{	/* entire range is in "boot-mode" (i.e. 3 bytes of ECC per 128 record */
 		if (!(this->ecc.mode==NAND_ECC_HW && this->ecc.size==128 && this->ecc.bytes==ECC_BYTES))
 		{	/* we are in the wrong ECC mode, so change */
@@ -636,7 +636,7 @@ static int set_ecc_mode (
 	else
 	{	/* the range is split over *both* "boot" and "non-boot" modes! */
 		printf("ERROR: NAND range crosses \"boot-mode\" boundary (0x%08lx)\n",
-			CFG_NAND_STM_BOOT_MODE_BOUNDARY);
+			CONFIG_SYS_NAND_STM_BOOT_MODE_BOUNDARY);
 		return -EINVAL;
 	}
 
@@ -731,7 +731,7 @@ static int stm_boot_write_oob (struct mtd_info *mtd, loff_t to, struct mtd_oob_o
 }
 
 
-#endif	/* CFG_NAND_ECC_HW3_128 */
+#endif	/* CONFIG_SYS_NAND_ECC_HW3_128 */
 
 
 /*****************************************************************************************
@@ -741,7 +741,7 @@ static int stm_boot_write_oob (struct mtd_info *mtd, loff_t to, struct mtd_oob_o
  *****************************************************************************************/
 
 
-#if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
+#if defined(CONFIG_SYS_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
 
 
 	/* for SMALL-page devices */
@@ -766,7 +766,7 @@ static struct nand_ecclayout stm_afm4_ecclayout_64 = {
 };
 
 
-#endif /* CFG_NAND_ECC_AFM4 */
+#endif /* CONFIG_SYS_NAND_ECC_AFM4 */
 
 
 /*****************************************************************************************
@@ -776,7 +776,7 @@ static struct nand_ecclayout stm_afm4_ecclayout_64 = {
  *****************************************************************************************/
 
 
-#if defined(CFG_ST40_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
+#if defined(CONFIG_SYS_ST40_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
 
 
 	/* for LARGE-page devices */
@@ -791,7 +791,7 @@ static struct nand_ecclayout stm_bch_ecclayout_64 = {
 };
 
 
-#endif /* CFG_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_ST40_NAND_USE_BCH */
 
 
 /*****************************************************************************************
@@ -819,13 +819,13 @@ static int stm_nand_default_bbt (struct mtd_info * const mtd)
 	 * So, we do not want to scan all pages, nor all the in-band data!
 	 * Play with the options to make it so...
 	 */
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B || CFG_STM_NAND_AFM4_ECC_WITH_AFM
+#if CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B || CONFIG_SYS_STM_NAND_AFM4_ECC_WITH_AFM
 	this->badblock_pattern->options &= ~(NAND_BBT_SCANEMPTY|NAND_BBT_SCANALLPAGES);
 #endif
-#if CFG_STM_NAND_BOOT_MODE_ECC_WITH_B	/* Additional "B" tag in OOB ? */
+#if CONFIG_SYS_STM_NAND_BOOT_MODE_ECC_WITH_B	/* Additional "B" tag in OOB ? */
 	this->badblock_pattern->options |= NAND_BBT_SCANSTMBOOTECC;
 #endif
-#if CFG_STM_NAND_AFM4_ECC_WITH_AFM	/* Additional "AFM" tag in OOB ? */
+#if CONFIG_SYS_STM_NAND_AFM4_ECC_WITH_AFM	/* Additional "AFM" tag in OOB ? */
 	this->badblock_pattern->options |= NAND_BBT_SCANSTMAFMECC;
 #endif
 
@@ -844,7 +844,7 @@ extern void stm_default_board_nand_init(
 	void (*cmd_ctrl)(struct mtd_info *mtdinfo, int dat, unsigned int ctrl),
 	int (*dev_ready)(struct mtd_info *mtd))
 {
-#if defined(CFG_ST40_NAND_USE_HAMMING) || defined(CFG_ST40_NAND_USE_BCH)
+#if defined(CONFIG_SYS_ST40_NAND_USE_HAMMING) || defined(CONFIG_SYS_ST40_NAND_USE_BCH)
 	struct mtd_info * const mtd = (struct mtd_info *)(nand->priv);
 #endif
 
@@ -858,20 +858,20 @@ extern void stm_default_board_nand_init(
 	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
 	nand->scan_bbt      = stm_nand_default_bbt;
 
-#if defined(CFG_ST40_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#if defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
 	nand->cmd_ctrl      = cmd_ctrl;
 	nand->dev_ready     = dev_ready;
-#elif defined(CFG_ST40_NAND_USE_HAMMING)	/* for H/W Hamming ("flex") driver */
+#elif defined(CONFIG_SYS_ST40_NAND_USE_HAMMING)		/* for H/W Hamming ("flex") driver */
 	stm_flex_init_nand(mtd, nand);
-#elif defined(CFG_ST40_NAND_USE_BCH)		/* for H/W BCH ("multi-bit ECC") driver */
+#elif defined(CONFIG_SYS_ST40_NAND_USE_BCH)		/* for H/W BCH ("multi-bit ECC") driver */
 	stm_bch_init_nand(mtd, nand);
-#endif /* CFG_ST40_NAND_USE_BIT_BANGING */
+#endif /* CONFIG_SYS_ST40_NAND_USE_BIT_BANGING */
 
-#if defined(CFG_NAND_ECC_AFM4)		/* for STM AFM4 ECC compatibility */
+#if defined(CONFIG_SYS_NAND_ECC_AFM4)			/* for STM AFM4 ECC compatibility */
 	nand->ecc.hwctl     = stm_nand_hwctl;
 	nand->ecc.correct   = stm_nand_correct;
 	nand->ecc.calculate = stm_nand_calculate;
-#endif /* CFG_NAND_ECC_AFM4 */
+#endif /* CONFIG_SYS_NAND_ECC_AFM4 */
 
 	/*
 	 * Only enable the following to use a (volatile) RAM-based
@@ -893,8 +893,8 @@ extern void stm_nand_scan_post_ident(
 {
 	struct nand_chip * const nand = mtd->priv;
 
-#if defined(CFG_NAND_ECC_AFM4) || defined(CFG_ST40_NAND_USE_BCH)
-#if defined(CFG_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
+#if defined(CONFIG_SYS_NAND_ECC_AFM4) || defined(CONFIG_SYS_ST40_NAND_USE_BCH)
+#if defined(CONFIG_SYS_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
 	if (mtd->oobsize == 64)				/* large page device ? */
 		nand->ecc.layout = &stm_afm4_ecclayout_64;
 	else if (mtd->oobsize == 16)			/* small page device ? */
@@ -908,13 +908,13 @@ extern void stm_nand_scan_post_ident(
 	 */
 	if (mtd->oobsize >= 64)				/* (at least a) large page device ? */
 		nand->ecc.layout = &stm_bch_ecclayout_64;
-#endif /* CFG_NAND_ECC_AFM4 */
+#endif /* CONFIG_SYS_NAND_ECC_AFM4 */
 	else						/* unknown ? */
 	{
 		printf("Error: unexpected OOB size of %u bytes\n", mtd->oobsize);
 		BUG();
 	}
-#endif /* CFG_NAND_ECC_AFM4 || CFG_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_NAND_ECC_AFM4 || CONFIG_SYS_ST40_NAND_USE_BCH */
 
 		/*
 		 * Ensure sizeof(OOB) is not too big!
@@ -933,25 +933,25 @@ extern void stm_nand_scan_post_ident(
 		BUG();
 	}
 
-#if defined(CFG_NAND_ECC_AFM4)			/* for STM AFM4 ECC compatibility */
+#if defined(CONFIG_SYS_NAND_ECC_AFM4)		/* for STM AFM4 ECC compatibility */
 	nand->ecc.mode      = NAND_ECC_HW;	/* compatible with AFM4 (4+3/512) ECC */
 	nand->ecc.size      = 512;
 	nand->ecc.bytes     = 7;
-#elif defined(CFG_ST40_NAND_USE_BCH)		/* for H/W BCH ("multi-bit ECC") driver */
+#elif defined(CONFIG_SYS_ST40_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
 	nand->ecc.mode      = NAND_ECC_HW;	/* use ST's (off-die) on-SoC H/W ECC engine */
 	nand->ecc.size      = 1024;		/* BCH ECC only processes 1KiB sectors at a time */
-#	if defined(CFG_ST40_NAND_USE_BCH_18_BIT_ECC)
+#	if defined(CONFIG_SYS_ST40_NAND_USE_BCH_18_BIT_ECC)
 	nand->ecc.bytes     = 32;		/* 18-bits of BCH ECC needs 32-Bytes/1KiB sector */
-#	elif defined(CFG_ST40_NAND_USE_BCH_30_BIT_ECC)
+#	elif defined(CONFIG_SYS_ST40_NAND_USE_BCH_30_BIT_ECC)
 	nand->ecc.bytes     = 54;		/* 30-bits of BCH ECC needs 54-Bytes/1KiB sector */
-#	elif defined(CFG_ST40_NAND_USE_BCH_NO_ECC)
+#	elif defined(CONFIG_SYS_ST40_NAND_USE_BCH_NO_ECC)
 	nand->ecc.bytes     = 0;		/* No ECC -- not recommended! */
 #	else
-#	error Please specific the BCH ECC scheme to use (CFG_ST40_NAND_USE_BCH_xxx_ECC)
-#	endif /* CFG_ST40_NAND_USE_BCH_xxx_ECC */
+#	error Please specific the BCH ECC scheme to use (CONFIG_SYS_ST40_NAND_USE_BCH_xxx_ECC)
+#	endif /* CONFIG_SYS_ST40_NAND_USE_BCH_xxx_ECC */
 #else
 	nand->ecc.mode      = NAND_ECC_SOFT;	/* default is S/W 3/256 ECC */
-#endif /* CFG_NAND_ECC_AFM4 */
+#endif /* CONFIG_SYS_NAND_ECC_AFM4 */
 }
 
 
@@ -963,7 +963,7 @@ extern void stm_nand_scan_post_tail(
 {
 	struct nand_chip * const nand = mtd->priv;
 
-#if defined(CFG_NAND_ECC_HW3_128)	/* for STM "boot-mode" ECC */
+#if defined(CONFIG_SYS_NAND_ECC_HW3_128)	/* for STM "boot-mode" ECC */
 	/* first, copy original bottom-level function pointers safely */
 	fn_mtd_read      = mtd->read;
 	fn_mtd_read_oob  = mtd->read_oob;
@@ -974,7 +974,7 @@ extern void stm_nand_scan_post_tail(
 	mtd->read_oob    = stm_boot_read_oob;
 	mtd->write       = stm_boot_write;
 	mtd->write_oob   = stm_boot_write_oob;
-#endif /* CFG_NAND_ECC_HW3_128 */
+#endif /* CONFIG_SYS_NAND_ECC_HW3_128 */
 
 		/*
 		 * Ensure we do have enough OOB bytes for the chosen ECC scheme!
@@ -993,7 +993,7 @@ extern void stm_nand_scan_post_tail(
 	 * Let the user know if this assumption is false.
 	 * QQQ - remove this restriction (later), *if* needed!
 	 */
-#if defined(CFG_ST40_NAND_USE_BCH)		/* for H/W BCH ("multi-bit ECC") driver */
+#if defined(CONFIG_SYS_ST40_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
 	const int blocks_per_device = mtd->size >> nand->phys_erase_shift;
 	if (blocks_per_device/4 > mtd->writesize)
 	{
@@ -1002,7 +1002,7 @@ extern void stm_nand_scan_post_tail(
 			mtd->writesize);
 		BUG();
 	}
-#endif /* CFG_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_ST40_NAND_USE_BCH */
 }
 
 

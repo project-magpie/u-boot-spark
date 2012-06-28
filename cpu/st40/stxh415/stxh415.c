@@ -81,7 +81,7 @@ static void stxh415_clocks(void)
 	 * Note: for the SBC, we expect this will always be 30MHz, so this
 	 * is *less* than a gross hack! The "gross hack" is for the other cases!
 	 */
-#if (CFG_STM_ASC_BASE==STXH415_SBC_ASC0_BASE) || (CFG_STM_ASC_BASE==STXH415_SBC_ASC1_BASE)
+#if (CONFIG_SYS_STM_ASC_BASE==STXH415_SBC_ASC0_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH415_SBC_ASC1_BASE)
 	bd->bi_emifrq = 30;	/* use 30 MHz */
 #else
 	bd->bi_emifrq = 100;	/* use 100 MHz */
@@ -325,7 +325,7 @@ static void stxh415_pioalt_retime(const int port, const int pin,
 
 
 /* --------------------------------------------------------------------
- *           Ethernet MAC resources (PAD and Retiming)
+ *		Ethernet MAC resources (PAD and Retiming)
  * --------------------------------------------------------------------*/
 
 
@@ -378,7 +378,7 @@ static void stxh415_pioalt_retime(const int port, const int pin,
 	}
 
 
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stxh415_ethernet_mii_pad_configs[] = {
 			DATA_OUT(14, 0, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(14, 1, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
@@ -413,7 +413,7 @@ static struct stm_pad_sysconf stxh415_ethernet_mii_pad_sysconfs[] = {
 			/* TX_RETIMING_CLK */
 			STM_PAD_SYSCONF(SYSCONF(382), 8, 8, 0),
 };
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stxh415_ethernet_mii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
@@ -448,10 +448,10 @@ static struct stm_pad_sysconf stxh415_ethernet_mii_pad_sysconfs[] = {
 			/* TX_RETIMING_CLK */
 			STM_PAD_SYSCONF(SYSCONF(29), 8, 8, 0),
 };
-#endif				/* CFG_STM_STMAC_BASE == GMAC #1 */
+#endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 
 #if 0
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
 			PHY_CLOCK(13, 5, 4, RET_NICLK(1)),/* GTXCLK */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)),/* MDINT */
@@ -495,7 +495,7 @@ static struct stm_pad_sysconf stxh415_ethernet_gmii_pad_sysconfs[] = {
 			/* TX_RETIMING_CLK */
 			STM_PAD_SYSCONF(SYSCONF(382), 8, 8, 0),
 };
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[1] */
@@ -539,11 +539,11 @@ static struct stm_pad_sysconf stxh415_ethernet_gmii_pad_sysconfs[] = {
 			/* TX_RETIMING_CLK */
 			STM_PAD_SYSCONF(SYSCONF(29), 8, 8, 0),
 };
-#endif				/* CFG_STM_STMAC_BASE == GMAC #1 */
+#endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 #endif	/* 0 */
 
 #if 0
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
 			PHY_CLOCK(13, 5, 2, RET_NICLK(1)),/* GTXCLK */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)), /* MDINT */
@@ -574,7 +574,7 @@ static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
 			STM_PAD_SYSCONF(SYSCONF(382), 5, 5, 1),
 			/* Extra retime config base on speed */
 };
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_DE_IO(0, 1)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_DE_IO(0, 1)),/* TXD[1] */
@@ -605,10 +605,10 @@ static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
 			STM_PAD_SYSCONF(SYSCONF(29), 5, 5, 1),
 			/* Extra retime config base on speed */
 };
-#endif				/* CFG_STM_STMAC_BASE == GMAC #1 */
+#endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 #endif	/* 0 */
 
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stxh415_ethernet_rmii_pad_configs[] = {
 			PHY_CLOCK(13, 5, 2, RET_NICLK(1)),/* PHYCLK */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)),/* MDINT */
@@ -637,7 +637,7 @@ static struct stm_pad_sysconf stxh415_ethernet_rmii_pad_sysconfs[] = {
 			/* TX_RETIMING_CLK */
 			STM_PAD_SYSCONF(SYSCONF(382), 8, 8, 1),
 };
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stxh415_ethernet_rmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
@@ -663,10 +663,10 @@ static struct stm_pad_sysconf stxh415_ethernet_rmii_pad_sysconfs[] = {
 			/* TX_RETIMING_CLK */
 			STM_PAD_SYSCONF(SYSCONF(29), 8, 8, 1),
 };
-#endif				/* CFG_STM_STMAC_BASE == GMAC #1 */
+#endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 
 #if 0
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stxh415_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(14, 0, 2, RET_BYPASS(0)),/* TXD[0] */
 			DATA_OUT(14, 1, 2, RET_BYPASS(0)),/* TXD[1] */
@@ -701,7 +701,7 @@ static struct stm_pad_sysconf stxh415_ethernet_reverse_mii_pad_sysconfs[] = {
 			/* TX_RETIMING_CLK */
 			STM_PAD_SYSCONF(SYSCONF(382), 8, 8, 0),
 };
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stxh415_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[1] */
@@ -736,7 +736,7 @@ static struct stm_pad_sysconf stxh415_ethernet_reverse_mii_pad_sysconfs[] = {
 			/* TX_RETIMING_CLK */
 			STM_PAD_SYSCONF(SYSCONF(29), 8, 8, 0),
 };
-#endif				/* CFG_STM_STMAC_BASE == GMAC #1 */
+#endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 #endif	/* 0 */
 
 
@@ -753,7 +753,7 @@ extern int stmac_default_pbl(void)
 	return 32;
 }
 
-#define GMAC_AHB_CONFIG         0x2000
+#define GMAC_AHB_CONFIG		0x2000
 static void stxh415_ethernet_bus_setup(void)
 {
 	/* Configure the bridge to generate more efficient STBus traffic.
@@ -761,15 +761,15 @@ static void stxh415_ethernet_bus_setup(void)
 	 * Cut Version	| Ethernet AD_CONFIG[21:0]
 	 *	1.0	|	0x00264207
 	 */
-	writel(0x00264207, CFG_STM_STMAC_BASE + GMAC_AHB_CONFIG);
+	writel(0x00264207, CONFIG_SYS_STM_STMAC_BASE + GMAC_AHB_CONFIG);
 }
 
 extern void stmac_set_mac_speed(int speed)
 {
 #if 0	/* QQQ - TO IMPLEMENT */
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0 */
 	unsigned long * const sysconfReg = (void*)STX7108_MII_SYSGFG(27);
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1 */
 	unsigned long * const sysconfReg = (void*)STX7108_MII_SYSGFG(23);
 #else
 #error Unknown base address for the STM GMAC
@@ -794,9 +794,9 @@ extern void stxh415_configure_ethernet(
 	size_t num_pads, num_sys, i;
 
 	BUG_ON(!config);
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* GMAC #0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 	BUG_ON(port != 0);
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* GMAC #1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 	BUG_ON(port != 1);
 #else
 #error Unknown base address for the STM GMAC
@@ -1127,7 +1127,7 @@ extern int stxh415_i2c_read(void)
 #if defined(CONFIG_I2C_CMD_TREE)
 extern unsigned int i2c_get_bus_speed(void)
 {
-	return CFG_I2C_SPEED;
+	return CONFIG_SYS_I2C_SPEED;
 }
 extern int i2c_set_bus_speed(unsigned int speed)
 {

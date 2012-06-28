@@ -71,9 +71,9 @@ static void display_pmb (void)
 #endif	/* DEBUG */
 
 	printf ("\ninfo: sizeof(LMI) = 0x%08x = %uMiB (uses %u PMB slot%s)\n\n",
-		CFG_SDRAM_SIZE, CFG_SDRAM_SIZE/1024/1024,
-		(CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES) ? 2 : 1,
-		(CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES) ? "s" : "");
+		CONFIG_SYS_SDRAM_SIZE, CONFIG_SYS_SDRAM_SIZE/1024/1024,
+		(CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES) ? 2 : 1,
+		(CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES) ? "s" : "");
 
 	for (i=0; i<16; i++)
 	{
@@ -149,17 +149,17 @@ static void display_pmb (void)
 #ifdef DEBUG
 	/* perform additional checks on validity */
 	SHOULD_BE_VALID(0);
-#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SHOULD_BE_VALID(1);
 #else
 	SHOULD_BE_INVALID(1);
-#endif	/* CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES */
+#endif	/* CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES */
 	SHOULD_BE_VALID(2);
-#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SHOULD_BE_VALID(3);
 #else
 	SHOULD_BE_INVALID(3);
-#endif	/* CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES */
+#endif	/* CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES */
 	SHOULD_BE_INVALID(15);
 #endif	/* DEBUG */
 }

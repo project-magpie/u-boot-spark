@@ -26,7 +26,7 @@
 #include <command.h>
 
 
-#if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING) && defined(CONFIG_CMD_NAND)
+#if defined(CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING) && defined(CONFIG_CMD_NAND)
 
 
 #include <nand.h>
@@ -99,7 +99,7 @@ static int check_skip_bb(const ulong addr)
 	/*
 	 * ensure the physical NAND device has been initialized & selected.
 	 */
-	if ((nand_curr_device < 0) || (nand_curr_device >= CFG_MAX_NAND_DEVICE))
+	if ((nand_curr_device < 0) || (nand_curr_device >= CONFIG_SYS_MAX_NAND_DEVICE))
 	{
 		printf ("Error: "
 			"Invalid NAND device (%d) currently selected\n",
@@ -251,6 +251,6 @@ U_BOOT_CMD(
 );
 
 
-#endif /* CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
+#endif /* CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 
 

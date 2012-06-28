@@ -68,7 +68,7 @@ const unsigned char  ecc_bit_count_table[256] =   /* Parity look up table */
 };
 
 
-#if defined(CFG_NAND_ECC_HW3_128) || defined(CFG_NAND_ECC_AFM4)
+#if defined(CONFIG_SYS_NAND_ECC_HW3_128) || defined(CONFIG_SYS_NAND_ECC_AFM4)
 
 static const unsigned char byte_parity_table[] =   /* Parity look up table */
 {
@@ -484,5 +484,5 @@ int main()
   return 0;
 }
 #endif	/* TESTING */
-#endif	/* CFG_NAND_ECC_HW3_128 || CFG_NAND_ECC_AFM4 */
+#endif	/* CONFIG_SYS_NAND_ECC_HW3_128 || CONFIG_SYS_NAND_ECC_AFM4 */
 #endif	/* CONFIG_CMD_NAND */

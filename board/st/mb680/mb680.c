@@ -38,13 +38,13 @@
 	 * More recent EPLD versions have the EPLD in EMI space,
 	 * using CSCn (EMI Bank #2), nominally at physical 0x04800000.
 	 */
-#if !defined(CFG_EPLD_PHYSICAL_BASE)
-#	define CFG_EPLD_PHYSICAL_BASE	0x04800000	/* CSCn (EMI Bank #2) */
-#endif /* CFG_EPLD_PHYSICAL_BASE */
+#if !defined(CONFIG_SYS_EPLD_PHYSICAL_BASE)
+#	define CONFIG_SYS_EPLD_PHYSICAL_BASE	0x04800000	/* CSCn (EMI Bank #2) */
+#endif /* CONFIG_SYS_EPLD_PHYSICAL_BASE */
 	/* map the physical address to UN-cached virtual address */
-#if !defined(CFG_EPLD_BASE)
-#	define CFG_EPLD_BASE		( 0xa0000000 | (CFG_EPLD_PHYSICAL_BASE) )
-#endif /* CFG_EPLD_BASE */
+#if !defined(CONFIG_SYS_EPLD_BASE)
+#	define CONFIG_SYS_EPLD_BASE		( 0xa0000000 | (CONFIG_SYS_EPLD_PHYSICAL_BASE) )
+#endif /* CONFIG_SYS_EPLD_BASE */
 	/*
 	 * following are the offsets within the EMI EPLD (IC21),
 	 * for the MB705 Peripheral board.
@@ -60,13 +60,13 @@
 static inline void epld_write(unsigned long value, unsigned long offset)
 {
 	/* 16-bit write to EPLD registers */
-	writew(value, CFG_EPLD_BASE + offset);
+	writew(value, CONFIG_SYS_EPLD_BASE + offset);
 }
 
 static inline unsigned long epld_read(unsigned long offset)
 {
 	/* 16-bit read from EPLD registers */
-	return readw(CFG_EPLD_BASE + offset);
+	return readw(CONFIG_SYS_EPLD_BASE + offset);
 }
 
 static int mb705_init_epld(void)

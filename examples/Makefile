@@ -67,7 +67,7 @@ endif
 
 ifeq ($(ARCH),st40)
 sinclude $(OBJTREE)/include/autoconf.mk
-LOAD_ADDR = $(CFG_SDRAM_BASE)
+LOAD_ADDR = $(CONFIG_SYS_SDRAM_BASE)
 endif
 
 ifeq ($(ARCH),sh)

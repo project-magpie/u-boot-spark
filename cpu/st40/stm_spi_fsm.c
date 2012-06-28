@@ -83,7 +83,7 @@ static const char assert_message[] =
 /**********************************************************************/
 
 
-static const unsigned long base_addr = CFG_STM_SPI_FSM_BASE;	/* SPI base */
+static const unsigned long base_addr = CONFIG_SYS_STM_SPI_FSM_BASE;	/* SPI base */
 
 #define fsm_write_reg(reg, val)		writel((val), base_addr + (reg))
 #define fsm_read_reg(reg)		readl(base_addr + (reg))
@@ -539,8 +539,8 @@ extern int fsm_write(const uint8_t * const buf, const uint32_t bufsize, uint32_t
 }
 
 
-#if !defined(CFG_STM_SPI_CLOCKDIV)
-#define CFG_STM_SPI_CLOCKDIV		2	/* default is SPI_CLOCKDIV = 2 */
+#if !defined(CONFIG_SYS_STM_SPI_CLOCKDIV)
+#define CONFIG_SYS_STM_SPI_CLOCKDIV	2	/* default is SPI_CLOCKDIV = 2 */
 #endif
 
 extern int fsm_init(void)
@@ -552,7 +552,7 @@ extern int fsm_init(void)
 	udelay(1);	/* QQQ - is this long enough ??? */
 	fsm_write_reg(SPI_FAST_SEQ_CFG, 0);
 
-	fsm_write_reg(SPI_CLOCKDIV, CFG_STM_SPI_CLOCKDIV);
+	fsm_write_reg(SPI_CLOCKDIV, CONFIG_SYS_STM_SPI_CLOCKDIV);
 
 		/* select Fast Sequence Mode (FSM) */
 	fsm_set_mode(1<<3);

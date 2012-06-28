@@ -51,12 +51,12 @@ static void stx7200_clocks(void)
 #ifdef CONFIG_DRIVER_NETSTMAC
 
 #define MII_MODE		(1<<0)
-#define PHY_CLK_EXT             (1<<2)
-#define MAC_SPEED               (1<<4)
-#define VCI_ACK_SOURCE          (1<<6)
-#define RESET                   (1<<8)
-#define DISABLE_MSG_READ        (1<<12)
-#define DISABLE_MSG_WRITE       (1<<14)
+#define PHY_CLK_EXT		(1<<2)
+#define MAC_SPEED		(1<<4)
+#define VCI_ACK_SOURCE		(1<<6)
+#define RESET			(1<<8)
+#define DISABLE_MSG_READ	(1<<12)
+#define DISABLE_MSG_WRITE	(1<<14)
 /* Remaining bits define pad functions, default appears to work */
 
 extern int stmac_default_pbl(void)
@@ -110,10 +110,10 @@ extern void stx7200_configure_ethernet(
 	sysconf &= ~(DISABLE_MSG_READ << mac);
 
 	/* VCI_ACK_SOURCE = 0 */
-        sysconf &= ~(VCI_ACK_SOURCE << mac);
+	sysconf &= ~(VCI_ACK_SOURCE << mac);
 
 	/* ETHERNET_INTERFACE_ON (aka RESET) = 1 */
-        sysconf |= (RESET << mac);
+	sysconf |= (RESET << mac);
 
 	/* RMII_MODE */
 	if (rmii)
@@ -453,11 +453,11 @@ extern void stx7200_usb_init(void)
 	unsigned long reg;
 	const unsigned char power_pins[3] = {1, 3, 4};
 	const unsigned char oc_pins[3] = {0, 2, 5};
-#if CFG_USB_BASE == CFG_USB0_BASE
+#if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB0_BASE
 	const size_t port = 0;
-#elif CFG_USB_BASE == CFG_USB1_BASE
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE
 	const size_t port = 1;
-#elif CFG_USB_BASE == CFG_USB2_BASE
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB2_BASE
 	const size_t port = 2;
 #else
 #error Unknown USB Host Controller Base Address
@@ -492,7 +492,7 @@ extern void stx7200_usb_init(void)
 	STPIO_SET_PIN(PIO_PORT(7), power_pins[port], 1);
 
 	/* USB Over-Current */
- 	if (STX7200_DEVICEID_CUT(bd->bi_devid) < 2)
+	if (STX7200_DEVICEID_CUT(bd->bi_devid) < 2)
 		SET_PIO_PIN(PIO_PORT(7), oc_pins[port], STPIO_ALT_BIDIR);
 	else
 		SET_PIO_PIN(PIO_PORT(7), oc_pins[port], STPIO_IN);

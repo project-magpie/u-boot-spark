@@ -84,21 +84,21 @@ char usb_started; /* flag for the started/stopped USB status */
  * Special thanks to Richard Marsh of Marsh Consulting Limited
  * for providing the basis of this fix in usb_hub_configure().
  */
-#if !defined(CFG_USB_DODGY_DEVICES_SUPPORT)
-#	define CFG_USB_DODGY_DEVICES_SUPPORT	1
-#endif	/* CFG_USB_DODGY_DEVICES_SUPPORT */
+#if !defined(CONFIG_SYS_USB_DODGY_DEVICES_SUPPORT)
+#	define CONFIG_SYS_USB_DODGY_DEVICES_SUPPORT	1
+#endif	/* CONFIG_SYS_USB_DODGY_DEVICES_SUPPORT */
 
-#if CFG_USB_DODGY_DEVICES_SUPPORT
-#if !defined(CFG_USB_DODGY_DEVICES_INITIAL_DELAY)
-#	define CFG_USB_DODGY_DEVICES_INITIAL_DELAY	500	/* in ms */
-#endif	/* CFG_USB_DODGY_DEVICES_INITIAL_DELAY */
-#if !defined(CFG_USB_DODGY_DEVICES_LOOP_DELAY)
-#	define CFG_USB_DODGY_DEVICES_LOOP_DELAY		100	/* in ms */
-#endif	/* CFG_USB_DODGY_DEVICES_LOOP_DELAY */
-#if !defined(CFG_USB_DODGY_DEVICES_MAX_DELAY)
-#	define CFG_USB_DODGY_DEVICES_MAX_DELAY		15000	/* in ms */
-#endif	/* CFG_USB_DODGY_DEVICES_MAX_DELAY */
-#endif	/* CFG_USB_DODGY_DEVICES_SUPPORT */
+#if CONFIG_SYS_USB_DODGY_DEVICES_SUPPORT
+#if !defined(CONFIG_SYS_USB_DODGY_DEVICES_INITIAL_DELAY)
+#	define CONFIG_SYS_USB_DODGY_DEVICES_INITIAL_DELAY	500	/* in ms */
+#endif	/* CONFIG_SYS_USB_DODGY_DEVICES_INITIAL_DELAY */
+#if !defined(CONFIG_SYS_USB_DODGY_DEVICES_LOOP_DELAY)
+#	define CONFIG_SYS_USB_DODGY_DEVICES_LOOP_DELAY		100	/* in ms */
+#endif	/* CONFIG_SYS_USB_DODGY_DEVICES_LOOP_DELAY */
+#if !defined(CONFIG_SYS_USB_DODGY_DEVICES_MAX_DELAY)
+#	define CONFIG_SYS_USB_DODGY_DEVICES_MAX_DELAY		15000	/* in ms */
+#endif	/* CONFIG_SYS_USB_DODGY_DEVICES_MAX_DELAY */
+#endif	/* CONFIG_SYS_USB_DODGY_DEVICES_SUPPORT */
 
 /**********************************************************************
  * some forward declarations...
@@ -1318,9 +1318,9 @@ int usb_hub_configure(struct usb_device *dev)
 		"" : "no ");
 	usb_hub_power_on(hub);
 
-#if CFG_USB_DODGY_DEVICES_SUPPORT
+#if CONFIG_SYS_USB_DODGY_DEVICES_SUPPORT
 	// Some USB devices take an unknown amount of time before they can be enumerated
-	int t = CFG_USB_DODGY_DEVICES_MAX_DELAY;// this is how long we will wait for
+	int t = CONFIG_SYS_USB_DODGY_DEVICES_MAX_DELAY;// this is how long we will wait for
 					// a USB device to become connected (CCS + CSC)
 	int ndevready = 0;		// number of devices connected
 	int ndevin    = 0;		// number of devices detected
@@ -1337,15 +1337,15 @@ int usb_hub_configure(struct usb_device *dev)
 	}
 
 	// Initial delay to enable devices to power up (CCS)
-	wait_ms (CFG_USB_DODGY_DEVICES_INITIAL_DELAY);
+	wait_ms (CONFIG_SYS_USB_DODGY_DEVICES_INITIAL_DELAY);
 
 	// Detect and wait for devices
 	do {
 		// Wait - before looking for USB devices connected and ready to enumerate
-		if (t != CFG_USB_DODGY_DEVICES_MAX_DELAY)
+		if (t != CONFIG_SYS_USB_DODGY_DEVICES_MAX_DELAY)
 		{
-			wait_ms (CFG_USB_DODGY_DEVICES_LOOP_DELAY);
-			t -= CFG_USB_DODGY_DEVICES_LOOP_DELAY;
+			wait_ms (CONFIG_SYS_USB_DODGY_DEVICES_LOOP_DELAY);
+			t -= CONFIG_SYS_USB_DODGY_DEVICES_LOOP_DELAY;
 		}
 		// Check each port in turn
 		for (i = 0; i < dev->maxchild; i++)
@@ -1375,7 +1375,7 @@ int usb_hub_configure(struct usb_device *dev)
 		}
 	} while ( (t > 0) && (ndevready < ndevin) );
 	USB_HUB_PRINTF ("A total of %d devices (out of %d) were ready\n", ndevready, ndevin);
-#endif	/* CFG_USB_DODGY_DEVICES_SUPPORT */
+#endif	/* CONFIG_SYS_USB_DODGY_DEVICES_SUPPORT */
 
 	for (i = 0; i < dev->maxchild; i++) {
 		struct usb_port_status portsts;

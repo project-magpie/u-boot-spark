@@ -32,7 +32,7 @@
 #define mdelay(n) ({unsigned long msec=(n); while (msec--) udelay(1000);})
 
 
-#if defined(CONFIG_USB_OHCI_NEW) && defined(CFG_USB_OHCI_CPU_INIT)
+#if defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT)
 
 extern int usb_cpu_init(void)
 {
@@ -52,11 +52,11 @@ extern int usb_cpu_init(void)
 			 CONFIG_ST40_STX_STX7105_USB_PW);
 #endif
 #elif defined(CONFIG_ST40_STX7108)
-#if CFG_USB_BASE == CFG_USB0_BASE	/* USB #0 */
+#if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB0_BASE		/* USB #0 */
 	stx7108_usb_init(0);
-#elif CFG_USB_BASE == CFG_USB1_BASE	/* USB #1 */
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE	/* USB #1 */
 	stx7108_usb_init(1);
-#elif CFG_USB_BASE == CFG_USB2_BASE	/* USB #2 */
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB2_BASE	/* USB #2 */
 	stx7108_usb_init(2);
 #endif
 #elif defined(CONFIG_ST40_STX7111)
@@ -68,15 +68,15 @@ extern int usb_cpu_init(void)
 #elif defined(CONFIG_ST40_FLI7510)
 	fli7510_usb_init (fli7510_usb_ovrcur_active_low);
 #elif defined(CONFIG_ST40_FLI7540)
-#if CFG_USB_BASE == CFG_USB_A_BASE	/* USB #1 */
+#if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB_A_BASE	/* USB #1 */
 	fli7540_usb_init (0, fli7540_usb_ovrcur_active_low);
-#elif CFG_USB_BASE == CFG_USB_C_BASE	/* USB #2 */
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB_C_BASE	/* USB #2 */
 	fli7540_usb_init (1, fli7540_usb_ovrcur_active_low);
-#endif	/* CFG_USB_BASE ... */
+#endif	/* CONFIG_SYS_USB_BASE ... */
 #elif defined(CONFIG_ST40_STXH205)
-#if CFG_USB_BASE == CFG_USB0_BASE	/* USB #0 */
+#if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB0_BASE		/* USB #0 */
 	stxh205_usb_init(0);
-#elif CFG_USB_BASE == CFG_USB1_BASE	/* USB #1 */
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE	/* USB #1 */
 	stxh205_usb_init(1);
 #endif
 #else
@@ -168,5 +168,5 @@ extern int ST40_start_host_control(unsigned int flags)
 	return 0;
 }
 
-#endif /* defined(CONFIG_USB_OHCI_NEW) && defined(CFG_USB_OHCI_CPU_INIT) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT) */
 

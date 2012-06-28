@@ -54,7 +54,7 @@ static void configPIO(void)
 {
 	/* Setup PIOs for ASC device */
 
-#if CFG_STM_ASC_BASE == ST40_ASC1_REGS_BASE
+#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC1_REGS_BASE
 
 	/* Route UART1 via PIO5 for TX, RX, CTS & RTS (Alternative #1) */
 	PIOALT(5, 1, 1, stm_pad_direction_output);	/* UART1-TX */
@@ -62,7 +62,7 @@ static void configPIO(void)
 	PIOALT(5, 4, 1, stm_pad_direction_output);	/* UART1-RTS */
 	PIOALT(5, 3, 1, stm_pad_direction_input);	/* UART1-CTS */
 
-#elif CFG_STM_ASC_BASE == ST40_ASC3_REGS_BASE
+#elif CONFIG_SYS_STM_ASC_BASE == ST40_ASC3_REGS_BASE
 
 	/* Route UART3 via PIO24/25 for TX, RX (Alternative #1) */
 	PIOALT(24, 4, 1, stm_pad_direction_output);	/* UART3-TX */
@@ -72,7 +72,7 @@ static void configPIO(void)
 
 #else
 #error Unknown ASC port selected!
-#endif	/* CFG_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
@@ -119,12 +119,12 @@ extern int board_init(void)
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/* Reset the PHY */
 	stmac_phy_reset();
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0, on MII JP2 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0, on MII JP2 */
 	stx7108_configure_ethernet(0, &(struct stx7108_ethernet_config) {
 			.mode = stx7108_ethernet_mode_mii,
 			.ext_clk = 1,
 			.phy_bus = 0, });
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1, IC+ IP1001 (UP1) */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1, IC+ IP1001 (UP1) */
 	stx7108_configure_ethernet(1, &(struct stx7108_ethernet_config) {
 			.mode = stx7108_ethernet_mode_mii,	/* for MII */
 //			.mode = stx7108_ethernet_mode_rmii,	/* for RMII */

@@ -23,7 +23,7 @@
 #include <common.h>
 #include <malloc.h>
 
-#if defined(CONFIG_CMD_NAND) && defined(CFG_ST40_NAND_USE_HAMMING)
+#if defined(CONFIG_CMD_NAND) && defined(CONFIG_SYS_ST40_NAND_USE_HAMMING)
 
 #include <nand.h>
 #include <asm/stm-nand.h>
@@ -57,7 +57,7 @@ struct stm_nand_flex_device {
 static struct stm_nand_flex_controller {
 	int			current_csn;	/* Currently Selected Device (CSn) */
 	int			next_csn;	/* First free NAND Device (CSn) */
-	struct stm_nand_flex_device device[CFG_MAX_NAND_DEVICE];
+	struct stm_nand_flex_device device[CONFIG_SYS_MAX_NAND_DEVICE];
 	uint8_t			*buf;		/* Bounce buffer for non-aligned xfers */
 } flex;
 
@@ -575,9 +575,9 @@ extern void stm_flex_init_nand(
 {
 	struct stm_nand_flex_device * data = nand->priv;
 	int csn;
-#ifdef CFG_NAND_FLEX_CSn_MAP
-	const int csn_map[CFG_MAX_NAND_DEVICE] = CFG_NAND_FLEX_CSn_MAP;
-#endif	/* CFG_NAND_FLEX_CSn_MAP */
+#ifdef CONFIG_SYS_NAND_FLEX_CSn_MAP
+	const int csn_map[CONFIG_SYS_MAX_NAND_DEVICE] = CONFIG_SYS_NAND_FLEX_CSn_MAP;
+#endif	/* CONFIG_SYS_NAND_FLEX_CSn_MAP */
 
 	BUG_ON(data!=NULL);		/* just in case ... */
 	BUG_ON(flex.next_csn!=0);	/* just in case ... */
@@ -620,10 +620,10 @@ extern void stm_flex_init_nand(
 
 	csn = flex.next_csn++;		/* first free CSn */
 	nand->priv = data = &(flex.device[csn]);	/* first free "private" structure */
-	if (csn >= CFG_MAX_NAND_DEVICE) BUG();
-#ifdef CFG_NAND_FLEX_CSn_MAP
+	if (csn >= CONFIG_SYS_MAX_NAND_DEVICE) BUG();
+#ifdef CONFIG_SYS_NAND_FLEX_CSn_MAP
 	csn = csn_map[csn];				/* Re-map to different CSn if needed */
-#endif	/* CFG_NAND_FLEX_CSn_MAP */
+#endif	/* CONFIG_SYS_NAND_FLEX_CSn_MAP */
 #if DEBUG_FLEX
 	printf("info: stm_nand_flex_device.csn = %u\n", csn);
 #endif
@@ -651,4 +651,4 @@ extern void stm_flex_init_nand(
 }
 
 
-#endif	/* CONFIG_CMD_NAND && CFG_ST40_NAND_USE_HAMMING */
+#endif	/* CONFIG_CMD_NAND && CONFIG_SYS_ST40_NAND_USE_HAMMING */

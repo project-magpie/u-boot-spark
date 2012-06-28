@@ -391,11 +391,11 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 	print_num ("memstart",		(ulong)bd->bi_memstart);
 	print_lnum ("memsize",		(u64)bd->bi_memsize);
-#ifndef CFG_NO_FLASH
+#ifndef CONFIG_SYS_NO_FLASH
 	print_num ("flashstart",	(ulong)bd->bi_flashstart);
 	print_lnum ("flashsize",	(u64)bd->bi_flashsize);
 	print_num ("flashoffset",	(ulong)bd->bi_flashoffset);
-#endif /* CFG_NO_FLASH */
+#endif /* CONFIG_SYS_NO_FLASH */
 
 #if defined(CONFIG_CMD_NET)
 	puts ("ethaddr     =");

@@ -34,12 +34,12 @@
  * set the address and size of the SCONSOLE_BUFFER,
  * if not explicitly defined in the config.h file.
  */
-#ifndef CFG_SCONSOLE_ADDR
-#define CFG_SCONSOLE_ADDR		CFG_SDRAM_BASE
-#endif	/* CFG_SCONSOLE_ADDR */
-#ifndef CFG_SCONSOLE_SIZE
-#define CFG_SCONSOLE_SIZE		0x2000	/* 8 KiB */
-#endif	/* CFG_SCONSOLE_SIZE */
+#ifndef CONFIG_SYS_SCONSOLE_ADDR
+#define CONFIG_SYS_SCONSOLE_ADDR	CONFIG_SYS_SDRAM_BASE
+#endif	/* CONFIG_SYS_SCONSOLE_ADDR */
+#ifndef CONFIG_SYS_SCONSOLE_SIZE
+#define CONFIG_SYS_SCONSOLE_SIZE	0x2000	/* 8 KiB */
+#endif	/* CONFIG_SYS_SCONSOLE_SIZE */
 
 
 typedef struct sconsole_buffer_s
@@ -50,7 +50,7 @@ typedef struct sconsole_buffer_s
 	char data[1];
 } sconsole_buffer_t;
 
-#define SCONSOLE_BUFFER		((sconsole_buffer_t *) CFG_SCONSOLE_ADDR)
+#define SCONSOLE_BUFFER		((sconsole_buffer_t *) CONFIG_SYS_SCONSOLE_ADDR)
 
 extern void (*sconsole_putc) (char);
 extern void (*sconsole_puts) (const char *);

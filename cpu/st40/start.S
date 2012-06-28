@@ -60,7 +60,7 @@ disable_watchdog:
 	 * we need add a special "signature" pattern in the first
 	 * logical block (block zero).
 	 */
-#ifdef CFG_BOOT_FROM_NAND
+#ifdef CONFIG_SYS_BOOT_FROM_NAND
 skip_signature:
 	bra	skipped_signature	/* skip over the "block 0 signature" */
 	 nop
@@ -74,7 +74,7 @@ skip_signature:
 preamble_signature_pattern:
 	BYTES 0x00 0x3f			/* 64-bytes: 0x00, 0x01, ..., 0x3f */
 
-#if defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+#if defined(CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
 	/*
 	 *	const static struct skip_bb
 	 *	{
@@ -107,16 +107,16 @@ skip_bb:			/* the skip_bb structure */
 skip_bb_pattern:		/* 8-byte "magic" pattern */
 	.ascii "SKIP_BBs"
 skip_bb_size:			/* size of each NAND block */
-	.long	CFG_NAND_SKIP_BLOCK_SIZE
+	.long	CONFIG_SYS_NAND_SKIP_BLOCK_SIZE
 skip_bb_count:			/* number of bad-block entries in array */
-	.long	CFG_NAND_SKIP_BLOCK_COUNT
+	.long	CONFIG_SYS_NAND_SKIP_BLOCK_COUNT
 skip_bb_array:			/* the array itself (0==GOOD) */
-	.fill CFG_NAND_SKIP_BLOCK_COUNT, 4, 0
-#endif	/* CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
+	.fill CONFIG_SYS_NAND_SKIP_BLOCK_COUNT, 4, 0
+#endif	/* CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 
 skipped_signature:
 					/* resume from here */
-#endif	/* CFG_BOOT_FROM_NAND */
+#endif	/* CONFIG_SYS_BOOT_FROM_NAND */
 
 
 	/*
@@ -124,7 +124,7 @@ skipped_signature:
 	 * then the following pokes are required/recommended to be
 	 * done early, when using the EMI's SPIBOOT mode controller.
 	 */
-#if defined(CFG_BOOT_FROM_SPI)
+#if defined(CONFIG_SYS_BOOT_FROM_SPI)
 config_spiboot_controller:
 	MOV_CONST32_R0 ST40_EMI_SPI_REGS_BASE
 	mov	r0, r1
@@ -158,7 +158,7 @@ config_spiboot_controller:
 dummy_peek_on_spi:
 	mov	#0, r0		/* Read word from SPI at offset zero */
 	mov.l	@r0, r0		/* peek(<somewhere-in-SPI>) */
-#endif	/* CFG_BOOT_FROM_SPI */
+#endif	/* CONFIG_SYS_BOOT_FROM_SPI */
 
 
 	/*
@@ -224,11 +224,11 @@ invalidate_pmb:
 	 * mapping the (first) LMI (ultimately half cached, half uncached).
 	 * In *this* file they *must* all be exclusively UN-CACHED!
 	 * We also define "BASE" as a convenience macro to ensure it
-	 * automatically tracks with CFG_SE_PHYSICAL_BASE, which should
+	 * automatically tracks with CONFIG_SYS_SE_PHYSICAL_BASE, which should
 	 * be set to the physical base of the (first) LMI.
 	 */
 #undef  BASE	/* for the "convenience" macro */
-#define BASE	(CFG_SE_PHYSICAL_BASE>>24)	/* move the MSB to the LSB */
+#define BASE	(CONFIG_SYS_SE_PHYSICAL_BASE>>24)/* move the MSB to the LSB */
 set_pmb:
 #if defined(CONFIG_ST40_STX5197) && defined(CONFIG_ST40_MB704)
 	SH4_SET_PMB 0,0x80,BASE, 64,0,0,1	/* LMI-Sys UN-cached */
@@ -241,11 +241,11 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX5206) && defined(CONFIG_ST40_MB796)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
-	#if defined(CFG_BOOT_FROM_NAND) || defined(CFG_BOOT_FROM_SPI)
+	#if defined(CONFIG_SYS_BOOT_FROM_NAND) || defined(CONFIG_SYS_BOOT_FROM_SPI)
 		/* booting from NAND or SPI, so CSA and CSB swapped in EPLD */
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa4,0x04, 16,0,0,1	/* NOR FLASH UN-cached */
@@ -258,14 +258,14 @@ set_pmb:
 	SH4_SET_PMB 6,0xa4,0x04, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
-	#endif	/* CFG_BOOT_FROM_NAND */
+	#endif	/* CONFIG_SYS_BOOT_FROM_NAND */
 #elif defined(CONFIG_ST40_STX5206) && defined(CONFIG_ST40_HDK5289)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
-	#if defined(CFG_BOOT_FROM_NAND) || defined(CFG_BOOT_FROM_SPI)
+	#if defined(CONFIG_SYS_BOOT_FROM_NAND) || defined(CONFIG_SYS_BOOT_FROM_SPI)
 		/* booting from NAND or SPI, so CSA and CSB are swapped */
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa4,0x04, 16,0,0,1	/* NOR FLASH UN-cached */
@@ -278,15 +278,15 @@ set_pmb:
 	SH4_SET_PMB 6,0xa4,0x04, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
-	#endif	/* CFG_BOOT_FROM_NAND */
+	#endif	/* CONFIG_SYS_BOOT_FROM_NAND */
 #elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_MB680)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
-	#ifdef CFG_BOOT_FROM_NAND /* booting from NAND, so CSA and CSB swapped in EPLD */
+	#ifdef CONFIG_SYS_BOOT_FROM_NAND /* booting from NAND, so CSA and CSB swapped in EPLD */
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa4,0x04, 16,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 6,0xa5,0x05, 16,0,0,1	/* NOR FLASH UN-cached */
@@ -298,11 +298,11 @@ set_pmb:
 	SH4_SET_PMB 6,0xa4,0x04, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
-	#endif	/* CFG_BOOT_FROM_NAND */
+	#endif	/* CONFIG_SYS_BOOT_FROM_NAND */
 #elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_HDK7106)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -319,7 +319,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_PDK7105)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -336,7 +336,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_IPIDTV7105)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -344,10 +344,10 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_MB837)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
-	#ifdef CFG_BOOT_FROM_NAND /* booting from NAND, so CSA and CSB swapped in EPLD */
+	#ifdef CONFIG_SYS_BOOT_FROM_NAND /* booting from NAND, so CSA and CSB swapped in EPLD */
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa4,0x04, 16,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 6,0xa5,0x05, 16,0,0,1	/* NOR FLASH UN-cached */
@@ -359,11 +359,11 @@ set_pmb:
 	SH4_SET_PMB 6,0xa4,0x04, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
-	#endif	/* CFG_BOOT_FROM_NAND */
+	#endif	/* CONFIG_SYS_BOOT_FROM_NAND */
 #elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_MB903)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -372,7 +372,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_HDK7108)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -382,7 +382,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_B2037)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI1 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI1 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI1 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI1 (second-half) UN-cached */
 	#endif
@@ -394,7 +394,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX7111) && defined(CONFIG_ST40_MB618)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NOR/NAND FLASH UN-cached */
@@ -407,7 +407,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX7111) && defined(CONFIG_ST40_HDK7111)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -420,7 +420,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX7141) && defined(CONFIG_ST40_MB628)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NOR/NAND FLASH UN-cached */
@@ -431,7 +431,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX7141) && defined(CONFIG_ST40_EUD7141)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR FLASH UN-cached */
@@ -440,7 +440,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STX7200) && defined(CONFIG_ST40_MB671)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 (first-half)  UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -452,7 +452,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_FLI7510) && defined(CONFIG_ST40_FLDB)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR/NAND FLASH UN-cached */
@@ -460,7 +460,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_FLI7540) && defined(CONFIG_ST40_FUDB)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	#error Need to configure PMBs properly when more than 128MiB.
 	#endif
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR/NAND FLASH UN-cached */
@@ -468,7 +468,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STXH415) && defined(CONFIG_ST40_B2000)
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -478,7 +478,7 @@ set_pmb:
 #elif defined(CONFIG_ST40_STXH205) && ( defined(CONFIG_ST40_B2057) || defined(CONFIG_ST40_B2067) )
 	SH4_SET_PMB 0,0x80,BASE,128,0,0,1	/* LMI0 UN-cached */
 	SH4_SET_PMB 2,0x90,BASE,128,0,0,1	/* LMI0 UN-cached */
-	#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	SH4_SET_PMB 3,0x98,BASE+0x08,128,0,0,1	/* LMI0 (second-half) UN-cached */
 	#endif
@@ -626,7 +626,7 @@ hom_invalidate_pmb:
 	mov	#0, r2			! PMB[n].V = 0, i.e. INVALID
 	mov	#1, r3
 	shll8	r3			! R3 = address stride is 0x100
-#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	add	r3, r1			! skip first PMB slot (PMB[0])
 	mov	#2, r0			! R0 = counter (indexes: 2..15)
 #else
@@ -681,11 +681,11 @@ hom_no_frozen_linux_marker:
 	 *	r2 == destination address (DST)
 	 *	r3 == destination END address
 	 *	r4 == &skip_bb.array[x] (x=block number: 0,1,2,...)
-	 *	r5 == skip_bb.block_size	(CFG_NAND_SKIP_BLOCK_SIZE)
+	 *	r5 == skip_bb.block_size	(CONFIG_SYS_NAND_SKIP_BLOCK_SIZE)
 	 *	r6 == skip_bb.block_size - 1	(block mask)
 	 *
 	 *	NOTE:	r4, r5 & r6 are only used if the the macro
-	 *		CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING is defined.
+	 *		CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING is defined.
 	 *
 	 *	QQQ: in 32-bit mode, "DST" is UN-cached - should optimize this.
 	 */
@@ -697,14 +697,14 @@ relocate:
 	mov	r10, r2			/* were we WANT to be: START off */
 	and	r0, r2			/* ensure destination is 32-byte cache aligned */
 	mov	r11, r3			/* were we WANT to be: END off */
-#if defined(CFG_BOOT_FROM_NAND) && defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+#if defined(CONFIG_SYS_BOOT_FROM_NAND) && defined(CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
 	mov.l	skip_bb_offset, r4	/* r4 = &skip_bb - _start */
 	add	r9, r4			/* r4 = &skip_bb (P0 (cached)) */
 	mov.l	@(8,r4), r5		/* r5 = NAND block_size */
 	mov	r5, r6
 	add	#-1, r6			/* r6 = block_size - 1 (i.e. mask) */
 	add	#16, r4			/* r4 = &array[0]  */
-#endif	/* CFG_BOOT_FROM_NAND && CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
+#endif	/* CONFIG_SYS_BOOT_FROM_NAND && CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 1:	mov.l	@(0,r1), r0		/* read & write a cache line at a time */
 	mov.l	r0, @(0,r2)
 	mov.l	@(4,r1), r0
@@ -723,7 +723,7 @@ relocate:
 	mov.l	r0, @(28,r2)
 	ocbp	@r2			/* flush one line */
 	add	#32, r1			/* next source line */
-#if defined(CFG_BOOT_FROM_NAND) && defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+#if defined(CONFIG_SYS_BOOT_FROM_NAND) && defined(CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
 	mov	r1, r0			/* test for a new block */
 	and	r6, r0			/* r0 = SRC & (block_size - 1) */
 	cmp/eq	#0, r0			/* is it a new block ? */
@@ -737,7 +737,7 @@ do_next_block:				/* okay, we are on a new NAND block */
 	bra	do_next_block		/* check it is good as well! */
 	  add	r5, r1			/* SRC += block_size */
 do_next_line:
-#endif	/* CFG_BOOT_FROM_NAND && CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
+#endif	/* CONFIG_SYS_BOOT_FROM_NAND && CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 	pref	@r1			/* pre-fetch next line */
 	add	#32, r2			/* next line */
 	cmp/hi	r2, r3			/* while (r2<=r3) ... */
@@ -793,13 +793,13 @@ do_start_st40_boot:
 .balign 4
 _start_offset:	.long . - _start
 target_addr:	.long TEXT_BASE
-stack_addr:	.long TEXT_BASE - (CFG_GBL_DATA_SIZE + CFG_MALLOC_LEN)
+stack_addr:	.long TEXT_BASE - (CONFIG_SYS_GBL_DATA_SIZE + CONFIG_SYS_MALLOC_LEN)
 bss_start:	.long __bss_start
 bss_end:	.long __bss_end
 hyperspace_addr:.long hyperspace
-#if defined(CFG_BOOT_FROM_NAND) && defined(CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
+#if defined(CONFIG_SYS_BOOT_FROM_NAND) && defined(CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING)
 skip_bb_offset:	.long skip_bb - _start
-#endif	/* CFG_BOOT_FROM_NAND && CFG_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
+#endif	/* CONFIG_SYS_BOOT_FROM_NAND && CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 
 start_st40_boot_addr:.long start_st40_boot
 

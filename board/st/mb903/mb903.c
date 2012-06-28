@@ -54,7 +54,7 @@ static void configPIO(void)
 {
 	/* Setup PIOs for ASC device */
 
-#if CFG_STM_ASC_BASE == ST40_ASC3_REGS_BASE
+#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC3_REGS_BASE
 
 	/*
 	 * Route UART3 via PIO24/25 for TX, RX, RTS & CTS (Alternative #1).
@@ -69,7 +69,7 @@ static void configPIO(void)
 
 #else
 #error Unknown ASC port selected!
-#endif	/* CFG_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
@@ -118,13 +118,13 @@ extern int board_init(void)
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/* Reset the PHY */
 	stmac_phy_reset();
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0, via MoCA Module */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0, via MoCA Module */
 #error U-Boot does not support MoCA!
 	stx7108_configure_ethernet(0, &(struct stx7108_ethernet_config) {
 			.mode = stx7108_ethernet_mode_mii,
 			.ext_clk = 1,
 			.phy_bus = 0, });
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE		/* MII1, IC+ IP1001 (U17) */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1, IC+ IP1001 (U17) */
 	stx7108_configure_ethernet(1, &(struct stx7108_ethernet_config) {
 			.mode = stx7108_ethernet_mode_mii,
 			.ext_clk = 0,
@@ -154,7 +154,7 @@ int checkboard (void)
 #if defined(CONFIG_SOFT_SPI)
 	/*
 	 * Configure for the SPI Serial Flash.
-	 * Note: for CFG_BOOT_FROM_SPI + CONFIG_ENV_IS_IN_EEPROM, this
+	 * Note: for CONFIG_SYS_BOOT_FROM_SPI + CONFIG_ENV_IS_IN_EEPROM, this
 	 * needs to be done after env_init(), hence it is done
 	 * here, and not in board_init().
 	 */

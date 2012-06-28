@@ -117,7 +117,7 @@ where	<opcode> should be the masking opcode: "and" or "or".
 	 *	PC        = PC | 0x10000000;
 	 *	PMB[0].C  = ~PMB[0].C;
 	 *	PMB[0].UB = ~PMB[0].UB;
-	 * #if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+	 * #if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	 *	PMB[1].C  = ~PMB[1].C;
 	 *	PMB[1].UB = ~PMB[1].UB;
 	 * #endif
@@ -179,7 +179,7 @@ ENTRY(sh_toggle_pmb_cacheability)
 	xor	r3, r1		/* xor it */
 	mov.l	r1, @r0		/* write it */
 
-#if CFG_ST40_LMI_NEEDS_2_PMB_ENTRIES
+#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	/* now toggle the cacheability of PMB[1] */
 	MOV_CONST32_R0	(P4SEG_PMB_DATA|(index1<<8))
 	mov.l	@r0, r1		/* read it */

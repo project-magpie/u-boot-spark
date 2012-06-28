@@ -35,13 +35,13 @@
 	 * More recent EPLD versions have the EPLD in EMI space,
 	 * using CSCn (EMI Bank #2), nominally at physical 0x04800000.
 	 */
-#if !defined(CFG_EPLD_PHYSICAL_BASE)
-#	define CFG_EPLD_PHYSICAL_BASE	0x04800000	/* CSCn (EMI Bank #2) */
-#endif /* CFG_EPLD_PHYSICAL_BASE */
+#if !defined(CONFIG_SYS_EPLD_PHYSICAL_BASE)
+#	define CONFIG_SYS_EPLD_PHYSICAL_BASE	0x04800000	/* CSCn (EMI Bank #2) */
+#endif /* CONFIG_SYS_EPLD_PHYSICAL_BASE */
 	/* map the physical address to UN-cached virtual address */
-#if !defined(CFG_EPLD_BASE)
-#	define CFG_EPLD_BASE		( 0xa0000000 | (CFG_EPLD_PHYSICAL_BASE) )
-#endif /* CFG_EPLD_BASE */
+#if !defined(CONFIG_SYS_EPLD_BASE)
+#	define CONFIG_SYS_EPLD_BASE		( 0xa0000000 | (CONFIG_SYS_EPLD_PHYSICAL_BASE) )
+#endif /* CONFIG_SYS_EPLD_BASE */
 	/*
 	 * following are the offsets within the EMI EPLD (IC21),
 	 * for the MB705 Peripheral board.
@@ -57,13 +57,13 @@
 static inline void epld_write(unsigned long value, unsigned long offset)
 {
 	/* 16-bit write to EPLD registers */
-	writew(value, CFG_EPLD_BASE + offset);
+	writew(value, CONFIG_SYS_EPLD_BASE + offset);
 }
 
 static inline unsigned long epld_read(unsigned long offset)
 {
 	/* 16-bit read from EPLD registers */
-	return readw(CFG_EPLD_BASE + offset);
+	return readw(CONFIG_SYS_EPLD_BASE + offset);
 }
 
 static int mb705_init_epld(void)
@@ -133,7 +133,7 @@ extern void stmac_phy_reset(void)
 	 *	PIO0[6] = notPioResetMii
 	 *
 	 * The following works, with the jumpers connected as:
-	 * 	J18-G:1-2, J22-B:1-2
+	 *	J18-G:1-2, J22-B:1-2
 	 */
 	STPIO_SET_PIN(PIO_PORT(0), 6, 0);
 	udelay(15000);				/* 15 ms */
@@ -151,7 +151,7 @@ static void configPIO(void)
 	sysconf |= 1ul << 13;
 	*STX5206_SYSCONF_SYS_CFG10 = sysconf;
 
-#if CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE	/* UART2 = AS0 */
+#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC2_REGS_BASE	/* UART2 = AS0 */
 
 	/* Setup PIO of ASC device */
 	SET_PIO_ASC(PIO_PORT(1), 2, 1, 4, 3);  /* UART2 - AS0 */
@@ -166,7 +166,7 @@ static void configPIO(void)
 	sysconf |=  (0x0000ul<<1);	/* 0,0,0,0 */
 	*STX5206_SYSCONF_SYS_CFG16 = sysconf;
 
-#elif CFG_STM_ASC_BASE == ST40_ASC3_REGS_BASE	/* UART3 = AS1 */
+#elif CONFIG_SYS_STM_ASC_BASE == ST40_ASC3_REGS_BASE	/* UART3 = AS1 */
 
 	/* Setup PIO of ASC device */
 	SET_PIO_ASC(PIO_PORT(2), 4, 3, 5, 6);  /* UART3 - AS1 */
@@ -183,7 +183,7 @@ static void configPIO(void)
 
 #else
 #error Unknown ASC port selected!
-#endif	/* CFG_STM_ASC_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
@@ -204,7 +204,7 @@ extern int board_init(void)
 
 	/*
 	 * The following works, with the jumpers connected as:
-	 * 	J38:2-3, J39-A:remove, J39-B:2-3
+	 *	J38:2-3, J39-A:remove, J39-B:2-3
 	 */
 	stx5206_configure_ethernet(stx5206_ethernet_rmii, 0, 0);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */

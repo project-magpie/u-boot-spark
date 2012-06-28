@@ -46,19 +46,19 @@
  * This file tries to take care of dealing with the
  * duality aspects of all this.
  *
- * If CFG_BOOT_FROM_SPI is defined, then we assume we are booting
- * from SPI serial flash, using the SoC's SPIBOOT mode, to re-map
- * the serial flash to 0xA0000000 in the EMI space. Otherwise,
- * we assume we are *not* booting using the SoC's SPIBOOT mode,
- * in which case we need to use either the SSC or PIO to talk
- * to the SPI serial flash.
+ * If CONFIG_SYS_BOOT_FROM_SPI is defined, then we assume we are
+ * booting from SPI serial flash, using the SoC's SPIBOOT mode,
+ * to re-map the serial flash to 0xA0000000 in the EMI space.
+ * Otherwise, we assume we are *not* booting using the SoC's
+ * SPIBOOT mode, in which case we need to use either the SSC or
+ * PIO to talk to the SPI serial flash.
  * The main difference in usage, is the environment variables
- * will always be honoured if CFG_BOOT_FROM_SPI is defined,
- * whereas, if CFG_BOOT_FROM_SPI is not defined, then
+ * will always be honoured if CONFIG_SYS_BOOT_FROM_SPI is defined,
+ * whereas, if CONFIG_SYS_BOOT_FROM_SPI is not defined, then
  * the environment variables will only be honoured *after* the
  * SPI has been initialized (i.e. after serial initialization).
  * Hence, "baudrate" may not be honoured if the environment is
- * stored in SPI, unless CFG_BOOT_FROM_SPI is also defined.
+ * stored in SPI, unless CONFIG_SYS_BOOT_FROM_SPI is also defined.
  */
 
 #if defined(CONFIG_ENV_IS_IN_EEPROM)
@@ -76,7 +76,7 @@ char * env_name_spec = "SPI Serial Flash";
 extern uchar env_get_char_memory (int index);
 
 
-#if defined(CFG_BOOT_FROM_SPI)
+#if defined(CONFIG_SYS_BOOT_FROM_SPI)
 	/*
 	 * The following function will read a 32-bit value
 	 * from the serial flash, via the SPIBOOT controller,
@@ -84,7 +84,7 @@ extern uchar env_get_char_memory (int index);
 	 */
 static inline u32 spiboot_get_u32(const int index)
 {
-	return *(u32*)(CFG_EMI_SPI_BASE + index);
+	return *(u32*)(CONFIG_SYS_EMI_SPI_BASE + index);
 }
 
 
@@ -145,7 +145,7 @@ extern int env_init(void)
 
 	return (0);
 }
-#endif	/* CFG_BOOT_FROM_SPI */
+#endif	/* CONFIG_SYS_BOOT_FROM_SPI */
 
 
 /************************************************************************
@@ -158,7 +158,7 @@ extern int env_init(void)
  * So, we initially just "fake" the environment by pretending
  * that there is not one!
  */
-#if !defined(CFG_BOOT_FROM_SPI)
+#if !defined(CONFIG_SYS_BOOT_FROM_SPI)
 extern int env_init(void)
 {
 	gd->env_addr  = 0;
@@ -179,7 +179,7 @@ extern int env_init_after_spi_done(void)
 	uchar buf[64];
 
 	/* read old CRC */
-	eeprom_read (CFG_DEF_EEPROM_ADDR,
+	eeprom_read (CONFIG_SYS_DEF_EEPROM_ADDR,
 		     CONFIG_ENV_OFFSET+offsetof(env_t,crc),
 		     (uchar *)&crc, sizeof(ulong));
 
@@ -189,7 +189,7 @@ extern int env_init_after_spi_done(void)
 	while (len > 0) {
 		int n = (len > sizeof(buf)) ? sizeof(buf) : len;
 
-		eeprom_read (CFG_DEF_EEPROM_ADDR, CONFIG_ENV_OFFSET+off, buf, n);
+		eeprom_read (CONFIG_SYS_DEF_EEPROM_ADDR, CONFIG_ENV_OFFSET+off, buf, n);
 		new = crc32 (new, buf, n);
 		len -= n;
 		off += n;
@@ -205,14 +205,14 @@ extern int env_init_after_spi_done(void)
 
 	return (0);
 }
-#endif	/* !CFG_BOOT_FROM_SPI */
+#endif	/* !CONFIG_SYS_BOOT_FROM_SPI */
 
 
 extern uchar env_get_char_spec (int index)
 {
 	uchar c;
 
-#if defined(CFG_BOOT_FROM_SPI)
+#if defined(CONFIG_SYS_BOOT_FROM_SPI)
 	if ( (env_ptr==NULL) ||
 	     (gd->env_addr != (ulong)&(env_ptr->data)) )
 	{
@@ -224,14 +224,14 @@ extern uchar env_get_char_spec (int index)
 		c = spiboot_get_byte(CONFIG_ENV_OFFSET + index);
 	}
 	else
-#endif	/* CFG_BOOT_FROM_SPI */
+#endif	/* CONFIG_SYS_BOOT_FROM_SPI */
 	{
 		/*
 		 * Serial flash accessible via SSC or PIO, so
 		 * we can need to use the 'normal' SPI interfaces
 		 * to talk to the SPI serial flash device.
 		 */
-		eeprom_read (CFG_DEF_EEPROM_ADDR,
+		eeprom_read (CONFIG_SYS_DEF_EEPROM_ADDR,
 			     CONFIG_ENV_OFFSET+index+offsetof(env_t,data),
 			     &c, 1);
 	}
@@ -243,7 +243,7 @@ extern uchar env_get_char_spec (int index)
 extern void env_relocate_spec (void)
 {
 	eeprom_read (
-		CFG_DEF_EEPROM_ADDR,
+		CONFIG_SYS_DEF_EEPROM_ADDR,
 		CONFIG_ENV_OFFSET,
 		(uchar *)env_ptr,
 		CONFIG_ENV_SIZE);
@@ -252,7 +252,7 @@ extern void env_relocate_spec (void)
 
 extern int saveenv(void)
 {
-	return eeprom_write (CFG_DEF_EEPROM_ADDR,
+	return eeprom_write (CONFIG_SYS_DEF_EEPROM_ADDR,
 			     CONFIG_ENV_OFFSET,
 			     (uchar *)env_ptr,
 			     CONFIG_ENV_SIZE);

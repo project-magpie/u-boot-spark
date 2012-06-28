@@ -45,36 +45,36 @@
  *	The ST40 Memory Map
  *	===================
  *
- *	Base:			Size:			Comment:
- *	-----			-----			--------
+ *	Base:						Size:			Comment:
+ *	-----						-----			--------
  *
- *	CFG_SDRAM_BASE+CFG_SDRAM_SIZE			Top Of DRAM Memory
+ *	CONFIG_SYS_SDRAM_BASE+CONFIG_SYS_SDRAM_SIZE				Top Of DRAM Memory
  *
- *	TEXT_BASE		1MiB			entry point
+ *	TEXT_BASE					1MiB			entry point
  *
- *	mem_malloc_start	CFG_MALLOC_LEN		"heap" used by malloc() and friends
+ *	mem_malloc_start				CONFIG_SYS_MALLOC_LEN	"heap" used by malloc() and friends
  *
- *	gd			sizeof(gd_t)		struct global_data
+ *	gd						sizeof(gd_t)		struct global_data
  *
- *	gd->bd			sizeof(bd_t)		struct bd_info
+ *	gd->bd						sizeof(bd_t)		struct bd_info
  *
- *	small "hole"		CFG_GBL_DATA_SIZE-(sizeof(gd_t)+sizeof(bd_t))
+ *	small "hole"					CONFIG_SYS_GBL_DATA_SIZE-(sizeof(gd_t)+sizeof(bd_t))
  *
- *	stack_addr					Stack (growing downwards, towards CFG_MEMTEST_END)
- *							stack_addr = TEXT_BASE-(CFG_GBL_DATA_SIZE+CFG_MALLOC_LEN)
+ *	stack_addr								Stack (growing downwards, towards CONFIG_SYS_MEMTEST_END)
+ *										stack_addr = TEXT_BASE-(CONFIG_SYS_GBL_DATA_SIZE+CONFIG_SYS_MALLOC_LEN)
  *
- *	CFG_MEMTEST_END					default upper-bound for "mtest"
+ *	CONFIG_SYS_MEMTEST_END							default upper-bound for "mtest"
  *
- *	CFG_MEMTEST_START				default lower-bound for "mtest"
+ *	CONFIG_SYS_MEMTEST_START						default lower-bound for "mtest"
  *
- *	CFG_SDRAM_BASE					Bottom Of DRAM Memory
+ *	CONFIG_SYS_SDRAM_BASE							Bottom Of DRAM Memory
  *
  *
  *	Note: the above assumes that:
  *
- *		1) sizeof(gd_t) + sizeof(bd_t) <= CFG_GBL_DATA_SIZE
+ *		1) sizeof(gd_t) + sizeof(bd_t) <= CONFIG_SYS_GBL_DATA_SIZE
  *
- *		2) CFG_MEMTEST_END is ~ 1MiB below "stack_addr"
+ *		2) CONFIG_SYS_MEMTEST_END is ~ 1MiB below "stack_addr"
  */
 
 /*
@@ -94,21 +94,21 @@
  * the proposed derivations would fail!
  *
  * The two essential macros to be defined:
- *	CFG_SDRAM_BASE, CFG_SDRAM_SIZE
+ *	CONFIG_SYS_SDRAM_BASE, CONFIG_SYS_SDRAM_SIZE
  *
  * Derived Macros:
- *	CFG_LOAD_ADDR       = CFG_SDRAM_BASE
- *	CFG_MEMTEST_START   = CFG_SDRAM_BASE
- *	CFG_MEMTEST_END     = TEXT_BASE - CFG_MALLOC_LEN - 1MiB
- *	TEXT_BASE           = CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 1MiB
- *	CFG_SE_SDRAM_WINDOW = CFG_SDRAM_SIZE - 1
+ *	CONFIG_SYS_LOAD_ADDR		= CONFIG_SYS_SDRAM_BASE
+ *	CONFIG_SYS_MEMTEST_START	= CONFIG_SYS_SDRAM_BASE
+ *	CONFIG_SYS_MEMTEST_END		= TEXT_BASE - CONFIG_SYS_MALLOC_LEN - 1MiB
+ *	TEXT_BASE			= CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE - 1MiB
+ *	CONFIG_SYS_SE_SDRAM_WINDOW	= CONFIG_SYS_SDRAM_SIZE - 1
  *
  * Note: Both 1MiB figures above are probably "too safe", and
  * could (if needed) be reduced somewhat.
  *
- * The 1MiB figure in CFG_MEMTEST_END really only needs to be
- * CFG_GBL_DATA_SIZE plus the size of the maximum stack size!
- * Where CFG_GBL_DATA_SIZE could be reduced to be exactly:
+ * The 1MiB figure in CONFIG_SYS_MEMTEST_END really only needs to be
+ * CONFIG_SYS_GBL_DATA_SIZE plus the size of the maximum stack size!
+ * Where CONFIG_SYS_GBL_DATA_SIZE could be reduced to be exactly:
  * sizeof(gd_t) + sizeof(bd_t), removing the "small hole" in the
  * memory map. However, using 1MiB should be uber-conservative.
  * It is essential that "mtest" does not trash the stack!
@@ -122,34 +122,34 @@
  * It is recommended that all include/config/<board>.h files
  * use the following two definitions:
  *
- *	#define CFG_MEMTEST_START	CFG_SDRAM_BASE
- *	#define CFG_MEMTEST_END		(TEXT_BASE - CFG_MALLOC_LEN - (1 << 20))
+ *	#define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
+ *	#define CONFIG_SYS_MEMTEST_END		(TEXT_BASE - CONFIG_SYS_MALLOC_LEN - (1 << 20))
  */
-#if (TEXT_BASE >= CFG_MEMTEST_START) && (TEXT_BASE < CFG_MEMTEST_END)
-#	warning "mtest" will fail when CFG_MEMTEST_START < TEXT_BASE < CFG_MEMTEST_END!
+#if (TEXT_BASE >= CONFIG_SYS_MEMTEST_START) && (TEXT_BASE < CONFIG_SYS_MEMTEST_END)
+#	warning "mtest" will fail when CONFIG_SYS_MEMTEST_START < TEXT_BASE < CONFIG_SYS_MEMTEST_END!
 #endif
 
-#if CFG_LOAD_ADDR != CFG_SDRAM_BASE
-#	warning CFG_LOAD_ADDR != CFG_SDRAM_BASE
+#if CONFIG_SYS_LOAD_ADDR != CONFIG_SYS_SDRAM_BASE
+#	warning CONFIG_SYS_LOAD_ADDR != CONFIG_SYS_SDRAM_BASE
 #endif
 
-#if CFG_MEMTEST_START != CFG_SDRAM_BASE
-#	warning CFG_MEMTEST_START != CFG_SDRAM_BASE
+#if CONFIG_SYS_MEMTEST_START != CONFIG_SYS_SDRAM_BASE
+#	warning CONFIG_SYS_MEMTEST_START != CONFIG_SYS_SDRAM_BASE
 #endif
 
-#if CFG_MEMTEST_END != (TEXT_BASE - CFG_MALLOC_LEN - (1 << 20))
-#	warning CFG_MEMTEST_END != TEXT_BASE - CFG_MALLOC_LEN - 1MiB
+#if CONFIG_SYS_MEMTEST_END != (TEXT_BASE - CONFIG_SYS_MALLOC_LEN - (1 << 20))
+#	warning CONFIG_SYS_MEMTEST_END != TEXT_BASE - CONFIG_SYS_MALLOC_LEN - 1MiB
 #endif
 
-#if TEXT_BASE != (CFG_SDRAM_BASE + CFG_SDRAM_SIZE - (1 << 20))
-#	warning TEXT_BASE != CFG_SDRAM_BASE + CFG_SDRAM_SIZE - 1MiB
+#if TEXT_BASE != (CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE - (1 << 20))
+#	warning TEXT_BASE != CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE - 1MiB
 #endif
 
 #if defined(CONFIG_ST40_SE_MODE)	/* only in 32-bit mode */
-#   if !defined(CFG_SE_SDRAM_WINDOW)
-#	warning CFG_SE_SDRAM_WINDOW is not defined in 32-bit mode
-#   elif CFG_SE_SDRAM_WINDOW != (CFG_SDRAM_SIZE - 1)
-#	warning CFG_SE_SDRAM_WINDOW != CFG_SDRAM_SIZE - 1
+#   if !defined(CONFIG_SYS_SE_SDRAM_WINDOW)
+#	warning CONFIG_SYS_SE_SDRAM_WINDOW is not defined in 32-bit mode
+#   elif CONFIG_SYS_SE_SDRAM_WINDOW != (CONFIG_SYS_SDRAM_SIZE - 1)
+#	warning CONFIG_SYS_SE_SDRAM_WINDOW != CONFIG_SYS_SDRAM_SIZE - 1
 #   endif
 #endif	/* CONFIG_ST40_SE_MODE */
 
@@ -170,7 +170,7 @@ const char version_string[] =
  * Begin and End of memory area for malloc(), and current "brk"
  */
 
-#define	TOTAL_MALLOC_LEN	CFG_MALLOC_LEN
+#define	TOTAL_MALLOC_LEN	CONFIG_SYS_MALLOC_LEN
 
 static ulong mem_malloc_start;
 static ulong mem_malloc_end;
@@ -216,7 +216,7 @@ static int init_func_ram (void)
 	int board_type = gd->board_type;
 #endif
 
-	gd->ram_size = CFG_SDRAM_SIZE;
+	gd->ram_size = CONFIG_SYS_SDRAM_SIZE;
 	puts ("DRAM:  ");
 	print_size (gd->ram_size, "\n");
 
@@ -230,13 +230,13 @@ static int display_banner (void)
 	return (0);
 }
 
-#ifndef CFG_NO_FLASH
+#ifndef CONFIG_SYS_NO_FLASH
 static void display_flash_config (ulong size)
 {
 	puts ("NOR:   ");
 	print_size (size, "\n");
 }
-#endif /* CFG_NO_FLASH */
+#endif /* CONFIG_SYS_NO_FLASH */
 
 
 static int init_baudrate (void)
@@ -291,9 +291,9 @@ void start_st40_boot (void)
 	bd_t *bd;
 	ulong addr;
 	init_fnc_t **init_fnc_ptr;
-#ifndef CFG_NO_FLASH
+#ifndef CONFIG_SYS_NO_FLASH
 	ulong size;
-#endif /* CFG_NO_FLASH */
+#endif /* CONFIG_SYS_NO_FLASH */
 
 	char *s, *e;
 	int i;
@@ -327,24 +327,24 @@ void start_st40_boot (void)
 
 	/* configure available FLASH banks */
 	flashWriteEnable();
-#ifndef CFG_NO_FLASH
+#ifndef CONFIG_SYS_NO_FLASH
 	size = flash_init ();
 	display_flash_config (size);
-#endif /* CFG_NO_FLASH */
+#endif /* CONFIG_SYS_NO_FLASH */
 
 	bd = gd->bd;
-	bd->bi_memstart = CFG_SDRAM_BASE;	/* start of  DRAM memory */
+	bd->bi_memstart = CONFIG_SYS_SDRAM_BASE;	/* start of  DRAM memory */
 	bd->bi_memsize = gd->ram_size;	/* size  of  DRAM memory in bytes */
 	bd->bi_baudrate = gd->baudrate;	/* Console Baudrate */
-#ifndef CFG_NO_FLASH
-	bd->bi_flashstart = CFG_FLASH_BASE;
+#ifndef CONFIG_SYS_NO_FLASH
+	bd->bi_flashstart = CONFIG_SYS_FLASH_BASE;
 	bd->bi_flashsize = size;
-#if CFG_MONITOR_BASE == CFG_FLASH_BASE
+#if CONFIG_SYS_MONITOR_BASE == CONFIG_SYS_FLASH_BASE
 	bd->bi_flashoffset = monitor_flash_len;	/* reserved area for U-Boot */
 #else
 	bd->bi_flashoffset = 0;
 #endif
-#endif /* CFG_NO_FLASH */
+#endif /* CONFIG_SYS_NO_FLASH */
 
 	/* initialize malloc() area */
 	mem_malloc_init ();
@@ -357,7 +357,7 @@ void start_st40_boot (void)
 #if defined(CONFIG_SPI)
 	puts ("SPI:  ");
 	spi_init ();		/* go init the SPI */
-#if defined(CONFIG_ENV_IS_IN_EEPROM) && !defined(CFG_BOOT_FROM_SPI)
+#if defined(CONFIG_ENV_IS_IN_EEPROM) && !defined(CONFIG_SYS_BOOT_FROM_SPI)
 	env_init_after_spi_done ();
 #endif
 #endif	/* defined(CONFIG_SPI) */

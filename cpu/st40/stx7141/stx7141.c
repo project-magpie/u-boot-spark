@@ -50,13 +50,13 @@ static void stx7141_clocks(void)
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 
-#if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE	/* MAC = STM GMAC#0 */
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MAC = STM GMAC#0 */
 #	define GMII_CLOCK_OUT		(1ul<<13)
 #	define ETHERNET_INTERFACE_ON	(1ul<<16)
 #	define MAC_SPEED_SEL		(1ul<<20)
 #	define ENMII			(1ul<<27)
 #	define PHY_INTF_SEL		24		/* bits [26:24] */
-#elif CFG_STM_STMAC_BASE == CFG_STM_STMAC1_BASE	/* MAC = STM GMAC#1 */
+#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MAC = STM GMAC#1 */
 #	define GMII_CLOCK_OUT		(1ul<<15)
 #	define ETHERNET_INTERFACE_ON	(1ul<<17)
 #	define MAC_SPEED_SEL		(1ul<<21)
@@ -324,7 +324,7 @@ extern void stx7141_configure_ethernet(
 	/* Need to disable read-ahead - performance impact     */
 	if (STX7141_DEVICEID_CUT(bd->bi_devid) == 2)
 	{
-		const unsigned long addr = CFG_STM_STMAC_BASE + AD_CONFIG_OFFSET;
+		const unsigned long addr = CONFIG_SYS_STM_STMAC_BASE + AD_CONFIG_OFFSET;
 		writel(readl(addr) & READ_AHEAD_MASK, addr);
 	}
 

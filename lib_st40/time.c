@@ -48,7 +48,7 @@ static ulong timer_freq;
 
 static inline unsigned long long tick_to_time(unsigned long long tick)
 {
-	tick *= CFG_HZ;
+	tick *= CONFIG_SYS_HZ;
 	do_div(tick, timer_freq);
 
 	return tick;
