@@ -164,4 +164,9 @@ static inline void unmap_physmem(void *vaddr, unsigned long flags)
 	/* do nothing */
 }
 
+static inline phys_addr_t virt_to_phys(void * const vaddr)
+{
+	return (phys_addr_t)(vaddr);
+}
+
 #endif /* __ASM_ST40_IO_H */

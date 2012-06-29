@@ -134,12 +134,6 @@ static const unsigned long ssc = CONFIG_SYS_STM_SPI_SSC_BASE;	/* SSC base */
 /**********************************************************************/
 
 
-#define MIN(a,b)	( (a) < (b) ? (a) : (b) )
-
-
-/**********************************************************************/
-
-
 static unsigned pageSize;	/* 256, 512 or 528 bytes per page ? */
 static unsigned eraseSize;	/* smallest supported erase size */
 static unsigned deviceSize;	/* Size of the device in Bytes */

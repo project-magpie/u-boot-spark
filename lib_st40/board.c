@@ -26,9 +26,9 @@
 #include <common.h>
 #include <command.h>
 #include <malloc.h>
-#include <version.h>
 #include <devices.h>
 #include <version.h>
+#include <timestamp.h>
 #include <net.h>
 #include <environment.h>
 #if defined(CONFIG_CMD_NAND)
@@ -164,7 +164,7 @@ ulong monitor_flash_len;
 #endif
 
 const char version_string[] =
-	U_BOOT_VERSION" (" __DATE__ " - " __TIME__ ") - " CONFIG_IDENT_STRING ;
+	U_BOOT_VERSION" (" U_BOOT_DATE " - " U_BOOT_TIME ") - " CONFIG_IDENT_STRING ;
 
 /*
  * Begin and End of memory area for malloc(), and current "brk"

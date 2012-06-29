@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2009,2011 STMicroelectronics.
+ * (C) Copyright 2007-2009,2011-2012 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -71,6 +71,7 @@ SECTIONS
 		__bss_start = .;
 		*(.bss)
 		*(COMMON)		/* ensure common data is initialized */
+		. = ALIGN(0x4);		/* ensure .bss ends on 4-byte alignment */
 		__bss_end = .;
 	}
 	_uboot_end = .;

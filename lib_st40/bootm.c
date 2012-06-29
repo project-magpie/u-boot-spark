@@ -66,6 +66,18 @@ extern void sh_toggle_pmb_cacheability(void);
 #define CURRENT_SE_MODE 29	/* 29-bit (Traditional) Mode */
 #endif	/* CONFIG_ST40_SE_MODE */
 
+extern void arch_lmb_reserve(struct lmb * const lmb)
+{
+	ulong sp;	/* holds the stack pointer (R15) */
+
+	asm ("mov r15, %0": "=r" (sp):);
+	debug ("## Current stack ends at 0x%08lX\n", sp);
+
+	/* reserve all the memory from just below the SP to end of RAM */
+	sp -= 64 * 1024;	/* allow 64KiB extra -- just to be sure! */
+	lmb_reserve(lmb, sp, (CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE - sp));
+}
+
 extern int do_bootm_linux (int flag, int argc, char *argv[], bootm_headers_t *images)
 {
 	ulong param;
@@ -75,6 +87,9 @@ extern int do_bootm_linux (int flag, int argc, char *argv[], bootm_headers_t *im
 #ifdef CONFIG_ST40_SE_MODE
 	size_t i;
 #endif	/* CONFIG_ST40_SE_MODE */
+
+	if ((flag != 0) && (flag != BOOTM_STATE_OS_GO))
+		return 1;
 
 	/* find kernel entry point + load address */
 	theKernel = (void (*)(void))images->ep;	/* The Kernel's Entry Point */
@@ -93,13 +108,6 @@ extern int do_bootm_linux (int flag, int argc, char *argv[], bootm_headers_t *im
 		const ulong initrd_len   = images->rd_end - images->rd_start /* +1 */;
 		struct lmb * const lmb   = &images->lmb;
 		ulong initrd_start, initrd_end;
-		ulong sp;	/* holds the stack pointer (R15) */
-
-		/* reserve all the memory from just below the SP to end of RAM */
-		asm ("mov r15, %0": "=r" (sp):);
-		debug ("## Current stack ends at 0x%08lX\n", sp);
-		sp -= 64 * 1024;	/* just to be sure */
-		lmb_reserve(lmb, sp, (CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE - sp));
 
 		debug ("## ORIGINAL  initrd at 0x%08lX ... 0x%08lX\n",
 		       orig_start, orig_start+initrd_len);
