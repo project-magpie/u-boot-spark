@@ -1154,7 +1154,7 @@ void usb_hub_port_connect_change(struct usb_device *dev, int port)
 	portstatus = le16_to_cpu(portsts.wPortStatus);
 	USB_HUB_PRINTF("portstatus %x, change %x, %s\n",
 			portstatus,
-			le16_to_cpu(portsts.wPortChange,
+			le16_to_cpu(portsts.wPortChange),
 			portstatus&(1 << USB_PORT_FEAT_LOWSPEED) ? \
 						"Low Speed" : "High Speed");
 

@@ -1082,8 +1082,6 @@ error:
 }
 #endif /* CONFIG_PPC || CONFIG_M68K || CONFIG_SPARC || CONFIG_ST40 */
 
-#if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_SPARC)
-
 #ifdef CONFIG_OF_LIBFDT
 static void fdt_error (const char *msg)
 {
