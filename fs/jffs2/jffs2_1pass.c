@@ -1301,13 +1301,11 @@ int jffs2_sum_scan_sumnode(struct part_info *part, uint32_t offset,
 			   struct b_lists *pL)
 {
 	struct jffs2_unknown_node crcnode;
-	int ret, ofs;
+	int ret;
 	uint32_t crc;
 
-	ofs = part->sector_size - sumsize;
-
 	dbg_summary("summary found for 0x%08x at 0x%08x (0x%x bytes)\n",
-		    offset, offset + ofs, sumsize);
+		    offset, offset + (uint32_t)(part->sector_size - sumsize), sumsize);
 
 	/* OK, now check for node validity and CRC */
 	crcnode.magic = JFFS2_MAGIC_BITMASK;
@@ -1558,9 +1556,8 @@ jffs2_1pass_build_lists(struct part_info * part)
 
 			if (*(uint32_t *)(&buf[ofs-buf_ofs]) == 0xffffffff) {
 				uint32_t inbuf_ofs;
-				uint32_t empty_start, scan_end;
+				uint32_t scan_end;
 
-				empty_start = ofs;
 				ofs += 4;
 				scan_end = min_t(uint32_t, EMPTY_SCAN_SIZE(
 							part->sector_size)/8,
