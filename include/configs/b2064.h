@@ -48,7 +48,7 @@
  *
  *	Note:	Using NAND withOUT ECC is not recommended!
  *
- *	Note:	The default NAND on the B2067 is *not* capable
+ *	Note:	The default NAND on the B2064 is *not* capable
  *		of being used with 30-bits of ECC per 1KiB of data.
  *		Hence, using 18-bit mode is always recommended.
  *
@@ -56,15 +56,15 @@
  *			NAND	NAND	NAND	SPI
  *	Jumper		NO ECC	(18)	(30)	NOR		Signal
  *	------		------	----	----	---		------
- *	JF3		CSA	CSA	CSA	CSB		NAND_CS#
- *	JF6-1		 ON	 ON	 ON	off		MODE[6]
- *	JF5-2		 ON	 ON	 ON	off		MODE[5]
- *	JF5-1		off	off	off	 ON		MODE[4]
- *	JF4-2		 ON	 ON	off	off		MODE[3]
- *	JF4-1		 ON	off	 ON	 ON		MODE[2]
+ *	SW4		CSA	CSA	CSA	CSB		NAND_CS#
+ *	JE7-1		 ON	 ON	 ON	off		MODE[6]
+ *	JE6-2		 ON	 ON	 ON	off		MODE[5]
+ *	JE6-1		off	off	off	 ON		MODE[4]
+ *	JE5-2		 ON	 ON	off	off		MODE[3]
+ *	JE5-1		 ON	off	 ON	 ON		MODE[2]
  *
- *	Note:	JF3 set to nearer the CPU if using CSA (for boot-from-NAND)
- *		JF3 set further from CPU if using CSB (for boot-from-SPI)
+ *	Note:	SW4 set further from the CPU if using CSA (for boot-from-NAND)
+ *		SW4 set to nearer the CPU if using CSB (for boot-from-SPI)
  */
 
 
@@ -128,7 +128,7 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD b2067
+#define BOARD b2064
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 		"board=" XSTR(BOARD) "\0" \
@@ -162,11 +162,11 @@
 #	define CONFIG_STM_DTF_SERIAL	/* use DTF over JTAG */
 #endif
 
-/* choose which ST ASC UART to use: on-board, or off-board */
+/* choose which ST ASC UART to use: choice of 2 x DB9 connectors */
 #if 1
-#	define CFG_STM_ASC_BASE		STXH205_ASC10_BASE	/* JM5, on-board DB9 */
+#	define CFG_STM_ASC_BASE		STXH205_ASC10_BASE	/* CN32, "DB9_1" */
 #else
-#	define CFG_STM_ASC_BASE		STXH205_ASC1_BASE	/* JK1/JB4, off-board */
+#	define CFG_STM_ASC_BASE		STXH205_ASC1_BASE	/* CN33, "DB9_2" */
 #endif
 
 /*---------------------------------------------------------------
@@ -175,12 +175,10 @@
 
 /*
  * There is one on-chip ST-GMAC, which is connected to an in-package PHY,
- * which is normally a IC+ IP101G (but possibly could be a IP101A).
- * This Ethernet PHY is wired to the on-board RJ-45 connector (JP2).
+ * which is a IC+ IP101G PHY.  This in-package ethernet PHY is wired to
+ * an (off-package) on-board RJ-45 connector (EJ1).
  *
- * By default, we assume we will use MII with an External Clock.
- *
- * Note: There is no support for any off-package (on-board) PHY.
+ * Note: There is no support for any off-package (on-board) PHYs.
  */
 
 /* are we using the internal ST GMAC device ? */
@@ -191,7 +189,8 @@
  */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #	define CFG_STM_STMAC_BASE	0xfda88000ul
-#	define CONFIG_STMAC_IP101G	/* IC+ IP101G (via JP2) */
+//#	define CONFIG_STM_USE_RMII_MODE	/* define only for RMII mode */
+#	define CONFIG_STMAC_IP101G	/* IC+ IP101G (via EJ1) */
 #else
 #	undef CONFIG_CMD_NET		/* remove all networking support */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
@@ -215,9 +214,9 @@
 #	define CONFIG_USB_OHCI_NEW
 #	define CONFIG_USB_STORAGE
 #	define CFG_USB_OHCI_CPU_INIT
-#	define CFG_USB0_BASE			0xfe000000	/* USB #0 (JD1) */
-#	define CFG_USB1_BASE			0xfe100000	/* USB #1 (JD2) */
-#	define CFG_USB_BASE			CFG_USB1_BASE
+#	define CFG_USB0_BASE			0xfe000000	/* USB #0 is rear port  (JD1) */
+#	define CFG_USB1_BASE			0xfe100000	/* USB #1 is front port (JD3) */
+#	define CFG_USB_BASE			CFG_USB0_BASE
 #	define CFG_USB_OHCI_REGS_BASE		(CFG_USB_BASE+0xffc00)
 #	define CFG_USB_OHCI_SLOT_NAME		"ohci"
 #	define CFG_USB_OHCI_MAX_ROOT_PORTS	1
@@ -239,7 +238,7 @@
 #define CFG_HUSH_PARSER		1
 #define CONFIG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"B2067> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"B2064> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/
@@ -412,10 +411,10 @@
  */
 
 /*
- *	Name	Device
- *	-----	------
- *	U4	N25Q256
- *	U12	MX25L256
+ *	Name	Manuf	Device
+ *	-----	-----	------
+ *	UD15	ST	N25Q128
+ *	UD16	ST	N25Q256
  */
 #if defined(CONFIG_SPI_FLASH)			/* SPI serial flash present ? */
 #	define CONFIG_SPI_FLASH_ST		/* ST N25Qxxx */

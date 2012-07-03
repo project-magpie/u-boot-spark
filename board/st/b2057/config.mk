@@ -24,6 +24,7 @@
 #
 # STiH207-HDK (B2057) board:
 # STiH238-HDK (B2067) board:
+# STiH239-HDK (B2064) board:
 #
 #	Valid values for TEXT_BASE are:
 #
