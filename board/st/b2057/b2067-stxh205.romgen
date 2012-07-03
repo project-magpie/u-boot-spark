@@ -1,27 +1,27 @@
 /*
-This file was automatically generated on Mon 14 May 12 at 16:07:52 by user mcgoogan, host hoiho using romgen R2011.2.1 with the ST TargetPack b2067stxh205
+This file was automatically generated on Tue 03 Jul 12 at 17:56:25 by user mcgoogan, host hoiho using romgen R2011.2.1 with the ST TargetPack b2067stxh205
 
 TargetPack files used:
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/b2067.py
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/b2067stxh205.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/b2067stxh205_design.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/clk_common2.pyc
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/ddr3mixer_regs.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/ddr3pctl_regs.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/ddr3phy_regs.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/l2_cache_regs.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205.pyc
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205_clockgena_regs.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205_ddrdbg.pyc
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205_design.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205_interco_init.pyc
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205_spi_regs.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205_sysconf_0_regs.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205_sysconf_1_regs.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205_sysconf_2_regs.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/stxh205_sysconf_3_regs.xml
-/home/mcgoogan/targetpacks/b2067_targetpack_v06/tm1668_fp2.pyc
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/b2067.py
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/b2067stxh205.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/b2067stxh205_design.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/clk_common2.pyc
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/ddr3mixer_regs.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/ddr3pctl_regs.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/ddr3phy_regs.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/l2_cache_regs.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205.pyc
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_clockgena_regs.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_ddrdbg.pyc
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_design.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_interco_init.pyc
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_spi_regs.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_sysconf_0_regs.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_sysconf_1_regs.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_sysconf_2_regs.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_sysconf_3_regs.xml
+/home/mcgoogan/targetpacks/b2067-targetpack-v09/tm1668_fp2.pyc
 /opt/STM/STLinux-2.4/host/stmc/targetpack/cores/core_utils.py
 /opt/STM/STLinux-2.4/host/stmc/targetpack/cores/jtag_core.xml
 /opt/STM/STLinux-2.4/host/stmc/targetpack/cores/st231.py
@@ -90,21 +90,6 @@ POKE32(0xfde98020, 0x00000000)
 /*
 stxh205_clockgena_regs.CLOCKGENA_POWER_CFG
 */
-OR32(0xfde98018, 0x00000001)
-UPDATE32(0xfde98000, 0xffffff00, 0x00000037)
-UPDATE32(0xfde98004, 0xfffffff8, 0x00000003)
-
-
-/*
-stxh205_clockgena_regs.CLOCKGENA_POWER_CFG
-*/
-UPDATE32(0xfde98018, 0xfffffffe, 0x00000000)
-WHILE_NE32(0xfde98004, 0x80000000, 0x80000000)
-
-
-/*
-stxh205_clockgena_regs.CLOCKGENA_POWER_CFG
-*/
 OR32(0xfde98018, 0x00000002)
 UPDATE32(0xfde9800c, 0xffffff00, 0x0000001e)
 UPDATE32(0xfde98010, 0xfffffff8, 0x00000001)
@@ -115,18 +100,49 @@ stxh205_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfde98018, 0xfffffffd, 0x00000000)
 WHILE_NE32(0xfde98010, 0x80000000, 0x80000000)
+UPDATE32(0xfde98014, 0xfffff7ff, 0x00000000)
+
+
+/*
+stxh205_clockgena_regs.CLOCKGENA_POWER_CFG
+*/
+OR32(0xfde98018, 0x00000001)
+UPDATE32(0xfde98000, 0xffffff00, 0x00000037)
+UPDATE32(0xfde98004, 0xfffffff8, 0x00000003)
+
+
+/*
+stxh205_clockgena_regs.CLOCKGENA_POWER_CFG
+*/
+UPDATE32(0xfde98018, 0xfffffffe, 0x00000000)
+WHILE_NE32(0xfde98004, 0x80000000, 0x80000000)
+UPDATE32(0xfde98008, 0xfffff7ff, 0x00000000)
 POKE32(0xfde98900, 0x00000001)
-POKE32(0xfde98904, 0x00000002)
 POKE32(0xfde98908, 0x00000001)
-POKE32(0xfde9898c, 0x00000003)
 POKE32(0xfde98910, 0x00000001)
+POKE32(0xfde98984, 0x00000004)
+POKE32(0xfde9898c, 0x00000003)
 POKE32(0xfde98998, 0x00000003)
-POKE32(0xfde9899c, 0x00000005)
+
+
+/*
+stxh205_sysconf_0_regs.SYSTEM_STATUS41
+*/
+IF_EQ32(1, 0xfe6000a4, 0xf0000000, 0x00000000)
+  POKE32(0xfde9899c, 0x00000005)
+
+
+/*
+stxh205_sysconf_0_regs.SYSTEM_STATUS41
+*/
+ELSE(1)
+  POKE32(0xfde9899c, 0x00000004)
+ENDIF(1)
 POKE32(0xfde989a4, 0x00000008)
 POKE32(0xfde98b00, 0x00000008)
 POKE32(0xfde98b04, 0x00000008)
 POKE32(0xfde98b08, 0x00000003)
-POKE32(0xfde98a3c, 0x00000003)
+POKE32(0xfde98b0c, 0x00000005)
 POKE32(0xfde98b10, 0x00000008)
 POKE32(0xfde98b14, 0x00000004)
 POKE32(0xfde98b18, 0x00000011)
@@ -139,7 +155,7 @@ POKE32(0xfde98b34, 0x00000011)
 /*
 stxh205_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-POKE32(0xfde9801c, 0xa6a8a195)
+POKE32(0xfde9801c, 0xaaa8a199)
 
 
 /*
@@ -173,6 +189,7 @@ stxh205_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfdab8018, 0xfffffffe, 0x00000000)
 WHILE_NE32(0xfdab8004, 0x80000000, 0x80000000)
+UPDATE32(0xfdab8008, 0xfffff7ff, 0x00000000)
 
 
 /*
@@ -188,6 +205,7 @@ stxh205_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfdab8018, 0xfffffffd, 0x00000000)
 WHILE_NE32(0xfdab8010, 0x80000000, 0x80000000)
+UPDATE32(0xfdab8014, 0xfffff7ff, 0x00000000)
 POKE32(0xfdab8980, 0x00000005)
 POKE32(0xfdab8984, 0x00000003)
 POKE32(0xfdab8988, 0x00000003)
@@ -829,7 +847,7 @@ POKE32(0xfe900840, 0x0000003c)
 /*
 st40_emi_regs.EMI_BANK_ENABLE
 */
-POKE32(0xfe900860, 0x00000005)
+POKE32(0xfe900860, 0x00000004)
 
 
 /*
@@ -1354,7 +1372,7 @@ OR32(0xfd5410f0, 0x00000002)
 /*
 ddr3mixer_regs.DDR3MIXER_DDR_BASE_ADDR
 */
-POKE32(0xfde52030, 0x00600040)
+POKE32(0xfde52030, 0x00500040)
 
 
 /*
@@ -1367,6 +1385,12 @@ POKE32(0xfde52038, 0x33325125)
 ddr3mixer_regs.DDR3MIXER_GEN_PURPOSE_REG0
 */
 POKE32(0xfde521c0, 0x104020c9)
+
+
+/*
+ddr3mixer_regs.DDR3MIXER_RES_UNIT_MEM_RESOURCE
+*/
+POKE32(0xfde520b8, 0x01000040)
 
 
 /*
@@ -1469,7 +1493,7 @@ WHILE_NE32(0xfde50484, 0x00010000, 0x00010000)
 /*
 ddr3phy_regs.DDR3PHY_ZQnCR
 */
-POKE32(0xfde505a0, 0x43b295ef)
+POKE32(0xfde505a0, 0x436295ef)
 
 
 /*
@@ -1529,7 +1553,7 @@ UPDATE32(0xfde5042c, 0xfffc0000, 0x00000000)
 /*
 ddr3phy_regs.DDR3PHY_ACBDLR
 */
-OR32(0xfde5042c, 0x00014514)
+OR32(0xfde5042c, 0x00000000)
 
 
 /*
@@ -1905,6 +1929,18 @@ POKE32(0xfde50324, 0x00000003)
 
 
 /*
+ddr3phy_regs.DDR3PHY_DX0BDLR1
+*/
+UPDATE32(0xfde505d0, 0x0fffffff, 0x07000000)
+
+
+/*
+ddr3phy_regs.DDR3PHY_DX1BDLR1
+*/
+UPDATE32(0xfde50610, 0x0fffffff, 0x07000000)
+
+
+/*
 ddr3phy_regs.DDR3PHY_PIR
 */
 UPDATE32(0xfde50404, 0xefffffff, 0x00000000)
@@ -1932,6 +1968,12 @@ UPDATE32(0xfde50680, 0xfffffffe, 0x00000000)
 ddr3phy_regs.DDR3PHY_PGCR0
 */
 UPDATE32(0xfde50408, 0x0fffffff, 0x00000000)
+
+
+/*
+ddr3phy_regs.DDR3PHY_ACIOCR
+*/
+OR32(0xfde50430, 0x00000010)
 
 
 /*
@@ -2025,10 +2067,18 @@ UPDATE32(0xfd002024, 0xfff01fff, 0x0003c000)
 UPDATE32(0xfd003024, 0xfff01fff, 0x0003c000)
 UPDATE32(0xfd004024, 0xfff01fff, 0x0003c000)
 IF_EQ32(1, 0xfd5410c4, 0x00000001, 0x00000000)
-  UPDATE32(0xfe0fff04, 0xffc00000, 0x00264207)
+  IF_EQ32(2, 0xfde50084, 0x00000001, 0x00000000)
+    UPDATE32(0xfe0fff04, 0xffc00000, 0x00264207)
+  ELSE(2)
+    UPDATE32(0xfe0fff04, 0xffc00000, 0x00264204)
+  ENDIF(2)
 ENDIF(1)
 IF_EQ32(1, 0xfd5410c4, 0x00000002, 0x00000000)
-  UPDATE32(0xfe1fff04, 0xffc00000, 0x00264207)
+  IF_EQ32(2, 0xfde50084, 0x00000001, 0x00000000)
+    UPDATE32(0xfe1fff04, 0xffc00000, 0x00264207)
+  ELSE(2)
+    UPDATE32(0xfe1fff04, 0xffc00000, 0x00264204)
+  ENDIF(2)
 ENDIF(1)
 IF_EQ32(1, 0xfe60005c, 0x00000009, 0x00000001)
   UPDATE32(0xfda8f000, 0xffd00000, 0x0026c209)
