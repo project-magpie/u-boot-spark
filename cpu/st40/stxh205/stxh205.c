@@ -630,6 +630,14 @@ extern void stxh205_configure_ethernet(
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
+
+#define ST40_PWR_SW_RST_MASK		(1u<<5)
+#define LPC_WDT_OUT_MASK		(1u<<4)
+#define ST40_RST_WDT_OUT_MASK		(1u<<3)	/* ST40 Watchdog reset */
+#define ST40_RST_PWR_OUT_MASK		(1u<<2)
+#define ST40_RST_UDI_OUT_MASK		(1u<<1)
+#define ST40_RST_MAN_OUT_MASK		(1u<<0)	/* ST40 Manual reset, including a "double-fault" */
+
 extern int soc_init(void)
 {
 	DECLARE_GLOBAL_DATA_PTR;
@@ -639,10 +647,12 @@ extern int soc_init(void)
 
 	bd->bi_devid = *STXH205_SYSCONF_DEVICEID_0;
 
-#if 0	/* QQQ - TO DO */
-	/* Make sure reset period is shorter than WDT time-out */
-	*STX7108_BANK0_SYSCFG(14) = 3000;	/* about 100 us */
-#endif	/* QQQ - TO DO */
+	/*
+	 * Allow both the Manual + Watchdog resets *OUT* of the
+	 * ST40 core, to propagate to the rest of the system...
+	 * Failure to do this results in weird reset conditions!
+	 */
+	*STXH205_SYSCFG(498) &= ~(ST40_RST_MAN_OUT_MASK | ST40_RST_WDT_OUT_MASK);
 
 	return 0;
 }
