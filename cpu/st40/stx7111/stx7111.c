@@ -33,12 +33,15 @@
 #include <ata.h>
 #include <spi.h>
 
+
+DECLARE_GLOBAL_DATA_PTR;
+
+
 #define PIO_BASE  ST40_PIO0_REGS_BASE
 
 static void stx7111_clocks(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	/*
 	 * FIXME
@@ -111,8 +114,7 @@ static void stmac_eth_hw_setup(void)
 
 int soc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	stx7111_clocks();
 

@@ -132,7 +132,6 @@ static inline void TxCharReady (void)
 /* initialize the ASC */
 extern int serial_init (void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
 	const int cflag = CREAD | HUPCL | CLOCAL | CSTOPB | CS8 | PARODD;
 	unsigned long val;
 	int baud = gd->baudrate;

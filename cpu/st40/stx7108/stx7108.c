@@ -37,6 +37,10 @@
 #include <ata.h>
 #include <spi.h>
 
+
+DECLARE_GLOBAL_DATA_PTR;
+
+
 #undef  BUG_ON
 #define BUG_ON(condition) do { if ((condition)!=0) BUG(); } while(0)
 
@@ -58,8 +62,7 @@
 
 static void stx7108_clocks(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	/*
 	 * FIXME
@@ -673,7 +676,6 @@ extern int stmac_default_pbl(void)
 #define GMAC_AHB_CONFIG         0x7000
 static void stx7108_ethernet_bus_setup(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
 	const bd_t * const bd = gd->bd;
 
 	/* Configure the bridge to generate more efficient STBus traffic.
@@ -834,8 +836,7 @@ extern void stx7108_configure_ethernet(
 
 extern int soc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	stx7108_clocks();
 

@@ -32,12 +32,15 @@
 #include <asm/stbus.h>
 #include <ata.h>
 
+
+DECLARE_GLOBAL_DATA_PTR;
+
+
 #define PIO_BASE  ST40_PIO0_REGS_BASE
 
 static void stx7200_clocks(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	/*
 	 * FIXME
@@ -133,8 +136,7 @@ extern void stx7200_configure_ethernet(
 
 int soc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	stx7200_clocks();
 
@@ -448,7 +450,6 @@ static void usb_soft_jtag_reset(void)
 
 extern void stx7200_usb_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
 	const bd_t * const bd = gd->bd;
 	unsigned long reg;
 	const unsigned char power_pins[3] = {1, 3, 4};

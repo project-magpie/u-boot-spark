@@ -49,9 +49,11 @@
  *				Sean McGoogan March 2010.
  */
 
+
+DECLARE_GLOBAL_DATA_PTR;
+
 static inline unsigned long get_peripheral_clk_rate(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
 	const bd_t * const bd = gd->bd;
 
 	/* Return Peripheral Clock in Hz. */
@@ -71,7 +73,6 @@ static inline unsigned long get_tmu0_clk_rate(void)
 #if 0	/* QQQ - TO DO */
 static inline unsigned long get_comms_clk_rate(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
 	const bd_t * const bd = gd->bd;
 
 	/* Return Comms Clock Frequency (in Hz). */

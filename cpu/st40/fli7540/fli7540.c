@@ -35,6 +35,9 @@
 #include <spi.h>
 
 
+DECLARE_GLOBAL_DATA_PTR;
+
+
 #define ARRAY_SIZE(x)		(sizeof(x) / sizeof((x)[0]))
 
 
@@ -52,8 +55,7 @@
 
 static void fli7540_clocks(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	/*
 	 * FIXME
@@ -429,8 +431,7 @@ extern void spi_cs_deactivate(struct spi_slave * const slave)
 
 extern int soc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	fli7540_clocks();
 

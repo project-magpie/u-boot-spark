@@ -34,10 +34,12 @@
 #include <spi.h>
 
 
+DECLARE_GLOBAL_DATA_PTR;
+
+
 static void stx7105_clocks(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	/*
 	 * FIXME
@@ -178,8 +180,7 @@ static void stmac_eth_hw_setup( int reverse_mii, int rmii_mode, int mode,
 
 int soc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	stx7105_clocks();
 

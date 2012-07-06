@@ -41,6 +41,9 @@
 #include <asm/st40reg.h>
 
 
+DECLARE_GLOBAL_DATA_PTR;
+
+
 /*
  *	The ST40 Memory Map
  *	===================
@@ -184,8 +187,6 @@ extern int env_init_after_spi_done (void);
 
 static void mem_malloc_init (void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	ulong dest_addr = TEXT_BASE + gd->reloc_off;
 
 	mem_malloc_end = dest_addr;
@@ -210,8 +211,6 @@ void *sbrk (ptrdiff_t increment)
 
 static int init_func_ram (void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 #ifdef	CONFIG_BOARD_TYPES
 	int board_type = gd->board_type;
 #endif
@@ -241,8 +240,6 @@ static void display_flash_config (ulong size)
 
 static int init_baudrate (void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	char tmp[64];		/* long enough for environment variables */
 	int i = getenv_r ("baudrate", tmp, sizeof (tmp));
 
@@ -286,8 +283,6 @@ init_fnc_t *init_sequence[] = {
 
 void start_st40_boot (void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	bd_t *bd;
 	ulong addr;
 	init_fnc_t **init_fnc_ptr;

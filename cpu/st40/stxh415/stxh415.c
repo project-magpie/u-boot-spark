@@ -37,6 +37,10 @@
 #include <ata.h>
 #include <spi.h>
 
+
+DECLARE_GLOBAL_DATA_PTR;
+
+
 #undef  BUG_ON
 #define BUG_ON(condition) do { if ((condition)!=0) BUG(); } while(0)
 
@@ -69,8 +73,7 @@ volatile int debug_pad_configs = 0;
 
 static void stxh415_clocks(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	/*
 	 * FIXME
@@ -898,8 +901,7 @@ extern void stxh415_configure_ethernet(
 
 extern int soc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	stxh415_clocks();
 

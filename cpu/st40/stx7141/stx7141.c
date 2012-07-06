@@ -33,10 +33,12 @@
 #include <ata.h>
 
 
+DECLARE_GLOBAL_DATA_PTR;
+
+
 static void stx7141_clocks(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	/*
 	 * FIXME
@@ -278,8 +280,7 @@ extern void stx7141_configure_ethernet(
 	const int mode,
 	const int phy_bus)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t * const bd = gd->bd;
+	const bd_t * const bd = gd->bd;
 	size_t i;
 
 	const struct {
@@ -363,8 +364,7 @@ extern void stx7141_configure_ethernet(
 
 int soc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 	unsigned long reg;
 
 	stx7141_clocks();

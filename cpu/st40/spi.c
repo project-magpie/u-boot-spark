@@ -819,8 +819,6 @@ static int spi_probe_serial_flash(
  */
 extern void spi_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
 	/* initialize the H/W FSM SPI Controller. */
 	fsm_init();

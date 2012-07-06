@@ -360,7 +360,6 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	DECLARE_GLOBAL_DATA_PTR;
 #if CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	#if !defined(ST40_EMI_SIZE)
 	#define ST40_EMI_SIZE	(128 << 20)	/* EMI is usually 128 MiB */
@@ -373,7 +372,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #if defined(CONFIG_CMD_NET) || CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	unsigned int i;
 #endif
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	print_num ("memstart",		(ulong)bd->bi_memstart);
 	print_lnum ("memsize",		(u64)bd->bi_memsize);
