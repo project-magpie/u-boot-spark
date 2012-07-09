@@ -2,7 +2,7 @@
  * (C) Copyright 2009
  * Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
  *
- * (C) Copyright 2004,2009 STMicroelectronics.
+ * (C) Copyright 2004,2009,2012 STMicroelectronics.
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -101,7 +101,7 @@ int timer_init (void)
 	writew(readw(TCR0) | bit, TCR0);
 
 	/* Clock frequency calc */
-	timer_freq = get_tmu0_clk_rate() >> ((bit + 1) * 2);
+	timer_freq = stm_get_tmu_clk_rate() >> ((bit + 1) * 2);
 
 	tmu_timer_stop(0);
 	tmu_timer_start(0);

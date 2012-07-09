@@ -353,6 +353,7 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #elif defined(CONFIG_ST40)
 
 #include "asm/socregs.h"
+#include <asm/clk.h>
 
 #if !defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
 #define CONFIG_CMD_BDI_DUMP_EMI_BANKS 1
@@ -439,7 +440,9 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	printf ("  [29-bit mode]\n");
 #endif
 
-	print_mhz ("EMI",		bd->bi_emifrq);
+	print_mhz("UART", stm_get_uart_clk_rate()/1000000ul);
+	print_mhz("TMU",  stm_get_tmu_clk_rate()/1000000ul);
+	print_mhz("SSC",  stm_get_ssc_clk_rate()/1000000ul);
 
 #if CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	enabled = *ST40_EMI_BANK_ENABLE;

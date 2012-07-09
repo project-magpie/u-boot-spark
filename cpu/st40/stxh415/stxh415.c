@@ -76,19 +76,21 @@ static void stxh415_clocks(void)
 	bd_t * const bd = gd->bd;
 
 	/*
-	 * FIXME
-	 * Gross hack to get the serial port working.
-	 * See the definition of PCLK in drivers/stm-asc.c
-	 * for where this is used.
+	 * Ideally, we should probe to determine all the clock frequencies.
+	 * However, for simplicity, we will simply hard-wire the values
+	 * that U-Boot will use for computing the clock dividers later.
+	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 *
-	 * Note: for the SBC, we expect this will always be 30MHz, so this
-	 * is *less* than a gross hack! The "gross hack" is for the other cases!
+	 * Note: for the ASC in the SBC, we expect this will always be 30MHz,
+	 *       otherwise we expect the ASC to be 100MHz.
 	 */
 #if (CFG_STM_ASC_BASE==STXH415_SBC_ASC0_BASE) || (CFG_STM_ASC_BASE==STXH415_SBC_ASC1_BASE)
-	bd->bi_emifrq = 30;	/* use 30 MHz */
+	bd->bi_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
 #else
-	bd->bi_emifrq = 100;	/* use 100 MHz */
+	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
 #endif
+	bd->bi_tmu_frq  = 100ul * 1000000ul;	/* 100 MHz */
+	bd->bi_ssc_frq  = bd->bi_tmu_frq;
 }
 
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
- * Copyright (C) 2010 STMicroelectronics.
+ * Copyright (C) 2010-2012 STMicroelectronics.
  *	Sean McGoogan STMicroelectronics, <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -25,59 +25,76 @@
 #define __ASM_ST40_CLK_H
 
 /*
- * Note that there are two distinct clocks we need to deal with:
- * The "comms" clock and the "peripheral" clock.
+ * The clocking infrastructure on the ST40 has now got very
+ * complicated, and U-Boot sources (for ST40) were no longer
+ * able to cope with this increase complexity, without some
+ * form of re-factoring exercise.
  *
- *	The "comms" clock is used by: ASC, SSC
- *	The "peripheral" clock is used by: TMU, SCIF, Watchdog
+ * In the good old days, there was just a single "peripheral"
+ * clock, then a "comms" clock was added.  At that point,
+ * there were two distinct clocks we needed to deal with:
+ *	The "comms" clock was used by: ASC, SSC, Watchdog(Comms)
+ *	The "peripheral" clock was used by: TMU, SCIF, Watchdog(ST40)
  *
- * Unfortunately, due to various historical circumstances and SoC
- * evolution, the U-boot code is now a bit "confused" about which one
- * to use!  Originally, the peripheral clock was used for both the TMU
- * and the SCIF (UART). However, today (March 2010), the ASC has
- * largely replaced the SCIF, and instead uses the "comms" clock.
+ * Now, there may be two different "comms" clocks - one "system"
+ * clock, and a second one for the SBC (Stand-By Controller)
+ * domain, and these two "comms" clocks typically run at
+ * different frequencies. So, (for example) the UART divider
+ * value to be used depended on which "comms" clock is actually
+ * being used, depending if the ASC is in the SBC domain or not!
  *
- * The ASC driver was based on the SCIF one, and unfortunately the
- * clocking nomenclature was unchanged - hence the U-boot code for
- * the SCIF and the ASC both claim to use the "peripheral" clock,
- * which is correct for the former, and incorrect for the latter.
+ * It is not required for U-Boot to have a very sophisticated
+ * appreciation of the clock infrastructure, and their myriad
+ * of interdependencies and their hierarchy. However, U-Boot does
+ * need to know how to obtain the actual clock frequencies for
+ * each class of peripheral, and know how to compute the divisors.
+ * To this end, it has been decided to have a few simple functions
+ * which will return the raw frequency for each peripheral that
+ * needs to know its clock frequency.
  *
- * In summary, the clocking infrastructure needs to be overhauled and
- * brought up to date, as the peripheral clock often runs at a
- * different frequency to the comms clock.
+ * Hence we now have the following new functions:
  *
- *				Sean McGoogan March 2010.
+ *	stm_get_uart_clk_rate()	-> UART for the ASC (serial console)
+ *	stm_get_tmu_clk_rate()	-> TMU  for the Timers (udelay())
+ *	stm_get_ssc_clk_rate()	-> SSC  for the SPI via SSC
+ *
+ * Each of these functions simply returns the appropriate frequency
+ * in the "bd_info" structure (scaled to be in Hertz).
+ *
+ * The key point, is that we have moved from being clock-centric
+ * (where one clock serves many different IP blocks), to being
+ * block-centric (where one clock serves only one IP block).
+ * This is slightly wasteful if two IP blocks use the same physical
+ * clock, but it gives greater flexibility if that association
+ * changes in the future! Given the relatively few clocks that
+ * U-Boot needs to know about, this seems to be the best option.
+ *
+ *				Sean McGoogan July 2012.
  */
 
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static inline unsigned long get_peripheral_clk_rate(void)
+
+	/* Return the UART's Clock Frequency (in Hz) */
+static inline unsigned long stm_get_uart_clk_rate(void)
 {
 	const bd_t * const bd = gd->bd;
-
-	/* Return Peripheral Clock in Hz. */
-	return bd->bi_emifrq * 1000000;
+	return bd->bi_uart_frq;
 }
 
-static inline unsigned long get_tmu0_clk_rate(void)
-{
-	/* Return the TMU's Clock Frequency (in Hz). */
-#if defined(CONFIG_ST40_STX5197)
-	return 200ul * 1000000ul;	/* BODGE: Peripheral Clock = 200 MHz */
-#else
-	return get_peripheral_clk_rate();
-#endif
-}
-
-#if 0	/* QQQ - TO DO */
-static inline unsigned long get_comms_clk_rate(void)
+	/* Return the TMU's Clock Frequency (in Hz) */
+static inline unsigned long stm_get_tmu_clk_rate(void)
 {
 	const bd_t * const bd = gd->bd;
-
-	/* Return Comms Clock Frequency (in Hz). */
-	return bd->bi_commsfrq * 1000000ul;
+	return bd->bi_tmu_frq;
 }
-#endif	/* QQQ - TO DO */
+
+	/* Return the SSC's Clock Frequency (in Hz) */
+static inline unsigned long stm_get_ssc_clk_rate(void)
+{
+	const bd_t * const bd = gd->bd;
+	return bd->bi_ssc_frq;
+}
 
 #endif /* __ASM_ST40_CLK_H */

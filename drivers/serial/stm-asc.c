@@ -82,15 +82,9 @@
 
 /*---- Values for the BAUDRATE Register -----------------------*/
 
-#if defined(__SH4__)
-#define PCLK			(get_peripheral_clk_rate())
+#define PCLK			(stm_get_uart_clk_rate())
 #define BAUDRATE_VAL_M0(bps)	(PCLK / (16 * (bps)))
 #define BAUDRATE_VAL_M1(bps)	((((bps * (1 << 14))+ (1<<13)) / (PCLK/(1 << 6))))
-#else	/* !defined(__SH4__) */
-#define PCLK			B_CLOCK_RATE
-#define BAUDRATE_VAL_M0(bps)	(PCLK / (16 * (bps)))
-#define BAUDRATE_VAL_M1(bps)	(int)((((double)bps * (1 << 20))/ PCLK)+0.5)
-#endif	/* defined(__SH4__) */
 
 /*
  * MODE 0

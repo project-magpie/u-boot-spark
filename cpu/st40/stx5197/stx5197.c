@@ -43,12 +43,14 @@ static void stx5197_clocks(void)
 	bd_t * const bd = gd->bd;
 
 	/*
-	 * FIXME
-	 * Gross hack to get the serial port working.
-	 * See the defintion of PCLK in drivers/stm-asc.c
-	 * for where this is used.
+	 * Ideally, we should probe to determine all the clock frequencies.
+	 * However, for simplicity, we will simply hard-wire the values
+	 * that U-Boot will use for computing the clock dividers later.
+	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	bd->bi_emifrq = 140;	/* comms_clk = 140 MHz */
+	bd->bi_uart_frq = 140ul * 1000000ul;	/* 140 MHz */
+	bd->bi_tmu_frq  = 200ul * 1000000ul;	/* 200 MHz */
+	bd->bi_ssc_frq  = bd->bi_uart_frq;
 }
 
 
