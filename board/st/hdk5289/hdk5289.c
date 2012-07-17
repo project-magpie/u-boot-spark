@@ -99,10 +99,9 @@ extern int board_init(void)
 	configPIO();
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-	/* Reset the PHY */
-	stmac_phy_reset();
-
 	stx5206_configure_ethernet(stx5206_ethernet_mii, 0, 0);
+	/* Hard Reset the PHY -- do after we have configured the MAC */
+	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 	return 0;

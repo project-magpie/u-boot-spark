@@ -112,7 +112,7 @@ static void configEthernet(void)
 	/* Setup PIO for the PHY's reset */
 	SET_PIO_PIN(PIO_PORT(15), 5, STPIO_OUT);
 
-	/* Finally, toggle the PHY Reset pin ("RST#") */
+	/* Hard Reset the PHY -- do after we have configured the MAC */
 	STPIO_SET_PIN(PIO_PORT(15), 5, 0);
 	udelay(100);	/* small delay */
 	STPIO_SET_PIN(PIO_PORT(15), 5, 1);

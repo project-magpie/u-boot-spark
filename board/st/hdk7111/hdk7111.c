@@ -84,7 +84,7 @@ static void configPIO(void)
 #error Unsure which UART to configure!
 #endif	/* CFG_STM_ASC_BASE == ST40_ASC2_REGS_BASE */
 
-	/* Configure & Reset the Ethernet PHY */
+	/* Hard Reset the PHY -- do after we have configured the MAC */
 	configEthernet();
 
 #if defined(CONFIG_SPI)

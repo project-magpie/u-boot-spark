@@ -158,10 +158,7 @@ extern int board_init(void)
 			.no_txer = 1,				/* NO TXER from MAC */
 #endif /* CONFIG_STMAC_IP101A */
 			.phy_bus = 0, });
-	/*
-	 * Now we will perform a H/W reset of the PHY.
-	 * For some PHYs (e.g. IC+ IP101G), we apparently need to do this *after* configuring the MAC.
-	 */
+	/* Hard Reset the PHY -- do after we have configured the MAC */
 	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 

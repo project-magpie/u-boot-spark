@@ -87,7 +87,6 @@ extern int board_init(void)
 	configPIO();
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-	stmac_phy_reset();	/* Reset the PHY */
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE	/* MAC = STM GMAC#0 */
 	/* QQQ TODO: No H/W provided to test this! */
 	stx7141_configure_ethernet(0, 0, 0, 0);
@@ -96,6 +95,8 @@ extern int board_init(void)
 #else
 #error Unknown GMAC Base address encountered!
 #endif
+	/* Hard Reset the PHY -- do after we have configured the MAC */
+	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 #if defined(CONFIG_ST40_STM_SATA)
