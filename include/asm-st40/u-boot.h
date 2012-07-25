@@ -29,9 +29,9 @@
 
 typedef struct bd_info
 {
-	int bi_baudrate;	/* serial console baudrate */
+	int bi_baudrate;		/* serial console baud-rate */
 	unsigned long bi_ip_addr;	/* IP Address */
-	unsigned char bi_enetaddr[6];	/* Ethernet adress */
+	unsigned char bi_enetaddr[6];	/* Ethernet address */
 	unsigned long bi_arch_number;	/* unique id for this board */
 	unsigned long bi_memstart;	/* start of DRAM memory */
 	phys_size_t   bi_memsize;	/* size  of DRAM memory in bytes */
@@ -41,9 +41,9 @@ typedef struct bd_info
 	unsigned long bi_flashoffset;	/* reserved area for startup monitor */
 #endif /* CONFIG_SYS_NO_FLASH */
 	unsigned long bi_devid;
-	unsigned long bi_emifrq;
+	unsigned long bi_uart_frq;	/* frequency of the UART (in Hertz) */
+	unsigned long bi_tmu_frq;	/* frequency of the TMU  (in Hertz) */
+	unsigned long bi_ssc_frq;	/* frequency of the SSC  (in Hertz) */
 } bd_t;
-#define bi_env_data bi_env->data
-#define bi_env_crc  bi_env->crc
 
 #endif /* __ASM_ST40_U_BOOT_H */

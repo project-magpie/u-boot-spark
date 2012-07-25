@@ -193,6 +193,7 @@ static int mb618_init_epld(void)
 
 	/* now perform the EPLD initializations we want */
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
+	/* Hard Reset the PHY -- do after we have configured the MAC */
 	mb618_phy_reset06();
 #endif
 

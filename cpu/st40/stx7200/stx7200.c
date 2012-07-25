@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007, 2009 STMicroelectronics.
+ * (C) Copyright 2007-2012 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -32,20 +32,25 @@
 #include <asm/stbus.h>
 #include <ata.h>
 
+
+DECLARE_GLOBAL_DATA_PTR;
+
+
 #define PIO_BASE  ST40_PIO0_REGS_BASE
 
 static void stx7200_clocks(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	/*
-	 * FIXME
-	 * Gross hack to get the serial port working.
-	 * See the defintion of PCLK in drivers/stm-asc.c
-	 * for where this is used.
+	 * Ideally, we should probe to determine all the clock frequencies.
+	 * However, for simplicity, we will simply hard-wire the values
+	 * that U-Boot will use for computing the clock dividers later.
+	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	bd->bi_emifrq = 100;
+	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	bd->bi_tmu_frq  = bd->bi_uart_frq;
+	bd->bi_ssc_frq  = bd->bi_uart_frq;
 }
 
 #ifdef CONFIG_DRIVER_NETSTMAC
@@ -133,8 +138,7 @@ extern void stx7200_configure_ethernet(
 
 int soc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	stx7200_clocks();
 
@@ -448,7 +452,6 @@ static void usb_soft_jtag_reset(void)
 
 extern void stx7200_usb_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
 	const bd_t * const bd = gd->bd;
 	unsigned long reg;
 	const unsigned char power_pins[3] = {1, 3, 4};

@@ -30,16 +30,37 @@
 #include <asm/pio.h>
 
 
+#define TX_ER_FXSD		0, 4	/* PIO0[4] == TX_ER_FXSD (or MII_TXER or ISOL) */
+#define POWER_ON_ETH		2, 5	/* PIO2[5] == POWER_ON_ETH (a.k.a. ETH_RESET) */
+#define FLASH_notWP		6, 2	/* PIO6[2] == FLASH_WP# (or FLASH_notWP) */
+
+
 void flashWriteEnable(void)
 {
 	/* Enable Vpp for writing to flash */
-	/* Nothing to do */
+#if defined(CONFIG_CMD_NAND)
+	/* set FLASH_WP# = 1 */
+	STPIO_SET_PIN2(FLASH_notWP, 1);
+#endif	/* CONFIG_CMD_NAND */
 }
 
 void flashWriteDisable(void)
 {
 	/* Disable Vpp for writing to flash */
-	/* Nothing to do */
+#if defined(CONFIG_CMD_NAND)
+	/* set FLASH_WP# = 0 */
+#if 0
+	/*
+	 * NOTE: currently linux does *not* explicitly enable FLASH_WP#.
+	 * Hence, if we were to do the following in U-Boot, and then chain-
+	 * load linux, then that linux would not be able to write to the
+	 * FLASH device. So, as a temporary workaround, we do not disable
+	 * the ability to write to the FLASH when passing control to linux.
+	 * QQQ - to fix, once linux has been updated, and promulgated.
+	 */
+	STPIO_SET_PIN2(FLASH_notWP, 0);
+#endif
+#endif	/* CONFIG_CMD_NAND */
 }
 
 
@@ -49,10 +70,6 @@ do							\
 	stxh205_pioalt_select((port), (pin), (alt));	\
 	stxh205_pioalt_pad((port), (pin), (dir));	\
 } while(0)
-
-
-#define TX_ER_FXSD		0, 4	/* PIO0[4] == TX_ER_FXSD (or MII_TXER or ISOL) */
-#define POWER_ON_ETH		2, 5	/* PIO2[5] == POWER_ON_ETH (a.k.a. ETH_RESET) */
 
 
 static void configPIO(void)
@@ -85,6 +102,13 @@ static void configPIO(void)
 	 */
 	SET_PIO_PIN2(POWER_ON_ETH, STPIO_OUT);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+
+#if defined(CONFIG_CMD_NAND)
+	/*
+	 * Configure FLASH_WP# (Active-Low, FLASH Write-Protect)
+	 */
+	SET_PIO_PIN2(FLASH_notWP, STPIO_OUT);
+#endif	/* CONFIG_CMD_NAND */
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -134,10 +158,7 @@ extern int board_init(void)
 			.no_txer = 1,				/* NO TXER from MAC */
 #endif /* CONFIG_STMAC_IP101A */
 			.phy_bus = 0, });
-	/*
-	 * Now we will perform a H/W reset of the PHY.
-	 * For some PHYs (e.g. IC+ IP101G), we apparently need to do this *after* configuring the MAC.
-	 */
+	/* Hard Reset the PHY -- do after we have configured the MAC */
 	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
@@ -153,6 +174,8 @@ int checkboard (void)
 	printf ("\n\nBoard: "
 #if defined(CONFIG_ST40_B2057)			/* B2057 ? */
 		"STiH207-HDK (B2057)"
+#elif defined(CONFIG_ST40_B2064)		/* B2064 ? */
+		"STiH239-HDK (B2064)"
 #elif defined(CONFIG_ST40_B2067)		/* B2067 ? */
 		"STiH238-HDK (B2067)"
 #else

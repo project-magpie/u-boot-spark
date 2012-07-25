@@ -199,14 +199,13 @@ extern int board_init(void)
 	configPIO();
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-	/* Reset the PHY */
-	stmac_phy_reset();
-
 	/*
 	 * The following works, with the jumpers connected as:
 	 *	J38:2-3, J39-A:remove, J39-B:2-3
 	 */
 	stx5206_configure_ethernet(stx5206_ethernet_rmii, 0, 0);
+	/* Hard Reset the PHY -- do after we have configured the MAC */
+	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 	return 0;

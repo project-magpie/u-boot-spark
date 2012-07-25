@@ -1,27 +1,27 @@
 /*
-This file was automatically generated on Tue 03 Jul 12 at 17:56:25 by user mcgoogan, host hoiho using romgen R2011.2.1 with the ST TargetPack b2067stxh205
+This file was automatically generated on Tue 03 Jul 12 at 14:41:31 by user mcgoogan, host hoiho using romgen R2011.2.1 with the ST TargetPack b2064stxh205
 
 TargetPack files used:
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/b2067.py
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/b2067stxh205.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/b2067stxh205_design.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/clk_common2.pyc
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/ddr3mixer_regs.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/ddr3pctl_regs.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/ddr3phy_regs.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/l2_cache_regs.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205.pyc
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_clockgena_regs.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_ddrdbg.pyc
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_design.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_interco_init.pyc
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_spi_regs.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_sysconf_0_regs.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_sysconf_1_regs.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_sysconf_2_regs.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/stxh205_sysconf_3_regs.xml
-/home/mcgoogan/targetpacks/b2067-targetpack-v09/tm1668_fp2.pyc
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/b2064.py
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/b2064stxh205.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/b2064stxh205_design.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/clk_common2.pyc
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/ddr3mixer_regs.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/ddr3pctl_regs.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/ddr3phy_regs.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/l2_cache_regs.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205.pyc
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205_clockgena_regs.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205_ddrdbg.pyc
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205_design.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205_interco_init.pyc
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205_spi_regs.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205_sysconf_0_regs.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205_sysconf_1_regs.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205_sysconf_2_regs.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/stxh205_sysconf_3_regs.xml
+/home/mcgoogan/targetpacks/b2064_targetpack_v08/tm1668_fp2.pyc
 /opt/STM/STLinux-2.4/host/stmc/targetpack/cores/core_utils.py
 /opt/STM/STLinux-2.4/host/stmc/targetpack/cores/jtag_core.xml
 /opt/STM/STLinux-2.4/host/stmc/targetpack/cores/st231.py
@@ -206,7 +206,7 @@ stxh205_clockgena_regs.CLOCKGENA_POWER_CFG
 UPDATE32(0xfdab8018, 0xfffffffd, 0x00000000)
 WHILE_NE32(0xfdab8010, 0x80000000, 0x80000000)
 UPDATE32(0xfdab8014, 0xfffff7ff, 0x00000000)
-POKE32(0xfdab8980, 0x00000005)
+POKE32(0xfdab8900, 0x00000002)
 POKE32(0xfdab8984, 0x00000003)
 POKE32(0xfdab8988, 0x00000003)
 POKE32(0xfdab890c, 0x00000002)
@@ -226,7 +226,7 @@ POKE32(0xfdab8b48, 0x00000003)
 /*
 stxh205_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-POKE32(0xfdab801c, 0xa220266a)
+POKE32(0xfdab801c, 0xa2202669)
 
 
 /*
@@ -1372,25 +1372,25 @@ OR32(0xfd5410f0, 0x00000002)
 /*
 ddr3mixer_regs.DDR3MIXER_DDR_BASE_ADDR
 */
-POKE32(0xfde52030, 0x00500040)
+POKE32(0xfde52030, 0x00600040)
 
 
 /*
 ddr3mixer_regs.DDR3MIXER_DDR_PARAMETER
 */
-POKE32(0xfde52038, 0x33325125)
+POKE32(0xfde52038, 0x33325129)
 
 
 /*
 ddr3mixer_regs.DDR3MIXER_GEN_PURPOSE_REG0
 */
-POKE32(0xfde521c0, 0x104020c9)
+POKE32(0xfde521c0, 0x104020ca)
 
 
 /*
 ddr3mixer_regs.DDR3MIXER_RES_UNIT_MEM_RESOURCE
 */
-POKE32(0xfde520b8, 0x01000040)
+POKE32(0xfde520b8, 0x02000080)
 
 
 /*
@@ -1493,7 +1493,7 @@ WHILE_NE32(0xfde50484, 0x00010000, 0x00010000)
 /*
 ddr3phy_regs.DDR3PHY_ZQnCR
 */
-POKE32(0xfde505a0, 0x436295ef)
+POKE32(0xfde505a0, 0x43b295ef)
 
 
 /*
@@ -1553,7 +1553,7 @@ UPDATE32(0xfde5042c, 0xfffc0000, 0x00000000)
 /*
 ddr3phy_regs.DDR3PHY_ACBDLR
 */
-OR32(0xfde5042c, 0x00000000)
+OR32(0xfde5042c, 0x00014514)
 
 
 /*
@@ -1583,13 +1583,7 @@ POKE32(0xfde50080, 0x000a0061)
 /*
 ddr3pctl_regs.DDR3PCTL_PPCFG
 */
-POKE32(0xfde50084, 0x000001f1)
-
-
-/*
-ddr3phy_regs.DDR3PHY_PUB_PPMCFG
-*/
-POKE32(0xfde504a8, 0x0000000c)
+POKE32(0xfde50084, 0x00000000)
 
 
 /*
@@ -1941,6 +1935,18 @@ UPDATE32(0xfde50610, 0x0fffffff, 0x07000000)
 
 
 /*
+ddr3phy_regs.DDR3PHY_DX2BDLR1
+*/
+UPDATE32(0xfde50650, 0x0fffffff, 0x07000000)
+
+
+/*
+ddr3phy_regs.DDR3PHY_DX3BDLR1
+*/
+UPDATE32(0xfde50690, 0x0fffffff, 0x07000000)
+
+
+/*
 ddr3phy_regs.DDR3PHY_PIR
 */
 UPDATE32(0xfde50404, 0xefffffff, 0x00000000)
@@ -1953,21 +1959,9 @@ OR32(0xfde5031c, 0x00000004)
 
 
 /*
-ddr3phy_regs.DDR3PHY_DX2GCR
-*/
-UPDATE32(0xfde50640, 0xfffffffe, 0x00000000)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3GCR
-*/
-UPDATE32(0xfde50680, 0xfffffffe, 0x00000000)
-
-
-/*
 ddr3phy_regs.DDR3PHY_PGCR0
 */
-UPDATE32(0xfde50408, 0x0fffffff, 0x00000000)
+UPDATE32(0xfde50408, 0x3fffffff, 0x00000000)
 
 
 /*

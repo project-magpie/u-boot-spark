@@ -37,15 +37,15 @@
 
 typedef struct global_data
 {
-	bd_t *bd;
-	unsigned long flags;
-	unsigned long baudrate;
-	unsigned long have_console;	/* serial_init() was called */
-	phys_size_t   ram_size;	/* RAM size */
-	unsigned long reloc_off;	/* Relocation Offset */
-	unsigned long env_addr;	/* Address  of Environment struct */
-	unsigned long env_valid;	/* Checksum of Environment valid? */
-	void **jt;		/* jump table */
+	bd_t		*bd;
+	unsigned long	flags;
+	unsigned long	baudrate;
+	unsigned long	have_console;	/* serial_init() was called */
+	phys_size_t	ram_size;	/* RAM size */
+	unsigned long	reloc_off;	/* Relocation Offset */
+	unsigned long	env_addr;	/* Address  of Environment struct */
+	unsigned long	env_valid;	/* Checksum of Environment valid? */
+	void		**jt;		/* jump table */
 } gd_t;
 
 /*
@@ -60,8 +60,14 @@ typedef struct global_data
 #define	GD_FLG_LOGINIT	0x00020	/* Log Buffer has been initialized	*/
 #define GD_FLG_DISABLE_CONSOLE	0x00040		/* Disable console (in & out)	 */
 
-register volatile gd_t *gd asm ("r13");	/* declare this in all files     */
 
-#define DECLARE_GLOBAL_DATA_PTR
+#if 0
+	/* use at file-scope, but only when "gd" is referenced */
+#	define DECLARE_GLOBAL_DATA_PTR		register gd_t *gd asm ("r13")
+#else
+	/* use globally in *all* source files */
+#	define DECLARE_GLOBAL_DATA_PTR	/* nothing */
+	/* volatile */ register gd_t *gd asm ("r13");
+#endif
 
 #endif /* __ASM_ST40_GLOBAL_DATA_H */

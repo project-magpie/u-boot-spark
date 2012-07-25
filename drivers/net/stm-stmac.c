@@ -698,7 +698,8 @@ static int stmac_get_mac_addr (unsigned char *addr)
 	hi_addr = (unsigned int) STMAC_READ (MAC_ADDR_HIGH);
 	lo_addr = (unsigned int) STMAC_READ (MAC_ADDR_LOW);
 
-	if ((hi_addr == 0x0000FFFFUL) && (lo_addr == 0xFFFFFFFF))
+	/* only if all 48 bits are '1', then it is an invalid MAC address */
+	if (((hi_addr & 0x0000FFFFU) == 0x0000FFFFU) && (lo_addr == 0xFFFFFFFFU))
 		return 0;
 
 	/* Extract the MAC address from the high and low words */

@@ -813,8 +813,6 @@ static int spi_probe_serial_flash(
  */
 extern void spi_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
 	/* initialize the H/W FSM SPI Controller. */
 	fsm_init();
@@ -825,7 +823,7 @@ extern void spi_init(void)
 	unsigned long reg;
 	const unsigned long bits_per_word = 8;	/* one word == 8-bits */
 	const unsigned long mode = CONFIG_SYS_STM_SPI_MODE /* | SPI_LOOP */;
-	const unsigned long fcomms = get_peripheral_clk_rate();
+	const unsigned long fcomms = stm_get_ssc_clk_rate();
 	const unsigned long hz = CONFIG_SYS_STM_SPI_FREQUENCY;
 	      unsigned long sscbrg = fcomms/(2*hz);
 

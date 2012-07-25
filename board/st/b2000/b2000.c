@@ -179,7 +179,7 @@ extern int board_init(void)
 #else
 #error Unknown base address for the STM GMAC
 #endif
-	/* Reset the PHY -- do *after* we have a clock routed to it! */
+	/* Hard Reset the PHY -- do after we have configured the MAC */
 	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 

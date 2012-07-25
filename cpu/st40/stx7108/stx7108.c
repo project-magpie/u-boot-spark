@@ -37,6 +37,10 @@
 #include <ata.h>
 #include <spi.h>
 
+
+DECLARE_GLOBAL_DATA_PTR;
+
+
 #undef  BUG_ON
 #define BUG_ON(condition) do { if ((condition)!=0) BUG(); } while(0)
 
@@ -58,16 +62,17 @@
 
 static void stx7108_clocks(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	/*
-	 * FIXME
-	 * Gross hack to get the serial port working.
-	 * See the defintion of PCLK in drivers/stm-asc.c
-	 * for where this is used.
+	 * Ideally, we should probe to determine all the clock frequencies.
+	 * However, for simplicity, we will simply hard-wire the values
+	 * that U-Boot will use for computing the clock dividers later.
+	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	bd->bi_emifrq = 100;
+	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	bd->bi_tmu_frq  = bd->bi_uart_frq;
+	bd->bi_ssc_frq  = bd->bi_uart_frq;
 }
 
 
@@ -673,7 +678,6 @@ extern int stmac_default_pbl(void)
 #define GMAC_AHB_CONFIG		0x7000
 static void stx7108_ethernet_bus_setup(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
 	const bd_t * const bd = gd->bd;
 
 	/* Configure the bridge to generate more efficient STBus traffic.
@@ -834,8 +838,7 @@ extern void stx7108_configure_ethernet(
 
 extern int soc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	stx7108_clocks();
 

@@ -116,8 +116,6 @@ extern int board_init(void)
 #endif		/* QQQ - DELETE */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-	/* Reset the PHY */
-	stmac_phy_reset();
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0, via MoCA Module */
 #error U-Boot does not support MoCA!
 	stx7108_configure_ethernet(0, &(struct stx7108_ethernet_config) {
@@ -132,6 +130,8 @@ extern int board_init(void)
 #else
 #error Unknown base address for the STM GMAC
 #endif
+	/* Hard Reset the PHY -- do after we have configured the MAC */
+	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 #if defined(CONFIG_CMD_I2C)

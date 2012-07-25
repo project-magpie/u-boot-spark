@@ -35,6 +35,9 @@
 #include <spi.h>
 
 
+DECLARE_GLOBAL_DATA_PTR;
+
+
 #define ARRAY_SIZE(x)		(sizeof(x) / sizeof((x)[0]))
 
 
@@ -53,16 +56,17 @@
 
 static void fli7510_clocks(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	/*
-	 * FIXME
-	 * Gross hack to get the serial port working.
-	 * See the defintion of PCLK in drivers/stm-asc.c
-	 * for where this is used.
+	 * Ideally, we should probe to determine all the clock frequencies.
+	 * However, for simplicity, we will simply hard-wire the values
+	 * that U-Boot will use for computing the clock dividers later.
+	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	bd->bi_emifrq = 100;	/* comms_clk = 100 MHz */
+	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	bd->bi_tmu_frq  = bd->bi_uart_frq;
+	bd->bi_ssc_frq  = bd->bi_uart_frq;
 }
 
 
@@ -379,8 +383,7 @@ extern void spi_cs_deactivate(struct spi_slave * const slave)
 
 extern int soc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	bd_t *bd = gd->bd;
+	bd_t * const bd = gd->bd;
 
 	fli7510_clocks();
 

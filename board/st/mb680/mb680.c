@@ -187,8 +187,8 @@ extern int board_init(void)
 {
 	configPIO();
 
-	/* Reset the PHY */
 #ifdef CONFIG_STMAC_LAN8700
+	/* Hard Reset the PHY -- do after we have configured the MAC */
 	stmac_phy_reset();
 #endif	/* CONFIG_STMAC_LAN8700 */
 
