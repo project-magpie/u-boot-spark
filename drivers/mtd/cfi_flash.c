@@ -11,6 +11,9 @@
  * Copyright (C) 2006
  * Tolunay Orkun <listmember@orkun.us>
  *
+ * Copyright (C) 2012 STMicroelectronics,
+ * Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -1401,6 +1404,26 @@ int flash_real_protect (flash_info_t * info, long sector, int prot)
 			break;
 		case CFI_CMDSET_AMD_EXTENDED:
 		case CFI_CMDSET_AMD_STANDARD:
+			if (
+				(info->manufacturer_id == 0x01)			&&
+				(	/* Spansion S29GLxxxP devices */
+					(info->device_id2 == 0x2801) ||
+					(info->device_id2 == 0x2301) ||
+					(info->device_id2 == 0x2201) ||
+					(info->device_id2 == 0x2101)    )
+			   )
+			{
+				/* DYB Command Set Entry */
+				flash_unlock_seq(info, 0);
+				flash_write_cmd(info, 0, info->addr_unlock1, 0xE0);
+				/* DYB Set/Clear (Protected=0x00, UN-protected=0x01) */
+				flash_write_cmd(info, 0, 0, 0xA0);
+				flash_write_cmd(info, sector, 0, (prot)?0x00:0x01);
+				/* DYB Command Set Exit */
+				flash_write_cmd(info, 0, 0, 0x90);
+				flash_write_cmd(info, 0, 0, 0x00);
+			}
+			else
 			/* U-Boot only checks the first byte */
 			if (info->manufacturer_id == (uchar)ATM_MANUFACT) {
 				if (prot) {
