@@ -47,6 +47,7 @@
  *	J5-2	 ON	 ON	off		MODE[17]
  *	J5-1	 ON	off	 ON		MODE[16]
  *	J8-2	 ON	off	xxx		MODE[14]
+ *	J8-1	xxx	xxx	off		MODE[13]
  *
  *	For boot-from-NOR:      J3 to front; J2 to back.
  *	For boot-from-NAND/SPI: J3 to back;  J2 to front.
