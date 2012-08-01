@@ -129,7 +129,7 @@
 #define XSTR(s) STR(s)
 #define STR(s) #s
 
-#define BOARD hdkh225
+#define BOARD b2042
 
 #if CFG_MONITOR_LEN == 0x00020000		/* 128 KiB */
 #	define MONITOR_SECTORS	"1:0"		/* 1 sector */
@@ -276,7 +276,7 @@
 #define CFG_HUSH_PARSER		1
 #define CONFIG_AUTO_COMPLETE	1
 #define CFG_LONGHELP		1		/* undef to save memory		*/
-#define CFG_PROMPT		"HDKH225> "	/* Monitor Command Prompt	*/
+#define CFG_PROMPT		"B2042> "	/* Monitor Command Prompt	*/
 #define CFG_PROMPT_HUSH_PS2	"> "
 #define CFG_CBSIZE		1024
 #define CFG_PBSIZE (CFG_CBSIZE+sizeof(CFG_PROMPT)+16) /* Print Buffer Size	*/

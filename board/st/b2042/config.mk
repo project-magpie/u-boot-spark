@@ -22,7 +22,7 @@
 #
 
 #
-# HDKH225 board:
+# B2042 board:
 #
 #	Valid values for TEXT_BASE are:
 #

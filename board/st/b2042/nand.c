@@ -35,7 +35,7 @@
  *	nCE is handled by EMI (not s/w controllable)
  */
 #ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
-static void hdkh225_hwcontrol(struct mtd_info *mtdinfo, int cmd)
+static void b2042_hwcontrol(struct mtd_info *mtdinfo, int cmd)
 {
 	struct nand_chip* this = (struct nand_chip *)(mtdinfo->priv);
 
@@ -66,7 +66,7 @@ static void hdkh225_hwcontrol(struct mtd_info *mtdinfo, int cmd)
  * Signal is routed through the EMI NAND Controller block.
  */
 #ifndef CFG_NAND_FLEX_MODE	/* for "bit-banging" (c.f. STM "flex-mode")  */
-static int hdkh225_device_ready(struct mtd_info *mtd)
+static int b2042_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
 	return ((*ST40_EMI_NAND_RBN_STA) & (1ul<<1)) ? 1 : 0;
@@ -84,7 +84,7 @@ extern int board_nand_init(struct nand_chip * const nand)
 #if defined(CFG_NAND_FLEX_MODE)	/* for STM "flex-mode" */
 	stm_default_board_nand_init(nand, NULL, NULL);
 #else				/* for "bit-banging" */
-	stm_default_board_nand_init(nand, hdkh225_hwcontrol, hdkh225_device_ready);
+	stm_default_board_nand_init(nand, b2042_hwcontrol, b2042_device_ready);
 #endif
 
 	/*
