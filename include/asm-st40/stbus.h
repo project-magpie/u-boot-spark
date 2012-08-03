@@ -85,12 +85,26 @@
 
 
 /* QQQ move the following to somewhere more sensible */
-#define USB_FLAGS_STRAP_8BIT			(1<<0)
-#define USB_FLAGS_STRAP_16BIT			(2<<0)
-#define USB_FLAGS_STRAP_PLL			(1<<2)
-#define USB_FLAGS_OPC_MSGSIZE_CHUNKSIZE		(1<<3)
-#define USB_FLAGS_STBUS_CONFIG_THRESHOLD128	(1<<4)
-#define USB_FLAGS_STBUS_CONFIG_THRESHOLD256	(2<<4)
+#define USB_FLAGS_STRAP_8BIT                            (1<<0)
+#define USB_FLAGS_STRAP_16BIT                           (2<<0)
+
+#define USB_FLAGS_STRAP_PLL                             (1<<2)
+
+#define USB_FLAGS_OPC_MSGSIZE_CHUNKSIZE                 (1<<3)
+
+#define USB_FLAGS_STBUS_CONFIG_THRESHOLD64             (1<<4)
+#define USB_FLAGS_STBUS_CONFIG_THRESHOLD128            (2<<4)
+#define USB_FLAGS_STBUS_CONFIG_THRESHOLD256            (3<<4)
+
+#define USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_MASK      (7<<6)
+#define USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_1         (1<<6)
+#define USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_2         (2<<6)
+#define USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_8         (4<<6)
+
+#define USB_FLAGS_STBUS_CONFIG_OPCODE_MASK              (3<<8)
+#define USB_FLAGS_STBUS_CONFIG_OPCODE_LD32_ST32         (1<<8)
+#define USB_FLAGS_STBUS_CONFIG_OPCODE_LD64_ST64         (2<<8)
+
 
 
 /* function to start the USB Host Controller Wrapper */

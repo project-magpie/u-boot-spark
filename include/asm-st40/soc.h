@@ -228,6 +228,10 @@ extern void		stx7111_spi_scl(const int val);
 extern void		stx7111_spi_sda(const int val);
 extern unsigned char	stx7111_spi_read(void);
 
+extern void		stx7141_spi_scl(const int val);
+extern void		stx7141_spi_sda(const int val);
+extern unsigned char	stx7141_spi_read(void);
+
 extern void		fli7510_spi_scl(const int val);
 extern void		fli7510_spi_sda(const int val);
 extern unsigned char	fli7510_spi_read(void);
