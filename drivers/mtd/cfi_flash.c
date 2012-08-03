@@ -11,6 +11,9 @@
  * Copyright (C) 2006
  * Tolunay Orkun <listmember@orkun.us>
  *
+ * Copyright (C) 2012 STMicroelectronics,
+ * Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -1197,10 +1200,13 @@ void flash_print_info (flash_info_t * info)
 			printf ("Unknown (%d)", info->vendor);
 			break;
 	}
-	printf (" command set, Manufacturer ID: 0x%02X, Device ID: 0x%02X",
-		info->manufacturer_id, info->device_id);
-	if (info->device_id == 0x7E) {
-		printf("%04X", info->device_id2);
+	printf (" command set, Manufacturer ID: 0x%02X, Device ID: 0x",
+		info->manufacturer_id);
+	printf (info->chipwidth == FLASH_CFI_16BIT ? "%04X" : "%02X",
+		info->device_id);
+	if ((info->device_id & 0xff) == 0x7E) {
+		printf(info->chipwidth == FLASH_CFI_16BIT ? "%04X" : "%02X",
+		info->device_id2);
 	}
 	printf ("\n  Erase timeout: %ld ms, write timeout: %ld ms\n",
 		info->erase_blk_tout,
@@ -1420,6 +1426,26 @@ int flash_real_protect (flash_info_t * info, long sector, int prot)
 			break;
 		case CFI_CMDSET_AMD_EXTENDED:
 		case CFI_CMDSET_AMD_STANDARD:
+			if (
+				(info->manufacturer_id == 0x01)			&&
+				(	/* Spansion S29GLxxxP devices */
+					(info->device_id2 == 0x2801) ||
+					(info->device_id2 == 0x2301) ||
+					(info->device_id2 == 0x2201) ||
+					(info->device_id2 == 0x2101)    )
+			   )
+			{
+				/* DYB Command Set Entry */
+				flash_unlock_seq(info, 0);
+				flash_write_cmd(info, 0, info->addr_unlock1, 0xE0);
+				/* DYB Set/Clear (Protected=0x00, UN-protected=0x01) */
+				flash_write_cmd(info, 0, 0, 0xA0);
+				flash_write_cmd(info, sector, 0, (prot)?0x00:0x01);
+				/* DYB Command Set Exit */
+				flash_write_cmd(info, 0, 0, 0x90);
+				flash_write_cmd(info, 0, 0, 0x00);
+			}
+			else
 			/* U-Boot only checks the first byte */
 			if (info->manufacturer_id == (uchar)ATM_MANUFACT) {
 				if (prot) {
@@ -1538,8 +1564,9 @@ static void cmdset_intel_read_jedec_ids(flash_info_t *info)
 	udelay(1000); /* some flash are slow to respond */
 	info->manufacturer_id = flash_read_uchar (info,
 					FLASH_OFFSET_MANUFACTURER_ID);
-	info->device_id = flash_read_uchar (info,
-					FLASH_OFFSET_DEVICE_ID);
+	info->device_id = (info->chipwidth == FLASH_CFI_16BIT) ?
+			flash_read_word (info, FLASH_OFFSET_DEVICE_ID) :
+			flash_read_uchar (info, FLASH_OFFSET_DEVICE_ID);
 	flash_write_cmd(info, 0, 0, FLASH_CMD_RESET);
 }
 
@@ -1587,6 +1614,14 @@ static void cmdset_amd_read_jedec_ids(flash_info_t *info)
 	case FLASH_CFI_16BIT:
 		info->device_id = flash_read_word (info,
 						FLASH_OFFSET_DEVICE_ID);
+		if ((info->device_id & 0xff) == 0x7E) {
+			/* AMD 3-byte (expanded) device ids */
+			info->device_id2 = flash_read_uchar (info,
+						FLASH_OFFSET_DEVICE_ID2);
+			info->device_id2 <<= 8;
+			info->device_id2 |= flash_read_uchar (info,
+						FLASH_OFFSET_DEVICE_ID3);
+		}
 		break;
 	default:
 		break;
