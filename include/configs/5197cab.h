@@ -156,7 +156,6 @@
 #	define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
 #	define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
 #	define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
-#	define LITTLEENDIAN
 #endif	/* ifdef CONFIG_ST40_STM_USB */
 
 /*---------------------------------------------------------------
@@ -258,7 +257,7 @@
 #	define CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN	/* immediately after u-boot.bin */
 #else
 #	define CONFIG_ENV_IS_NOWHERE				/* ENV is stored in volatile RAM */
-#	undef CONFIG_CMD_ENV					/* no need for "saveenv" */
+#	undef  CONFIG_CMD_SAVEENV				/* no need for "saveenv" */
 #endif
 
 #endif	/* __CONFIG_H */

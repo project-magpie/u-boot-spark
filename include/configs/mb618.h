@@ -176,7 +176,6 @@
 #	define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
 #	define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
 #	define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
-#	define LITTLEENDIAN
 #endif	/* ifdef CONFIG_ST40_STM_USB */
 
 /*---------------------------------------------------------------
@@ -259,7 +258,6 @@
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CONFIG_CMD_JFFS2			/* enable JFFS2 support */
 #	define CONFIG_SYS_MAX_NAND_DEVICE	1
-#	define NAND_MAX_CHIPS			CONFIG_SYS_MAX_NAND_DEVICE
 #	define CONFIG_SYS_NAND0_BASE		CONFIG_SYS_FLASH_BASE	/* Occludes NOR flash */
 #	define CONFIG_SYS_NAND_BASE_LIST	{ CONFIG_SYS_NAND0_BASE }
 #	undef CONFIG_CMD_FLASH			/* NOR-flash specific */
@@ -288,7 +286,7 @@
 #	define CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN	/* After u-boot.bin */
 #else
 #	define CONFIG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
-#	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
+#	undef  CONFIG_CMD_SAVEENV		/* no need for "saveenv" */
 #endif	/* CONFIG_CMD_NAND */
 #define CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + CONFIG_ENV_OFFSET)
 #define CONFIG_ENV_SIZE		0x10000

@@ -237,7 +237,6 @@
 #	define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
 #	define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
 #	define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	2	/* Note: TWO root ports */
-#	define LITTLEENDIAN
 #endif	/* ifdef CONFIG_ST40_STM_USB */
 
 #if defined(CONFIG_ST40_STM_USB)
@@ -314,7 +313,6 @@
 /* NAND512W3A: 64MiB  8-bit, 4096 Blocks (16KiB+512B) of 32 Pages (512+16) */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CONFIG_SYS_MAX_NAND_DEVICE	1
-#	define NAND_MAX_CHIPS			CONFIG_SYS_MAX_NAND_DEVICE
 #	define CONFIG_SYS_NAND0_BASE		CONFIG_SYS_EMI_NAND_BASE
 #	define CONFIG_SYS_NAND_BASE_LIST	{ CONFIG_SYS_NAND0_BASE }
 #	define MTDPARTS_NAND						\
@@ -446,7 +444,7 @@
 #	define CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN	/* immediately after u-boot.bin */
 #else
 #	define CONFIG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
-#	undef CONFIG_CMD_ENV			/* no need for "saveenv" */
+#	undef  CONFIG_CMD_SAVEENV		/* no need for "saveenv" */
 #endif	/* CONFIG_CMD_NAND */
 
 /*----------------------------------------------------------------------

@@ -180,7 +180,6 @@
 #	define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
 #	define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
 #	define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
-#	define LITTLEENDIAN
 #endif	/* ifdef CONFIG_ST40_STM_USB */
 
 /*---------------------------------------------------------------
