@@ -39,12 +39,11 @@
 #define CONFIG_NUM_CPUS		2	/* Number of CPUs in the system */
 #define CONFIG_LINUX_RESET_VEC	0x100	/* Reset vector used by Linux */
 /*#define CONFIG_PHYS_64BIT	1*/	/* Place devices in 36-bit space */
+#define CONFIG_ADDR_MAP		1	/* Use addr map */
 
 #ifdef RUN_DIAG
 #define CONFIG_SYS_DIAG_ADDR	     CONFIG_SYS_FLASH_BASE
 #endif
-
-#define CONFIG_SYS_RESET_ADDRESS    0xfff00100
 
 /*
  * virtual address to be used for temporary mappings.  There
@@ -70,6 +69,7 @@
 #define CONFIG_ENV_OVERWRITE
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported and enabled */
+#define CONFIG_SYS_NUM_ADDR_MAP 8	/* Number of addr map slots = 8 dbats */
 
 #define CONFIG_ALTIVEC		1
 
@@ -186,7 +186,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_SYS_FLASH_BASE_PHYS	(CONFIG_SYS_FLASH_BASE \
 					 | CONFIG_SYS_PHYS_ADDR_HIGH)
 
-#define CONFIG_SYS_FLASH_BANKS_LIST {CONFIG_SYS_FLASH_BASE}
+#define CONFIG_SYS_FLASH_BANKS_LIST {CONFIG_SYS_FLASH_BASE_PHYS}
 
 #define CONFIG_SYS_BR0_PRELIM	(BR_PHYS_ADDR(CONFIG_SYS_FLASH_BASE_PHYS) \
 				 | 0x00001001)	/* port size 16bit */
@@ -331,14 +331,17 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
  * General PCI
  * Addresses are mapped 1-1.
  */
-#define CONFIG_SYS_PCI1_MEM_BASE	0x80000000
+
+#define CONFIG_SYS_PCI1_MEM_VIRT	0x80000000
 #ifdef CONFIG_PHYS_64BIT
+#define CONFIG_SYS_PCI1_MEM_BUS		0xc0000000
 #define CONFIG_SYS_PCI1_MEM_PHYS	0x0000000c00000000ULL
 #else
-#define CONFIG_SYS_PCI1_MEM_PHYS	CONFIG_SYS_PCI1_MEM_BASE
+#define CONFIG_SYS_PCI1_MEM_BUS		CONFIG_SYS_PCI1_MEM_VIRT
+#define CONFIG_SYS_PCI1_MEM_PHYS	CONFIG_SYS_PCI1_MEM_VIRT
 #endif
 #define CONFIG_SYS_PCI1_MEM_SIZE	0x20000000	/* 512M */
-#define CONFIG_SYS_PCI1_IO_BASE	0x00000000
+#define CONFIG_SYS_PCI1_IO_BUS	0x00000000
 #define CONFIG_SYS_PCI1_IO_VIRT	0xffc00000
 #define CONFIG_SYS_PCI1_IO_PHYS	(CONFIG_SYS_PCI1_IO_VIRT \
 				 | CONFIG_SYS_PHYS_ADDR_HIGH)
@@ -348,12 +351,23 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define KSEG1ADDR(x)		({u32 _x=le32_to_cpu(*(u32 *)(x)); (&_x);})
 #define _IO_BASE		0x00000000
 
-#define CONFIG_SYS_PCI2_MEM_BASE 	(CONFIG_SYS_PCI1_MEM_BASE \
+#ifdef CONFIG_PHYS_64BIT
+/*
+ * Use the same PCI bus address on PCI1 and PCI2 if we have PHYS_64BIT.
+ * This will increase the amount of PCI address space available for
+ * for mapping RAM.
+ */
+#define CONFIG_SYS_PCI2_MEM_BUS		CONFIG_SYS_PCI1_MEM_BUS
+#else
+#define CONFIG_SYS_PCI2_MEM_BUS		(CONFIG_SYS_PCI1_MEM_BUS \
+					 + CONFIG_SYS_PCI1_MEM_SIZE)
+#endif
+#define CONFIG_SYS_PCI2_MEM_VIRT 	(CONFIG_SYS_PCI1_MEM_VIRT \
 					 + CONFIG_SYS_PCI1_MEM_SIZE)
 #define CONFIG_SYS_PCI2_MEM_PHYS	(CONFIG_SYS_PCI1_MEM_PHYS \
 					 + CONFIG_SYS_PCI1_MEM_SIZE)
 #define CONFIG_SYS_PCI2_MEM_SIZE	0x20000000	/* 512M */
-#define CONFIG_SYS_PCI2_IO_BASE	0x00000000
+#define CONFIG_SYS_PCI2_IO_BUS	0x00000000
 #define CONFIG_SYS_PCI2_IO_VIRT (CONFIG_SYS_PCI1_IO_VIRT \
 				 + CONFIG_SYS_PCI1_IO_SIZE)
 #define CONFIG_SYS_PCI2_IO_PHYS	(CONFIG_SYS_PCI1_IO_PHYS \
@@ -501,7 +515,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_SYS_DBAT2L	(BAT_PHYS_ADDR(CONFIG_SYS_PCI1_MEM_PHYS) \
 				 | BATL_PP_RW | BATL_CACHEINHIBIT \
 				 | BATL_GUARDEDSTORAGE)
-#define CONFIG_SYS_DBAT2U	(CONFIG_SYS_PCI1_MEM_BASE | BATU_BL_1G \
+#define CONFIG_SYS_DBAT2U	(CONFIG_SYS_PCI1_MEM_VIRT | BATU_BL_1G \
 				 | BATU_VS | BATU_VP)
 #define CONFIG_SYS_IBAT2L	(BAT_PHYS_ADDR(CONFIG_SYS_PCI1_MEM_PHYS) \
 				 | BATL_PP_RW | BATL_CACHEINHIBIT)
@@ -635,7 +649,7 @@ extern unsigned long get_board_sys_clk(unsigned long dummy);
 #define CONFIG_CMD_REGINFO
 
 #if defined(CONFIG_SYS_RAMBOOT)
-    #undef CONFIG_CMD_ENV
+    #undef CONFIG_CMD_SAVEENV
 #endif
 
 #if defined(CONFIG_PCI)

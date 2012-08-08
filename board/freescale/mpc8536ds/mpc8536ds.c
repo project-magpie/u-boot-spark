@@ -37,11 +37,26 @@
 #include <fdt_support.h>
 #include <tsec.h>
 #include <netdev.h>
+#include <sata.h>
 
 #include "../common/pixis.h"
 #include "../common/sgmii_riser.h"
 
 phys_size_t fixed_sdram(void);
+
+int board_early_init_f (void)
+{
+#ifdef CONFIG_MMC
+	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
+
+	setbits_be32(&gur->pmuxcr,
+			(MPC85xx_PMUXCR_SD_DATA |
+			 MPC85xx_PMUXCR_SDHC_CD |
+			 MPC85xx_PMUXCR_SDHC_WP));
+
+#endif
+	return 0;
+}
 
 int checkboard (void)
 {
@@ -192,14 +207,14 @@ pci_init_board(void)
 
 		/* outbound memory */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCIE3_MEM_BASE,
+			       CONFIG_SYS_PCIE3_MEM_BUS,
 			       CONFIG_SYS_PCIE3_MEM_PHYS,
 			       CONFIG_SYS_PCIE3_MEM_SIZE,
 			       PCI_REGION_MEM);
 
 		/* outbound io */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCIE3_IO_BASE,
+			       CONFIG_SYS_PCIE3_IO_BUS,
 			       CONFIG_SYS_PCIE3_IO_PHYS,
 			       CONFIG_SYS_PCIE3_IO_SIZE,
 			       PCI_REGION_IO);
@@ -247,22 +262,22 @@ pci_init_board(void)
 
 		/* outbound memory */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCIE1_MEM_BASE,
+			       CONFIG_SYS_PCIE1_MEM_BUS,
 			       CONFIG_SYS_PCIE1_MEM_PHYS,
 			       CONFIG_SYS_PCIE1_MEM_SIZE,
 			       PCI_REGION_MEM);
 
 		/* outbound io */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCIE1_IO_BASE,
+			       CONFIG_SYS_PCIE1_IO_BUS,
 			       CONFIG_SYS_PCIE1_IO_PHYS,
 			       CONFIG_SYS_PCIE1_IO_SIZE,
 			       PCI_REGION_IO);
 
-#ifdef CONFIG_SYS_PCIE1_MEM_BASE2
+#ifdef CONFIG_SYS_PCIE1_MEM_BUS2
 		/* outbound memory */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCIE1_MEM_BASE2,
+			       CONFIG_SYS_PCIE1_MEM_BUS2,
 			       CONFIG_SYS_PCIE1_MEM_PHYS2,
 			       CONFIG_SYS_PCIE1_MEM_SIZE2,
 			       PCI_REGION_MEM);
@@ -310,22 +325,22 @@ pci_init_board(void)
 
 		/* outbound memory */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCIE2_MEM_BASE,
+			       CONFIG_SYS_PCIE2_MEM_BUS,
 			       CONFIG_SYS_PCIE2_MEM_PHYS,
 			       CONFIG_SYS_PCIE2_MEM_SIZE,
 			       PCI_REGION_MEM);
 
 		/* outbound io */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCIE2_IO_BASE,
+			       CONFIG_SYS_PCIE2_IO_BUS,
 			       CONFIG_SYS_PCIE2_IO_PHYS,
 			       CONFIG_SYS_PCIE2_IO_SIZE,
 			       PCI_REGION_IO);
 
-#ifdef CONFIG_SYS_PCIE2_MEM_BASE2
+#ifdef CONFIG_SYS_PCIE2_MEM_BUS2
 		/* outbound memory */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCIE2_MEM_BASE2,
+			       CONFIG_SYS_PCIE2_MEM_BUS2,
 			       CONFIG_SYS_PCIE2_MEM_PHYS2,
 			       CONFIG_SYS_PCIE2_MEM_SIZE2,
 			       PCI_REGION_MEM);
@@ -378,22 +393,22 @@ pci_init_board(void)
 
 		/* outbound memory */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCI1_MEM_BASE,
+			       CONFIG_SYS_PCI1_MEM_BUS,
 			       CONFIG_SYS_PCI1_MEM_PHYS,
 			       CONFIG_SYS_PCI1_MEM_SIZE,
 			       PCI_REGION_MEM);
 
 		/* outbound io */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCI1_IO_BASE,
+			       CONFIG_SYS_PCI1_IO_BUS,
 			       CONFIG_SYS_PCI1_IO_PHYS,
 			       CONFIG_SYS_PCI1_IO_SIZE,
 			       PCI_REGION_IO);
 
-#ifdef CONFIG_SYS_PCI1_MEM_BASE2
+#ifdef CONFIG_SYS_PCI1_MEM_BUS2
 		/* outbound memory */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCI1_MEM_BASE2,
+			       CONFIG_SYS_PCI1_MEM_BUS2,
 			       CONFIG_SYS_PCI1_MEM_PHYS2,
 			       CONFIG_SYS_PCI1_MEM_SIZE2,
 			       PCI_REGION_MEM);
@@ -433,7 +448,7 @@ int board_early_init_r(void)
 	/* invalidate existing TLB entry for flash + promjet */
 	disable_tlb(flash_esel);
 
-	set_tlb(1, flashbase, flashbase,		/* tlb, epn, rpn */
+	set_tlb(1, flashbase, CONFIG_SYS_FLASH_BASE_PHYS,	/* tlb, epn, rpn */
 		MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,	/* perms, wimge */
 		0, flash_esel, BOOKE_PAGESZ_256M, 1);	/* ts, esel, tsize, iprot */
 
@@ -582,15 +597,15 @@ get_board_ddr_clk(ulong dummy)
 }
 #endif
 
-int is_sata_supported(void)
+int sata_initialize(void)
 {
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 	uint sdrs2_io_sel =
 		(gur->pordevsr & MPC85xx_PORDEVSR_SRDS2_IO_SEL) >> 27;
 	if (sdrs2_io_sel & 0x04)
-		return 0;
+		return 1;
 
-	return 1;
+	return __sata_initialize();
 }
 
 int board_eth_init(bd_t *bis)
@@ -624,8 +639,10 @@ int board_eth_init(bd_t *bis)
 		return 0;
 	}
 
+#ifdef CONFIG_FSL_SGMII_RISER
 	if ((sdrs2_io_sel == 4) || (sdrs2_io_sel == 6))
 		fsl_sgmii_riser_init(tsec_info, num);
+#endif
 
 	tsec_eth_init(bis, tsec_info, num);
 #endif
@@ -651,6 +668,9 @@ void ft_board_setup(void *blob, bd_t *bd)
 #endif
 #ifdef CONFIG_PCIE1
 	ft_fsl_pci_setup(blob, "pci3", &pcie3_hose);
+#endif
+#ifdef CONFIG_FSL_SGMII_RISER
+	fsl_sgmii_riser_fdt_fixup(blob);
 #endif
 }
 #endif

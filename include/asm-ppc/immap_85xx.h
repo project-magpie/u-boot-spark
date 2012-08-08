@@ -58,7 +58,23 @@ typedef struct ccsr_local_ecm {
 	uint	lawbar7;	/* 0xce8 - Local Access Window 7 Base Address Register */
 	char	res19[4];
 	uint	lawar7;		/* 0xcf0 - Local Access Window 7 Attributes Register */
-	char	res20[780];	/* XXX: LAW 8, LAW9 for 8572 */
+	char	res19_8a[20];
+	uint	lawbar8;	/* 0xd08 - Local Access Window 8 Base Address Register */
+	char	res19_8b[4];
+	uint	lawar8;		/* 0xd10 - Local Access Window 8 Attributes Register */
+	char	res19_9a[20];
+	uint	lawbar9;	/* 0xd28 - Local Access Window 9 Base Address Register */
+	char	res19_9b[4];
+	uint	lawar9;		/* 0xd30 - Local Access Window 9 Attributes Register */
+	char	res19_10a[20];
+	uint	lawbar10;	/* 0xd48 - Local Access Window 10 Base Address Register */
+	char	res19_10b[4];
+	uint	lawar10;	/* 0xd50 - Local Access Window 10 Attributes Register */
+	char	res19_11a[20];
+	uint	lawbar11;	/* 0xd68 - Local Access Window 11 Base Address Register */
+	char	res19_11b[4];
+	uint	lawar11;	/* 0xd70 - Local Access Window 11 Attributes Register */
+	char	res20[652];
 	uint	eebacr;		/* 0x1000 - ECM CCB Address Configuration Register */
 	char	res21[12];
 	uint	eebpcr;		/* 0x1010 - ECM CCB Port Configuration Register */
@@ -119,7 +135,12 @@ typedef struct ccsr_ddr {
 	uint	ddr_sr_cntr;		/* 0x217C - DDR self refresh counter */
 	uint	ddr_sdram_rcw_1;	/* 0x2180 - DDR Register Control Words 1 */
 	uint	ddr_sdram_rcw_2;	/* 0x2184 - DDR Register Control Words 2 */
-	char	res8_1b[2672];
+	char	res8_1b[2456];
+	uint	ddr_dsr1;		/* 0x2B20 - DDR Debug Status Register 1	*/
+	uint	ddr_dsr2;		/* 0x2B24 - DDR Debug Status Register 2	*/
+	uint	ddr_cdr1;		/* 0x2B28 - DDR Control Driver Register 1 */
+	uint	ddr_cdr2;		/* 0x2B2C - DDR Control Driver Register 2 */
+	char	res8_1c[200];
 	uint	ip_rev1;		/* 0x2BF8 - DDR IP Block Revision 1 */
 	uint	ip_rev2;		/* 0x2BFC - DDR IP Block Revision 2 */
 	char	res8_2[512];
@@ -1593,6 +1614,9 @@ typedef struct ccsr_gur {
 	uint	gpindr;		/* 0xe0050 - General-purpose input data register */
 	char	res5[12];
 	uint	pmuxcr;		/* 0xe0060 - Alternate function signal multiplex control */
+#define MPC85xx_PMUXCR_SD_DATA		0x80000000
+#define MPC85xx_PMUXCR_SDHC_CD		0x40000000
+#define MPC85xx_PMUXCR_SDHC_WP		0x20000000
 	char	res6[12];
 	uint	devdisr;	/* 0xe0070 - Device disable control */
 #define MPC85xx_DEVDISR_PCI1		0x80000000
@@ -1643,7 +1667,7 @@ typedef struct ccsr_gur {
 	uint	lbiuiplldcr0;	/* 0xe0f1c -- LBIU PLL Debug Reg 0 */
 	uint	lbiuiplldcr1;	/* 0xe0f20 -- LBIU PLL Debug Reg 1 */
 	uint	ddrioovcr;	/* 0xe0f24 - DDR IO Override Control */
-	uint	res14;		/* 0xe0f28 */
+	uint	tsec12ioovcr;	/* 0xe0f28 - eTSEC 1/2 IO override control */
 	uint	tsec34ioovcr;	/* 0xe0f2c - eTSEC 3/4 IO override control */
 	char	res15[61648];	/* 0xe0f30 to 0xefffff */
 } ccsr_gur_t;

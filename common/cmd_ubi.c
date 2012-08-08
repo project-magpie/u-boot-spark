@@ -441,7 +441,7 @@ static int do_ubi(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	int err = 0;
 
 	if (argc < 2) {
-		printf("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -459,7 +459,7 @@ static int do_ubi(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		}
 
 		if (argc < 4) {
-			printf("Usage:\n%s\n", cmdtp->usage);
+			cmd_usage(cmdtp);
 			return 1;
 		}
 
@@ -600,7 +600,7 @@ static int do_ubi(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 }
 
 U_BOOT_CMD(ubi, 6, 1, do_ubi,
-	"ubi      - ubi commands\n",
+	"ubi commands",
 	"part [nand|nor|onenand] [part]"
 		" - Show or set current partition\n"
 	"ubi info [l[ayout]]"

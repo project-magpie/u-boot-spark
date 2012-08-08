@@ -34,22 +34,6 @@
 #include <asm/mach-common/bits/bootrom.h>
 #include <netdev.h>
 
-/**
- * is_valid_ether_addr - Determine if the given Ethernet address is valid
- * @addr: Pointer to a six-byte array containing the Ethernet address
- *
- * Check that the Ethernet address (MAC) is not 00:00:00:00:00:00, is not
- * a multicast address, and is not FF:FF:FF:FF:FF:FF.
- *
- * Return true if the address is valid.
- */
-static inline int is_valid_ether_addr(const u8 * addr)
-{
-	/* FF:FF:FF:FF:FF:FF is a multicast address so we don't need to
-	 * explicitly check for it here. */
-	return !is_multicast_ether_addr(addr) && !is_zero_ether_addr(addr);
-}
-
 DECLARE_GLOBAL_DATA_PTR;
 
 #define POST_WORD_ADDR 0xFF903FFC
@@ -100,21 +84,9 @@ void cf_outsw(unsigned short *addr, unsigned short *sect_buf, int words)
 
 phys_size_t initdram(int board_type)
 {
-#ifdef DEBUG
-	int brate;
-	char *tmp = getenv("baudrate");
-	brate = simple_strtoul(tmp, NULL, 16);
-	printf("Serial Port initialized with Baud rate = %x\n", brate);
-	printf("SDRAM attributes:\n");
-	printf("tRCD %d SCLK Cycles,tRP %d SCLK Cycles,tRAS %d SCLK Cycles"
-	       "tWR %d SCLK Cycles,CAS Latency %d SCLK cycles \n",
-	       3, 3, 6, 2, 3);
-	printf("SDRAM Begin: 0x%x\n", CONFIG_SYS_SDRAM_BASE);
-	printf("Bank size = %d MB\n", CONFIG_SYS_MAX_RAM_SIZE >> 20);
-#endif
 	gd->bd->bi_memstart = CONFIG_SYS_SDRAM_BASE;
 	gd->bd->bi_memsize = CONFIG_SYS_MAX_RAM_SIZE;
-	return CONFIG_SYS_MAX_RAM_SIZE;
+	return gd->bd->bi_memsize;
 }
 
 #if defined(CONFIG_MISC_INIT_R)

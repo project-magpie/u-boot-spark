@@ -83,7 +83,7 @@
 #define CONFIG_CMD_FLASH
 #define CONFIG_CMD_LOADB
 #define CONFIG_CMD_LOADS
-#define CONFIG_CMD_ENV
+#define CONFIG_CMD_SAVEENV
 #define CONFIG_CMD_REGINFO
 #define CONFIG_CMD_IMMAP
 #define CONFIG_CMD_NET
@@ -173,6 +173,9 @@
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_SYS_CACHELINE_SHIFT	4	/* log base 2 of the above value	*/
 #endif
+#define CONFIG_SYS_DELAYED_ICACHE	1	/* enable ICache not before
+						 * running in RAM.
+						 */
 
 /*-----------------------------------------------------------------------
  * SYPCR - System Protection Control				11-9

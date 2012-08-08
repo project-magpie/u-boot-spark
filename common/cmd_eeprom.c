@@ -128,7 +128,7 @@ int do_eeprom ( cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		}
 	}
 
-	printf ("Usage:\n%s\n", cmdtp->usage);
+	cmd_usage(cmdtp);
 	return 1;
 }
 #endif
@@ -449,7 +449,7 @@ void eeprom_init  (void)
 #ifdef CONFIG_SYS_I2C_MULTI_EEPROMS
 U_BOOT_CMD(
 	eeprom,	6,	1,	do_eeprom,
-	"eeprom  - EEPROM sub-system\n",
+	"EEPROM sub-system",
 	"read  devaddr addr off cnt\n"
 	"eeprom write devaddr addr off cnt\n"
 	"       - read/write `cnt' bytes from `devaddr` EEPROM at offset `off'\n"
@@ -457,7 +457,7 @@ U_BOOT_CMD(
 #else /* One EEPROM */
 U_BOOT_CMD(
 	eeprom,	5,	1,	do_eeprom,
-	"eeprom  - EEPROM sub-system\n",
+	"EEPROM sub-system",
 	"read  addr off cnt\n"
 	"eeprom write addr off cnt\n"
 	"       - read/write `cnt' bytes at EEPROM offset `off'\n"

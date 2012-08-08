@@ -120,7 +120,7 @@ int do_bmp(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	        y = simple_strtoul(argv[4], NULL, 10);
 	        break;
 	default:
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -132,14 +132,14 @@ int do_bmp(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	} else if (strncmp(argv[1],"display",1) == 0) {
 	    return (bmp_display(addr, x, y));
 	} else {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 }
 
 U_BOOT_CMD(
 	bmp,	5,	1,	do_bmp,
-	"bmp     - manipulate BMP image data\n",
+	"manipulate BMP image data",
 	"info <imageAddr>          - display image info\n"
 	"bmp display <imageAddr> [x y] - display image at x,y\n"
 );

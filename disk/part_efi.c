@@ -36,12 +36,12 @@
 #include <malloc.h>
 #include "part_efi.h"
 
-#if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_SATA) || \
-     defined(CONFIG_CMD_SCSI) || \
-     defined(CONFIG_CMD_USB) || \
-     defined(CONFIG_MMC) || \
-     defined(CONFIG_SYSTEMACE) ) && defined(CONFIG_EFI_PARTITION)
+#if defined(CONFIG_CMD_IDE) || \
+    defined(CONFIG_CMD_SATA) || \
+    defined(CONFIG_CMD_SCSI) || \
+    defined(CONFIG_CMD_USB) || \
+    defined(CONFIG_MMC) || \
+    defined(CONFIG_SYSTEMACE)
 
 /* Convert char[2] in little endian format to the host format integer
  */
@@ -163,7 +163,9 @@ int get_partition_info_efi(block_dev_desc_t * dev_desc, int part,
 
 	/* The ulong casting limits the maximum disk size to 2 TB */
 	info->start = (ulong) le64_to_int((*pgpt_pte)[part - 1].starting_lba);
-	info->size = (ulong) le64_to_int((*pgpt_pte)[part - 1].ending_lba) - info->start;
+	/* The ending LBA is inclusive, to calculate size, add 1 to it */
+	info->size = ((ulong)le64_to_int((*pgpt_pte)[part - 1].ending_lba) + 1)
+		     - info->start;
 	info->blksz = GPT_BLOCK_SIZE;
 
 	sprintf((char *)info->name, "%s%d\n", GPT_ENTRY_NAME, part);

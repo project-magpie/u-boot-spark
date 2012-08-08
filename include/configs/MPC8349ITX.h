@@ -78,6 +78,7 @@
 #ifdef CONFIG_MPC8349ITX
 #define CONFIG_COMPACT_FLASH	/* The CF card interface on the back of the board */
 #define CONFIG_VSC7385_ENET	/* VSC7385 ethernet support */
+#define CONFIG_SATA_SIL3114	/* SIL3114 SATA controller */
 #endif
 
 #define CONFIG_PCI
@@ -98,6 +99,7 @@
 #define CONFIG_SYS_I2C_OFFSET		0x3000
 #define CONFIG_SYS_I2C2_OFFSET		0x3100
 #define CONFIG_SYS_SPD_BUS_NUM		1	/* The I2C bus for SPD */
+#define CONFIG_SYS_RTC_BUS_NUM		1	/* The I2C bus for RTC */
 
 #define CONFIG_SYS_I2C_8574_ADDR1	0x20	/* I2C1, PCF8574 */
 #define CONFIG_SYS_I2C_8574_ADDR2	0x21	/* I2C1, PCF8574 */
@@ -141,7 +143,16 @@
 
 #define ATA_RESET_TIME	1	/* If a CF card is not inserted, time out quickly */
 
-#define CONFIG_DOS_PARTITION
+#endif
+
+/*
+ * SATA
+ */
+#ifdef CONFIG_SATA_SIL3114
+
+#define CONFIG_SYS_SATA_MAX_DEVICE      4
+#define CONFIG_LIBATA
+#define CONFIG_LBA48
 
 #endif
 
@@ -157,6 +168,9 @@
 
 #define CONFIG_SYS_DDR_SDRAM_CLK_CNTL	(DDR_SDRAM_CLK_CNTL_SS_EN | \
 				DDR_SDRAM_CLK_CNTL_CLK_ADJUST_075)
+
+#define CONFIG_VERY_BIG_RAM
+#define CONFIG_MAX_MEM_MAPPED   ((phys_size_t)256 << 20)
 
 #ifdef CONFIG_HARD_I2C
 #define CONFIG_SPD_EEPROM		/* use SPD EEPROM for DDR setup*/
@@ -447,11 +461,21 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_PING
+#define CONFIG_CMD_DHCP
 #define CONFIG_CMD_SDRAM
+
+#if defined(CONFIG_COMPACT_FLASH) || defined(CONFIG_SATA_SIL3114)
+    #define CONFIG_DOS_PARTITION
+    #define CONFIG_CMD_FAT
+#endif
 
 #ifdef CONFIG_COMPACT_FLASH
     #define CONFIG_CMD_IDE
-    #define CONFIG_CMD_FAT
+#endif
+
+#ifdef CONFIG_SATA_SIL3114
+    #define CONFIG_CMD_SATA
+    #define CONFIG_CMD_EXT2
 #endif
 
 #ifdef CONFIG_PCI

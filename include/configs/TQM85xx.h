@@ -41,14 +41,21 @@
 #define CONFIG_E500		1	/* BOOKE e500 family		*/
 #define CONFIG_MPC85xx		1	/* MPC8540/60/55/41		*/
 
+#if defined(CONFIG_TQM8548_AG) || defined(CONFIG_TQM8548_BE)
+#define CONFIG_TQM8548
+#endif
+
 #define CONFIG_PCI
+#ifndef CONFIG_TQM8548_AG
+#define CONFIG_PCI1			/* PCI/PCI-X controller		*/
+#endif
+#ifdef CONFIG_TQM8548
+#define CONFIG_PCIE1			/* PCI Express interface	*/
+#endif
+
 #define CONFIG_FSL_PCI_INIT	1	/* Use common FSL init code	*/
 #define CONFIG_PCIX_CHECK		/* PCIX olny works at 66 MHz	*/
-#ifdef CONFIG_TQM8548
-#define CONFIG_PCI1
-#define CONFIG_PCIE1
 #define CONFIG_FSL_PCIE_RESET	1	/* need PCIe reset errata	*/
-#endif
 
 #define CONFIG_TSEC_ENET		/* tsec ethernet support	*/
 
@@ -70,7 +77,9 @@
  * Warning: NAND support will likely increase the U-Boot image size
  * to more than 256 KB. Please adjust TEXT_BASE if necessary.
  */
-#undef CONFIG_NAND
+#ifdef CONFIG_TQM8548_BE
+#define CONFIG_NAND
+#endif
 
 /*
  * MPC8540 and MPC8548 don't have CPM module
@@ -81,7 +90,9 @@
 
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code	*/
 
-#undef	CONFIG_CAN_DRIVER		/* CAN Driver support		*/
+#if defined(CONFIG_TQM8548_AG) || defined(CONFIG_TQM8548_BE)
+#define	CONFIG_CAN_DRIVER		/* CAN Driver support		*/
+#endif
 
 /*
  * sysclk for MPC85xx
@@ -135,6 +146,9 @@
  */
 #define CONFIG_SYS_DDR_SDRAM_BASE	0x00000000	/* DDR is system memory	*/
 #define CONFIG_SYS_SDRAM_BASE		CONFIG_SYS_DDR_SDRAM_BASE
+#ifdef CONFIG_TQM8548_AG
+#define CONFIG_VERY_BIG_RAM
+#endif
 
 #define CONFIG_NUM_DDR_CONTROLLERS	1
 #define CONFIG_DIMM_SLOTS_PER_CTLR	1
@@ -363,7 +377,6 @@
 #define CONFIG_SYS_NAND3_BASE		(CONFIG_SYS_NAND2_BASE + CONFIG_SYS_NAND_CS_DIST)
 
 #define CONFIG_SYS_MAX_NAND_DEVICE     2	/* Max number of NAND devices	*/
-#define NAND_MAX_CHIPS		1
 
 #if (CONFIG_SYS_MAX_NAND_DEVICE == 1)
 #define CONFIG_SYS_NAND_BASE_LIST { CONFIG_SYS_NAND0_BASE }
@@ -605,7 +618,9 @@
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_NFS
 #define CONFIG_CMD_SNTP
+#ifndef CONFIG_TQM8548_AG
 #define CONFIG_CMD_DATE
+#endif
 #define CONFIG_CMD_EEPROM
 #define CONFIG_CMD_DTT
 #define CONFIG_CMD_MII

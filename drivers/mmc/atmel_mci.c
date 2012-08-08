@@ -463,7 +463,7 @@ static void mci_set_data_timeout(struct mmc_csd *csd)
 	       dtocyc << shift, dtor);
 }
 
-int mmc_init(int verbose)
+int mmc_legacy_init(int verbose)
 {
 	struct mmc_cid cid;
 	struct mmc_csd csd;
@@ -529,20 +529,5 @@ int mmc_init(int verbose)
 	init_part(&mmc_blkdev);
 #endif
 
-	return 0;
-}
-
-int mmc_read(ulong src, uchar *dst, int size)
-{
-	return -ENOSYS;
-}
-
-int mmc_write(uchar *src, ulong dst, int size)
-{
-	return -ENOSYS;
-}
-
-int mmc2info(ulong addr)
-{
 	return 0;
 }

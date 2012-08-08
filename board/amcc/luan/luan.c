@@ -319,7 +319,7 @@ int do_l2cache( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[] )
 			l2cache_status() ? "ON" : "OFF");
 		return 0;
 	default:
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -329,7 +329,7 @@ int do_l2cache( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[] )
 
 U_BOOT_CMD(
 	l2cache,   2,   1,     do_l2cache,
-	"l2cache  - enable or disable L2 cache\n",
+	"enable or disable L2 cache",
 	"[on, off]\n"
 	"    - enable or disable L2 cache\n"
 	);

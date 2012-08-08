@@ -333,7 +333,7 @@ int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	int rcode = 0;
 
 	if (argc < 2) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -384,7 +384,7 @@ int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #endif
 
 	if (argc != 3) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -407,7 +407,7 @@ int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 
 	if (addr_first >= addr_last) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -481,7 +481,7 @@ int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #endif
 
 	if (argc < 3) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -490,7 +490,7 @@ int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	} else if (strcmp(argv[1], "on") == 0) {
 		p = 1;
 	} else {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -591,7 +591,7 @@ int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #endif
 
 	if (argc != 4) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -633,7 +633,7 @@ int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 
 	if (addr_first >= addr_last) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 	rcode = flash_sect_protect (p, addr_first, addr_last);
@@ -710,14 +710,14 @@ int flash_sect_protect (int p, ulong addr_first, ulong addr_last)
 
 U_BOOT_CMD(
 	flinfo,    2,    1,    do_flinfo,
-	"flinfo  - print FLASH memory information\n",
+	"print FLASH memory information",
 	"\n    - print information for all FLASH memory banks\n"
 	"flinfo N\n    - print information for FLASH memory bank # N\n"
 );
 
 U_BOOT_CMD(
 	erase,   3,   0,  do_flerase,
-	"erase   - erase FLASH memory\n",
+	"erase FLASH memory",
 	"start end\n"
 	"    - erase FLASH from addr 'start' to addr 'end'\n"
 	"erase start +len\n"
@@ -731,7 +731,7 @@ U_BOOT_CMD(
 
 U_BOOT_CMD(
 	protect,  4,  0,   do_protect,
-	"protect - enable or disable FLASH write protection\n",
+	"enable or disable FLASH write protection",
 	"on  start end\n"
 	"    - protect FLASH from addr 'start' to addr 'end'\n"
 	"protect on start +len\n"

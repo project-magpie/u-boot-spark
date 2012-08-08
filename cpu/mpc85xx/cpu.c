@@ -31,6 +31,7 @@
 #include <command.h>
 #include <tsec.h>
 #include <netdev.h>
+#include <fsl_esdhc.h>
 #include <asm/cache.h>
 #include <asm/io.h>
 
@@ -62,6 +63,8 @@ struct cpu_type cpu_type_list [] = {
 	CPU_TYPE_ENTRY(8568, 8568_E),
 	CPU_TYPE_ENTRY(8572, 8572),
 	CPU_TYPE_ENTRY(8572, 8572_E),
+	CPU_TYPE_ENTRY(P2020, P2020),
+	CPU_TYPE_ENTRY(P2020, P2020_E),
 };
 
 struct cpu_type *identify_cpu(u32 ver)
@@ -90,6 +93,7 @@ int checkcpu (void)
 #else
 	u32 ddr_ratio = 0;
 #endif
+	int i;
 
 	svr = get_svr();
 	ver = SVR_SOC_VER(svr);
@@ -141,9 +145,14 @@ int checkcpu (void)
 
 	get_sys_info(&sysinfo);
 
-	puts("Clock Configuration:\n");
-	printf("       CPU:%-4s MHz, ", strmhz(buf1, sysinfo.freqProcessor));
-	printf("CCB:%-4s MHz,\n", strmhz(buf1, sysinfo.freqSystemBus));
+	puts("Clock Configuration:");
+	for (i = 0; i < CONFIG_NUM_CPUS; i++) {
+		if (!(i & 3))
+			printf ("\n       ");
+		printf("CPU%d:%-4s MHz, ",
+				i,strmhz(buf1, sysinfo.freqProcessor[i]));
+	}
+	printf("\n       CCB:%-4s MHz,\n", strmhz(buf1, sysinfo.freqSystemBus));
 
 	switch (ddr_ratio) {
 	case 0x0:
@@ -387,5 +396,19 @@ int cpu_eth_init(bd_t *bis)
 #if defined(CONFIG_TSEC_ENET) || defined(CONFIG_MPC85XX_FEC)
 	tsec_standard_init(bis);
 #endif
+
 	return 0;
+}
+
+/*
+ * Initializes on-chip MMC controllers.
+ * to override, implement board_mmc_init()
+ */
+int cpu_mmc_init(bd_t *bis)
+{
+#ifdef CONFIG_FSL_ESDHC
+	return fsl_esdhc_mmc_init(bis);
+#else
+	return 0;
+#endif
 }

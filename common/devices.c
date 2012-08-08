@@ -215,6 +215,9 @@ int devices_init (void)
 	/* Initialize the list */
 	INIT_LIST_HEAD(&(devs.list));
 
+#ifdef CONFIG_ARM_DCC_MULTI
+	drv_arm_dcc_init ();
+#endif
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 	i2c_init (CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
@@ -239,6 +242,9 @@ int devices_init (void)
 #endif
 #ifdef CONFIG_NETCONSOLE
 	drv_nc_init ();
+#endif
+#ifdef CONFIG_JTAG_CONSOLE
+	drv_jtag_console_init ();
 #endif
 
 	return (0);

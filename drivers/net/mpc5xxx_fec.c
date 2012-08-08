@@ -19,9 +19,6 @@ DECLARE_GLOBAL_DATA_PTR;
 
 /* #define DEBUG	0x28 */
 
-#if defined(CONFIG_CMD_NET) && defined(CONFIG_NET_MULTI) && \
-	defined(CONFIG_MPC5xxx_FEC)
-
 #if !(defined(CONFIG_MII) || defined(CONFIG_CMD_MII))
 #error "CONFIG_MII has to be defined!"
 #endif
@@ -284,13 +281,6 @@ static int mpc5xxx_fec_init(struct eth_device *dev, bd_t * bis)
 	}
 
 	fec->eth->x_cntrl = 0x00000000;	/* half-duplex, heartbeat disabled */
-	if (fec->xcv_type != SEVENWIRE) {
-		/*
-		 * Set MII_SPEED = (1/(mii_speed * 2)) * System Clock
-		 * and do not drop the Preamble.
-		 */
-		fec->eth->mii_speed = (((gd->ipb_clk >> 20) / 5) << 1); /* No MII for 7-wire mode */
-	}
 
 	/*
 	 * Set Opcode/Pause Duration Register
@@ -643,6 +633,15 @@ static void mpc5xxx_fec_halt(struct eth_device *dev)
 	 */
 	udelay(10);
 
+	/* don't leave the MII speed set to zero */
+	if (fec->xcv_type != SEVENWIRE) {
+		/*
+		 * Set MII_SPEED = (1/(mii_speed * 2)) * System Clock
+		 * and do not drop the Preamble.
+		 */
+		fec->eth->mii_speed = (((gd->ipb_clk >> 20) / 5) << 1); /* No MII for 7-wire mode */
+	}
+
 #if (DEBUG & 0x3)
 	printf("Ethernet task stopped\n");
 #endif
@@ -891,32 +890,22 @@ int mpc5xxx_fec_initialize(bd_t * bis)
 	fec->eth = (ethernet_regs *)MPC5XXX_FEC;
 	fec->tbdBase = (FEC_TBD *)FEC_BD_BASE;
 	fec->rbdBase = (FEC_RBD *)(FEC_BD_BASE + FEC_TBD_NUM * sizeof(FEC_TBD));
-#if defined(CONFIG_CANMB)		|| \
-	defined(CONFIG_CM5200)		|| \
-	defined(CONFIG_HMI1001)		|| \
-	defined(CONFIG_ICECUBE)		|| \
-	defined(CONFIG_INKA4X0)		|| \
-	defined(CONFIG_JUPITER)		|| \
-	defined(CONFIG_MCC200)		|| \
-	defined(CONFIG_MOTIONPRO)	|| \
-	defined(CONFIG_MUCMC52)		|| \
-	defined(CONFIG_O2DNT)		|| \
-	defined(CONFIG_PM520)		|| \
-	defined(CONFIG_TOP5200)		|| \
-	defined(CONFIG_TQM5200)		|| \
-	defined(CONFIG_UC101)		|| \
-	defined(CONFIG_V38B)		|| \
-	defined(CONFIG_MUNICES)
-# ifndef CONFIG_FEC_10MBIT
+#if defined(CONFIG_MPC5xxx_FEC_MII100)
 	fec->xcv_type = MII100;
-# else
+#elif defined(CONFIG_MPC5xxx_FEC_MII10)
 	fec->xcv_type = MII10;
-# endif
-#elif defined(CONFIG_TOTAL5200)
+#elif defined(CONFIG_MPC5xxx_FEC_SEVENWIRE)
 	fec->xcv_type = SEVENWIRE;
 #else
 #error fec->xcv_type not initialized.
 #endif
+	if (fec->xcv_type != SEVENWIRE) {
+		/*
+		 * Set MII_SPEED = (1/(mii_speed * 2)) * System Clock
+		 * and do not drop the Preamble.
+		 */
+		fec->eth->mii_speed = (((gd->ipb_clk >> 20) / 5) << 1); /* No MII for 7-wire mode */
+	}
 
 	dev->priv = (void *)fec;
 	dev->iobase = MPC5XXX_FEC;
@@ -1064,5 +1053,3 @@ static uint32 local_crc32(char *string, unsigned int crc_value, int len)
 	 /**/ return crc;
 }
 #endif	/* DEBUG */
-
-#endif /* CONFIG_MPC5xxx_FEC */

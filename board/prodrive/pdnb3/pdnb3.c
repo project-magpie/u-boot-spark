@@ -216,7 +216,7 @@ int do_fpga(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	ulong addr;
 
 	if (argc < 2) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -227,7 +227,7 @@ int do_fpga(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	fpga,     2,     0,      do_fpga,
-	"fpga    - boot FPGA\n",
+	"boot FPGA",
 	"address size\n    - boot FPGA with gzipped image at <address>\n"
 );
 

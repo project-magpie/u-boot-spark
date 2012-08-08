@@ -229,7 +229,7 @@ int do_scsiboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		boot_device = argv[2];
 		break;
 	default:
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -346,7 +346,7 @@ int do_scsi (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	switch (argc) {
     case 0:
-    case 1:	printf ("Usage:\n%s\n", cmdtp->usage);	return 1;
+    case 1:	cmd_usage(cmdtp);	return 1;
     case 2:
 			if (strncmp(argv[1],"res",3) == 0) {
 				printf("\nReset SCSI\n");
@@ -392,7 +392,7 @@ int do_scsi (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 					printf("\nno SCSI devices available\n");
 				return 1;
 			}
-			printf ("Usage:\n%s\n", cmdtp->usage);
+			cmd_usage(cmdtp);
 			return 1;
 	case 3:
 			if (strncmp(argv[1],"dev",3) == 0) {
@@ -421,7 +421,7 @@ int do_scsi (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				}
 				return 1;
 			}
-			printf ("Usage:\n%s\n", cmdtp->usage);
+			cmd_usage(cmdtp);
 			return 1;
     default:
 			/* at least 4 args */
@@ -437,7 +437,7 @@ int do_scsi (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				return 0;
 			}
 	} /* switch */
-	printf ("Usage:\n%s\n", cmdtp->usage);
+	cmd_usage(cmdtp);
 	return 1;
 }
 
@@ -616,7 +616,7 @@ void scsi_setup_inquiry(ccb * pccb)
 
 U_BOOT_CMD(
 	scsi, 5, 1, do_scsi,
-	"scsi    - SCSI sub-system\n",
+	"SCSI sub-system",
 	"reset - reset SCSI controller\n"
 	"scsi info  - show available SCSI devices\n"
 	"scsi scan  - (re-)scan SCSI bus\n"
@@ -628,6 +628,6 @@ U_BOOT_CMD(
 
 U_BOOT_CMD(
 	scsiboot, 3, 1, do_scsiboot,
-	"scsiboot- boot from SCSI device\n",
+	"boot from SCSI device",
 	"loadAddr dev:part\n"
 );

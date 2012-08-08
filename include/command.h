@@ -33,6 +33,11 @@
 #define NULL	0
 #endif
 
+/* Default to a width of 8 characters for help message command width */
+#ifndef CONFIG_SYS_HELP_CMD_WIDTH
+#define CONFIG_SYS_HELP_CMD_WIDTH	8
+#endif
+
 #ifndef	__ASSEMBLY__
 /*
  * Monitor Command Table
@@ -63,6 +68,8 @@ extern cmd_tbl_t  __u_boot_cmd_end;
 /* common/command.c */
 cmd_tbl_t *find_cmd(const char *cmd);
 cmd_tbl_t *find_cmd_tbl (const char *cmd, cmd_tbl_t *table, int table_len);
+
+extern void cmd_usage(cmd_tbl_t *cmdtp);
 
 #ifdef CONFIG_AUTO_COMPLETE
 extern void install_auto_complete(void);

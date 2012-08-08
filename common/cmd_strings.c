@@ -15,7 +15,7 @@ static char *start_addr, *last_addr;
 int do_strings(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	if (argc == 1) {
-		printf("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -41,6 +41,6 @@ int do_strings(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 }
 
 U_BOOT_CMD(strings, 3, 1, do_strings,
-	"strings - display strings\n",
+	"display strings",
 	"<addr> [byte count]\n"
 	"    - display strings at <addr> for at least [byte count] or first double NUL\n");

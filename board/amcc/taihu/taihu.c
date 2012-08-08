@@ -93,7 +93,7 @@ static int do_sw_stat(cmd_tbl_t* cmd_tp, int flags, int argc, char *argv[])
 
 U_BOOT_CMD (
 	sw2_stat, 1, 1, do_sw_stat,
-	"sw2_stat - show status of switch 2\n",
+	"show status of switch 2",
 	NULL
 	);
 
@@ -102,13 +102,13 @@ static int do_led_ctl(cmd_tbl_t* cmd_tp, int flags, int argc, char *argv[])
 	int led_no;
 
 	if (argc != 3) {
-		printf("%s", cmd_tp->usage);
+		cmd_usage(cmd_tp);
 		return -1;
 	}
 
 	led_no = simple_strtoul(argv[1], NULL, 16);
 	if (led_no != 1 && led_no != 2) {
-		printf("%s", cmd_tp->usage);
+		cmd_usage(cmd_tp);
 		return -1;
 	}
 
@@ -123,7 +123,7 @@ static int do_led_ctl(cmd_tbl_t* cmd_tp, int flags, int argc, char *argv[])
 		else
 			gpio_write_bit(31, 0);
 	} else {
-		printf("%s", cmd_tp->usage);
+		cmd_usage(cmd_tp);
 		return -1;
 	}
 
@@ -132,7 +132,7 @@ static int do_led_ctl(cmd_tbl_t* cmd_tp, int flags, int argc, char *argv[])
 
 U_BOOT_CMD (
 	led_ctl, 3, 1, do_led_ctl,
-	"led_ctl	- make led 1 or 2  on or off\n",
+	"make led 1 or 2  on or off",
 	"<led_no> <on/off>	-  make led <led_no> on/off,\n"
 	"\tled_no is 1 or 2\t"
 	);
@@ -195,5 +195,6 @@ int pci_pre_init(struct pci_controller *hose)
 
 int board_eth_init(bd_t *bis)
 {
+	cpu_eth_init(bis);
 	return pci_eth_init(bis);
 }

@@ -42,8 +42,12 @@ long int fixed_sdram(void);
 
 int checkboard (void)
 {
-	printf ("Board: MPC8572DS, System ID: 0x%02x, "
-		"System Version: 0x%02x, FPGA Version: 0x%02x\n",
+	puts ("Board: MPC8572DS ");
+#ifdef CONFIG_PHYS_64BIT
+	puts ("(36-bit addrmap) ");
+#endif
+	printf ("Sys ID: 0x%02x, "
+		"Sys Ver: 0x%02x, FPGA Ver: 0x%02x\n",
 		in8(PIXIS_BASE + PIXIS_ID), in8(PIXIS_BASE + PIXIS_VER),
 		in8(PIXIS_BASE + PIXIS_PVER));
 	return 0;
@@ -185,14 +189,14 @@ void pci_init_board(void)
 
 			/* outbound memory */
 			pci_set_region(r++,
-					CONFIG_SYS_PCIE3_MEM_BASE,
+					CONFIG_SYS_PCIE3_MEM_BUS,
 					CONFIG_SYS_PCIE3_MEM_PHYS,
 					CONFIG_SYS_PCIE3_MEM_SIZE,
 					PCI_REGION_MEM);
 
 			/* outbound io */
 			pci_set_region(r++,
-					CONFIG_SYS_PCIE3_IO_BASE,
+					CONFIG_SYS_PCIE3_IO_BUS,
 					CONFIG_SYS_PCIE3_IO_PHYS,
 					CONFIG_SYS_PCIE3_IO_SIZE,
 					PCI_REGION_IO);
@@ -215,9 +219,11 @@ void pci_init_board(void)
 
 			pci_hose_read_config_dword(hose, PCI_BDF(2, 0x1d, 0 ),
 					PCI_BASE_ADDRESS_1, &temp32);
-			if (temp32 >= CONFIG_SYS_PCIE3_MEM_PHYS) {
-				debug(" uli1572 read to %x\n", temp32);
-				in_be32((unsigned *)temp32);
+			if (temp32 >= CONFIG_SYS_PCIE3_MEM_BUS) {
+				void *p = pci_mem_to_virt(PCI_BDF(2, 0x1d, 0),
+								temp32, 4, 0);
+				debug(" uli1572 read to %p\n", p);
+				in_be32(p);
 			}
 		} else {
 			printf ("    PCIE3: disabled\n");
@@ -252,14 +258,14 @@ void pci_init_board(void)
 
 			/* outbound memory */
 			pci_set_region(r++,
-					CONFIG_SYS_PCIE2_MEM_BASE,
+					CONFIG_SYS_PCIE2_MEM_BUS,
 					CONFIG_SYS_PCIE2_MEM_PHYS,
 					CONFIG_SYS_PCIE2_MEM_SIZE,
 					PCI_REGION_MEM);
 
 			/* outbound io */
 			pci_set_region(r++,
-					CONFIG_SYS_PCIE2_IO_BASE,
+					CONFIG_SYS_PCIE2_IO_BUS,
 					CONFIG_SYS_PCIE2_IO_PHYS,
 					CONFIG_SYS_PCIE2_IO_SIZE,
 					PCI_REGION_IO);
@@ -307,14 +313,14 @@ void pci_init_board(void)
 
 			/* outbound memory */
 			pci_set_region(r++,
-					CONFIG_SYS_PCIE1_MEM_BASE,
+					CONFIG_SYS_PCIE1_MEM_BUS,
 					CONFIG_SYS_PCIE1_MEM_PHYS,
 					CONFIG_SYS_PCIE1_MEM_SIZE,
 					PCI_REGION_MEM);
 
 			/* outbound io */
 			pci_set_region(r++,
-					CONFIG_SYS_PCIE1_IO_BASE,
+					CONFIG_SYS_PCIE1_IO_BUS,
 					CONFIG_SYS_PCIE1_IO_PHYS,
 					CONFIG_SYS_PCIE1_IO_SIZE,
 					PCI_REGION_IO);
@@ -358,7 +364,7 @@ int board_early_init_r(void)
 	/* invalidate existing TLB entry for flash + promjet */
 	disable_tlb(flash_esel);
 
-	set_tlb(1, flashbase, flashbase,		/* tlb, epn, rpn */
+	set_tlb(1, flashbase, CONFIG_SYS_FLASH_BASE_PHYS,	/* tlb, epn, rpn */
 			MAS3_SX|MAS3_SW|MAS3_SR, MAS2_I|MAS2_G,	/* perms, wimge */
 			0, flash_esel, BOOKE_PAGESZ_256M, 1);	/* ts, esel, tsize, iprot */
 
@@ -540,7 +546,9 @@ int board_eth_init(bd_t *bis)
 		return 0;
 	}
 
+#ifdef CONFIG_FSL_SGMII_RISER
 	fsl_sgmii_riser_init(tsec_info, num);
+#endif
 
 	tsec_eth_init(bis, tsec_info, num);
 
@@ -554,7 +562,8 @@ extern void ft_fsl_pci_setup(void *blob, const char *pci_alias,
 
 void ft_board_setup(void *blob, bd_t *bd)
 {
-	ulong base, size;
+	phys_addr_t base;
+	phys_size_t size;
 
 	ft_cpu_setup(blob, bd);
 
@@ -571,6 +580,9 @@ void ft_board_setup(void *blob, bd_t *bd)
 #endif
 #ifdef CONFIG_PCIE1
 	ft_fsl_pci_setup(blob, "pci2", &pcie1_hose);
+#endif
+#ifdef CONFIG_FSL_SGMII_RISER
+	fsl_sgmii_riser_fdt_fixup(blob);
 #endif
 }
 #endif

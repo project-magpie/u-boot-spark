@@ -322,6 +322,11 @@ The following options need to be configured:
 		that this requires a (stable) reference clock (32 kHz
 		RTC clock or CONFIG_SYS_8XX_XIN)
 
+		CONFIG_SYS_DELAYED_ICACHE
+
+		Define this option if you want to enable the
+		ICache only when Code runs from RAM.
+
 - Intel Monahans options:
 		CONFIG_SYS_MONAHANS_RUN_MODE_OSC_RATIO
 
@@ -488,6 +493,14 @@ The following options need to be configured:
 		CONFIG_SYS_BAUDRATE_TABLE, see below.
 		CONFIG_SYS_BRGCLK_PRESCALE, baudrate prescale
 
+- Console Rx buffer length
+		With CONFIG_SYS_SMC_RXBUFLEN it is possible to define
+		the maximum receive buffer length for the SMC.
+		This option is actual only for 82xx and 8xx possible.
+		If using CONFIG_SYS_SMC_RXBUFLEN also CONFIG_SYS_MAXIDLE
+		must be defined, to setup the maximum idle timeout for
+		the SMC.
+
 - Interrupt driven serial port input:
 		CONFIG_SERIAL_SOFTWARE_FIFO
 
@@ -596,11 +609,15 @@ The following options need to be configured:
 		CONFIG_CMD_DHCP		* DHCP support
 		CONFIG_CMD_DIAG		* Diagnostics
 		CONFIG_CMD_DOC		* Disk-On-Chip Support
+		CONFIG_CMD_DS4510	* ds4510 I2C gpio commands
+		CONFIG_CMD_DS4510_INFO	* ds4510 I2C info command
+		CONFIG_CMD_DS4510_MEM	* ds4510 I2C eeprom/sram commansd
+		CONFIG_CMD_DS4510_RST	* ds4510 I2C rst command
 		CONFIG_CMD_DTT		* Digital Therm and Thermostat
 		CONFIG_CMD_ECHO		  echo arguments
 		CONFIG_CMD_EEPROM	* EEPROM read/write support
 		CONFIG_CMD_ELF		* bootelf, bootvx
-		CONFIG_CMD_ENV		  saveenv
+		CONFIG_CMD_SAVEENV	  saveenv
 		CONFIG_CMD_FDC		* Floppy Disk Support
 		CONFIG_CMD_FAT		* FAT partition support
 		CONFIG_CMD_FDOS		* Dos diskette Support
@@ -1509,6 +1526,15 @@ The following options need to be configured:
 		Bus on the MPC8260. But it should be not so difficult
 		to add this option to other architectures.
 
+		CONFIG_SOFT_I2C_READ_REPEATED_START
+
+		defining this will force the i2c_read() function in
+		the soft_i2c driver to perform an I2C repeated start
+		between writing the address pointer and reading the
+		data.  If this define is omitted the default behaviour
+		of doing a stop-start sequence will be used.  Most I2C
+		devices can use either method, but some require one or
+		the other.
 
 - SPI Support:	CONFIG_SPI
 
@@ -2036,6 +2062,9 @@ Configuration Settings:
 - CONFIG_SYS_LONGHELP: Defined when you want long help messages included;
 		undefine this when you're short of memory.
 
+- CONFIG_SYS_HELP_CMD_WIDTH: Defined when you want to override the default
+		width of the commands listed in the 'help' command output.
+
 - CONFIG_SYS_PROMPT:	This is what U-Boot prints on the console to
 		prompt for user input.
 
@@ -2438,6 +2467,13 @@ use the "saveenv" command to store a valid environment.
 - CONFIG_SYS_64BIT_STRTOUL:
 		Adds simple_strtoull that returns a 64bit value
 
+- CONFIG_NS16550_MIN_FUNCTIONS:
+		Define this if you desire to only have use of the NS16550_init
+		and NS16550_putc functions for the serial driver located at
+		drivers/serial/ns16550.c.  This option is useful for saving
+		space for already greatly restricted images, including but not
+		limited to NAND_SPL configurations.
+
 Low Level (hardware related) configuration options:
 ---------------------------------------------------
 
@@ -2583,6 +2619,10 @@ Low Level (hardware related) configuration options:
   CONFIG_SYS_POCMR2_MASK_ATTRIB: (MPC826x only)
 		Overrides the default PCI memory map in cpu/mpc8260/pci.c if set.
 
+- CONFIG_PCI_DISABLE_PCIE:
+		Disable PCI-Express on systems where it is supported but not
+		required.
+
 - CONFIG_SPD_EEPROM
 		Get DDR timing information from an I2C EEPROM. Common
 		with pluggable memory modules such as SODIMMs
@@ -2594,10 +2634,6 @@ Low Level (hardware related) configuration options:
 		If SPD EEPROM is on an I2C bus other than the first
 		one, specify here. Note that the value must resolve
 		to something your driver can deal with.
-
-- CONFIG_SYS_83XX_DDR_USES_CS0
-		Only for 83xx systems. If specified, then DDR should
-		be configured using CS0 and CS1 instead of CS2 and CS3.
 
 - CONFIG_SYS_83XX_DDR_USES_CS0
 		Only for 83xx systems. If specified, then DDR should
@@ -3009,8 +3045,7 @@ Some configuration options can be set using Environment Variables:
 		  Useful on scripts which control the retry operation
 		  themselves.
 
-  npe_ucode	- see CONFIG_IXP4XX_NPE_EXT_UCOD
-		  if set load address for the NPE microcode
+  npe_ucode	- set load address for the NPE microcode
 
   tftpsrcport	- If this is set, the value is used for TFTP's
 		  UDP source port.

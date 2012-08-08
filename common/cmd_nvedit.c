@@ -75,7 +75,12 @@ DECLARE_GLOBAL_DATA_PTR;
 static const unsigned long baudrate_table[] = CONFIG_SYS_BAUDRATE_TABLE;
 #define	N_BAUDRATES (sizeof(baudrate_table) / sizeof(baudrate_table[0]))
 
+static int env_id = 1;
 
+int get_env_id (void)
+{
+	return env_id;
+}
 /************************************************************************
  * Command interface: print one or all environment variables
  */
@@ -160,6 +165,7 @@ int _do_setenv (int flag, int argc, char *argv[])
 		return 1;
 	}
 
+	env_id++;
 	/*
 	 * search if variable with this name already exists
 	 */
@@ -408,7 +414,7 @@ void forceenv (char *varname, char *varvalue)
 int do_setenv (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	if (argc < 2) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -434,13 +440,13 @@ int do_askenv ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	local_args[3] = NULL;
 
 	if (argc < 2) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 	/* Check the syntax */
 	switch (argc) {
 	case 1:
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 
 	case 2:		/* askenv envname */
@@ -546,11 +552,8 @@ int getenv_r (char *name, char *buf, unsigned len)
 	return (-1);
 }
 
-#if ((defined(CONFIG_ENV_IS_IN_NVRAM) || defined(CONFIG_ENV_IS_IN_EEPROM) \
-    || (defined(CONFIG_CMD_ENV) && defined(CONFIG_CMD_FLASH)) \
-    || (defined(CONFIG_CMD_ENV) && defined(CONFIG_CMD_NAND)) \
-    || (defined(CONFIG_CMD_ENV) && defined(CONFIG_CMD_ONENAND))) \
-    && !defined(CONFIG_ENV_IS_NOWHERE))
+#if defined(CONFIG_CMD_SAVEENV) && !defined(CONFIG_ENV_IS_NOWHERE)
+
 int do_saveenv (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	extern char * env_name_spec;
@@ -559,6 +562,12 @@ int do_saveenv (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 	return (saveenv() ? 1 : 0);
 }
+
+U_BOOT_CMD(
+	saveenv, 1, 0,	do_saveenv,
+	"save environment variables to persistent storage",
+	NULL
+);
 
 #endif
 
@@ -587,7 +596,7 @@ int envmatch (uchar *s1, int i2)
 
 U_BOOT_CMD(
 	printenv, CONFIG_SYS_MAXARGS, 1,	do_printenv,
-	"printenv- print environment variables\n",
+	"print environment variables",
 	"\n    - print values of all environment variables\n"
 	"printenv name ...\n"
 	"    - print value of environment variable 'name'\n"
@@ -595,31 +604,18 @@ U_BOOT_CMD(
 
 U_BOOT_CMD(
 	setenv, CONFIG_SYS_MAXARGS, 0,	do_setenv,
-	"setenv  - set environment variables\n",
+	"set environment variables",
 	"name value ...\n"
 	"    - set environment variable 'name' to 'value ...'\n"
 	"setenv name\n"
 	"    - delete environment variable 'name'\n"
 );
 
-#if ((defined(CONFIG_ENV_IS_IN_NVRAM) || defined(CONFIG_ENV_IS_IN_EEPROM) \
-    || (defined(CONFIG_CMD_ENV) && defined(CONFIG_CMD_FLASH)) \
-    || (defined(CONFIG_CMD_ENV) && defined(CONFIG_CMD_NAND)) \
-    || (defined(CONFIG_CMD_ENV) && defined(CONFIG_CMD_ONENAND))) \
-    && !defined(CONFIG_ENV_IS_NOWHERE))
-U_BOOT_CMD(
-	saveenv, 1, 0,	do_saveenv,
-	"saveenv - save environment variables to persistent storage\n",
-	NULL
-);
-
-#endif
-
 #if defined(CONFIG_CMD_ASKENV)
 
 U_BOOT_CMD(
 	askenv,	CONFIG_SYS_MAXARGS,	1,	do_askenv,
-	"askenv  - get environment variables from stdin\n",
+	"get environment variables from stdin",
 	"name [message] [size]\n"
 	"    - get environment variable 'name' from stdin (max 'size' chars)\n"
 	"askenv name\n"
@@ -636,7 +632,7 @@ U_BOOT_CMD(
 int do_run (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 U_BOOT_CMD(
 	run,	CONFIG_SYS_MAXARGS,	1,	do_run,
-	"run     - run commands in an environment variable\n",
+	"run commands in an environment variable",
 	"var [...]\n"
 	"    - run the commands in the environment variable(s) 'var'\n"
 );

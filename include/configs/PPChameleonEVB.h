@@ -192,7 +192,6 @@
 #define CONFIG_SYS_MEMTEST_END		0x0C00000	/* 4 ... 12 MB in DRAM	*/
 
 #undef	CONFIG_SYS_EXT_SERIAL_CLOCK		/* no external serial clock used */
-#define CONFIG_SYS_IGNORE_405_UART_ERRATA_59	/* ignore ppc405gp errata #59	*/
 #define CONFIG_SYS_BASE_BAUD		691200
 
 /* The following table includes the supported baudrates */
@@ -223,8 +222,6 @@
 #define CONFIG_SYS_NAND_BASE_LIST	{ CONFIG_SYS_NAND0_BASE, CONFIG_SYS_NAND1_BASE }
 #define NAND_BIG_DELAY_US	25
 #define CONFIG_SYS_MAX_NAND_DEVICE	2	/* Max number of NAND devices */
-
-#define NAND_MAX_CHIPS 1
 
 #define CONFIG_SYS_NAND0_CE  (0x80000000 >> 1)	 /* our CE is GPIO1 */
 #define CONFIG_SYS_NAND0_RDY (0x80000000 >> 4)	 /* our RDY is GPIO4 */

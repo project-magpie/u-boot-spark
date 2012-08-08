@@ -117,6 +117,7 @@ LIST_8xx="		\
 	KUP4X		\
 	LANTEC		\
 	lwmon		\
+	kmsupx4		\
 	MBX		\
 	MBX860T		\
 	mgsuvd		\
@@ -197,6 +198,7 @@ LIST_4xx="		\
 	EXBITGEN	\
 	fx12mm		\
 	G2000		\
+	gdppc440etx	\
 	glacier		\
 	haleakala	\
 	haleakala_nand	\
@@ -335,6 +337,7 @@ LIST_8260="		\
 #########################################################################
 
 LIST_83xx="		\
+	kmeter1		\
 	MPC8313ERDB_33	\
 	MPC8313ERDB_NAND_66	\
 	MPC8315ERDB	\
@@ -352,6 +355,7 @@ LIST_83xx="		\
 	MPC837XERDB	\
 	MVBLM7		\
 	sbc8349		\
+	SIMPC8313_LP	\
 	TQM834x		\
 "
 
@@ -372,6 +376,7 @@ LIST_85xx="		\
 	MPC8560ADS	\
 	MPC8568MDS	\
 	MPC8572DS	\
+	MPC8572DS_36BIT	\
 	PM854		\
 	PM856		\
 	sbc8540		\
@@ -383,6 +388,8 @@ LIST_85xx="		\
 	TQM8540		\
 	TQM8541		\
 	TQM8548		\
+	TQM8548_AG	\
+	TQM8548_BE	\
 	TQM8555		\
 	TQM8560		\
 	XPEDITE5200	\
@@ -498,6 +505,7 @@ LIST_ARM9="			\
 	mx1ads			\
 	mx1fs2			\
 	netstar			\
+	nmdk8815		\
 	omap1510inn		\
 	omap1610h2		\
 	omap1610inn		\
@@ -537,7 +545,19 @@ LIST_ARM11="		\
 	imx31_litekit	\
 	imx31_phycore	\
 	mx31ads		\
+	qong		\
 	smdk6400	\
+"
+
+#########################################################################
+## ARM Cortex-A8 Systems
+#########################################################################
+LIST_ARM_CORTEX_A8="		\
+	omap3_beagle		\
+	omap3_overo		\
+	omap3_evm		\
+	omap3_pandora		\
+	omap3_zoom1		\
 "
 
 #########################################################################
@@ -594,15 +614,16 @@ LIST_ixp="		\
 ## ARM groups
 #########################################################################
 
-LIST_arm="		\
-	${LIST_SA}	\
-	${LIST_ARM7}	\
-	${LIST_ARM9}	\
-	${LIST_ARM10}	\
-	${LIST_ARM11}	\
-	${LIST_at91}	\
-	${LIST_pxa}	\
-	${LIST_ixp}	\
+LIST_arm="			\
+	${LIST_SA}		\
+	${LIST_ARM7}		\
+	${LIST_ARM9}		\
+	${LIST_ARM10}		\
+	${LIST_ARM11}		\
+	${LIST_ARM_CORTEX_A8}	\
+	${LIST_at91}		\
+	${LIST_pxa}		\
+	${LIST_ixp}		\
 "
 
 #########################################################################
@@ -612,6 +633,18 @@ LIST_arm="		\
 LIST_mips4kc="		\
 	incaip		\
 	qemu_mips	\
+	vct_platinum	\
+	vct_platinum_small	\
+	vct_platinum_onenand	\
+	vct_platinum_onenand_small	\
+	vct_platinumavc	\
+	vct_platinumavc_small	\
+	vct_platinumavc_onenand	\
+	vct_platinumavc_onenand_small	\
+	vct_premium	\
+	vct_premium_small	\
+	vct_premium_onenand	\
+	vct_premium_onenand_small	\
 "
 
 LIST_mips5kc="		\
@@ -658,6 +691,7 @@ LIST_mips_el="			\
 
 LIST_I486="		\
 	sc520_cdp	\
+	sc520_eNET	\
 	sc520_spunk	\
 	sc520_spunk_rel	\
 "
@@ -697,9 +731,9 @@ LIST_nios2="		\
 ## MicroBlaze Systems
 #########################################################################
 
-LIST_microblaze="	\
-	ml401		\
-	suzaku		\
+LIST_microblaze="			\
+	microblaze-generic		\
+	suzaku				\
 "
 
 #########################################################################
@@ -862,7 +896,7 @@ build_target() {
 for arg in $@
 do
 	case "$arg" in
-	arm|SA|ARM7|ARM9|ARM10|ARM11|at91|ixp|pxa \
+	arm|SA|ARM7|ARM9|ARM10|ARM11|ARM_CORTEX_A8|at91|ixp|pxa \
 	|avr32 \
 	|blackfin \
 	|coldfire \

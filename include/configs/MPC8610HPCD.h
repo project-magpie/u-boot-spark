@@ -34,8 +34,6 @@
 #define CONFIG_SYS_DIAG_ADDR		0xff800000
 #endif
 
-#define CONFIG_SYS_RESET_ADDRESS	0xfff00100
-
 /*
  * virtual address to be used for temporary mappings.  There
  * should be 128k free at this VA.
@@ -491,7 +489,7 @@
 #define CONFIG_CMD_MII
 
 #if defined(CONFIG_SYS_RAMBOOT)
-#undef CONFIG_CMD_ENV
+#undef CONFIG_CMD_SAVEENV
 #endif
 
 #if defined(CONFIG_PCI)

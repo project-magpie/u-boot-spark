@@ -33,7 +33,7 @@ int do_sleep (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	ulong delay;
 
 	if (argc != 2) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -55,14 +55,14 @@ int do_irqinfo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 U_BOOT_CMD(
 	irqinfo,    1,    1,     do_irqinfo,
-	"irqinfo - print information about IRQs\n",
+	"print information about IRQs",
 	NULL
 );
 #endif
 
 U_BOOT_CMD(
 	sleep ,    2,    1,     do_sleep,
-	"sleep   - delay execution for some time\n",
+	"delay execution for some time",
 	"N\n"
 	"    - delay execution for N seconds (N is _decimal_ !!!)\n"
 );

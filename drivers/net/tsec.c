@@ -158,6 +158,7 @@ int tsec_initialize(bd_t * bis, struct tsec_info_struct *tsec_info)
 
 	/* Reset the MAC */
 	priv->regs->maccfg1 |= MACCFG1_SOFT_RESET;
+	udelay(2);  /* Soft Reset must be asserted for 3 TX clocks */
 	priv->regs->maccfg1 &= ~(MACCFG1_SOFT_RESET);
 
 #if defined(CONFIG_MII) || defined(CONFIG_CMD_MII) \
@@ -1141,6 +1142,9 @@ struct phy_info phy_info_M88E1118 = {
 		{MIIM_CONTROL, MIIM_CONTROL_RESET, NULL},
 		{0x16, 0x0002, NULL}, /* Change Page Number */
 		{0x15, 0x1070, NULL}, /* Delay RGMII TX and RX */
+		{0x16, 0x0003, NULL}, /* Change Page Number */
+		{0x10, 0x021e, NULL}, /* Adjust LED control */
+		{0x16, 0x0000, NULL}, /* Change Page Number */
 		{MIIM_GBIT_CONTROL, MIIM_GBIT_CONTROL_INIT, NULL},
 		{MIIM_ANAR, MIIM_ANAR_INIT, NULL},
 		{MIIM_CONTROL, MIIM_CONTROL_RESET, NULL},
@@ -1152,6 +1156,7 @@ struct phy_info phy_info_M88E1118 = {
 		/* Status is read once to clear old link state */
 		{MIIM_STATUS, miim_read, NULL},
 		/* Auto-negotiate */
+		{MIIM_STATUS, miim_read, &mii_parse_sr},
 		/* Read the status */
 		{MIIM_88E1011_PHY_STATUS, miim_read,
 		 &mii_parse_88E1011_psr},
@@ -1326,6 +1331,35 @@ struct phy_info phy_info_cis8201 = {
 	(struct phy_cmd[]){	/* shutdown */
 			   {miim_end,}
 			   },
+};
+struct phy_info phy_info_VSC8211 = {
+	0xfc4b,
+	"Vitesse VSC8211",
+	4,
+	(struct phy_cmd[]) { /* config */
+			   /* Override PHY config settings */
+			   {MIIM_CIS8201_AUX_CONSTAT,
+			    MIIM_CIS8201_AUXCONSTAT_INIT, NULL},
+			   /* Set up the interface mode */
+			   {MIIM_CIS8201_EXT_CON1,
+			    MIIM_CIS8201_EXTCON1_INIT, NULL},
+			   /* Configure some basic stuff */
+			   {MIIM_CONTROL, MIIM_CONTROL_INIT, &mii_cr_init},
+			   {miim_end,}
+			   },
+	(struct phy_cmd[]) { /* startup */
+			   /* Read the Status (2x to make sure link is right) */
+			   {MIIM_STATUS, miim_read, NULL},
+			   /* Auto-negotiate */
+			   {MIIM_STATUS, miim_read, &mii_parse_sr},
+			   /* Read the status */
+			   {MIIM_CIS8201_AUX_CONSTAT, miim_read,
+			    &mii_parse_cis8201},
+			   {miim_end,}
+			   },
+	(struct phy_cmd[]) { /* shutdown */
+			   {miim_end,}
+	},
 };
 struct phy_info phy_info_VSC8244 = {
 	0x3f1b,
@@ -1585,11 +1619,12 @@ struct phy_info *phy_info[] = {
 	&phy_info_M88E1149S,
 	&phy_info_dm9161,
 	&phy_info_lxt971,
+	&phy_info_VSC8211,
 	&phy_info_VSC8244,
 	&phy_info_VSC8601,
 	&phy_info_dp83865,
 	&phy_info_rtl8211b,
-	&phy_info_generic,
+	&phy_info_generic,	/* must be last; has ID 0 and 32 bit mask */
 	NULL
 };
 
@@ -1621,9 +1656,8 @@ struct phy_info *get_phy_info(struct eth_device *dev)
 		}
 	}
 
-	if (theInfo == NULL) {
-		printf("%s: PHY id %x is not supported!\n", dev->name, phy_ID);
-		return NULL;
+	if (theInfo == &phy_info_generic) {
+		printf("%s: No support for PHY id %x; assuming generic\n", dev->name, phy_ID);
 	} else {
 		debug("%s: PHY is %s (%x)\n", dev->name, theInfo->name, phy_ID);
 	}

@@ -89,7 +89,7 @@ int do_date (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 		break;
 	default:
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		rcode = 1;
 	}
 
@@ -214,7 +214,7 @@ int mk_date (char *datestr, struct rtc_time *tmp)
 
 U_BOOT_CMD(
 	date,	2,	1,	do_date,
-	"date    - get/set/reset date & time\n",
+	"get/set/reset date & time",
 	"[MMDDhhmm[[CC]YY][.ss]]\ndate reset\n"
 	"  - without arguments: print date & time\n"
 	"  - with numeric argument: set the system date & time\n"

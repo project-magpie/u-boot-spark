@@ -96,7 +96,6 @@
 /*cmd_boot.c*/
 extern int do_bootd (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);      /* do_bootd */
 #endif
-#ifdef CONFIG_SYS_HUSH_PARSER
 #ifndef __U_BOOT__
 #include <ctype.h>     /* isalpha, isdigit */
 #include <unistd.h>    /* getpid */
@@ -1696,7 +1695,7 @@ static int run_pipe_real(struct pipe *pi)
 #endif
 				/* found - check max args */
 				if ((child->argc - i) > cmdtp->maxargs) {
-					printf ("Usage:\n%s\n", cmdtp->usage);
+					cmd_usage(cmdtp);
 					return -1;
 				}
 #endif
@@ -3625,12 +3624,11 @@ int do_showvar (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	showvar, CONFIG_SYS_MAXARGS, 1,	do_showvar,
-	"showvar- print local hushshell variables\n",
+	"print local hushshell variables",
 	"\n    - print values of all hushshell variables\n"
 	"showvar name ...\n"
 	"    - print value of hushshell variable 'name'\n"
 );
 
 #endif
-#endif /* CONFIG_SYS_HUSH_PARSER */
 /****************************************************************************/

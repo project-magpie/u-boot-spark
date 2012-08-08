@@ -846,12 +846,12 @@ int do_pic (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	default:
 		break;
 	}
-	printf ("Usage:\n%s\n", cmdtp->usage);
+	cmd_usage(cmdtp);
 	return 1;
 }
 U_BOOT_CMD(
 	pic,	4,	1,	do_pic,
-	"pic     - read and write PIC registers\n",
+	"read and write PIC registers",
 	"read  reg      - read PIC register `reg'\n"
 	"pic write reg val  - write value `val' to PIC register `reg'\n"
 );
@@ -910,7 +910,7 @@ int do_kbd (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	kbd,	1,	1,	do_kbd,
-	"kbd     - read keyboard status\n",
+	"read keyboard status",
 	NULL
 );
 
@@ -976,13 +976,13 @@ int do_lsb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	default:
 		break;
 	}
-	printf ("Usage:\n%s\n", cmdtp->usage);
+	cmd_usage(cmdtp);
 	return 1;
 }
 
 U_BOOT_CMD(
 	lsb,	2,	1,	do_lsb,
-	"lsb     - check and set LSB switch\n",
+	"check and set LSB switch",
 	"on  - switch LSB on\n"
 	"lsb off - switch LSB off\n"
 	"lsb     - print current setting\n"

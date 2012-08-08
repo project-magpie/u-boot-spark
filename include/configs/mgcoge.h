@@ -32,11 +32,12 @@
 #define CONFIG_MPC8247		1
 #define CONFIG_MPC8272_FAMILY   1
 #define CONFIG_MGCOGE		1
+#define CONFIG_HOSTNAME		mgcoge
 
 #define CONFIG_CPM2		1	/* Has a CPM2 */
 
-/* Do boardspecific init */
-#define CONFIG_BOARD_EARLY_INIT_R       1
+/* include common defines/options for all Keymile boards */
+#include "keymile-common.h"
 
 /*
  * Select serial console configuration
@@ -49,6 +50,8 @@
 #undef  CONFIG_CONS_ON_SCC		/* It's not on SCC           */
 #undef	CONFIG_CONS_NONE		/* It's not on external UART */
 #define CONFIG_CONS_INDEX	2	/* SMC2 is used for console  */
+#define CONFIG_SYS_SMC_RXBUFLEN	128
+#define CONFIG_SYS_MAXIDLE	10
 
 /*
  * Select ethernet configuration
@@ -64,6 +67,7 @@
 #define	CONFIG_ETHER_ON_SCC		/* Ethernet is on SCC */
 #undef	CONFIG_ETHER_ON_FCC		/* Ethernet is not on FCC     */
 #undef	CONFIG_ETHER_NONE		/* No external Ethernet   */
+#define CONFIG_NET_MULTI	1
 
 #define CONFIG_ETHER_INDEX	4
 #define CONFIG_SYS_SCC_TOUT_LOOP	10000000
@@ -74,86 +78,34 @@
 #define CONFIG_8260_CLKIN	66000000	/* in Hz */
 #endif
 
-#define CONFIG_BAUDRATE		115200
+#define BOOTFLASH_START	FE000000
+#define CONFIG_PRAM	512	/* protected RAM [KBytes] */
 
-#define CONFIG_BOOTCOUNT_LIMIT
+#define MTDIDS_DEFAULT		"nor0=boot,nor1=app"
+#define MTDPARTS_DEFAULT	\
+	"mtdparts=boot:384k(u-boot),128k(env),128k(envred),3456k(free);" \
+	"app:3m(esw0),10m(rootfs0),3m(esw1),10m(rootfs1),1m(var),5m(cfg)"
 
-/*
- * Command line configuration.
- */
-#include <config_cmd_default.h>
-
-#define CONFIG_CMD_DTT
-#define CONFIG_CMD_ECHO
-#define CONFIG_CMD_EEPROM
-#define CONFIG_CMD_I2C
-#define CONFIG_CMD_IMMAP
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_PING
-
+#ifndef CONFIG_KM_DEF_ENV		/* if not set by keymile-common.h */
+#define CONFIG_KM_DEF_ENV "km-common=empty\0"
+#endif
 /*
  * Default environment settings
  */
-#define CONFIG_EXTRA_ENV_SETTINGS						\
-	"netdev=eth0\0"								\
-	"u-boot_addr=100000\0"							\
-	"kernel_addr=200000\0"							\
-	"fdt_addr=400000\0"							\
-	"rootpath=/opt/eldk-4.2/ppc_82xx\0"					\
-	"u-boot=/tftpboot/mgcoge/u-boot.bin\0"					\
-	"bootfile=/tftpboot/mgcoge/uImage\0"					\
-	"fdt_file=/tftpboot/mgcoge/mgcoge.dtb\0"				\
-	"load=tftp ${u-boot_addr} ${u-boot}\0"					\
-	"update=prot off fe000000 fe03ffff; era fe000000 fe03ffff; "		\
-		"cp.b ${u-boot_addr} fe000000 ${filesize};"			\
-		"prot on fe000000 fe03ffff\0"					\
-	"ramargs=setenv bootargs root=/dev/ram rw\0"				\
-	"nfsargs=setenv bootargs root=/dev/nfs rw "				\
-		"nfsroot=${serverip}:${rootpath}\0"				\
-	"addcons=setenv bootargs ${bootargs} console=ttyCPM0,${baudrate}\0"	\
-	"addmtd=setenv bootargs ${bootargs} ${mtdparts}\0"			\
-	"addip=setenv bootargs ${bootargs} "					\
-		"ip=${ipaddr}:${serverip}:${gatewayip}:"			\
-		"${netmask}:${hostname}:${netdev}:off panic=1\0"		\
-	"net_nfs=tftp ${kernel_addr} ${bootfile}; "				\
-		"tftp ${fdt_addr} ${fdt_file}; run nfsargs addip addcons;"	\
-		"bootm ${kernel_addr} - ${fdt_addr}\0"				\
-	"net_self=tftp ${kernel_addr} ${bootfile}; "				\
-		"tftp ${fdt_addr} ${fdt_file}; "				\
-		"tftp ${ramdisk_addr} ${ramdisk_file}; "			\
-		"run ramargs addip; "						\
-		"bootm ${kernel_addr} ${ramdisk_addr} ${fdt_addr}\0"		\
+#define	CONFIG_EXTRA_ENV_SETTINGS	\
+	CONFIG_KM_DEF_ENV						\
+	"rootpath=/opt/eldk/ppc_82xx\0"					\
+	"addcon=setenv bootargs ${bootargs} "				\
+		"console=ttyCPM0,${baudrate}\0"				\
+	"mtdids=nor0=boot,nor1=app \0"					\
+	"mtdparts=mtdparts=boot:384k(u-boot),128k(env),128k(envred),"	\
+		"3456k(free);app:3m(esw0),10m(rootfs0),3m(esw1),"	\
+		"10m(rootfs1),1m(var),5m(cfg) \0"			\
+	"partition=nor1,5 \0"						\
+	"new_env=prot off FE060000 FE09FFFF; era FE060000 FE09FFFF \0" 	\
+	"EEprom_ivm=pca9544a:70:4 \0"					\
+	"mtdparts=" MK_STR(MTDPARTS_DEFAULT) "\0"				\
 	""
-#define CONFIG_BOOTCOMMAND	"run net_nfs"
-#define CONFIG_BOOTDELAY	5	/* autoboot after 5 seconds */
-
-#undef	CONFIG_WATCHDOG			/* disable platform specific watchdog */
-
-/*
- * Miscellaneous configurable options
- */
-#define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#define CONFIG_SYS_LONGHELP			/* undef to save memory	    */
-#define CONFIG_SYS_PROMPT		"=> "	/* Monitor Command Prompt   */
-#define CONFIG_HUSH_INIT_VAR	1
-#if defined(CONFIG_CMD_KGDB)
-#define CONFIG_SYS_CBSIZE		1024	/* Console I/O Buffer Size  */
-#else
-#define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size  */
-#endif
-#define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16)	/* Print Buffer Size  */
-#define CONFIG_SYS_MAXARGS		16		/* max number of command args */
-#define CONFIG_SYS_BARGSIZE		CONFIG_SYS_CBSIZE	/* Boot Argument Buffer Size  */
-
-#define CONFIG_SYS_MEMTEST_START	0x00100000	/* memtest works on */
-#define CONFIG_SYS_MEMTEST_END		0x00f00000	/* 1 ... 15 MB in DRAM	*/
-
-#define CONFIG_SYS_LOAD_ADDR		0x100000	/* default load address */
-
-#define CONFIG_SYS_HZ			1000	/* decrementer freq: 1 ms ticks */
-
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200, 230400 }
 
 #define CONFIG_SYS_SDRAM_BASE		0x00000000
 #define CONFIG_SYS_FLASH_BASE		0xFE000000
@@ -173,7 +125,7 @@
 #define CONFIG_SYS_RAMBOOT
 #endif
 
-#define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 256KB for Monitor */
+#define CONFIG_SYS_MONITOR_LEN		(384 << 10)	/* Reserve 384KB for Monitor */
 
 #define CONFIG_ENV_IS_IN_FLASH
 
@@ -186,6 +138,7 @@
 #define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET + CONFIG_ENV_SECT_SIZE)
 #define CONFIG_ENV_SIZE_REDUND		(CONFIG_ENV_SIZE)
 #endif /* CONFIG_ENV_IS_IN_FLASH */
+#define CONFIG_ENV_BUFFER_PRINT		1
 
 /* enable I2C and select the hardware/software driver */
 #undef	CONFIG_HARD_I2C			/* I2C with hardware support	*/
@@ -207,24 +160,6 @@
 			else    iop->pdat &= ~0x00020000
 #define I2C_DELAY	udelay(5)	/* 1/4 I2C clock duration */
 
-#define CONFIG_I2C_MULTI_BUS	1
-#define CONFIG_I2C_CMD_TREE	1
-#define CONFIG_SYS_MAX_I2C_BUS		2
-#define CONFIG_SYS_I2C_INIT_BOARD	1
-#define CONFIG_I2C_MUX		1
-
-/* EEprom support */
-#define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1
-#define CONFIG_SYS_I2C_MULTI_EEPROMS	1
-#define CONFIG_SYS_EEPROM_PAGE_WRITE_ENABLE
-#define CONFIG_SYS_EEPROM_PAGE_WRITE_BITS 3
-#define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS 10
-
-/* Support the IVM EEprom */
-#define	CONFIG_SYS_IVM_EEPROM_ADR	0x50
-#define CONFIG_SYS_IVM_EEPROM_MAX_LEN	0x400
-#define CONFIG_SYS_IVM_EEPROM_PAGE_LEN	0x100
-
 /* I2C SYSMON (LM75, AD7414 is almost compatible)			*/
 #define CONFIG_DTT_LM75		1	/* ON Semi's LM75		*/
 #define CONFIG_DTT_SENSORS	{0}	/* Sensor addresses		*/
@@ -232,6 +167,8 @@
 #define CONFIG_SYS_DTT_LOW_TEMP	-30
 #define CONFIG_SYS_DTT_HYSTERESIS	3
 #define CONFIG_SYS_DTT_BUS_NUM		(CONFIG_SYS_MAX_I2C_BUS)
+
+#define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1
 
 #define CONFIG_SYS_IMMR		0xF0000000
 
@@ -376,6 +313,18 @@
 			 BRx_PS_8 | BRx_MS_GPCM_P | BRx_V)
 
 #define CONFIG_SYS_OR3_PRELIM	(MEG_TO_AM(CONFIG_SYS_PIGGY_SIZE) |\
+			 ORxG_CSNT | ORxG_ACS_DIV2 |\
+			 ORxG_SCY_3_CLK | ORxG_TRLX )
+
+/* Board FPGA on CS4 initialization values
+*/
+#define CONFIG_SYS_FPGA_BASE	0x40000000
+#define CONFIG_SYS_FPGA_SIZE	1 /*1KB*/
+
+#define CONFIG_SYS_BR4_PRELIM ((CONFIG_SYS_FPGA_BASE & BRx_BA_MSK) |\
+			BRx_PS_8 | BRx_MS_GPCM_P | BRx_V)
+
+#define CONFIG_SYS_OR4_PRELIM (P2SZ_TO_AM(CONFIG_SYS_FPGA_SIZE << 10) |\
 			 ORxG_CSNT | ORxG_ACS_DIV2 |\
 			 ORxG_SCY_3_CLK | ORxG_TRLX )
 

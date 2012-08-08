@@ -12,7 +12,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -44,6 +44,7 @@ int cpu_eth_init(bd_t *bis);
 int au1x00_enet_initialize(bd_t*);
 int bfin_EMAC_initialize(bd_t *bis);
 int dc21x4x_initialize(bd_t *bis);
+int dnet_eth_initialize(int id, void *regs, unsigned int phy_addr);
 int e1000_initialize(bd_t *bis);
 int eepro100_initialize(bd_t *bis);
 int eth_3com_initialize (bd_t * bis);
@@ -57,6 +58,7 @@ int mcffec_initialize(bd_t *bis);
 int mpc512x_fec_initialize(bd_t *bis);
 int mpc5xxx_fec_initialize(bd_t *bis);
 int mpc8220_fec_initialize(bd_t *bis);
+int mpc82xx_scc_enet_initialize(bd_t *bis);
 int natsemi_initialize(bd_t *bis);
 int npe_initialize(bd_t *bis);
 int ns8382x_initialize(bd_t *bis);
@@ -70,6 +72,7 @@ int skge_initialize(bd_t *bis);
 int tsi108_eth_initialize(bd_t *bis);
 int uec_initialize(int index);
 int uli526x_initialize(bd_t *bis);
+int sh_eth_initialize(bd_t *bis);
 
 /* Boards with PCI network controllers can call this from their board_eth_init()
  * function to initialize whatever's on board.

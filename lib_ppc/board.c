@@ -38,9 +38,6 @@
 #if defined(CONFIG_CMD_IDE)
 #include <ide.h>
 #endif
-#if defined(CONFIG_CMD_SATA)
-#include <sata.h>
-#endif
 #if defined(CONFIG_CMD_SCSI)
 #include <scsi.h>
 #endif
@@ -51,6 +48,9 @@
 #include <status_led.h>
 #endif
 #include <net.h>
+#ifdef CONFIG_GENERIC_MMC
+#include <mmc.h>
+#endif
 #include <serial.h>
 #ifdef CONFIG_SYS_ALLOC_DPRAM
 #if !defined(CONFIG_CPM2)
@@ -339,9 +339,6 @@ init_fnc_t *init_sequence[] = {
 #if defined(CONFIG_HARD_SPI)
 	init_func_spi,
 #endif
-#if defined(CONFIG_DTT)		/* Digital Thermometers and Thermostats */
-	dtt_init,
-#endif
 #ifdef CONFIG_POST
 	post_init_f,
 #endif
@@ -355,9 +352,6 @@ init_fnc_t *init_sequence[] = {
 	NULL,			/* Terminate this list */
 };
 
-#ifndef CONFIG_MAX_MEM_MAPPED
-#define CONFIG_MAX_MEM_MAPPED (256 << 20)
-#endif
 ulong get_effective_memsize(void)
 {
 #ifndef	CONFIG_VERY_BIG_RAM
@@ -639,16 +633,6 @@ void board_init_f (ulong bootflag)
 	/* NOTREACHED - relocate_code() does not return */
 }
 
-int __is_sata_supported(void)
-{
-	/* For some boards, when sata disabled by the switch, and the
-	 * driver still access the sata registers, the cpu will hangup.
-	 * please define platform specific is_sata_supported() if your
-	 * board have such issue.*/
-	return 1;
-}
-int is_sata_supported(void) __attribute__((weak, alias("__is_sata_supported")));
-
 /************************************************************************
  *
  * This is the next part if the initialization sequence: we are now
@@ -698,7 +682,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	 */
 	trap_init (dest_addr);
 
-#if defined(CONFIG_ADDR_MAP) && defined(CONFIG_E500)
+#ifdef CONFIG_ADDR_MAP
 	init_addr_map();
 #endif
 
@@ -752,8 +736,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	WATCHDOG_RESET();
 
-#if defined(CONFIG_IP860) || defined(CONFIG_PCU_E) || \
-	defined (CONFIG_FLAGADM) || defined(CONFIG_MPC83XX)
+#if defined(CONFIG_SYS_DELAYED_ICACHE) || defined(CONFIG_MPC83XX)
 	icache_enable ();	/* it's time to enable the instruction cache */
 #endif
 
@@ -1085,10 +1068,19 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	WATCHDOG_RESET ();
 
+#if defined(CONFIG_DTT)		/* Digital Thermometers and Thermostats */
+	dtt_init ();
+#endif
 #if defined(CONFIG_CMD_SCSI)
 	WATCHDOG_RESET ();
 	puts ("SCSI:  ");
 	scsi_init ();
+#endif
+
+#ifdef CONFIG_GENERIC_MMC
+	WATCHDOG_RESET ();
+	puts ("MMC:  ");
+	mmc_initialize (bd);
 #endif
 
 #if defined(CONFIG_CMD_DOC)
@@ -1150,13 +1142,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #else
 	ide_init ();
 #endif
-#endif
-
-#if defined(CONFIG_CMD_SATA)
-	if (is_sata_supported()) {
-		puts("SATA:  ");
-		sata_initialize();
-	}
 #endif
 
 #ifdef CONFIG_LAST_STAGE_INIT

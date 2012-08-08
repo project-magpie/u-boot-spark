@@ -33,7 +33,7 @@ typedef struct {
 	ulong	size;			/* total bank size in bytes		*/
 	ushort	sector_count;		/* number of erase units		*/
 	ulong	flash_id;		/* combined device & manufacturer code	*/
-	ulong	start[CONFIG_SYS_MAX_FLASH_SECT];   /* physical sector start addresses */
+	ulong	start[CONFIG_SYS_MAX_FLASH_SECT];   /* virtual sector start address */
 	uchar	protect[CONFIG_SYS_MAX_FLASH_SECT]; /* sector protection status	*/
 #ifdef CONFIG_SYS_FLASH_CFI
 	uchar	portwidth;		/* the width of the port		*/
@@ -124,6 +124,9 @@ extern int jedec_flash_match(flash_info_t *info, ulong base);
 #define CFI_CMDSET_AMD_LEGACY		0xFFF0
 #endif
 
+#if defined(CONFIG_SYS_FLASH_CFI)
+extern flash_info_t *flash_get_info(ulong base);
+#endif
 
 /*-----------------------------------------------------------------------
  * return codes from flash_write():

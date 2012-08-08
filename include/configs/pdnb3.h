@@ -68,6 +68,7 @@
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 
+#define CONFIG_IXP_SERIAL
 #define CONFIG_BAUDRATE         115200
 #define CONFIG_SYS_IXP425_CONSOLE	IXP425_UART1   /* we use UART1 for console */
 
@@ -264,7 +265,6 @@
  * NAND-FLASH stuff
  */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define NAND_MAX_CHIPS		1
 #define CONFIG_SYS_NAND_BASE		0x51000000	/* NAND FLASH Base Address	*/
 #endif
 

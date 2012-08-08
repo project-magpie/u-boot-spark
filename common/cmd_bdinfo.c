@@ -289,6 +289,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #if defined(CONFIG_SYS_MBAR)
 	print_num ("mbar",		bd->bi_mbar_base);
 #endif
+	print_str ("cpufreq",		strmhz(buf, bd->bi_intfreq));
 	print_str ("busfreq",		strmhz(buf, bd->bi_busfreq));
 #ifdef CONFIG_PCI
 	print_str ("pcifreq",		strmhz(buf, bd->bi_pcifreq));
@@ -328,24 +329,26 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	puts ("\nip_addr     = ");
 	print_IPaddr (bd->bi_ip_addr);
 #endif
-	printf ("\nbaudrate    = %d bps\n", bd->bi_baudrate);
+	printf ("\nbaudrate    = %ld bps\n", bd->bi_baudrate);
 
 	return 0;
 }
 
 #elif defined(CONFIG_BLACKFIN)
+static void print_str(const char *, const char *);
 
 int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	int i;
 	bd_t *bd = gd->bd;
+	char buf[32];
 
 	printf("U-Boot      = %s\n", bd->bi_r_version);
 	printf("CPU         = %s\n", bd->bi_cpu);
 	printf("Board       = %s\n", bd->bi_board_name);
-	printf("VCO         = %lu MHz\n", bd->bi_vco / 1000000);
-	printf("CCLK        = %lu MHz\n", bd->bi_cclk / 1000000);
-	printf("SCLK        = %lu MHz\n", bd->bi_sclk / 1000000);
+	print_str("VCO",         strmhz(buf, bd->bi_vco));
+	print_str("CCLK",        strmhz(buf, bd->bi_cclk));
+	print_str("SCLK",        strmhz(buf, bd->bi_sclk));
 
 	print_num("boot_params", (ulong)bd->bi_boot_params);
 	print_num("memstart",    (ulong)bd->bi_memstart);
@@ -580,7 +583,7 @@ static void print_lnum(const char *name, u64 value)
 }
 #endif
 
-#if defined(CONFIG_PPC) || defined(CONFIG_M68K)
+#if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_BLACKFIN)
 static void print_str(const char *name, const char *str)
 {
 	printf ("%-12s= %6s MHz\n", name, str);
@@ -592,6 +595,6 @@ static void print_str(const char *name, const char *str)
 
 U_BOOT_CMD(
 	bdinfo,	1,	1,	do_bdinfo,
-	"bdinfo  - print Board Info structure\n",
+	"print Board Info structure",
 	NULL
 );

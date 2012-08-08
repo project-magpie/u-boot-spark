@@ -144,7 +144,7 @@ int do_vcimage (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		rcode = 0;
 		break;
 	default:
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		rcode = 1;
 		break;
 	}
@@ -155,7 +155,7 @@ int do_vcimage (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	vcimage,	2,	0,	do_vcimage,
-	"vcimage - loads an image to Display\n",
+	"loads an image to Display",
 	"vcimage addr\n"
 );
 

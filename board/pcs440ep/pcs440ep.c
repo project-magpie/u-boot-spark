@@ -761,7 +761,7 @@ int do_led (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	led,	2,	1,	do_led,
-	"led [bitmask]   - set the DIAG-LED\n",
+	"set the DIAG-LED",
 	"[bitmask] 0x01 = DIAG 1 on\n"
 	"              0x02 = DIAG 2 on\n"
 	"              0x04 = DIAG 3 on\n"
@@ -780,7 +780,7 @@ int do_sha1 (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 	if (argc < 2) {
   usage:
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -823,7 +823,7 @@ int do_sha1 (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	sha1,	4,	1,	do_sha1,
-	"sha1    - calculate the SHA1 Sum\n",
+	"calculate the SHA1 Sum",
 	"address len [addr]  calculate the SHA1 sum [save at addr]\n"
 	"     -p calculate the SHA1 sum from the U-Boot image in flash and print\n"
 	"     -c check the U-Boot image in flash\n"

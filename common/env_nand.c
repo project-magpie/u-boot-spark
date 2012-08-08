@@ -39,10 +39,10 @@
 #include <malloc.h>
 #include <nand.h>
 
-#if defined(CONFIG_CMD_ENV) && defined(CONFIG_CMD_NAND)
+#if defined(CONFIG_CMD_SAVEENV) && defined(CONFIG_CMD_NAND)
 #define CMD_SAVEENV
 #elif defined(CONFIG_ENV_OFFSET_REDUND)
-#error Cannot use CONFIG_ENV_OFFSET_REDUND without CONFIG_CMD_ENV & CONFIG_CMD_NAND
+#error Cannot use CONFIG_ENV_OFFSET_REDUND without CONFIG_CMD_SAVEENV & CONFIG_CMD_NAND
 #endif
 
 #if defined(CONFIG_ENV_SIZE_REDUND) && (CONFIG_ENV_SIZE_REDUND != CONFIG_ENV_SIZE)
@@ -294,9 +294,11 @@ void env_relocate_spec (void)
 	crc1_ok = (crc32(0, tmp_env1->data, ENV_SIZE) == tmp_env1->crc);
 	crc2_ok = (crc32(0, tmp_env2->data, ENV_SIZE) == tmp_env2->crc);
 
-	if(!crc1_ok && !crc2_ok)
+	if(!crc1_ok && !crc2_ok) {
+		free(tmp_env1);
+		free(tmp_env2);
 		return use_default();
-	else if(crc1_ok && !crc2_ok)
+	} else if(crc1_ok && !crc2_ok)
 		gd->env_valid = 1;
 	else if(!crc1_ok && crc2_ok)
 		gd->env_valid = 2;

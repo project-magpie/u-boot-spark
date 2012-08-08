@@ -73,7 +73,7 @@
 #define CONFIG_CMD_CACHE
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_ECHO
-#define CONFIG_CMD_ENV
+#define CONFIG_CMD_SAVEENV
 #define CONFIG_CMD_FLASH
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_IMI
@@ -119,7 +119,7 @@
 
 #define CONFIG_SYS_LOAD_ADDR           0xa3000000      /* load kernel to this address   */
 
-#define CONFIG_SYS_HZ                  3686400         /* incrementer freq: 3.6864 MHz */
+#define CONFIG_SYS_HZ			1000
 						/* RS: the oscillator is actually 3680130?? */
 
 #define CONFIG_SYS_CPUSPEED            0x141           /* set core clock to 200/200/100 MHz */

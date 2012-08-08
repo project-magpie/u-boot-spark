@@ -23,6 +23,7 @@
 
 #include <common.h>
 #include <command.h>
+#include <netdev.h>
 #include <asm/processor.h>
 #include <asm/cache.h>
 
@@ -80,5 +81,13 @@ void dcache_disable (void)
 
 int dcache_status (void)
 {
+	return 0;
+}
+
+int cpu_eth_init(bd_t *bis)
+{
+#ifdef CONFIG_SH_ETHER
+	sh_eth_initialize(bis);
+#endif
 	return 0;
 }

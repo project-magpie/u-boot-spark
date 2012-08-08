@@ -305,7 +305,7 @@ int do_set_mac(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	char *s, *e;
 
 	if (argc != 2) {
-		printf("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -323,7 +323,7 @@ int do_set_mac(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	setmac,	2,	1,	do_set_mac,
-	"setmac - write MAC address for RTL8110SCL\n",
+	"write MAC address for RTL8110SCL",
 	"\n"
 	"setmac <mac address> - write MAC address for RTL8110SCL\n"
 );
@@ -331,7 +331,7 @@ U_BOOT_CMD(
 int do_print_mac(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	if (argc != 1) {
-		printf("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -342,7 +342,7 @@ int do_print_mac(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	printmac,	1,	1,	do_print_mac,
-	"printmac - print MAC address for RTL8110\n",
+	"print MAC address for RTL8110",
 	"\n"
 	"    - print MAC address for RTL8110\n"
 );

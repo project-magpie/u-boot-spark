@@ -219,7 +219,8 @@ long int spd_sdram()
 	ddr->cs_config[0] = ( 1 << 31
 			    | (odt_rd_cfg << 20)
 			    | (odt_wr_cfg << 16)
-			    | (spd.nrow_addr - 12) << 8
+			    | ((spd.nbanks == 8 ? 1 : 0) << 14)
+			    | ((spd.nrow_addr - 12) << 8)
 			    | (spd.ncol_addr - 8) );
 	debug("\n");
 	debug("cs0_bnds = 0x%08x\n",ddr->csbnds[0].csbnds);
@@ -231,8 +232,9 @@ long int spd_sdram()
 		ddr->cs_config[1] = ( 1<<31
 				    | (odt_rd_cfg << 20)
 				    | (odt_wr_cfg << 16)
-				    | (spd.nrow_addr-12) << 8
-				    | (spd.ncol_addr-8) );
+				    | ((spd.nbanks == 8 ? 1 : 0) << 14)
+				    | ((spd.nrow_addr - 12) << 8)
+				    | (spd.ncol_addr - 8) );
 		debug("cs1_bnds = 0x%08x\n",ddr->csbnds[1].csbnds);
 		debug("cs1_config = 0x%08x\n",ddr->cs_config[1]);
 	}
@@ -242,7 +244,8 @@ long int spd_sdram()
 	ddr->cs_config[2] = ( 1 << 31
 			    | (odt_rd_cfg << 20)
 			    | (odt_wr_cfg << 16)
-			    | (spd.nrow_addr - 12) << 8
+			    | ((spd.nbanks == 8 ? 1 : 0) << 14)
+			    | ((spd.nrow_addr - 12) << 8)
 			    | (spd.ncol_addr - 8) );
 	debug("\n");
 	debug("cs2_bnds = 0x%08x\n",ddr->csbnds[2].csbnds);
@@ -254,8 +257,9 @@ long int spd_sdram()
 		ddr->cs_config[3] = ( 1<<31
 				    | (odt_rd_cfg << 20)
 				    | (odt_wr_cfg << 16)
-				    | (spd.nrow_addr-12) << 8
-				    | (spd.ncol_addr-8) );
+				    | ((spd.nbanks == 8 ? 1 : 0) << 14)
+				    | ((spd.nrow_addr - 12) << 8)
+				    | (spd.ncol_addr - 8) );
 		debug("cs3_bnds = 0x%08x\n",ddr->csbnds[3].csbnds);
 		debug("cs3_config = 0x%08x\n",ddr->cs_config[3]);
 	}
@@ -319,7 +323,20 @@ long int spd_sdram()
 	ddrc_clk = gd->mem_clk / 1000000;
 	effective_data_rate = 0;
 
-	if (max_data_rate >= 390 && max_data_rate < 460) { /* it is DDR 400 */
+	if (max_data_rate >= 460) { /* it is DDR2-800, 667, 533 */
+		if (spd.cas_lat & 0x08)
+			caslat = 3;
+		else
+			caslat = 4;
+		if (ddrc_clk <= 460 && ddrc_clk > 350)
+			effective_data_rate = 400;
+		else if (ddrc_clk <=350 && ddrc_clk > 280)
+			effective_data_rate = 333;
+		else if (ddrc_clk <= 280 && ddrc_clk > 230)
+			effective_data_rate = 266;
+		else
+			effective_data_rate = 200;
+	} else if (max_data_rate >= 390 && max_data_rate < 460) { /* it is DDR 400 */
 		if (ddrc_clk <= 460 && ddrc_clk > 350) {
 			/* DDR controller clk at 350~460 */
 			effective_data_rate = 400; /* 5ns */
@@ -466,6 +483,8 @@ long int spd_sdram()
 	} else {
 		twr_clk = picos_to_clk(spd.twr * 250);
 		twtr_clk = picos_to_clk(spd.twtr * 250);
+		if (twtr_clk < 2)
+			twtr_clk = 2;
 	}
 
 	/*
@@ -529,7 +548,7 @@ long int spd_sdram()
 	if (spd.mem_type == SPD_MEMTYPE_DDR2
 	    && (odt_wr_cfg || odt_rd_cfg)
 	    && (caslat < 4)) {
-		add_lat = trcd_clk - 1;
+		add_lat = 4 - caslat;
 		if ((add_lat + caslat) < 4) {
 			add_lat = 0;
 		}
@@ -566,6 +585,9 @@ long int spd_sdram()
 
 		/* Convert SPD value from quarter nanos to picos. */
 		trtp_clk = picos_to_clk(spd.trtp * 250);
+		if (trtp_clk < 2)
+			trtp_clk = 2;
+		trtp_clk += add_lat;
 
 		cke_min_clk = 3;	/* By the book. */
 		four_act = picos_to_clk(37500);	/* By the book. 1k pages? */
@@ -579,7 +601,9 @@ long int spd_sdram()
 	if (spd.mem_type == SPD_MEMTYPE_DDR2) {
 		if (effective_data_rate == 266) {
 			cpo = 0x4;		/* READ_LAT + 1/2 */
-		} else if (effective_data_rate == 333 || effective_data_rate == 400) {
+		} else if (effective_data_rate == 333) {
+			cpo = 0x6;		/* READ_LAT + 1 */
+		} else if (effective_data_rate == 400) {
 			cpo = 0x7;		/* READ_LAT + 5/4 */
 		} else {
 			/* Automatic calibration */

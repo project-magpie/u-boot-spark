@@ -104,7 +104,7 @@
 #define CONFIG_CMD_REGINFO
 #define CONFIG_CMD_LOADS
 #define CONFIG_CMD_LOADB
-#define CONFIG_CMD_ENV
+#define CONFIG_CMD_SAVEENV
 #define CONFIG_CMD_NAND
 #if defined(CONFIG_BOOT_ONENAND)
 #define CONFIG_CMD_ONENAND
@@ -227,7 +227,6 @@
 /* NAND configuration */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		0x70200010
-#define NAND_MAX_CHIPS		1
 #define CONFIG_SYS_S3C_NAND_HWECC
 
 #define CONFIG_SYS_NAND_SKIP_BAD_DOT_I	1  /* ".i" read skips bad blocks	      */
@@ -294,7 +293,6 @@
 #define CONFIG_SYS_USB_OHCI_SLOT_NAME		"s3c6400"
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	3
 #define CONFIG_SYS_USB_OHCI_CPU_INIT		1
-#define LITTLEENDIAN			1	/* used by usb_ohci.c	*/
 
 #define CONFIG_USB_STORAGE	1
 #endif

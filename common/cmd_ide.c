@@ -48,6 +48,10 @@
 #include <mpc5xxx.h>
 #endif
 
+#ifdef CONFIG_MPC512X
+#include <mpc512x.h>
+#endif
+
 #include <ide.h>
 #include <ata.h>
 
@@ -191,7 +195,7 @@ int do_ide (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
     switch (argc) {
     case 0:
     case 1:
-	printf ("Usage:\n%s\n", cmdtp->usage);
+	cmd_usage(cmdtp);
 	return 1;
     case 2:
 	if (strncmp(argv[1],"res",3) == 0) {
@@ -241,7 +245,7 @@ int do_ide (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		}
 		return rcode;
 	}
-	printf ("Usage:\n%s\n", cmdtp->usage);
+	cmd_usage(cmdtp);
 	return 1;
     case 3:
 	if (strncmp(argv[1],"dev",3) == 0) {
@@ -290,7 +294,7 @@ int do_ide (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #endif
 	}
 
-	printf ("Usage:\n%s\n", cmdtp->usage);
+	cmd_usage(cmdtp);
 	return 1;
     default:
 	/* at least 4 args */
@@ -350,7 +354,7 @@ int do_ide (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			return 1;
 		}
 	} else {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		rcode = 1;
 	}
 
@@ -386,7 +390,7 @@ int do_diskboot (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		boot_device = argv[2];
 		break;
 	default:
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		show_boot_progress (-42);
 		return 1;
 	}
@@ -2173,7 +2177,7 @@ ulong atapi_read (int device, lbaint_t blknr, ulong blkcnt, void *buffer)
 
 U_BOOT_CMD(
 	ide,  5,  1,  do_ide,
-	"ide     - IDE sub-system\n",
+	"IDE sub-system",
 	"reset - reset IDE controller\n"
 	"ide info  - show available IDE devices\n"
 	"ide device [dev] - show or set current device\n"
@@ -2186,6 +2190,6 @@ U_BOOT_CMD(
 
 U_BOOT_CMD(
 	diskboot,	3,	1,	do_diskboot,
-	"diskboot- boot from IDE device\n",
+	"boot from IDE device",
 	"loadAddr dev:part\n"
 );

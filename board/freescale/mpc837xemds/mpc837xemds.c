@@ -18,16 +18,30 @@
 #include <tsec.h>
 #include <libfdt.h>
 #include <fdt_support.h>
+#include "pci.h"
 #include "../common/pq-mds-pib.h"
 
 int board_early_init_f(void)
 {
+	struct immap __iomem *im = (struct immap __iomem *)CONFIG_SYS_IMMR;
 	u8 *bcsr = (u8 *)CONFIG_SYS_BCSR;
 
 	/* Enable flash write */
 	bcsr[0x9] &= ~0x04;
 	/* Clear all of the interrupt of BCSR */
 	bcsr[0xe] = 0xff;
+
+#ifdef CONFIG_MMC
+	/* Set SPI_SD, SER_SD, and IRQ4_WP so that SD signals go through */
+	bcsr[0xc] |= 0x4c;
+
+	/* Set proper bits in SICR to allow SD signals through */
+	clrsetbits_be32(&im->sysconf.sicrl, SICRL_USB_B, SICRL_USB_B_SD);
+
+	clrsetbits_be32(&im->sysconf.sicrh, (SICRH_GPIO2_E | SICRH_SPI),
+			(SICRH_GPIO2_E_SD | SICRH_SPI_SD));
+
+#endif
 
 #ifdef CONFIG_FSL_SERDES
 	immap_t *immr = (immap_t *)CONFIG_SYS_IMMR;
@@ -37,25 +51,21 @@ int board_early_init_f(void)
 	switch (PARTID_NO_E(spridr)) {
 	case SPR_8377:
 		fsl_setup_serdes(CONFIG_FSL_SERDES1, FSL_SERDES_PROTO_SATA,
-				 FSL_SERDES_CLK_100, FSL_SERDES_VDD_1V);
-		fsl_setup_serdes(CONFIG_FSL_SERDES2, FSL_SERDES_PROTO_PEX,
-				 FSL_SERDES_CLK_100, FSL_SERDES_VDD_1V);
+				FSL_SERDES_CLK_100, FSL_SERDES_VDD_1V);
 		break;
 	case SPR_8378:
 		fsl_setup_serdes(CONFIG_FSL_SERDES1, FSL_SERDES_PROTO_SGMII,
-				 FSL_SERDES_CLK_125, FSL_SERDES_VDD_1V);
-		fsl_setup_serdes(CONFIG_FSL_SERDES2, FSL_SERDES_PROTO_PEX,
-				 FSL_SERDES_CLK_100, FSL_SERDES_VDD_1V);
+				FSL_SERDES_CLK_125, FSL_SERDES_VDD_1V);
 		break;
 	case SPR_8379:
 		fsl_setup_serdes(CONFIG_FSL_SERDES1, FSL_SERDES_PROTO_SATA,
-				 FSL_SERDES_CLK_100, FSL_SERDES_VDD_1V);
+				FSL_SERDES_CLK_100, FSL_SERDES_VDD_1V);
 		fsl_setup_serdes(CONFIG_FSL_SERDES2, FSL_SERDES_PROTO_SATA,
-				 FSL_SERDES_CLK_100, FSL_SERDES_VDD_1V);
+				FSL_SERDES_CLK_100, FSL_SERDES_VDD_1V);
 		break;
 	default:
 		printf("serdes not configured: unknown CPU part number: "
-		       "%04x\n", spridr >> 16);
+				"%04x\n", spridr >> 16);
 		break;
 	}
 #endif /* CONFIG_FSL_SERDES */
@@ -316,6 +326,7 @@ void ft_board_setup(void *blob, bd_t *bd)
 	ft_pci_setup(blob, bd);
 	if (board_pci_host_broken())
 		ft_pci_fixup(blob, bd);
+	ft_pcie_fixup(blob, bd);
 #endif
 }
 #endif /* CONFIG_OF_BOARD_SETUP */

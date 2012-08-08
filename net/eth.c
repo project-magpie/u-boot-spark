@@ -28,6 +28,9 @@
 
 #if defined(CONFIG_CMD_NET) && defined(CONFIG_NET_MULTI)
 
+static char *act = NULL;
+static int  env_changed_id = 0;
+
 /*
  * CPU and board-specific Ethernet initializations.  Aliased function
  * signals caller to move on
@@ -75,6 +78,28 @@ struct eth_device *eth_get_dev_by_name(char *devname)
 			break;
 		}
 		dev = dev->next;
+	} while (dev != eth_devices);
+
+	return target_dev;
+}
+
+struct eth_device *eth_get_dev_by_index(int index)
+{
+	struct eth_device *dev, *target_dev;
+	int idx = 0;
+
+	if (!eth_devices)
+		return NULL;
+
+	dev = eth_devices;
+	target_dev = NULL;
+	do {
+		if (idx == index) {
+			target_dev = dev;
+			break;
+		}
+		dev = dev->next;
+		idx++;
 	} while (dev != eth_devices);
 
 	return target_dev;
@@ -439,13 +464,17 @@ void eth_try_another(int first_restart)
 #ifdef CONFIG_NET_MULTI
 void eth_set_current(void)
 {
-	char *act;
 	struct eth_device* old_current;
+	int	env_id;
 
 	if (!eth_current)	/* XXX no current */
 		return;
 
-	act = getenv("ethact");
+	env_id = get_env_id();
+	if ((act == NULL) || (env_changed_id != env_id)) {
+		act = getenv("ethact");
+		env_changed_id = env_id;
+	}
 	if (act != NULL) {
 		old_current = eth_current;
 		do {

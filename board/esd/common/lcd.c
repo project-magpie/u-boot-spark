@@ -346,7 +346,7 @@ int do_esdbmp(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	char *str;
 #endif
 	if (argc != 2) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -372,6 +372,6 @@ int do_esdbmp(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	esdbmp,	2,	1,	do_esdbmp,
-	"esdbmp   - display BMP image\n",
+	"display BMP image",
 	"<imageAddr> - display image\n"
 );

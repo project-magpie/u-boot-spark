@@ -196,6 +196,7 @@
  * the maximum mapped by the Linux kernel during initialization ??
  */
 #define CONFIG_SYS_BOOTMAPSZ		(CONFIG_SYS_SDRAM_BASE + (CONFIG_SYS_SDRAM_SIZE << 20))
+#define CONFIG_SYS_BOOTM_LEN		(CONFIG_SYS_SDRAM_SIZE << 20)
 
 /*-----------------------------------------------------------------------
  * FLASH organization
@@ -215,7 +216,6 @@
 #	define CONFIG_SYS_NAND_BASE		CONFIG_SYS_CS2_BASE
 #	define CONFIG_SYS_NAND_SIZE		1
 #	define CONFIG_SYS_NAND_BASE_LIST	{ CONFIG_SYS_NAND_BASE }
-#	define NAND_MAX_CHIPS		1
 #	define NAND_ALLOW_ERASE_ALL	1
 #	define CONFIG_JFFS2_NAND	1
 #	define CONFIG_JFFS2_DEV		"nand0"

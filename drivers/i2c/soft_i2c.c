@@ -46,7 +46,7 @@
 #include <asm/socregs.h>
 #include <asm/soc.h>
 #endif
-#ifdef	CONFIG_MPC866			/* only valid for MPC866 */
+#if defined(CONFIG_MPC852T) || defined(CONFIG_MPC866)
 #include <asm/io.h>
 #endif
 #include <i2c.h>
@@ -391,8 +391,18 @@ int  i2c_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
 			}
 			shift -= 8;
 		}
-		send_stop();	/* reportedly some chips need a full stop */
+
+		/* Some I2C chips need a stop/start sequence here,
+		 * other chips don't work with a full stop and need
+		 * only a start.  Default behaviour is to send the
+		 * stop/start sequence.
+		 */
+#ifdef CONFIG_SOFT_I2C_READ_REPEATED_START
 		send_start();
+#else
+		send_stop();
+		send_start();
+#endif
 	}
 	/*
 	 * Send the chip address again, this time for a read cycle.

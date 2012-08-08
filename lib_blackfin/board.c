@@ -13,10 +13,10 @@
 #include <command.h>
 #include <devices.h>
 #include <environment.h>
-#include <i2c.h>
 #include <malloc.h>
 #include <net.h>
 #include <timestamp.h>
+#include <status_led.h>
 #include <version.h>
 
 #include <asm/cplb.h>
@@ -42,50 +42,6 @@ static inline void serial_early_puts(const char *s)
 	serial_puts("Early: ");
 	serial_puts(s);
 #endif
-}
-
-/* Get the input voltage */
-static u_long get_vco(void)
-{
-	u_long msel;
-	u_long vco;
-
-	msel = (*pPLL_CTL >> 9) & 0x3F;
-	if (0 == msel)
-		msel = 64;
-
-	vco = CONFIG_CLKIN_HZ;
-	vco >>= (1 & *pPLL_CTL);	/* DF bit */
-	vco = msel * vco;
-	return vco;
-}
-
-/* Get the Core clock */
-u_long get_cclk(void)
-{
-	u_long csel, ssel;
-	if (*pPLL_STAT & 0x1)
-		return CONFIG_CLKIN_HZ;
-
-	ssel = *pPLL_DIV;
-	csel = ((ssel >> 4) & 0x03);
-	ssel &= 0xf;
-	if (ssel && ssel < (1 << csel))	/* SCLK > CCLK */
-		return get_vco() / ssel;
-	return get_vco() >> csel;
-}
-
-/* Get the System clock */
-u_long get_sclk(void)
-{
-	u_long ssel;
-
-	if (*pPLL_STAT & 0x1)
-		return CONFIG_CLKIN_HZ;
-
-	ssel = (*pPLL_DIV & 0xf);
-
-	return get_vco() / ssel;
 }
 
 static void *mem_malloc_start, *mem_malloc_end, *mem_malloc_brk;
@@ -114,7 +70,11 @@ void *sbrk(ptrdiff_t increment)
 static int display_banner(void)
 {
 	printf("\n\n%s\n\n", version_string);
-	printf("CPU:   ADSP " MK_STR(CONFIG_BFIN_CPU) " (Detected Rev: 0.%d)\n", bfin_revid());
+	printf("CPU:   ADSP " MK_STR(CONFIG_BFIN_CPU) " "
+		"(Detected Rev: 0.%d) "
+		"(%s boot)\n",
+		bfin_revid(),
+		get_bfin_boot_mode(CONFIG_BFIN_BOOT_MODE));
 	return 0;
 }
 
@@ -257,6 +217,7 @@ void board_init_f(ulong bootflag)
 {
 	ulong addr;
 	bd_t *bd;
+	char buf[32];
 
 #ifdef CONFIG_BOARD_EARLY_INIT_F
 	serial_early_puts("Board early init flash\n");
@@ -278,9 +239,13 @@ void board_init_f(ulong bootflag)
 	dcache_enable();
 #endif
 
+#ifdef DEBUG
+	if (CONFIG_SYS_GBL_DATA_SIZE < sizeof(*gd))
+		hang();
+#endif
 	serial_early_puts("Init global data\n");
 	gd = (gd_t *) (CONFIG_SYS_GBL_DATA_ADDR);
-	memset((void *)gd, 0, sizeof(gd_t));
+	memset((void *)gd, 0, CONFIG_SYS_GBL_DATA_SIZE);
 
 	/* Board data initialization */
 	addr = (CONFIG_SYS_GBL_DATA_ADDR + sizeof(gd_t));
@@ -315,8 +280,9 @@ void board_init_f(ulong bootflag)
 	checkboard();
 	timer_init();
 
-	printf("Clock: VCO: %lu MHz, Core: %lu MHz, System: %lu MHz\n",
-	       get_vco() / 1000000, get_cclk() / 1000000, get_sclk() / 1000000);
+	printf("Clock: VCO: %s MHz, ", strmhz(buf, get_vco()));
+	printf("Core: %s MHz, ", strmhz(buf, get_cclk()));
+	printf("System: %s MHz\n", strmhz(buf, get_sclk()));
 
 	printf("RAM:   ");
 	print_size(initdram(0), "\n");
@@ -328,16 +294,6 @@ void board_init_f(ulong bootflag)
 
 	board_init_r((gd_t *) gd, 0x20000010);
 }
-
-#if defined(CONFIG_SOFT_I2C) || defined(CONFIG_HARD_I2C)
-static int init_func_i2c(void)
-{
-	puts("I2C:   ");
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
-	puts("ready\n");
-	return (0);
-}
-#endif
 
 void board_init_r(gd_t * id, ulong dest_addr)
 {
@@ -354,14 +310,14 @@ void board_init_r(gd_t * id, ulong dest_addr)
 #endif
 
 #if	!defined(CONFIG_SYS_NO_FLASH)
-	/* There are some other pointer constants we must deal with */
-	/* configure available FLASH banks */
+	/* Initialize the flash and protect u-boot by default */
 	extern flash_info_t flash_info[];
 	ulong size = flash_init();
 	puts("Flash: ");
 	print_size(size, "\n");
 	flash_protect(FLAG_PROTECT_SET, CONFIG_SYS_FLASH_BASE,
-		      CONFIG_SYS_FLASH_BASE + 0x1ffff, &flash_info[0]);
+		CONFIG_SYS_FLASH_BASE + CONFIG_SYS_MONITOR_LEN - 1,
+		&flash_info[0]);
 	bd->bi_flashstart = CONFIG_SYS_FLASH_BASE;
 	bd->bi_flashsize = size;
 	bd->bi_flashoffset = 0;
@@ -418,6 +374,11 @@ void board_init_r(gd_t * id, ulong dest_addr)
 	/* Initialize the console (after the relocation and devices init) */
 	console_init_r();
 
+#ifdef CONFIG_STATUS_LED
+	status_led_set(STATUS_LED_BOOT, STATUS_LED_BLINKING);
+	status_led_set(STATUS_LED_CRASH, STATUS_LED_OFF);
+#endif
+
 	/* Initialize from environment */
 	if ((s = getenv("loadaddr")) != NULL)
 		load_addr = simple_strtoul(s, NULL, 16);
@@ -434,14 +395,19 @@ void board_init_r(gd_t * id, ulong dest_addr)
 #ifdef CONFIG_CMD_NET
 	printf("Net:   ");
 	eth_initialize(gd->bd);
-	if (getenv("ethaddr"))
+	if ((s = getenv("ethaddr"))) {
+# ifndef CONFIG_NET_MULTI
+		size_t i;
+		char *e;
+		for (i = 0; i < 6; ++i) {
+			bd->bi_enetaddr[i] = simple_strtoul(s, &e, 16);
+			s = (*e) ? e + 1 : e;
+		}
+# endif
 		printf("MAC:   %02X:%02X:%02X:%02X:%02X:%02X\n",
 			bd->bi_enetaddr[0], bd->bi_enetaddr[1], bd->bi_enetaddr[2],
 			bd->bi_enetaddr[3], bd->bi_enetaddr[4], bd->bi_enetaddr[5]);
-#endif
-
-#if defined(CONFIG_SOFT_I2C) || defined(CONFIG_HARD_I2C)
-	init_func_i2c();
+	}
 #endif
 
 	display_global_data();
@@ -458,6 +424,10 @@ void board_init_r(gd_t * id, ulong dest_addr)
 
 void hang(void)
 {
+#ifdef CONFIG_STATUS_LED
+	status_led_set(STATUS_LED_BOOT, STATUS_LED_OFF);
+	status_led_set(STATUS_LED_CRASH, STATUS_LED_BLINKING);
+#endif
 	puts("### ERROR ### Please RESET the board ###\n");
 	while (1)
 		/* If a JTAG emulator is hooked up, we'll automatically trigger

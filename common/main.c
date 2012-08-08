@@ -158,7 +158,19 @@ static __inline__ int abortboot(int bootdelay)
 	/* In order to keep up with incoming data, check timeout only
 	 * when catch up.
 	 */
-	while (!abort && get_ticks() <= etime) {
+	do {
+		if (tstc()) {
+			if (presskey_len < presskey_max) {
+				presskey [presskey_len ++] = getc();
+			}
+			else {
+				for (i = 0; i < presskey_max - 1; i ++)
+					presskey [i] = presskey [i + 1];
+
+				presskey [i] = getc();
+			}
+		}
+
 		for (i = 0; i < sizeof(delaykey) / sizeof(delaykey[0]); i ++) {
 			if (delaykey[i].len > 0 &&
 			    presskey_len >= delaykey[i].len &&
@@ -178,19 +190,8 @@ static __inline__ int abortboot(int bootdelay)
 				abort = 1;
 			}
 		}
+	} while (!abort && get_ticks() <= etime);
 
-		if (tstc()) {
-			if (presskey_len < presskey_max) {
-				presskey [presskey_len ++] = getc();
-			}
-			else {
-				for (i = 0; i < presskey_max - 1; i ++)
-					presskey [i] = presskey [i + 1];
-
-				presskey [i] = getc();
-			}
-		}
-	}
 #  if DEBUG_BOOTKEYS
 	if (!abort)
 		puts("key timeout\n");
@@ -1368,7 +1369,7 @@ int run_command (const char *cmd, int flag)
 
 		/* found - check max args */
 		if (argc > cmdtp->maxargs) {
-			printf ("Usage:\n%s\n", cmdtp->usage);
+			cmd_usage(cmdtp);
 			rc = -1;
 			continue;
 		}
@@ -1412,7 +1413,7 @@ int do_run (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	int i;
 
 	if (argc < 2) {
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 

@@ -46,6 +46,9 @@ int checkboard(void)
 		"System Version: 0x%02x, FPGA Version: 0x%02x\n",
 		in8(PIXIS_BASE + PIXIS_ID), in8(PIXIS_BASE + PIXIS_VER),
 		in8(PIXIS_BASE + PIXIS_PVER));
+#ifdef CONFIG_PHYS_64BIT
+	printf ("       36-bit physical address map\n");
+#endif
 	return 0;
 }
 
@@ -163,22 +166,22 @@ void pci_init_board(void)
 		}
 		debug("\n");
 
-		/* inbound */
-		r += fsl_pci_setup_inbound_windows(r);
-
 		/* outbound memory */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCI1_MEM_BASE,
+			       CONFIG_SYS_PCI1_MEM_BUS,
 			       CONFIG_SYS_PCI1_MEM_PHYS,
 			       CONFIG_SYS_PCI1_MEM_SIZE,
 			       PCI_REGION_MEM);
 
 		/* outbound io */
 		pci_set_region(r++,
-			       CONFIG_SYS_PCI1_IO_BASE,
+			       CONFIG_SYS_PCI1_IO_BUS,
 			       CONFIG_SYS_PCI1_IO_PHYS,
 			       CONFIG_SYS_PCI1_IO_SIZE,
 			       PCI_REGION_IO);
+
+		/* inbound */
+		r += fsl_pci_setup_inbound_windows(r);
 
 		hose->region_count = r - hose->regions;
 
@@ -195,7 +198,7 @@ void pci_init_board(void)
 		 * Activate ULI1575 legacy chip by performing a fake
 		 * memory access.  Needed to make ULI RTC work.
 		 */
-		in_be32((unsigned *) ((char *)(CONFIG_SYS_PCI1_MEM_BASE
+		in_be32((unsigned *) ((char *)(CONFIG_SYS_PCI1_MEM_VIRT
 				       + CONFIG_SYS_PCI1_MEM_SIZE - 0x1000000)));
 
 	} else {
@@ -212,22 +215,22 @@ void pci_init_board(void)
 	struct pci_controller *hose = &pci2_hose;
 	struct pci_region *r = hose->regions;
 
-	/* inbound */
-	r += fsl_pci_setup_inbound_windows(r);
-
 	/* outbound memory */
 	pci_set_region(r++,
-		       CONFIG_SYS_PCI2_MEM_BASE,
+		       CONFIG_SYS_PCI2_MEM_BUS,
 		       CONFIG_SYS_PCI2_MEM_PHYS,
 		       CONFIG_SYS_PCI2_MEM_SIZE,
 		       PCI_REGION_MEM);
 
 	/* outbound io */
 	pci_set_region(r++,
-		       CONFIG_SYS_PCI2_IO_BASE,
+		       CONFIG_SYS_PCI2_IO_BUS,
 		       CONFIG_SYS_PCI2_IO_PHYS,
 		       CONFIG_SYS_PCI2_IO_SIZE,
 		       PCI_REGION_IO);
+
+	/* inbound */
+	r += fsl_pci_setup_inbound_windows(r);
 
 	hose->region_count = r - hose->regions;
 
@@ -362,4 +365,12 @@ int board_eth_init(bd_t *bis)
 	/* Initialize TSECs */
 	cpu_eth_init(bis);
 	return pci_eth_init(bis);
+}
+
+void board_reset(void)
+{
+	out8(PIXIS_BASE + PIXIS_RST, 0);
+
+	while (1)
+		;
 }
