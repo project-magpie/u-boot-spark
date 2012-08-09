@@ -28,7 +28,7 @@ int do_st_mtest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	ulong i, count;
 
 	if (argc !=4) {
-		printf("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return 1;
 	}
 
@@ -55,9 +55,8 @@ int do_st_mtest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	st_mtest, 4, 1, do_st_mtest,
-	"st_mtest- STMicro Memory tests\n",
-	"start length delay\n"
-	"    - STMicro memory tests\n"
+	"STMicro Memory tests",
+	"start length delay - STMicro memory tests\n"
 	"      all values in decimal (prepend '0x' for hex)\n"
 	"      delay specified in ms\n"
 );

@@ -173,7 +173,7 @@ extern int do_pmb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	pmb, 1, 0, do_pmb,
-	"pmb     - displays the contents of the PMB\n",
+	"displays the contents of the PMB",
 	"- displays the contents of the PMB (when V==1)\n"
 );
 

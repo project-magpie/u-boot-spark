@@ -234,7 +234,7 @@ extern int do_copybbt (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 	else
 	{
-		printf ("Usage:\n%s\n", cmdtp->usage);
+		cmd_usage(cmdtp);
 		return (1);		/* bad command usage */
 	}
 
@@ -244,7 +244,7 @@ extern int do_copybbt (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 U_BOOT_CMD(
 	copybbt, 3, 0, do_copybbt,
-	"copybbt - copies abridged version of NAND BBT\n",
+	"copies abridged version of NAND BBT",
 	"info [addr] - shows status of copied BBT in RAM\n"
 	"copybbt copy [addr] - copies BBT into RAM copy of u-boot.bin\n"
 	"\t\t      this may be done prior to burning to NAND\n"
