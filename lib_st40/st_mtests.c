@@ -34,8 +34,8 @@ int do_st_memory_test(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	start = (unsigned long *)simple_strtoul(argv[1], NULL, 10);
 	length = simple_strtoul(argv[2], NULL, 10);
 
-	printf("\ndo_st_memory_test: Start: 0x%08x - Length: 0x%08x\n",
-	       start, length);
+	printf("\ndo_st_memory_test: Start: 0x%08lx - Length: 0x%08lx\n",
+	       (ulong)start, length);
 	ret = memory_test(start, length);
 	return(ret);
 }
@@ -82,8 +82,8 @@ static int stats_first_test = 0;
 void report(volatile unsigned long *address, unsigned long pattern,
 	    unsigned long value, char *message)
 {
-	printf("\r@ 0x%08x  W 0x%08x  R 0x%08x  D 0x%08x   %s\n",
-	       address, pattern, value, (pattern ^ value), message);
+	printf("\r@ 0x%08lx  W 0x%08lx  R 0x%08lx  D 0x%08lx   %s\n",
+	       (ulong)address, pattern, value, (pattern ^ value), message);
 }
 /*}}}  */
 
@@ -100,8 +100,8 @@ int test_pattern(unsigned long *block_start, unsigned long block_length,
 	start_address = block_start;
 	end_address = start_address + (block_length / sizeof (unsigned int));
 
-	printf("Data Bus Pattern test (0x%08lx) Address from 0x%08x to 0x%08x\n",
-		pattern, start_address, end_address);
+	printf("Data Bus Pattern test (0x%08lx) Address from 0x%08lx to 0x%08lx\n",
+		pattern, (ulong)start_address, (ulong)end_address);
 
 	/* Write Pattern */
 	for (address = start_address; address < end_address - 1; address++)
@@ -123,7 +123,7 @@ int test_pattern(unsigned long *block_start, unsigned long block_length,
 			/*}}}  */
 		}
 	}
-	printf ("Found %X errors for Pattern %x\n", error, pattern);
+	printf ("Found %X errors for Pattern %lx\n", error, pattern);
 	return error;
 }
 /*}}}  */
@@ -193,8 +193,8 @@ int address_tests(unsigned long *block_start, unsigned long block_length)
 	start_address = block_start;
 	memory_size = block_length;
 	end_address = start_address + (memory_size / sizeof (unsigned int));
-	printf("Testing memory address bus from 0x%08x to 0x%08x\n",
-	       start_address, end_address);
+	printf("Testing memory address bus from 0x%08lx to 0x%08lx\n",
+	       (ulong)start_address, (ulong)end_address);
 
 	/*Alternate location */
 	printf("Alternate address test\n");
@@ -325,8 +325,8 @@ int block_move_tests(unsigned long *block_start, unsigned long block_length)
 	src_end = (start_address + memory_size) - 1;
 	dst_start = (src_end + 1);
 	dst_end = end_address;
-	printf("Source Block from 0x%08x to 0x%08x\n", src_start, src_end);
-	printf("Destination Block from 0x%08x to 0x%08x\n", dst_start, dst_end);
+	printf("Source Block from 0x%08lx to 0x%08lx\n", (ulong)src_start, (ulong)src_end);
+	printf("Destination Block from 0x%08lx to 0x%08lx\n", (ulong)dst_start, (ulong)dst_end);
 
 	/*{{{	Initialise Memory*/
 	/*Initialise Memory*/
@@ -612,7 +612,6 @@ int memory_test(unsigned long *block_start, unsigned long block_length)
 {
 	unsigned long error = 0;
 	unsigned long *start_address;
-	unsigned long *end_address;
 	unsigned long memory_size;
 	int buswidth;
 
@@ -654,7 +653,6 @@ int memory_test(unsigned long *block_start, unsigned long block_length)
 	/* Work out start and end addresses */
 	start_address = block_start;
 	memory_size = 1024;
-	end_address = start_address + (memory_size / sizeof (unsigned int));
 
 	/* Pattern Tests */
 	error += test_pattern(start_address, memory_size, 0x00000000, "Test pattern (00)");

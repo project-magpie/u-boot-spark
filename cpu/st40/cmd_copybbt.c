@@ -61,8 +61,8 @@ static int check_skip_bb(const ulong addr)
 		if (signature[i] != i)
 		{
 			printf ("Error: "
-				"Invalid NAND signature at 0x%08x (%x != %x)\n",
-				&signature[i],
+				"Invalid NAND signature at 0x%08lx (%x != %x)\n",
+				(ulong)signature[i],
 				signature[i],
 				i);
 			return (1);	/* image is INVALID */
@@ -77,8 +77,8 @@ static int check_skip_bb(const ulong addr)
 		if (ptr->pattern[i] != pattern[i])
 		{
 			printf ("Error: "
-				"Invalid SKIP_BB pattern at 0x%08x (%x != %x)\n",
-				ptr->pattern,
+				"Invalid SKIP_BB pattern at 0x%08lx (%x != %x)\n",
+				(ulong)ptr->pattern,
 				ptr->pattern[i],
 				pattern[i]);
 			return (1);	/* image is INVALID */
@@ -141,7 +141,7 @@ static int do_info(const ulong addr)
 	if (check_skip_bb(addr))	/* is image invalid ? */
 		return (1);		/* bad image */
 
-	printf( "info: The skip_bb structure at 0x%x looks okay,\n"
+	printf( "info: The skip_bb structure at 0x%lx looks okay,\n"
 		"info: There is space for %u bad blocks (each of %u KiB).\n",
 		addr + NAND_BB_SKIP_OFFSET,
 		ptr->num_blocks,
@@ -194,7 +194,7 @@ static int do_copy(const ulong addr)
 		if (skip)	/* do we skip it ? */
 		{
 			printf( "info: "
-				"tagging block #%u as bad (at 0x%x)\n",
+				"tagging block #%u as bad (at 0x%lx)\n",
 				i,
 				start);
 		}
@@ -207,9 +207,9 @@ static int do_copy(const ulong addr)
 		if (read != skip)
 		{
 			printf( "Error: "
-				"For block #%u, poke to 0x%08x failed! (%u != %u)\n",
+				"For block #%u, poke to 0x%08lx failed! (%lu != %lu)\n",
 				i,
-				&ptr->array[i],
+				(ulong)&ptr->array[i],
 				skip,
 				read);
 			return (1);		/* poke FAILED */
