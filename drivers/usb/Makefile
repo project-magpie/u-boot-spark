@@ -36,6 +36,7 @@ COBJS-$(CONFIG_USB_R8A66597_HCD) += r8a66597-hcd.o
 COBJS-$(CONFIG_USB_SL811HS) += sl811_usb.o
 COBJS-$(CONFIG_USB_EHCI_FSL) += usb_ehci_fsl.o
 COBJS-$(CONFIG_USB_EHCI_PCI) += usb_ehci_pci.o
+COBJS-$(CONFIG_USB_EHCI_STM) += usb_ehci_stm.o
 COBJS-$(CONFIG_USB_EHCI_IXP4XX) += usb_ehci_ixp.o
 COBJS-$(CONFIG_MUSB_HCD) += musb_hcd.o musb_core.o
 COBJS-$(CONFIG_USB_DAVINCI) += davinci_usb.o
