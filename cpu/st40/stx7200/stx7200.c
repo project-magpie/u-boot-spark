@@ -151,8 +151,7 @@ int soc_init(void)
 }
 
 
-#if defined(CONFIG_USB_OHCI_NEW)
-
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 #ifdef CONFIG_USB_STI7200_CUT1_SOFT_JTAG_RESET_WORKAROUND
 /*
  * The following function *may* be required for boards
@@ -531,8 +530,7 @@ extern void stx7200_usb_init(void)
 	/* Set the Chunk Size Config to 4 packets per chunk */
 	writel(AHB2STBUS_CHUNKSIZE_4, AHB2STBUS_CHUNKSIZE);
 }
-
-#endif /* defined(CONFIG_USB_OHCI_NEW) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
 #if defined(CONFIG_ST40_STM_SATA)

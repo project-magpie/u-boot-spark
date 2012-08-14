@@ -918,7 +918,7 @@ extern int soc_init(void)
 }
 
 
-#if defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 extern int stxh415_usb_init(const int port)
 {
 #if 0	/* QQQ - TO IMPLEMENT */
@@ -978,8 +978,7 @@ extern int stxh415_usb_init(const int port)
 	return 0;
 #endif	/* QQQ - TO IMPLEMENT */
 }
-
-#endif /* defined(CONFIG_USB_OHCI_NEW) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
 #if defined(CONFIG_ST40_STM_SATA)

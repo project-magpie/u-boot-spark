@@ -411,7 +411,7 @@ int soc_init(void)
 }
 
 
-#if defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 extern void stx7141_usb_init(void)
 {
 	unsigned long reg;
@@ -468,8 +468,7 @@ extern void stx7141_usb_init(void)
                 USB_FLAGS_STBUS_CONFIG_PKTS_PER_CHUNK_8 |
                 USB_FLAGS_STBUS_CONFIG_OPCODE_LD32_ST32);
 }
-
-#endif /* defined(CONFIG_USB_OHCI_NEW) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
 #if defined(CONFIG_ST40_STM_SATA)

@@ -851,7 +851,7 @@ extern int soc_init(void)
 }
 
 
-#if defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 extern int stx7108_usb_init(const int port)
 {
 	static int initialized = 0;
@@ -909,8 +909,7 @@ extern int stx7108_usb_init(const int port)
 
 	return 0;
 }
-
-#endif /* defined(CONFIG_USB_OHCI_NEW) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
 #if defined(CONFIG_ST40_STM_SATA)

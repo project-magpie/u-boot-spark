@@ -32,8 +32,7 @@
 #define mdelay(n) ({unsigned long msec=(n); while (msec--) udelay(1000);})
 
 
-#if defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT)
-
+#if (defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT)) || defined(CONFIG_USB_EHCI)
 extern int usb_cpu_init(void)
 {
 #if defined(CONFIG_ST40_STX5197)
@@ -84,17 +83,26 @@ extern int usb_cpu_init(void)
 #endif
 	return 0;
 }
+#endif /* (CONFIG_USB_OHCI_NEW && CONFIG_SYS_USB_OHCI_CPU_INIT) || CONFIG_USB_EHCI */
 
+
+#if defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT)
 extern int usb_cpu_stop(void)
 {
 	return 0;
 }
+#endif /* defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT) */
 
+
+#if defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT)
 extern int usb_cpu_init_fail(void)
 {
 	return 0;
 }
+#endif /* defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT) */
 
+
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 extern int ST40_start_host_control(unsigned int flags)
 {
 	static int initialized = 0;
@@ -167,6 +175,9 @@ extern int ST40_start_host_control(unsigned int flags)
 
 	return 0;
 }
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
-#endif /* defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT) */
+
+#if defined(CONFIG_USB_EHCI)
+#endif /* defined(CONFIG_USB_EHCI) */
 

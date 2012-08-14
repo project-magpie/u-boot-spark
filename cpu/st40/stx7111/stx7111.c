@@ -133,7 +133,7 @@ int soc_init(void)
 }
 
 
-#if defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 extern void stx7111_usb_init(void)
 {
 	unsigned long reg, req_reg;
@@ -189,8 +189,7 @@ extern void stx7111_usb_init(void)
 		reg = readl(AHB2STBUS_STBUS_CONFIG);
 	} while ((reg & 0x7FFFFFFF) != req_reg);
 }
-
-#endif /* defined(CONFIG_USB_OHCI_NEW) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
 /**********************************************************************/

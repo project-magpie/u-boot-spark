@@ -210,7 +210,7 @@ int soc_init(void)
 }
 
 
-#if defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 extern int stx7105_usb_init(int port, int over_current, int power_ctrl)
 {
 	unsigned long reg;
@@ -269,8 +269,7 @@ extern int stx7105_usb_init(int port, int over_current, int power_ctrl)
 
 	return 0;
 }
-
-#endif /* defined(CONFIG_USB_OHCI_NEW) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
 #if defined(CONFIG_ST40_STM_SATA)

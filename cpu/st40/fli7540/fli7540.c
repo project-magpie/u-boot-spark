@@ -263,7 +263,7 @@ extern void fli7540_configure_ethernet(
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 
-#if defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 extern void fli7540_usb_init(
 	const int port,
 	const enum fli7540_usb_ovrcur_mode ovrcur_mode)
@@ -366,7 +366,7 @@ switch (ovrcur_mode) {
 		USB_FLAGS_STRAP_PLL		|
 		USB_FLAGS_STBUS_CONFIG_THRESHOLD128);
 }
-#endif /* defined(CONFIG_USB_OHCI_NEW) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
 /**********************************************************************/

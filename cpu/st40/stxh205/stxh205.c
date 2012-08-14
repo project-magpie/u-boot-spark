@@ -662,7 +662,7 @@ extern int soc_init(void)
 }
 
 
-#if defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 
 #define SYSCONF_BITS(lsb,msb,value)					\
 do {									\
@@ -755,8 +755,7 @@ extern int stxh205_usb_init(const int port)
 
 	return 0;
 }
-
-#endif /* defined(CONFIG_USB_OHCI_NEW) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
 #if defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C)

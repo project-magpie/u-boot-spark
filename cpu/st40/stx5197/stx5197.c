@@ -101,7 +101,7 @@ static void stmac_eth_hw_setup(const int rmii, const int ext_clk, const int phy_
 #endif	/* CONFIG_DRIVER_NETSTMAC */
 
 
-#if defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 extern void stx5197_usb_init(void)
 {
 	unsigned long sysconf;
@@ -123,7 +123,7 @@ extern void stx5197_usb_init(void)
 		USB_FLAGS_STRAP_PLL		|
 		USB_FLAGS_STBUS_CONFIG_THRESHOLD256);
 }
-#endif /* defined(CONFIG_USB_OHCI_NEW) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
 /**********************************************************************/

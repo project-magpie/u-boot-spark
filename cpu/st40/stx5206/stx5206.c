@@ -173,7 +173,7 @@ int soc_init(void)
 }
 
 
-#if defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 extern void stx5206_usb_init(void)
 {
 	unsigned long sysconf;
@@ -204,6 +204,6 @@ extern void stx5206_usb_init(void)
 		USB_FLAGS_STRAP_8BIT |
 		USB_FLAGS_STBUS_CONFIG_THRESHOLD128);
 }
-#endif /* defined(CONFIG_USB_OHCI_NEW) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
