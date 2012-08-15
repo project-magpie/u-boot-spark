@@ -2,6 +2,8 @@
  * Copyright (c) 2007-2008, Juniper Networks, Inc.
  * Copyright (c) 2008, Excito Elektronik i Skåne AB
  * Copyright (c) 2008, Michael Trimarchi <trimarchimichael@yahoo.it>
+ * Copyright (c) 2012, STMicroelectronics
+ *	Sean McGoogan <Sean.McGoogan@st.com>
  *
  * All rights reserved.
  *
@@ -27,6 +29,31 @@
 #include <malloc.h>
 #include <watchdog.h>
 #include "usb_ehci.h"
+
+
+/*
+ * On the SuperH architecture, we need to pass 'physical' addresses
+ * to the on-chip USB hardware, and not use 'virtual' CPU addresses.
+ *
+ * In 29-bit mode, we just zero the top 3 bits of the virtual address.
+ *
+ * In 32-bit mode, we need to honour the PMB mappings.
+ *	i.e. VA 0x80000000 == PA 0x40000000
+ *
+ * Note: We must not modify at all if the address is 0x00000000.
+ *       It looks like the EHCI driver *never* passes a NULL
+ *       pointer to PHYSICAL_ADDR() (c.f. the OHCI driver!).
+ *       So, we do not test this here (for the time being!).
+ */
+#ifdef __SH4__
+#if defined(CONFIG_ST40_SE_MODE)	/* 32-bit mode */
+#	define PHYSICAL_ADDR(addr)	((0x1ffffffful&(__u32)(addr))|CONFIG_SYS_SE_PHYSICAL_BASE)
+#else					/* 29-bit mode */
+#	define PHYSICAL_ADDR(addr)	( 0x1ffffffful & (__u32)(addr) )
+#endif	/* CONFIG_ST40_SE_MODE */
+#else	/* __SH4__ */
+#	define PHYSICAL_ADDR(addr)	(addr)
+#endif	/* __SH4__ */
 
 
 #define mdelay(n) ({unsigned long msec = (n); while (msec--) udelay(1000); })
@@ -296,7 +323,7 @@ static int ehci_td_buffer(struct qTD *td, void *buf, size_t sz)
 	uint32_t addr, delta, next;
 	int idx;
 
-	addr = (uint32_t) buf;
+	addr = (uint32_t) PHYSICAL_ADDR(buf);
 	idx = 0;
 	while (idx < 5) {
 		td->qt_buffer[idx] = cpu_to_hc32(addr);
@@ -347,7 +374,7 @@ ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer,
 		debug("unable to allocate QH\n");
 		return -1;
 	}
-	qh->qh_link = cpu_to_hc32((uint32_t)&qh_list | QH_LINK_TYPE_QH);
+	qh->qh_link = cpu_to_hc32((uint32_t)PHYSICAL_ADDR(&qh_list) | QH_LINK_TYPE_QH);
 	c = (usb_pipespeed(pipe) != USB_SPEED_HIGH &&
 	     usb_pipeendpoint(pipe) == 0) ? 1 : 0;
 	endpt = (8 << 28) |
@@ -388,7 +415,7 @@ ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer,
 			ehci_free(td, sizeof(*td));
 			goto fail;
 		}
-		*tdp = cpu_to_hc32((uint32_t) td);
+		*tdp = cpu_to_hc32((uint32_t) PHYSICAL_ADDR(td));
 		tdp = &td->qt_next;
 		toggle = 1;
 	}
@@ -413,7 +440,7 @@ ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer,
 			ehci_free(td, sizeof(*td));
 			goto fail;
 		}
-		*tdp = cpu_to_hc32((uint32_t) td);
+		*tdp = cpu_to_hc32((uint32_t) PHYSICAL_ADDR(td));
 		tdp = &td->qt_next;
 	}
 
@@ -432,11 +459,11 @@ ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer,
 		    (3 << 10) |
 		    ((usb_pipein(pipe) ? 0 : 1) << 8) | (0x80 << 0);
 		td->qt_token = cpu_to_hc32(token);
-		*tdp = cpu_to_hc32((uint32_t) td);
+		*tdp = cpu_to_hc32((uint32_t) PHYSICAL_ADDR(td));
 		tdp = &td->qt_next;
 	}
 
-	qh_list.qh_link = cpu_to_hc32((uint32_t) qh | QH_LINK_TYPE_QH);
+	qh_list.qh_link = cpu_to_hc32((uint32_t) PHYSICAL_ADDR(qh) | QH_LINK_TYPE_QH);
 
 	/* Flush dcache */
 	ehci_flush_dcache(&qh_list);
@@ -486,7 +513,7 @@ ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer,
 		goto fail;
 	}
 
-	qh_list.qh_link = cpu_to_hc32((uint32_t)&qh_list | QH_LINK_TYPE_QH);
+	qh_list.qh_link = cpu_to_hc32((uint32_t)PHYSICAL_ADDR(&qh_list) | QH_LINK_TYPE_QH);
 
 	token = hc32_to_cpu(qh->qh_overlay.qt_token);
 	if (!(token & 0x80)) {
@@ -824,7 +851,7 @@ int usb_lowlevel_init(void)
 
 	/* Set head of reclaim list */
 	memset(&qh_list, 0, sizeof(qh_list));
-	qh_list.qh_link = cpu_to_hc32((uint32_t)&qh_list | QH_LINK_TYPE_QH);
+	qh_list.qh_link = cpu_to_hc32((uint32_t)PHYSICAL_ADDR(&qh_list) | QH_LINK_TYPE_QH);
 	qh_list.qh_endpt1 = cpu_to_hc32((1 << 15) | (USB_SPEED_HIGH << 12));
 	qh_list.qh_curtd = cpu_to_hc32(QT_NEXT_TERMINATE);
 	qh_list.qh_overlay.qt_next = cpu_to_hc32(QT_NEXT_TERMINATE);
@@ -832,7 +859,7 @@ int usb_lowlevel_init(void)
 	qh_list.qh_overlay.qt_token = cpu_to_hc32(0x40);
 
 	/* Set async. queue head pointer. */
-	ehci_writel(&hcor->or_asynclistaddr, (uint32_t)&qh_list);
+	ehci_writel(&hcor->or_asynclistaddr, (uint32_t)PHYSICAL_ADDR(&qh_list));
 
 	reg = ehci_readl(&hccr->cr_hcsparams);
 	descriptor.hub.bNbrPorts = HCS_N_PORTS(reg);
