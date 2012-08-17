@@ -368,8 +368,10 @@ ehci_submit_async(struct usb_device *dev, unsigned long pipe, void *buffer,
 	} while (get_timer(ts) < timeout);
 
 	/* Invalidate the memory area occupied by buffer */
-	invalidate_dcache_range(((uint32_t)buffer & ~31),
-		((uint32_t)buffer & ~31) + roundup(length, 32));
+	if (buffer!=NULL) {
+		invalidate_dcache_range(((uint32_t)buffer & ~31),
+			((uint32_t)buffer & ~31) + roundup(length, 32));
+	}
 
 	/* Check that the TD processing happened */
 	if (token & 0x80) {
