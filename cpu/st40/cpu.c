@@ -1,7 +1,8 @@
 /*
- * (C) Copyright 2004 STMicroelectronics
+ * (C) Copyright 2004-2012 STMicroelectronics
  *
  * Andy Sturges <andy.sturges@st.com>
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -116,6 +117,8 @@ extern void sh_flush_cache_all(void)
 	}
 }
 
+
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
 /*
  * sh_disable_data_caches() and sh_enable_data_caches()
  * compliment each other. They are designed to be used in
@@ -159,9 +162,13 @@ extern void sh_enable_data_caches(void)
 
 	sh_data_caches_on = 1;	/* caches are ON */
 }
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
 
+
+#if 0		/* QQQ - No longer needed ??? */
 int cleanup_before_linux (void)
 {
 	return (0);
 }
+#endif
 

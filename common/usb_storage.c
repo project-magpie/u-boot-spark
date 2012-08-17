@@ -1009,7 +1009,9 @@ unsigned long usb_stor_read(int device, lbaint_t blknr,
 	struct usb_device *dev;
 	int retry, i;
 	ccb *srb = &usb_ccb;
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
 	const int my_data_caches_on = sh_data_caches_on;
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
 
 	if (blkcnt == 0)
 		return 0;
@@ -1026,8 +1028,10 @@ unsigned long usb_stor_read(int device, lbaint_t blknr,
 			break;
 	}
 
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
 	if (my_data_caches_on)	/* is data cache on ? */
 		sh_disable_data_caches();
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
 
 	usb_disable_asynch(1); /* asynch transfer not allowed */
 	srb->lun = usb_dev_desc[device].lun;
@@ -1035,8 +1039,10 @@ unsigned long usb_stor_read(int device, lbaint_t blknr,
 	start = blknr;
 	blks = blkcnt;
 	if (usb_test_unit_ready(srb, (struct us_data *)dev->privptr)) {
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
 		if (my_data_caches_on)	/* were the data caches on ? */
 			sh_enable_data_caches();
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
 		printf("Device NOT ready\n   Request Sense returned %02X %02X"
 		       " %02X\n", srb->sense_buf[2], srb->sense_buf[12],
 		       srb->sense_buf[13]);
@@ -1073,8 +1079,10 @@ retry_it:
 		buf_addr += srb->datalen;
 	} while (blks != 0);
 
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
 	if (my_data_caches_on)	/* were the data caches on ? */
 		sh_enable_data_caches();
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
 
 	USB_STOR_PRINTF("usb_read: end startblk %lx, blccnt %x buffer %lx\n",
 			start, smallblks, buf_addr);
