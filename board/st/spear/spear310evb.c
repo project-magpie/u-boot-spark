@@ -32,20 +32,22 @@
 #include <asm/arch/generic.h>
 #include <asm/arch/misc.h>
 
+#if defined(CONFIG_CMD_NAND)
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
+#endif
 
 int board_init(void)
 {
 	return spear_board_init(MACH_TYPE_SPEAR310);
 }
 
+#if defined(CONFIG_CMD_NAND)
 /*
  * board_nand_init - Board specific NAND initialization
  * @nand:	mtd private chip structure
  *
  * Called by nand_init_chip to initialize the board specific functions
  */
-
 void board_nand_init()
 {
 	struct misc_regs *const misc_regs_p =
@@ -63,7 +65,9 @@ void board_nand_init()
 #endif
 	return;
 }
+#endif
 
+#if defined(CONFIG_CMD_NET)
 int board_eth_init(bd_t *bis)
 {
 	int ret = 0;
@@ -93,3 +97,4 @@ int board_eth_init(bd_t *bis)
 #endif
 	return ret;
 }
+#endif

@@ -35,7 +35,9 @@
 #define PLGPIO_SEL_36	0xb3000028
 #define PLGPIO_IO_36	0xb3000038
 
+#if defined(CONFIG_CMD_NAND)
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
+#endif
 
 static void spear_phy_reset(void)
 {
@@ -49,20 +51,19 @@ int board_init(void)
 	return spear_board_init(MACH_TYPE_SPEAR320);
 }
 
+#if defined(CONFIG_CMD_NAND)
 /*
  * board_nand_init - Board specific NAND initialization
  * @nand:	mtd private chip structure
  *
  * Called by nand_init_chip to initialize the board specific functions
  */
-
 void board_nand_init()
 {
 	struct misc_regs *const misc_regs_p =
 	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 	struct nand_chip *nand = &nand_chip[0];
 
-#if defined(CONFIG_NAND_FSMC)
 	if (((readl(&misc_regs_p->auto_cfg_reg) & MISC_SOCCFGMSK) ==
 	     MISC_SOCCFG30) ||
 	    ((readl(&misc_regs_p->auto_cfg_reg) & MISC_SOCCFGMSK) ==
@@ -70,11 +71,12 @@ void board_nand_init()
 
 		fsmc_nand_init(nand);
 	}
-#endif
 
 	return;
 }
+#endif
 
+#if defined(CONFIG_CMD_NET)
 int board_eth_init(bd_t *bis)
 {
 	int ret = 0;
@@ -92,3 +94,4 @@ int board_eth_init(bd_t *bis)
 #endif
 	return ret;
 }
+#endif
