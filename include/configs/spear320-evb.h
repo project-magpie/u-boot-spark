@@ -69,6 +69,9 @@
 #define CONFIG_PL011_SERIAL
 #define CONFIG_CONS_INDEX			0
 
+/* GPIO configurations */
+#define CONFIG_SPEAR_GPIO
+
 /* Designware UDC configurations */
 #if defined(CONFIG_SPEAR_USBTTY)
 	#define CONFIG_DW_UDC

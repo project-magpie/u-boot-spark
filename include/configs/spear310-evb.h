@@ -67,6 +67,9 @@
 	#define CONFIG_SYS_I2C_SLAVE		0x02
 #endif
 
+/* GPIO configurations */
+#define CONFIG_SPEAR_GPIO
+
 /* AMBA PL011 configurations */
 #define CONFIG_PL011_SERIAL
 #define CONFIG_CONS_INDEX			0

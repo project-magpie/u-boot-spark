@@ -87,6 +87,11 @@
 	#define CONFIG_CMD_I2C
 #endif
 
+/* Generic configuration for GPIO driver */
+#if defined(CONFIG_SPEAR_GPIO)
+	#define CONFIG_CMD_GPIO
+#endif
+
 /* Generic configuration for ST SMI driver */
 #if defined(CONFIG_ST_SMI)
 	#define CONFIG_SYS_FLASH_ERASE_TOUT	(3 * CONFIG_SYS_HZ)
