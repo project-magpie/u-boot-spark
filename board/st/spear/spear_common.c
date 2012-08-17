@@ -39,6 +39,22 @@ void lowlevel_init(void)
 {
 }
 
+int checkboard(void)
+{
+#ifdef CONFIG_MACH_SPEAR300EVB
+	printf("BOARD: SPEAr300-EVB\n");
+#elif defined(CONFIG_MACH_SPEAR310EVB)
+	printf("BOARD: SPEAr310-EVB\n");
+#elif defined(CONFIG_MACH_SPEAR320EVB)
+	printf("BOARD: SPEAr320-PLC\n");
+#elif defined(CONFIG_MACH_SPEAR600EVB)
+	printf("BOARD: SPEAr600-EVB\n");
+#else
+#error BOARD not supported
+#endif
+	return 0;
+}
+
 int dram_init(void)
 {
 	/* Store complete RAM size and return */
