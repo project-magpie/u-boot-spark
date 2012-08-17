@@ -29,8 +29,8 @@
 #include <asm/io.h>
 #include <linux/mtd/fsmc_nand.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/spr_defs.h>
-#include <asm/arch/spr_misc.h>
+#include <asm/arch/generic.h>
+#include <asm/arch/misc.h>
 
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
 

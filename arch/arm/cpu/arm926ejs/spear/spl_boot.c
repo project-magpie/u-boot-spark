@@ -26,9 +26,10 @@
 #include <common.h>
 #include <image.h>
 #include <linux/compiler.h>
-#include <asm/io.h>
-#include <asm/arch/spr_defs.h>
 #include <linux/mtd/st_smi.h>
+#include <asm/io.h>
+#include <asm/arch/hardware.h>
+#include <asm/arch/generic.h>
 
 static const char kernel_name[] = "Linux";
 static const char loader_name[] = "U-Boot";

@@ -29,8 +29,8 @@
 #include <asm/io.h>
 #include <linux/mtd/fsmc_nand.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/spr_defs.h>
-#include <asm/arch/spr_misc.h>
+#include <asm/arch/generic.h>
+#include <asm/arch/misc.h>
 
 #define PLGPIO_SEL_36	0xb3000028
 #define PLGPIO_IO_36	0xb3000038

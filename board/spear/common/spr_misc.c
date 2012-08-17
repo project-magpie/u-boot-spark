@@ -28,8 +28,7 @@
 #include <linux/mtd/st_smi.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/spr_emi.h>
-#include <asm/arch/spr_defs.h>
+#include <asm/arch/generic.h>
 
 #define CPU		0
 #define DDR		1

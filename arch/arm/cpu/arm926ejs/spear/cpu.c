@@ -24,7 +24,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/spr_misc.h>
+#include <asm/arch/misc.h>
 
 int arch_cpu_init(void)
 {

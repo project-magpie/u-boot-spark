@@ -25,8 +25,8 @@
 #include <common.h>
 #include <asm/hardware.h>
 #include <asm/io.h>
-#include <asm/arch/spr_misc.h>
-#include <asm/arch/spr_defs.h>
+#include <asm/arch/misc.h>
+#include <asm/arch/generic.h>
 
 #define FALSE				0
 #define TRUE				(!FALSE)
