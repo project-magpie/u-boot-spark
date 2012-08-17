@@ -140,8 +140,6 @@ void spear_emi_init(void)
 
 int spear_board_init(ulong mach_type)
 {
-	gd->bd->bi_arch_number = mach_type;
-
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_BOOT_PARAMS_ADDR;
 
