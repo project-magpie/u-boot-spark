@@ -519,6 +519,12 @@ The following options need to be configured:
 		in a single configuration file and the machine type is
 		runtime discoverable, do not have to use this setting.
 
+		CONFIG_BOOT_PARAMS_P		[relevant for ARM only]
+
+		This config option can provide a way to initialize
+		bi_boot_params from the u-boot infrastructure itself. The
+		board still has the option to override it in board_init routine
+
 - vxWorks boot parameters:
 
 		bootvx constructs a valid bootline using the following

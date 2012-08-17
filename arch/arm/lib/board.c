@@ -401,6 +401,11 @@ void board_init_f(ulong bootflag)
 	gd->bd->bi_arch_number = CONFIG_MACH_TYPE; /* board id for Linux */
 #endif
 
+#ifdef CONFIG_BOOT_PARAMS_P
+	/* Boot params passed to Linux */
+	gd->bd->bi_boot_params = CONFIG_BOOT_PARAMS_P;
+#endif
+
 	addr_sp -= sizeof (gd_t);
 	id = (gd_t *) addr_sp;
 	debug("Reserving %zu Bytes for Global Data at: %08lx\n",
@@ -449,6 +454,13 @@ void board_init_f(ulong bootflag)
 #if !defined(CONFIG_SYS_NO_FLASH)
 static char *failed = "*** failed ***\n";
 #endif
+
+static int __def_board_init(bd_t *bis)
+{
+	return -1;
+}
+
+int board_init(void) __attribute__((weak, alias("__def_board_init")));
 
 /*
  ************************************************************************
