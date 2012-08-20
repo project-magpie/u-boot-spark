@@ -55,19 +55,18 @@ static void __flush_wback_region(void *start, int size)
 #endif
 
 /*
- * Write back the dirty D-caches and invalidate them.
+ * Write back the dirty D-caches, AND invalidate them.
  *
- * START: Virtual Address (U0, P1, or P3)
- * SIZE: Size of the region.
+ * START: Lowest requested Virtual Address (U0, P1, or P3) to purge
+ * STOP:  Byte *beyond* the Highest Virtual Address to purge
+ *        i.e. *STOP is *not* purged, if it is the start of a cache line
  */
-static void __flush_purge_region(unsigned long start, int size)
+extern void flush_dcache_range(const ulong start, const ulong stop)
 {
-	unsigned long v;
-	unsigned long begin, end;
+	const ulong begin = start & ~(L1_CACHE_BYTES-1);	/* align down 'start' */
+	const ulong end   = stop;		/* no need to align 'stop' at all */
+	ulong v;
 
-	begin = (unsigned long)start & ~(L1_CACHE_BYTES-1);
-	end = ((unsigned long)start + size + L1_CACHE_BYTES-1)
-		& ~(L1_CACHE_BYTES-1);
 	for (v = begin; v < end; v+=L1_CACHE_BYTES) {
 		asm volatile("ocbp	%0"
 			     : /* no output */
@@ -75,30 +74,35 @@ static void __flush_purge_region(unsigned long start, int size)
 	}
 }
 
-#if 0
 /*
- * No write back please
+ * Invalidate the dirty D-caches, but do *NOT* write them back.
+ *
+ * START: Lowest requested Virtual Address (U0, P1, or P3) to invalidate
+ * STOP:  Byte *beyond* the Highest Virtual Address to invalidate
+ *        i.e. *STOP is *not* invalidated, if it is the start of a cache line
  */
-static void __flush_invalidate_region(void *start, int size)
+extern void invalidate_dcache_range(const ulong start, const ulong stop)
 {
-	unsigned long v;
-	unsigned long begin, end;
+	const ulong begin = start & ~(L1_CACHE_BYTES-1);	/* align down 'start' */
+	const ulong end   = stop;		/* no need to align 'stop' at all */
+	ulong v;
 
-	begin = (unsigned long)start & ~(L1_CACHE_BYTES-1);
-	end = ((unsigned long)start + size + L1_CACHE_BYTES-1)
-		& ~(L1_CACHE_BYTES-1);
 	for (v = begin; v < end; v+=L1_CACHE_BYTES) {
 		asm volatile("ocbi	%0"
 			     : /* no output */
 			     : "m" __m(v));
 	}
 }
-#endif
 
-void flush_cache (ulong start_addr, ulong size)
+/*
+ * Write back, and Invalidate a range in the D-caches.
+ * Given, a START address, and a SIZE.
+ */
+extern void flush_cache (ulong start, ulong size)
 {
-   __flush_purge_region(start_addr, size);
+	flush_dcache_range(start, start+size);
 }
+
 
 /*
  * Flush all the data cache lines
@@ -125,10 +129,10 @@ extern void sh_flush_cache_all(void)
  * pairs to surround code that is designed to work with code
  * that is not cache-coherency aware. e.g. immature drivers.
  *
- * The default assumption is that the chaches are normally ON,
+ * The default assumption is that the caches are normally ON,
  * and the OFF state is a temporary exception.
  *
- * As an optimization, consequtive calls to change the data
+ * As an optimization, consecutive calls to change the data
  * cacheability will do nothing, if the caches are correct.
  * A global variable 'sh_data_caches_on' is used to track
  * the current state of the data caches.
