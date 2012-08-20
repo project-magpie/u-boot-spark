@@ -189,16 +189,21 @@
 #ifdef CONFIG_ST40_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
-#	define CONFIG_USB_OHCI_NEW
 #	define CONFIG_USB_STORAGE
-#	define CONFIG_SYS_USB_OHCI_CPU_INIT
 #	define CONFIG_SYS_USB0_BASE			0xfe000000	/* #0 is rear port  (JD1) */
 #	define CONFIG_SYS_USB1_BASE			0xfe100000	/* #1 is front port (JD2) */
 //#	define CONFIG_SYS_USB2_BASE			0xfe200000	/* #2 is not connected */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB1_BASE
-#	define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
-#	define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
-#	define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
+#	if 1	/* use OHCI (USB 1.x) ? */
+#		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
+#		define CONFIG_SYS_USB_OHCI_CPU_INIT
+#		define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
+#		define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
+#		define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
+#	else	/* else, use EHCI (USB 2.0) */
+#		define CONFIG_USB_EHCI					/* enable USB 2.0, via EHCI */
+#		define CONFIG_USB_EHCI_STM				/* use EHCI for STMicroelectronics */
+#	endif	/* use OHCI/EHCI */
 #endif	/* ifdef CONFIG_ST40_STM_USB */
 
 #if defined(CONFIG_ST40_STM_SATA) ||	\

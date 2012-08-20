@@ -219,18 +219,23 @@
 #ifdef CONFIG_ST40_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
-#	define CONFIG_USB_OHCI_NEW
 #	define CONFIG_USB_STORAGE
-#	define CONFIG_SYS_USB_OHCI_CPU_INIT
 #	define CONFIG_SYS_USB0_BASE			0xfe100000	/* rear (adjacent to RJ-45) */
 #	define CONFIG_SYS_USB1_BASE			0xfea00000	/* front (near corner) */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
 #	define CONFIG_ST40_STX_STX7105_USB_PORT0			/* enable Port #0 */
 #	define CONFIG_ST40_STX_STX7105_USB_OC		1		/* use overcurrent */
 #	define CONFIG_ST40_STX_STX7105_USB_PW		1		/* use power control */
-#	define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
-#	define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
-#	define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
+#	if 1	/* use OHCI (USB 1.x) ? */
+#		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
+#		define CONFIG_SYS_USB_OHCI_CPU_INIT
+#		define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
+#		define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
+#		define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
+#	else	/* else, use EHCI (USB 2.0) */
+#		define CONFIG_USB_EHCI					/* enable USB 2.0, via EHCI */
+#		define CONFIG_USB_EHCI_STM				/* use EHCI for STMicroelectronics */
+#	endif	/* use OHCI/EHCI */
 #endif	/* ifdef CONFIG_ST40_STM_USB */
 
 /*---------------------------------------------------------------
