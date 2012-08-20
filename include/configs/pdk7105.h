@@ -222,7 +222,7 @@
 #	define CONFIG_ST40_STX_STX7105_USB_PORT0			/* enable Port #0 */
 #	define CONFIG_ST40_STX_STX7105_USB_OC		1		/* use over-current */
 #	define CONFIG_ST40_STX_STX7105_USB_PW		1		/* use power control */
-#	if 1	/* use OHCI (USB 1.x) ? */
+#	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
 #		define CONFIG_SYS_USB_OHCI_CPU_INIT
 #		define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
