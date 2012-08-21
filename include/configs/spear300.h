@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009
+ * (C) Copyright 2012
  * Vipin Kumar, STMicroelectronics, <vipin.kumar@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -21,39 +21,22 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __CONFIG_H
-#define __CONFIG_H
+#ifndef __CONFIG_SPEAR300_H
+#define __CONFIG_SPEAR300_H
 
-/*
- * High Level Configuration Options
- * (easy to change)
- */
-#define CONFIG_SPEAR600
+#define CONFIG_SOC_SPEAR300
 
-#if defined(CONFIG_usbtty)
-#define CONFIG_SPEAR_USBTTY
-#endif
-
-#if defined(CONFIG_nand)
-#define CONFIG_ENV_IS_IN_NAND
-#else
-#define CONFIG_ENV_IS_IN_FLASH
-#endif
-
-#include <configs/spear-common.h>
-
-/* Serial Configuration (PL011) */
+/* PL011 configs */
+#if defined(CONFIG_PL011_SERIAL)
 #define CONFIG_SYS_SERIAL0			0xD0000000
-#define CONFIG_SYS_SERIAL1			0xD0080000
-#define CONFIG_PL01x_PORTS			{ (void *)CONFIG_SYS_SERIAL0, \
-						(void *)CONFIG_SYS_SERIAL1 }
+#define CONFIG_PL011_CLOCK			(48 * 1000 * 1000)
+#define CONFIG_PL01x_PORTS			{(void *)CONFIG_SYS_SERIAL0}
+#endif
 
-/* NAND flash configuration */
-#define CONFIG_SYS_FSMC_NAND_SP
-#define CONFIG_SYS_FSMC_NAND_8BIT
-#define CONFIG_SYS_NAND_BASE			0xD2000000
+/* FSMC NAND configs */
+#if defined(CONFIG_NAND_FSMC)
+#define CONFIG_SYS_NAND_BASE			0x80000000
+#endif
 
-/* Environment Settings */
-#define CONFIG_EXTRA_ENV_SETTINGS              CONFIG_EXTRA_ENV_USBTTY
-
-#endif  /* __CONFIG_H */
+#include <configs/spear3xx.h>
+#endif /* __CONFIG_SPEAR300_H */

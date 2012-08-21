@@ -203,7 +203,7 @@ static void sys_init(void)
  */
 int get_socrev(void)
 {
-#if defined(CONFIG_SPEAR600)
+#if defined(CONFIG_SOC_SPEAR600)
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 	u32 soc_id = readl(&misc_p->soc_core_id);
 	u32 pri_socid = (soc_id >> SOC_PRI_SHFT) & 0xFF;
@@ -219,11 +219,11 @@ int get_socrev(void)
 		return SOC_SPEAR600_BA;
 	else
 		return SOC_SPEAR_NA;
-#elif defined(CONFIG_SPEAR300)
+#elif defined(CONFIG_SOC_SPEAR300)
 	return SOC_SPEAR300;
-#elif defined(CONFIG_SPEAR310)
+#elif defined(CONFIG_SOC_SPEAR310)
 	return SOC_SPEAR310;
-#elif defined(CONFIG_SPEAR320)
+#elif defined(CONFIG_SOC_SPEAR320)
 	return SOC_SPEAR320;
 #endif
 }
