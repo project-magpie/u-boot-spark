@@ -33,11 +33,7 @@ COBJS-$(CONFIG_ST_EMI) += emi.o
 
 ifdef CONFIG_SPL_BUILD
 COBJS-y	+= spl.o spl_boot.o
-COBJS-$(CONFIG_SPEAR600) += spear600.o
-COBJS-$(CONFIG_DDR_MT47H64M16) += spr600_mt47h64m16_3_333_cl5_psync.o
-COBJS-$(CONFIG_DDR_MT47H32M16) += spr600_mt47h32m16_333_cl5_psync.o
-COBJS-$(CONFIG_DDR_MT47H32M16) += spr600_mt47h32m16_37e_166_cl4_sync.o
-COBJS-$(CONFIG_DDR_MT47H128M8) += spr600_mt47h128m8_3_266_cl5_async.o
+COBJS-$(CONFIG_SOC_SPEAR600) += spear600.o
 endif
 
 SRCS	:= $(START:.o=.S) $(COBJS-y:.o=.c)

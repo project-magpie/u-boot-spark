@@ -25,12 +25,22 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(BOARD).o
 
-SOBJS-y	:= spear_lowlevel_init.o
-COBJS-y	:= spear_common.o
+SOBJS-y	:=
+COBJS-y	:=
+
+ifdef CONFIG_SPL_BUILD
+COBJS-$(CONFIG_DDR_MT47H64M16) += spear600_mt47h64m16_3_333_cl5_psync.o
+COBJS-$(CONFIG_DDR_MT47H32M16) += spear600_mt47h32m16_333_cl5_psync.o
+COBJS-$(CONFIG_DDR_MT47H32M16) += spear600_mt47h32m16_37e_166_cl4_sync.o
+COBJS-$(CONFIG_DDR_MT47H128M8) += spear600_mt47h128m8_3_266_cl5_async.o
+else
+SOBJS-y	+= spear_lowlevel_init.o
+COBJS-y	+= spear_common.o
 COBJS-$(CONFIG_MACH_SPEAR300EVB) += spear300evb.o
 COBJS-$(CONFIG_MACH_SPEAR310EVB) += spear310evb.o
 COBJS-$(CONFIG_MACH_SPEAR320EVB) += spear320plc.o
 COBJS-$(CONFIG_MACH_SPEAR600EVB) += spear600evb.o
+endif
 
 COBJS	:= $(sort $(COBJS-y))
 SOBJS	:= $(sort $(SOBJS-y))
