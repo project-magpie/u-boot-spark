@@ -65,16 +65,29 @@ void board_nand_init()
 int board_eth_init(bd_t *bis)
 {
 	int ret = 0;
-
+#if defined(CONFIG_SPEAR_MACID_IN_I2CMEM)
+	uchar mac_id[6];
+#endif
 #if defined(CONFIG_DESIGNWARE_ETH)
 	u32 interface = PHY_INTERFACE_MODE_MII;
 #if defined(CONFIG_DW_AUTONEG)
 	interface = PHY_INTERFACE_MODE_GMII;
+#endif
+#if defined(CONFIG_SPEAR_MACID_IN_I2CMEM)
+	if (!eth_getenv_enetaddr("ethaddr", mac_id) && !i2c_read_mac(mac_id))
+		eth_setenv_enetaddr("ethaddr", mac_id);
 #endif
 	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY,
 				interface) >= 0)
 		ret++;
 #endif
 	return ret;
+}
+#endif
+
+#if defined(CONFIG_MISC_INIT_R)
+int misc_init_r(void)
+{
+	return misc_usbtty_init();
 }
 #endif

@@ -51,6 +51,13 @@ int board_init(void)
 	return spear_board_init(MACH_TYPE_SPEAR320);
 }
 
+#if defined(CONFIG_MISC_INIT_R)
+int misc_init_r(void)
+{
+	return misc_usbtty_init();
+}
+#endif
+
 #if defined(CONFIG_CMD_NAND)
 /*
  * board_nand_init - Board specific NAND initialization

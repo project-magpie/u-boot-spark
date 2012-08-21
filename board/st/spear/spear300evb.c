@@ -40,6 +40,13 @@ int board_init(void)
 	return spear_board_init(MACH_TYPE_SPEAR300);
 }
 
+#if defined(CONFIG_MISC_INIT_R)
+int misc_init_r(void)
+{
+	return misc_usbtty_init();
+}
+#endif
+
 #if defined(CONFIG_CMD_NAND)
 /*
  * board_nand_init - Board specific NAND initialization
@@ -73,6 +80,11 @@ int board_eth_init(bd_t *bis)
 
 #if defined(CONFIG_DESIGNWARE_ETH)
 	u32 interface = PHY_INTERFACE_MODE_MII;
+#if defined(CONFIG_SPEAR_MACID_IN_I2CMEM)
+	uchar mac_id[6];
+	if (!eth_getenv_enetaddr("ethaddr", mac_id) && !i2c_read_mac(mac_id))
+		eth_setenv_enetaddr("ethaddr", mac_id);
+#endif
 	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY,
 				interface) >= 0)
 		ret++;
