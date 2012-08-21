@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009
+ * (C) Copyright 2012
  * Vipin Kumar, STMicroelectronics, <vipin.kumar@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -21,17 +21,20 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _ASM_ARCH_HARDWARE_H
-#define _ASM_ARCH_HARDWARE_H
+#ifndef _ASM_ARCH_SPEAR310_H
+#define _ASM_ARCH_SPEAR310_H
 
-#if   defined(CONFIG_SOC_SPEAR600)
-#include <asm/arch/spear600.h>
-#elif defined(CONFIG_SOC_SPEAR300)
-#include <asm/arch/spear300.h>
-#elif defined(CONFIG_SOC_SPEAR310)
-#include <asm/arch/spear310.h>
-#elif defined(CONFIG_SOC_SPEAR320)
-#include <asm/arch/spear320.h>
+#include <asm/arch/spear3xx.h>
+
+#define CONFIG_SYS_FSMC_BASE			0x44000000
+#define CONFIG_SYS_NAND_CLE			(1 << 17)
+#define CONFIG_SYS_NAND_ALE			(1 << 16)
+
+#define CONFIG_SPEAR_EMIBASE			0x4F000000
+#define CONFIG_SYS_MACB0_BASE			0xB0000000
+#define CONFIG_SYS_MACB1_BASE			0xB0800000
+#define CONFIG_SYS_MACB2_BASE			0xB1000000
+#define CONFIG_SYS_MACB3_BASE			0xB1800000
+#define CONFIG_SPEAR_RASBASE			0xB4000000
+
 #endif
-
-#endif /* _ASM_ARCH_HARDWARE_H */

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009
+ * (C) Copyright 2012
  * Vipin Kumar, STMicroelectronics, <vipin.kumar@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -21,17 +21,20 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _ASM_ARCH_HARDWARE_H
-#define _ASM_ARCH_HARDWARE_H
+#ifndef _ASM_ARCH_SPEAR3XX_H
+#define _ASM_ARCH_SPEAR3XX_H
 
-#if   defined(CONFIG_SOC_SPEAR600)
-#include <asm/arch/spear600.h>
-#elif defined(CONFIG_SOC_SPEAR300)
-#include <asm/arch/spear300.h>
-#elif defined(CONFIG_SOC_SPEAR310)
-#include <asm/arch/spear310.h>
-#elif defined(CONFIG_SOC_SPEAR320)
-#include <asm/arch/spear320.h>
+#define CONFIG_SYS_I2C_BASE			0xD0180000
+#define CONFIG_GPIO_BASE			0xD8100000
+#define CONFIG_SPEAR_ETHBASE			0xE0800000
+#define CONFIG_SYS_FIFO_BASE			0xE1000800
+#define CONFIG_SYS_USBD_BASE			0xE1100000
+#define CONFIG_SYS_PLUG_BASE			0xE1200000
+#define CONFIG_SYS_UHC0_EHCI_BASE		0xE1800000
+#define CONFIG_SYS_SMI_BASE			0xFC000000
+#define CONFIG_SPEAR_MPMCBASE			0xFC600000
+#define CONFIG_SPEAR_TIMERBASE			0xFC800000
+#define CONFIG_SPEAR_SYSCNTLBASE		0xFCA00000
+#define CONFIG_SPEAR_MISCBASE			0xFCA80000
+
 #endif
-
-#endif /* _ASM_ARCH_HARDWARE_H */
