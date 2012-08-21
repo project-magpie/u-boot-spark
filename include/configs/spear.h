@@ -154,6 +154,7 @@
 /* Miscellaneous configurable options */
 #define CONFIG_ARCH_CPU_INIT
 #define CONFIG_DISPLAY_CPUINFO
+#define CONFIG_SYS_EXCEPTION_VECTORS_HIGH
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_CMDLINE_TAG

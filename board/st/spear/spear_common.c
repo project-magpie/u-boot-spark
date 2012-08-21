@@ -39,6 +39,10 @@ DECLARE_GLOBAL_DATA_PTR;
 static int i2c_read_mac(uchar *buffer);
 #endif
 
+void lowlevel_init(void)
+{
+}
+
 int dram_init(void)
 {
 	/* Store complete RAM size and return */
