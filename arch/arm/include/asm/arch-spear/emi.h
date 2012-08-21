@@ -24,8 +24,6 @@
 #ifndef __SPEAR_EMI_H__
 #define __SPEAR_EMI_H__
 
-#ifdef CONFIG_SPEAR_EMI
-
 struct emi_bank_regs {
 	u32 tap;
 	u32 tsdp;
@@ -48,7 +46,5 @@ struct emi_regs {
 #define EMI_CNTL_ENBBYTEW	(1 << 2)
 #define EMI_CNTL_ENBBYTER	(1 << 3)
 #define EMI_CNTL_ENBBYTERW	(EMI_CNTL_ENBBYTER | EMI_CNTL_ENBBYTEW)
-
-#endif
 
 #endif

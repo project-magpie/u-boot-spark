@@ -29,6 +29,8 @@ COBJS-y	:= cpu.o \
 	   reset.o \
 	   timer.o
 
+COBJS-$(CONFIG_ST_EMI) += emi.o
+
 ifdef CONFIG_SPL_BUILD
 COBJS-y	+= spl.o spl_boot.o
 COBJS-$(CONFIG_SPEAR600) += spear600.o
