@@ -36,11 +36,6 @@
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
 #endif
 
-int board_init(void)
-{
-	return spear_board_init(MACH_TYPE_SPEAR310);
-}
-
 #if defined(CONFIG_MISC_INIT_R)
 int misc_init_r(void)
 {

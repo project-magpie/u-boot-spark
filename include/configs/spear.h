@@ -29,7 +29,7 @@
 #define CONFIG_PLAT_SPEAR
 
 #define CONFIG_SYS_TEXT_BASE			0x00700000
-#define CONFIG_BOOT_PARAMS_ADDR			0x00000100
+#define CONFIG_BOOT_PARAMS_P			0x00000100
 
 /* Timer, HZ specific defines */
 #define CONFIG_SYS_HZ				1000

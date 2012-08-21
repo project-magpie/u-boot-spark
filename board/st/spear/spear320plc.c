@@ -48,7 +48,7 @@ static void spear_phy_reset(void)
 int board_init(void)
 {
 	spear_phy_reset();
-	return spear_board_init(MACH_TYPE_SPEAR320);
+	return 0;
 }
 
 #if defined(CONFIG_MISC_INIT_R)

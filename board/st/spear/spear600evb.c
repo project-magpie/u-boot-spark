@@ -35,11 +35,6 @@
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
 #endif
 
-int board_init(void)
-{
-	return spear_board_init(MACH_TYPE_SPEAR600);
-}
-
 #if defined(CONFIG_CMD_NAND)
 /*
  * board_nand_init - Board specific NAND initialization
