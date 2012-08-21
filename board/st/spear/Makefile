@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2006
+# (C) Copyright 2000-2004
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -23,17 +23,17 @@
 
 include $(TOPDIR)/config.mk
 
-ifneq ($(OBJTREE),$(SRCTREE))
-$(shell mkdir -p $(obj)board/$(VENDOR)/common)
-endif
+LIB	= $(obj)lib$(BOARD).o
 
-LIB	= $(obj)lib$(VENDOR).o
+SOBJS-y	:= spear_lowlevel_init.o
+COBJS-y	:= spear_common.o
+COBJS-$(CONFIG_MACH_SPEAR300EVB) += spear300evb.o
+COBJS-$(CONFIG_MACH_SPEAR310EVB) += spear310evb.o
+COBJS-$(CONFIG_MACH_SPEAR320EVB) += spear320plc.o
+COBJS-$(CONFIG_MACH_SPEAR600EVB) += spear600evb.o
 
-ifndef CONFIG_SPL_BUILD
-COBJS	:= spr_misc.o
-SOBJS	:= spr_lowlevel_init.o
-endif
-
+COBJS	:= $(sort $(COBJS-y))
+SOBJS	:= $(sort $(SOBJS-y))
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
 SOBJS	:= $(addprefix $(obj),$(SOBJS))
@@ -42,7 +42,8 @@ $(LIB):	$(obj).depend $(OBJS) $(SOBJS)
 	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
 
 #########################################################################
-# This is for $(obj).depend target
+
+# defines $(obj).depend target
 include $(SRCTREE)/rules.mk
 
 sinclude $(obj).depend
