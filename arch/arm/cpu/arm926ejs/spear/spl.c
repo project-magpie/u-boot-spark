@@ -33,7 +33,6 @@
 
 inline void hang(void)
 {
-	serial_puts("### ERROR ### Please RESET the board ###\n");
 	for (;;)
 		;
 }
@@ -231,24 +230,8 @@ int get_socrev(void)
 void lowlevel_init(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	const char *u_boot_rev = U_BOOT_VERSION;
-
 	/* Initialize PLLs */
 	sys_init();
-
-	/* Initialize UART */
-	serial_init();
-
-	/* Print U-Boot SPL version string */
-	serial_puts("\nU-Boot SPL ");
-	/* Avoid a second "U-Boot" coming from this string */
-	u_boot_rev = &u_boot_rev[7];
-	serial_puts(u_boot_rev);
-	serial_puts(" (");
-	serial_puts(U_BOOT_DATE);
-	serial_puts(" - ");
-	serial_puts(U_BOOT_TIME);
-	serial_puts(")\n");
 
 #if defined(CONFIG_OS_BOOT)
 	writel(readl(&misc_p->periph1_clken) | PERIPH_UART1,
@@ -259,7 +242,6 @@ void lowlevel_init(void)
 	writel(PERIPH_RST_ALL, &misc_p->periph1_rst);
 
 	/* Initialize MPMC */
-	serial_puts("Configure DDR\n");
 	mpmc_init();
 
 	/* SoC specific initialization */

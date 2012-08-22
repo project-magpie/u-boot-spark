@@ -128,7 +128,6 @@ u32 spl_boot(void)
 		/* SNOR-SMI initialization */
 		snor_init();
 
-		serial_puts("Booting via SNOR\n");
 		/* Serial NOR booting */
 		if (1 == snor_image_load((u8 *)CONFIG_SYS_UBOOT_BASE,
 					    &image, loader_name)) {
@@ -136,7 +135,6 @@ u32 spl_boot(void)
 			plat_late_init();
 
 			/* Jump to boot image */
-			serial_puts("Jumping to U-Boot\n");
 			boot_image(image);
 			return 1;
 		}
