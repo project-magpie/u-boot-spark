@@ -31,16 +31,11 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
 
-static const char kernel_name[] = "Linux";
-static const char loader_name[] = "U-Boot";
-
-int image_check_header(image_header_t *hdr, const char *name)
+int image_check_header(image_header_t *hdr)
 {
-	if (image_check_magic(hdr) &&
-	    (!strncmp(image_get_name(hdr), name, strlen(name))) &&
-	    image_check_hcrc(hdr)) {
+	if (image_check_magic(hdr) && image_check_hcrc(hdr))
 		return 1;
-	}
+
 	return 0;
 }
 
@@ -65,29 +60,21 @@ void snor_init(void)
 	       &smicntl->smi_cr1);
 }
 
-static int snor_image_load(u8 *load_addr, void (**image_p)(void),
-			   const char *image_name)
+static int snor_image_load(u8 *load_addr, void (**image_p)(void))
 {
-	image_header_t *header;
+	image_header_t header;
 
-	/*
-	 * Since calculating the crc in the SNOR flash does not
-	 * work, we copy the image to the destination address
-	 * minus the header size. And point the header to this
-	 * new destination. This will not work for address 0
-	 * of course.
-	 */
-	header = (image_header_t *)load_addr;
-	memcpy((ulong *)(image_get_load(header) - sizeof(image_header_t)),
-	       (const ulong *)load_addr,
-	       image_get_data_size(header) + sizeof(image_header_t));
-	header = (image_header_t *)(image_get_load(header) -
-				    sizeof(image_header_t));
+	memcpy(&header, load_addr, sizeof(image_header_t));
 
-	if (image_check_header(header, image_name)) {
-		if (image_check_data(header)) {
+	if (image_check_header(&header)) {
+		/* Copy the image to load address */
+		memcpy((void *)image_get_load(&header),
+		       load_addr + sizeof(image_header_t),
+		       image_get_data_size(&header));
+
+		if (image_check_data(&header)) {
 			/* Jump to boot image */
-			*image_p = (void *)image_get_load(header);
+			*image_p = (void (*)(void))image_get_load(&header);
 			return 1;
 		}
 	}
@@ -129,8 +116,7 @@ u32 spl_boot(void)
 		snor_init();
 
 		/* Serial NOR booting */
-		if (1 == snor_image_load((u8 *)CONFIG_SYS_UBOOT_BASE,
-					    &image, loader_name)) {
+		if (snor_image_load((u8 *)CONFIG_SYS_SNOR_BOOT_BASE, &image)) {
 			/* Platform related late initialasations */
 			plat_late_init();
 
