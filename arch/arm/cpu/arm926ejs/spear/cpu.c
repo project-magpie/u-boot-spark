@@ -45,8 +45,8 @@ int arch_cpu_init(void)
 	periph1_clken |= MISC_UART0ENB;
 
 	periph_clk_cfg = readl(&misc_p->periph_clk_cfg);
-	periph_clk_cfg &= ~CONFIG_SPEAR_UARTCLKMSK;
-	periph_clk_cfg |= CONFIG_SPEAR_UART48M;
+	periph_clk_cfg &= ~MISC_UARTCLKMSK;
+	periph_clk_cfg |= MISC_UART48M;
 	writel(periph_clk_cfg, &misc_p->periph_clk_cfg);
 #endif
 #if defined(CONFIG_DESIGNWARE_ETH)

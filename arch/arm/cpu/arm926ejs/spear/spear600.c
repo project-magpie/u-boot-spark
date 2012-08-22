@@ -138,8 +138,9 @@ void soc_init(void)
  */
 static u32 read_bootstrap(void)
 {
-	return (readl(CONFIG_SPEAR_BOOTSTRAPCFG) >> CONFIG_SPEAR_BOOTSTRAPSHFT)
-		& CONFIG_SPEAR_BOOTSTRAPMASK;
+	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+
+	return readl(&misc_p->auto_cfg_reg) & MISC_BOOTSTRAPMASK;
 }
 
 int snor_boot_selected(void)
@@ -148,16 +149,13 @@ int snor_boot_selected(void)
 
 	if (SNOR_BOOT_SUPPORTED) {
 		/* Check whether SNOR boot is selected */
-		if ((bootstrap & CONFIG_SPEAR_ONLYSNORBOOT) ==
-			CONFIG_SPEAR_ONLYSNORBOOT)
+		if ((bootstrap & MISC_ONLYSNORBOOT) == MISC_ONLYSNORBOOT)
 			return TRUE;
 
-		if ((bootstrap & CONFIG_SPEAR_NORNANDBOOT) ==
-			CONFIG_SPEAR_NORNAND8BOOT)
+		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND8BOOT)
 			return TRUE;
 
-		if ((bootstrap & CONFIG_SPEAR_NORNANDBOOT) ==
-			CONFIG_SPEAR_NORNAND16BOOT)
+		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND16BOOT)
 			return TRUE;
 	}
 
@@ -170,12 +168,10 @@ int nand_boot_selected(void)
 
 	if (NAND_BOOT_SUPPORTED) {
 		/* Check whether NAND boot is selected */
-		if ((bootstrap & CONFIG_SPEAR_NORNANDBOOT) ==
-			CONFIG_SPEAR_NORNAND8BOOT)
+		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND8BOOT)
 			return TRUE;
 
-		if ((bootstrap & CONFIG_SPEAR_NORNANDBOOT) ==
-			CONFIG_SPEAR_NORNAND16BOOT)
+		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND16BOOT)
 			return TRUE;
 	}
 
@@ -194,7 +190,7 @@ int usb_boot_selected(void)
 
 	if (USB_BOOT_SUPPORTED) {
 		/* Check whether USB boot is selected */
-		if (!(bootstrap & CONFIG_SPEAR_USBBOOT))
+		if (!(bootstrap & MISC_USBBOOT))
 			return TRUE;
 	}
 
