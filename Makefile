@@ -456,16 +456,18 @@ $(obj)u-boot.sb:       $(obj)u-boot.bin $(obj)spl/u-boot-spl.bin
 		elftosb -zdf imx28 -c $(TOPDIR)/board/$(BOARDDIR)/u-boot.bd \
 			-o $(obj)u-boot.sb
 
+$(obj)spl/u-boot-spl.img:	$(obj)spl/u-boot-spl.bin
+		$(obj)tools/mkimage -A $(ARCH) -T firmware -C none \
+		-a $(CONFIG_SPL_TEXT_BASE) -e $(CONFIG_SPL_TEXT_BASE) -n XLOADER \
+		-d $(obj)spl/u-boot-spl.bin $(obj)spl/u-boot-spl.img
+
 # On x600 (SPEAr600) U-Boot is appended to U-Boot SPL.
 # Both images are created using mkimage (crc etc), so that the ROM
 # bootloader can check its integrity. Padding needs to be done to the
 # SPL image (with mkimage header) and not the binary. Otherwise the resulting image
 # which is loaded/copied by the ROM bootloader to SRAM doesn't fit.
 # The resulting image containing both U-Boot images is called u-boot.spr
-$(obj)u-boot.spr:	$(obj)u-boot.img $(obj)spl/u-boot-spl.bin
-		$(obj)tools/mkimage -A $(ARCH) -T firmware -C none \
-		-a $(CONFIG_SPL_TEXT_BASE) -e $(CONFIG_SPL_TEXT_BASE) -n XLOADER \
-		-d $(obj)spl/u-boot-spl.bin $(obj)spl/u-boot-spl.img
+$(obj)u-boot.spr:	$(obj)u-boot.img $(obj)spl/u-boot-spl.img
 		tr "\000" "\377" < /dev/zero | dd ibs=1 count=$(CONFIG_SPL_PAD_TO) \
 			of=$(obj)spl/u-boot-spl-pad.img 2>/dev/null
 		dd if=$(obj)spl/u-boot-spl.img of=$(obj)spl/u-boot-spl-pad.img \
