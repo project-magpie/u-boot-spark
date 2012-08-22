@@ -53,14 +53,14 @@ static void ddr_clock_init(void)
 
 	ddrpll = readl(&misc_p->pll_ctr_reg);
 	ddrpll &= ~MEM_CLK_SEL_MSK;
-#if (CONFIG_DDR_HCLK)
+#if defined(CONFIG_SPEAR_DDR_HCLK)
 	ddrpll |= MEM_CLK_HCLK;
-#elif (CONFIG_DDR_2HCLK)
+#elif defined(CONFIG_SPEAR_DDR_2HCLK)
 	ddrpll |= MEM_CLK_2HCLK;
-#elif (CONFIG_DDR_PLL2)
+#elif defined(CONFIG_SPEAR_DDR_PLL2)
 	ddrpll |= MEM_CLK_PLL2;
 #else
-#error "please define one of CONFIG_DDR_(HCLK|2HCLK|PLL2)"
+#error "please define one of CONFIG_SPEAR_DDR_(HCLK|2HCLK|PLL2)"
 #endif
 	writel(ddrpll, &misc_p->pll_ctr_reg);
 

@@ -82,11 +82,11 @@ void plat_ddr_init(void)
 	ddrpad = readl(&misc_p->ddr_pad);
 	ddrpad &= ~DDR_PAD_CNF_MSK;
 
-#if (CONFIG_DDR_HCLK)
+#if defined(CONFIG_SPEAR_DDR_HCLK)
 	ddrpad |= 0xEAAB;
-#elif (CONFIG_DDR_2HCLK)
+#elif defined(CONFIG_SPEAR_DDR_2HCLK)
 	ddrpad |= 0xEAAD;
-#elif (CONFIG_DDR_PLL2)
+#elif defined(CONFIG_SPEAR_DDR_PLL2)
 	ddrpad |= 0xEAAD;
 #endif
 	writel(ddrpad, &misc_p->ddr_pad);
