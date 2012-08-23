@@ -368,13 +368,11 @@ static int smi_sector_erase(flash_info_t *info, unsigned int sector)
  *
  * Write to SMI flash
  */
-static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
+static int smi_write(unsigned char *src_addr, unsigned char *dst_addr,
 		     unsigned int length, ulong bank_addr)
 {
-	u8 *src_addr8 = (u8 *)src_addr;
-	u8 *dst_addr8 = (u8 *)dst_addr;
 	int banknum;
-	int i, issue_we;
+	int issue_we;
 
 	switch (bank_addr) {
 	case SMIBANK0_BASE:
@@ -400,7 +398,10 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 	writel(readl(&smicntl->smi_cr1) & ~SW_MODE, &smicntl->smi_cr1);
 
 	/* Perform the write command */
-	for (i = 0; i < length; i += 4) {
+	while (length) {
+		int k;
+		unsigned int wlen = min(SFLASH_PAGE_SIZE, length);
+
 		if (issue_we || (((ulong)(dst_addr) % SFLASH_PAGE_SIZE) == 0)) {
 			issue_we = 0;
 
@@ -412,19 +413,14 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 				return -EIO;
 		}
 
-		if (length < 4) {
-			int k;
+		writel(readl(&smicntl->smi_cr1) | WB_MODE, &smicntl->smi_cr1);
 
-			/*
-			 * Handle special case, where length < 4 (redundant env)
-			 */
-			for (k = 0; k < length; k++)
-				*dst_addr8++ = *src_addr8++;
-		} else {
-			/* Normal 32bit write */
+		for (k = 0; k < wlen; k++)
 			*dst_addr++ = *src_addr++;
-		}
 
+		writel(readl(&smicntl->smi_cr1) & ~WB_MODE, &smicntl->smi_cr1);
+
+		length -= wlen;
 		if ((readl(&smicntl->smi_sr) & (ERF1 | ERF2)))
 			return -EIO;
 	}
@@ -448,8 +444,8 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
  */
 int write_buff(flash_info_t *info, uchar *src, ulong dest_addr, ulong length)
 {
-	return smi_write((unsigned int *)src, (unsigned int *)dest_addr,
-			 length, info->start[0]);
+	return smi_write(src, (unsigned char *)dest_addr, length,
+			info->start[0]);
 }
 
 /*
