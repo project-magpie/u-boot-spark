@@ -374,7 +374,7 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 	u8 *src_addr8 = (u8 *)src_addr;
 	u8 *dst_addr8 = (u8 *)dst_addr;
 	int banknum;
-	int i;
+	int i, issue_we;
 
 	switch (bank_addr) {
 	case SMIBANK0_BASE:
@@ -394,19 +394,16 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 	}
 
 	writel(readl(&smicntl->smi_sr) & ~(ERF1 | ERF2), &smicntl->smi_sr);
-
-	if (smi_wait_till_ready(banknum, CONFIG_SYS_FLASH_WRITE_TOUT))
-		return -EBUSY;
+	issue_we = 1;
 
 	/* Set SMI in Hardware Mode */
 	writel(readl(&smicntl->smi_cr1) & ~SW_MODE, &smicntl->smi_cr1);
 
-	if (smi_write_enable(banknum))
-		return -EIO;
-
 	/* Perform the write command */
 	for (i = 0; i < length; i += 4) {
-		if (((ulong) (dst_addr) % SFLASH_PAGE_SIZE) == 0) {
+		if (issue_we || (((ulong)(dst_addr) % SFLASH_PAGE_SIZE) == 0)) {
+			issue_we = 0;
+
 			if (smi_wait_till_ready(banknum,
 						CONFIG_SYS_FLASH_WRITE_TOUT))
 				return -EBUSY;
