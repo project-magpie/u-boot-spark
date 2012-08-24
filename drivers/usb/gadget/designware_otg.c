@@ -51,6 +51,9 @@ static struct device_if	*dev_if = &device_if_mem;
 #define CONFIG_USBD_SERIAL_BULK_PKTSIZE	UDC_BULK_HS_PACKET_SIZE
 #endif
 
+static void udc_set_addr_ctrl(u32 address);
+static void udc_set_cfg_ctrl(u32 config);
+
 static struct usb_endpoint_instance *dw_find_ep(int ep)
 {
 	int i;
@@ -376,6 +379,7 @@ static void udc_set_stall(int epid, int dir)
 		writel(readl(&dev_if->out_ep_regs[epid]->doepctl) | SSTALL,
 			&dev_if->out_ep_regs[epid]->doepctl);
 }
+
 /*
  * This function handles EP0 Control transfers.
  *
@@ -400,6 +404,12 @@ void handle_ep0(int in_flag)
 			udc_set_stall(0, ctrl->bmRequestType & USB_DIR_IN);
 			return;
 		}
+		if (ep0_urb->device->address)
+			udc_set_addr_ctrl(ep0_urb->device->address);
+
+		if (ep0_urb->device->configuration)
+			udc_set_cfg_ctrl(ep0_urb->device->configuration);
+
 		ep0->xfer_buff = (u8 *)ep0_urb->buffer;
 	} else
 		ep0->xfer_buff += EP0_MAX_PACKET_SIZE;
@@ -498,7 +508,7 @@ static void ep0_out_start(void)
 }
 
 /* should be called after set address is received */
-void udc_set_address_controller(u32 address)
+static void udc_set_addr_ctrl(u32 address)
 {
 	u32 dcfg;
 
@@ -578,7 +588,7 @@ static void dwc_otg_int_in_activate(void)
 }
 
 /* should be called after set configuration is received */
-void udc_set_configuration_controller(u32 config)
+static void udc_set_cfg_ctrl(u32 config)
 {
 	dwc_otg_bulk_out_activate();
 	dwc_otg_bulk_in_activate();
@@ -784,6 +794,7 @@ static int dwc_otg_pcd_handle_usb_reset_intr(void)
 
 	UDCDBG("device reset in progess");
 	usbd_device_event_irq(udc_device, DEVICE_HUB_CONFIGURED, 0);
+	usbd_device_event_irq(udc_device, DEVICE_RESET, 0);
 
 	return 1;
 }
@@ -829,7 +840,7 @@ static int dwc_otg_pcd_handle_enum_done_intr(void)
 	writel(gusbcfg, &global_regs->gusbcfg);
 	/* Clear interrupt */
 	writel(ENUMDONE, &global_regs->gintsts);
-	usbd_device_event_irq(udc_device, DEVICE_RESET, 0);
+
 	return 1;
 }
 

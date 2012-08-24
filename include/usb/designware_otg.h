@@ -496,7 +496,5 @@ void udc_phy_init(void);
 void udc_startup_events(struct usb_device_instance *device);
 void udc_setup_ep(struct usb_device_instance *device, unsigned int ep,
 		  struct usb_endpoint_instance *endpoint);
-void udc_set_configuration_controller(u32);
-void udc_set_address_controller(u32);
 
 #endif /* __DW_OTG_H */
