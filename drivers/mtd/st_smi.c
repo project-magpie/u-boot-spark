@@ -96,6 +96,25 @@ static struct flash_device flash_devices[] = {
 };
 
 /*
+ * get_flash_device - Return flash_device pointer for a particular device id
+ * @id:	 Device id
+ *
+ * Return flash_device pointer for a particular device id
+ */
+static struct flash_device *get_flash_device(u32 id)
+{
+	struct flash_device *flash_dev_p = &flash_devices[0];
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(flash_devices); i++, flash_dev_p++) {
+		if (flash_dev_p->device_id == id)
+			return flash_dev_p;
+	}
+
+	return NULL;
+}
+
+/*
  * smi_wait_xfer_finish - Wait until TFF is set in status register
  * @timeout:	 timeout in milliseconds
  *
@@ -361,20 +380,27 @@ static int smi_sector_erase(flash_info_t *info, unsigned int sector)
 
 /*
  * smi_write - Write to SMI flash
+ * @info:	 flash info structure
  * @src_addr:	 source buffer
  * @dst_addr:	 destination buffer
  * @length:	 length to write in bytes
- * @bank:	 bank base address
  *
  * Write to SMI flash
  */
-static int smi_write(unsigned char *src_addr, unsigned char *dst_addr,
-		     unsigned int length, ulong bank_addr)
+static int smi_write(flash_info_t *info, unsigned char *src_addr,
+		unsigned char *dst_addr, unsigned int length)
 {
+	struct flash_device *flash_device_p = get_flash_device(info->flash_id);
+	u32 page_size;
 	int banknum;
 	int issue_we;
 
-	switch (bank_addr) {
+	if (!flash_device_p)
+		return -EIO;
+
+	page_size = flash_device_p->pagesize;
+
+	switch (info->start[0]) {
 	case SMIBANK0_BASE:
 		banknum = BANK0;
 		break;
@@ -400,9 +426,9 @@ static int smi_write(unsigned char *src_addr, unsigned char *dst_addr,
 	/* Perform the write command */
 	while (length) {
 		int k;
-		unsigned int wlen = min(SFLASH_PAGE_SIZE, length);
+		unsigned int wlen = min(page_size, length);
 
-		if (issue_we || (((ulong)(dst_addr) % SFLASH_PAGE_SIZE) == 0)) {
+		if (issue_we || (((ulong)(dst_addr) % page_size) == 0)) {
 			issue_we = 0;
 
 			if (smi_wait_till_ready(banknum,
@@ -444,8 +470,7 @@ static int smi_write(unsigned char *src_addr, unsigned char *dst_addr,
  */
 int write_buff(flash_info_t *info, uchar *src, ulong dest_addr, ulong length)
 {
-	return smi_write(src, (unsigned char *)dest_addr, length,
-			info->start[0]);
+	return smi_write(info, src, (unsigned char *)dest_addr, length);
 }
 
 /*
