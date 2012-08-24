@@ -35,6 +35,13 @@
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
 #endif
 
+#if defined(CONFIG_BOARD_EARLY_INIT_F)
+int board_early_init_f(void)
+{
+	return 0;
+}
+#endif
+
 #if defined(CONFIG_CMD_NAND)
 /*
  * board_nand_init - Board specific NAND initialization

@@ -30,9 +30,27 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
 #include <asm/arch/misc.h>
+#include <asm/arch/pinmux.h>
 
 #if defined(CONFIG_CMD_NAND)
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
+#endif
+
+#if defined(CONFIG_BOARD_EARLY_INIT_F)
+int board_early_init_f(void)
+{
+	spear300_select_mode(SPEAR300_MODE_NAND);
+
+	spear300_pins_default();
+	spear3xx_enable_pins(PMX_I2C0, 0);
+	spear3xx_enable_pins(PMX_SSP0, 0);
+	spear3xx_enable_pins(PMX_ETH0, 0);
+	spear3xx_enable_pins(PMX_UART0, PMX_UART_SIMPLE);
+
+	spear300_enable_pins(PMX_SDMMC, PMX_SDMMC_4BIT);
+
+	return 0;
+}
 #endif
 
 #if defined(CONFIG_CMD_NAND)

@@ -37,4 +37,17 @@
 #define CONFIG_SYS_MACB3_BASE			0xB1800000
 #define CONFIG_SPEAR_RASBASE			0xB4000000
 
+/* SPEAr310 RAS misc space registers and bitmasks */
+#define SPEAR310_FUNCENB_REG		(CONFIG_SPEAR_RASBASE + 0x8)
+
+#define SPEAR310_SMII_REG		(CONFIG_SPEAR_RASBASE + 0xC)
+	#define SPEAR310_SMII_PHY_SHIFT		0x0
+	#define SPEAR310_SMII_PHY_MASK		0x3
+
+#define SPEAR3XX_FUNC_ENB_REG		SPEAR310_FUNCENB_REG
+
+/* externs related to pinmux */
+extern void spear310_pins_default(void);
+extern void spear310_enable_pins(u32 ip, u32 mode);
+
 #endif

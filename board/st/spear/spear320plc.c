@@ -31,9 +31,14 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
 #include <asm/arch/misc.h>
+#include <asm/arch/pinmux.h>
 
 #define PLGPIO_SEL_36	0xb3000028
 #define PLGPIO_IO_36	0xb3000038
+#define PLGPIO_SEL_76	0xb300002C
+#define PLGPIO_IO_76	0xb300003C
+#define PLGPIO_36	(0x1 << 4)
+#define PLGPIO_76	(0x1 << 12)
 
 #if defined(CONFIG_CMD_NAND)
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
@@ -41,8 +46,14 @@ static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
 
 static void spear_phy_reset(void)
 {
-	writel(0x10, PLGPIO_IO_36);
-	writel(0x10, PLGPIO_SEL_36);
+	/* PLGPIO36 is used to enable oscillator */
+	writel(readl(PLGPIO_IO_36) | PLGPIO_36, PLGPIO_IO_36);
+	writel(readl(PLGPIO_SEL_36) | PLGPIO_36, PLGPIO_SEL_36);
+
+	/* PLGPIO76 is used to reset phy */
+	writel(readl(PLGPIO_IO_76) & ~PLGPIO_76, PLGPIO_IO_76);
+	writel(readl(PLGPIO_SEL_76) | PLGPIO_76, PLGPIO_SEL_76);
+	writel(readl(PLGPIO_IO_76) | PLGPIO_76, PLGPIO_IO_76);
 }
 
 int board_init(void)
@@ -51,10 +62,21 @@ int board_init(void)
 	return 0;
 }
 
-#if defined(CONFIG_MISC_INIT_R)
-int misc_init_r(void)
+#if defined(CONFIG_BOARD_EARLY_INIT_F)
+int board_early_init_f(void)
 {
-	return misc_usbtty_init();
+	spear320_select_mode(SPEAR320_EXTENDED_MODE);
+
+	spear320_pins_default();
+	spear3xx_enable_pins(PMX_I2C0, 0);
+	spear3xx_enable_pins(PMX_ETH0, 0);
+	spear3xx_enable_pins(PMX_SSP0, 0);
+	spear3xx_enable_pins(PMX_UART0, 0);
+
+	spear320_enable_pins(PMX_ETH2, PMX_ETH_RMII);
+	spear320_enable_pins(PMX_SDMMC, PMX_SDMMC_CD51);
+
+	return 0;
 }
 #endif
 

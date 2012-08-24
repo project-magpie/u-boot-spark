@@ -37,4 +37,24 @@
 #define CONFIG_SPEAR_SYSCNTLBASE		0xFCA00000
 #define CONFIG_SPEAR_MISCBASE			0xFCA80000
 
+/* spear3xx pinmux register and related bit masks */
+#define PMX_FIRDA_MASK			(1 << 14)
+#define PMX_I2C_MASK			(1 << 13)
+#define PMX_SSP_CS_MASK			(1 << 12)
+#define PMX_SSP_MASK			(1 << 11)
+#define PMX_MII_MASK			(1 << 10)
+#define PMX_GPIO_PIN0_MASK		(1 << 9)
+#define PMX_GPIO_PIN1_MASK		(1 << 8)
+#define PMX_GPIO_PIN2_MASK		(1 << 7)
+#define PMX_GPIO_PIN3_MASK		(1 << 6)
+#define PMX_GPIO_PIN4_MASK		(1 << 5)
+#define PMX_GPIO_PIN5_MASK		(1 << 4)
+#define PMX_UART0_MODEM_MASK		(1 << 3)
+#define PMX_UART0_MASK			(1 << 2)
+#define PMX_TIMER_2_3_MASK		(1 << 1)
+#define PMX_TIMER_0_1_MASK		(1 << 0)
+
+/* externs related to pinmux */
+extern void spear3xx_enable_pins(u32 ip, u32 mode);
+
 #endif
