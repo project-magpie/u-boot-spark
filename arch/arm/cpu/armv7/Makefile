@@ -27,11 +27,14 @@ LIB	= $(obj)lib$(CPU).o
 
 START	:= start.o
 
-COBJS	+= cache_v7.o
+COBJS-y	+= cache_v7.o
 
-COBJS	+= cpu.o
-COBJS	+= syslib.o
+COBJS-y	+= cpu.o
+COBJS-y	+= syslib.o
+COBJS-$(CONFIG_ARMV7_CA9LTIMER) += ca9_ltimer.o
 
+COBJS	:= $(sort $(COBJS-y))
+SOBJS	:= $(sort $(SOBJS-y))
 SRCS	:= $(START:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
 START	:= $(addprefix $(obj),$(START))
