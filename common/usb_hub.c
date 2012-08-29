@@ -389,17 +389,34 @@ static int usb_hub_configure(struct usb_device *dev)
 		"" : "no ");
 	usb_hub_power_on(hub);
 
+	mdelay(1500);
+
 	for (i = 0; i < dev->maxchild; i++) {
 		ALLOC_CACHE_ALIGN_BUFFER(struct usb_port_status, portsts, 1);
 		unsigned short portstatus, portchange;
+		int ret;
+		ulong start = get_timer(0);
 
-		if (usb_get_port_status(dev, i + 1, portsts) < 0) {
-			USB_HUB_PRINTF("get_port_status failed\n");
+		do {
+			ret = usb_get_port_status(dev, i + 1, portsts);
+			if (ret < 0) {
+				USB_HUB_PRINTF("get_port_status failed\n");
+				break;
+			}
+
+			portstatus = le16_to_cpu(portsts->wPortStatus);
+			portchange = le16_to_cpu(portsts->wPortChange);
+
+			if ((portchange & USB_PORT_STAT_C_CONNECTION) &&
+				(portstatus & USB_PORT_STAT_CONNECTION))
+				break;
+
+			mdelay(100);
+		} while (get_timer(start) < CONFIG_SYS_HZ * 10);
+
+		if (ret < 0)
 			continue;
-		}
 
-		portstatus = le16_to_cpu(portsts->wPortStatus);
-		portchange = le16_to_cpu(portsts->wPortChange);
 		USB_HUB_PRINTF("Port %d Status %X Change %X\n",
 				i + 1, portstatus, portchange);
 
