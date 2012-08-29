@@ -47,6 +47,8 @@ int checkboard(void)
 	printf("BOARD: SPEAr310-EVB\n");
 #elif defined(CONFIG_MACH_SPEAR320EVB)
 	printf("BOARD: SPEAr320-PLC\n");
+#elif defined(CONFIG_MACH_SPEAR320HMI)
+	printf("BOARD: SPEAr320-HMI\n");
 #elif defined(CONFIG_MACH_SPEAR600EVB)
 	printf("BOARD: SPEAr600-EVB\n");
 #else
