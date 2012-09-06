@@ -22,6 +22,7 @@
  */
 
 #include <common.h>
+#include <linux/mtd/st_smi.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/misc.h>
@@ -65,6 +66,15 @@ int arch_cpu_init(void)
 #endif
 
 	writel(periph1_clken, &misc_p->periph1_clken);
+
+	/* Early driver initializations */
+#if defined(CONFIG_ST_SMI)
+	smi_init();
+#endif
+
+#ifdef CONFIG_ST_EMI
+	emi_init();
+#endif
 	return 0;
 }
 

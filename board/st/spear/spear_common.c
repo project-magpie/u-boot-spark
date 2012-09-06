@@ -25,7 +25,6 @@
 #include <command.h>
 #include <i2c.h>
 #include <net.h>
-#include <linux/mtd/st_smi.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
@@ -52,18 +51,6 @@ void dram_init_banksize(void)
 {
 	gd->bd->bi_dram[0].start = CONFIG_SYS_SDRAM_BASE;
 	gd->bd->bi_dram[0].size = gd->ram_size;
-}
-
-int board_early_init_f()
-{
-#if defined(CONFIG_ST_SMI)
-	smi_init();
-#endif
-
-#ifdef CONFIG_ST_EMI
-	emi_init();
-#endif
-	return 0;
 }
 
 int misc_init_r(void)
