@@ -57,6 +57,8 @@ enum pinmux_ip {
 	PMX_SDMMC,
 	PMX_EMI,
 	PMX_SMI,
+	PMX_LEGGIPO0,
+	PMX_LEGGIPO1,
 };
 
 /* UART0 modem modes */
@@ -68,6 +70,7 @@ enum pinmux_ip {
 #define PMX_SSP_CS1		2
 #define PMX_SSP_CS2		3
 #define PMX_SSP_CS3		4
+#define PMX_SSP_CS1_CS2		5
 
 /* ETH modes */
 #define PMX_ETH_GMII		1
@@ -80,5 +83,10 @@ enum pinmux_ip {
 /* NAND modes */
 #define PMX_NAND_8BIT		1
 #define PMX_NAND_16BIT		2
+#define PMX_NAND_4CHIPS		3
+
+/* SMI modes */
+#define PMX_SMI_2CHIPS		1
+#define PMX_SMI_4CHIPS		2
 
 #endif

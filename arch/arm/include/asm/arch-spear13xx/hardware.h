@@ -26,6 +26,8 @@
 
 #if defined(CONFIG_SOC_SPEAR1340)
 #include <asm/arch/spear1340.h>
+#elif defined(CONFIG_SOC_SPEAR1310)
+#include <asm/arch/spear1310.h>
 #endif
 
 #endif /* _ASM_ARCH_HARDWARE_H */

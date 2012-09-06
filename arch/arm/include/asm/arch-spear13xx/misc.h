@@ -26,6 +26,9 @@
 
 #ifdef CONFIG_SOC_SPEAR1340
 #include <asm/arch/spear1340_misc.h>
+
+#elif defined(CONFIG_SOC_SPEAR1310)
+#include <asm/arch/spear1310_misc.h>
 #endif
 
 #endif

@@ -28,6 +28,8 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(SOC).o
 
+COBJS-$(CONFIG_SOC_SPEAR1310) += spear1310.o
+COBJS-$(CONFIG_SOC_SPEAR1310) += spear1310-pinmux.o
 COBJS-$(CONFIG_SOC_SPEAR1340) += spear1340.o
 COBJS-$(CONFIG_SOC_SPEAR1340) += spear1340-pinmux.o
 
