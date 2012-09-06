@@ -57,6 +57,11 @@
 /* GPIO configurations */
 #define CONFIG_SPEAR_GPIO
 
+/* USB EHCI configurations */
+#if !defined(CONFIG_SPEAR_USBTTY)
+	#define CONFIG_USB_EHCI_SPEAR
+#endif
+
 /* AMBA PL011 configurations */
 #define CONFIG_PL011_SERIAL
 #define CONFIG_CONS_INDEX			0

@@ -72,6 +72,11 @@
 /* GPIO configurations */
 #define CONFIG_SPEAR_GPIO
 
+/* USB EHCI configurations */
+#if !defined(CONFIG_SPEAR_USBTTY)
+	#define CONFIG_USB_EHCI_SPEAR
+#endif
+
 /* Designware UDC configurations */
 #if defined(CONFIG_SPEAR_USBTTY)
 	#define CONFIG_DW_UDC

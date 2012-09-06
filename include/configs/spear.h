@@ -92,6 +92,20 @@
 	#define CONFIG_CMD_GPIO
 #endif
 
+/* Generic configuration for USB EHCI driver */
+#if defined(CONFIG_USB_EHCI_SPEAR)
+	#define CONFIG_USB_EHCI
+	#define CONFIG_USB_STORAGE
+	#define CONFIG_CMD_USB
+#endif
+
+/* Enable FAT and Partition types */
+#if defined(CONFIG_USB_STORAGE)
+	#define CONFIG_CMD_FAT
+	#define CONFIG_DOS_PARTITION
+	#define CONFIG_ISO_PARTITION
+#endif
+
 /* Generic configuration for ST SMI driver */
 #if defined(CONFIG_ST_SMI)
 	#define CONFIG_SYS_FLASH_ERASE_TOUT	(3 * CONFIG_SYS_HZ)
