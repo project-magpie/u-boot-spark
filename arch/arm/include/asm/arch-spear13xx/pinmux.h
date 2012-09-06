@@ -62,31 +62,12 @@ enum pinmux_ip {
 /* UART0 modem modes */
 #define PMX_UART_SIMPLE		1
 #define PMX_UART_MODEM		2
-#define PMX_UART_MDM_2_7	3
-#define PMX_UART_MDM_31_36	4
-#define PMX_UART_MDM_34_45	5
-#define PMX_UART_MDM_80_85	6
-
-/* I2C modes */
-#define PMX_I2C_8_9		1
-#define PMX_I2C_98_99		2
-#define PMX_I2C_0_1		3
-#define PMX_I2C_2_3		4
-#define PMX_I2C_19_20		5
-#define PMX_I2C_75_76		6
-#define PMX_I2C_96_97		7
 
 /* SSP modes */
-#define PMX_SSP_13_16		1
-#define PMX_SSP_17_20		2
-#define PMX_SSP_32_35		3
-#define PMX_SSP_36_39		4
-#define PMX_SSP_44_47		5
-#define PMX_SSP_48_51		6
-#define PMX_SSP_61_64		7
-#define PMX_SSP_65_68		8
-#define PMX_SSP_90_93		9
-#define PMX_SSP_94_97		10
+#define PMX_SSP_CS0		1
+#define PMX_SSP_CS1		2
+#define PMX_SSP_CS2		3
+#define PMX_SSP_CS3		4
 
 /* ETH modes */
 #define PMX_ETH_GMII		1
@@ -99,14 +80,5 @@ enum pinmux_ip {
 /* NAND modes */
 #define PMX_NAND_8BIT		1
 #define PMX_NAND_16BIT		2
-#define PMX_NAND_2CHIP		3
-#define PMX_NAND_4CHIP		4
-
-/* SDMMC modes */
-#define PMX_SDMMC_LED		1
-#define PMX_SDMMC_CD12		2
-#define PMX_SDMMC_CD51		3
-#define PMX_SDMMC_4BIT		4
-#define PMX_SDMMC_8BIT		5
 
 #endif
