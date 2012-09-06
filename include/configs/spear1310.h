@@ -1,6 +1,6 @@
 /*
- * (C) Copyright 2009
- * Vipin Kumar, ST Micoelectronics, vipin.kumar@st.com.
+ * (C) Copyright 2012
+ * Vipin Kumar, STMicroelectronics, <vipin.kumar@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -12,7 +12,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -21,31 +21,10 @@
  * MA 02111-1307 USA
  */
 
-#include <common.h>
-#include <asm/arch/hardware.h>
+#ifndef __CONFIG_SPEAR1310_H
+#define __CONFIG_SPEAR1310_H
 
-DECLARE_GLOBAL_DATA_PTR;
+#define CONFIG_SOC_SPEAR1310
 
-void lowlevel_init(void)
-{
-}
-
-int checkboard(void)
-{
-#ifdef CONFIG_MACH_SPEAR1340EVB
-	printf("BOARD: SPEAr1340-EVB\n");
-#elif defined(CONFIG_MACH_SPEAR1310EVB)
-	printf("BOARD: SPEAr1310-EVB\n");
-#else
-#error BOARD not supported
-#endif
-	return 0;
-}
-
-int dram_init(void)
-{
-	/* Store complete RAM size and return */
-	gd->ram_size = get_ram_size(CONFIG_SYS_SDRAM_BASE, SDRAM_MAX_SIZE);
-
-	return 0;
-}
+#include <configs/spear13xx.h>
+#endif /* __CONFIG_SPEAR1310_H */
