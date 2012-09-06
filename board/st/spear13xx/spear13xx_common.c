@@ -36,6 +36,8 @@ int checkboard(void)
 	printf("BOARD: SPEAr1340-EVB\n");
 #elif defined(CONFIG_MACH_SPEAR1310EVB)
 	printf("BOARD: SPEAr1310-EVB\n");
+#elif defined(CONFIG_MACH_SPEAR1340LCAD)
+	printf("BOARD: SPEAr1340-LCAD\n");
 #else
 #error BOARD not supported
 #endif
