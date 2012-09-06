@@ -63,12 +63,6 @@ int dram_init(void)
 	return 0;
 }
 
-void dram_init_banksize(void)
-{
-	gd->bd->bi_dram[0].start = CONFIG_SYS_SDRAM_BASE;
-	gd->bd->bi_dram[0].size = gd->ram_size;
-}
-
 #if defined(CONFIG_SPEAR_MACID_IN_I2CMEM) && defined(CONFIG_CMD_NET) && \
 	defined(CONFIG_CMD_I2C)
 int i2c_read_mac(uchar *buffer)
