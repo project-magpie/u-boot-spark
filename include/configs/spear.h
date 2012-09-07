@@ -50,7 +50,7 @@
 #endif
 
 /* Generic configuration for USBD driver */
-#if defined(CONFIG_DW_UDC)
+#if defined(CONFIG_DW_UDC) || defined(CONFIG_DW_OTG)
 	#define CONFIG_USB_DEVICE
 	#define CONFIG_USBD_HS
 	#define CONFIG_USB_TTY
