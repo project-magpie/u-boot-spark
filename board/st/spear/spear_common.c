@@ -69,20 +69,6 @@ void dram_init_banksize(void)
 	gd->bd->bi_dram[0].size = gd->ram_size;
 }
 
-int misc_usbtty_init(void)
-{
-#if defined(CONFIG_SPEAR_USBTTY)
-	setenv("stdin", "usbtty");
-	setenv("stdout", "usbtty");
-	setenv("stderr", "usbtty");
-
-#ifndef CONFIG_SYS_NO_DCACHE
-	dcache_enable();
-#endif
-#endif
-	return 0;
-}
-
 #if defined(CONFIG_SPEAR_MACID_IN_I2CMEM) && defined(CONFIG_CMD_NET) && \
 	defined(CONFIG_CMD_I2C)
 int i2c_read_mac(uchar *buffer)
