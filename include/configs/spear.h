@@ -112,6 +112,23 @@
 						57600, 115200 }
 #endif
 
+/* Generic configuration for AMBA PL022 driver */
+#if defined(CONFIG_PL022_SPI)
+	#define CONFIG_CMD_SPI
+	#if defined(CONFIG_SPI_FLASH)
+		#define CONFIG_CMD_SF
+		#define CONFIG_SPI_FLASH_STMICRO
+	#endif
+#endif
+
+/* Generic configuration for Arasan SD/MMC driver */
+#if defined(CONFIG_SPEAR_SDHCI)
+	#define CONFIG_MMC
+	#define CONFIG_SDHCI
+	#define CONFIG_GENERIC_MMC
+	#define CONFIG_CMD_MMC
+#endif
+
 /* Generic configuration for FSMC NAND driver */
 #if defined(CONFIG_NAND_FSMC)
 	#define CONFIG_SYS_NAND_SELF_INIT
