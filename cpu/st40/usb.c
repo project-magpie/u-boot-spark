@@ -178,6 +178,3 @@ extern int ST40_start_host_control(unsigned int flags)
 #endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
-#if defined(CONFIG_USB_EHCI)
-#endif /* defined(CONFIG_USB_EHCI) */
-
