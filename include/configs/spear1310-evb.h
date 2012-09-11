@@ -91,16 +91,19 @@
 	/* Environment is in serial NOR flash */
 	#define CONFIG_ENV_ADDR			0xE6060000
 	#define CONFIG_ENV_SECT_SIZE		0x00010000
-	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock3 "
-	#define CONFIG_BOOTCOMMAND		"bootm 0xE6070000"
+	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock5 "
+	#define CONFIG_BOOTCOMMAND		"" \
+		"cp.b 0xe6070000 0x800000 0x10000; bootm 0xe6080000 - 0x800000"
+
 #elif defined(CONFIG_ENV_IS_IN_NAND)
 	/* Environment is in NAND */
-	#define CONFIG_ENV_OFFSET		0x002A0000
-	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock7 "
+	#define CONFIG_ENV_OFFSET		0x00140000
+	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock11 "
 
-	#define CONFIG_BOOTCOMMAND		"nand read.jffs2 0x1600000 " \
-						"0x200000 0x4C0000; " \
-						"bootm 0x1600000"
+	#define CONFIG_BOOTCOMMAND		"" \
+		"nand read.jffs2 0x800000 0x180000 0x020000; " \
+		"nand read.jffs2 0x900000 0x1c0000 0x4C0000; " \
+		"bootm 0x900000 - 0x800000"
 #endif
 
 #define CONFIG_BOOTARGS				"console=ttyAMA0,115200 " \

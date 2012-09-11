@@ -69,11 +69,13 @@
 #define CONFIG_ENV_OFFSET		0x00480000
 
 #define CONFIG_BOOTCOMMAND	"run bootusb; run bootupg;" \
-	"nand read.jffs2 0x800000 0x280000 0x800000; bootm 0x800000"
+		"nand read.jffs2 0x800000 0x500000 0x020000; " \
+		"nand read.jffs2 0x900000 0x600000 0x500000; " \
+		"bootm 0x900000 - 0x800000"
 
 #define CONFIG_BOOTARGS		"console=ttyAMA0,115200 " \
 	"mem=960M noinitrd no_console_suspend androidboot.console=ttyAMA0 " \
-	"android.checkjni=0 root=/dev/mtdblock3 rw rootfstype=yaffs2 " \
+	"android.checkjni=0 root=/dev/mtdblock5 rw rootfstype=yaffs2 " \
 	"rootflags=inband-tags,tags-ecc-off rootdelay=3" \
 	"video=db9000:800x480-32@0 init=/init"
 
