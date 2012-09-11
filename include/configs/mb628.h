@@ -170,14 +170,18 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-//QQQ	#define CONFIG_ST40_STM_USB
+#define CONFIG_ST40_STM_USB
 
 #ifdef CONFIG_ST40_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_STORAGE
-#	define CONFIG_SYS_USB_BASE			0xfe100000
-#	if 1	/* use OHCI (USB 1.x) ? */
+#	define CONFIG_SYS_USB0_BASE			0xfe100000 /* USB2.0-A CN12 upper of stack */
+#	define CONFIG_SYS_USB1_BASE			0xfea00000 /* USB2.0-B CN21 */
+//#	define CONFIG_SYS_USB2_BASE	/* Broken! */	0xfeb00000 /* USB1.1-A */
+//#	define CONFIG_SYS_USB3_BASE	/* Broken! */	0xfec00000 /* USB1.1-B */
+#	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
+#	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
 #		define CONFIG_SYS_USB_OHCI_CPU_INIT
 #		define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)

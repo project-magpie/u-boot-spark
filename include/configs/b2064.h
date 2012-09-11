@@ -215,7 +215,7 @@
 #	define CONFIG_SYS_USB0_BASE			0xfe000000	/* USB #0 is rear port  (JD1) */
 #	define CONFIG_SYS_USB1_BASE			0xfe100000	/* USB #1 is front port (JD3) */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
-#	if 1	/* use OHCI (USB 1.x) ? */
+#	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
 #		define CONFIG_SYS_USB_OHCI_CPU_INIT
 #		define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)

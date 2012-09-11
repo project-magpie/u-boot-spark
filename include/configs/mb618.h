@@ -171,7 +171,7 @@
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_STORAGE
 #	define CONFIG_SYS_USB_BASE			0xfe100000
-#	if 1	/* use OHCI (USB 1.x) ? */
+#	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
 #		define CONFIG_SYS_USB_OHCI_CPU_INIT
 #		define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)

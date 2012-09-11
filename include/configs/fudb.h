@@ -190,7 +190,7 @@
 #	define CONFIG_SYS_USB_A_BASE			0xfda00000	/* CNG2, USB #1 */
 #	define CONFIG_SYS_USB_C_BASE			0xfdc00000	/* CNG8, USB #2 */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB_A_BASE
-#	if 1	/* use OHCI (USB 1.x) ? */
+#	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
 #		define CONFIG_SYS_USB_OHCI_CPU_INIT
 #		define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
