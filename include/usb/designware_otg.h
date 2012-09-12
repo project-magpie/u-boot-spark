@@ -440,9 +440,9 @@ struct dwc_pcd {
 	/* Array of EPs. */
 	struct dwc_ep ep0;
 	/* Array of IN EPs. */
-	struct dwc_ep in_ep[MAX_EPS_CHANNELS - 1];
+	struct dwc_ep in_ep[MAX_EPS_CHANNELS];
 	/* Array of OUT EPs. */
-	struct dwc_ep out_ep[MAX_EPS_CHANNELS - 1];
+	struct dwc_ep out_ep[MAX_EPS_CHANNELS];
 };
 
 /*
@@ -490,6 +490,9 @@ int udc_init(void);
 void udc_disable(void);
 void udc_connect(void);
 void udc_disconnect(void);
+#if defined(CONFIG_DW_OTG_PHYINIT)
+void udc_phy_init(void);
+#endif
 void udc_startup_events(struct usb_device_instance *device);
 void udc_setup_ep(struct usb_device_instance *device, unsigned int ep,
 		  struct usb_endpoint_instance *endpoint);
