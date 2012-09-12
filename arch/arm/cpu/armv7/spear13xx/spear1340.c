@@ -172,8 +172,8 @@ void udc_phy_init(void)
 {
 	struct spear1340_misc_regs *const misc_regs_p =
 		(struct spear1340_misc_regs *)CONFIG_SYS_MISC_BASE;
-
 	u32 temp;
+	ulong start;
 
 	/* phy por assert */
 	temp = readl(&misc_regs_p->usbphy_gen_cfg);
@@ -199,10 +199,18 @@ void udc_phy_init(void)
 	temp |= SPEAR1340_USBPHY_RST;
 	writel(temp, &misc_regs_p->usbphy_gen_cfg);
 
-	/* wait for pll lock */
-	while (!(readl(&misc_regs_p->usbphy_gen_cfg) & USB_PLL_LOCK))
-		;
+	start = get_timer(0);
 
+	while (get_timer(start) < CONFIG_SYS_HZ) {
+		if (readl(&misc_regs_p->usbphy_gen_cfg) &
+				SPEAR1340_USB_PLL_LOCK)
+			break;
+
+		/* Try after 10 ms */
+		udelay(10);
+	};
+
+	/* wait for pll to stabilize */
 	udelay(1);
 
 	/* OTG HCLK Disable */
