@@ -730,10 +730,13 @@ Sergey Kubushyn <ksi@koi8.net>
 
 Vipin Kumar <vipin.kumar@st.com>
 
-	spear300	ARM926EJS (spear300 Soc)
-	spear310	ARM926EJS (spear310 Soc)
-	spear320	ARM926EJS (spear320 Soc)
-	spear600	ARM926EJS (spear600 Soc)
+	spear300-evb	ARM926EJS (spear300 Soc)
+	spear310-evb	ARM926EJS (spear310 Soc)
+	spear320-evb	ARM926EJS (spear320 Soc)
+	spear320-hmi	ARM926EJS (spear320 Soc)
+	spear600-evb	ARM926EJS (spear600 Soc)
+	spear1310-evb	ARM ARMV7 (spear1310 SoC)
+	spear1340-evb	ARM ARMV7 (spear1340 SoC)
 
 Sergey Lapin <slapin@ossfans.org>
 
