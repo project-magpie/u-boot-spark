@@ -23,6 +23,7 @@
 
 #include <common.h>
 #include <asm/io.h>
+#include <linux/mtd/st_smi.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/misc.h>
 
@@ -98,6 +99,9 @@ int arch_cpu_init(void)
 	writel(perip1_clk_enb, &misc_p->perip1_clk_enb);
 	writel(perip2_clk_enb, &misc_p->perip2_clk_enb);
 
+#if defined(CONFIG_ST_SMI)
+	smi_init();
+#endif
 	return 0;
 }
 
