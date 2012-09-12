@@ -22,7 +22,6 @@
  */
 
 #include <common.h>
-#include <phy.h>
 #include <spi.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
