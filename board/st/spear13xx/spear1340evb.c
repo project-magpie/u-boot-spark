@@ -42,7 +42,10 @@ int board_early_init_f(void)
 	spear1340_enable_pins(PMX_FSMCNAND, PMX_NAND_8BIT);
 	spear1340_enable_pins(PMX_UART0, PMX_UART_SIMPLE);
 	spear1340_enable_pins(PMX_I2C0, 0);
-	spear1340_enable_pins(PMX_SSP0, 0);
+	spear1340_enable_pins(PMX_SSP0, PMX_SSP_CS0);
+	spear1340_enable_pins(PMX_SSP0, PMX_SSP_CS1);
+	spear1340_enable_pins(PMX_SSP0, PMX_SSP_CS2);
+	spear1340_enable_pins(PMX_SSP0, PMX_SSP_CS3);
 	spear1340_enable_pins(PMX_SMI, 0);
 	spear1340_enable_pins(PMX_SDMMC, 0);
 	spear1340_enable_pins(PMX_ETH0, PMX_ETH_RGMII);
