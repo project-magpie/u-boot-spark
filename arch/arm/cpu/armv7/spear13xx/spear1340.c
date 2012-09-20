@@ -170,6 +170,22 @@ void spi_cs_deactivate(struct spi_slave *slave)
 }
 #endif
 
+#if defined(CONFIG_USB_EHCI_SPEAR)
+void spear1340_usbh_stop(void)
+{
+	struct spear1340_misc_regs *const misc_regs_p =
+		(struct spear1340_misc_regs *)CONFIG_SYS_MISC_BASE;
+	u32 perip1_sw_rst = readl(&misc_regs_p->perip1_sw_rst);
+
+	perip1_sw_rst |= SPEAR1340_UHC1_SWRST;
+	writel(perip1_sw_rst, &misc_regs_p->perip1_sw_rst);
+
+	udelay(1000);
+	perip1_sw_rst &= ~SPEAR1340_UHC1_SWRST;
+	writel(perip1_sw_rst, &misc_regs_p->perip1_sw_rst);
+}
+#endif
+
 #ifdef CONFIG_DW_OTG_PHYINIT
 void udc_phy_init(void)
 {

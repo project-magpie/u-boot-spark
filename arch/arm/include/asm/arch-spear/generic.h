@@ -26,6 +26,8 @@
 
 extern int spear_board_init(ulong);
 extern void setfreq(unsigned int, unsigned int);
+extern void spear3xx_usbh_stop(void);
+extern void spear6xx_usbh_stop(void);
 extern unsigned int setfreq_sz;
 
 int misc_usbtty_init(void);

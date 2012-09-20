@@ -252,6 +252,7 @@ struct spear1310_misc_regs {
 
 /* perip1_sw_rst */
 #define SPEAR1310_UDC_UPD_SWRST		0x00000800
+#define SPEAR1310_UHC1_SWRST		0x00000200
 
 /* perip_clk_cfg definitions */
 #define SPEAR1310_UART48M_CLK		0x00000000

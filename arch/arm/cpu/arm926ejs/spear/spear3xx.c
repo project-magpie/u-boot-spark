@@ -24,6 +24,7 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
+#include <asm/arch/misc.h>
 #include <asm/arch/pinmux.h>
 
 /* Pinmux support for all fixed spear3xx devices */
@@ -111,3 +112,19 @@ void spear3xx_enable_pins(u32 ip, u32 mode)
 		break;
 	}
 }
+
+#if defined(CONFIG_USB_EHCI_SPEAR)
+void spear3xx_usbh_stop(void)
+{
+	struct misc_regs *const misc_p =
+	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+	u32 periph1_rst = readl(misc_p->periph1_rst);
+
+	periph1_rst |= MISC_USBHENB;
+	writel(periph1_rst, misc_p->periph1_rst);
+
+	udelay(1000);
+	periph1_rst &= ~MISC_USBHENB;
+	writel(periph1_rst, misc_p->periph1_rst);
+}
+#endif

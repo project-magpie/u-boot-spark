@@ -31,7 +31,7 @@
 #include "ehci.h"
 #include "ehci-core.h"
 #include <asm/arch/hardware.h>
-
+#include <asm/arch/generic.h>
 
 /*
  * Create the appropriate control structures to manage
@@ -56,5 +56,16 @@ int ehci_hcd_init(void)
  */
 int ehci_hcd_stop(void)
 {
+#if defined(CONFIG_ARCH_SPEAR3XX)
+	spear3xx_usbh_stop();
+#elif defined(CONFIG_ARCH_SPEAR6XX)
+	spear6xx_usbh_stop();
+#elif defined(CONFIG_SOC_SPEAR1310)
+	spear1310_usbh_stop();
+#elif defined(CONFIG_SOC_SPEAR1340)
+	spear1340_usbh_stop();
+#else
+#error No spear platforms defined
+#endif
 	return 0;
 }
