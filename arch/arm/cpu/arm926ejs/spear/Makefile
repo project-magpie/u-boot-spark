@@ -42,7 +42,7 @@ COBJS-$(CONFIG_ST_EMI) += emi.o
 
 ifdef CONFIG_SPL_BUILD
 COBJS-y	+= spl.o spl_boot.o
-COBJS-$(CONFIG_SOC_SPEAR600) += spear600.o
+COBJS-$(CONFIG_SOC_SPEAR600) += spl-spear600.o
 endif
 
 SRCS	:= $(COBJS-y:.o=.c)
