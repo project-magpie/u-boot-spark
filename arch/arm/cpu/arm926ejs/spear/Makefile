@@ -25,9 +25,10 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(SOC).o
 
-COBJS-y	:= cpu.o \
-	   reset.o \
-	   timer.o
+COBJS-y += cache.o
+COBJS-y += cpu.o
+COBJS-y += reset.o
+COBJS-y += timer.o
 COBJS-$(CONFIG_ARCH_SPEAR300) += spear300.o
 COBJS-$(CONFIG_ARCH_SPEAR310) += spear310.o
 COBJS-$(CONFIG_ARCH_SPEAR320) += spear320.o
