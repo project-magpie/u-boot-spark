@@ -142,6 +142,7 @@ struct us_data {
 	struct usb_device *pusb_dev;	 /* this usb_device */
 
 	unsigned int	flags;			/* from filter initially */
+#	define USB_READY	(1 << 0)
 	unsigned char	ifnum;			/* interface number */
 	unsigned char	ep_in;			/* in endpoint */
 	unsigned char	ep_out;			/* out ....... */
@@ -671,7 +672,8 @@ int usb_stor_BBB_transport(ccb *srb, struct us_data *us)
 		usb_stor_BBB_reset(us);
 		return USB_STOR_TRANSPORT_FAILED;
 	}
-	wait_ms(5);
+	if (!(us->flags & USB_READY))
+		wait_ms(5);
 	pipein = usb_rcvbulkpipe(us->pusb_dev, us->ep_in);
 	pipeout = usb_sndbulkpipe(us->pusb_dev, us->ep_out);
 	/* DATA phase + error handling */
@@ -933,8 +935,10 @@ static int usb_test_unit_ready(ccb *srb, struct us_data *ss)
 		srb->cmd[0] = SCSI_TST_U_RDY;
 		srb->datalen = 0;
 		srb->cmdlen = 12;
-		if (ss->transport(srb, ss) == USB_STOR_TRANSPORT_GOOD)
+		if (ss->transport(srb, ss) == USB_STOR_TRANSPORT_GOOD) {
+			ss->flags |= USB_READY;
 			return 0;
+		}
 		usb_request_sense(srb, ss);
 		wait_ms(100);
 	} while (retries--);
@@ -1078,6 +1082,7 @@ retry_it:
 		blks -= smallblks;
 		buf_addr += srb->datalen;
 	} while (blks != 0);
+	((struct us_data *)dev->privptr)->flags &= ~USB_READY;
 
 #if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
 	if (my_data_caches_on)	/* were the data caches on ? */
@@ -1318,6 +1323,7 @@ int usb_stor_get_info(struct usb_device *dev, struct us_data *ss,
 		cap[0] = 2880;
 		cap[1] = 0x200;
 	}
+	ss->flags &= ~USB_READY;
 	USB_STOR_PRINTF("Read Capacity returns: 0x%lx, 0x%lx\n", cap[0],
 			cap[1]);
 #if 0
