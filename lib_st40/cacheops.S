@@ -167,8 +167,13 @@ ENTRY(sh_toggle_pmb_cacheability)
 	.set index0, 0		/* PMB array #0 */
 	.set index1, 1		/* PMB array #1 */
 
+#if defined(CONFIG_SYS_ST40_PMB_TEXT_CACHED_PAGE) && defined(CONFIG_SYS_ST40_PMB_TEXT_UNCACHED_PAGE)
+	/* set PC mask, typically as 0x9f000000 ^ 0xbf000000, when using 512MiB of SDRAM */
+	.set mask, CONFIG_SYS_ST40_PMB_TEXT_CACHED_PAGE ^ CONFIG_SYS_ST40_PMB_TEXT_UNCACHED_PAGE
+#else
 	/* set PC mask as: mask = 0x10000000 */
 	.set mask, 0x80000000 ^ 0x90000000
+#endif /* CONFIG_SYS_ST40_PMB_TEXT_CACHED_PAGE && CONFIG_SYS_ST40_PMB_TEXT_UNCACHED_PAGE */
 
 	/* set bits to toggle: PMB[n].C and PMB[n].UB */
 	.set toggle, (SH4_PMB_C|SH4_PMB_UB)

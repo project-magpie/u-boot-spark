@@ -229,18 +229,44 @@ invalidate_pmb:
 	 */
 #undef  BASE	/* for the "convenience" macro */
 #define BASE	(CONFIG_SYS_SE_PHYSICAL_BASE>>24)/* move the MSB to the LSB */
+#undef  UBVPN	/* U-Boot's ".text" section, as PMB VIRTUAL page number UN-CACHED */
+#define UBVPN	(CONFIG_SYS_ST40_PMB_TEXT_UNCACHED_PAGE>>24)
+#undef  UBPPN	/* U-Boot's ".text" section, as PMB PHYSICAL page number */
+#define UBPPN	(CONFIG_SYS_ST40_PMB_TEXT_PHYSICAL_PAGE>>24)
 #undef  SIZE	/* default PMB page size to use for main LMI memory */
 #define SIZE	(CONFIG_SYS_ST40_LMI_PMB_PAGE_SIZE)
 
 set_pmb:
+#if CONFIG_SYS_SDRAM_SIZE == 512*1024*1024	/* 512 MiB of RAM ? */
+	/*
+	 *	For 512 MiB, we create 2 PMB mappings, which ultimately will be:
+	 *
+	 *	Slot	Page-Size	Caching	  Virtual-Address
+	 *	----	---------	-------	  ---------------
+	 *	PMB[0]	512 MiB		CACHED	  0x80000000..0x9fffffff
+	 *	PMB[2]	 16 MiB		UN-cached 0xbf000000..0xbfffffff
+	 *
+	 * The entirety of the 16 MiB page (PMB[2]), will *PHYSICALLY* be
+	 * the same as the last 16 MiB region in the 512MiB page. That is,
+	 * the same 16 MiB of physical memory will be mapped twice (once
+	 * cached, and once un-cached) in the PMB virtual area. This
+	 * area that is mapped twice should include U-Boot's ".text"
+	 * section, i.e. the memory around "TEXT_BASE".
+	 */
+	SH4_SET_PMB 0,0x80,BASE,SIZE,0,0,1	/* LMI (512 MiB), will eventually be CACHED */
+	SH4_SET_PMB 2,UBVPN,UBPPN,16,0,0,1	/* Last 16MiB of LMI un-cached (for U-Boot's TEXT) */
+#else	/* 512 MiB of RAM ? */
 	SH4_SET_PMB 0,0x80,BASE,SIZE,0,0,1	/* LMI (first-half), will eventually be CACHED */
 	SH4_SET_PMB 2,0x90,BASE,SIZE,0,0,1	/* LMI (first-half), permanently UN-cached */
 	#if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
 	SH4_SET_PMB 1,0x88,BASE+0x08,SIZE,0,0,1	/* LMI (second-half), will eventually be CACHED */
 	SH4_SET_PMB 3,0x98,BASE+0x08,SIZE,0,0,1	/* LMI (second-half), permanently UN-cached */
 	#endif	/* CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES */
+#endif	/* 512 MiB of RAM ? */
 
 #undef  BASE
+#undef  UBVPN
+#undef  UBPPN
 #undef  SIZE
 
 #if defined(CONFIG_ST40_STX5197) && defined(CONFIG_ST40_MB704)

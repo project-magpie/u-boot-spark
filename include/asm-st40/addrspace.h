@@ -67,7 +67,12 @@
 	/*
 	 *	Convert VIRTUAL (cached) address to a UN-CACHED one.
 	 */
+#if (CONFIG_SYS_SDRAM_SIZE == (512*1024*1024) )			/* 512 MiB of RAM ? */
+#define P2SEGADDR(a)	((unsigned long)(a)^(CONFIG_SYS_ST40_PMB_TEXT_CACHED_PAGE^CONFIG_SYS_ST40_PMB_TEXT_UNCACHED_PAGE))
+#else	/* 512 MiB of RAM ? */
 #define P2SEGADDR(a)	(((unsigned long)(a)&CONFIG_SYS_SE_SDRAM_WINDOW)|CONFIG_SYS_SE_UNACHED_BASE)
+#endif	/* 512 MiB of RAM ? */
+
 	/*
 	 *	Convert VIRTUAL address to a PHYSICAL one.
 	 *	Our normal convention is that SDRAM is mapped in PMB virtual

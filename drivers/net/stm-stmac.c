@@ -32,6 +32,7 @@
 #include <malloc.h>
 #include <miiphy.h>
 #include "stm-stmac.h"
+#include "asm/pmb.h"
 
 #if defined(CONFIG_CMD_NET)
 
@@ -926,12 +927,17 @@ static void init_dma_desc_rings (void)
 		return;
 	}
 
+	/* Note: we want to pass CACHED addresses to init_rx_desc() */
 	for (i = 0; i < CONFIG_DMA_RX_SIZE; i++)
-		rx_packets[i] = (void *) P2SEGADDR (dma.rx_buff + (PKTSIZE_ALIGN * i));
+		rx_packets[i] = (void *)(dma.rx_buff + (PKTSIZE_ALIGN * i));
 
 	/* Initialize the contents of the DMA buffers */
 	init_rx_desc (dma_rx, CONFIG_DMA_RX_SIZE, rx_packets);
 	init_tx_desc (dma_tx, CONFIG_DMA_TX_SIZE);
+
+	/* now, we want UN-cached addresses in the array rx_packets[] */
+	for (i = 0; i < CONFIG_DMA_RX_SIZE; i++)
+		rx_packets[i] = (void *) P2SEGADDR (rx_packets[i]);
 
 #ifdef DEBUG
 	printf (STMAC "RX descriptor ring:\n");
@@ -1034,6 +1040,9 @@ static void stmac_eth_stop_tx (void)
 
 static int stmac_dma_init (void)
 {
+	/* Note: PHYSADDR() needs the CACHED address (not the PHYSICAL one) */
+	stmac_dma_des * const dma_rx = (stmac_dma_des *) (&dma.desc_rx[0]);
+	stmac_dma_des * const dma_tx = (stmac_dma_des *) (&dma.desc_tx[0]);
 
 	PRINTK (STMAC "DMA Core setup\n");
 

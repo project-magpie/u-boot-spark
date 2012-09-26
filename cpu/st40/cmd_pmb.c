@@ -110,6 +110,10 @@ static void display_pmb (void)
 			case 0:
 				if (vpn != 0x80)
 					printf ("ERROR: PMB[0].VPN != 0x80\n");
+#if (CONFIG_SYS_SDRAM_SIZE == (512<<20))	/* 512 MiB of SDRAM ? */
+				if (mb != 512)
+					printf ("ERROR: PMB[0].SZ != 512 MiB\n");
+#endif
 				break;
 
 			case 1:
@@ -120,12 +124,19 @@ static void display_pmb (void)
 				break;
 
 			case 2:
+#if (CONFIG_SYS_SDRAM_SIZE == (512<<20))	/* 512 MiB of SDRAM ? */
+				if (vpn != 0xbe)
+					printf ("ERROR: PMB[2].VPN != 0xbe\n");
+				if (mb != 16)
+					printf ("ERROR: PMB[2].SZ != 16 MiB\n");
+#else
 				if (vpn != 0x90)
 					printf ("ERROR: PMB[2].VPN != 0x90\n");
 				if (ppn != (*PMB_DATA(0)>>24))
 					printf ("ERROR: PMB[2].PPN != PMB[0].PPN\n");
 				if ((data&0x90) != (*PMB_DATA(0)&0x90))
 					printf ("ERROR: PMB[2].SZ != PMB[0].SZ\n");
+#endif
 				break;
 
 			case 3:
