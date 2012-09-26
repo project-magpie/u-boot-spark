@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2009 STMicroelectronics.
+ * (C) Copyright 2004-2012 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -82,7 +82,7 @@ ENTRY(sh_cache_clear_op)
 /* Move the PC from one PMB region to another, by masking.
 Note: This macro will clobber r0.
 Usage: .SWITCH_PMB <opcode> <mask_reg>
-where	<opcode> should be the masking opcode: "and" or "or".
+where	<opcode> should be a masking opcode: "and", "or", or "xor".
 	<mask_reg> register name, containing the mask to use. */
 .macro	SWITCH_PMB opcode:req, mask_reg:req
 	mova	1f, r0
@@ -114,7 +114,8 @@ where	<opcode> should be the masking opcode: "and" or "or".
 	 *
 	 * i.e. this function does:
 	 * {
-	 *	PC        = PC | 0x10000000;
+	 *	const unsigned long mask = <value to XOR PC with>;
+	 *	PC        = PC ^ mask;
 	 *	PMB[0].C  = ~PMB[0].C;
 	 *	PMB[0].UB = ~PMB[0].UB;
 	 * #if CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES
@@ -122,12 +123,12 @@ where	<opcode> should be the masking opcode: "and" or "or".
 	 *	PMB[1].UB = ~PMB[1].UB;
 	 * #endif
 	 *      MMUCR.TI  = 1;
-	 *	PC        = PC & ~0x10000000;
+	 *	PC        = PC ^ mask;
 	 * }
 	 *
 	 * Assumptions:
 	 * 0) We use 'Z' to mean 0 or 1.
-	 * 1) We assume that the PC (on entry) in running in
+	 * 1) We assume that the PC (on entry) is running in
 	 *    the virtual address space controlled by
 	 *    array index #Z of the PMB.
 	 *    i.e. PC is in VA defined by PMB[Z].
@@ -139,20 +140,26 @@ where	<opcode> should be the masking opcode: "and" or "or".
 	 *    address as the PMB entry we are currently running in.
 	 *    i.e. PMB[x] is an UN-cached alias for PMB[Z].
 	 *    so, PMB[Z].PPN == PMB[x].PPN
+	 *    Strictly speaking, the size of the un-cached could
+	 *    be different from that of the cached one, so some
+	 *    sub-setting of the PPNs is permissible.
 	 * 4) The un-cached PMB entry 'x' must not be:
 	 *    a) Index #Z as this is the one we are changing
 	 *    b) Index #15 as the linux kernel uses this on entry.
 	 *    i.e. x is in the range 2 .. 14
 	 *    Typically, x will be 2 (or 3), but this function
 	 *    does not require this assignment.
-	 * 5) We assume that the transition into the
-	 *    UN-cached area PMB[x] can be achieved by setting
-	 *    bit #28 of the PC.  i.e. OR-ing it with 0x10000000.
-	 *    so, PMB[Z].VPN | 0x10000000 == PMB[x].VPN
+	 * 5) We assume that the transition (with SWITCH_PMB) into the
+	 *    UN-cached area PMB[x] can be achieved by a simple
+	 *    XOR operation on the PC on entry. Similarly, we assume
+	 *    that the second PC transition can be achieved by
+	 *    repeating the same XOR operation on the PC prior to exit.
+	 *    With <= 256MiB of RAM, then the XOR mask is 0x10000000.
+	 *    so, PMB[Z].VPN ^ 0x10000000 == PMB[x].VPN
 	 *    i.e. PMB[Z] has VA 0x80000000 ... 0x8fffffff
 	 *         PMB[x] has VA 0x90000000 ... 0x9fffffff
 	 * 6) We assume both PMB arrays are enabled, valid, and
-	 *    will not result in an expection when dereferecned.
+	 *    will not result in an exception when dereferenced.
 	 *    i.e. PMB[Z].V == PMB[x].V == 1
 	 */
 ENTRY(sh_toggle_pmb_cacheability)
@@ -160,8 +167,8 @@ ENTRY(sh_toggle_pmb_cacheability)
 	.set index0, 0		/* PMB array #0 */
 	.set index1, 1		/* PMB array #1 */
 
-	/* set PC mask as bit #28 */
-	.set mask, 0x10000000	/* 0x80000000 ^ 0x90000000 */
+	/* set PC mask as: mask = 0x10000000 */
+	.set mask, 0x80000000 ^ 0x90000000
 
 	/* set bits to toggle: PMB[n].C and PMB[n].UB */
 	.set toggle, (SH4_PMB_C|SH4_PMB_UB)
@@ -169,7 +176,7 @@ ENTRY(sh_toggle_pmb_cacheability)
 	/* switch PC, to run from an UN-cached PMB region */
 	MOV_CONST32_R0 mask	/* Mask */
 	mov	r0, r2
-	SWITCH_PMB or, r2	/* PC = PC | 0x10000000 */
+	SWITCH_PMB xor, r2	/* PC = PC xor mask */
 
 	/* now toggle the cacheability of PMB[0] */
 	MOV_CONST32_R0	(toggle)
@@ -195,8 +202,7 @@ ENTRY(sh_toggle_pmb_cacheability)
 	mov.l	r1, @r0
 
 	/* switch PC, to run from original PMB region */
-	not	r2, r2		/* invert the mask */
-	SWITCH_PMB and, r2	/* PC = PC & ~0x10000000 */
+	SWITCH_PMB xor, r2	/* PC = PC xor mask */
 
 	/* return to the caller */
 	rts
