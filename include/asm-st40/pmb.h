@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -28,7 +28,7 @@
 
 	/*
 	 * The PMB contains 16 entries, and supports the following
-	 * 4 page sizes: 16MB, 64MB, 128MB, and 512MB.
+	 * 4 page sizes: 16MiB, 64MiB, 128MiB, and 512MiB.
 	 *
 	 * Although the PMB has a total of 16 entries, but we will
 	 * pretend that there are only 14, by grouping #0 and #1
@@ -61,17 +61,45 @@
 	 * to enable the caching of PMB[0:1].
 	 */
 
-	 /*
-	 * If the main LMI memory is 256MB, then we need to have
-	 * two PMB entries to represent this amount of memory.
-	 * The following predicate will yield TRUE if U-boot
-	 * requires 2 PMB entries (#0, and #1) for main memory
-	 * (plus two more (#2 and #3) for its un-cached alias),
-	 * and FALSE if only a single entry (#0) is required
-	 * (plus one more (#2) for its un-cached alias).
+	/*
+	 * Firstly, check that the size of the RAM is a strict
+	 * multiple of 16 MiB (the smallest possible PMB page).
 	 */
-#define CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES	\
-	( (CONFIG_SYS_SDRAM_SIZE) > (128*1024*1024) )
+#if (CONFIG_SYS_SDRAM_SIZE & (16*1024*1024-1)) != 0
+#	error CONFIG_SYS_SDRAM_SIZE is not a multiple of 16 MiB
+#endif
+
+	 /*
+	  * If the main LMI memory is 256MB, then we need to have
+	  * two PMB entries to map this amount of memory.
+	  * Otherwise, we will always just use a single PMB page
+	  * to map *all* the "usable" SDRAM (as cached).
+	  * i.e.:
+	  *
+	  *	2 * 128 MiB pages for 256 MiB of RAM
+	  *	1 * 128 MiB page  for 128 MiB of RAM
+	  *	1 *  64 MiB page  for  64 MiB of RAM (and smaller).
+	  *
+	  * CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES will yield TRUE
+	  * if U-boot requires 2 PMB entries (#0, and #1) for main memory
+	  * and FALSE if only a single entry (#0) is required.
+	  */
+#if (CONFIG_SYS_SDRAM_SIZE == (256*1024*1024) )			/* 256 MiB of RAM ? */
+#	define CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES	1	/* use 2 * 128 MiB PMB page */
+#	define CONFIG_SYS_ST40_LMI_PMB_PAGE_SIZE	128
+#elif (CONFIG_SYS_SDRAM_SIZE == (128*1024*1024) )		/* 128 MiB of RAM ? */
+#	define CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES	0	/* use 1 * 128 MiB PMB page */
+#	define CONFIG_SYS_ST40_LMI_PMB_PAGE_SIZE	128
+#elif (CONFIG_SYS_SDRAM_SIZE == (64*1024*1024) )		/* 64 MiB of RAM ? */
+#	define CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES	0	/* use 1 * 64 MiB PMB page */
+#	define CONFIG_SYS_ST40_LMI_PMB_PAGE_SIZE	64
+#elif (CONFIG_SYS_SDRAM_SIZE == (32*1024*1024) )		/* 32 MiB of RAM ? */
+#	define CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES	0	/* use 1 * 64 MiB PMB page */
+#	define CONFIG_SYS_ST40_LMI_PMB_PAGE_SIZE	64
+#else								/* Oh, dear! */
+#	error Unepected value for CONFIG_SYS_SDRAM_SIZE
+#endif
+
 
 
 #endif	/* __ASM_ST40_PMB_H */
