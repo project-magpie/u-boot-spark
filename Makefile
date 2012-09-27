@@ -3381,7 +3381,7 @@ mb628se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x83900000" >$(obj)board/st/mb628/config.tmp)
+	@echo "TEXT_BASE = 0x83700000" >$(obj)board/st/mb628/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb628 st40 st40 mb628 st stx7141
 
 eud7141_config \

@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2008-2009 STMicroelectronics.
+# (C) Copyright 2008-2012 STMicroelectronics.
 # Sean McGoogan <Sean.McGoogan@st.com>
 #
 # See file CREDITS for list of people who contributed to this
@@ -34,13 +34,17 @@
 #	eSTB_BASE	0x0c800000	0x40800000	 50MiB
 #	eSTB_END	0x0f9fffff	0x439fffff	   ---
 #
+#	Note: to ensure that CONFIG_SYS_SDRAM_SIZE is strictly a
+#	multiple of 16 MiB (for PMB alignment purposes), then
+#	we will cap the size of the eSTB allocation to 48 MiB.
+#
 #
 #	Following are *Virtual* Addresses:
 #
 #	Valid values for TEXT_BASE are:
 #
-#	0x8F900000	29-bit mode (Traditional Mode)
-#	0x83900000	32-bit mode (Space-Enhancement Mode)
+#	0x8F700000	29-bit mode (Traditional Mode)
+#	0x83700000	32-bit mode (Space-Enhancement Mode)
 #
 # Note:	Alternative definitions of TEXT_BASE are put into
 #	'config.tmp' from the top-level 'Makefile'.
@@ -49,8 +53,8 @@
 sinclude $(OBJTREE)/board/$(BOARDDIR)/config.tmp
 
 ifndef TEXT_BASE
-# Installs at eSTB BASE + 49MB in P1 (cachable)
-TEXT_BASE = 0x8F900000
+# Installs at eSTB BASE + 47MB in P1 (cachable)
+TEXT_BASE = 0x8F700000
 endif
 
 PLATFORM_LDFLAGS +=
