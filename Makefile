@@ -3471,14 +3471,21 @@ mb837se_config :		unconfig
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb837/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb837 st40 st40 mb837 st stx7108
 
+hdk7108se_512_config	\
+hdk7108se_256_config	\
+hdk7108se_128_config	\
 hdk7108se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/hdk7108
 	@echo "#define CONFIG_ST40_STX7108    1" >>$(obj)include/config.h
-	@echo "#define CONFIG_ST40_HDK7108      1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE    1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk7108/config.tmp)
+	@echo "#define CONFIG_ST40_HDK7108    1" >>$(obj)include/config.h
+	@echo "#define CONFIG_ST40_SE_MODE    1" >>$(obj)include/config.h
+	@case "$@" in \
+		hdk7108se_512_config)	TEXT_BASE=0x9FF00000;; \
+		hdk7108se_256_config)	TEXT_BASE=0x8FF00000;; \
+		hdk7108se_128_config)	TEXT_BASE=0x87F00000;; \
+		hdk7108se_config)	TEXT_BASE=0x87F00000;; \
+	esac; \
+	echo "TEXT_BASE = $${TEXT_BASE}" >$(obj)board/st/hdk7108/config.tmp
 	@$(MKCONFIG) -a -n $@ hdk7108 st40 st40 hdk7108 st stx7108
 
 mb903se_config :		unconfig

@@ -825,6 +825,9 @@ LIST_st40="		\
 	b2042se		\
 	mb837se		\
 	hdk7108se	\
+	hdk7108se_512	\
+	hdk7108se_256	\
+	hdk7108se_128	\
 	mb903se		\
 	b2037se		\
 	b2057se		\
