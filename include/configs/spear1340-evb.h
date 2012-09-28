@@ -93,7 +93,7 @@
 	#define CONFIG_ENV_SECT_SIZE		0x00010000
 	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock6 "
 	#define CONFIG_BOOTCOMMAND		"" \
-		"cp.b 0xe6070000 0x800000 0x10000; bootm 0xe6080000 - 0x800000"
+		"bootm 0xe6080000 - 0xe6070000"
 
 #elif defined(CONFIG_ENV_IS_IN_NAND)
 	/* Environment is in NAND */
