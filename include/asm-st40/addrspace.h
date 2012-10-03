@@ -61,9 +61,40 @@
 		SE-Mode memory alias translations
    ---------------------------------------------------------------------------*/
 #ifdef CONFIG_ST40_SE_MODE
+	/*
+	 *	Define a macro for LMI UN-cached address (via PMB) in 32-bit mode.
+	 *	It should be 0xBF000000, if there is 512MiB of usable SDRAM mapped
+	 *	by the PMB, otherwise it should just be 0x90000000.
+	 */
+#if !defined(CONFIG_SYS_SE_UNCACHED_BASE)
+#if (CONFIG_SYS_SDRAM_SIZE==512<<20)
+#	define CONFIG_SYS_SE_UNCACHED_BASE	0xBF000000	/* LMI UN-cached address via PMB (last 16MiB) */
+#else
+#	define CONFIG_SYS_SE_UNCACHED_BASE	0x90000000	/* LMI UN-cached address via PMB */
+#endif
+#endif
+
+	/*
+	 *	define CONFIG_SYS_SE_SDRAM_WINDOW, if not already defined.
+	 */
+#if !defined(CONFIG_SYS_SE_SDRAM_WINDOW)
+#	define CONFIG_SYS_SE_SDRAM_WINDOW	(CONFIG_SYS_SDRAM_SIZE-1)
+#endif
+
+	/*
+	 *	define CONFIG_SYS_SDRAM_BASE, if not already defined.
+	 */
+#if !defined(CONFIG_SYS_SDRAM_BASE)
+#	define CONFIG_SYS_SDRAM_BASE		0x80000000      /* LMI Cached address via PMB */
+#endif
+
+	/*
+	 * a few sanity checks for macros, when in SE (32-bit) mode
+	 */
 #if !defined(CONFIG_SYS_SE_SDRAM_WINDOW) || !defined(CONFIG_SYS_SE_PHYSICAL_BASE) || !defined(CONFIG_SYS_SE_UNCACHED_BASE)
 #error	SH-4 SE Memory Mappings needs to be defined!
 #endif
+
 	/*
 	 *	Convert VIRTUAL (cached) address to a UN-CACHED one.
 	 */

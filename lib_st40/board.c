@@ -39,6 +39,7 @@
 #endif
 #include <asm/socregs.h>
 #include <asm/st40reg.h>
+#include <asm/addrspace.h>
 
 
 DECLARE_GLOBAL_DATA_PTR;

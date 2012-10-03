@@ -81,9 +81,7 @@
 
 #ifdef CONFIG_ST40_SE_MODE
 #define CONFIG_SYS_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
-#define CONFIG_SYS_SDRAM_BASE		0x80000000	/* LMI    Cached addr via PMB */
-#define CONFIG_SYS_SE_UNCACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
-#define CONFIG_SYS_SE_SDRAM_WINDOW	(CONFIG_SYS_SDRAM_SIZE-1)
+#define CONFIG_SYS_SDRAM_BASE		0x80000000	/* LMI Cached addr via PMB */
 #else
 #define CONFIG_SYS_SDRAM_BASE		0x8C000000	/* SDRAM in P1 region */
 #endif
