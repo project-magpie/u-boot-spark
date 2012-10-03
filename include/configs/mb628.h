@@ -45,7 +45,7 @@
 #define CONFIG_SYS_FLASH_BASE		0xA0000000	/* FLASH (uncached) via PMB */
 #define CONFIG_SYS_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
 #define CONFIG_SYS_SDRAM_BASE		0x80800000	/* LMI    Cached addr via PMB */
-#define CONFIG_SYS_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
+#define CONFIG_SYS_SE_UNCACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
 #define CONFIG_SYS_SE_SDRAM_WINDOW	(CONFIG_SYS_SDRAM_SIZE-1)
 #else
 #define CONFIG_SYS_FLASH_BASE		0xA0000000	/* FLASH in P2 region */

@@ -79,7 +79,7 @@
 #define CONFIG_SYS_FLASH_BASE		CONFIG_SYS_EMI_NOR_BASE/* NOR FLASH (uncached) via PMB */
 #define CONFIG_SYS_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
 #define CONFIG_SYS_SDRAM_BASE		0x80000000	/* LMI    Cached addr via PMB */
-#define CONFIG_SYS_SE_UNACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
+#define CONFIG_SYS_SE_UNCACHED_BASE	0x90000000	/* LMI UN-cached addr via PMB */
 #define CONFIG_SYS_SE_SDRAM_WINDOW	(CONFIG_SYS_SDRAM_SIZE-1)
 #else
 #error This SoC is not supported in 29-bit mode, please enable SE-mode!

@@ -118,7 +118,7 @@
 		/* the PMB 16MiB VIRTUAL page where U-Boot will logically reside CACHED */
 #	define CONFIG_SYS_ST40_PMB_TEXT_CACHED_PAGE	(TEXT_BASE & 0xFF000000)
 		/* the PMB 16MiB VIRTUAL page where U-Boot will logically reside UN-cached */
-#	define CONFIG_SYS_ST40_PMB_TEXT_UNCACHED_PAGE	(CONFIG_SYS_SE_UNACHED_BASE)
+#	define CONFIG_SYS_ST40_PMB_TEXT_UNCACHED_PAGE	(CONFIG_SYS_SE_UNCACHED_BASE)
 		/* the PMB 16MiB PHYSICAL page where U-Boot will physically reside */
 #	define CONFIG_SYS_ST40_PMB_TEXT_PHYSICAL_PAGE	(CONFIG_SYS_SE_PHYSICAL_BASE + ((512-16)*1024*1024))
 #elif (CONFIG_SYS_SDRAM_SIZE == (256*1024*1024) )		/* 256 MiB of RAM ? */

@@ -61,7 +61,7 @@
 		SE-Mode memory alias translations
    ---------------------------------------------------------------------------*/
 #ifdef CONFIG_ST40_SE_MODE
-#if !defined(CONFIG_SYS_SE_SDRAM_WINDOW) || !defined(CONFIG_SYS_SE_PHYSICAL_BASE) || !defined(CONFIG_SYS_SE_UNACHED_BASE)
+#if !defined(CONFIG_SYS_SE_SDRAM_WINDOW) || !defined(CONFIG_SYS_SE_PHYSICAL_BASE) || !defined(CONFIG_SYS_SE_UNCACHED_BASE)
 #error	SH-4 SE Memory Mappings needs to be defined!
 #endif
 	/*
@@ -70,7 +70,7 @@
 #if (CONFIG_SYS_SDRAM_SIZE == (512*1024*1024) )			/* 512 MiB of RAM ? */
 #define P2SEGADDR(a)	((unsigned long)(a)^(CONFIG_SYS_ST40_PMB_TEXT_CACHED_PAGE^CONFIG_SYS_ST40_PMB_TEXT_UNCACHED_PAGE))
 #else	/* 512 MiB of RAM ? */
-#define P2SEGADDR(a)	(((unsigned long)(a)&CONFIG_SYS_SE_SDRAM_WINDOW)|CONFIG_SYS_SE_UNACHED_BASE)
+#define P2SEGADDR(a)	(((unsigned long)(a)&CONFIG_SYS_SE_SDRAM_WINDOW)|CONFIG_SYS_SE_UNCACHED_BASE)
 #endif	/* 512 MiB of RAM ? */
 
 	/*
