@@ -52,12 +52,15 @@
  *			NAND	NAND	NAND	SPI
  *	Jumper		NO ECC	(18)	(30)	NOR		Signal
  *	------		------	----	----	---		------
- *	JF3		CSA	CSA	CSA	CSB		NAND_CS#
+ *	JF3		CSA#	CSA#	CSA#	CSA#		NAND_CS#
  *	JF6-1		 ON	 ON	 ON	off		MODE[6]
  *	JF5-2		off	off	off	off		MODE[5]
  *	JF5-1		 ON	 ON	 ON	 ON		MODE[4]
  *	JF4-2		 ON	 ON	off	off		MODE[3]
  *	JF4-1		 ON	off	 ON	 ON		MODE[2]
+ *
+ *	Note:	In all cases, NAND_CS# (via JF3) should always be tied to CSA#,
+ *		irrespective if we are booting from NAND, or SPI FLASH.
  */
 
 
@@ -83,13 +86,11 @@
  * Assume we run out of uncached memory for the moment
  */
 
+#define CONFIG_SYS_EMI_NAND_BASE		0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 */
+#define CONFIG_SYS_NAND_FLEX_CSn_MAP		{ 0 }		/* NAND is always on Chip Select CSA */
 #if defined(CONFIG_SYS_BOOT_FROM_SPI)			/* we are booting from SPI */
-#	define CONFIG_SYS_EMI_NAND_BASE		0xA0400000	/* CSB: NAND Flash, Physical 0x00400000 (4MiB) */
-#	define CONFIG_SYS_EMI_SPI_BASE		0xB0000000	/* CSA: SPI Flash,  Physical 0x00000000 (4MiB) */
-#	define CONFIG_SYS_NAND_FLEX_CSn_MAP	{ 1 }		/* NAND is on Chip Select CSB */
+#	define CONFIG_SYS_EMI_SPI_BASE		0xB0000000	/* EMI_BANK0: SPI Flash, Physical 0x00000000 */
 #elif defined(CONFIG_SYS_BOOT_FROM_NAND)		/* we are booting from NAND */
-#	define CONFIG_SYS_EMI_NAND_BASE		0xA0000000	/* CSA: NAND Flash, Physical 0x00000000 (4MiB) */
-#	define CONFIG_SYS_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #else
 #	error Either CONFIG_SYS_BOOT_FROM_SPI or CONFIG_SYS_BOOT_FROM_NAND must be defined!
 #endif /* CONFIG_SYS_BOOT_FROM_SPI || CONFIG_SYS_BOOT_FROM_NAND */
