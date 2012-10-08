@@ -86,6 +86,11 @@
 #define CONFIG_NAND_FSMC
 #define CONFIG_SYS_FSMC_NAND_8BIT
 
+/* SPL support */
+#define CONFIG_SPL
+#define CONFIG_DDR_MT41J256M8
+#define CONFIG_SPEAR_DDRFREQ533
+
 /* Environment Variable configs */
 #if defined(CONFIG_ENV_IS_IN_FLASH)
 	/* Environment is in serial NOR flash */
