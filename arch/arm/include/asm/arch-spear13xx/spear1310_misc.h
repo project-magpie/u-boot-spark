@@ -255,7 +255,7 @@ struct spear1310_misc_regs {
 #define SPEAR1310_UHC1_SWRST		0x00000200
 
 /* perip_clk_cfg definitions */
-#define SPEAR1310_UART48M_CLK		0x00000000
+#define SPEAR1310_UART48M		0x00000000
 #define SPEAR1310_UARTCLKMSK		0x00000030
 
 /* gmac_clk_cfg definitions */
@@ -287,7 +287,7 @@ struct spear1310_misc_regs {
 #define SPEAR1310_NANDCS0_NORCS7	0x00000008
 
 /* synth registers definitions */
-#define SPEAR1310_SYNT_CLK_ENB		0x80000000
+#define SPEAR1310_SYNT_CLKENB		0x80000000
 #define SPEAR1310_SYNT_FIN_FULL		0x04000000
 #define SPEAR1310_SYNT_X_1		0x00010000
 #define SPEAR1310_SYNT_X_2		0x00020000
