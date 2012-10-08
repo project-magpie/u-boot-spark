@@ -45,7 +45,7 @@ int board_early_init_f(void)
 	spear1310_enable_pins(PMX_SSP0, PMX_SSP_CS0);
 	spear1310_enable_pins(PMX_SMI, PMX_SMI_2CHIPS);
 	spear1310_enable_pins(PMX_SDMMC, 0);
-	spear1310_enable_pins(PMX_ETH0, PMX_ETH_RGMII);
+	spear1310_enable_pins(PMX_ETH0, PMX_ETH_GMII);
 
 	return 0;
 }
@@ -67,10 +67,10 @@ void board_nand_init(void)
 int board_eth_init(bd_t *bis)
 {
 	int ret = 0;
-	u32 interface = PHY_INTERFACE_MODE_RMII;
+	u32 interface = PHY_INTERFACE_MODE_MII;
 #if defined(CONFIG_DESIGNWARE_ETH)
 #if defined(CONFIG_DW_AUTONEG)
-	interface = PHY_INTERFACE_MODE_RGMII;
+	interface = PHY_INTERFACE_MODE_GMII;
 #endif
 	if (designware_initialize(0, CONFIG_SYS_ETH_BASE, CONFIG_DW0_PHY,
 				interface) >= 0)
