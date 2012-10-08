@@ -21,21 +21,40 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __ARCH_ARM_GENERIC_H__
-#define __ARCH_ARM_GENERIC_H__
+#include <config.h>
 
-#if defined(CONFIG_SOC_SPEAR1310)
-extern void spear1310_usbh_stop(void);
-#elif defined(CONFIG_SOC_SPEAR1340)
-extern void spear1340_usbh_stop(void);
-#endif
+.syntax	unified
 
-#if defined(CONFIG_SPL_BUILD)
-extern void cpu2_wake(void);
-extern void soc_init(void);
-extern void board_pre_ddrinit(void);
-extern void ddr_init(void);
-extern void board_post_ddrinit(void);
-#endif
+.global cleanup_before_linux
+.global cpu2_wake
+cpu2_wake:
+	push	{r0 - r1}
+	ldr	r0,=CONFIG_SPEAR13XX_ARM2PHOLD
+	adr	r1,cpu2_jump
+	str	r1,[r0]
+	dmb
+	dsb
+	sev
+	pop	{r0 - r1}
+	bx	r14
 
-#endif
+/* CPU2 starts running from here */
+cpu2_jump:
+	/* stack init, needed for calling C routine */
+	ldr	r13,=CONFIG_SPEAR13XX_ARM2STACK
+
+	bl	cleanup_before_linux
+
+	ldr	r0,=CONFIG_SPEAR13XX_ARM2PHOLD
+	ldr	r1,=0xdeadbeef
+	str	r1,[r0]
+	dmb
+	dsb
+1:
+	wfe
+	ldr	r2,=0xdeadbeef
+	ldr	r1,[r0]
+	cmp	r1,r2
+	beq	1b
+
+	blx	r1

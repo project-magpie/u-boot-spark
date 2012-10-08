@@ -64,9 +64,58 @@
 #if defined(CONFIG_ARMV7_CA9LTIMER)
 #endif
 
-/* Internal memory address for spear3xx */
+/* Internal memory address for spear13xx */
 #define CONFIG_SYS_INIT_SP_ADDR			(0xB3800000 + 0x8000 - \
 						GENERATED_GBL_DATA_SIZE)
+
+/* SPL configurations */
+#if defined(CONFIG_SPL)
+	#if !defined(CONFIG_SPL_TEXT_BASE)
+		#define CONFIG_SPL_TEXT_BASE		0xB3801504
+	#endif
+	#if !defined(CONFIG_SYS_SNOR_BOOT_BASE)
+		#define CONFIG_SYS_SNOR_BOOT_BASE	0xE6010000
+	#endif
+	#if !defined(CONFIG_SYS_NAND_BOOT_BASE)
+		#define CONFIG_SYS_NAND_BOOT_BASE	0x00080000
+	#endif
+	#if !defined(CONFIG_SYS_PNOR_BOOT_BASE)
+		#define CONFIG_SYS_PNOR_BOOT_BASE	0xA0020000
+	#endif
+	#if !defined(CONFIG_SYS_MMC_BOOT_FILE)
+		#define CONFIG_SYS_MMC_BOOT_FILE	"u-boot.img"
+	#endif
+
+	#define CONFIG_SPEAR13XX_ARM2PHOLD		0xB3800600
+	#define CONFIG_SPEAR13XX_ARM2STACK		0xB3800100
+
+	#define CONFIG_SPL_NO_CPU_SUPPORT_CODE
+	#define CONFIG_SPL_LIBCOMMON_SUPPORT
+	#define CONFIG_SPL_LIBGENERIC_SUPPORT
+	#define CONFIG_SPL_MTD_SUPPORT
+	#define CONFIG_SPL_START_S_PATH	"arch/arm/cpu/armv7/spear13xx"
+	#define CONFIG_SPL_LDSCRIPT	\
+			"arch/arm/cpu/armv7/spear13xx/u-boot-spl.lds"
+
+	#if defined(CONFIG_DDR_ECC_ENABLE)
+		#define CONFIG_C3
+		#define CONFIG_SPL_MISC_SUPPORT
+	#endif
+
+	#if defined(CONFIG_DDR_MT41J64M16) || \
+		defined(CONFIG_DDR_MT41J256M8) || \
+		defined(CONFIG_DDR_H5TQ2G63BFRPBC) || \
+		defined(CONFIG_DDR_K4B2G1646CK0) || \
+		defined(CONFIG_DDR_MT41J128M16)
+
+		#define CONFIG_DDR3
+	#elif defined(CONFIG_DDR_MT47H128M16)
+
+		#define CONFIG_DDR2
+	#else
+		#error Define a supported DDR
+	#endif
+#endif
 
 #include <configs/spear.h>
 #endif /* __CONFIG_SPEAR13XX_H */

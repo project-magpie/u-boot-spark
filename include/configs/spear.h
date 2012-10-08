@@ -188,12 +188,21 @@
 	CONFIG_BOOTCOMMAND
 
 /* Miscellaneous configurable options */
+#define CONFIG_SPL_IMAGENAME			Xloader
 #define CONFIG_ARCH_CPU_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 #define CONFIG_SYS_EXCEPTION_VECTORS_HIGH
-#define CONFIG_SYS_DCACHE_OFF
+
+/*
+ * There are 2 builds supported by u-boot source DCACHE support is kept enabled
+ * for SPL, so that the generic routines can be used for invalidating the
+ * caches. This is a mandatory requirement from kernel at bootup
+ */
+#if !defined(CONFIG_SPL_BUILD)
+	#define CONFIG_SYS_DCACHE_OFF
+#endif
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_CMDLINE_TAG

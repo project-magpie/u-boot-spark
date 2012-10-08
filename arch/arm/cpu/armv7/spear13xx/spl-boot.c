@@ -21,21 +21,56 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __ARCH_ARM_GENERIC_H__
-#define __ARCH_ARM_GENERIC_H__
+#include <common.h>
+#include <asm/io.h>
+#include <asm/arch/boot.h>
+#include <linux/mtd/st_smi.h>
 
-#if defined(CONFIG_SOC_SPEAR1310)
-extern void spear1310_usbh_stop(void);
-#elif defined(CONFIG_SOC_SPEAR1340)
-extern void spear1340_usbh_stop(void);
+ulong spl_boot(void)
+{
+	ulong ret;
+
+#if defined(CONFIG_SPEAR_USBTTY)
+	return 0;
 #endif
 
-#if defined(CONFIG_SPL_BUILD)
-extern void cpu2_wake(void);
-extern void soc_init(void);
-extern void board_pre_ddrinit(void);
-extern void ddr_init(void);
-extern void board_post_ddrinit(void);
-#endif
+	switch (get_boot_type()) {
+	case BOOT_TYPE_BYPASS:
+	case BOOT_TYPE_SMI:
+		/* SNOR-SMI initialization */
+		smi_init();
+		ret = (ulong)CONFIG_SYS_SNOR_BOOT_BASE;
+		break;
 
-#endif
+	case BOOT_TYPE_NAND:
+		ret = (ulong)CONFIG_SYS_NAND_BOOT_BASE;
+		break;
+
+	case BOOT_TYPE_PNOR8:
+	case BOOT_TYPE_PNOR16:
+	case BOOT_TYPE_PNOR32:
+		ret = (ulong)CONFIG_SYS_PNOR_BOOT_BASE;
+		break;
+
+	case BOOT_TYPE_USBD:
+	case BOOT_TYPE_TFTP:
+	case BOOT_TYPE_PCIE:
+	case BOOT_TYPE_UART:
+		ret = 0;
+		break;
+
+	case BOOT_TYPE_MMC:
+		ret = (ulong)CONFIG_SYS_MMC_BOOT_FILE;
+		break;
+
+	case BOOT_TYPE_I2C:
+	case BOOT_TYPE_SPI:
+	case BOOT_TYPE_RESERVED:
+	case BOOT_TYPE_UNSUPPORTED:
+	default:
+		ret = (ulong)-1;
+		break;
+	}
+
+	return ret;
+}

@@ -28,19 +28,37 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(SOC).o
 
+SOBJS-y	:=
+COBJS-y	:=
+
 COBJS-$(CONFIG_ARCH_SPEAR13XX) += spear13xx.o
 COBJS-$(CONFIG_SOC_SPEAR1310) += spear1310.o
 COBJS-$(CONFIG_SOC_SPEAR1310) += spear1310-pinmux.o
 COBJS-$(CONFIG_SOC_SPEAR1340) += spear1340.o
 COBJS-$(CONFIG_SOC_SPEAR1340) += spear1340-pinmux.o
 
-SRCS	:= $(COBJS-y:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS-y))
+ifdef CONFIG_SPL_BUILD
+SOBJS-y	+= wakeup.o
+
+COBJS-y	+= spl-boot.o
+COBJS-$(CONFIG_ARCH_SPEAR13XX) += spl-spear13xx.o
+COBJS-$(CONFIG_ARCH_SPEAR13XX) += spl-lvl_gatetrn.o
+COBJS-$(CONFIG_ARCH_SPEAR13XX) += spl-lvl_read.o
+COBJS-$(CONFIG_ARCH_SPEAR13XX) += spl-lvl_write.o
+COBJS-$(CONFIG_ARCH_SPEAR13XX) += spl-swlvl.o
+COBJS-$(CONFIG_SOC_SPEAR1340) += spl-spear1340.o
+endif
+
+COBJS	:= $(sort $(COBJS-y))
+SOBJS	:= $(sort $(SOBJS-y))
+SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS))
+SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
 all:	$(obj).depend $(LIB)
 
-$(LIB):	$(OBJS)
-	$(call cmd_link_o_target, $(OBJS))
+$(LIB):	$(OBJS) $(SOBJS)
+	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
 
 #########################################################################
 

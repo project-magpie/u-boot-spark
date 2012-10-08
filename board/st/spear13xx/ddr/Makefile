@@ -1,5 +1,8 @@
 #
-# (C) Copyright 2000-2003
+# (C) Copyright 2012
+# Vipin Kumar, ST Microelectronics, vipin.kumar@st.com
+#
+# (C) Copyright 2000-2004
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
@@ -23,32 +26,33 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(CPU).o
+LIB	= $(obj)lib$(BOARD)ddr.o
 
-START	:= start.o
+SOBJS-y	:=
+COBJS-y	:=
 
-COBJS-y	+= cache_v7.o
-
-COBJS-y	+= cpu.o
-COBJS-y	+= syslib.o
-COBJS-$(CONFIG_ARMV7_CA9LTIMER) += ca9_ltimer.o
-
-ifdef	CONFIG_SPL_BUILD
-ifdef	CONFIG_SPL_NO_CPU_SUPPORT_CODE
-START	:=
-endif
+ifdef CONFIG_SPL_BUILD
+COBJS-$(CONFIG_DDR_H5TQ2G63BFRPBC) += h5tq2g63bfr_pbc_400_cl6.o
+COBJS-$(CONFIG_DDR_H5TQ2G63BFRPBC) += h5tq2g63bfr_pbc_533_cl8.o
+COBJS-$(CONFIG_DDR_K4B2G1646CK0) += k4b2g1646c_k0_400_cl6.o
+COBJS-$(CONFIG_DDR_K4B2G1646CK0) += k4b2g1646c_k0_533_cl8.o
+COBJS-$(CONFIG_DDR_MT41J128M16) += mt41j128m16_15e_400_cl6_dqs_dq_term_en.o
+COBJS-$(CONFIG_DDR_MT41J256M8) += mt41j256m8187e_400_cl6_dqs_dq_term_en.o
+COBJS-$(CONFIG_DDR_MT41J256M8) += mt41j256m8187e_533_cl7_dqs_dq_term_en.o
+COBJS-$(CONFIG_DDR_MT41J64M16) += mt41j64m16_15e_400_cl6_dqs_dq_term_en.o
+COBJS-$(CONFIG_DDR_MT41J64M16) += mt41j64m16_15e_533_cl7_dqs_dq_term_en.o
+COBJS-$(CONFIG_DDR_MT47H128M16) += mt47h128m16rt187e_400_cl6_ddr2.o
+COBJS-$(CONFIG_DDR_MT47H128M16) += mt47h128m16rt187e_533_cl7_ddr2.o
 endif
 
 COBJS	:= $(sort $(COBJS-y))
 SOBJS	:= $(sort $(SOBJS-y))
-SRCS	:= $(START:.o=.S) $(COBJS:.o=.c)
+SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
-START	:= $(addprefix $(obj),$(START))
+SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
-all:	$(obj).depend $(START) $(LIB)
-
-$(LIB):	$(OBJS)
-	$(call cmd_link_o_target, $(OBJS))
+$(LIB):	$(obj).depend $(OBJS) $(SOBJS)
+	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
 
 #########################################################################
 
