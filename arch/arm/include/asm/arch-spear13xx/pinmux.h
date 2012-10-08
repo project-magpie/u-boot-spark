@@ -64,6 +64,8 @@ enum pinmux_ip {
 /* UART0 modem modes */
 #define PMX_UART_SIMPLE		1
 #define PMX_UART_MODEM		2
+#define PMX_UART_DISSD		3
+#define PMX_UART_DISI2C0	4
 
 /* SSP modes */
 #define PMX_SSP_CS0		1
