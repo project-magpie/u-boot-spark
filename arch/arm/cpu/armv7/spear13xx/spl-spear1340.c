@@ -117,6 +117,10 @@ static void sys_init(void)
 	while ((readl(&misc_p->sys_clk_ctrl) & SPEAR1340_SYS_STATE_MASK) !=
 			SPEAR1340_SYS_STATE_NORMAL)
 		;
+#if defined(CONFIG_C3)
+	writel(readl(&misc_p->perip1_clk_enb) | SPEAR1340_C3_CLKEN,
+			&misc_p->perip1_clk_enb);
+#endif
 }
 
 static void ddr_clock_init(void)

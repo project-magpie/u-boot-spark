@@ -249,6 +249,11 @@ struct mpmc_regs {
 #define RDLVL_DELAY_VALS		8
 #define RDLVL_DELAY_INIT		4
 
+#define MPMC_REG18_ECC_MASK		(3 << 8)
+#define MPMC_REG18_NO_ECC		(0 << 8)
+#define MPMC_REG18_ECC_REPORT_ON	(1 << 8)
+#define MPMC_REG18_ECC_CORR_ON		(3 << 8)
+
 /* DDR2 settings*/
 #define WRLVL_BASE_OFFSET_REG_VALUE	0
 
@@ -311,7 +316,6 @@ extern void swlvl_exit(void);
 
 extern void spear13xx_mpmc_init(u32 *, u32);
 extern void spear13xx_ddr_level(void);
-extern void spear13xx_ddr_probe(void);
 
 extern u32 mpmc_conf_vals[];
 

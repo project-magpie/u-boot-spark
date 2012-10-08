@@ -24,6 +24,7 @@
 #include <common.h>
 #include <post.h>
 #include <asm/io.h>
+#include <asm/arch/c3.h>
 #include <asm/arch/generic.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/mpmc.h>
@@ -83,6 +84,38 @@ void spear13xx_ddr_level(void)
 #endif
 }
 
+static void spear13xx_ddrecc_init(void)
+{
+	/*
+	 * The complete memory has to be initialized so that the ECC DDR gets
+	 * populated and it starts working
+	 *
+	 * There are two ways to handle this
+	 * - Through CPU. Cache has to be enabled to make it faster.
+	 * - Through accelarator (C3)
+	 */
+#if defined(CONFIG_DDR_ECC_ENABLE)
+	u32 ram_size = get_ram_size(CONFIG_SYS_SDRAM_BASE, SDRAM_MAX_SIZE);
+	u32 *mpmc_reg_p = (u32 *)CONFIG_SYS_MPMC_BASE;
+	u32 reg18;
+
+	reg18 = readl(&mpmc_reg_p[18]);
+	reg18 &= ~MPMC_REG18_ECC_MASK;
+	reg18 |= MPMC_REG18_ECC_CORR_ON;
+	writel(reg18, &mpmc_reg_p[18]);
+
+	while ((readl(&mpmc_reg_p[18]) & MPMC_REG18_ECC_MASK) !=
+			MPMC_REG18_ECC_CORR_ON)
+		;
+#if defined(CONFIG_C3)
+	c3_init();
+	c3_memset((void *)0, 0, ram_size);
+#else
+#error Define CONFIG_C3 for DDR ECC support
+#endif
+#endif /* CONFIG_DDR_ECC_ENABLE */
+}
+
 void __def_board_init(void)
 {
 	return;
@@ -103,6 +136,9 @@ void lowlevel_init(void)
 
 	/* Initialize RAM */
 	ddr_init();
+
+	/* DDR ECC related initialization */
+	spear13xx_ddrecc_init();
 
 	/* Board initializations independent of DDR */
 	board_post_ddrinit();

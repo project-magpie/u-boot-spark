@@ -118,6 +118,11 @@ static void sys_init(void)
 	while ((readl(&misc_p->sys_clk_ctrl) & SPEAR1310_SYS_STATE_MASK) !=
 			SPEAR1310_SYS_STATE_NORMAL)
 		;
+
+#if defined(CONFIG_C3)
+	writel(readl(&misc_p->perip1_clk_enb) | SPEAR1310_C3_CLKEN,
+			&misc_p->perip1_clk_enb);
+#endif
 }
 
 static void ddr_clock_init(void)
@@ -167,9 +172,34 @@ void ddr_init(void)
 {
 	struct spear1310_misc_regs *const misc_p =
 		(struct spear1310_misc_regs *)CONFIG_SYS_MISC_BASE;
+#if defined(CONFIG_DDR_ECC_ENABLE)
+	u32 mpmc_cfg;
+#endif
 
 	/* Clock related settings for DDR */
 	ddr_clock_init();
+
+#if defined(CONFIG_DDR_ECC_ENABLE)
+	/*
+	 * Following modifies write access as non-bufferable
+	 * and read to happen word by word. Without this
+	 * dependent write-read are happening out of order
+	 * resulting in Linux crash.
+	 */
+	mpmc_cfg = readl(&misc_p->mpmc_cfg);
+	mpmc_cfg |= SPEAR1310_AXI0_AWCOBUF | SPEAR1310_AXI2_AWCOBUF;
+	mpmc_cfg &= ~(SPEAR1310_AXI0_CMDTHRESH_MSK | \
+			SPEAR1310_AXI2_CMDTHRESH_MSK);
+	mpmc_cfg |= (SPEAR1310_AXI0_CMDTHRESH_1 | SPEAR1310_AXI2_CMDTHRESH_1);
+	writel(mpmc_cfg, &misc_p->mpmc_cfg);
+
+	/* enable MPMC ECC gasket for all AXI ports */
+	writel(0x0, &misc_p->mpmc_ctr_sts);
+
+	/* wait for turn-on */
+	while ((readl(&misc_p->mpmc_ctr_sts) & 0xFFF))
+		;
+#endif
 
 	/* Initialize mpmc register values */
 	spear13xx_mpmc_init((u32 *)CONFIG_SYS_MPMC_BASE, CONFIG_SPEAR_MPMCREGS);
