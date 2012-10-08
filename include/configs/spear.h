@@ -196,10 +196,13 @@
 #define CONFIG_SYS_EXCEPTION_VECTORS_HIGH
 
 /*
- * There are 2 builds supported by u-boot source DCACHE support is kept enabled
+ * There are 2 builds supported by u-boot source. DCACHE support is kept enabled
  * for SPL, so that the generic routines can be used for invalidating the
  * caches. This is a mandatory requirement from kernel at bootup
  */
+#define CONFIG_POST				CONFIG_SYS_POST_MEMORY
+#define CONFIG_SYS_POST_WORD_ADDR		0x0
+
 #if !defined(CONFIG_SPL_BUILD)
 	#define CONFIG_SYS_DCACHE_OFF
 #endif

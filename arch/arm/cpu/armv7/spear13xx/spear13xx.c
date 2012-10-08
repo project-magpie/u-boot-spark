@@ -30,3 +30,33 @@ void enable_caches(void)
 	dcache_enable();
 #endif
 }
+
+#ifdef CONFIG_POST
+int arch_memory_test_prepare(u32 *vstart, u32 *size, phys_addr_t *phys_offset)
+{
+	/*
+	 * Run the POST test on 64 MB memory starting from CONFIG_SYS_LOAD_ADDR
+	 * The assumption here is that the DDR present on board is >= 128MB.
+	 *
+	 * The test runs before relocation (after the code copy has taken
+	 * place), so it can not touch either before or after relocation areas
+	 * of U-boot
+	 *
+	 * DDR usage
+	 * <--------->|<---------------- / --------------->|<---------->
+	 *   U-boot		Area to be used for		U-boot
+	 *   before		POST test			after
+	 *   relocation						relocation
+	 */
+
+	*vstart = CONFIG_SYS_LOAD_ADDR;
+	*size = 64 << 20;
+
+	return 0;
+}
+
+void arch_memory_failure_handle(void)
+{
+	hang();
+}
+#endif
