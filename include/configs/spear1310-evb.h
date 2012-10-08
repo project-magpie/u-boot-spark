@@ -41,12 +41,6 @@
 #define CONFIG_ARMV7_CA9LTIMER
 #define CONFIG_ARMV7_LTMR_CLK			250000000
 
-/* AMBA PL022 SSP-SPI configurations */
-#if !defined(CONFIG_SPEAR_USBTTY)
-	#define CONFIG_PL022_SPI
-	#define CONFIG_SPI_FLASH
-#endif
-
 /* ARASAN SD MMC configuration */
 #if !defined(CONFIG_SPEAR_USBTTY)
 	#define CONFIG_SPEAR_SDHCI
