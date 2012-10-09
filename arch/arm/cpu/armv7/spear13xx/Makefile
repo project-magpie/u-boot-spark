@@ -47,6 +47,7 @@ COBJS-$(CONFIG_ARCH_SPEAR13XX) += spl-lvl_read.o
 COBJS-$(CONFIG_ARCH_SPEAR13XX) += spl-lvl_write.o
 COBJS-$(CONFIG_ARCH_SPEAR13XX) += spl-swlvl.o
 COBJS-$(CONFIG_SOC_SPEAR1340) += spl-spear1340.o
+COBJS-$(CONFIG_SOC_SPEAR1310) += spl-spear1310.o
 endif
 
 COBJS	:= $(sort $(COBJS-y))
