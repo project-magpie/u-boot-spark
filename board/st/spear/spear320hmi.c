@@ -50,7 +50,7 @@ int board_early_init_f(void)
 	spear3xx_enable_pins(PMX_UART0, 0);
 
 	spear320_enable_pins(PMX_FSMCNAND, PMX_NAND_8BIT);
-	spear320_enable_pins(PMX_ETH0, PMX_ETH_RMII);
+	spear320_enable_pins(PMX_ETH1_ETH2, PMX_ETH_RMII);
 	spear320_enable_pins(PMX_SDMMC, PMX_SDMMC_CD12);
 
 	return 0;
