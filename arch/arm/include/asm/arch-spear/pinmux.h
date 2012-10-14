@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _ASM_ARCH_PINMUX_H
-#define _ASM_ARCH_PINMUX_H
+#ifndef _ASM_ARCH_SPEAR_PINMUX_H
+#define _ASM_ARCH_SPEAR_PINMUX_H
 
 #include <common.h>
 #include <asm/io.h>

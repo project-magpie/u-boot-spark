@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _SPR_MISC_H
-#define _SPR_MISC_H
+#ifndef ASM_ARCH_SPEAR_MISC_H
+#define ASM_ARCH_SPEAR_MISC_H
 
 struct misc_regs {
 	u32 auto_cfg_reg;	/* 0x0 */

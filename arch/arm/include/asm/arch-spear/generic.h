@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __SPR_DEFS_H__
-#define __SPR_DEFS_H__
+#ifndef ASM_ARCH_SPEAR_GENERIC_H
+#define ASM_ARCH_SPEAR_GENERIC_H
 
 extern int spear_board_init(ulong);
 extern void setfreq(unsigned int, unsigned int);

@@ -21,7 +21,12 @@
  * MA 02111-1307 USA
  */
 
+#ifndef ASM_ARCH_SPEAR_CLK_H
+#define ASM_ARCH_SPEAR_CLK_H
+
 static inline unsigned long get_macb_pclk_rate(unsigned int dev_id)
 {
 	return 83000000;
 }
+
+#endif
