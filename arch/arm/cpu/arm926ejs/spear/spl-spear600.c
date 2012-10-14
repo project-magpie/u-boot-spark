@@ -35,8 +35,8 @@ int get_socrev(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 	u32 soc_id = readl(&misc_p->soc_core_id);
-	u32 pri_socid = (soc_id >> SOC_PRI_SHFT) & 0xFF;
-	u32 sec_socid = (soc_id >> SOC_SEC_SHFT) & 0xFF;
+	u32 pri_socid = (soc_id >> MISC_PRISOCID_SHFT) & 0xFF;
+	u32 sec_socid = (soc_id >> MISC_SECSOCID_SHFT) & 0xFF;
 
 	if ((pri_socid == 'B') && (sec_socid == 'B'))
 		return SOC_SPEAR600_BB;

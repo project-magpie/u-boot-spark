@@ -43,27 +43,27 @@ static void ddr_clock_init(void)
 	u32 clkenb, ddrpll;
 
 	clkenb = readl(&misc_p->periph1_clken);
-	clkenb &= ~PERIPH_MPMCMSK;
-	clkenb |= PERIPH_MPMC_WE;
+	clkenb &= ~MISC_MPMCMSK;
+	clkenb |= MISC_MPMCWE;
 
 	/* Intentionally done twice */
 	writel(clkenb, &misc_p->periph1_clken);
 	writel(clkenb, &misc_p->periph1_clken);
 
 	ddrpll = readl(&misc_p->pll_ctr_reg);
-	ddrpll &= ~MEM_CLK_SEL_MSK;
+	ddrpll &= ~MISC_DDRCLK_MSK;
 #if defined(CONFIG_SPEAR_DDR_HCLK)
-	ddrpll |= MEM_CLK_HCLK;
+	ddrpll |= MISC_DDRCLK_HCLK;
 #elif defined(CONFIG_SPEAR_DDR_2HCLK)
-	ddrpll |= MEM_CLK_2HCLK;
+	ddrpll |= MISC_DDRCLK_2HCLK;
 #elif defined(CONFIG_SPEAR_DDR_PLL2)
-	ddrpll |= MEM_CLK_PLL2;
+	ddrpll |= MISC_DDRCLK_PLL2;
 #else
 #error "please define one of CONFIG_SPEAR_DDR_(HCLK|2HCLK|PLL2)"
 #endif
 	writel(ddrpll, &misc_p->pll_ctr_reg);
 
-	writel(readl(&misc_p->periph1_clken) | PERIPH_MPMC_EN,
+	writel(readl(&misc_p->periph1_clken) | MISC_MPMCENB,
 			&misc_p->periph1_clken);
 }
 
@@ -108,13 +108,13 @@ static void pll_init(void)
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 
 	/* Initialize PLLs */
-	writel(FREQ_332, &misc_p->pll1_frq);
+	writel(MISC_FREQ_332, &misc_p->pll1_frq);
 	writel(0x1C0A, &misc_p->pll1_cntl);
 	writel(0x1C0E, &misc_p->pll1_cntl);
 	writel(0x1C06, &misc_p->pll1_cntl);
 	writel(0x1C0E, &misc_p->pll1_cntl);
 
-	writel(FREQ_332, &misc_p->pll2_frq);
+	writel(MISC_FREQ_332, &misc_p->pll2_frq);
 	writel(0x1C0A, &misc_p->pll2_cntl);
 	writel(0x1C0E, &misc_p->pll2_cntl);
 	writel(0x1C06, &misc_p->pll2_cntl);
@@ -169,34 +169,27 @@ static void sys_init(void)
 		(struct syscntl_regs *)CONFIG_SPEAR_SYSCNTLBASE;
 
 	/* Set system state to SLOW */
-	writel(SLOW, &syscntl_p->scctrl);
-	writel(PLL_TIM << 3, &syscntl_p->scpllctrl);
+	writel(SYSCNTL_REQ_SLOW, &syscntl_p->scctrl);
+	writel(SYSCNTL_PLL_TIM << 3, &syscntl_p->scpllctrl);
 
 	/* Initialize PLLs */
 	pll_init();
 
-	/*
-	 * Ethernet configuration
-	 * To be done only if the tftp boot is not selected already
-	 * Boot code ensures the correct configuration in tftp booting
-	 */
-	if (!tftp_boot_selected())
-		mac_init();
-
-	writel(RTC_DISABLE | PLLTIMEEN, &misc_p->periph_clk_cfg);
+	writel(MISC_RTC_DISABLE | MISC_PLLTIMEEN, &misc_p->periph_clk_cfg);
 	writel(0x555, &misc_p->amba_clk_cfg);
 
-	writel(NORMAL, &syscntl_p->scctrl);
+	writel(SYSCNTL_REQ_NORMAL, &syscntl_p->scctrl);
 
 	/* Wait for system to switch to normal mode */
-	while (((readl(&syscntl_p->scctrl) >> MODE_SHIFT) & MODE_MASK)
-		!= NORMAL)
+	while ((readl(&syscntl_p->scctrl) & SYSCNTL_STATE_MASK) !=
+			SYSCNTL_STATE_NORMAL)
 		;
 }
 
 void lowlevel_init(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+
 	/* Initialize PLLs */
 	sys_init();
 
@@ -206,7 +199,7 @@ void lowlevel_init(void)
 #endif
 
 	/* Enable IPs (release reset) */
-	writel(PERIPH_RST_ALL, &misc_p->periph1_rst);
+	writel(MISC_PERIPH_RST_ALL, &misc_p->periph1_rst);
 
 	/* Initialize MPMC */
 	mpmc_init();
