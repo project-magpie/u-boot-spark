@@ -86,10 +86,3 @@ int board_eth_init(bd_t *bis)
 	return ret;
 }
 #endif
-
-#if defined(CONFIG_MISC_INIT_R)
-int misc_init_r(void)
-{
-	return misc_usbtty_init();
-}
-#endif

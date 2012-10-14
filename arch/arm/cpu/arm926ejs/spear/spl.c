@@ -193,11 +193,6 @@ void lowlevel_init(void)
 	/* Initialize PLLs */
 	sys_init();
 
-#if defined(CONFIG_OS_BOOT)
-	writel(readl(&misc_p->periph1_clken) | PERIPH_UART1,
-			&misc_p->periph1_clken);
-#endif
-
 	/* Enable IPs (release reset) */
 	writel(MISC_PERIPH_RST_ALL, &misc_p->periph1_rst);
 

@@ -24,16 +24,14 @@
 #ifndef ASM_ARCH_SPEAR_GENERIC_H
 #define ASM_ARCH_SPEAR_GENERIC_H
 
-extern int spear_board_init(ulong);
+/* Routines exported from baord */
 extern void setfreq(unsigned int, unsigned int);
-extern void spear3xx_usbh_stop(void);
-extern void spear6xx_usbh_stop(void);
 extern unsigned int setfreq_sz;
 
-int misc_usbtty_init(void);
+/* Routines exported from SoC area */
+extern void spear3xx_usbh_stop(void);
+extern void spear6xx_usbh_stop(void);
 
-void plat_ddr_init(void);
-void soc_init(void);
 void spear_late_init(void);
 void plat_late_init(void);
 
@@ -48,13 +46,6 @@ int spi_boot_selected(void);
 int mmc_boot_selected(void);
 
 extern u32 mpmc_conf_vals[];
-
-struct chip_data {
-	int cpufreq;
-	int dramfreq;
-	int dramtype;
-	uchar version[32];
-};
 
 /* Revision definitions */
 #define SOC_SPEAR_NA		0
