@@ -1,4 +1,7 @@
 /*
+ * (C) Copyright 2012
+ * Vipin Kumar, ST Microelectronics, <vipin.kumar@st.com>
+ *
  * Copyright (C) 2011 Marek Vasut <marek.vasut@gmail.com>
  * on behalf of DENX Software Engineering GmbH
  *
@@ -30,58 +33,21 @@
 OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(_start)
+
+MEMORY
+{
+	xloader : ORIGIN = 0xD2800B00, LENGTH = 0x1500
+}
+
 SECTIONS
 {
-	. = 0x00000000;
-
-	. = ALIGN(4);
-	.text	:
+	.text :
 	{
 		arch/arm/cpu/arm926ejs/spear/start.o	(.text)
-		*(.text)
-	}
+		*(.text); . = ALIGN(4);
+	} > xloader
 
-	. = ALIGN(4);
-	.rodata : { *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) }
-
-	. = ALIGN(4);
-	.data : {
-		*(.data)
-	}
-
-	. = ALIGN(4);
-	__u_boot_cmd_start = .;
-	.u_boot_cmd : { *(.u_boot_cmd) }
-	__u_boot_cmd_end = .;
-
-	. = ALIGN(4);
-
-	.rel.dyn : {
-		__rel_dyn_start = .;
-		*(.rel*)
-		__rel_dyn_end = .;
-	}
-
-	.dynsym : {
-		__dynsym_start = .;
-		*(.dynsym)
-	}
-
-	.bss : {
-		. = ALIGN(4);
-		__bss_start = .;
-		*(.bss*)
-		. = ALIGN(4);
-		__bss_end__ = .;
-	}
-
-	_end = .;
-
-	/DISCARD/ : { *(.dynstr*) }
-	/DISCARD/ : { *(.dynsym*) }
-	/DISCARD/ : { *(.dynamic*) }
-	/DISCARD/ : { *(.hash*) }
-	/DISCARD/ : { *(.plt*) }
-	/DISCARD/ : { *(.interp*) }
-	/DISCARD/ : { *(.gnu*) }
+	.rodata : { *(.rodata*); . = ALIGN(4); } > xloader
+	.data : { *(.data*); . = ALIGN(4); } > xloader
+	.bss : { __bss_start = .; *(.bss*); . = ALIGN(4); __bss_end = .;} > xloader
 }
