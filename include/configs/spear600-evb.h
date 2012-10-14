@@ -84,6 +84,7 @@
 #define CONFIG_DDR_MT47H32M16
 #define CONFIG_SPL_TEXT_BASE			0xD2800B00
 #define CONFIG_SYS_SNOR_BOOT_BASE		0xF8010000
+#define CONFIG_SYS_NAND_BOOT_BLK		4
 
 #if defined(CONFIG_ENV_IS_IN_FLASH)
 	/* Environment is in serial NOR flash */

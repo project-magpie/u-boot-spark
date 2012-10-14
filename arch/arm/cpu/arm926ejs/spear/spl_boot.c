@@ -30,6 +30,7 @@
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
+#include <asm/arch/spl_nand.h>
 
 uint32_t crc32(uint32_t, const unsigned char *, uint);
 
@@ -68,6 +69,35 @@ static int snor_image_load(u8 *load_addr, void (**image_p)(void))
 			return 1;
 		}
 	}
+
+	return 0;
+}
+
+static int nand_image_load(u32 blkstart, void (**image_p)(void))
+{
+	image_header_t header;
+	int ret = 0, blknum = blkstart;
+	size_t size;
+	ulong load_address;
+
+	do {
+		size = sizeof(image_header_t);
+		ret = nand_read_skip_bad(blknum, 0, &size, (u_char *)&header);
+
+		if ((ret >= 0) && image_check_header(&header)) {
+			size = image_get_data_size(&header);
+			load_address = image_get_load(&header);
+
+			ret = nand_read_skip_bad(blknum,
+						 sizeof(image_header_t),
+						 &size, (void *)load_address);
+			if (image_check_data(&header)) {
+				/* Jump to boot image */
+				*image_p = (void (*)(void))image_get_load(&header);
+				return 1;
+			}
+		}
+	} while (++blknum < blkstart + 4);
 
 	return 0;
 }
@@ -124,8 +154,18 @@ u32 spl_boot(void)
 
 	if (NAND_BOOT_SUPPORTED && nand_boot_selected()) {
 		/* NAND booting */
-		/* Not ported from XLoader to SPL yet */
-		return 0;
+		/* NAND-FSMC initialization */
+		spl_nand_init();
+
+		/* NAND booting */
+		if (nand_image_load(CONFIG_SYS_NAND_BOOT_BLK, &image)) {
+			/* Platform related late initialasations */
+			board_lowlevel_late_init();
+
+			/* Jump to boot image */
+			boot_image(image);
+			return 1;
+		}
 	}
 
 	if (PNOR_BOOT_SUPPORTED && pnor_boot_selected()) {
