@@ -127,41 +127,6 @@ static void pll_init(void)
 		;
 }
 
-static void mac_init(void)
-{
-	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-
-	writel(readl(&misc_p->periph1_clken) & (~PERIPH_GMAC),
-			&misc_p->periph1_clken);
-
-	writel(SYNTH23, &misc_p->gmac_synth_clk);
-
-	switch (get_socrev()) {
-	case SOC_SPEAR600_AA:
-	case SOC_SPEAR600_AB:
-	case SOC_SPEAR600_BA:
-	case SOC_SPEAR600_BB:
-	case SOC_SPEAR600_BC:
-	case SOC_SPEAR600_BD:
-		writel(0x0, &misc_p->gmac_ctr_reg);
-		break;
-
-	case SOC_SPEAR300:
-	case SOC_SPEAR310:
-	case SOC_SPEAR320:
-		writel(0x4, &misc_p->gmac_ctr_reg);
-		break;
-	}
-
-	writel(readl(&misc_p->periph1_clken) | PERIPH_GMAC,
-			&misc_p->periph1_clken);
-
-	writel(readl(&misc_p->periph1_rst) | PERIPH_GMAC,
-			&misc_p->periph1_rst);
-	writel(readl(&misc_p->periph1_rst) & (~PERIPH_GMAC),
-			&misc_p->periph1_rst);
-}
-
 static void sys_init(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
