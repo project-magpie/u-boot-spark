@@ -71,12 +71,16 @@ int i2c_read_mac(uchar *buffer)
 {
 	u8 buf[2];
 
-	i2c_read(CONFIG_I2C_CHIPADDRESS, MAGIC_OFF, 1, buf, MAGIC_LEN);
+	/*
+	 * A magic ID which is present at offset 0 and reads 0x55AA represents
+	 * whether MACID is present starting at offset 2
+	 */
+	i2c_read(CONFIG_I2C_CHIPADDRESS, 0, 1, buf, 2);
 
 	/* Check if mac in i2c memory is valid */
-	if ((buf[0] == MAGIC_BYTE0) && (buf[1] == MAGIC_BYTE1)) {
+	if ((buf[0] == 0x55) && (buf[1] == 0xAA)) {
 		/* Valid mac address is saved in i2c eeprom */
-		i2c_read(CONFIG_I2C_CHIPADDRESS, MAC_OFF, 1, buffer, MAC_LEN);
+		i2c_read(CONFIG_I2C_CHIPADDRESS, 0x2, 1, buffer, 6);
 		return 0;
 	}
 
