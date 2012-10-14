@@ -88,16 +88,13 @@ static void mpmc_init_values(void)
 		;
 }
 
-static void mpmc_init(void)
+static void ddr_init(void)
 {
 	/* Clock related settings for DDR */
 	ddr_clock_init();
 
-	/*
-	 * DDR pad register bits are different for different SoCs
-	 * Compensation values are also handled separately
-	 */
-	plat_ddr_init();
+	/* Borad related low level initializations */
+	board_ddr_init();
 
 	/* Initialize mpmc register values */
 	mpmc_init_values();
@@ -162,10 +159,7 @@ void lowlevel_init(void)
 	writel(MISC_PERIPH_RST_ALL, &misc_p->periph1_rst);
 
 	/* Initialize MPMC */
-	mpmc_init();
-
-	/* SoC specific initialization */
-	soc_init();
+	ddr_init();
 }
 
 void spear_late_init(void)

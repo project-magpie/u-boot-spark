@@ -27,6 +27,7 @@
 /* Routines exported from baord */
 extern void setfreq(unsigned int, unsigned int);
 extern unsigned int setfreq_sz;
+extern void board_ddr_init(void);
 
 /* Routines exported from SoC area */
 extern void spear3xx_usbh_stop(void);

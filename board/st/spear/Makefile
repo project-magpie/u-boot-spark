@@ -31,12 +31,13 @@ COBJS-y	:=
 ifndef CONFIG_SPL_BUILD
 SOBJS-y	+= spear_lowlevel_init.o
 COBJS-y	+= spear_common.o
+endif
+
 COBJS-$(CONFIG_MACH_SPEAR300EVB) += spear300evb.o
 COBJS-$(CONFIG_MACH_SPEAR310EVB) += spear310evb.o
 COBJS-$(CONFIG_MACH_SPEAR320EVB) += spear320plc.o
 COBJS-$(CONFIG_MACH_SPEAR320HMI) += spear320hmi.o
 COBJS-$(CONFIG_MACH_SPEAR600EVB) += spear600evb.o
-endif
 
 COBJS	:= $(sort $(COBJS-y))
 SOBJS	:= $(sort $(SOBJS-y))
