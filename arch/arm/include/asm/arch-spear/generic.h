@@ -56,6 +56,27 @@ struct chip_data {
 	uchar version[32];
 };
 
+/* Revision definitions */
+#define SOC_SPEAR_NA		0
+
+/*
+ * The definitons have started from
+ * 101 for SPEAr6xx
+ * 201 for SPEAr3xx
+ */
+#define SOC_SPEAR600_AA		101
+#define SOC_SPEAR600_AB		102
+#define SOC_SPEAR600_BA		103
+#define SOC_SPEAR600_BB		104
+#define SOC_SPEAR600_BC		105
+#define SOC_SPEAR600_BD		106
+
+#define SOC_SPEAR300		201
+#define SOC_SPEAR310		202
+#define SOC_SPEAR320		203
+
+extern int get_socrev(void);
+
 /* HW mac id in i2c memory definitions */
 #define MAGIC_OFF	0x0
 #define MAGIC_LEN	0x2

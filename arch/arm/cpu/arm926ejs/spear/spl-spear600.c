@@ -31,6 +31,25 @@
 #define FALSE				0
 #define TRUE				(!FALSE)
 
+int get_socrev(void)
+{
+	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+	u32 soc_id = readl(&misc_p->soc_core_id);
+	u32 pri_socid = (soc_id >> SOC_PRI_SHFT) & 0xFF;
+	u32 sec_socid = (soc_id >> SOC_SEC_SHFT) & 0xFF;
+
+	if ((pri_socid == 'B') && (sec_socid == 'B'))
+		return SOC_SPEAR600_BB;
+	else if ((pri_socid == 'B') && (sec_socid == 'C'))
+		return SOC_SPEAR600_BC;
+	else if ((pri_socid == 'B') && (sec_socid == 'D'))
+		return SOC_SPEAR600_BD;
+	else if (soc_id == 0)
+		return SOC_SPEAR600_BA;
+	else
+		return SOC_SPEAR_NA;
+}
+
 static void sel_1v8(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
