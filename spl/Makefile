@@ -61,6 +61,9 @@ LIBS-$(CONFIG_SPL_ONENAND_SUPPORT) += drivers/mtd/onenand/libonenand.o
 LIBS-$(CONFIG_SPL_DMA_SUPPORT) += drivers/dma/libdma.o
 LIBS-$(CONFIG_SPL_POST_MEM_SUPPORT) += post/drivers/memory.o
 
+ifeq ($(BOARD),spear)
+LIBS-y += board/$(BOARDDIR)/ddr/lib$(BOARD)ddr.o
+endif
 ifeq ($(BOARD),spear13xx)
 LIBS-y += board/$(BOARDDIR)/ddr/lib$(BOARD)ddr.o
 endif
