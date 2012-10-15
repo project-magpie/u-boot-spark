@@ -31,6 +31,7 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
 #include <asm/arch/spl_nand.h>
+#include <asm/arch/spl_pnor.h>
 
 uint32_t crc32(uint32_t, const unsigned char *, uint);
 
@@ -102,12 +103,72 @@ static int nand_image_load(u32 blkstart, void (**image_p)(void))
 	return 0;
 }
 
+static void pnorcopy(void *dest, const void *src, size_t len,
+		pnor_width_t width)
+{
+	const u32 *src_32 = src;
+	const u16 *src_16 = src;
+	const u8 *src_8 = src;
+	u32 *dest_32 = dest;
+	u16 *dest_16 = dest;
+	u8 *dest_8 = dest;
+	int i;
+
+	switch (width) {
+	case PNOR_WIDTH_32:
+		for (i = 0; i < len >> 2; i++)
+			*dest_32++ = *src_32++;
+		break;
+	case PNOR_WIDTH_16:
+		for (i = 0; i < len >> 1; i++)
+			*dest_16++ = *src_16++;
+		break;
+	case PNOR_WIDTH_8:
+	default:
+		for (i = 0; i < len; i++)
+			*dest_8++ = *src_8++;
+		break;
+	}
+}
+
+static int pnor_image_load(const void *load_addr, void (**image_p)(void),
+		pnor_width_t width)
+{
+	image_header_t header;
+	u32 numbytes;
+
+	pnorcopy((void *)&header, load_addr, sizeof(header), width);
+
+	if (image_check_header(&header)) {
+		numbytes = image_get_data_size(&header);
+
+		/* Copy the image to load address */
+		pnorcopy((void *)image_get_load(&header),
+				load_addr + sizeof(header), numbytes, width);
+
+		if (image_check_data(&header)) {
+			/* Jump to boot image */
+			*image_p = (void (*)(void))image_get_load(&header);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static void boot_image(void (*image)(void))
 {
 	void (*funcp)(void) __noreturn = (void *)image;
 
 	(*funcp)();
 }
+
+static pnor_width_t __def_get_pnor_width(void)
+{
+	return PNOR_WIDTH_SEARCH;
+}
+pnor_width_t get_pnor_width(void)
+	__attribute__((weak, alias("__def_get_pnor_width")));
 
 static void __def_board_lowlevel_late_init(void)
 {
@@ -170,7 +231,23 @@ u32 spl_boot(void)
 
 	if (PNOR_BOOT_SUPPORTED && pnor_boot_selected()) {
 		/* PNOR booting */
-		/* Not ported from XLoader to SPL yet */
+		/* PNOR initialization */
+		pnor_width_t width = get_pnor_width();
+
+		if (width == PNOR_WIDTH_SEARCH)
+			width = PNOR_WIDTH_8;
+
+		/* NAND booting */
+		if (pnor_image_load((const void *)CONFIG_SYS_PNOR_BOOT_BASE,
+					&image, width)) {
+			/* Platform related late initialasations */
+			board_lowlevel_late_init();
+
+			/* Jump to boot image */
+			boot_image(image);
+			return 1;
+		}
+
 		return 0;
 	}
 

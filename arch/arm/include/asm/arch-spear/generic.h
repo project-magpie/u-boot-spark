@@ -111,10 +111,4 @@ extern u32 getboottype(void);
 
 extern int get_socrev(void);
 
-#define PNOR_WIDTH_8			0
-#define	PNOR_WIDTH_16			1
-#define	PNOR_WIDTH_32			2
-#define PNOR_WIDTH_NUM			3
-#define PNOR_WIDTH_SEARCH		0xff
-
 #endif
