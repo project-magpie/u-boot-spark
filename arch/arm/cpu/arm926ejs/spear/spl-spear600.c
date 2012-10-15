@@ -58,100 +58,43 @@ void soc_init(void)
 	/* Nothing to be done for SPEAr600 */
 }
 
-/*
- * xxx_boot_selected:
- *
- * return TRUE if the particular booting option is selected
- * return FALSE otherwise
- */
-static u32 read_bootstrap(void)
+u32 getboottype(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-
-	return readl(&misc_p->auto_cfg_reg) & MISC_BOOTSTRAPMASK;
-}
-
-int snor_boot_selected(void)
-{
-	u32 bootstrap = read_bootstrap();
+	u32 bootstrap = readl(&misc_p->auto_cfg_reg) & MISC_BOOTSTRAPMASK;
+	u32 bootmask = 0;
 
 	if (SNOR_BOOT_SUPPORTED) {
 		/* Check whether SNOR boot is selected */
 		if ((bootstrap & MISC_ONLYSNORBOOT) == MISC_ONLYSNORBOOT)
-			return TRUE;
+			bootmask |= BOOT_TYPE_SMI;
 
 		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND8BOOT)
-			return TRUE;
+			bootmask |= BOOT_TYPE_SMI;
 
 		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND16BOOT)
-			return TRUE;
+			bootmask |= BOOT_TYPE_SMI;
 	}
-
-	return FALSE;
-}
-
-int nand_boot_selected(void)
-{
-	u32 bootstrap = read_bootstrap();
 
 	if (NAND_BOOT_SUPPORTED) {
 		/* Check whether NAND boot is selected */
 		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND8BOOT)
-			return TRUE;
+			bootmask |= BOOT_TYPE_NAND;
 
 		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND16BOOT)
-			return TRUE;
+			bootmask |= BOOT_TYPE_NAND;
 	}
 
-	return FALSE;
-}
-
-int pnor_boot_selected(void)
-{
-	/* Parallel NOR boot is not selected in any SPEAr600 revision */
-	return FALSE;
-}
-
-int usb_boot_selected(void)
-{
-	u32 bootstrap = read_bootstrap();
-
-	if (USB_BOOT_SUPPORTED) {
+	if (USBD_BOOT_SUPPORTED) {
 		/* Check whether USB boot is selected */
 		if (!(bootstrap & MISC_USBBOOT))
-			return TRUE;
+			bootmask |= BOOT_TYPE_USBD;
 	}
 
-	return FALSE;
-}
+	if (!bootmask)
+		bootmask |= BOOT_TYPE_UNSUPPORTED;
 
-int tftp_boot_selected(void)
-{
-	/* TFTP boot is not selected in any SPEAr600 revision */
-	return FALSE;
-}
-
-int uart_boot_selected(void)
-{
-	/* UART boot is not selected in any SPEAr600 revision */
-	return FALSE;
-}
-
-int spi_boot_selected(void)
-{
-	/* SPI boot is not selected in any SPEAr600 revision */
-	return FALSE;
-}
-
-int i2c_boot_selected(void)
-{
-	/* I2C boot is not selected in any SPEAr600 revision */
-	return FALSE;
-}
-
-int mmc_boot_selected(void)
-{
-	return FALSE;
+	return bootmask;
 }
 
 void plat_late_init(void)

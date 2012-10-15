@@ -152,7 +152,7 @@ u32 spl_boot(void)
 	 * the following booting scenarios
 	 */
 
-	if (USB_BOOT_SUPPORTED && usb_boot_selected()) {
+	if (USBD_BOOT_SUPPORTED && usbd_boot_selected()) {
 		plat_late_init();
 		return 1;
 	}
