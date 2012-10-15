@@ -79,6 +79,12 @@ static void boot_image(void (*image)(void))
 	(*funcp)();
 }
 
+static void __def_board_lowlevel_late_init(void)
+{
+}
+void board_lowlevel_late_init(void)
+	__attribute__((weak, alias("__def_board_lowlevel_late_init")));
+
 /*
  * spl_boot:
  *
@@ -91,7 +97,7 @@ u32 spl_boot(void)
 	void (*image)(void);
 
 #ifdef CONFIG_SPEAR_USBTTY
-	plat_late_init();
+	board_lowlevel_late_init();
 	return 1;
 #endif
 
@@ -108,7 +114,7 @@ u32 spl_boot(void)
 		/* Serial NOR booting */
 		if (snor_image_load((u8 *)CONFIG_SYS_SNOR_BOOT_BASE, &image)) {
 			/* Platform related late initialasations */
-			plat_late_init();
+			board_lowlevel_late_init();
 
 			/* Jump to boot image */
 			boot_image(image);
@@ -153,17 +159,17 @@ u32 spl_boot(void)
 	 */
 
 	if (USBD_BOOT_SUPPORTED && usbd_boot_selected()) {
-		plat_late_init();
+		board_lowlevel_late_init();
 		return 1;
 	}
 
 	if (TFTP_BOOT_SUPPORTED && tftp_boot_selected()) {
-		plat_late_init();
+		board_lowlevel_late_init();
 		return 1;
 	}
 
 	if (UART_BOOT_SUPPORTED && uart_boot_selected()) {
-		plat_late_init();
+		board_lowlevel_late_init();
 		return 1;
 	}
 

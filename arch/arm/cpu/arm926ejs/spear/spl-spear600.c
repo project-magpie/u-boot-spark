@@ -96,8 +96,3 @@ u32 getboottype(void)
 
 	return bootmask;
 }
-
-void plat_late_init(void)
-{
-	spear_late_init();
-}

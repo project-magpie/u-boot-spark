@@ -148,21 +148,7 @@ static void sys_init(void)
 		;
 }
 
-void lowlevel_init(void)
-{
-	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-
-	/* Initialize PLLs */
-	sys_init();
-
-	/* Enable IPs (release reset) */
-	writel(MISC_PERIPH_RST_ALL, &misc_p->periph1_rst);
-
-	/* Initialize MPMC */
-	ddr_init();
-}
-
-void spear_late_init(void)
+static void spear_icm_init(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 
@@ -175,4 +161,21 @@ void spear_late_init(void)
 	writel(0x80000007, &misc_p->arb_icm_ml7);
 	writel(0x80000007, &misc_p->arb_icm_ml8);
 	writel(0x80000007, &misc_p->arb_icm_ml9);
+}
+
+void lowlevel_init(void)
+{
+	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+
+	/* Initialize PLLs */
+	sys_init();
+
+	/* Enable IPs (release reset) */
+	writel(MISC_PERIPH_RST_ALL, &misc_p->periph1_rst);
+
+	/* Initialize MPMC */
+	ddr_init();
+
+	/* Initialize Interconnect Matrix */
+	spear_icm_init();
 }

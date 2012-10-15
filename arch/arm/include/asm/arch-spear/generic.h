@@ -28,13 +28,11 @@
 extern void setfreq(unsigned int, unsigned int);
 extern unsigned int setfreq_sz;
 extern void board_ddr_init(void);
+extern void board_lowlevel_late_init(void);
 
 /* Routines exported from SoC area */
 extern void spear3xx_usbh_stop(void);
 extern void spear6xx_usbh_stop(void);
-
-void spear_late_init(void);
-void plat_late_init(void);
 
 extern u32 mpmc_conf_vals[];
 
