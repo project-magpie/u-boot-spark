@@ -102,7 +102,7 @@ static void enable_sdmmc_pins(u32 mode)
  */
 void spear300_select_mode(u32 mode)
 {
-	pinmux_maskval(SPEAR300_RAS_REG1,
+	pinmux_maskval(SPEAR300_RAS_REG2,
 			SPEAR300_MODE_MSK,
 			mode);
 }

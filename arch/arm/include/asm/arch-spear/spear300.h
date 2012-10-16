@@ -33,6 +33,8 @@
 /* RAS misc registers and respective bitmasks */
 #define CONFIG_SYS_RAS_BASE			0x99000000
 #define SPEAR300_RAS_REG1			CONFIG_SYS_RAS_BASE
+	/* Bitmaks for REG1 are in spear3xx.h */
+#define SPEAR300_RAS_REG2			(CONFIG_SYS_RAS_BASE + 0x04)
 	#define SPEAR300_MODE_MSK		(0xF << 0)
 	#define SPEAR300_MODE_NAND		(0x0 << 0)
 	#define SPEAR300_MODE_NOR		(0x1 << 0)
@@ -47,7 +49,6 @@
 	#define SPEAR300_MODE_CAMULCD		(0xD << 0)
 	#define SPEAR300_MODE_CAMULCDW		(0xE << 0)
 	#define SPEAR300_MODE_CAM1LCD		(0xF << 0)
-#define SPEAR300_RAS_REG2			(CONFIG_SYS_RAS_BASE + 0x04)
 
 #define SPEAR3XX_FUNC_ENB_REG		SPEAR300_RAS_REG1
 
