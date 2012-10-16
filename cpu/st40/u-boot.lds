@@ -74,5 +74,4 @@ SECTIONS
 		. = ALIGN(0x4);		/* ensure .bss ends on 4-byte alignment */
 		__bss_end = .;
 	}
-	_uboot_end = .;
 }

@@ -159,7 +159,6 @@ DECLARE_GLOBAL_DATA_PTR;
 
 
 extern ulong _uboot_end_data;
-extern ulong _uboot_end;
 
 ulong monitor_flash_len;
 
