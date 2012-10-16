@@ -31,6 +31,8 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
 
+uint32_t crc32(uint32_t, const unsigned char *, uint);
+
 int image_check_header(image_header_t *hdr)
 {
 	if (image_check_magic(hdr) && image_check_hcrc(hdr))
@@ -41,10 +43,11 @@ int image_check_header(image_header_t *hdr)
 
 int image_check_data(image_header_t *hdr)
 {
-	if (image_check_dcrc(hdr))
-		return 1;
+	ulong data = image_get_load(hdr);
+	ulong len = image_get_data_size(hdr);
+	ulong dcrc = crc32(0, (unsigned char *)data, len);
 
-	return 0;
+	return (dcrc == image_get_dcrc(hdr));
 }
 
 static int snor_image_load(u8 *load_addr, void (**image_p)(void))
