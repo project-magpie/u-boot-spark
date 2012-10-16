@@ -23,8 +23,5 @@
 
 ifndef CONFIG_SPL_BUILD
 ALL-y += $(obj)u-boot.img
-
-ifdef CONFIG_MACH_SPEAR600EVB
 ALL-y += $(obj)spl/u-boot-spl.img
-endif
 endif

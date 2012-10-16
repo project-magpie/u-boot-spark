@@ -128,4 +128,44 @@ u32 getboottype(void)
 
 	return bootmask;
 }
+#elif defined(CONFIG_SOC_SPEAR320)
+u32 getboottype(void)
+{
+	u32 bootmask = 0;
+	u32 bootstrap = (readl(SPEAR320_BOOT_REG) >> SPEAR320_BOOTSHFT) &
+			SPEAR320_BOOTMASK;
+
+	switch (bootstrap) {
+	case SPEAR320_USBBOOT:
+		bootmask |= BOOT_TYPE_USBD;
+		break;
+	case SPEAR320_TFTPI2CBOOT:
+	case SPEAR320_TFTPSPIBOOT:
+		bootmask |= BOOT_TYPE_TFTP;
+		break;
+	case SPEAR320_SNORBOOT:
+		bootmask |= BOOT_TYPE_SMI;
+		break;
+	case SPEAR320_PNOR8BOOT:
+	case SPEAR320_PNOR8NOACKBOOT:
+		bootmask |= BOOT_TYPE_PNOR8;
+		break;
+	case SPEAR320_PNOR16BOOT:
+	case SPEAR320_PNOR16NOACKBOOT:
+		bootmask |= BOOT_TYPE_PNOR16;
+		break;
+	case SPEAR320_NAND8BOOT:
+	case SPEAR320_NAND16BOOT:
+		bootmask |= BOOT_TYPE_NAND;
+		break;
+	case SPEAR320_UARTBOOT:
+		bootmask |= BOOT_TYPE_UART;
+		break;
+	default:
+		bootmask |= BOOT_TYPE_UNSUPPORTED;
+		break;
+	}
+
+	return bootmask;
+}
 #endif
