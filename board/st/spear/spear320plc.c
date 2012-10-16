@@ -68,11 +68,11 @@ int board_early_init_f(void)
 	spear320_select_mode(SPEAR320_EXTENDED_MODE);
 
 	spear320_pins_default();
-	spear3xx_enable_pins(PMX_I2C0, 0);
-	spear3xx_enable_pins(PMX_ETH0, 0);
-	spear3xx_enable_pins(PMX_SSP0, 0);
-	spear3xx_enable_pins(PMX_UART0, PMX_UART_SIMPLE);
 
+	spear320_enable_pins(PMX_I2C0, 0);
+	spear320_enable_pins(PMX_ETH0, 0);
+	spear320_enable_pins(PMX_SSP0, 0);
+	spear320_enable_pins(PMX_UART0, PMX_UART_SIMPLE);
 	spear320_enable_pins(PMX_ETH2, PMX_ETH_MII);
 	spear320_enable_pins(PMX_SDMMC, PMX_SDMMC_CD51);
 

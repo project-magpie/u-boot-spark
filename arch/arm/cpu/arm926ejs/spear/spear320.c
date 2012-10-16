@@ -753,4 +753,7 @@ void spear320_enable_pins(u32 ip, u32 mode)
 		enable_eth2_pins(mode);
 	else if (PMX_ETH1_ETH2 == ip)
 		enable_eth1_eth2_pins(mode);
+	else if ((PMX_I2C0 == ip) || (PMX_SSP0 == ip) || \
+			(PMX_ETH0 == ip) || (PMX_UART0 == ip))
+		spear3xx_enable_pins(ip, mode);
 }
