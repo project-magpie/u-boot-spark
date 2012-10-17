@@ -34,32 +34,26 @@
 #include <asm/arch/mmc.h>
 #include <asm/arch/pinmux.h>
 
-#define PLGPIO_SEL_36	0xb3000028
-#define PLGPIO_IO_36	0xb3000038
-#define PLGPIO_SEL_76	0xb300002C
-#define PLGPIO_IO_76	0xb300003C
-#define PLGPIO_36	(0x1 << 4)
-#define PLGPIO_76	(0x1 << 12)
-
 #if defined(CONFIG_CMD_NAND)
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
 #endif
 
 static void spear_phy_reset(void)
 {
-	/* PLGPIO36 is used to enable oscillator */
-	writel(readl(PLGPIO_IO_36) | PLGPIO_36, PLGPIO_IO_36);
-	writel(readl(PLGPIO_SEL_36) | PLGPIO_36, PLGPIO_SEL_36);
+	/* GPIO36 is used to enable oscillator */
+	spear320_configure_pin(36, PMX_GPIO);
+	spear320_plgpio_set(36, 1);
 
-	/* PLGPIO76 is used to reset phy */
-	writel(readl(PLGPIO_IO_76) & ~PLGPIO_76, PLGPIO_IO_76);
-	writel(readl(PLGPIO_SEL_76) | PLGPIO_76, PLGPIO_SEL_76);
-	writel(readl(PLGPIO_IO_76) | PLGPIO_76, PLGPIO_IO_76);
+	/* GPIO76 is used to reset phy */
+	spear320_configure_pin(76, PMX_GPIO);
+	spear320_plgpio_set(76, 0);
+	spear320_plgpio_set(76, 1);
 }
 
 int board_init(void)
 {
 	spear_phy_reset();
+
 	return 0;
 }
 
