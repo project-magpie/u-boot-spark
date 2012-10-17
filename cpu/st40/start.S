@@ -712,6 +712,22 @@ clear_bss:
 	  mov.l	r0, @-r2
 done_bss:
 
+#if defined(CONFIG_SYS_USE_VMA_DATA)
+	/* Copy ".data" (and ".u_boot_cmd") from LMA to VMA (RAM to RAM) */
+copy_data:
+	mov.l	data_vma_start, r1
+	mov.l	data_lma_start, r3
+	cmp/eq	r1, r3			/* VMA == LMA ? */
+	bt done_data			/* do not copy data, if == */
+	mov.l	data_vma_end,   r2
+1:	mov.l	@r3+, r0		/* read from LMA */
+	mov.l	r0, @r1			/* write to VMA */
+	cmp/hs	r2, r1
+	bf/s	1b			/* while (r1 < r2) */
+	  add	#4, r1
+done_data:
+#endif	/* CONFIG_SYS_USE_VMA_DATA */
+
 	/* prepare to call board init routine: start_st40_boot() */
 do_start_st40_boot:
 	mov.l	start_st40_boot_addr, r1
@@ -724,7 +740,11 @@ do_start_st40_boot:
 .balign 4
 _start_offset:	.long . - _start
 target_addr:	.long TEXT_BASE
+#if defined(CONFIG_SYS_USE_VMA_DATA)
+stack_addr:	.long __USE_VMA_DATA	/* start of the stack, just below relocated ".data" */
+#else
 stack_addr:	.long TEXT_BASE - (CONFIG_SYS_GBL_DATA_SIZE + CONFIG_SYS_MALLOC_LEN)
+#endif	/* CONFIG_SYS_USE_VMA_DATA */
 bss_start:	.long __bss_start
 bss_end:	.long __bss_end
 hyperspace_addr:.long hyperspace
@@ -733,6 +753,12 @@ skip_bb_offset:	.long skip_bb - _start
 #endif	/* CONFIG_SYS_BOOT_FROM_NAND && CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
 
 start_st40_boot_addr:.long start_st40_boot
+
+#if defined(CONFIG_SYS_USE_VMA_DATA)
+data_lma_start:	.long __data_lma_start
+data_vma_start:	.long __data_vma_start
+data_vma_end:	.long __data_vma_end - 4
+#endif	/* CONFIG_SYS_USE_VMA_DATA */
 
 	/* offsets for PIC calls */
 
