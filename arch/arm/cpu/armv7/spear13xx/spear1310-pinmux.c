@@ -569,7 +569,7 @@ void spear1310_enable_pins(u32 ip, u32 mode)
 		enable_eth0_pins(mode);
 	else if (PMX_SSP0 == ip)
 		enable_ssp0_pins(mode);
-	else if (PMX_LEGGIPO0 == ip)
+	else if (PMX_LEGGPIO0 == ip)
 		enable_leggpio_pins();
 }
 

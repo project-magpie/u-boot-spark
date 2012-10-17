@@ -72,8 +72,8 @@ enum pinmux_ip {
 	PMX_SDMMC,
 	PMX_EMI,
 	PMX_SMI,
-	PMX_LEGGIPO0,
-	PMX_LEGGIPO1,
+	PMX_LEGGPIO0,
+	PMX_LEGGPIO1,
 };
 
 /* UART0 modem modes */
