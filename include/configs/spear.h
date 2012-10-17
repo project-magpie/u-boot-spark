@@ -38,7 +38,6 @@
 #if defined(CONFIG_DESIGNWARE_ETH) || defined(CONFIG_MACB)
 	#define CONFIG_MII
 	#define CONFIG_NET_MULTI
-	#define CONFIG_PHY_GIGE
 
 	#define CONFIG_CMD_NET
 	#define CONFIG_CMD_MII
