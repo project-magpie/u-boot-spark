@@ -64,7 +64,6 @@ SECTIONS
 		__u_boot_cmd_end = .;
 	}
 
-	_uboot_end_data = .;
 
 	.bss ALIGN(0x4) (NOLOAD):
 	{
@@ -75,3 +74,10 @@ SECTIONS
 		__bss_end = .;
 	}
 }
+
+
+	/*
+	 * Finally, create a symbol which should be the size of "u-boot.bin".
+	 * That is, the size of the image which is to written to FLASH.
+	 */
+__uboot_bin_size = LOADADDR(.bss) - LOADADDR(.text);

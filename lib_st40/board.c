@@ -158,9 +158,9 @@ DECLARE_GLOBAL_DATA_PTR;
 #endif	/* CONFIG_ST40_SE_MODE */
 
 
-extern ulong _uboot_end_data;
+extern ulong __uboot_bin_size;	/* linker symbol defined in cpu/st40/u-boot.lds */
+ulong monitor_flash_len = (ulong)&__uboot_bin_size;
 
-ulong monitor_flash_len;
 
 #ifndef CONFIG_IDENT_STRING
 #define CONFIG_IDENT_STRING ""
@@ -317,8 +317,6 @@ void start_st40_boot (void)
 
 	gd->reloc_off = 0;
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
-
-	monitor_flash_len = (ulong) & _uboot_end_data - TEXT_BASE;
 
 	/* configure available FLASH banks */
 	flashWriteEnable();
