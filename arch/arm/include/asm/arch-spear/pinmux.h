@@ -36,6 +36,21 @@ static inline void pinmux_maskval(ulong reg, u32 mask, u32 val)
 	writel(temp, (u32 *)reg);
 }
 
+static inline void pinmux_set_bit(int nr, unsigned long addr)
+{
+	__set_bit(nr, (volatile unsigned long *)addr);
+}
+
+static inline void pinmux_clear_bit(int nr, unsigned long addr)
+{
+	__clear_bit(nr, (volatile unsigned long *)addr);
+}
+
+static inline int pinmux_test_bit(int nr, unsigned long addr)
+{
+	return __test_bit(nr, (volatile unsigned long *)addr);
+}
+
 enum pinmux_ip {
 	PMX_UART0,
 	PMX_UART1,
@@ -109,5 +124,10 @@ enum pinmux_ip {
 #define PMX_SDMMC_CD51		3
 #define PMX_SDMMC_4BIT		4
 #define PMX_SDMMC_8BIT		5
+
+/* PLGPIO modes */
+#define PMX_GPIO		1
+#define PMX_PULLUP		2
+#define PMX_PULLDOWN		3
 
 #endif

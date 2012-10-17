@@ -78,6 +78,11 @@
 	#define MAC1_MODE_SHIFT			16
 	#define MAC2_MODE_SHIFT			18
 
+#define SPEAR320_GPIO_SELECT0		(CONFIG_SPEAR_RASBASE + 0x0024)
+#define SPEAR320_GPIO_OUT0		(CONFIG_SPEAR_RASBASE + 0x0034)
+#define SPEAR320_GPIO_EN0		(CONFIG_SPEAR_RASBASE + 0x0044)
+#define SPEAR320_GPIO_IN0		(CONFIG_SPEAR_RASBASE + 0x0054)
+
 #define SPEAR320_IP_SEL_PAD_0_9_REG	(CONFIG_SPEAR_RASBASE + 0x00A4)
 	#define PMX_PL_0_1_MASK			(0x3F << 0)
 	#define PMX_UART2_PL_0_1_VAL		0x0
@@ -477,5 +482,8 @@
 extern void spear320_pins_default(void);
 extern void spear320_select_mode(u32 mode);
 extern void spear320_enable_pins(u32 ip, u32 mode);
+extern void spear320_configure_pin(u32 plgpio, u32 mode);
+extern void spear320_plgpio_set(u32 plgpio, u32 val);
+extern int  spear320_plgpio_get(u32 plgpio);
 
 #endif

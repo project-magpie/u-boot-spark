@@ -56,6 +56,8 @@
 #define PMX_TIMER_2_3_MASK		(1 << 1)
 #define PMX_TIMER_0_1_MASK		(1 << 0)
 
+#define SPEAR3XX_MAX_PLGPIOS			101
+
 /* externs related to pinmux */
 extern void spear3xx_enable_pins(u32 ip, u32 mode);
 

@@ -66,6 +66,7 @@
 #define SPI_BOOT_SUPPORTED			0
 #define I2C_BOOT_SUPPORTED			0
 
+
 #define SPEAR3XX_FUNC_ENB_REG		SPEAR310_FUNCENB_REG
 
 /* externs related to pinmux */
