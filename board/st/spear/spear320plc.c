@@ -31,6 +31,7 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
 #include <asm/arch/misc.h>
+#include <asm/arch/mmc.h>
 #include <asm/arch/pinmux.h>
 
 #define PLGPIO_SEL_36	0xb3000028
@@ -76,6 +77,10 @@ int board_early_init_f(void)
 	spear320_enable_pins(PMX_ETH2, PMX_ETH_MII);
 	spear320_enable_pins(PMX_SDMMC, PMX_SDMMC_CD51);
 
+	/* GPIO61 is used for card power on */
+	spear320_configure_pin(61, PMX_GPIO);
+	spear320_plgpio_set(61, 0);
+
 	return 0;
 }
 #endif
@@ -119,6 +124,18 @@ int board_eth_init(bd_t *bis)
 #if defined(CONFIG_MACB)
 	if (macb_eth_initialize(1, (void *)CONFIG_SYS_MACB1_BASE,
 				CONFIG_MACB1_PHY) >= 0)
+		ret++;
+#endif
+	return ret;
+}
+#endif
+
+#if defined(CONFIG_CMD_MMC)
+int board_mmc_init(bd_t *bis)
+{
+	int ret = 0;
+#if defined(CONFIG_SPEAR_SDHCI)
+	if (spear_sdhci_init(CONFIG_SYS_MMC_BASE, 24000000, 6000000, 0) >= 0)
 		ret++;
 #endif
 	return ret;

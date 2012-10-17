@@ -41,6 +41,11 @@
 #define CONFIG_MACH_SPEAR320HMI
 #define CONFIG_MACH_TYPE			MACH_TYPE_SPEAR320
 
+/* ARASAN SD MMC configuration */
+#if !defined(CONFIG_SPEAR_USBTTY)
+	#define CONFIG_SPEAR_SDHCI
+#endif
+
 /* MACB configurations */
 #if !defined(CONFIG_SPEAR_USBTTY)
 	#define CONFIG_MACB
