@@ -117,8 +117,8 @@ int board_eth_init(bd_t *bis)
 		ret++;
 #endif
 #if defined(CONFIG_MACB)
-	if (macb_eth_initialize(0, (void *)CONFIG_SYS_MACB0_BASE,
-				CONFIG_MACB0_PHY) >= 0)
+	if (macb_eth_initialize(1, (void *)CONFIG_SYS_MACB1_BASE,
+				CONFIG_MACB1_PHY) >= 0)
 		ret++;
 #endif
 	return ret;
