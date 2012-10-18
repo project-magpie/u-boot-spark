@@ -306,6 +306,7 @@
 #define PCI_DCR		0x54    /* PCIe Device Control Register */
 #define PCI_DSR		0x56    /* PCIe Device Status Register */
 #define PCI_LSR		0x5e    /* PCIe Link Status Register */
+#define PCI_LCR		0x5c    /* PCIe Link Control Register */
 #define PCI_LTSSM	0x404   /* PCIe Link Training, Status State Machine */
 #define  PCI_LTSSM_L0	0x16    /* L0 state */
 
@@ -420,6 +421,8 @@ struct pci_controller {
 	/* Used by ppc405 autoconfig*/
 	struct pci_region *pci_fb;
 	int current_busno;
+
+	void *priv_data;
 };
 
 extern __inline__ void pci_set_ops(struct pci_controller *hose,
@@ -511,6 +514,7 @@ extern int pci_hose_write_config_word_via_dword(struct pci_controller *hose,
 extern void *pci_map_bar(pci_dev_t pdev, int bar, int flags);
 extern void pci_register_hose(struct pci_controller* hose);
 extern struct pci_controller* pci_bus_to_hose(int bus);
+extern struct pci_controller *find_hose_by_cfg_addr(void *cfg_addr);
 
 extern int pci_hose_scan(struct pci_controller *hose);
 extern int pci_hose_scan_bus(struct pci_controller *hose, int bus);
@@ -523,7 +527,12 @@ extern void pciauto_setup_device(struct pci_controller *hose,
 				 struct pci_region *mem,
 				 struct pci_region *prefetch,
 				 struct pci_region *io);
-int pciauto_config_device(struct pci_controller *hose, pci_dev_t dev);
+extern void pciauto_prescan_setup_bridge(struct pci_controller *hose,
+				 pci_dev_t dev, int sub_bus);
+extern void pciauto_postscan_setup_bridge(struct pci_controller *hose,
+				 pci_dev_t dev, int sub_bus);
+extern void pciauto_config_init(struct pci_controller *hose);
+extern int pciauto_config_device(struct pci_controller *hose, pci_dev_t dev);
 
 extern pci_dev_t pci_find_device (unsigned int vendor, unsigned int device, int index);
 extern pci_dev_t pci_find_devices (struct pci_device_id *ids, int index);
@@ -536,6 +545,7 @@ extern int pci_hose_config_device(struct pci_controller *hose,
 				  pci_addr_t mem,
 				  unsigned long command);
 
+const char * pci_class_str(u8 class);
 int pci_last_busno(void);
 
 #ifdef CONFIG_MPC824X

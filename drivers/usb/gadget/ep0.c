@@ -340,15 +340,16 @@ static int ep0_get_descriptor (struct usb_device_instance *device,
 	case USB_DESCRIPTOR_TYPE_DEVICE_QUALIFIER:
 #if defined(CONFIG_USBD_HS)
 		{
-			struct usb_qualifier_descriptor *qualifier_descriptor;
-			if (!(qualifier_descriptor =
-			     usbd_device_qualifier_descriptor(device, port))) {
+			struct usb_qualifier_descriptor *qualifier_descriptor =
+				device->qualifier_descriptor;
+
+			if (!qualifier_descriptor)
 				return -1;
-			}
+
 			/* copy descriptor for this device */
 			copy_config(urb, qualifier_descriptor,
-				     sizeof(struct usb_qualifier_descriptor),
-				     max);
+					sizeof(struct usb_qualifier_descriptor),
+					max);
 
 		}
 		dbg_ep0(3, "copied qualifier descriptor, actual_length: 0x%x",
@@ -569,14 +570,6 @@ int ep0_recv_setup (struct urb *urb)
 				return -1;
 			}
 			device->address = address;
-#ifdef CONFIG_DW_OTG
-			extern void udc_set_address_controller(u32);
-			/*
-			 * not a good way to do it. Will correct during
-			 * board debug.
-			 */
-			 udc_set_address_controller(address);
-#endif
 
 			/*dbg_ep0(2, "address: %d %d %d", */
 			/*        request->wValue, le16_to_cpu(request->wValue), device->address); */
@@ -596,14 +589,6 @@ int ep0_recv_setup (struct urb *urb)
 
 			/*dbg_ep0(2, "set configuration: %d", device->configuration); */
 			/*serial_printf("DEVICE_CONFIGURED.. event?\n"); */
-#ifdef CONFIG_DW_OTG
-			 extern void udc_set_configuration_controller(u32);
-			/*
-			 * not a good way to do it. Will correct during
-			 * board debug.
-			 */
-			 udc_set_configuration_controller(device->configuration);
-#endif
 			return 0;
 
 		case USB_REQ_SET_INTERFACE:

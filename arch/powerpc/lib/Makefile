@@ -23,14 +23,27 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(ARCH).a
+## Build a couple of necessary functions into a private libgcc
+LIBGCC	= $(obj)libgcc.o
+GLSOBJS	+= _ashldi3.o
+GLSOBJS	+= _ashrdi3.o
+GLSOBJS	+= _lshrdi3.o
+LGOBJS	:= $(addprefix $(obj),$(GLSOBJS)) \
+	   $(addprefix $(obj),$(GLCOBJS))
+
+## But only build it if the user asked for it
+ifdef USE_PRIVATE_LIBGCC
+TARGETS	+= $(LIBGCC)
+endif
+
+LIB	= $(obj)lib$(ARCH).o
 
 SOBJS-y	+= ppccache.o
 SOBJS-y	+= ppcstring.o
 SOBJS-y	+= ticks.o
 SOBJS-y	+= reloc.o
 
-COBJS-y	+= bat_rw.o
+COBJS-$(CONFIG_BAT_RW) += bat_rw.o
 COBJS-y	+= board.o
 COBJS-y	+= bootm.o
 COBJS-$(CONFIG_BOOTCOUNT_LIMIT) += bootcount.o
@@ -40,8 +53,26 @@ COBJS-y	+= interrupts.o
 COBJS-$(CONFIG_CMD_KGDB) += kgdb.o
 COBJS-y	+= time.o
 
-SRCS	:= $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
+# Workaround for local bus unaligned access problems
+# on MPC512x and MPC5200
+ifdef CONFIG_MPC512X
+$(obj)ppcstring.o: AFLAGS += -Dmemcpy=__memcpy
+COBJS-y += memcpy_mpc5200.o
+endif
+ifdef CONFIG_MPC5200
+$(obj)ppcstring.o: AFLAGS += -Dmemcpy=__memcpy
+COBJS-y += memcpy_mpc5200.o
+endif
+
+COBJS	+= $(sort $(COBJS-y))
+
+SRCS	:= $(GLSOBJS:.o=.S) $(GLCOBJS:.o=.c) \
+	   $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(SOBJS-y) $(COBJS-y))
+
+TARGETS += $(LIB)
+
+all: $(TARGETS)
 
 $(LIB):	$(obj).depend $(OBJS)
 	@if ! $(CROSS_COMPILE)readelf -S $(OBJS) | grep -q '\.fixup.*PROGBITS';\
@@ -50,7 +81,10 @@ $(LIB):	$(obj).depend $(OBJS)
 		echo "       Upgrade to a recent toolchain."; \
 		exit 1; \
 	fi;
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
+
+$(LIBGCC): $(obj).depend $(LGOBJS)
+	$(call cmd_link_o_target, $(LGOBJS))
 
 #########################################################################
 

@@ -35,7 +35,6 @@
 #endif
 
 #if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_MG_DISK) || \
      defined(CONFIG_CMD_SATA) || \
      defined(CONFIG_CMD_SCSI) || \
      defined(CONFIG_CMD_USB) || \
@@ -66,9 +65,6 @@ static const struct block_drvr block_drvr[] = {
 #if defined(CONFIG_SYSTEMACE)
 	{ .name = "ace", .get_dev = systemace_get_dev, },
 #endif
-#if defined(CONFIG_CMD_MG_DISK)
-	{ .name = "mgd", .get_dev = mg_disk_get_dev, },
-#endif
 	{ },
 };
 
@@ -78,13 +74,23 @@ block_dev_desc_t *get_dev(char* ifname, int dev)
 {
 	const struct block_drvr *drvr = block_drvr;
 	block_dev_desc_t* (*reloc_get_dev)(int dev);
+	char *name;
 
+	if (!ifname)
+		return NULL;
+
+	name = drvr->name;
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
+	name += gd->reloc_off;
+#endif
 	while (drvr->name) {
+		name = drvr->name;
 		reloc_get_dev = drvr->get_dev;
-#ifndef CONFIG_RELOC_FIXUP_WORKS
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
+		name += gd->reloc_off;
 		reloc_get_dev += gd->reloc_off;
 #endif
-		if (strncmp(ifname, drvr->name, strlen(drvr->name)) == 0)
+		if (strncmp(ifname, name, strlen(name)) == 0)
 			return reloc_get_dev(dev);
 		drvr++;
 	}
@@ -98,7 +104,6 @@ block_dev_desc_t *get_dev(char* ifname, int dev)
 #endif
 
 #if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_MG_DISK) || \
      defined(CONFIG_CMD_SATA) || \
      defined(CONFIG_CMD_SCSI) || \
      defined(CONFIG_CMD_USB) || \
@@ -109,13 +114,30 @@ block_dev_desc_t *get_dev(char* ifname, int dev)
 /*
  * reports device info to the user
  */
+
+#ifdef CONFIG_LBA48
+typedef uint64_t lba512_t;
+#else
+typedef lbaint_t lba512_t;
+#endif
+
+/*
+ * Overflowless variant of (block_count * mul_by / div_by)
+ * when div_by > mul_by
+ */
+static lba512_t lba512_muldiv (lba512_t block_count, lba512_t mul_by, lba512_t div_by)
+{
+	lba512_t bc_quot, bc_rem;
+
+	/* x * m / d == x / d * m + (x % d) * m / d */
+	bc_quot = block_count / div_by;
+	bc_rem  = block_count - div_by * bc_quot;
+	return bc_quot * mul_by + (bc_rem * mul_by) / div_by;
+}
+
 void dev_print (block_dev_desc_t *dev_desc)
 {
-#ifdef CONFIG_LBA48
-	uint64_t lba512; /* number of blocks if 512bytes block size */
-#else
-	lbaint_t lba512;
-#endif
+	lba512_t lba512; /* number of blocks if 512bytes block size */
 
 	if (dev_desc->type == DEV_TYPE_UNKNOWN) {
 		puts ("not available\n");
@@ -184,8 +206,9 @@ void dev_print (block_dev_desc_t *dev_desc)
 		lba = dev_desc->lba;
 
 		lba512 = (lba * (dev_desc->blksz/512));
-		mb = (10 * lba512) / 2048;	/* 2048 = (1024 * 1024) / 512 MB */
 		/* round to 1 digit */
+		mb = lba512_muldiv(lba512, 10, 2048);	/* 2048 = (1024 * 1024) / 512 MB */
+
 		mb_quot	= mb / 10;
 		mb_rem	= mb - (10 * mb_quot);
 
@@ -216,7 +239,6 @@ void dev_print (block_dev_desc_t *dev_desc)
 #endif
 
 #if (defined(CONFIG_CMD_IDE) || \
-     defined(CONFIG_CMD_MG_DISK) || \
      defined(CONFIG_CMD_SATA) || \
      defined(CONFIG_CMD_SCSI) || \
      defined(CONFIG_CMD_USB) || \
@@ -345,6 +367,9 @@ static void print_part_header (const char *type, block_dev_desc_t * dev_desc)
 		break;
 	case IF_TYPE_DOC:
 		puts ("DOC");
+		break;
+	case IF_TYPE_MMC:
+		puts ("MMC");
 		break;
 	default:
 		puts ("UNKNOWN");

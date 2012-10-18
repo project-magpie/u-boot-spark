@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2009
- * Vipin Kumar, ST Micoelectronics, vipin.kumar@st.com.
+ * Vipin Kumar, ST Microelectronics, vipin.kumar@st.com.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -96,6 +96,25 @@ static struct flash_device flash_devices[] = {
 };
 
 /*
+ * get_flash_device - Return flash_device pointer for a particular device id
+ * @id:	 Device id
+ *
+ * Return flash_device pointer for a particular device id
+ */
+static struct flash_device *get_flash_device(u32 id)
+{
+	struct flash_device *flash_dev_p = &flash_devices[0];
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(flash_devices); i++, flash_dev_p++) {
+		if (flash_dev_p->device_id == id)
+			return flash_dev_p;
+	}
+
+	return NULL;
+}
+
+/*
  * smi_wait_xfer_finish - Wait until TFF is set in status register
  * @timeout:	 timeout in milliseconds
  *
@@ -103,11 +122,15 @@ static struct flash_device flash_devices[] = {
  */
 static int smi_wait_xfer_finish(int timeout)
 {
-	do {
+	ulong start = get_timer(0);
+
+	while (get_timer(start) < timeout) {
 		if (readl(&smicntl->smi_sr) & TFF)
 			return 0;
-		udelay(1000);
-	} while (timeout--);
+
+		/* Try after 10 ms */
+		udelay(10);
+	};
 
 	return -1;
 }
@@ -220,16 +243,17 @@ static int smi_read_sr(int bank)
 static int smi_wait_till_ready(int bank, int timeout)
 {
 	int sr;
+	ulong start = get_timer(0);
 
 	/* One chip guarantees max 5 msec wait here after page writes,
 	   but potentially three seconds (!) after page erase. */
-	do {
+	while (get_timer(start) < timeout) {
 		sr = smi_read_sr(bank);
 		if ((sr >= 0) && (!(sr & WIP_BIT)))
 			return 0;
 
-		/* Try again after 1m-sec */
-		udelay(1000);
+		/* Try again after 10 usec */
+		udelay(10);
 	} while (timeout--);
 
 	printf("SMI controller is still in wait, timeout=%d\n", timeout);
@@ -246,6 +270,7 @@ static int smi_wait_till_ready(int bank, int timeout)
 static int smi_write_enable(int bank)
 {
 	u32 ctrlreg1;
+	u32 start;
 	int timeout = WMODE_TOUT;
 	int sr;
 
@@ -264,14 +289,15 @@ static int smi_write_enable(int bank)
 	/* Restore the CTRL REG1 state */
 	writel(ctrlreg1, &smicntl->smi_cr1);
 
-	do {
+	start = get_timer(0);
+	while (get_timer(start) < timeout) {
 		sr = smi_read_sr(bank);
 		if ((sr >= 0) && (sr & (1 << (bank + WM_SHIFT))))
 			return 0;
 
-		/* Try again after 1m-sec */
-		udelay(1000);
-	} while (timeout--);
+		/* Try again after 10 usec */
+		udelay(10);
+	};
 
 	return -1;
 }
@@ -354,19 +380,27 @@ static int smi_sector_erase(flash_info_t *info, unsigned int sector)
 
 /*
  * smi_write - Write to SMI flash
+ * @info:	 flash info structure
  * @src_addr:	 source buffer
  * @dst_addr:	 destination buffer
- * @length:	 length to write in words
- * @bank:	 bank base address
+ * @length:	 length to write in bytes
  *
  * Write to SMI flash
  */
-static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
-		     unsigned int length, ulong bank_addr)
+static int smi_write(flash_info_t *info, unsigned char *src_addr,
+		unsigned char *dst_addr, unsigned int length)
 {
+	struct flash_device *flash_device_p = get_flash_device(info->flash_id);
+	u32 page_size;
 	int banknum;
+	int issue_we;
 
-	switch (bank_addr) {
+	if (!flash_device_p)
+		return -EIO;
+
+	page_size = flash_device_p->pagesize;
+
+	switch (info->start[0]) {
 	case SMIBANK0_BASE:
 		banknum = BANK0;
 		break;
@@ -384,21 +418,19 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 	}
 
 	writel(readl(&smicntl->smi_sr) & ~(ERF1 | ERF2), &smicntl->smi_sr);
-
-	if (smi_wait_till_ready(banknum, CONFIG_SYS_FLASH_WRITE_TOUT))
-		return -EBUSY;
+	issue_we = 1;
 
 	/* Set SMI in Hardware Mode */
 	writel(readl(&smicntl->smi_cr1) & ~SW_MODE, &smicntl->smi_cr1);
 
-	if (smi_write_enable(banknum))
-		return -EIO;
-
 	/* Perform the write command */
 	while (length) {
-		int i;
+		int k;
+		unsigned int wlen = min(page_size, length);
 
-		if (((ulong) (dst_addr) % SFLASH_PAGE_SIZE) == 0) {
+		if (issue_we || (((ulong)(dst_addr) % page_size) == 0)) {
+			issue_we = 0;
+
 			if (smi_wait_till_ready(banknum,
 						CONFIG_SYS_FLASH_WRITE_TOUT))
 				return -EBUSY;
@@ -407,11 +439,14 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 				return -EIO;
 		}
 
-		for (i = 0; i < min(SFLASH_PAGE_SIZE_WORDS, length); i++)
+		writel(readl(&smicntl->smi_cr1) | WB_MODE, &smicntl->smi_cr1);
+
+		for (k = 0; k < wlen; k++)
 			*dst_addr++ = *src_addr++;
 
-		length -= min(SFLASH_PAGE_SIZE_WORDS, length);
+		writel(readl(&smicntl->smi_cr1) & ~WB_MODE, &smicntl->smi_cr1);
 
+		length -= wlen;
 		if ((readl(&smicntl->smi_sr) & (ERF1 | ERF2)))
 			return -EIO;
 	}
@@ -435,8 +470,7 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
  */
 int write_buff(flash_info_t *info, uchar *src, ulong dest_addr, ulong length)
 {
-	return smi_write((unsigned int *)src, (unsigned int *)dest_addr,
-		  (length + 3) / 4, info->start[0]);
+	return smi_write(info, src, (unsigned char *)dest_addr, length);
 }
 
 /*

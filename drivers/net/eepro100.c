@@ -242,8 +242,7 @@ static void purge_tx_ring (struct eth_device *dev);
 static void read_hw_addr (struct eth_device *dev, bd_t * bis);
 
 static int eepro100_init (struct eth_device *dev, bd_t * bis);
-static int eepro100_send (struct eth_device *dev, volatile void *packet,
-						  int length);
+static int eepro100_send(struct eth_device *dev, void *packet, int length);
 static int eepro100_recv (struct eth_device *dev);
 static void eepro100_halt (struct eth_device *dev);
 
@@ -321,7 +320,8 @@ static int set_phyreg (struct eth_device *dev, unsigned char addr,
 /* Check if given phyaddr is valid, i.e. there is a PHY connected.
  * Do this by checking model value field from ID2 register.
  */
-static struct eth_device* verify_phyaddr (char *devname, unsigned char addr)
+static struct eth_device* verify_phyaddr (const char *devname,
+						unsigned char addr)
 {
 	struct eth_device *dev;
 	unsigned short value;
@@ -334,7 +334,7 @@ static struct eth_device* verify_phyaddr (char *devname, unsigned char addr)
 	}
 
 	/* read id2 register */
-	if (get_phyreg(dev, addr, PHY_PHYIDR2, &value) != 0) {
+	if (get_phyreg(dev, addr, MII_PHYSID2, &value) != 0) {
 		printf("%s: mii read timeout!\n", devname);
 		return NULL;
 	}
@@ -350,7 +350,7 @@ static struct eth_device* verify_phyaddr (char *devname, unsigned char addr)
 	return dev;
 }
 
-static int eepro100_miiphy_read (char *devname, unsigned char addr,
+static int eepro100_miiphy_read(const char *devname, unsigned char addr,
 		unsigned char reg, unsigned short *value)
 {
 	struct eth_device *dev;
@@ -367,7 +367,7 @@ static int eepro100_miiphy_read (char *devname, unsigned char addr,
 	return 0;
 }
 
-static int eepro100_miiphy_write (char *devname, unsigned char addr,
+static int eepro100_miiphy_write(const char *devname, unsigned char addr,
 		unsigned char reg, unsigned short value)
 {
 	struct eth_device *dev;
@@ -449,6 +449,11 @@ int eepro100_initialize (bd_t * bis)
 		}
 
 		dev = (struct eth_device *) malloc (sizeof *dev);
+		if (!dev) {
+			printf("eepro100: Can not allocate memory\n");
+			break;
+		}
+		memset(dev, 0, sizeof(*dev));
 
 		sprintf (dev->name, "i82559#%d", card_number);
 		dev->priv = (void *) devno; /* this have to come before bus_to_phys() */
@@ -602,7 +607,7 @@ static int eepro100_init (struct eth_device *dev, bd_t * bis)
 	return status;
 }
 
-static int eepro100_send (struct eth_device *dev, volatile void *packet, int length)
+static int eepro100_send(struct eth_device *dev, void *packet, int length)
 {
 	int i, status = -1;
 	int tx_cur;
@@ -685,7 +690,7 @@ static int eepro100_recv (struct eth_device *dev)
 			/* Pass the packet up to the protocol
 			 * layers.
 			 */
-			NetReceive (rx_ring[rx_next].data, length);
+			NetReceive((u8 *)rx_ring[rx_next].data, length);
 		} else {
 			/* There was an error.
 			 */
@@ -917,7 +922,6 @@ static void purge_tx_ring (struct eth_device *dev)
 
 static void read_hw_addr (struct eth_device *dev, bd_t * bis)
 {
-	u16 eeprom[0x40];
 	u16 sum = 0;
 	int i, j;
 	int addr_len = read_eeprom (dev, 0, 6) == 0xffff ? 8 : 6;
@@ -925,7 +929,6 @@ static void read_hw_addr (struct eth_device *dev, bd_t * bis)
 	for (j = 0, i = 0; i < 0x40; i++) {
 		u16 value = read_eeprom (dev, i, addr_len);
 
-		eeprom[i] = value;
 		sum += value;
 		if (i < 3) {
 			dev->enetaddr[j++] = value;

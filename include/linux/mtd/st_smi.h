@@ -108,8 +108,6 @@ struct flash_dev {
 	ushort sector_count;
 };
 
-#define SFLASH_PAGE_SIZE	0x100	/* flash page size */
-#define SFLASH_PAGE_SIZE_WORDS	(SFLASH_PAGE_SIZE / 4)
 #define XFER_FINISH_TOUT	15	/* xfer finish timeout(in ms) */
 #define WMODE_TOUT		15	/* write enable timeout(in ms) */
 

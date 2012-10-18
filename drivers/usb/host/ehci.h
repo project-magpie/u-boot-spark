@@ -55,7 +55,7 @@ struct ehci_hccr {
 #define HCS_N_PORTS(p)		(((p) >> 0) & 0xf)
 	uint32_t cr_hccparams;
 	uint8_t cr_hcsp_portrt[8];
-};
+} __attribute__ ((packed, aligned(4)));
 
 struct ehci_hcor {
 	uint32_t or_usbcmd;
@@ -71,16 +71,25 @@ struct ehci_hcor {
 #define	STD_ASS		(1 << 15)
 #define STS_HALT	(1 << 12)
 	uint32_t or_usbintr;
+#define INTR_UE         (1 << 0)                /* USB interrupt enable */
+#define INTR_UEE        (1 << 1)                /* USB error interrupt enable */
+#define INTR_PCE        (1 << 2)                /* Port change detect enable */
+#define INTR_SEE        (1 << 4)                /* system error enable */
+#define INTR_AAE        (1 << 5)                /* Interrupt on async adavance enable */
 	uint32_t or_frindex;
 	uint32_t or_ctrldssegment;
 	uint32_t or_periodiclistbase;
 	uint32_t or_asynclistaddr;
-	uint32_t _reserved_[9];
+	uint32_t _reserved_0_;
+	uint32_t or_burstsize;
+	uint32_t or_txfilltuning;
+#define TXFIFO_THRESH(p)		((p & 0x3f) << 16)
+	uint32_t _reserved_1_[6];
 	uint32_t or_configflag;
 #define FLAG_CF		(1 << 0)	/* true:  we'll support "high speed" */
 	uint32_t or_portsc[CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS];
 	uint32_t or_systune;
-};
+} __attribute__ ((packed, aligned(4)));
 
 #define USBMODE		0x68		/* USB Device mode */
 #define USBMODE_SDIS	(1 << 3)	/* Stream disable */
@@ -161,11 +170,15 @@ struct usb_linux_config_descriptor {
 
 /* Queue Element Transfer Descriptor (qTD). */
 struct qTD {
-	uint32_t qt_next;
+	/* this part defined by EHCI spec */
+	uint32_t qt_next;		/* see EHCI 3.5.1 */
 #define	QT_NEXT_TERMINATE	1
-	uint32_t qt_altnext;
-	uint32_t qt_token;
-	uint32_t qt_buffer[5];
+	uint32_t qt_altnext;		/* see EHCI 3.5.2 */
+	uint32_t qt_token;		/* see EHCI 3.5.3 */
+	uint32_t qt_buffer[5];		/* see EHCI 3.5.4 */
+	uint32_t qt_buffer_hi[5];	/* Appendix B */
+	/* pad struct for 32 byte alignment */
+	uint32_t unused[3];
 };
 
 /* Queue Head (QH). */

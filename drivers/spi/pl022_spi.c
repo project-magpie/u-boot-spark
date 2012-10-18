@@ -228,7 +228,8 @@ int spi_claim_bus(struct spi_slave *slave)
 	struct pl022_spi_slave *ps = to_pl022_spi(slave);
 
 	/* Enable the SPI hardware */
-	writew(readw(ps->regs + SSP_CR1) | SSP_CR1_MASK_SSE, ps->regs + SSP_CR1);
+	writew(readw(ps->regs + SSP_CR1) | SSP_CR1_MASK_SSE,
+			ps->regs + SSP_CR1);
 
 	return 0;
 }

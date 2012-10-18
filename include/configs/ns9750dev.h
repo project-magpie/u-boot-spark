@@ -50,14 +50,11 @@
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 128*1024)
-#define CONFIG_SYS_GBL_DATA_SIZE       128     /* size in bytes reserved for initial
-					 * data */
 
 /*
  * Hardware drivers
  */
 #define CONFIG_NS9750_UART		1	/* use on-chip UART */
-#define CONFIG_DRIVER_NS9750_ETHERNET	1	/* use on-chip ethernet */
 
 /*
  * select serial console configuration
@@ -88,7 +85,6 @@
 #define CONFIG_CMD_LOADB
 #define CONFIG_CMD_LOADS
 #define CONFIG_CMD_MEMORY
-#define CONFIG_CMD_NET
 #define CONFIG_CMD_PING
 
 
@@ -125,9 +121,6 @@
 #define	CONFIG_SYS_LOAD_ADDR		0x00600000	/* default load address	*/ /* @TODO */
 
 #define	CONFIG_SYS_HZ			(CPU_CLK_FREQ/64)
-
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define NS9750_ETH_PHY_ADDRESS	(0x0000)
 

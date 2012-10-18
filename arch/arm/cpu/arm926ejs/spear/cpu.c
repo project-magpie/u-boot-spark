@@ -22,11 +22,11 @@
  */
 
 #include <common.h>
+#include <linux/mtd/st_smi.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/spr_misc.h>
+#include <asm/arch/misc.h>
 
-#ifdef CONFIG_ARCH_CPU_INIT
 int arch_cpu_init(void)
 {
 	struct misc_regs *const misc_p =
@@ -35,9 +35,9 @@ int arch_cpu_init(void)
 
 	periph1_clken = readl(&misc_p->periph1_clken);
 
-#if defined(CONFIG_SPEAR3XX)
+#if defined(CONFIG_ARCH_SPEAR3XX)
 	periph1_clken |= MISC_GPT2ENB;
-#elif defined(CONFIG_SPEAR600)
+#elif defined(CONFIG_SOC_SPEAR600)
 	periph1_clken |= MISC_GPT3ENB;
 #endif
 
@@ -45,8 +45,8 @@ int arch_cpu_init(void)
 	periph1_clken |= MISC_UART0ENB;
 
 	periph_clk_cfg = readl(&misc_p->periph_clk_cfg);
-	periph_clk_cfg &= ~CONFIG_SPEAR_UARTCLKMSK;
-	periph_clk_cfg |= CONFIG_SPEAR_UART48M;
+	periph_clk_cfg &= ~MISC_UARTCLKMSK;
+	periph_clk_cfg |= MISC_UART48M;
 	writel(periph_clk_cfg, &misc_p->periph_clk_cfg);
 #endif
 #if defined(CONFIG_DESIGNWARE_ETH)
@@ -69,22 +69,28 @@ int arch_cpu_init(void)
 #endif
 
 	writel(periph1_clken, &misc_p->periph1_clken);
+
+	/* Early driver initializations */
+#if defined(CONFIG_ST_SMI)
+	smi_init();
+#endif
+
+#ifdef CONFIG_ST_EMI
+	emi_init();
+#endif
 	return 0;
 }
-#endif
 
 #ifdef CONFIG_DISPLAY_CPUINFO
 int print_cpuinfo(void)
 {
-#ifdef CONFIG_SPEAR300
+#ifdef CONFIG_SOC_SPEAR300
 	printf("CPU:   SPEAr300\n");
-#elif defined(CONFIG_SPEAR310)
+#elif defined(CONFIG_SOC_SPEAR310)
 	printf("CPU:   SPEAr310\n");
-#elif defined(CONFIG_SPEAR320)
+#elif defined(CONFIG_SOC_SPEAR320)
 	printf("CPU:   SPEAr320\n");
-#elif defined(CONFIG_SPEAR320_HMI)
-	printf("CPU:   SPEAr320_HMI\n");
-#elif defined(CONFIG_SPEAR600)
+#elif defined(CONFIG_SOC_SPEAR600)
 	printf("CPU:   SPEAr600\n");
 #else
 #error CPU not supported in spear platform

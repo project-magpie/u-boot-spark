@@ -15,8 +15,7 @@
 #include "fec.h"
 
 #undef  DEBUG
-#if defined(CONFIG_CMD_NET) && defined(CONFIG_NET_MULTI) && \
-    defined(CONFIG_MPC8220_FEC)
+#if defined(CONFIG_CMD_NET) && defined(CONFIG_MPC8220_FEC)
 
 #if !(defined(CONFIG_MII) || defined(CONFIG_CMD_MII))
 #error "CONFIG_MII has to be defined!"
@@ -34,8 +33,8 @@ typedef struct {
 	u8 head[16];		/* MAC header(6 + 6 + 2) + 2(aligned) */
 } NBUF;
 
-int fec8220_miiphy_read (char *devname, u8 phyAddr, u8 regAddr, u16 * retVal);
-int fec8220_miiphy_write (char *devname, u8 phyAddr, u8 regAddr, u16 data);
+int fec8220_miiphy_read (const char *devname, u8 phyAddr, u8 regAddr, u16 *retVal);
+int fec8220_miiphy_write (const char *devname, u8 phyAddr, u8 regAddr, u16 data);
 
 /********************************************************************/
 #ifdef DEBUG
@@ -625,7 +624,7 @@ static void rfifo_print (char *devname, mpc8220_fec_priv * fec)
 
 /********************************************************************/
 
-static int mpc8220_fec_send (struct eth_device *dev, volatile void *eth_data,
+static int mpc8220_fec_send(struct eth_device *dev, void *eth_data,
 			     int data_length)
 {
 	/*
@@ -773,8 +772,8 @@ static int mpc8220_fec_recv (struct eth_device *dev)
 			frame = (NBUF *) pRbd->dataPointer;
 			frame_length = pRbd->dataLength - 4;
 
-#if (0)
-			{
+			/* DEBUG code */
+			if (_DEBUG) {
 				int i;
 
 				printf ("recv data hdr:");
@@ -782,14 +781,13 @@ static int mpc8220_fec_recv (struct eth_device *dev)
 					printf ("%x ", *(frame->head + i));
 				printf ("\n");
 			}
-#endif
+
 			/*
 			 *  Fill the buffer and pass it to upper layers
 			 */
 /*			memcpy(buff, frame->head, 14);
 			memcpy(buff + 14, frame->data, frame_length);*/
-			NetReceive ((volatile uchar *) pRbd->dataPointer,
-				    frame_length);
+			NetReceive((uchar *)pRbd->dataPointer, frame_length);
 			len = frame_length;
 		}
 		/*
@@ -840,7 +838,7 @@ int mpc8220_fec_initialize (bd_t * bis)
 	dev->send = mpc8220_fec_send;
 	dev->recv = mpc8220_fec_recv;
 
-	sprintf (dev->name, "FEC ETHERNET");
+	sprintf (dev->name, "FEC");
 	eth_register (dev);
 
 #if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
@@ -881,7 +879,7 @@ int mpc8220_fec_initialize (bd_t * bis)
 
 /* MII-interface related functions */
 /********************************************************************/
-int fec8220_miiphy_read (char *devname, u8 phyAddr, u8 regAddr, u16 * retVal)
+int fec8220_miiphy_read (const char *devname, u8 phyAddr, u8 regAddr, u16 *retVal)
 {
 	ethernet_regs *eth = (ethernet_regs *) MMAP_FEC1;
 	u32 reg;		/* convenient holder for the PHY register */
@@ -925,7 +923,7 @@ int fec8220_miiphy_read (char *devname, u8 phyAddr, u8 regAddr, u16 * retVal)
 }
 
 /********************************************************************/
-int fec8220_miiphy_write (char *devname, u8 phyAddr, u8 regAddr, u16 data)
+int fec8220_miiphy_write(const char *devname, u8 phyAddr, u8 regAddr, u16 data)
 {
 	ethernet_regs *eth = (ethernet_regs *) MMAP_FEC1;
 	u32 reg;		/* convenient holder for the PHY register */

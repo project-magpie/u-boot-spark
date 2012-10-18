@@ -42,8 +42,10 @@
 /* macro to read the 32 bit timer */
 #define READ_TIMER (*(volatile ulong *)(CONFIG_SYS_TIMERBASE+4))
 
-static ulong timestamp;
-static ulong lastdec;
+DECLARE_GLOBAL_DATA_PTR;
+
+#define timestamp gd->tbl
+#define lastdec gd->lastinc
 
 #define TIMER_ENABLE	(1 << 7)
 #define TIMER_MODE_MSK	(1 << 6)
@@ -92,30 +94,19 @@ int timer_init (void)
 /*
  * timer without interrupts
  */
-
-void reset_timer (void)
-{
-	reset_timer_masked ();
-}
-
 ulong get_timer (ulong base)
 {
 	return get_timer_masked () - base;
 }
 
-void set_timer (ulong t)
-{
-	timestamp = t;
-}
-
-/* delay x useconds AND perserve advance timstamp value */
+/* delay x useconds AND preserve advance timestamp value */
 void __udelay (unsigned long usec)
 {
 	ulong tmo, tmp;
 
 	if(usec >= 1000){		/* if "big" number, spread normalization to seconds */
 		tmo = usec / 1000;	/* start to normalize for usec to ticks per sec */
-		tmo *= CONFIG_SYS_HZ;		/* find number of "ticks" to wait to achieve target */
+		tmo *= CONFIG_SYS_HZ;	/* find number of "ticks" to wait to achieve target */
 		tmo /= 1000;		/* finish normalize. */
 	}else{				/* else small number, don't kill it prior to HZ multiply */
 		tmo = usec * CONFIG_SYS_HZ;

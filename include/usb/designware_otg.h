@@ -23,15 +23,9 @@
 
 #ifndef __DW_OTG_H
 #define __DW_OTG_H
-/* temp def: will be removed TBD */
-#undef APH_BOARD
-#ifdef APG_BOARD
-#include "types.h"
-#define CONFIG_USBD_HS	1
-#define CONFIG_DW_OTG	1
-#endif
 
 #include "usbdevice.h"
+
 /* USBTTY definitions */
 #define  EP0_MAX_PACKET_SIZE		64
 #define  UDC_INT_ENDPOINT		1
@@ -51,7 +45,6 @@
 #define  UDC_EP2			2
 #define  UDC_EP3			3
 
-#define CMD_SIZE	12
 /* OTG Register Definitions */
 
 /*
@@ -432,10 +425,6 @@ struct device_out_ep_regs {
 struct dwc_ep {
 	/* EP number used for register address lookup */
 	u8	 num;
-	/* EP direction 0 = OUT */
-#if 0
-	u8 is_in;
-#endif
 	/* pointer to the transfer buffer */
 	u8 *xfer_buff;
 	/* Number of bytes to transfer */
@@ -447,23 +436,6 @@ struct dwc_ep {
  * This structure encapsulates the data for the dwc_otg PCD.
  */
 struct dwc_pcd {
-#if 0
-	/* USB gadget */
-	/* Current configuration */
-	u8	configuration;
-	/* Current interface */
-	u8	interface;
-	/* Current alternate settinng */
-	u8	alternate;
-	/* Current Address */
-	u16 address;
-	/* device state */
-/*	usb_device_state_t device_state; */	/* current USB Device state */
-	/*
-	 * SETUP packet for EP0. This structure is allocated as a DMA buffer on
-	 * PCD initialization with enough space for up to 3 setup packets.
-	 */
-#endif
 	struct usb_device_request *req;
 	/* Array of EPs. */
 	struct dwc_ep ep0;
@@ -518,10 +490,11 @@ int udc_init(void);
 void udc_disable(void);
 void udc_connect(void);
 void udc_disconnect(void);
+#if defined(CONFIG_DW_OTG_PHYINIT)
+void udc_phy_init(void);
+#endif
 void udc_startup_events(struct usb_device_instance *device);
 void udc_setup_ep(struct usb_device_instance *device, unsigned int ep,
 		  struct usb_endpoint_instance *endpoint);
-void udc_set_configuration_controller(u32);
-void udc_set_address_controller(u32);
 
-#endif /* __DW_UDC_H */
+#endif /* __DW_OTG_H */

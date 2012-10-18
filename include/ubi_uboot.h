@@ -123,7 +123,7 @@ typedef int	wait_queue_head_t;
 #define init_rwsem(...)			do { } while (0)
 #define down_read(...)			do { } while (0)
 #define down_write(...)			do { } while (0)
-#define down_write_trylock(...)		0
+#define down_write_trylock(...)		1
 #define up_read(...)			do { } while (0)
 #define up_write(...)			do { } while (0)
 
@@ -190,9 +190,6 @@ static inline long IS_ERR(const void *ptr)
 {
 	return IS_ERR_VALUE((unsigned long)ptr);
 }
-
-/* Force a compilation error if condition is true */
-#define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
 
 /* module */
 #define THIS_MODULE		0

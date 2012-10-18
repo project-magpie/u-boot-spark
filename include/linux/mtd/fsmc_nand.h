@@ -77,16 +77,7 @@ struct fsmc_regs {
 #define FSMC_REVISION_MSK	(0xf)
 #define FSMC_REVISION_SHFT	(0x4)
 
-enum {
-	FSMC_VER1 = 1,
-	FSMC_VER2,
-	FSMC_VER3,
-	FSMC_VER4,
-	FSMC_VER5,
-	FSMC_VER6,
-	FSMC_VER7,
-	FSMC_VER8,
-};
+#define FSMC_VER8		0x8
 
 /*
  * There are 13 bytes of ecc for every 512 byte block and it has to be read
@@ -95,7 +86,7 @@ enum {
  * Managing the ecc bytes in the following way is easier. This way is similar to
  * oobfree structure maintained already in u-boot nand driver
  */
-#define MAX_ECCPLACE_ENTRIES	32
+#define FSMC_MAX_ECCPLACE_ENTRIES	32
 
 struct fsmc_nand_eccplace {
 	u32 offset;
@@ -103,7 +94,7 @@ struct fsmc_nand_eccplace {
 };
 
 struct fsmc_eccplace {
-	struct fsmc_nand_eccplace eccplace[MAX_ECCPLACE_ENTRIES];
+	struct fsmc_nand_eccplace eccplace[FSMC_MAX_ECCPLACE_ENTRIES];
 };
 
 extern int fsmc_nand_init(struct nand_chip *nand);

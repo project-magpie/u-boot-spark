@@ -28,7 +28,7 @@
 
 #include <common.h>
 #include <malloc.h>
-#include <linux/mtd/compat.h>
+#include <linux/compat.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/onenand.h>
 #include <linux/mtd/samsung_onenand.h>
@@ -67,7 +67,7 @@ do {									\
 #define MAP_01				(0x1 << 24)
 #define MAP_10				(0x2 << 24)
 #define MAP_11				(0x3 << 24)
-#elif defined(CONFIG_S5PC1XX)
+#elif defined(CONFIG_S5P)
 #define MAP_00				(0x0 << 26)
 #define MAP_01				(0x1 << 26)
 #define MAP_10				(0x2 << 26)
@@ -121,7 +121,7 @@ static unsigned int s3c_mem_addr(int fba, int fpa, int fsa)
 {
 	return (fba << 12) | (fpa << 6) | (fsa << 4);
 }
-#elif defined(CONFIG_S5PC1XX)
+#elif defined(CONFIG_S5P)
 static unsigned int s3c_mem_addr(int fba, int fpa, int fsa)
 {
 	return (fba << 13) | (fpa << 7) | (fsa << 5);
@@ -483,12 +483,11 @@ static void s3c_onenand_check_lock_status(struct mtd_info *mtd)
 {
 	struct onenand_chip *this = mtd->priv;
 	unsigned int block, end;
-	int tmp;
 
 	end = this->chipsize >> this->erase_shift;
 
 	for (block = 0; block < end; block++) {
-		tmp = s3c_read_cmd(CMD_MAP_01(onenand->mem_addr(block, 0, 0)));
+		s3c_read_cmd(CMD_MAP_01(onenand->mem_addr(block, 0, 0)));
 
 		if (readl(&onenand->reg->int_err_stat) & LOCKED_BLK) {
 			printf("block %d is write-protected!\n", block);
@@ -590,6 +589,16 @@ static void s3c_set_width_regs(struct onenand_chip *this)
 }
 #endif
 
+int s5pc110_chip_probe(struct mtd_info *mtd)
+{
+	return 0;
+}
+
+int s5pc210_chip_probe(struct mtd_info *mtd)
+{
+	return 0;
+}
+
 void s3c_onenand_init(struct mtd_info *mtd)
 {
 	struct onenand_chip *this = mtd->priv;
@@ -614,7 +623,7 @@ void s3c_onenand_init(struct mtd_info *mtd)
 #if defined(CONFIG_S3C64XX)
 	onenand->base = (void *)0x70100000;
 	onenand->ahb_addr = (void *)0x20000000;
-#elif defined(CONFIG_S5PC1XX)
+#elif defined(CONFIG_S5P)
 	onenand->base = (void *)0xE7100000;
 	onenand->ahb_addr = (void *)0xB0000000;
 #endif

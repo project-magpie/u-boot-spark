@@ -1,17 +1,31 @@
 /*
- * Copyright (C) 2008 Freescale Semicondutor, Inc.
+ * Copyright 2008,2010 Freescale Semiconductor, Inc.
  *	Dave Liu <daveliu@freescale.com>
  *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
 #include <config.h>
 #include <common.h>
 #include <asm/io.h>
 #include <asm/immap_85xx.h>
+#include <asm/fsl_serdes.h>
 
 /* PORDEVSR register */
 #define GUTS_PORDEVSR_OFFS		0xc
@@ -52,17 +66,53 @@
 #define FSL_SRDSCR3_LANEE_SGMII	0x00000000
 #define FSL_SRDSCR3_LANEE_SATA	0x00150005
 
+#define SRDS1_MAX_LANES		8
+#define SRDS2_MAX_LANES		2
+
+static u32 serdes1_prtcl_map, serdes2_prtcl_map;
+
+static u8 serdes1_cfg_tbl[][SRDS1_MAX_LANES] = {
+	[0x2] = {PCIE1, PCIE1, PCIE1, PCIE1, NONE, NONE, NONE, NONE},
+	[0x3] = {PCIE1, PCIE1, PCIE1, PCIE1, PCIE1, PCIE1, PCIE1, PCIE1},
+	[0x5] = {PCIE1, PCIE1, PCIE1, PCIE1, PCIE2, PCIE2, PCIE2, PCIE2},
+	[0x7] = {PCIE1, PCIE1, PCIE1, PCIE1, PCIE2, PCIE2, PCIE3, PCIE3},
+};
+
+static u8 serdes2_cfg_tbl[][SRDS2_MAX_LANES] = {
+	[0x1] = {SATA1, SATA2},
+	[0x3] = {SATA1, NONE},
+	[0x4] = {SGMII_TSEC1, SGMII_TSEC3},
+	[0x6] = {SGMII_TSEC1, NONE},
+};
+
+int is_serdes_configured(enum srds_prtcl device)
+{
+	int ret = (1 << device) & serdes1_prtcl_map;
+
+	if (ret)
+		return ret;
+
+	return (1 << device) & serdes2_prtcl_map;
+}
+
 void fsl_serdes_init(void)
 {
 	void *guts = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 	void *sd = (void *)CONFIG_SYS_MPC85xx_SERDES2_ADDR;
 	u32 pordevsr = in_be32(guts + GUTS_PORDEVSR_OFFS);
-	u32 srds2_io_sel;
+	u32 srds1_io_sel, srds2_io_sel;
 	u32 tmp;
+	int lane;
+
+	srds1_io_sel = (pordevsr & MPC85xx_PORDEVSR_IO_SEL) >>
+				MPC85xx_PORDEVSR_IO_SEL_SHIFT;
 
 	/* parse the SRDS2_IO_SEL of PORDEVSR */
 	srds2_io_sel = (pordevsr & GUTS_PORDEVSR_SERDES2_IO_SEL)
 		       >> GUTS_PORDEVSR_SERDES2_IO_SEL_SHIFT;
+
+	debug("PORDEVSR[SRDS1_IO_SEL] = %x\n", srds1_io_sel);
+	debug("PORDEVSR[SRDS2_IO_SEL] = %x\n", srds2_io_sel);
 
 	switch (srds2_io_sel) {
 	case 1:	/* Lane A - SATA1, Lane E - SATA2 */
@@ -176,5 +226,24 @@ void fsl_serdes_init(void)
 		break;
 	default:
 		break;
+	}
+
+	if (srds1_io_sel > ARRAY_SIZE(serdes1_cfg_tbl)) {
+		printf("Invalid PORDEVSR[SRDS1_IO_SEL] = %d\n", srds1_io_sel);
+		return;
+	}
+	for (lane = 0; lane < SRDS1_MAX_LANES; lane++) {
+		enum srds_prtcl lane_prtcl = serdes1_cfg_tbl[srds1_io_sel][lane];
+		serdes1_prtcl_map |= (1 << lane_prtcl);
+	}
+
+	if (srds2_io_sel > ARRAY_SIZE(serdes2_cfg_tbl)) {
+		printf("Invalid PORDEVSR[SRDS2_IO_SEL] = %d\n", srds2_io_sel);
+		return;
+	}
+
+	for (lane = 0; lane < SRDS2_MAX_LANES; lane++) {
+		enum srds_prtcl lane_prtcl = serdes2_cfg_tbl[srds2_io_sel][lane];
+		serdes2_prtcl_map |= (1 << lane_prtcl);
 	}
 }

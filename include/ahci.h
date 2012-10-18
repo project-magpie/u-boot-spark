@@ -25,15 +25,18 @@
 #ifndef _AHCI_H_
 #define _AHCI_H_
 
+#include <pci.h>
+
 #define AHCI_PCI_BAR		0x24
 #define AHCI_MAX_SG		56 /* hardware max is 64K */
 #define AHCI_CMD_SLOT_SZ	32
+#define AHCI_MAX_CMD_SLOT	32
 #define AHCI_RX_FIS_SZ		256
 #define AHCI_CMD_TBL_HDR	0x80
 #define AHCI_CMD_TBL_CDB	0x40
 #define AHCI_CMD_TBL_SZ		AHCI_CMD_TBL_HDR + (AHCI_MAX_SG * 16)
-#define AHCI_PORT_PRIV_DMA_SZ	AHCI_CMD_SLOT_SZ + AHCI_CMD_TBL_SZ	\
-				+ AHCI_RX_FIS_SZ
+#define AHCI_PORT_PRIV_DMA_SZ	(AHCI_CMD_SLOT_SZ * AHCI_MAX_CMD_SLOT + \
+				AHCI_CMD_TBL_SZ	+ AHCI_RX_FIS_SZ)
 #define AHCI_CMD_ATAPI		(1 << 5)
 #define AHCI_CMD_WRITE		(1 << 6)
 #define AHCI_CMD_PREFETCH	(1 << 7)
@@ -186,5 +189,7 @@ struct ahci_probe_ent {
 	u32	port_map; /* cache of HOST_PORTS_IMPL reg */
 	u32	link_port_map; /*linkup port map*/
 };
+
+int ahci_init(u32 base);
 
 #endif

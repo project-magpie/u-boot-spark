@@ -45,7 +45,7 @@
 
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* SDRAM is initialized by the bootstrap code */
 
-#define CONFIG_SYS_MONITOR_BASE		TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)
 #define CONFIG_STACKSIZE		(256 << 10)
 #define CONFIG_SYS_MALLOC_LEN		(1 << 20)
@@ -74,7 +74,6 @@
 #define CONFIG_CONS_INDEX		1
 #define CONFIG_SYS_NS16550_CLK		921600
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * SDRAM
@@ -93,7 +92,6 @@
 #define CONFIG_SMC911X_BASE	0x00000000
 #define CONFIG_SMC911X_32_BIT
 #define CONFIG_NET_RETRY_COUNT		20
-#define CONFIG_NET_MULTI
 #endif
 
 /*
@@ -109,17 +107,20 @@
 /*
  * Only Premium/Platinum have ethernet support right now
  */
-#if defined(CONFIG_VCT_PREMIUM) || defined(CONFIG_VCT_PLATINUM)
+#if (defined(CONFIG_VCT_PREMIUM) || defined(CONFIG_VCT_PLATINUM)) && \
+	!defined(CONFIG_VCT_SMALL_IMAGE)
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SNTP
 #else
 #undef CONFIG_CMD_NET
+#undef CONFIG_CMD_NFS
 #endif
 
 /*
  * Only Premium/Platinum have USB-EHCI support right now
  */
-#if defined(CONFIG_VCT_PREMIUM) || defined(CONFIG_VCT_PLATINUM)
+#if (defined(CONFIG_VCT_PREMIUM) || defined(CONFIG_VCT_PLATINUM)) && \
+	!defined(CONFIG_VCT_SMALL_IMAGE)
 #define CONFIG_CMD_USB
 #define CONFIG_CMD_FAT
 #endif

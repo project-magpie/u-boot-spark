@@ -41,6 +41,7 @@
 #define AM29DL800BB	0x22CB
 #define AM29DL800BT	0x224A
 
+#define AM29F400BB	0x22AB
 #define AM29F800BB	0x2258
 #define AM29F800BT	0x22D6
 #define AM29LV400BB	0x22BA
@@ -67,6 +68,9 @@
 #define SST39LF040	0x00D7
 #define SST39SF010A	0x00B5
 #define SST39SF020A	0x00B6
+
+/* STM */
+#define STM29F400BB	0x00D6
 
 /* MXIC */
 #define MX29LV040	0x004F
@@ -296,6 +300,23 @@ static const struct amd_flash_info jedec_table[] = {
 #ifdef CONFIG_SYS_FLASH_LEGACY_512Kx16
 	{
 		.mfr_id		= (u16)AMD_MANUFACT,
+		.dev_id		= AM29F400BB,
+		.name		= "AMD AM29F400BB",
+		.uaddr		= {
+			[1] = MTD_UADDR_0x0555_0x02AA /* x16 */
+		},
+		.DevSize	= SIZE_512KiB,
+		.CmdSet		= CFI_CMDSET_AMD_LEGACY,
+		.NumEraseRegions= 4,
+		.regions	= {
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 7),
+		}
+	},
+	{
+		.mfr_id		= (u16)AMD_MANUFACT,
 		.dev_id		= AM29LV400BB,
 		.name		= "AMD AM29LV400BB",
 		.uaddr		= {
@@ -326,6 +347,23 @@ static const struct amd_flash_info jedec_table[] = {
 			ERASEINFO(0x02000, 2),
 			ERASEINFO(0x08000, 1),
 			ERASEINFO(0x10000, 15),
+		}
+	},
+	{
+		.mfr_id		= (u16)STM_MANUFACT,
+		.dev_id		= STM29F400BB,
+		.name		= "ST Micro M29F400BB",
+		.uaddr		= {
+			[1] = MTD_UADDR_0x0555_0x02AA /* x16 */
+		},
+		.DevSize		= SIZE_512KiB,
+		.CmdSet			= CFI_CMDSET_AMD_LEGACY,
+		.NumEraseRegions	= 4,
+		.regions		= {
+			ERASEINFO(0x04000, 1),
+			ERASEINFO(0x02000, 2),
+			ERASEINFO(0x08000, 1),
+			ERASEINFO(0x10000, 7),
 		}
 	},
 #endif
@@ -372,7 +410,8 @@ static inline void fill_info(flash_info_t *info, const struct amd_flash_info *je
 	debug("unlock address index %d\n", uaddr_idx);
 	info->addr_unlock1 = unlock_addrs[uaddr_idx].addr1;
 	info->addr_unlock2 = unlock_addrs[uaddr_idx].addr2;
-	debug("unlock addresses are 0x%x/0x%x\n", info->addr_unlock1, info->addr_unlock2);
+	debug("unlock addresses are 0x%lx/0x%lx\n",
+		info->addr_unlock1, info->addr_unlock2);
 
 	sect_cnt = 0;
 	total_size = 0;
@@ -381,7 +420,7 @@ static inline void fill_info(flash_info_t *info, const struct amd_flash_info *je
 		ulong erase_region_count = (jedec_entry->regions[i] & 0xff) + 1;
 
 		total_size += erase_region_size * erase_region_count;
-		debug ("erase_region_count = %d erase_region_size = %d\n",
+		debug("erase_region_count = %ld erase_region_size = %ld\n",
 		       erase_region_count, erase_region_size);
 		for (j = 0; j < erase_region_count; j++) {
 			if (sect_cnt >= CONFIG_SYS_MAX_FLASH_SECT) {

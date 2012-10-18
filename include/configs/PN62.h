@@ -39,6 +39,8 @@
 #define CONFIG_MPC8240		1
 #define CONFIG_PN62		1
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+
 #define CONFIG_CONS_INDEX	1
 
 
@@ -74,7 +76,7 @@
 
 #define CONFIG_SERVERIP		10.0.0.201
 #define CONFIG_IPADDR		10.0.0.200
-#define CONFIG_ROOTPATH		/opt/eldk/ppc_82xx
+#define CONFIG_ROOTPATH		"/opt/eldk/ppc_82xx"
 #define CONFIG_NETMASK		255.255.255.0
 #undef CONFIG_BOOTARGS
 #if 0
@@ -128,7 +130,6 @@
 /*
  * Networking stuff
  */
-#define CONFIG_NET_MULTI			/* Multi ethernet cards support */
 
 #define CONFIG_PCNET				/* there are 2 AMD PCnet 79C973	*/
 #define CONFIG_PCNET_79C973
@@ -148,14 +149,12 @@
 
 #undef	CONFIG_SYS_RAMBOOT
 #define CONFIG_SYS_MONITOR_LEN		0x00030000
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 
-/*#define CONFIG_SYS_GBL_DATA_SIZE    256*/
-#define CONFIG_SYS_GBL_DATA_SIZE	128
 
 #define CONFIG_SYS_INIT_RAM_ADDR	0x40000000
-#define CONFIG_SYS_INIT_RAM_END	0x1000
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x1000
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 
 
 #define CONFIG_SYS_NO_FLASH		1		/* There is no FLASH memory	*/
@@ -172,7 +171,6 @@
 /*
  * Serial port configuration
  */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
@@ -300,15 +298,5 @@
 #if defined(CONFIG_CMD_KGDB)
 #  define CONFIG_SYS_CACHELINE_SHIFT	5	/* log base 2 of the above value */
 #endif
-
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM		0x02	/* Software reboot			*/
-
 
 #endif	/* __CONFIG_H */

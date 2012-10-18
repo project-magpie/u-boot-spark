@@ -33,6 +33,8 @@
 #define CONFIG_ISPAN			/* ...on one of Interphase iSPAN boards */
 #define CONFIG_CPM2		1	/* Has a CPM2 */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFE7A0000
+
 /*-----------------------------------------------------------------------
  * Select serial console configuration
  *
@@ -70,8 +72,8 @@
 #if CONFIG_ETHER_INDEX == 3
 
 #define CONFIG_SYS_PHY_ADDR		0
-#define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF3CS_CLK14 | CMXFCR_TF3CS_CLK16)
-#define CONFIG_SYS_CMXFCR_MASK		(CMXFCR_FC3 | CMXFCR_RF3CS_MSK | CMXFCR_TF3CS_MSK)
+#define CONFIG_SYS_CMXFCR_VALUE3	(CMXFCR_RF3CS_CLK14 | CMXFCR_TF3CS_CLK16)
+#define CONFIG_SYS_CMXFCR_MASK3		(CMXFCR_FC3 | CMXFCR_RF3CS_MSK | CMXFCR_TF3CS_MSK)
 
 #endif /* CONFIG_ETHER_INDEX == 3 */
 
@@ -144,7 +146,6 @@
  */
 #define CONFIG_SYS_PROMPT		"=> "		/* Monitor Command Prompt	*/
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_LONGHELP				/* #undef to save memory	*/
 #define CONFIG_SYS_CBSIZE		256		/* Console I/O Buffer Size	*/
 #define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)  /* Print Buffer Size */
@@ -158,8 +159,6 @@
 
 #define CONFIG_SYS_HZ			1000		/* Decrementer freq: 1 ms ticks	*/
 
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 #define CONFIG_SYS_RESET_ADDRESS	0x09900000
 
 #define CONFIG_MISC_INIT_R			/* We need misc_init_r()	*/
@@ -171,7 +170,7 @@
  */
 #define CONFIG_SYS_BOOTMAPSZ		(8 << 20)	/* Initial Memory map for Linux */
 
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN		(192 << 10)	/* Reserve 192 kB for Monitor   */
 #ifdef CONFIG_BZIP2
 #define CONFIG_SYS_MALLOC_LEN		(4096 << 10)	/* Reserve 4 MB for malloc()    */
@@ -229,18 +228,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_END	0x4000		/* End of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_SIZE	128  /* Size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x4000		/* Size of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
-
-/*-----------------------------------------------------------------------
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from flash	*/
-#define BOOTFLAG_WARM		0x02	/* Software reboot			*/
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

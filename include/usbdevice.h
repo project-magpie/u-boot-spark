@@ -475,7 +475,9 @@ typedef struct urb_link {
  * function driver to inform it that data has arrived.
  */
 
-#define URB_BUF_SIZE 512 /* in linux we'd malloc this, but in u-boot we prefer static data */
+/* in linux we'd malloc this, but in u-boot we prefer static data */
+#define URB_BUF_SIZE 512
+
 struct urb {
 
 	struct usb_endpoint_instance *endpoint;
@@ -668,10 +670,10 @@ struct usb_class_report_descriptor *usbd_device_class_report_descriptor_index( s
 struct usb_endpoint_descriptor *usbd_device_endpoint_descriptor (struct usb_device_instance *, int, int, int, int, int);
 int				usbd_device_endpoint_transfersize (struct usb_device_instance *, int, int, int, int, int);
 struct usb_string_descriptor *usbd_get_string (u8);
-struct usb_device_descriptor *usbd_device_device_descriptor (struct usb_device_instance *, int);
+struct usb_device_descriptor *usbd_device_device_descriptor(struct
+		usb_device_instance *, int);
 
 #if defined(CONFIG_USBD_HS)
-struct usb_qualifier_descriptor *usbd_device_qualifier_descriptor(struct usb_device_instance *, int);
 /*
  * is_usbd_high_speed routine needs to be defined by specific gadget driver
  * It returns TRUE if device enumerates at High speed

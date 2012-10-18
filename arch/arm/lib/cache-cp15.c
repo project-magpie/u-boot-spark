@@ -24,7 +24,7 @@
 #include <common.h>
 #include <asm/system.h>
 
-#if !(defined(CONFIG_SYS_NO_ICACHE) && defined(CONFIG_SYS_NO_DCACHE))
+#if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
 
 #if defined(CONFIG_SYS_ARM_CACHE_WRITETHROUGH)
 #define CACHE_SETUP	0x1a
@@ -33,6 +33,12 @@
 #endif
 
 DECLARE_GLOBAL_DATA_PTR;
+
+void __arm_init_before_mmu(void)
+{
+}
+void arm_init_before_mmu(void)
+	__attribute__((weak, alias("__arm_init_before_mmu")));
 
 static void cp_delay (void)
 {
@@ -44,24 +50,34 @@ static void cp_delay (void)
 	asm volatile("" : : : "memory");
 }
 
-/* to activate the MMU we need to set up virtual memory: use 1M areas in bss */
+static inline void dram_bank_mmu_setup(int bank)
+{
+	u32 *page_table = (u32 *)gd->tlb_addr;
+	bd_t *bd = gd->bd;
+	int	i;
+
+	debug("%s: bank: %d\n", __func__, bank);
+	for (i = bd->bi_dram[bank].start >> 20;
+	     i < (bd->bi_dram[bank].start + bd->bi_dram[bank].size) >> 20;
+	     i++) {
+		page_table[i] = i << 20 | (3 << 10) | CACHE_SETUP;
+	}
+}
+
+/* to activate the MMU we need to set up virtual memory: use 1M areas */
 static inline void mmu_setup(void)
 {
-	static u32 __attribute__((aligned(16384))) page_table[4096];
-	bd_t *bd = gd->bd;
-	int i, j;
+	u32 *page_table = (u32 *)gd->tlb_addr;
+	int i;
 	u32 reg;
 
+	arm_init_before_mmu();
 	/* Set up an identity-mapping for all 4GB, rw for everyone */
 	for (i = 0; i < 4096; i++)
 		page_table[i] = i << 20 | (3 << 10) | 0x12;
-	/* Then, enable cacheable and bufferable for RAM only */
-	for (j = 0; j < CONFIG_NR_DRAM_BANKS; j++) {
-		for (i = bd->bi_dram[j].start >> 20;
-			i < (bd->bi_dram[j].start + bd->bi_dram[j].size) >> 20;
-			i++) {
-			page_table[i] = i << 20 | (3 << 10) | CACHE_SETUP;
-		}
+
+	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
+		dram_bank_mmu_setup(i);
 	}
 
 	/* Copy the page table address to cp15 */
@@ -74,7 +90,11 @@ static inline void mmu_setup(void)
 	reg = get_cr();	/* get control reg. */
 	cp_delay();
 	set_cr(reg | CR_M);
+}
 
+static int mmu_enabled(void)
+{
+	return get_cr() & CR_M;
 }
 
 /* cache_bit must be either CR_I or CR_C */
@@ -83,7 +103,7 @@ static void cache_enable(uint32_t cache_bit)
 	uint32_t reg;
 
 	/* The data cache is not active unless the mmu is enabled too */
-	if (cache_bit == CR_C)
+	if ((cache_bit == CR_C) && !mmu_enabled())
 		mmu_setup();
 	reg = get_cr();	/* get control reg. */
 	cp_delay();
@@ -95,18 +115,22 @@ static void cache_disable(uint32_t cache_bit)
 {
 	uint32_t reg;
 
-	if (cache_bit == CR_C) {
-		/* if disabling data cache, disable mmu too */
-		cache_bit |= CR_M;
-		flush_cache(0, ~0);
-	}
 	reg = get_cr();
 	cp_delay();
+
+	if (cache_bit == CR_C) {
+		/* if cache isn;t enabled no need to disable */
+		if ((reg & CR_C) != CR_C)
+			return;
+		/* if disabling data cache, disable mmu too */
+		cache_bit |= CR_M;
+		flush_dcache_all();
+	}
 	set_cr(reg & ~cache_bit);
 }
 #endif
 
-#ifdef CONFIG_SYS_NO_ICACHE
+#ifdef CONFIG_SYS_ICACHE_OFF
 void icache_enable (void)
 {
 	return;
@@ -138,7 +162,7 @@ int icache_status(void)
 }
 #endif
 
-#ifdef CONFIG_SYS_NO_DCACHE
+#ifdef CONFIG_SYS_DCACHE_OFF
 void dcache_enable (void)
 {
 	return;

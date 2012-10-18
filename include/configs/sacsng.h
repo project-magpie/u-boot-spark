@@ -10,8 +10,7 @@
  * Advent Networks, Inc. <http://www.adventnetworks.com>
  * Jay Monkman <jtm@smoothsmoothie.com>
  *
- * Configuration settings for the WindRiver SBC8260 board.
- *	See http://www.windriver.com/products/html/sbc8260.html
+ * Configuration settings for the SACSng 8260 board.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -34,6 +33,8 @@
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
+
+#define	CONFIG_SYS_TEXT_BASE	0x40000000
 
 #undef DEBUG_BOOTP_EXT	      /* Debug received vendor fields */
 
@@ -85,7 +86,7 @@
 #define CONFIG_SYS_SBC_BOOT_LOW 1
 
 /* What should the base address of the main FLASH be and how big is
- * it (in MBytes)?  This must contain TEXT_BASE from board/sacsng/config.mk
+ * it (in MBytes)?  This must contain CONFIG_SYS_TEXT_BASE from board/sacsng/config.mk
  * The main FLASH is whichever is connected to *CS0.
  */
 #define CONFIG_SYS_FLASH0_BASE 0x40000000
@@ -202,7 +203,7 @@
  *  - RX clk is CLK11
  *  - TX clk is CLK12
  */
-# define CONFIG_SYS_CMXSCR_VALUE	(CMXSCR_RS1CS_CLK11  | CMXSCR_TS1CS_CLK12)
+# define CONFIG_SYS_CMXSCR_VALUE1	(CMXSCR_RS1CS_CLK11  | CMXSCR_TS1CS_CLK12)
 
 #elif defined(CONFIG_ETHER_ON_FCC) && (CONFIG_ETHER_INDEX == 2)
 
@@ -212,8 +213,8 @@
  * - Select bus for bd/buffers (see 28-13)
  * - Enable Full Duplex in FSMR
  */
-# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC2|CMXFCR_RF2CS_MSK|CMXFCR_TF2CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF2CS_CLK13|CMXFCR_TF2CS_CLK14)
+# define CONFIG_SYS_CMXFCR_MASK2	(CMXFCR_FC2|CMXFCR_RF2CS_MSK|CMXFCR_TF2CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE2	(CMXFCR_RF2CS_CLK13|CMXFCR_TF2CS_CLK14)
 # define CONFIG_SYS_CPMFCR_RAMTYPE	0
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE | FCC_PSMR_LPB)
 
@@ -497,7 +498,6 @@
 
 #undef  CONFIG_SYS_HUSH_PARSER
 #ifdef  CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2     "> "
 #endif
 
 /* When CONFIG_TIMESTAMP is selected, the timestamp (date and time)
@@ -545,7 +545,6 @@
  *****************************************************************************/
 
 #define CONFIG_MPC8260		1	/* This is an MPC8260 CPU   */
-#define CONFIG_SBC8260		1	/* on an EST SBC8260 Board  */
 #define CONFIG_SACSng		1	/* munged for the SACSng */
 #define CONFIG_CPM2		1	/* Has a CPM2 */
 
@@ -620,9 +619,6 @@
 #define CONFIG_SYS_MEMTEST_END		( CONFIG_SYS_SDRAM_SIZE * 1024 * 1024 \
 				- CONFIG_SYS_MEM_END_USAGE )
 
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 /*
  * Low Level Configuration Settings
  * (address mappings, register initial values, etc.)
@@ -671,9 +667,8 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_END	0x4000	/* End of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x4000	/* Size of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -1061,13 +1056,5 @@
 			   ORxG_TRLX		       |\
 			   ORxG_EHTR)
 #endif /* (defined(CONFIG_SYS_FLASH1_BASE) && defined(CONFIG_SYS_FLASH1_SIZE)) */
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01	/* Normal Power-On: Boot from FLASH  */
-#define BOOTFLAG_WARM	0x02	/* Software reboot		     */
 
 #endif	/* __CONFIG_H */

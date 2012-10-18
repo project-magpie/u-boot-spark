@@ -40,6 +40,8 @@
 #define CONFIG_4xx		1		/* ... PPC4xx family         */
 #define CONFIG_SYS_CLK_FREQ	66666666	/* external freq to pll      */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF80000
+
 /*
  * Include common defines/options for all AMCC eval boards
  */
@@ -47,6 +49,10 @@
 
 #define CONFIG_BOARD_EARLY_INIT_F	1	/* call board_early_init_f*/
 #define CONFIG_MISC_INIT_R		1	/* call misc_init_r()     */
+
+#undef CONFIG_ZERO_BOOTDELAY_CHECK     /* ignore keypress on bootdelay==0 */
+#define CONFIG_AUTOBOOT_KEYED          /* use key strings to stop autoboot */
+#define CONFIG_AUTOBOOT_STOP_STR " "
 
 /*
  * Base addresses -- Note these are effective addresses where the
@@ -59,7 +65,6 @@
 #define CONFIG_SYS_PCI_MEMBASE3		CONFIG_SYS_PCI_MEMBASE2 + 0x10000000
 
 /*Don't change either of these*/
-#define CONFIG_SYS_PERIPHERAL_BASE	0xef600000	/* internal peripheral*/
 #define CONFIG_SYS_PCI_BASE		0xe0000000	/* internal PCI regs */
 /*Don't change either of these*/
 
@@ -71,17 +76,20 @@
  */
 #define CONFIG_SYS_INIT_RAM_DCACHE	1		/* d-cache as init ram*/
 #define CONFIG_SYS_INIT_RAM_ADDR	0x70000000	/* DCache             */
-#define CONFIG_SYS_INIT_RAM_END		(4 << 10)
-#define CONFIG_SYS_GBL_DATA_SIZE	256		/* num bytes init data*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END \
-					 - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE		(4 << 10)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE \
+					 - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*
  * Serial Port
  */
+#define CONFIG_CONS_INDEX	2	/* Use UART1			*/
+#define CONFIG_SYS_NS16550
+#define CONFIG_SYS_NS16550_SERIAL
+#define CONFIG_SYS_NS16550_REG_SIZE	1
+#define CONFIG_SYS_NS16550_CLK		get_serial_clock()
 #define CONFIG_SYS_EXT_SERIAL_CLOCK	11059200	/* ext. 11.059MHz clk */
-#define CONFIG_UART1_CONSOLE
 
 /*
  * Environment

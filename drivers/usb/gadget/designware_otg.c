@@ -23,21 +23,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-/* temp def: will be removed TBD*/
-#undef APG_BOARD
 
-#ifndef APG_BOARD
 #include <common.h>
 #include <asm/io.h>
 #include <usbdevice.h>
 #include "ep0.h"
 #include <usb/designware_otg.h>
 #include <asm/arch/hardware.h>
-#else
-#include "types.h"
-#include <designware_otg.h>
-#include <usbdevice.h>
-#endif
 
 #define UDC_INIT_MDELAY		80	/* Device settle delay */
 
@@ -58,6 +50,9 @@ static struct device_if	*dev_if = &device_if_mem;
 #if defined(CONFIG_USBD_HS)
 #define CONFIG_USBD_SERIAL_BULK_PKTSIZE	UDC_BULK_HS_PACKET_SIZE
 #endif
+
+static void udc_set_addr_ctrl(u32 address);
+static void udc_set_cfg_ctrl(u32 config);
 
 static struct usb_endpoint_instance *dw_find_ep(int ep)
 {
@@ -384,6 +379,7 @@ static void udc_set_stall(int epid, int dir)
 		writel(readl(&dev_if->out_ep_regs[epid]->doepctl) | SSTALL,
 			&dev_if->out_ep_regs[epid]->doepctl);
 }
+
 /*
  * This function handles EP0 Control transfers.
  *
@@ -408,6 +404,12 @@ void handle_ep0(int in_flag)
 			udc_set_stall(0, ctrl->bmRequestType & USB_DIR_IN);
 			return;
 		}
+		if (ep0_urb->device->address)
+			udc_set_addr_ctrl(ep0_urb->device->address);
+
+		if (ep0_urb->device->configuration)
+			udc_set_cfg_ctrl(ep0_urb->device->configuration);
+
 		ep0->xfer_buff = (u8 *)ep0_urb->buffer;
 	} else
 		ep0->xfer_buff += EP0_MAX_PACKET_SIZE;
@@ -442,7 +444,7 @@ static u32 dwc_otg_read_dev_all_out_ep_intr(void)
 
 	v = readl(&dev_if->dev_global_regs->daint) &
 		readl(&dev_if->dev_global_regs->daintmsk);
-	return ((v & 0xffff0000) >> 16);
+	return v >> 16;
 }
 
 /*
@@ -506,7 +508,7 @@ static void ep0_out_start(void)
 }
 
 /* should be called after set address is received */
-void udc_set_address_controller(u32 address)
+static void udc_set_addr_ctrl(u32 address)
 {
 	u32 dcfg;
 
@@ -586,7 +588,7 @@ static void dwc_otg_int_in_activate(void)
 }
 
 /* should be called after set configuration is received */
-void udc_set_configuration_controller(u32 config)
+static void udc_set_cfg_ctrl(u32 config)
 {
 	dwc_otg_bulk_out_activate();
 	dwc_otg_bulk_in_activate();
@@ -792,6 +794,7 @@ static int dwc_otg_pcd_handle_usb_reset_intr(void)
 
 	UDCDBG("device reset in progess");
 	usbd_device_event_irq(udc_device, DEVICE_HUB_CONFIGURED, 0);
+	usbd_device_event_irq(udc_device, DEVICE_RESET, 0);
 
 	return 1;
 }
@@ -837,7 +840,7 @@ static int dwc_otg_pcd_handle_enum_done_intr(void)
 	writel(gusbcfg, &global_regs->gusbcfg);
 	/* Clear interrupt */
 	writel(ENUMDONE, &global_regs->gintsts);
-	usbd_device_event_irq(udc_device, DEVICE_RESET, 0);
+
 	return 1;
 }
 
@@ -906,11 +909,7 @@ static void dwc_otg_core_init(void)
 static void usbotg_init(void)
 {
 	udc_device = NULL;
-#ifdef APG_BOARD
-	dwc_otg_init((void *)0x11000000);
-#else
 	dwc_otg_init((void *)CONFIG_SYS_USBD_BASE);
-#endif
 
 	/* Initialize the DWC_otg core.	*/
 	dwc_otg_core_init();
@@ -978,10 +977,8 @@ static void udc_enable(struct usb_device_instance *device)
 			(struct usb_device_request *)&ep0_urb->device_request;
 		pcd->ep0.xfer_buff = (u8 *)ep0_urb->buffer;
 	} else {
-#ifndef APG_BOARD
 		serial_printf("udc_enable: ep0_urb already allocated %p\n",
 				ep0_urb);
-#endif
 	}
 }
 
@@ -1057,7 +1054,9 @@ int is_usbd_high_speed(void)
 
 int udc_init(void)
 {
-	phy_init();
+#if defined(CONFIG_DW_OTG_PHYINIT)
+	udc_phy_init();
+#endif
 	udc_disconnect();
 	usbotg_init();
 	return 0;

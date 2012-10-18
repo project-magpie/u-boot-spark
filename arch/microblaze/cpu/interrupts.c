@@ -41,8 +41,11 @@ void enable_interrupts (void)
 
 int disable_interrupts (void)
 {
+	unsigned int msr;
+
+	MFS(msr, rmsr);
 	MSRCLR(0x2);
-	return 0;
+	return (msr & 0x2) != 0;
 }
 
 #ifdef CONFIG_SYS_INTC_0
@@ -152,8 +155,6 @@ void interrupt_handler (void)
 #endif
 	struct irq_action *act = vecs + irqs;
 
-	intc->iar = mask << irqs;
-
 #ifdef DEBUG_INT
 	printf
 	    ("Jumping to interrupt handler rutine addr %x,count %x,arg %x\n",
@@ -161,6 +162,8 @@ void interrupt_handler (void)
 #endif
 	act->handler (act->arg);
 	act->count++;
+
+	intc->iar = mask << irqs;
 
 #ifdef DEBUG_INT
 	printf ("Dump INTC reg, isr %x, ier %x, iar %x, mer %x\n", intc->isr,
@@ -173,7 +176,7 @@ void interrupt_handler (void)
 
 #if defined(CONFIG_CMD_IRQ)
 #ifdef CONFIG_SYS_INTC_0
-int do_irqinfo (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+int do_irqinfo (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	int i;
 	struct irq_action *act = vecs;
@@ -193,7 +196,7 @@ int do_irqinfo (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	return (0);
 }
 #else
-int do_irqinfo (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+int do_irqinfo (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	puts ("Undefined interrupt controller\n");
 }

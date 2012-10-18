@@ -24,8 +24,8 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/spr_gpt.h>
-#include <asm/arch/spr_misc.h>
+#include <asm/arch/gpt.h>
+#include <asm/arch/misc.h>
 
 #define GPT_RESOLUTION	(CONFIG_SPEAR_HZ_CLOCK / CONFIG_SPEAR_HZ)
 #define READ_TIMER()	(readl(&gpt_regs_p->count) & GPT_FREE_RUNNING)
@@ -36,18 +36,20 @@ static struct gpt_regs *const gpt_regs_p =
 static struct misc_regs *const misc_regs_p =
     (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 
-static ulong timestamp;
-static ulong lastdec;
+DECLARE_GLOBAL_DATA_PTR;
+
+#define timestamp gd->tbl
+#define lastdec gd->lastinc
 
 int timer_init(void)
 {
 	u32 synth;
 
 	/* Prescaler setting */
-#if defined(CONFIG_SPEAR3XX)
+#if defined(CONFIG_ARCH_SPEAR3XX)
 	writel(MISC_PRSC_CFG, &misc_regs_p->prsc2_clk_cfg);
 	synth = MISC_GPT4SYNTH;
-#elif defined(CONFIG_SPEAR600)
+#elif defined(CONFIG_ARCH_SPEAR6XX)
 	writel(MISC_PRSC_CFG, &misc_regs_p->prsc1_clk_cfg);
 	synth = MISC_GPT3SYNTH;
 #else
@@ -66,7 +68,9 @@ int timer_init(void)
 	/* auto reload, start timer */
 	writel(readl(&gpt_regs_p->control) | GPT_ENABLE, &gpt_regs_p->control);
 
-	reset_timer_masked();
+	/* Reset the timer */
+	lastdec = READ_TIMER();
+	timestamp = 0;
 
 	return 0;
 }
@@ -74,20 +78,9 @@ int timer_init(void)
 /*
  * timer without interrupts
  */
-
-void reset_timer(void)
-{
-	reset_timer_masked();
-}
-
 ulong get_timer(ulong base)
 {
 	return (get_timer_masked() / GPT_RESOLUTION) - base;
-}
-
-void set_timer(ulong t)
-{
-	timestamp = t;
 }
 
 void __udelay(unsigned long usec)
@@ -104,13 +97,6 @@ void __udelay(unsigned long usec)
 
 	while ((ulong) (get_timer_masked() - start) < tmo)
 		;
-}
-
-void reset_timer_masked(void)
-{
-	/* reset time */
-	lastdec = READ_TIMER();
-	timestamp = 0;
 }
 
 ulong get_timer_masked(void)

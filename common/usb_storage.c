@@ -56,21 +56,22 @@
 #include <part.h>
 #include <usb.h>
 
-#undef USB_STOR_DEBUG
 #undef BBB_COMDAT_TRACE
 #undef BBB_XPORT_TRACE
 
 #ifdef	USB_STOR_DEBUG
-#define USB_STOR_PRINTF(fmt, args...)	printf(fmt , ##args)
+#define USB_BLK_DEBUG	1
 #else
-#define USB_STOR_PRINTF(fmt, args...)
+#define USB_BLK_DEBUG	0
 #endif
+
+#define USB_STOR_PRINTF(fmt, args...)	debug_cond(USB_BLK_DEBUG, fmt, ##args)
 
 #include <scsi.h>
 /* direction table -- this indicates the direction of the data
  * transfer for each command code -- a 1 indicates input
  */
-unsigned char us_direction[256/8] = {
+static const unsigned char us_direction[256/8] = {
 	0x28, 0x81, 0x14, 0x14, 0x20, 0x01, 0x90, 0x77,
 	0x0C, 0x20, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01,
@@ -78,8 +79,7 @@ unsigned char us_direction[256/8] = {
 };
 #define US_DIRECTION(x) ((us_direction[x>>3] >> (x & 7)) & 1)
 
-static unsigned char usb_stor_buf[512];
-static ccb usb_ccb;
+static ccb usb_ccb __attribute__((aligned(ARCH_DMA_MINALIGN)));
 
 /*
  * CBI style
@@ -155,6 +155,12 @@ struct us_data {
 	trans_cmnd	transport;		/* transport routine */
 };
 
+/*
+ * The U-Boot EHCI driver cannot handle more than 5 page aligned buffers
+ * of 4096 bytes in a transfer without running itself out of qt_buffers
+ */
+#define USB_MAX_XFER_BLK(start, blksz)	(((4096 * 5) - (start % 4096)) / blksz)
+
 static struct us_data usb_stor[USB_MAX_STOR_DEV];
 
 
@@ -173,15 +179,16 @@ unsigned long usb_stor_write(int device, unsigned long blknr,
 struct usb_device * usb_get_dev_index(int index);
 void uhci_show_temp_int_td(void);
 
+#ifdef CONFIG_PARTITIONS
 block_dev_desc_t *usb_stor_get_dev(int index)
 {
 	return (index < usb_max_devs) ? &usb_dev_desc[index] : NULL;
 }
-
+#endif
 
 void usb_show_progress(void)
 {
-	printf(".");
+	debug(".");
 }
 
 /*******************************************************************************
@@ -204,6 +211,22 @@ int usb_stor_info(void)
 	return 1;
 }
 
+static unsigned int usb_get_max_lun(struct us_data *us)
+{
+	int len;
+	ALLOC_CACHE_ALIGN_BUFFER(unsigned char, result, 1);
+	len = usb_control_msg(us->pusb_dev,
+			      usb_rcvctrlpipe(us->pusb_dev, 0),
+			      US_BBB_GET_MAX_LUN,
+			      USB_TYPE_CLASS | USB_RECIP_INTERFACE | USB_DIR_IN,
+			      0, us->ifnum,
+			      result, sizeof(char),
+			      USB_CNTL_TIMEOUT * 5);
+	USB_STOR_PRINTF("Get Max LUN -> len = %i, result = %i\n",
+			len, (int) *result);
+	return (len > 0) ? *result : 0;
+}
+
 /*******************************************************************************
  * scan the usb and reports device info
  * to the user if mode = 1
@@ -214,9 +237,6 @@ int usb_stor_scan(int mode)
 	unsigned char i;
 	struct usb_device *dev;
 
-	/* GJ */
-	memset(usb_stor_buf, 0, sizeof(usb_stor_buf));
-
 	if (mode == 1)
 		printf("       scanning bus for storage devices... ");
 
@@ -224,10 +244,11 @@ int usb_stor_scan(int mode)
 
 	for (i = 0; i < USB_MAX_STOR_DEV; i++) {
 		memset(&usb_dev_desc[i], 0, sizeof(block_dev_desc_t));
-		usb_dev_desc[i].target = 0xff;
 		usb_dev_desc[i].if_type = IF_TYPE_USB;
 		usb_dev_desc[i].dev = i;
 		usb_dev_desc[i].part_type = PART_TYPE_UNKNOWN;
+		usb_dev_desc[i].target = 0xff;
+		usb_dev_desc[i].type = DEV_TYPE_UNKNOWN;
 		usb_dev_desc[i].block_read = usb_stor_read;
 		usb_dev_desc[i].block_write = usb_stor_write;
 	}
@@ -237,15 +258,24 @@ int usb_stor_scan(int mode)
 		dev = usb_get_dev_index(i); /* get device */
 		USB_STOR_PRINTF("i=%d\n", i);
 		if (dev == NULL)
-			break; /* no more devices avaiable */
+			break; /* no more devices available */
 
 		if (usb_storage_probe(dev, 0, &usb_stor[usb_max_devs])) {
-			/* ok, it is a storage devices
-			 * get info and fill it in
+			/* OK, it's a storage device.  Iterate over its LUNs
+			 * and populate `usb_dev_desc'.
 			 */
-			if (usb_stor_get_info(dev, &usb_stor[usb_max_devs],
-						&usb_dev_desc[usb_max_devs]) == 1)
+			int lun, max_lun, start = usb_max_devs;
+
+			max_lun = usb_get_max_lun(&usb_stor[usb_max_devs]);
+			for (lun = 0;
+			     lun <= max_lun && usb_max_devs < USB_MAX_STOR_DEV;
+			     lun++) {
+				usb_dev_desc[usb_max_devs].lun = lun;
+				if (usb_stor_get_info(dev, &usb_stor[start],
+						      &usb_dev_desc[usb_max_devs]) == 1) {
 				usb_max_devs++;
+		}
+			}
 		}
 		/* if storage device */
 		if (usb_max_devs == USB_MAX_STOR_DEV) {
@@ -345,7 +375,7 @@ static int us_one_transfer(struct us_data *us, int pipe, char *buf, int length)
 					usb_clear_halt(us->pusb_dev, pipe);
 					us->pusb_dev->status = stat;
 					if (this_xfer == partial) {
-						USB_STOR_PRINTF("bulk transferred with error %X, but data ok\n", us->pusb_dev->status);
+						USB_STOR_PRINTF("bulk transferred with error %lX, but data ok\n", us->pusb_dev->status);
 						return 0;
 					}
 					else
@@ -357,12 +387,12 @@ static int us_one_transfer(struct us_data *us, int pipe, char *buf, int length)
 				}
 				USB_STOR_PRINTF("bulk transferred with error");
 				if (this_xfer == partial) {
-					USB_STOR_PRINTF(" %d, but data ok\n",
+					USB_STOR_PRINTF(" %ld, but data ok\n",
 							us->pusb_dev->status);
 					return 0;
 				}
 				/* if our try counter reaches 0, bail out */
-					USB_STOR_PRINTF(" %d, data %d\n",
+					USB_STOR_PRINTF(" %ld, data %d\n",
 						us->pusb_dev->status, partial);
 				if (!maxtry--)
 						return result;
@@ -409,20 +439,20 @@ static int usb_stor_BBB_reset(struct us_data *us)
 	}
 
 	/* long wait for reset */
-	wait_ms(150);
-	USB_STOR_PRINTF("BBB_reset result %d: status %X reset\n", result,
+	mdelay(150);
+	USB_STOR_PRINTF("BBB_reset result %d: status %lX reset\n", result,
 			us->pusb_dev->status);
 	pipe = usb_rcvbulkpipe(us->pusb_dev, us->ep_in);
 	result = usb_clear_halt(us->pusb_dev, pipe);
 	/* long wait for reset */
-	wait_ms(150);
-	USB_STOR_PRINTF("BBB_reset result %d: status %X clearing IN endpoint\n",
+	mdelay(150);
+	USB_STOR_PRINTF("BBB_reset result %d: status %lX clearing IN endpoint\n",
 			result, us->pusb_dev->status);
 	/* long wait for reset */
 	pipe = usb_sndbulkpipe(us->pusb_dev, us->ep_out);
 	result = usb_clear_halt(us->pusb_dev, pipe);
-	wait_ms(150);
-	USB_STOR_PRINTF("BBB_reset result %d: status %X"
+	mdelay(150);
+	USB_STOR_PRINTF("BBB_reset result %d: status %lX"
 			" clearing OUT endpoint\n", result,
 			us->pusb_dev->status);
 	USB_STOR_PRINTF("BBB_reset done\n");
@@ -436,7 +466,7 @@ static int usb_stor_BBB_reset(struct us_data *us)
 static int usb_stor_CB_reset(struct us_data *us)
 {
 	unsigned char cmd[12];
-	int __attribute__((unused)) result;
+	int result;
 
 	USB_STOR_PRINTF("CB_reset\n");
 	memset(cmd, 0xff, sizeof(cmd));
@@ -449,8 +479,8 @@ static int usb_stor_CB_reset(struct us_data *us)
 				 USB_CNTL_TIMEOUT * 5);
 
 	/* long wait for reset */
-	wait_ms(1500);
-	USB_STOR_PRINTF("CB_reset result %d: status %X"
+	mdelay(1500);
+	USB_STOR_PRINTF("CB_reset result %d: status %lX"
 			" clearing endpoint halt\n", result,
 			us->pusb_dev->status);
 	usb_clear_halt(us->pusb_dev, usb_rcvbulkpipe(us->pusb_dev, us->ep_in));
@@ -470,7 +500,7 @@ int usb_stor_BBB_comdat(ccb *srb, struct us_data *us)
 	int actlen;
 	int dir_in;
 	unsigned int pipe;
-	umass_bbb_cbw_t cbw;
+	ALLOC_CACHE_ALIGN_BUFFER(umass_bbb_cbw_t, cbw, 1);
 
 	dir_in = US_DIRECTION(srb->cmd[0]);
 
@@ -493,16 +523,16 @@ int usb_stor_BBB_comdat(ccb *srb, struct us_data *us)
 	/* always OUT to the ep */
 	pipe = usb_sndbulkpipe(us->pusb_dev, us->ep_out);
 
-	cbw.dCBWSignature = cpu_to_le32(CBWSIGNATURE);
-	cbw.dCBWTag = cpu_to_le32(CBWTag++);
-	cbw.dCBWDataTransferLength = cpu_to_le32(srb->datalen);
-	cbw.bCBWFlags = (dir_in ? CBWFLAGS_IN : CBWFLAGS_OUT);
-	cbw.bCBWLUN = srb->lun;
-	cbw.bCDBLength = srb->cmdlen;
+	cbw->dCBWSignature = cpu_to_le32(CBWSIGNATURE);
+	cbw->dCBWTag = cpu_to_le32(CBWTag++);
+	cbw->dCBWDataTransferLength = cpu_to_le32(srb->datalen);
+	cbw->bCBWFlags = (dir_in ? CBWFLAGS_IN : CBWFLAGS_OUT);
+	cbw->bCBWLUN = srb->lun;
+	cbw->bCDBLength = srb->cmdlen;
 	/* copy the command data into the CBW command data buffer */
 	/* DST SRC LEN!!! */
-	memcpy(cbw.CBWCDB, srb->cmd, srb->cmdlen);
-	result = usb_bulk_msg(us->pusb_dev, pipe, &cbw, UMASS_BBB_CBW_SIZE,
+	memcpy(cbw->CBWCDB, srb->cmd, srb->cmdlen);
+	result = usb_bulk_msg(us->pusb_dev, pipe, cbw, UMASS_BBB_CBW_SIZE,
 			      &actlen, USB_CNTL_TIMEOUT * 5);
 	if (result < 0)
 		USB_STOR_PRINTF("usb_stor_BBB_comdat:usb_bulk_msg error\n");
@@ -541,7 +571,7 @@ int usb_stor_CB_comdat(ccb *srb, struct us_data *us)
 					 srb->cmd, srb->cmdlen,
 					 USB_CNTL_TIMEOUT * 5);
 		USB_STOR_PRINTF("CB_transport: control msg returned %d,"
-				" status %X\n", result, us->pusb_dev->status);
+				" status %lX\n", result, us->pusb_dev->status);
 		/* check the return code for the command */
 		if (result < 0) {
 			if (us->pusb_dev->status & USB_ST_STALLED) {
@@ -553,7 +583,7 @@ int usb_stor_CB_comdat(ccb *srb, struct us_data *us)
 				us->pusb_dev->status = status;
 			}
 			USB_STOR_PRINTF(" error during command %02X"
-					" Stat = %X\n", srb->cmd[0],
+					" Stat = %lX\n", srb->cmd[0],
 					us->pusb_dev->status);
 			return result;
 		}
@@ -592,7 +622,7 @@ int usb_stor_CBI_get_status(ccb *srb, struct us_data *us)
 	while (timeout--) {
 		if ((volatile int *) us->ip_wanted == 0)
 			break;
-		wait_ms(10);
+		mdelay(10);
 	}
 	if (us->ip_wanted) {
 		printf("	Did not get interrupt on CBI\n");
@@ -646,7 +676,7 @@ int usb_stor_BBB_transport(ccb *srb, struct us_data *us)
 	int dir_in;
 	int actlen, data_actlen;
 	unsigned int pipe, pipein, pipeout;
-	umass_bbb_csw_t csw;
+	ALLOC_CACHE_ALIGN_BUFFER(umass_bbb_csw_t, csw, 1);
 #ifdef BBB_XPORT_TRACE
 	unsigned char *ptr;
 	int index;
@@ -663,7 +693,7 @@ int usb_stor_BBB_transport(ccb *srb, struct us_data *us)
 		usb_stor_BBB_reset(us);
 		return USB_STOR_TRANSPORT_FAILED;
 	}
-	wait_ms(5);
+	mdelay(5);
 	pipein = usb_rcvbulkpipe(us->pusb_dev, us->ep_in);
 	pipeout = usb_sndbulkpipe(us->pusb_dev, us->ep_out);
 	/* DATA phase + error handling */
@@ -704,7 +734,7 @@ st:
 	retry = 0;
 again:
 	USB_STOR_PRINTF("STATUS phase\n");
-	result = usb_bulk_msg(us->pusb_dev, pipein, &csw, UMASS_BBB_CSW_SIZE,
+	result = usb_bulk_msg(us->pusb_dev, pipein, csw, UMASS_BBB_CSW_SIZE,
 				&actlen, USB_CNTL_TIMEOUT*5);
 
 	/* special handling of STALL in STATUS phase */
@@ -724,36 +754,36 @@ again:
 		return USB_STOR_TRANSPORT_FAILED;
 	}
 #ifdef BBB_XPORT_TRACE
-	ptr = (unsigned char *)&csw;
+	ptr = (unsigned char *)csw;
 	for (index = 0; index < UMASS_BBB_CSW_SIZE; index++)
 		printf("ptr[%d] %#x ", index, ptr[index]);
 	printf("\n");
 #endif
 	/* misuse pipe to get the residue */
-	pipe = le32_to_cpu(csw.dCSWDataResidue);
+	pipe = le32_to_cpu(csw->dCSWDataResidue);
 	if (pipe == 0 && srb->datalen != 0 && srb->datalen - data_actlen != 0)
 		pipe = srb->datalen - data_actlen;
-	if (CSWSIGNATURE != le32_to_cpu(csw.dCSWSignature)) {
+	if (CSWSIGNATURE != le32_to_cpu(csw->dCSWSignature)) {
 		USB_STOR_PRINTF("!CSWSIGNATURE\n");
 		usb_stor_BBB_reset(us);
 		return USB_STOR_TRANSPORT_FAILED;
-	} else if ((CBWTag - 1) != le32_to_cpu(csw.dCSWTag)) {
+	} else if ((CBWTag - 1) != le32_to_cpu(csw->dCSWTag)) {
 		USB_STOR_PRINTF("!Tag\n");
 		usb_stor_BBB_reset(us);
 		return USB_STOR_TRANSPORT_FAILED;
-	} else if (csw.bCSWStatus > CSWSTATUS_PHASE) {
+	} else if (csw->bCSWStatus > CSWSTATUS_PHASE) {
 		USB_STOR_PRINTF(">PHASE\n");
 		usb_stor_BBB_reset(us);
 		return USB_STOR_TRANSPORT_FAILED;
-	} else if (csw.bCSWStatus == CSWSTATUS_PHASE) {
+	} else if (csw->bCSWStatus == CSWSTATUS_PHASE) {
 		USB_STOR_PRINTF("=PHASE\n");
 		usb_stor_BBB_reset(us);
 		return USB_STOR_TRANSPORT_FAILED;
 	} else if (data_actlen > srb->datalen) {
-		USB_STOR_PRINTF("transferred %dB instead of %dB\n",
+		USB_STOR_PRINTF("transferred %dB instead of %ldB\n",
 			data_actlen, srb->datalen);
 		return USB_STOR_TRANSPORT_FAILED;
-	} else if (csw.bCSWStatus == CSWSTATUS_FAILED) {
+	} else if (csw->bCSWStatus == CSWSTATUS_FAILED) {
 		USB_STOR_PRINTF("FAILED\n");
 		return USB_STOR_TRANSPORT_FAILED;
 	}
@@ -775,7 +805,7 @@ int usb_stor_CB_transport(ccb *srb, struct us_data *us)
 	/* issue the command */
 do_retry:
 	result = usb_stor_CB_comdat(srb, us);
-	USB_STOR_PRINTF("command / Data returned %d, status %X\n",
+	USB_STOR_PRINTF("command / Data returned %d, status %lX\n",
 			result, us->pusb_dev->status);
 	/* if this is an CBI Protocol, get IRQ */
 	if (us->protocol == US_PR_CBI) {
@@ -798,7 +828,7 @@ do_retry:
 	/* do we have to issue an auto request? */
 	/* HERE we have to check the result */
 	if ((result < 0) && !(us->pusb_dev->status & USB_ST_STALLED)) {
-		USB_STOR_PRINTF("ERROR %X\n", us->pusb_dev->status);
+		USB_STOR_PRINTF("ERROR %lX\n", us->pusb_dev->status);
 		us->transport_reset(us);
 		return USB_STOR_TRANSPORT_ERROR;
 	}
@@ -825,7 +855,7 @@ do_retry:
 		status = usb_stor_CBI_get_status(psrb, us);
 
 	if ((result < 0) && !(us->pusb_dev->status & USB_ST_STALLED)) {
-		USB_STOR_PRINTF(" AUTO REQUEST ERROR %d\n",
+		USB_STOR_PRINTF(" AUTO REQUEST ERROR %ld\n",
 				us->pusb_dev->status);
 		return USB_STOR_TRANSPORT_ERROR;
 	}
@@ -855,7 +885,7 @@ do_retry:
 				srb->sense_buf[12], srb->sense_buf[13]);
 			return USB_STOR_TRANSPORT_FAILED;
 		} else {
-			wait_ms(100);
+			mdelay(100);
 			goto do_retry;
 		}
 		break;
@@ -881,6 +911,7 @@ static int usb_inquiry(ccb *srb, struct us_data *ss)
 	do {
 		memset(&srb->cmd[0], 0, 12);
 		srb->cmd[0] = SCSI_INQUIRY;
+		srb->cmd[1] = srb->lun << 5;
 		srb->cmd[4] = 36;
 		srb->datalen = 36;
 		srb->cmdlen = 12;
@@ -904,6 +935,7 @@ static int usb_request_sense(ccb *srb, struct us_data *ss)
 	ptr = (char *)srb->pdata;
 	memset(&srb->cmd[0], 0, 12);
 	srb->cmd[0] = SCSI_REQ_SENSE;
+	srb->cmd[1] = srb->lun << 5;
 	srb->cmd[4] = 18;
 	srb->datalen = 18;
 	srb->pdata = &srb->sense_buf[0];
@@ -923,12 +955,13 @@ static int usb_test_unit_ready(ccb *srb, struct us_data *ss)
 	do {
 		memset(&srb->cmd[0], 0, 12);
 		srb->cmd[0] = SCSI_TST_U_RDY;
+		srb->cmd[1] = srb->lun << 5;
 		srb->datalen = 0;
 		srb->cmdlen = 12;
 		if (ss->transport(srb, ss) == USB_STOR_TRANSPORT_GOOD)
 			return 0;
 		usb_request_sense(srb, ss);
-		wait_ms(100);
+		mdelay(100);
 	} while (retries--);
 
 	return -1;
@@ -942,6 +975,7 @@ static int usb_read_capacity(ccb *srb, struct us_data *ss)
 	do {
 		memset(&srb->cmd[0], 0, 12);
 		srb->cmd[0] = SCSI_RD_CAPAC;
+		srb->cmd[1] = srb->lun << 5;
 		srb->datalen = 8;
 		srb->cmdlen = 12;
 		if (ss->transport(srb, ss) == USB_STOR_TRANSPORT_GOOD)
@@ -956,6 +990,7 @@ static int usb_read_10(ccb *srb, struct us_data *ss, unsigned long start,
 {
 	memset(&srb->cmd[0], 0, 12);
 	srb->cmd[0] = SCSI_READ10;
+	srb->cmd[1] = srb->lun << 5;
 	srb->cmd[2] = ((unsigned char) (start >> 24)) & 0xff;
 	srb->cmd[3] = ((unsigned char) (start >> 16)) & 0xff;
 	srb->cmd[4] = ((unsigned char) (start >> 8)) & 0xff;
@@ -972,6 +1007,7 @@ static int usb_write_10(ccb *srb, struct us_data *ss, unsigned long start,
 {
 	memset(&srb->cmd[0], 0, 12);
 	srb->cmd[0] = SCSI_WRITE10;
+	srb->cmd[1] = srb->lun << 5;
 	srb->cmd[2] = ((unsigned char) (start >> 24)) & 0xff;
 	srb->cmd[3] = ((unsigned char) (start >> 16)) & 0xff;
 	srb->cmd[4] = ((unsigned char) (start >> 8)) & 0xff;
@@ -1007,14 +1043,13 @@ static void usb_bin_fixup(struct usb_device_descriptor descriptor,
 }
 #endif /* CONFIG_USB_BIN_FIXUP */
 
-#define USB_MAX_READ_BLK 20
-
 unsigned long usb_stor_read(int device, unsigned long blknr,
 			    unsigned long blkcnt, void *buffer)
 {
-	unsigned long start, blks, buf_addr;
+	unsigned long start, blks, buf_addr, max_xfer_blk;
 	unsigned short smallblks;
 	struct usb_device *dev;
+	struct us_data *ss;
 	int retry, i;
 	ccb *srb = &usb_ccb;
 
@@ -1032,13 +1067,14 @@ unsigned long usb_stor_read(int device, unsigned long blknr,
 		if (dev->devnum == usb_dev_desc[device].target)
 			break;
 	}
+	ss = (struct us_data *)dev->privptr;
 
 	usb_disable_asynch(1); /* asynch transfer not allowed */
 	srb->lun = usb_dev_desc[device].lun;
 	buf_addr = (unsigned long)buffer;
 	start = blknr;
 	blks = blkcnt;
-	if (usb_test_unit_ready(srb, (struct us_data *)dev->privptr)) {
+	if (usb_test_unit_ready(srb, ss)) {
 		printf("Device NOT ready\n   Request Sense returned %02X %02X"
 		       " %02X\n", srb->sense_buf[2], srb->sense_buf[12],
 		       srb->sense_buf[13]);
@@ -1052,19 +1088,20 @@ unsigned long usb_stor_read(int device, unsigned long blknr,
 		/* XXX need some comment here */
 		retry = 2;
 		srb->pdata = (unsigned char *)buf_addr;
-		if (blks > USB_MAX_READ_BLK)
-			smallblks = USB_MAX_READ_BLK;
+		max_xfer_blk = USB_MAX_XFER_BLK(buf_addr,
+						usb_dev_desc[device].blksz);
+		if (blks > max_xfer_blk)
+			smallblks = (unsigned short) max_xfer_blk;
 		else
 			smallblks = (unsigned short) blks;
 retry_it:
-		if (smallblks == USB_MAX_READ_BLK)
+		if (smallblks == max_xfer_blk)
 			usb_show_progress();
 		srb->datalen = usb_dev_desc[device].blksz * smallblks;
 		srb->pdata = (unsigned char *)buf_addr;
-		if (usb_read_10(srb, (struct us_data *)dev->privptr, start,
-		    smallblks)) {
+		if (usb_read_10(srb, ss, start, smallblks)) {
 			USB_STOR_PRINTF("Read ERROR\n");
-			usb_request_sense(srb, (struct us_data *)dev->privptr);
+			usb_request_sense(srb, ss);
 			if (retry--)
 				goto retry_it;
 			blkcnt -= blks;
@@ -1079,19 +1116,18 @@ retry_it:
 			start, smallblks, buf_addr);
 
 	usb_disable_asynch(0); /* asynch transfer allowed */
-	if (blkcnt >= USB_MAX_READ_BLK)
-		printf("\n");
+	if (blkcnt >= max_xfer_blk)
+		debug("\n");
 	return blkcnt;
 }
-
-#define USB_MAX_WRITE_BLK 20
 
 unsigned long usb_stor_write(int device, unsigned long blknr,
 				unsigned long blkcnt, const void *buffer)
 {
-	unsigned long start, blks, buf_addr;
+	unsigned long start, blks, buf_addr, max_xfer_blk;
 	unsigned short smallblks;
 	struct usb_device *dev;
+	struct us_data *ss;
 	int retry, i;
 	ccb *srb = &usb_ccb;
 
@@ -1109,6 +1145,7 @@ unsigned long usb_stor_write(int device, unsigned long blknr,
 		if (dev->devnum == usb_dev_desc[device].target)
 			break;
 	}
+	ss = (struct us_data *)dev->privptr;
 
 	usb_disable_asynch(1); /* asynch transfer not allowed */
 
@@ -1116,7 +1153,7 @@ unsigned long usb_stor_write(int device, unsigned long blknr,
 	buf_addr = (unsigned long)buffer;
 	start = blknr;
 	blks = blkcnt;
-	if (usb_test_unit_ready(srb, (struct us_data *)dev->privptr)) {
+	if (usb_test_unit_ready(srb, ss)) {
 		printf("Device NOT ready\n   Request Sense returned %02X %02X"
 		       " %02X\n", srb->sense_buf[2], srb->sense_buf[12],
 			srb->sense_buf[13]);
@@ -1132,19 +1169,20 @@ unsigned long usb_stor_write(int device, unsigned long blknr,
 		 */
 		retry = 2;
 		srb->pdata = (unsigned char *)buf_addr;
-		if (blks > USB_MAX_WRITE_BLK)
-			smallblks = USB_MAX_WRITE_BLK;
+		max_xfer_blk = USB_MAX_XFER_BLK(buf_addr,
+						usb_dev_desc[device].blksz);
+		if (blks > max_xfer_blk)
+			smallblks = (unsigned short) max_xfer_blk;
 		else
 			smallblks = (unsigned short) blks;
 retry_it:
-		if (smallblks == USB_MAX_WRITE_BLK)
+		if (smallblks == max_xfer_blk)
 			usb_show_progress();
 		srb->datalen = usb_dev_desc[device].blksz * smallblks;
 		srb->pdata = (unsigned char *)buf_addr;
-		if (usb_write_10(srb, (struct us_data *)dev->privptr, start,
-		    smallblks)) {
+		if (usb_write_10(srb, ss, start, smallblks)) {
 			USB_STOR_PRINTF("Write ERROR\n");
-			usb_request_sense(srb, (struct us_data *)dev->privptr);
+			usb_request_sense(srb, ss);
 			if (retry--)
 				goto retry_it;
 			blkcnt -= blks;
@@ -1159,8 +1197,8 @@ retry_it:
 			start, smallblks, buf_addr);
 
 	usb_disable_asynch(0); /* asynch transfer allowed */
-	if (blkcnt >= USB_MAX_WRITE_BLK)
-		printf("\n");
+	if (blkcnt >= max_xfer_blk)
+		debug("\n");
 	return blkcnt;
 
 }
@@ -1310,34 +1348,10 @@ int usb_stor_get_info(struct usb_device *dev, struct us_data *ss,
 		      block_dev_desc_t *dev_desc)
 {
 	unsigned char perq, modi;
-	unsigned long cap[2];
+	ALLOC_CACHE_ALIGN_BUFFER(unsigned long, cap, 2);
+	ALLOC_CACHE_ALIGN_BUFFER(unsigned char, usb_stor_buf, 36);
 	unsigned long *capacity, *blksz;
 	ccb *pccb = &usb_ccb;
-
-	/* for some reasons a couple of devices would not survive this reset */
-	if (
-	    /* Sony USM256E */
-	    (dev->descriptor.idVendor == 0x054c &&
-	     dev->descriptor.idProduct == 0x019e)
-	    ||
-	    /* USB007 Mini-USB2 Flash Drive */
-	    (dev->descriptor.idVendor == 0x066f &&
-	     dev->descriptor.idProduct == 0x2010)
-	    ||
-	    /* SanDisk Corporation Cruzer Micro 20044318410546613953 */
-	    (dev->descriptor.idVendor == 0x0781 &&
-	     dev->descriptor.idProduct == 0x5151)
-	    ||
-	    /*
-	     * SanDisk Corporation U3 Cruzer Micro 1/4GB
-	     * Flash Drive 000016244373FFB4
-	     */
-	    (dev->descriptor.idVendor == 0x0781 &&
-	     dev->descriptor.idProduct == 0x5406)
-	    )
-		USB_STOR_PRINTF("usb_stor_get_info: skipping RESET..\n");
-	else
-		ss->transport_reset(ss);
 
 	pccb->pdata = usb_stor_buf;
 
@@ -1359,9 +1373,9 @@ int usb_stor_get_info(struct usb_device *dev, struct us_data *ss,
 		/* drive is removable */
 		dev_desc->removable = 1;
 	}
-	memcpy(&dev_desc->vendor[0], &usb_stor_buf[8], 8);
-	memcpy(&dev_desc->product[0], &usb_stor_buf[16], 16);
-	memcpy(&dev_desc->revision[0], &usb_stor_buf[32], 4);
+	memcpy(&dev_desc->vendor[0], (const void *) &usb_stor_buf[8], 8);
+	memcpy(&dev_desc->product[0], (const void *) &usb_stor_buf[16], 16);
+	memcpy(&dev_desc->revision[0], (const void *) &usb_stor_buf[32], 4);
 	dev_desc->vendor[8] = 0;
 	dev_desc->product[16] = 0;
 	dev_desc->revision[4] = 0;
