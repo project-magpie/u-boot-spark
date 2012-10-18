@@ -188,7 +188,7 @@ which_location:
 #ifndef CONFIG_ST40_SE_MODE
 	and	r4, r10			/* make sure its P0 (cached) */
 #endif	/* CONFIG_ST40_SE_MODE */
-	mov.l	bss_start, r11		/* load target END address in r11 */
+	mov.l	target_end, r11		/* load target END address in r11 */
 #ifndef CONFIG_ST40_SE_MODE
 	and	r4, r11			/* make sure its P0 (cached) */
 #endif	/* CONFIG_ST40_SE_MODE */
@@ -197,6 +197,13 @@ which_location:
 #ifdef CONFIG_ST40_SE_MODE
 	and	r4, r9			/* make sure its P0 (cached) */
 #endif	/* CONFIG_ST40_SE_MODE */
+#if defined(CONFIG_SYS_ST40_BART_BASE)
+	/* OR, are we already running from RAM, mapped via the BART ? */
+	MOV_CONST32_R0 (CONFIG_SYS_ST40_BART_BASE + (TEXT_BASE & ((64<<20)-1)))
+	cmp/eq	r9, r0			/* is the PC in the BART region ? */
+	movt	r0
+	or	r0, r8			/* r8 |= (PC==BART); */
+#endif	/* CONFIG_SYS_ST40_BART_BASE */
 
 	/* set up the PMB entries we want to use */
 #ifdef CONFIG_ST40_SE_MODE
@@ -740,6 +747,7 @@ do_start_st40_boot:
 .balign 4
 _start_offset:	.long . - _start
 target_addr:	.long TEXT_BASE
+target_end:	.long TEXT_BASE + __uboot_bin_size
 #if defined(CONFIG_SYS_USE_VMA_DATA)
 stack_addr:	.long __USE_VMA_DATA	/* start of the stack, just below relocated ".data" */
 #else
