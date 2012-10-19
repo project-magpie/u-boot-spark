@@ -28,15 +28,7 @@
 	#define CONFIG_SPEAR_USBTTY
 #endif
 
-#if defined(CONFIG_pnor)
-	#define CONFIG_FLASH_PNOR
-#endif
-
-#if defined(CONFIG_nand)
-	#define CONFIG_ENV_IS_IN_NAND
-#else
-	#define CONFIG_ENV_IS_IN_FLASH
-#endif
+#define CONFIG_ENV_IS_IN_FLASH
 
 #define CONFIG_MACH_SPEAR320EVB
 #define CONFIG_MACH_TYPE			MACH_TYPE_SPEAR320
@@ -87,53 +79,22 @@
 	#define CONFIG_DW_UDC
 #endif
 
-/* FSMC NAND configurations */
-#define CONFIG_NAND_FSMC
-#define CONFIG_SYS_FSMC_NAND_8BIT
-
 /* Flash configurations */
-#if defined(CONFIG_FLASH_PNOR)
-	#define CONFIG_ST_EMI
-#else
-	#define CONFIG_ST_SMI
-#endif
+#define CONFIG_ST_SMI
 
 /* SPL support */
 #define CONFIG_SPL
 #define CONFIG_SPEAR_DDR_2HCLK
 #define CONFIG_DDR_MT47H64M16
 
-/* CFI Driver configurations */
-#if defined(CONFIG_FLASH_PNOR)
-	#define CONFIG_FLASH_CFI_DRIVER
-	#define CONFIG_SYS_MAX_FLASH_SECT	(127 + 8)
-#endif
-
 /* Environment Variable configs */
 #if defined(CONFIG_ENV_IS_IN_FLASH)
-	#if defined(CONFIG_FLASH_PNOR)
-		/* Environment is in parallel NOR flash */
-		#define CONFIG_ENV_ADDR			0xF8040000
-		#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock3 "
-		#define CONFIG_BOOTCOMMAND		"bootm 0xF8050000"
-
-	#else
-		/* Environment is in serial NOR flash */
-		#define CONFIG_ENV_ADDR			0xF8060000
-		#define CONFIG_ENV_SECT_SIZE		0x00010000
-		#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock5 "
-		#define CONFIG_BOOTCOMMAND		"" \
-			"bootm 0xf8080000 - 0xf8070000"
-	#endif
-#elif defined(CONFIG_ENV_IS_IN_NAND)
-	/* Environment is in NAND */
-	#define CONFIG_ENV_OFFSET		0x00140000
-	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock11 "
-
+	/* Environment is in serial NOR flash */
+	#define CONFIG_ENV_ADDR			0xF8060000
+	#define CONFIG_ENV_SECT_SIZE		0x00010000
+	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock5 "
 	#define CONFIG_BOOTCOMMAND		"" \
-		"nand read.jffs2 0x800000 0x180000 0x020000; " \
-		"nand read.jffs2 0x900000 0x1c0000 0x4C0000; " \
-		"bootm 0x900000 - 0x800000"
+		"bootm 0xf8080000 - 0xf8070000"
 #endif
 
 #define CONFIG_BOOTARGS				"console=ttyAMA0,115200 " \
