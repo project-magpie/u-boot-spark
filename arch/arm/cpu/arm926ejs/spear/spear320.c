@@ -553,12 +553,18 @@ static void enable_rmii2_pins(void)
 			| MII_MDIO_10_11_VAL);
 }
 
-static void enable_eth1_eth2_pins(u32 mode)
+static void enable_eth2_pins(u32 mode)
 {
 	switch (mode) {
 	case PMX_ETH_MII:
 		enable_mii2_pins();
 		break;
+	}
+}
+
+static void enable_eth1_eth2_pins(u32 mode)
+{
+	switch (mode) {
 	case PMX_ETH_SMII:
 		enable_smii2_pins();
 		break;
@@ -743,6 +749,8 @@ void spear320_enable_pins(u32 ip, u32 mode)
 		enable_ssp1_pins(mode);
 	else if (PMX_SSP2 == ip)
 		enable_ssp2_pins(mode);
+	else if (PMX_ETH2 == ip)
+		enable_eth2_pins(mode);
 	else if (PMX_ETH1_ETH2 == ip)
 		enable_eth1_eth2_pins(mode);
 }
