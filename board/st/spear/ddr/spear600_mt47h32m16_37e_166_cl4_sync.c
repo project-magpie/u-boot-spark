@@ -24,7 +24,7 @@
 #include <common.h>
 #include <asm/arch/hardware.h>
 
-#if defined(CONFIG_SPEAR_DDR_HCLK)
+#if defined(CONFIG_ARCH_SPEAR6XX) && defined(CONFIG_SPEAR_DDR_HCLK)
 
 const u32 mpmc_conf_vals[CONFIG_SPEAR_MPMCREGS] = {
 	0x03030301,
