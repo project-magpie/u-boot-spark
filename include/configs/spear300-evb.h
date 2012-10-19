@@ -78,6 +78,11 @@
 /* ST SMI (Serial flash) configurations */
 #define CONFIG_ST_SMI
 
+/* SPL support */
+#define CONFIG_SPL
+#define CONFIG_SPEAR_DDR_2HCLK
+#define CONFIG_DDR_MT47H64M16
+
 #if defined(CONFIG_ENV_IS_IN_FLASH)
 	/* Environment is in serial NOR flash */
 	#define CONFIG_ENV_ADDR			0xF8060000

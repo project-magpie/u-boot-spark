@@ -33,6 +33,7 @@ extern void board_lowlevel_late_init(void);
 /* Routines exported from SoC area */
 extern void spear3xx_usbh_stop(void);
 extern void spear6xx_usbh_stop(void);
+extern void spear3xx_ddr_comp_init(void);
 
 extern u32 mpmc_conf_vals[];
 

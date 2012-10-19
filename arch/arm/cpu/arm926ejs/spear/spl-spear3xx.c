@@ -22,6 +22,9 @@
  */
 
 #include <common.h>
+#include <asm/io.h>
+#include <asm/arch/hardware.h>
+#include <asm/arch/generic.h>
 
 int get_socrev(void)
 {
@@ -33,3 +36,68 @@ int get_socrev(void)
 	return SOC_SPEAR320;
 #endif
 }
+
+void spear3xx_ddr_comp_init(void)
+{
+	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+	u32 ddrpad;
+	u32 core3v3, ddr1v8;
+
+	/* DDR pad register configurations */
+	ddrpad = readl(&misc_p->ddr_pad);
+	ddrpad &= ~MISC_DDR_PAD_CNF_MSK;
+	ddrpad |= 0x3AA4;
+	writel(ddrpad, &misc_p->ddr_pad);
+
+	/* Compensation register configurations */
+	core3v3 = readl(&misc_p->core_3v3_compensation);
+	core3v3 &= 0x02fffff0;
+	core3v3 |= 0x78000008;
+	writel(core3v3, &misc_p->core_3v3_compensation);
+
+	ddr1v8 = readl(&misc_p->ddr_1v8_compensation);
+	ddr1v8 &= 0x02fffff0;
+	ddr1v8 |= 0x78000008;
+	writel(ddr1v8, &misc_p->ddr_1v8_compensation);
+}
+
+/* getboottype() implementation for spear300 */
+#if defined(CONFIG_SOC_SPEAR300)
+u32 getboottype(void)
+{
+	u32 bootmask = 0;
+	u32 bootstrap = (readl(CONFIG_SYS_TELECOM_BASE) >> SPEAR300_BOOTSHFT) &
+			SPEAR300_BOOTMASK;
+
+	switch (bootstrap) {
+	case SPEAR300_USBBOOT:
+		bootmask |= BOOT_TYPE_USBD;
+		break;
+	case SPEAR300_TFTPI2CBOOT:
+	case SPEAR300_TFTPSPIBOOT:
+		bootmask |= BOOT_TYPE_TFTP;
+		break;
+	case SPEAR300_SNORBOOT:
+		bootmask |= BOOT_TYPE_SMI;
+		break;
+	case SPEAR300_PNOR8BOOT:
+		bootmask |= BOOT_TYPE_PNOR8;
+		break;
+	case SPEAR300_PNOR16BOOT:
+		bootmask |= BOOT_TYPE_PNOR16;
+		break;
+	case SPEAR300_NAND8BOOT:
+	case SPEAR300_NAND16BOOT:
+		bootmask |= BOOT_TYPE_NAND;
+		break;
+	case SPEAR300_UARTBOOT:
+		bootmask |= BOOT_TYPE_UART;
+		break;
+	default:
+		bootmask |= BOOT_TYPE_UNSUPPORTED;
+		break;
+	}
+
+	return bootmask;
+}
+#endif

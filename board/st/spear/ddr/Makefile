@@ -36,6 +36,11 @@ COBJS-$(CONFIG_DDR_MT47H64M16) += spear600_mt47h64m16_3_333_cl5_psync.o
 COBJS-$(CONFIG_DDR_MT47H32M16) += spear600_mt47h32m16_333_cl5_psync.o
 COBJS-$(CONFIG_DDR_MT47H32M16) += spear600_mt47h32m16_37e_166_cl4_sync.o
 COBJS-$(CONFIG_DDR_MT47H128M8) += spear600_mt47h128m8_3_266_cl5_async.o
+
+COBJS-$(CONFIG_DDR_MT46H32M16) += spr3xx_mt46h32m16_6_166_cl3.o
+COBJS-$(CONFIG_DDR_MT47H64M16) += spr3xx_mt47h64m16_3_166_cl4_async.o
+COBJS-$(CONFIG_DDR_MT47H64M16) += spr3xx_mt47h64m16_3_266_cl5_async.o
+COBJS-$(CONFIG_DDR_MT47H64M16) += spr3xx_mt47h64m16_3_333_cl5_async.o
 endif
 
 COBJS	:= $(sort $(COBJS-y))

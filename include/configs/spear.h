@@ -195,6 +195,10 @@
 #define CONFIG_DISPLAY_BOARDINFO
 #define CONFIG_SYS_EXCEPTION_VECTORS_HIGH
 
+#ifndef CONFIG_SYS_PNOR_BOOT_BASE
+	#define CONFIG_SYS_PNOR_BOOT_BASE	0x0
+#endif
+
 /*
  * There are 2 builds supported by u-boot source. DCACHE support is kept enabled
  * for SPL, so that the generic routines can be used for invalidating the
