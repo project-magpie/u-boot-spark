@@ -95,6 +95,11 @@
 	#define CONFIG_ST_SMI
 #endif
 
+/* SPL support */
+#define CONFIG_SPL
+#define CONFIG_SPEAR_DDR_2HCLK
+#define CONFIG_DDR_MT47H64M16
+
 /* CFI Driver configurations */
 #if defined(CONFIG_FLASH_PNOR)
 	#define CONFIG_FLASH_CFI_DRIVER

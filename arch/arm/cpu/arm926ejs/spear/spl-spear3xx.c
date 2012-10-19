@@ -25,6 +25,7 @@
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
+#include <asm/arch/misc.h>
 
 int get_socrev(void)
 {
@@ -92,6 +93,33 @@ u32 getboottype(void)
 		break;
 	case SPEAR300_UARTBOOT:
 		bootmask |= BOOT_TYPE_UART;
+		break;
+	default:
+		bootmask |= BOOT_TYPE_UNSUPPORTED;
+		break;
+	}
+
+	return bootmask;
+}
+#elif defined(CONFIG_SOC_SPEAR310)
+u32 getboottype(void)
+{
+	u32 bootmask = 0;
+	u32 bootstrap = (readl(SPEAR310_BOOT_REG) >> SPEAR310_BOOTSHFT) &
+			SPEAR310_BOOTMASK;
+
+	switch (bootstrap) {
+	case SPEAR310_USBBOOT:
+		bootmask |= BOOT_TYPE_USBD;
+		break;
+	case SPEAR310_SNORBOOT:
+		bootmask |= BOOT_TYPE_SMI;
+		break;
+	case SPEAR310_PNORBOOT:
+		bootmask |= BOOT_TYPE_PNOR8 | BOOT_TYPE_PNOR16;
+		break;
+	case SPEAR310_NANDBOOT:
+		bootmask |= BOOT_TYPE_NAND;
 		break;
 	default:
 		bootmask |= BOOT_TYPE_UNSUPPORTED;

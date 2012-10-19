@@ -32,6 +32,7 @@
 #include <asm/arch/generic.h>
 #include <asm/arch/misc.h>
 #include <asm/arch/pinmux.h>
+#include <asm/arch/spl_pnor.h>
 
 #if defined(CONFIG_CMD_NAND)
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
@@ -107,5 +108,35 @@ int board_eth_init(bd_t *bis)
 		ret++;
 #endif
 	return ret;
+}
+#endif
+
+#if defined(CONFIG_SPL_BUILD)
+void board_ddr_init(void)
+{
+	spear3xx_ddr_comp_init();
+}
+
+/*
+void soc_init(void)
+{
+	writel(0x2f7bc210, &misc_p->plgpio3_pad_prg);
+	writel(0x017bdef6, &misc_p->plgpio4_pad_prg);
+}
+*/
+
+pnor_width_t get_pnor_width(void)
+{
+	u32 emi_buswidth = (readl(SPEAR310_BOOT_REG) & SPEAR310_EMIBW_MASK) >>
+		SPEAR310_EMIBW_SHFT;
+
+	if (SPEAR310_EMIBW_8 == emi_buswidth)
+		return PNOR_WIDTH_8;
+	else if (SPEAR310_EMIBW_16 == emi_buswidth)
+		return PNOR_WIDTH_16;
+	else if (SPEAR310_EMIBW_32 == emi_buswidth)
+		return PNOR_WIDTH_32;
+	else
+		return PNOR_WIDTH_SEARCH;
 }
 #endif
