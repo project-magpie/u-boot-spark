@@ -243,7 +243,7 @@ struct misc_regs {
 #define PERIPH_RST_ALL		0x00000004
 
 /* amem_cfg_ctrl */
-#define MISC_AMEM_CLKENB	0x00000001
+#define MISC_AMEM_CLKENB		0x00000001
 
 /* DDR_PAD values */
 #define DDR_PAD_CNF_MSK		0x0000ffff

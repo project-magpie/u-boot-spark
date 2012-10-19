@@ -70,7 +70,7 @@ int arch_cpu_init(void)
 
 	writel(periph1_clken, &misc_p->periph1_clken);
 
-#if defined(CONFIG_SOC_SPEAR320)
+#if defined(CONFIG_SOC_SPEAR310) || defined(CONFIG_SOC_SPEAR320)
 	writel(readl(&misc_p->amem_cfg_ctrl) | MISC_AMEM_CLKENB,
 			&misc_p->amem_cfg_ctrl);
 #endif
