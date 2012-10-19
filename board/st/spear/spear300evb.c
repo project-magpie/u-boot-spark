@@ -48,6 +48,7 @@ int board_early_init_f(void)
 	spear3xx_enable_pins(PMX_UART0, PMX_UART_SIMPLE);
 
 	spear300_enable_pins(PMX_SDMMC, PMX_SDMMC_4BIT);
+	spear300_enable_pins(PMX_FSMCNAND, PMX_NAND_2CHIP);
 
 	return 0;
 }
