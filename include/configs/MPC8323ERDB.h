@@ -14,11 +14,10 @@
  */
 #define CONFIG_E300		1	/* E300 family */
 #define CONFIG_QE		1	/* Has QE */
-#define CONFIG_MPC83XX		1	/* MPC83xx family */
-#define CONFIG_MPC832X		1	/* MPC832x CPU specific */
+#define CONFIG_MPC83xx		1	/* MPC83xx family */
+#define CONFIG_MPC832x		1	/* MPC832x CPU specific */
 
 #define CONFIG_PCI		1
-#define CONFIG_83XX_GENERIC_PCI	1
 
 /*
  * System Clock Setup
@@ -156,7 +155,7 @@
 #endif
 
 /* CONFIG_SYS_MONITOR_LEN must be a multiple of CONFIG_ENV_SECT_SIZE */
-#define CONFIG_SYS_MONITOR_LEN		(256 * 1024)	/* Reserve 256 kB for Mon */
+#define CONFIG_SYS_MONITOR_LEN		(384 * 1024)	/* Reserve 384 kB for Mon */
 #define CONFIG_SYS_MALLOC_LEN		(128 * 1024)	/* Reserved for malloc */
 
 /*
@@ -171,7 +170,8 @@
 /*
  * Local Bus Configuration & Clock Setup
  */
-#define CONFIG_SYS_LCRR		(LCRR_DBYP | LCRR_CLKDIV_2)
+#define CONFIG_SYS_LCRR_DBYP		LCRR_DBYP
+#define CONFIG_SYS_LCRR_CLKDIV		LCRR_CLKDIV_2
 #define CONFIG_SYS_LBC_LBCR		0x00000000
 
 /*
@@ -248,33 +248,7 @@
 #define CONFIG_SYS_LBC_LSRT	0x32000000	/* LB sdram refresh timer, about 6us */
 #define CONFIG_SYS_LBC_MRTPR	0x20000000	/* LB refresh timer prescal, 266MHz/32 */
 
-/*
- * LSDMR masks
- */
-#define CONFIG_SYS_LBC_LSDMR_OP_NORMAL	(0 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ARFRSH	(1 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_SRFRSH	(2 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_MRW	(3 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PRECH	(4 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PCHALL	(5 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ACTBNK	(6 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_RWINV	(7 << (31 - 4))
-
 #define CONFIG_SYS_LBC_LSDMR_COMMON	0x0063b723
-
-/*
- * SDRAM Controller configuration sequence.
- */
-#define CONFIG_SYS_LBC_LSDMR_1		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_PCHALL)
-#define CONFIG_SYS_LBC_LSDMR_2		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_ARFRSH)
-#define CONFIG_SYS_LBC_LSDMR_3		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_ARFRSH)
-#define CONFIG_SYS_LBC_LSDMR_4		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_MRW)
-#define CONFIG_SYS_LBC_LSDMR_5		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_NORMAL)
 
 #endif
 
@@ -373,7 +347,8 @@
 #define CONFIG_SYS_UEC1_TX_CLK		QE_CLK10
 #define CONFIG_SYS_UEC1_ETH_TYPE	FAST_ETH
 #define CONFIG_SYS_UEC1_PHY_ADDR	4
-#define CONFIG_SYS_UEC1_INTERFACE_MODE	ENET_100_MII
+#define CONFIG_SYS_UEC1_INTERFACE_TYPE	MII
+#define CONFIG_SYS_UEC1_INTERFACE_SPEED	100
 #endif
 
 #define CONFIG_UEC_ETH2		/* ETH4 */
@@ -384,7 +359,8 @@
 #define CONFIG_SYS_UEC2_TX_CLK		QE_CLK3
 #define CONFIG_SYS_UEC2_ETH_TYPE	FAST_ETH
 #define CONFIG_SYS_UEC2_PHY_ADDR	0
-#define CONFIG_SYS_UEC2_INTERFACE_MODE	ENET_100_MII
+#define CONFIG_SYS_UEC2_INTERFACE_TYPE	MII
+#define CONFIG_SYS_UEC2_INTERFACE_SPEED	100
 #endif
 
 /*
@@ -549,17 +525,11 @@
 #define CONFIG_ENV_OVERWRITE
 
 #define CONFIG_HAS_ETH0				/* add support for "ethaddr" */
-#define CONFIG_ETHADDR	00:04:9f:ef:03:01
 #define CONFIG_HAS_ETH1				/* add support for "eth1addr" */
-#define CONFIG_ETH1ADDR	00:04:9f:ef:03:02
 
 /* use mac_read_from_eeprom() to read ethaddr from I2C EEPROM (see CONFIG_SYS_I2C_EEPROM) */
 #define CONFIG_SYS_I2C_MAC_OFFSET	0x7f00	/* MAC address offset in I2C EEPROM */
 
-#define CONFIG_IPADDR		10.0.0.2
-#define CONFIG_SERVERIP		10.0.0.1
-#define CONFIG_GATEWAYIP	10.0.0.1
-#define CONFIG_NETMASK		255.0.0.0
 #define CONFIG_NETDEV		eth1
 
 #define CONFIG_HOSTNAME		mpc8323erdb
@@ -569,7 +539,7 @@
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP server */
 #define CONFIG_FDTFILE		mpc832x_rdb.dtb
 
-#define CONFIG_LOADADDR		500000	/* default location for tftp and bootm */
+#define CONFIG_LOADADDR		800000	/* default location for tftp and bootm */
 #define CONFIG_BOOTDELAY	6	/* -1 disables auto-boot */
 #define CONFIG_BAUDRATE		115200
 
@@ -585,7 +555,7 @@
 		"cp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize; "	\
 		"protect on " MK_STR(TEXT_BASE) " +$filesize; "		\
 		"cmp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize\0"	\
-	"fdtaddr=400000\0"						\
+	"fdtaddr=780000\0"						\
 	"fdtfile=" MK_STR(CONFIG_FDTFILE) "\0"				\
 	"ramdiskaddr=1000000\0"						\
 	"ramdiskfile=" MK_STR(CONFIG_RAMDISKFILE) "\0"			\

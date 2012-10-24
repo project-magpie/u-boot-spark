@@ -29,7 +29,6 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 /* Prototypes */
-int gunzip(void *, int, unsigned char *, unsigned long *);
 int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 /* predefine these here for FPGA programming (before including fpga.c) */
@@ -228,7 +227,7 @@ int do_fpga(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	fpga,     2,     0,      do_fpga,
 	"boot FPGA",
-	"address size\n    - boot FPGA with gzipped image at <address>\n"
+	"address size\n    - boot FPGA with gzipped image at <address>"
 );
 
 #if defined(CONFIG_CMD_PCI) || defined(CONFIG_PCI)

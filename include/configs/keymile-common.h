@@ -45,6 +45,7 @@
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_JFFS2
 #define CONFIG_JFFS2_CMDLINE
+#define CONFIG_CMD_MTDPARTS
 
 #undef	CONFIG_WATCHDOG			/* disable platform specific watchdog */
 
@@ -97,8 +98,7 @@
 #define CONFIG_SYS_SLOT_ID_MASK		(0x3f)	/* mask for slot ID bits */
 
 #define CONFIG_I2C_MULTI_BUS	1
-#define CONFIG_I2C_CMD_TREE	1
-#define CONFIG_SYS_MAX_I2C_BUS		2
+#define CONFIG_SYS_MAX_I2C_BUS		1
 #define CONFIG_SYS_I2C_INIT_BOARD	1
 #define CONFIG_I2C_MUX		1
 
@@ -122,6 +122,18 @@
 #define CONFIG_BOOTP_BOOTPATH
 #define CONFIG_BOOTP_GATEWAY
 #define CONFIG_BOOTP_HOSTNAME
+
+#define CONFIG_ENV_SIZE		0x04000 /* Size of Environment */
+
+#define CONFIG_SYS_MALLOC_LEN	(4 * 1024 * 1024)
+
+/* UBI Support for all Keymile boards */
+#define CONFIG_CMD_UBI
+#define CONFIG_RBTREE
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_FLASH_CFI_MTD
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_CONCAT
 
 /* define this to use the keymile's io muxing feature */
 /*#define CONFIG_IO_MUXING */
@@ -157,7 +169,7 @@
 	"kernel_addr_r=200000\0"					\
 	"fdt_addr_r=600000\0"						\
 	"ram_ws=800000 \0"						\
-	"autoscr_ws=780000 \0"						\
+	"script_ws=780000 \0"						\
 	"fdt_file=" xstr(CONFIG_HOSTNAME) "/" 				\
 		xstr(CONFIG_HOSTNAME) ".dtb\0"				\
 	"u-boot=" xstr(CONFIG_HOSTNAME) "/u-boot.bin \0" 		\
@@ -239,8 +251,8 @@
 	"set_new_esw_script=setenv new_esw_script "			\
 		"new_esw_0x${IVM_BoardId}_0x${IVM_HWKey}.scr \0"	\
 	"new_esw=run set_new_esw_script; "				\
-		"tftp ${autoscr_ws} ${new_esw_script}; "		\
-		"iminfo ${autoscr_ws}; autoscr ${autoscr_ws} \0"	\
+		"tftp ${script_ws} ${new_esw_script}; "			\
+		"iminfo ${script_ws}; source ${script_ws} \0"		\
 	"bootlimit=0 \0" 						\
 	CONFIG_KM_DEF_ENV_IOMUX						\
 	CONFIG_KM_DEF_ENV_PRIVATE					\

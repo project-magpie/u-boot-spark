@@ -33,8 +33,9 @@
 #ifndef __IMAGE_H__
 #define __IMAGE_H__
 
-#if USE_HOSTCC
-#include <endian.h>
+#include "compiler.h"
+
+#ifdef USE_HOSTCC
 
 /* new uImage format support enabled on host */
 #define CONFIG_FIT		1
@@ -44,19 +45,17 @@
 #else
 
 #include <lmb.h>
-#include <linux/string.h>
 #include <asm/u-boot.h>
-#include <asm/byteorder.h>
+#include <command.h>
 
 #endif /* USE_HOSTCC */
-
-#include <command.h>
 
 #if defined(CONFIG_FIT)
 #include <fdt.h>
 #include <libfdt.h>
 #include <fdt_support.h>
 #define CONFIG_MD5		/* FIT images need MD5 support */
+#define CONFIG_SHA1		/* and SHA1 */
 #endif
 
 /*
@@ -156,6 +155,8 @@
 #define IH_TYPE_SCRIPT		6	/* Script file			*/
 #define IH_TYPE_FILESYSTEM	7	/* Filesystem Image (any type)	*/
 #define IH_TYPE_FLATDT		8	/* Binary Flat Device Tree Blob	*/
+#define IH_TYPE_KWBIMAGE	9	/* Kirkwood Boot Image		*/
+#define IH_TYPE_IMXIMAGE	10	/* Freescale IMXBoot Image	*/
 
 /*
  * Compression Types
@@ -164,6 +165,7 @@
 #define IH_COMP_GZIP		1	/* gzip	 Compression Used	*/
 #define IH_COMP_BZIP2		2	/* bzip2 Compression Used	*/
 #define IH_COMP_LZMA		3	/* lzma  Compression Used	*/
+#define IH_COMP_LZO		4	/* lzo   Compression Used	*/
 
 #define IH_MAGIC	0x27051956	/* Image Magic Number		*/
 #define IH_NMLEN		32	/* Image Name Length		*/
@@ -219,11 +221,9 @@ typedef struct bootm_headers {
 	const char	*fit_uname_rd;	/* init ramdisk subimage node unit name */
 	int		fit_noffset_rd;	/* init ramdisk subimage node offset */
 
-#if defined(CONFIG_PPC)
 	void		*fit_hdr_fdt;	/* FDT blob FIT image header */
 	const char	*fit_uname_fdt;	/* FDT blob subimage node unit name */
 	int		fit_noffset_fdt;/* FDT blob subimage node offset */
-#endif
 #endif
 
 #ifndef USE_HOSTCC
@@ -256,7 +256,7 @@ typedef struct bootm_headers {
 #define	BOOTM_STATE_OS_GO	(0x00000080)
 	int		state;
 
-#ifndef USE_HOSTCC
+#ifdef CONFIG_LMB
 	struct lmb	lmb;		/* for memory mgmt */
 #endif
 } bootm_headers_t;
@@ -282,8 +282,32 @@ typedef struct bootm_headers {
 #define CHUNKSZ_SHA1 (64 * 1024)
 #endif
 
-#define uimage_to_cpu(x)		ntohl(x)
-#define cpu_to_uimage(x)		htonl(x)
+#define uimage_to_cpu(x)		be32_to_cpu(x)
+#define cpu_to_uimage(x)		cpu_to_be32(x)
+
+/*
+ * Translation table for entries of a specific type; used by
+ * get_table_entry_id() and get_table_entry_name().
+ */
+typedef struct table_entry {
+	int	id;
+	char	*sname;		/* short (input) name to find table entry */
+	char	*lname;		/* long (output) name to print for messages */
+} table_entry_t;
+
+/*
+ * get_table_entry_id() scans the translation table trying to find an
+ * entry that matches the given short name. If a matching entry is
+ * found, it's id is returned to the caller.
+ */
+int get_table_entry_id (table_entry_t *table,
+		const char *table_name, const char *name);
+/*
+ * get_table_entry_name() scans the translation table trying to find
+ * an entry that matches the given id. If a matching entry is found,
+ * its long name is returned to the caller.
+ */
+char *get_table_entry_name (table_entry_t *table, char *msg, int id);
 
 const char *genimg_get_os_name (uint8_t os);
 const char *genimg_get_arch_name (uint8_t arch);
@@ -293,6 +317,7 @@ int genimg_get_os_id (const char *name);
 int genimg_get_arch_id (const char *name);
 int genimg_get_type_id (const char *name);
 int genimg_get_comp_id (const char *name);
+void genimg_print_size (uint32_t size);
 
 #ifndef USE_HOSTCC
 /* Image format types, returned by _get_format() routine */
@@ -334,7 +359,7 @@ static inline uint32_t image_get_header_size (void)
 }
 
 #define image_get_hdr_l(f) \
-	static inline uint32_t image_get_##f(image_header_t *hdr) \
+	static inline uint32_t image_get_##f(const image_header_t *hdr) \
 	{ \
 		return uimage_to_cpu (hdr->ih_##f); \
 	}
@@ -347,7 +372,7 @@ image_get_hdr_l (ep);		/* image_get_ep */
 image_get_hdr_l (dcrc);		/* image_get_dcrc */
 
 #define image_get_hdr_b(f) \
-	static inline uint8_t image_get_##f(image_header_t *hdr) \
+	static inline uint8_t image_get_##f(const image_header_t *hdr) \
 	{ \
 		return hdr->ih_##f; \
 	}
@@ -356,12 +381,12 @@ image_get_hdr_b (arch);		/* image_get_arch */
 image_get_hdr_b (type);		/* image_get_type */
 image_get_hdr_b (comp);		/* image_get_comp */
 
-static inline char *image_get_name (image_header_t *hdr)
+static inline char *image_get_name (const image_header_t *hdr)
 {
 	return (char *)hdr->ih_name;
 }
 
-static inline uint32_t image_get_data_size (image_header_t *hdr)
+static inline uint32_t image_get_data_size (const image_header_t *hdr)
 {
 	return image_get_size (hdr);
 }
@@ -377,16 +402,16 @@ static inline uint32_t image_get_data_size (image_header_t *hdr)
  * returns:
  *     image payload data start address
  */
-static inline ulong image_get_data (image_header_t *hdr)
+static inline ulong image_get_data (const image_header_t *hdr)
 {
 	return ((ulong)hdr + image_get_header_size ());
 }
 
-static inline uint32_t image_get_image_size (image_header_t *hdr)
+static inline uint32_t image_get_image_size (const image_header_t *hdr)
 {
 	return (image_get_size (hdr) + image_get_header_size ());
 }
-static inline ulong image_get_image_end (image_header_t *hdr)
+static inline ulong image_get_image_end (const image_header_t *hdr)
 {
 	return ((ulong)hdr + image_get_image_size (hdr));
 }
@@ -419,8 +444,8 @@ static inline void image_set_name (image_header_t *hdr, const char *name)
 	strncpy (image_get_name (hdr), name, IH_NMLEN);
 }
 
-int image_check_hcrc (image_header_t *hdr);
-int image_check_dcrc (image_header_t *hdr);
+int image_check_hcrc (const image_header_t *hdr);
+int image_check_dcrc (const image_header_t *hdr);
 #ifndef USE_HOSTCC
 int getenv_yesno (char *var);
 ulong getenv_bootm_low(void);
@@ -428,31 +453,31 @@ phys_size_t getenv_bootm_size(void);
 void memmove_wd (void *to, void *from, size_t len, ulong chunksz);
 #endif
 
-static inline int image_check_magic (image_header_t *hdr)
+static inline int image_check_magic (const image_header_t *hdr)
 {
 	return (image_get_magic (hdr) == IH_MAGIC);
 }
-static inline int image_check_type (image_header_t *hdr, uint8_t type)
+static inline int image_check_type (const image_header_t *hdr, uint8_t type)
 {
 	return (image_get_type (hdr) == type);
 }
-static inline int image_check_arch (image_header_t *hdr, uint8_t arch)
+static inline int image_check_arch (const image_header_t *hdr, uint8_t arch)
 {
 	return (image_get_arch (hdr) == arch);
 }
-static inline int image_check_os (image_header_t *hdr, uint8_t os)
+static inline int image_check_os (const image_header_t *hdr, uint8_t os)
 {
 	return (image_get_os (hdr) == os);
 }
 
-ulong image_multi_count (image_header_t *hdr);
-void image_multi_getimg (image_header_t *hdr, ulong idx,
+ulong image_multi_count (const image_header_t *hdr);
+void image_multi_getimg (const image_header_t *hdr, ulong idx,
 			ulong *data, ulong *len);
 
-void image_print_contents (image_header_t *hdr);
+void image_print_contents (const void *hdr);
 
 #ifndef USE_HOSTCC
-static inline int image_check_target_arch (image_header_t *hdr)
+static inline int image_check_target_arch (const image_header_t *hdr)
 {
 #if defined(__ARM__)
 	if (!image_check_arch (hdr, IH_ARCH_ARM))

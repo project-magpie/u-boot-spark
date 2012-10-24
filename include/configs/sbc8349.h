@@ -32,32 +32,51 @@
 #define __CONFIG_H
 
 /*
+ * Top level Makefile configuration choices
+ */
+#ifdef CONFIG_MK_PCI
+#define CONFIG_PCI
+#endif
+
+#ifdef CONFIG_MK_66
+#define PCI_66M
+#endif
+
+#ifdef CONFIG_MK_33
+#define PCI_33M
+#endif
+
+/*
  * High Level Configuration Options
  */
 #define CONFIG_E300		1	/* E300 Family */
-#define CONFIG_MPC83XX		1	/* MPC83XX family */
-#define CONFIG_MPC834X		1	/* MPC834X family */
+#define CONFIG_MPC83xx		1	/* MPC83xx family */
+#define CONFIG_MPC834x		1	/* MPC834x family */
 #define CONFIG_MPC8349		1	/* MPC8349 specific */
 #define CONFIG_SBC8349		1	/* WRS SBC8349 board specific */
 
-#undef CONFIG_PCI
 /* Don't enable PCI2 on sbc834x - it doesn't exist physically. */
 #undef CONFIG_MPC83XX_PCI2		/* support for 2nd PCI controller */
 
-#define PCI_66M
-#ifdef PCI_66M
-#define CONFIG_83XX_CLKIN	66000000	/* in Hz */
-#else
+/*
+ * The default if PCI isn't enabled, or if no PCI clk setting is given
+ * is 66MHz; this is what the board defaults to when the PCI slot is
+ * physically empty.  The board will automatically (i.e w/o jumpers)
+ * clock down to 33MHz if you insert a 33MHz PCI card.
+ */
+#ifdef PCI_33M
 #define CONFIG_83XX_CLKIN	33000000	/* in Hz */
+#else	/* 66M */
+#define CONFIG_83XX_CLKIN	66000000	/* in Hz */
 #endif
 
 #ifndef CONFIG_SYS_CLK_FREQ
-#ifdef PCI_66M
-#define CONFIG_SYS_CLK_FREQ	66000000
-#define HRCWL_CSB_TO_CLKIN	HRCWL_CSB_TO_CLKIN_4X1
-#else
+#ifdef PCI_33M
 #define CONFIG_SYS_CLK_FREQ	33000000
 #define HRCWL_CSB_TO_CLKIN	HRCWL_CSB_TO_CLKIN_8X1
+#else	/* 66M */
+#define CONFIG_SYS_CLK_FREQ	66000000
+#define HRCWL_CSB_TO_CLKIN	HRCWL_CSB_TO_CLKIN_4X1
 #endif
 #endif
 
@@ -139,7 +158,7 @@
 /* #define CONFIG_SYS_FLASH_USE_BUFFER_WRITE */
 
 #define CONFIG_SYS_BR0_PRELIM		(CONFIG_SYS_FLASH_BASE |	/* flash Base address */ \
-				(2 << BR_PS_SHIFT) |	/* 32 bit port size */	 \
+				(2 << BR_PS_SHIFT) |	/* 16 bit port size */	 \
 				BR_V)			/* valid */
 
 #define CONFIG_SYS_OR0_PRELIM		0xFF806FF7	/* 8 MB flash size */
@@ -153,7 +172,6 @@
 #define CONFIG_SYS_FLASH_ERASE_TOUT	60000	/* Flash Erase Timeout (ms) */
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (ms) */
 
-#define CONFIG_SYS_MID_FLASH_JUMP	0x7F000000
 #define CONFIG_SYS_MONITOR_BASE	TEXT_BASE	/* start of monitor */
 
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
@@ -179,7 +197,8 @@
  * External Local Bus rate is
  *    CLKIN * HRCWL_CSB_TO_CLKIN / HRCWL_LCL_BUS_TO_SCB_CLK / LCRR_CLKDIV
  */
-#define CONFIG_SYS_LCRR	(LCRR_DBYP | LCRR_CLKDIV_4)
+#define CONFIG_SYS_LCRR_DBYP	LCRR_DBYP
+#define CONFIG_SYS_LCRR_CLKDIV	LCRR_CLKDIV_4
 #define CONFIG_SYS_LBC_LBCR	0x00000000
 
 #undef CONFIG_SYS_LB_SDRAM	/* if board has SDRAM on local bus */
@@ -227,60 +246,24 @@
 #define CONFIG_SYS_LBC_LSRT	0x32000000    /* LB sdram refresh timer, about 6us */
 #define CONFIG_SYS_LBC_MRTPR	0x20000000    /* LB refresh timer prescal, 266MHz/32 */
 
-/*
- * LSDMR masks
- */
-#define CONFIG_SYS_LBC_LSDMR_RFEN	(1 << (31 -  1))
-#define CONFIG_SYS_LBC_LSDMR_BSMA1516	(3 << (31 - 10))
-#define CONFIG_SYS_LBC_LSDMR_BSMA1617	(4 << (31 - 10))
-#define CONFIG_SYS_LBC_LSDMR_RFCR5	(3 << (31 - 16))
-#define CONFIG_SYS_LBC_LSDMR_RFCR8	(5 << (31 - 16))
-#define CONFIG_SYS_LBC_LSDMR_RFCR16	(7 << (31 - 16))
-#define CONFIG_SYS_LBC_LSDMR_PRETOACT3	(3 << (31 - 19))
-#define CONFIG_SYS_LBC_LSDMR_PRETOACT6	(5 << (31 - 19))
-#define CONFIG_SYS_LBC_LSDMR_PRETOACT7	(7 << (31 - 19))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW3	(3 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW7	(7 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW6	(6 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_BL8	(1 << (31 - 23))
-#define CONFIG_SYS_LBC_LSDMR_WRC2	(2 << (31 - 27))
-#define CONFIG_SYS_LBC_LSDMR_WRC3	(3 << (31 - 27))
-#define CONFIG_SYS_LBC_LSDMR_WRC4	(0 << (31 - 27))
-#define CONFIG_SYS_LBC_LSDMR_BUFCMD	(1 << (31 - 29))
-#define CONFIG_SYS_LBC_LSDMR_CL3	(3 << (31 - 31))
-
-#define CONFIG_SYS_LBC_LSDMR_OP_NORMAL	(0 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ARFRSH	(1 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_SRFRSH	(2 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_MRW	(3 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PRECH	(4 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PCHALL	(5 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ACTBNK	(6 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_RWINV	(7 << (31 - 4))
-
-#define CONFIG_SYS_LBC_LSDMR_COMMON    ( CONFIG_SYS_LBC_LSDMR_RFEN            \
-				| CONFIG_SYS_LBC_LSDMR_BSMA1516	\
-				| CONFIG_SYS_LBC_LSDMR_RFCR8		\
-				| CONFIG_SYS_LBC_LSDMR_PRETOACT6	\
-				| CONFIG_SYS_LBC_LSDMR_ACTTORW3	\
-				| CONFIG_SYS_LBC_LSDMR_BL8		\
-				| CONFIG_SYS_LBC_LSDMR_WRC3		\
-				| CONFIG_SYS_LBC_LSDMR_CL3		\
+#define CONFIG_SYS_LBC_LSDMR_COMMON    ( LSDMR_RFEN            \
+				| LSDMR_BSMA1516	\
+				| LSDMR_RFCR8		\
+				| LSDMR_PRETOACT6	\
+				| LSDMR_ACTTORW3	\
+				| LSDMR_BL8		\
+				| LSDMR_WRC3		\
+				| LSDMR_CL3		\
 				)
 
 /*
  * SDRAM Controller configuration sequence.
  */
-#define CONFIG_SYS_LBC_LSDMR_1		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_PCHALL)
-#define CONFIG_SYS_LBC_LSDMR_2		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_ARFRSH)
-#define CONFIG_SYS_LBC_LSDMR_3		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_ARFRSH)
-#define CONFIG_SYS_LBC_LSDMR_4		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_MRW)
-#define CONFIG_SYS_LBC_LSDMR_5		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_NORMAL)
+#define CONFIG_SYS_LBC_LSDMR_1	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_PCHALL)
+#define CONFIG_SYS_LBC_LSDMR_2	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_ARFRSH)
+#define CONFIG_SYS_LBC_LSDMR_3	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_ARFRSH)
+#define CONFIG_SYS_LBC_LSDMR_4	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_MRW)
+#define CONFIG_SYS_LBC_LSDMR_5	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_NORMAL)
 #endif
 
 /*
@@ -315,14 +298,13 @@
 #define CONFIG_HARD_I2C			/* I2C with hardware support*/
 #undef CONFIG_SOFT_I2C			/* I2C bit-banged */
 #define CONFIG_FSL_I2C
-#define CONFIG_I2C_CMD_TREE
 #define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
 #define CONFIG_SYS_I2C_SLAVE		0x7F
 #define CONFIG_SYS_I2C_NOPROBES	{0x69}	/* Don't probe these addrs */
 #define CONFIG_SYS_I2C1_OFFSET		0x3000
 #define CONFIG_SYS_I2C2_OFFSET		0x3100
 #define CONFIG_SYS_I2C_OFFSET		CONFIG_SYS_I2C2_OFFSET
-/* could also use CONFIG_I2C_MULTI_BUS and CONFIG_SPD_BUS_NUM... */
+/* could also use CONFIG_I2C_MULTI_BUS and CONFIG_SYS_SPD_BUS_NUM... */
 
 /* TSEC */
 #define CONFIG_SYS_TSEC1_OFFSET 0x24000
@@ -555,7 +537,7 @@
 #endif
 
 /* System IO Config */
-#define CONFIG_SYS_SICRH SICRH_TSOBI1
+#define CONFIG_SYS_SICRH 0
 #define CONFIG_SYS_SICRL SICRL_LDP_A
 
 #define CONFIG_SYS_HID0_INIT	0x000000000
@@ -605,7 +587,8 @@
 #define CONFIG_SYS_IBAT5U	(CONFIG_SYS_IMMR | BATU_BL_256M | BATU_VS | BATU_VP)
 
 /* SDRAM @ 0xF0000000, stack in DCACHE 0xFDF00000 & FLASH @ 0xFE000000 */
-#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10 | BATL_MEMCOHERENCE)
+#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10 | BATL_MEMCOHERENCE | \
+				 BATL_GUARDEDSTORAGE)
 #define CONFIG_SYS_IBAT6U	(0xF0000000 | BATU_BL_256M | BATU_VS | BATU_VP)
 
 #define CONFIG_SYS_IBAT7L	(0)
@@ -648,22 +631,14 @@
 
 #if defined(CONFIG_TSEC_ENET)
 #define CONFIG_HAS_ETH0
-#define CONFIG_ETHADDR		00:a0:1e:a0:13:8d
 #define CONFIG_HAS_ETH1
-#define CONFIG_ETH1ADDR		00:a0:1e:a0:13:8e
 #endif
-
-#define CONFIG_IPADDR		192.168.1.234
 
 #define CONFIG_HOSTNAME		SBC8349
 #define CONFIG_ROOTPATH		/tftpboot/rootfs
 #define CONFIG_BOOTFILE		uImage
 
-#define CONFIG_SERVERIP		192.168.1.1
-#define CONFIG_GATEWAYIP	192.168.1.1
-#define CONFIG_NETMASK		255.255.255.0
-
-#define CONFIG_LOADADDR		500000	/* default location for tftp and bootm */
+#define CONFIG_LOADADDR		800000	/* default location for tftp and bootm */
 
 #define CONFIG_BOOTDELAY	6	/* -1 disables auto-boot */
 #undef  CONFIG_BOOTARGS			/* the boot command will set bootargs */
@@ -687,10 +662,10 @@
 	"net_nfs=tftp 200000 ${bootfile};run nfsargs addip addtty;"	\
 		"bootm\0"						\
 	"load=tftp 100000 /tftpboot/sbc8349/u-boot.bin\0"		\
-	"update=protect off fff00000 fff3ffff; "			\
-		"era fff00000 fff3ffff; cp.b 100000 fff00000 ${filesize}\0"	\
+	"update=protect off ff800000 ff83ffff; "			\
+		"era ff800000 ff83ffff; cp.b 100000 ff800000 ${filesize}\0"	\
 	"upd=run load update\0"						\
-	"fdtaddr=400000\0"						\
+	"fdtaddr=780000\0"						\
 	"fdtfile=sbc8349.dtb\0"						\
 	""
 

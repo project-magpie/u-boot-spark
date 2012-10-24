@@ -27,6 +27,10 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#ifdef CONFIG_MK_36BIT
+#define CONFIG_PHYS_64BIT
+#endif
+
 /* High Level Configuration Options */
 #define CONFIG_BOOKE		1	/* BOOKE */
 #define CONFIG_E500		1	/* BOOKE e500 family */
@@ -34,7 +38,6 @@
 #define CONFIG_MPC8572		1
 #define CONFIG_MPC8572DS	1
 #define CONFIG_MP		1	/* support multiple processors */
-#define CONFIG_NUM_CPUS		2	/* Number of CPUs in the system */
 
 #define CONFIG_FSL_ELBC		1	/* Has Enhanced localbus controller */
 #define CONFIG_PCI		1	/* Enable PCI/PCIE */
@@ -49,13 +52,6 @@
 
 #define CONFIG_TSEC_ENET		/* tsec ethernet support */
 #define CONFIG_ENV_OVERWRITE
-
-/*
- * When initializing flash, if we cannot find the manufacturer ID,
- * assume this is the AMD flash associated with the CDS board.
- * This allows booting from a promjet.
- */
-#define CONFIG_ASSUME_AMD_FLASH
 
 #ifndef __ASSEMBLY__
 extern unsigned long get_board_sys_clk(unsigned long dummy);
@@ -102,7 +98,6 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #define CONFIG_SYS_PCIE1_ADDR		(CONFIG_SYS_CCSRBAR+0xa000)
 
 /* DDR Setup */
-#define CONFIG_SYS_DDR_TLB_START 9
 #define CONFIG_VERY_BIG_RAM
 #define CONFIG_FSL_DDR2
 #undef CONFIG_FSL_DDR_INTERACTIVE
@@ -237,6 +232,11 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #define PIXIS_VCFGEN1		0x13	/* VELA Config Enable 1 */
 #define PIXIS_VCORE0	 	0x14	/* VELA VCORE0 Register */
 #define PIXIS_VBOOT		0x16	/* VELA VBOOT Register */
+#define PIXIS_VBOOT_LBMAP	0xc0	/* VBOOT - CFG_LBMAP */
+#define PIXIS_VBOOT_LBMAP_NOR0	0x00	/* cfg_lbmap - boot from NOR 0 */
+#define PIXIS_VBOOT_LBMAP_PJET	0x01	/* cfg_lbmap - boot from projet */
+#define PIXIS_VBOOT_LBMAP_NAND	0x02	/* cfg_lbmap - boot from NAND */
+#define PIXIS_VBOOT_LBMAP_NOR1	0x03	/* cfg_lbmap - boot from NOR 1 */
 #define PIXIS_VSPEED0		0x17	/* VELA VSpeed 0 */
 #define PIXIS_VSPEED1		0x18	/* VELA VSpeed 1 */
 #define PIXIS_VSPEED2		0x19	/* VELA VSpeed 2 */
@@ -366,9 +366,6 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #define CONFIG_OF_BOARD_SETUP		1
 #define CONFIG_OF_STDOUT_VIA_ALIAS	1
 
-#define CONFIG_SYS_64BIT_VSPRINTF	1
-#define CONFIG_SYS_64BIT_STRTOUL	1
-
 /* new uImage format support */
 #define CONFIG_FIT		1
 #define CONFIG_FIT_VERBOSE	1 /* enable fit_format_{error,warning}() */
@@ -378,7 +375,6 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #define CONFIG_HARD_I2C		/* I2C with hardware support */
 #undef	CONFIG_SOFT_I2C		/* I2C bit-banged */
 #define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_CMD_TREE
 #define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x57
 #define CONFIG_SYS_I2C_SLAVE		0x7F
@@ -405,7 +401,7 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 /* controller 3, direct to uli, tgtid 3, Base address 8000 */
 #define CONFIG_SYS_PCIE3_MEM_VIRT	0x80000000
 #ifdef CONFIG_PHYS_64BIT
-#define CONFIG_SYS_PCIE3_MEM_BUS	0xc0000000
+#define CONFIG_SYS_PCIE3_MEM_BUS	0xe0000000
 #define CONFIG_SYS_PCIE3_MEM_PHYS	0xc00000000ull
 #else
 #define CONFIG_SYS_PCIE3_MEM_BUS	0x80000000
@@ -424,7 +420,7 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 /* controller 2, Slot 2, tgtid 2, Base address 9000 */
 #define CONFIG_SYS_PCIE2_MEM_VIRT	0xa0000000
 #ifdef CONFIG_PHYS_64BIT
-#define CONFIG_SYS_PCIE2_MEM_BUS	0xc0000000
+#define CONFIG_SYS_PCIE2_MEM_BUS	0xe0000000
 #define CONFIG_SYS_PCIE2_MEM_PHYS	0xc20000000ull
 #else
 #define CONFIG_SYS_PCIE2_MEM_BUS	0xa0000000
@@ -443,7 +439,7 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 /* controller 1, Slot 1, tgtid 1, Base address a000 */
 #define CONFIG_SYS_PCIE1_MEM_VIRT	0xc0000000
 #ifdef CONFIG_PHYS_64BIT
-#define CONFIG_SYS_PCIE1_MEM_BUS	0xc0000000
+#define CONFIG_SYS_PCIE1_MEM_BUS	0xe0000000
 #define CONFIG_SYS_PCIE1_MEM_PHYS	0xc40000000ull
 #else
 #define CONFIG_SYS_PCIE1_MEM_BUS	0xc0000000
@@ -484,12 +480,6 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #undef CONFIG_EEPRO100
 #undef CONFIG_TULIP
 #undef CONFIG_RTL8139
-
-#ifdef CONFIG_RTL8139
-/* This macro is used by RTL8139 but not defined in PPC architecture */
-#define KSEG1ADDR(x)		(x)
-#define _IO_BASE	0x00000000
-#endif
 
 #ifndef CONFIG_PCI_PNP
 	#define PCI_ENET0_IOADDR	CONFIG_SYS_PCIE3_IO_BUS
@@ -587,7 +577,6 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 
 #if defined(CONFIG_PCI)
 #define CONFIG_CMD_PCI
-#define CONFIG_CMD_BEDBUG
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_SCSI
 #define CONFIG_CMD_EXT2
@@ -614,10 +603,10 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 
 /*
  * For booting Linux, the board info and command line data
- * have to be in the first 8 MB of memory, since this is
+ * have to be in the first 16 MB of memory, since this is
  * the maximum mapped by the Linux kernel during initialization.
  */
-#define CONFIG_SYS_BOOTMAPSZ	(8 << 20)	/* Initial Memory map for Linux*/
+#define CONFIG_SYS_BOOTMAPSZ	(16 << 20)	/* Initial Memory map for Linux*/
 
 /*
  * Internal Definitions

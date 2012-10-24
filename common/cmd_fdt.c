@@ -364,13 +364,8 @@ int do_fdt (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	} else if (strncmp(argv[1], "me", 2) == 0) {
 		uint64_t addr, size;
 		int err;
-#ifdef CONFIG_SYS_64BIT_STRTOUL
-			addr = simple_strtoull(argv[2], NULL, 16);
-			size = simple_strtoull(argv[3], NULL, 16);
-#else
-			addr = simple_strtoul(argv[2], NULL, 16);
-			size = simple_strtoul(argv[3], NULL, 16);
-#endif
+		addr = simple_strtoull(argv[2], NULL, 16);
+		size = simple_strtoull(argv[3], NULL, 16);
 		err = fdt_fixup_memory(working_fdt, addr, size);
 		if (err < 0)
 			return err;
@@ -402,13 +397,8 @@ int do_fdt (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		} else if (argv[2][0] == 'a') {
 			uint64_t addr, size;
 			int err;
-#ifdef CONFIG_SYS_64BIT_STRTOUL
 			addr = simple_strtoull(argv[3], NULL, 16);
 			size = simple_strtoull(argv[4], NULL, 16);
-#else
-			addr = simple_strtoul(argv[3], NULL, 16);
-			size = simple_strtoul(argv[4], NULL, 16);
-#endif
 			err = fdt_add_mem_rsv(working_fdt, addr, size);
 
 			if (err < 0) {
@@ -574,14 +564,18 @@ static int fdt_parse_prop(char **newval, int count, char *data, int *len)
 		 * Byte stream.  Convert the values.
 		 */
 		newp++;
-		while ((*newp != ']') && (stridx < count)) {
+		while ((stridx < count) && (*newp != ']')) {
+			while (*newp == ' ')
+				newp++;
+			if (*newp == '\0') {
+				newp = newval[++stridx];
+				continue;
+			}
+			if (!isxdigit(*newp))
+				break;
 			tmp = simple_strtoul(newp, &newp, 16);
 			*data++ = tmp & 0xFF;
 			*len    = *len + 1;
-			while (*newp == ' ')
-				newp++;
-			if (*newp != '\0')
-				newp = newval[++stridx];
 		}
 		if (*newp != ']') {
 			printf("Unexpected character '%c'\n", *newp);
@@ -589,12 +583,15 @@ static int fdt_parse_prop(char **newval, int count, char *data, int *len)
 		}
 	} else {
 		/*
-		 * Assume it is a string.  Copy it into our data area for
-		 * convenience (including the terminating '\0').
+		 * Assume it is one or more strings.  Copy it into our
+		 * data area for convenience (including the
+		 * terminating '\0's).
 		 */
 		while (stridx < count) {
-			*len = strlen(newp) + 1;
+			size_t length = strlen(newp) + 1;
 			strcpy(data, newp);
+			data += length;
+			*len += length;
 			newp = newval[++stridx];
 		}
 	}
@@ -840,5 +837,5 @@ U_BOOT_CMD(
 	"fdt chosen [<start> <end>]          - Add/update the /chosen branch in the tree\n"
 	"                                        <start>/<end> - initrd start/end addr\n"
 	"NOTE: Dereference aliases by omiting the leading '/', "
-		"e.g. fdt print ethernet0.\n"
+		"e.g. fdt print ethernet0."
 );

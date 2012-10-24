@@ -305,10 +305,6 @@ void main_loop (void)
 	trab_vfd (bmp);
 #endif	/* CONFIG_VFD && VFD_TEST_LOGO */
 
-#if defined(CONFIG_UPDATE_TFTP)
-	update_tftp ();
-#endif /* CONFIG_UPDATE_TFTP */
-
 #ifdef CONFIG_BOOTCOUNT_LIMIT
 	bootcount = bootcount_load();
 	bootcount++;
@@ -368,6 +364,10 @@ void main_loop (void)
 # endif
 	}
 #endif /* CONFIG_PREBOOT */
+
+#if defined(CONFIG_UPDATE_TFTP)
+	update_tftp ();
+#endif /* CONFIG_UPDATE_TFTP */
 
 #if defined(CONFIG_BOOTDELAY) && (CONFIG_BOOTDELAY >= 0)
 	s = getenv ("bootdelay");
@@ -719,8 +719,11 @@ static int cread_line(const char *const prompt, char *buf, unsigned int *len)
 	char ichar;
 	int insert = 1;
 	int esc_len = 0;
-	int rc = 0;
 	char esc_save[8];
+	int init_len = strlen(buf);
+
+	if (init_len)
+		cread_add_str(buf, init_len, 1, &num, &eol_num, buf, *len);
 
 	while (1) {
 #ifdef CONFIG_BOOT_RETRY_TIME
@@ -921,7 +924,7 @@ static int cread_line(const char *const prompt, char *buf, unsigned int *len)
 		cread_add_to_hist(buf);
 	hist_cur = hist_add_idx;
 
-	return (rc);
+	return 0;
 }
 
 #endif /* CONFIG_CMDLINE_EDITING */
@@ -938,6 +941,12 @@ static int cread_line(const char *const prompt, char *buf, unsigned int *len)
  */
 int readline (const char *const prompt)
 {
+	/*
+	 * If console_buffer isn't 0-length the user will be prompted to modify
+	 * it instead of entering it from scratch as desired.
+	 */
+	console_buffer[0] = '\0';
+
 	return readline_into_buffer(prompt, console_buffer);
 }
 
@@ -962,7 +971,8 @@ int readline_into_buffer (const char *const prompt, char * buffer)
 			initted = 1;
 		}
 
-		puts (prompt);
+		if (prompt)
+			puts (prompt);
 
 		rc = cread_line(prompt, p, &len);
 		return rc < 0 ? rc : len;

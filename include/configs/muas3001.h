@@ -74,6 +74,7 @@
 
 #define CONFIG_ETHER_INDEX	1
 #define CONFIG_ETHER_ON_FCC1
+#define CONFIG_HAS_ETH0
 #define FCC_ENET
 
 /*
@@ -100,6 +101,10 @@
  * GPIO pins used for bit-banged MII communications
  */
 #define MDIO_PORT	0		/* Port A */
+#define MDIO_DECLARE	volatile ioport_t *iop = ioport_addr ( \
+				(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
+#define MDC_DECLARE	MDIO_DECLARE
+
 
 #define CONFIG_SYS_MDIO_PIN	0x00200000	/* PA10 */
 #define CONFIG_SYS_MDC_PIN	0x00400000	/* PA9  */
@@ -404,8 +409,6 @@
 #define CONFIG_OF_LIBFDT	1
 #define CONFIG_OF_BOARD_SETUP	1
 
-#define OF_CPU			"PowerPC,8270@0"
-#define OF_SOC			"soc@f0000000"
 #define OF_TBCLK		(bd->bi_busfreq / 4)
 #if defined(CONFIG_MUAS_DEV_BOARD)
 #define OF_STDOUT_PATH		"/soc/cpm/serial@11a90"

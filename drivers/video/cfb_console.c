@@ -146,8 +146,10 @@ CONFIG_VIDEO_HW_CURSOR:	     - Uses the hardware cursor capability of the
 #ifdef CONFIG_VIDEO_CORALP
 #define VIDEO_FB_LITTLE_ENDIAN
 #endif
+#ifdef CONFIG_VIDEO_MB862xx_ACCEL
 #define VIDEO_HW_RECTFILL
 #define VIDEO_HW_BITBLT
+#endif
 #endif
 
 /*****************************************************************************/
@@ -183,7 +185,7 @@ CONFIG_VIDEO_HW_CURSOR:	     - Uses the hardware cursor capability of the
 
 #include <version.h>
 #include <linux/types.h>
-#include <devices.h>
+#include <stdio_dev.h>
 #include <video_font.h>
 
 #if defined(CONFIG_CMD_DATE)
@@ -193,6 +195,11 @@ CONFIG_VIDEO_HW_CURSOR:	     - Uses the hardware cursor capability of the
 #if defined(CONFIG_CMD_BMP) || defined(CONFIG_SPLASH_SCREEN)
 #include <watchdog.h>
 #include <bmp_layout.h>
+
+#ifdef CONFIG_SPLASH_SCREEN_ALIGN
+#define BMP_ALIGN_CENTER	0x7FFF
+#endif
+
 #endif
 
 /*****************************************************************************/
@@ -253,7 +260,7 @@ void	console_cursor (int state);
 #define CURSOR_ON
 #define CURSOR_OFF
 #define CURSOR_SET video_set_hw_cursor(console_col * VIDEO_FONT_WIDTH, \
-		  (console_row * VIDEO_FONT_HEIGHT) + VIDEO_LOGO_HEIGHT);
+		  (console_row * VIDEO_FONT_HEIGHT) + video_logo_height);
 #endif	/* CONFIG_VIDEO_HW_CURSOR */
 
 #ifdef	CONFIG_VIDEO_LOGO
@@ -291,7 +298,7 @@ void	console_cursor (int state);
 #define VIDEO_BURST_LEN		(VIDEO_COLS/8)
 
 #ifdef	CONFIG_VIDEO_LOGO
-#define CONSOLE_ROWS		((VIDEO_ROWS - VIDEO_LOGO_HEIGHT) / VIDEO_FONT_HEIGHT)
+#define CONSOLE_ROWS		((VIDEO_ROWS - video_logo_height) / VIDEO_FONT_HEIGHT)
 #else
 #define CONSOLE_ROWS		(VIDEO_ROWS / VIDEO_FONT_HEIGHT)
 #endif
@@ -314,7 +321,7 @@ void	console_cursor (int state);
 #else
 #define SWAP16(x)	 (x)
 #define SWAP32(x)	 (x)
-#if defined(VIDEO_FB_16BPP_PIXEL_SWAP)
+#if defined(VIDEO_FB_16BPP_WORD_SWAP)
 #define SHORTSWAP32(x)	 ( ((x) >> 16) | ((x) << 16) )
 #else
 #define SHORTSWAP32(x)	 (x)
@@ -341,6 +348,8 @@ static GraphicDevice *pGD;	/* Pointer to Graphic array */
 
 static void *video_fb_address;		/* frame buffer address */
 static void *video_console_address;	/* console buffer start address */
+
+static int video_logo_height = VIDEO_LOGO_HEIGHT;
 
 static int console_col = 0; /* cursor col */
 static int console_row = 0; /* cursor row */
@@ -395,8 +404,6 @@ static const int video_font_draw_table32[16][4] = {
 	    { 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00000000 },
 	    { 0x00ffffff, 0x00ffffff, 0x00ffffff, 0x00ffffff } };
 
-
-int gunzip(void *, int, unsigned char *, unsigned long *);
 
 /******************************************************************************/
 
@@ -522,7 +529,7 @@ static inline void video_drawstring (int xx, int yy, unsigned char *s)
 
 static void video_putchar (int xx, int yy, unsigned char c)
 {
-	video_drawchars (xx, yy + VIDEO_LOGO_HEIGHT, &c, 1);
+	video_drawchars (xx, yy + video_logo_height, &c, 1);
 }
 
 /*****************************************************************************/
@@ -615,11 +622,11 @@ static void console_scrollup (void)
 #ifdef VIDEO_HW_BITBLT
 	video_hw_bitblt (VIDEO_PIXEL_SIZE,	/* bytes per pixel */
 			 0,	/* source pos x */
-			 VIDEO_LOGO_HEIGHT + VIDEO_FONT_HEIGHT, /* source pos y */
+			 video_logo_height + VIDEO_FONT_HEIGHT, /* source pos y */
 			 0,	/* dest pos x */
-			 VIDEO_LOGO_HEIGHT,	/* dest pos y */
+			 video_logo_height,	/* dest pos y */
 			 VIDEO_VISIBLE_COLS,	/* frame width */
-			 VIDEO_VISIBLE_ROWS - VIDEO_LOGO_HEIGHT - VIDEO_FONT_HEIGHT	/* frame height */
+			 VIDEO_VISIBLE_ROWS - video_logo_height - VIDEO_FONT_HEIGHT	/* frame height */
 		);
 #else
 	memcpyl (CONSOLE_ROW_FIRST, CONSOLE_ROW_SECOND,
@@ -877,6 +884,18 @@ int video_display_bitmap (ulong bmp_image, int x, int y)
 
 	padded_line = (((width * bpp + 7) / 8) + 3) & ~0x3;
 
+#ifdef CONFIG_SPLASH_SCREEN_ALIGN
+	if (x == BMP_ALIGN_CENTER)
+		x = max(0, (VIDEO_VISIBLE_COLS - width) / 2);
+	else if (x < 0)
+		x = max(0, VIDEO_VISIBLE_COLS - width + x + 1);
+
+	if (y == BMP_ALIGN_CENTER)
+		y = max(0, (VIDEO_VISIBLE_ROWS - height) / 2);
+	else if (y < 0)
+		y = max(0, VIDEO_VISIBLE_ROWS - height + y + 1);
+#endif /* CONFIG_SPLASH_SCREEN_ALIGN */
+
 	if ((x + width) > VIDEO_VISIBLE_COLS)
 		width = VIDEO_VISIBLE_COLS - x;
 	if ((y + height) > VIDEO_VISIBLE_ROWS)
@@ -1084,7 +1103,7 @@ void logo_plot (void *screen, int width, int x, int y)
 
 	int xcount, i;
 	int skip   = (width - VIDEO_LOGO_WIDTH) * VIDEO_PIXEL_SIZE;
-	int ycount = VIDEO_LOGO_HEIGHT;
+	int ycount = video_logo_height;
 	unsigned char r, g, b, *logo_red, *logo_blue, *logo_green;
 	unsigned char *source;
 	unsigned char *dest = (unsigned char *)screen +
@@ -1181,15 +1200,34 @@ static void *video_logo (void)
 {
 	char info[128];
 	extern char version_string;
+	int space, len, y_off = 0;
 
 #ifdef CONFIG_SPLASH_SCREEN
 	char *s;
 	ulong addr;
 
 	if ((s = getenv ("splashimage")) != NULL) {
-		addr = simple_strtoul (s, NULL, 16);
+		int x = 0, y = 0;
 
-		if (video_display_bitmap (addr, 0, 0) == 0) {
+		addr = simple_strtoul (s, NULL, 16);
+#ifdef CONFIG_SPLASH_SCREEN_ALIGN
+		if ((s = getenv ("splashpos")) != NULL) {
+			if (s[0] == 'm')
+				x = BMP_ALIGN_CENTER;
+			else
+				x = simple_strtol (s, NULL, 0);
+
+			if ((s = strchr (s + 1, ',')) != NULL) {
+				if (s[1] == 'm')
+					y = BMP_ALIGN_CENTER;
+				else
+					y = simple_strtol (s + 1, NULL, 0);
+			}
+		}
+#endif /* CONFIG_SPLASH_SCREEN_ALIGN */
+
+		if (video_display_bitmap (addr, x, y) == 0) {
+			video_logo_height = 0;
 			return ((void *) (video_fb_address));
 		}
 	}
@@ -1198,23 +1236,52 @@ static void *video_logo (void)
 	logo_plot (video_fb_address, VIDEO_COLS, 0, 0);
 
 	sprintf (info, " %s", &version_string);
-	video_drawstring (VIDEO_INFO_X, VIDEO_INFO_Y, (uchar *)info);
+
+	space = (VIDEO_LINE_LEN / 2 - VIDEO_INFO_X) / VIDEO_FONT_WIDTH;
+	len = strlen(info);
+
+	if (len > space) {
+		video_drawchars (VIDEO_INFO_X, VIDEO_INFO_Y,
+				 (uchar *)info, space);
+		video_drawchars (VIDEO_INFO_X + VIDEO_FONT_WIDTH,
+				 VIDEO_INFO_Y + VIDEO_FONT_HEIGHT,
+				 (uchar *)info + space, len - space);
+		y_off = 1;
+	} else
+		video_drawstring (VIDEO_INFO_X, VIDEO_INFO_Y, (uchar *)info);
 
 #ifdef CONFIG_CONSOLE_EXTRA_INFO
 	{
-		int i, n = ((VIDEO_LOGO_HEIGHT - VIDEO_FONT_HEIGHT) / VIDEO_FONT_HEIGHT);
+		int i, n = ((video_logo_height - VIDEO_FONT_HEIGHT) / VIDEO_FONT_HEIGHT);
 
 		for (i = 1; i < n; i++) {
 			video_get_info_str (i, info);
-			if (*info)
+			if (!*info)
+				continue;
+
+			len = strlen(info);
+			if (len > space) {
+				video_drawchars (VIDEO_INFO_X,
+						 VIDEO_INFO_Y +
+						 (i + y_off) * VIDEO_FONT_HEIGHT,
+						 (uchar *)info, space);
+				y_off++;
+				video_drawchars (VIDEO_INFO_X + VIDEO_FONT_WIDTH,
+						 VIDEO_INFO_Y +
+						 (i + y_off) * VIDEO_FONT_HEIGHT,
+						 (uchar *)info + space,
+						 len - space);
+			} else {
 				video_drawstring (VIDEO_INFO_X,
-						  VIDEO_INFO_Y + i * VIDEO_FONT_HEIGHT,
+						  VIDEO_INFO_Y +
+						  (i + y_off) * VIDEO_FONT_HEIGHT,
 						  (uchar *)info);
+			}
 		}
 	}
 #endif
 
-	return (video_fb_address + VIDEO_LOGO_HEIGHT * VIDEO_LINE_LEN);
+	return (video_fb_address + video_logo_height * VIDEO_LINE_LEN);
 }
 #endif
 
@@ -1300,53 +1367,57 @@ static int video_init (void)
 
 /*****************************************************************************/
 
+/*
+ * Implement a weak default function for boards that optionally
+ * need to skip the video initialization.
+ */
+int __board_video_skip(void)
+{
+	/* As default, don't skip test */
+	return 0;
+}
+int board_video_skip(void) __attribute__((weak, alias("__board_video_skip")));
+
 int drv_video_init (void)
 {
 	int skip_dev_init;
-	device_t console_dev;
+	struct stdio_dev console_dev;
 
-	skip_dev_init = 0;
+	/* Check if video initialization should be skipped */
+	if (board_video_skip())
+		return 0;
 
 	/* Init video chip - returns with framebuffer cleared */
-	if (video_init () == -1)
-		skip_dev_init = 1;
+	skip_dev_init = (video_init () == -1);
 
-#ifdef CONFIG_VGA_AS_SINGLE_DEVICE
-	/* Devices VGA and Keyboard will be assigned seperately */
-	/* Init vga device */
-	if (!skip_dev_init) {
-		memset (&console_dev, 0, sizeof (console_dev));
-		strcpy (console_dev.name, "vga");
-		console_dev.ext = DEV_EXT_VIDEO;	/* Video extensions */
-		console_dev.flags = DEV_FLAGS_OUTPUT | DEV_FLAGS_SYSTEM;
-		console_dev.putc = video_putc;	/* 'putc' function */
-		console_dev.puts = video_puts;	/* 'puts' function */
-		console_dev.tstc = NULL;	/* 'tstc' function */
-		console_dev.getc = NULL;	/* 'getc' function */
-
-		if (device_register (&console_dev) == 0)
-			return 1;
-	}
-#else
+#if !defined(CONFIG_VGA_AS_SINGLE_DEVICE)
 	PRINTD ("KBD: Keyboard init ...\n");
-	if (VIDEO_KBD_INIT_FCT == -1)
-		skip_dev_init = 1;
+	skip_dev_init |= (VIDEO_KBD_INIT_FCT == -1);
+#endif
 
-	/* Init console device */
-	if (!skip_dev_init) {
-		memset (&console_dev, 0, sizeof (console_dev));
-		strcpy (console_dev.name, "vga");
-		console_dev.ext = DEV_EXT_VIDEO;	/* Video extensions */
-		console_dev.flags = DEV_FLAGS_OUTPUT | DEV_FLAGS_INPUT | DEV_FLAGS_SYSTEM;
-		console_dev.putc = video_putc;	/* 'putc' function */
-		console_dev.puts = video_puts;	/* 'puts' function */
-		console_dev.tstc = VIDEO_TSTC_FCT;	/* 'tstc' function */
-		console_dev.getc = VIDEO_GETC_FCT;	/* 'getc' function */
+	if (skip_dev_init)
+		return 0;
 
-		if (device_register (&console_dev) == 0)
-			return 1;
-	}
+	/* Init vga device */
+	memset (&console_dev, 0, sizeof (console_dev));
+	strcpy (console_dev.name, "vga");
+	console_dev.ext = DEV_EXT_VIDEO;	/* Video extensions */
+	console_dev.flags = DEV_FLAGS_OUTPUT | DEV_FLAGS_SYSTEM;
+	console_dev.putc = video_putc;	/* 'putc' function */
+	console_dev.puts = video_puts;	/* 'puts' function */
+	console_dev.tstc = NULL;	/* 'tstc' function */
+	console_dev.getc = NULL;	/* 'getc' function */
+
+#if !defined(CONFIG_VGA_AS_SINGLE_DEVICE)
+	/* Also init console device */
+	console_dev.flags |= DEV_FLAGS_INPUT;
+	console_dev.tstc = VIDEO_TSTC_FCT;	/* 'tstc' function */
+	console_dev.getc = VIDEO_GETC_FCT;	/* 'getc' function */
 #endif /* CONFIG_VGA_AS_SINGLE_DEVICE */
-	/* No console dev available */
-	return 0;
+
+	if (stdio_register (&console_dev) != 0)
+		return 0;
+
+	/* Return success */
+	return 1;
 }

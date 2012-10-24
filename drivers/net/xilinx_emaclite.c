@@ -1,26 +1,27 @@
-/******************************************************************************
+/*
+ * (C) Copyright 2007-2009 Michal Simek
+ * (C) Copyright 2003 Xilinx Inc.
  *
- * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS"
- * AS A COURTESY TO YOU, SOLELY FOR USE IN DEVELOPING PROGRAMS AND
- * SOLUTIONS FOR XILINX DEVICES. BY PROVIDING THIS DESIGN, CODE,
- * OR INFORMATION AS ONE POSSIBLE IMPLEMENTATION OF THIS FEATURE,
- * APPLICATION OR STANDARD, XILINX IS MAKING NO REPRESENTATION
- * THAT THIS IMPLEMENTATION IS FREE FROM ANY CLAIMS OF INFRINGEMENT,
- * AND YOU ARE RESPONSIBLE FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE
- * FOR YOUR IMPLEMENTATION. XILINX EXPRESSLY DISCLAIMS ANY
- * WARRANTY WHATSOEVER WITH RESPECT TO THE ADEQUACY OF THE
- * IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OR
- * REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE FROM CLAIMS OF
- * INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE.
- *
- * (C) Copyright 2007-2008 Michal Simek
  * Michal SIMEK <monstr@monstr.eu>
  *
- * (c) Copyright 2003 Xilinx Inc.
- * All rights reserved.
+ * See file CREDITS for list of people who contributed to this
+ * project.
  *
- ******************************************************************************/
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
 
 #include <common.h>
 #include <net.h>
@@ -140,12 +141,15 @@ void eth_halt (void)
 
 int eth_init (bd_t * bis)
 {
+	uchar enetaddr[6];
+
 	debug ("EmacLite Initialization Started\n");
 	memset (&emaclite, 0, sizeof (xemaclite));
 	emaclite.baseaddress = XILINX_EMACLITE_BASEADDR;
 
-	if (!getenv("ethaddr")) {
-		memcpy(bis->bi_enetaddr, emacaddr, ENET_ADDR_LENGTH);
+	if (!eth_getenv_enetaddr("ethaddr", enetaddr)) {
+		memcpy(enetaddr, emacaddr, ENET_ADDR_LENGTH);
+		eth_setenv_enetaddr("ethaddr", enetaddr);
 	}
 
 /*
@@ -154,7 +158,7 @@ int eth_init (bd_t * bis)
 	/* Restart PING TX */
 	out_be32 (emaclite.baseaddress + XEL_TSR_OFFSET, 0);
 	/* Copy MAC address */
-	xemaclite_alignedwrite (bis->bi_enetaddr,
+	xemaclite_alignedwrite (enetaddr,
 		emaclite.baseaddress, ENET_ADDR_LENGTH);
 	/* Set the length */
 	out_be32 (emaclite.baseaddress + XEL_TPLR_OFFSET, ENET_ADDR_LENGTH);
@@ -167,7 +171,7 @@ int eth_init (bd_t * bis)
 #ifdef CONFIG_XILINX_EMACLITE_TX_PING_PONG
 	/* The same operation with PONG TX */
 	out_be32 (emaclite.baseaddress + XEL_TSR_OFFSET + XEL_BUFFER_OFFSET, 0);
-	xemaclite_alignedwrite (bis->bi_enetaddr, emaclite.baseaddress +
+	xemaclite_alignedwrite (enetaddr, emaclite.baseaddress +
 		XEL_BUFFER_OFFSET, ENET_ADDR_LENGTH);
 	out_be32 (emaclite.baseaddress + XEL_TPLR_OFFSET, ENET_ADDR_LENGTH);
 	out_be32 (emaclite.baseaddress + XEL_TSR_OFFSET + XEL_BUFFER_OFFSET,

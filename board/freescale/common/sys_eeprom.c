@@ -1,5 +1,5 @@
 /*
- * Copyright 2006, 2008 Freescale Semiconductor
+ * Copyright 2006, 2008-2009 Freescale Semiconductor
  * York Sun (yorksun@freescale.com)
  * Haiying Wang (haiying.wang@freescale.com)
  * Timur Tabi (timur@freescale.com)
@@ -34,6 +34,8 @@
 #error "Please define either CONFIG_SYS_I2C_EEPROM_CCID or CONFIG_SYS_I2C_EEPROM_NXID"
 #endif
 
+#define MAX_NUM_PORTS	8	/* This value must be 8 as defined in doc */
+
 /**
  * static eeprom: EEPROM layout for CCID or NXID formats
  *
@@ -50,7 +52,7 @@ static struct __attribute__ ((__packed__)) eeprom {
 	u8 res_0[40];     /* 0x18 - 0x3f Reserved */
 	u8 mac_count;     /* 0x40        Number of MAC addresses */
 	u8 mac_flag;      /* 0x41        MAC table flags */
-	u8 mac[8][6];     /* 0x42 - 0x71 MAC addresses */
+	u8 mac[MAX_NUM_PORTS][6];     /* 0x42 - 0x71 MAC addresses */
 	u32 crc;          /* 0x72        CRC32 checksum */
 #endif
 #ifdef CONFIG_SYS_I2C_EEPROM_NXID
@@ -66,7 +68,7 @@ static struct __attribute__ ((__packed__)) eeprom {
 	u8 res_1[21];     /* 0x2b - 0x3f Reserved */
 	u8 mac_count;     /* 0x40        Number of MAC addresses */
 	u8 mac_flag;      /* 0x41        MAC table flags */
-	u8 mac[8][6];     /* 0x42 - 0x71 MAC addresses */
+	u8 mac[MAX_NUM_PORTS][6];     /* 0x42 - 0x71 MAC addresses */
 	u32 crc;          /* 0x72        CRC32 checksum */
 #endif
 } e;
@@ -76,12 +78,14 @@ static int has_been_read = 0;
 
 #ifdef CONFIG_SYS_I2C_EEPROM_NXID
 /* Is this a valid NXID EEPROM? */
-#define is_valid (*((u32 *)e.id) == (('N' << 24) | ('X' << 16) | ('I' << 8) | 'D'))
+#define is_valid ((e.id[0] == 'N') || (e.id[1] == 'X') || \
+		  (e.id[2] == 'I') || (e.id[3] == 'D'))
 #endif
 
 #ifdef CONFIG_SYS_I2C_EEPROM_CCID
 /* Is this a valid CCID EEPROM? */
-#define is_valid (*((u32 *)e.id) == (('C' << 24) | ('C' << 16) | ('I' << 8) | 'D'))
+#define is_valid ((e.id[0] == 'C') || (e.id[1] == 'C') || \
+		  (e.id[2] == 'I') || (e.id[3] == 'D'))
 #endif
 
 /**
@@ -119,7 +123,8 @@ static void show_eeprom(void)
 		e.date[3] & 0x80 ? "PM" : "");
 
 	/* Show MAC addresses  */
-	for (i = 0; i < min(e.mac_count, 8); i++) {
+	for (i = 0; i < min(e.mac_count, MAX_NUM_PORTS); i++) {
+
 		u8 *p = e.mac[i];
 
 		printf("Eth%u: %02x:%02x:%02x:%02x:%02x:%02x\n", i,
@@ -181,12 +186,26 @@ static int read_eeprom(void)
 }
 
 /**
+ *  update_crc - update the CRC
+ *
+ *  This function should be called after each update to the EEPROM structure,
+ *  to make sure the CRC is always correct.
+ */
+static void update_crc(void)
+{
+	u32 crc;
+
+	crc = crc32(0, (void *)&e, sizeof(e) - 4);
+	e.crc = cpu_to_be32(crc);
+}
+
+/**
  * prog_eeprom - write the EEPROM from memory
  */
 static int prog_eeprom(void)
 {
-	int ret, i, length;
-	unsigned int crc;
+	int ret = 0; /* shut up gcc */
+	int i;
 	void *p;
 #ifdef CONFIG_SYS_EEPROM_BUS_NUM
 	unsigned int bus;
@@ -199,19 +218,16 @@ static int prog_eeprom(void)
 #else
 	memset(e.res_0, 0xFF, sizeof(e.res_0));
 #endif
-
-	length = sizeof(e);
-	crc = crc32(0, (void *)&e, length - 4);
-	e.crc = cpu_to_be32(crc);
+	update_crc();
 
 #ifdef CONFIG_SYS_EEPROM_BUS_NUM
 	bus = i2c_get_bus_num();
 	i2c_set_bus_num(CONFIG_SYS_EEPROM_BUS_NUM);
 #endif
 
-	for (i = 0, p = &e; i < length; i += 8, p += 8) {
+	for (i = 0, p = &e; i < sizeof(e); i += 8, p += 8) {
 		ret = i2c_write(CONFIG_SYS_I2C_EEPROM_ADDR, i, CONFIG_SYS_I2C_EEPROM_ADDR_LEN,
-			p, min((length - i), 8));
+			p, min((sizeof(e) - i), 8));
 		if (ret)
 			break;
 		udelay(5000);	/* 5ms write cycle timing */
@@ -268,6 +284,8 @@ static void set_date(const char *string)
 
 	for (i = 0; i < 6; i++)
 		e.date[i] = h2i(string[2 * i]) << 4 | h2i(string[2 * i + 1]);
+
+	update_crc();
 }
 
 /**
@@ -292,11 +310,12 @@ static void set_mac_address(unsigned int index, const char *string)
 		if (*p == ':')
 			p++;
 	}
+
+	update_crc();
 }
 
 int do_mac(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
-	int i;
 	char cmd;
 
 	if (argc == 1) {
@@ -311,9 +330,13 @@ int do_mac(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		return 0;
 	}
 
-	if ((cmd == 'i') && (argc > 2)) {
-		for (i = 0; i < 4; i++)
-			e.id[i] = argv[2][i];
+	if (cmd == 'i') {
+#ifdef CONFIG_SYS_I2C_EEPROM_NXID
+		memcpy(e.id, "NXID", sizeof(e.id));
+		e.version = 0;
+#else
+		memcpy(e.id, "CCID", sizeof(e.id));
+#endif
 		return 0;
 	}
 
@@ -341,6 +364,7 @@ int do_mac(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	case 'n':	/* serial number */
 		memset(e.sn, 0, sizeof(e.sn));
 		strncpy((char *)e.sn, argv[2], sizeof(e.sn) - 1);
+		update_crc();
 		break;
 	case 'e':	/* errata */
 #ifdef CONFIG_SYS_I2C_EEPROM_NXID
@@ -350,12 +374,14 @@ int do_mac(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		e.errata[0] = argv[2][0];
 		e.errata[1] = argv[2][1];
 #endif
+		update_crc();
 		break;
 	case 'd':	/* date BCD format YYMMDDhhmmss */
 		set_date(argv[2]);
 		break;
 	case 'p':	/* MAC table size */
 		e.mac_count = simple_strtoul(argv[2], NULL, 16);
+		update_crc();
 		break;
 	case '0' ... '7':	/* "mac 0" through "mac 7" */
 		set_mac_address(cmd - '0', argv[2]);
@@ -383,6 +409,9 @@ int do_mac(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 int mac_read_from_eeprom(void)
 {
 	unsigned int i;
+	u32 crc;
+
+	puts("EEPROM: ");
 
 	if (read_eeprom()) {
 		printf("Read failed.\n");
@@ -390,21 +419,18 @@ int mac_read_from_eeprom(void)
 	}
 
 	if (!is_valid) {
-		printf("Invalid ID (%02x %02x %02x %02x)\n", e.id[0], e.id[1], e.id[2], e.id[3]);
+		printf("Invalid ID (%02x %02x %02x %02x)\n",
+		       e.id[0], e.id[1], e.id[2], e.id[3]);
 		return -1;
 	}
 
-	if (be32_to_cpu(e.crc) != 0xFFFFFFFF) {
-		u32 crc = crc32(0, (void *)&e, sizeof(e) - 4);
-
-		if (crc != be32_to_cpu(e.crc)) {
-			printf("CRC mismatch (%08x != %08x).\n", crc,
-				be32_to_cpu(e.crc));
-			return -1;
-		}
+	crc = crc32(0, (void *)&e, sizeof(e) - 4);
+	if (crc != be32_to_cpu(e.crc)) {
+		printf("CRC mismatch (%08x != %08x)\n", crc, be32_to_cpu(e.crc));
+		return -1;
 	}
 
-	for (i = 0; i < min(4, e.mac_count); i++) {
+	for (i = 0; i < min(e.mac_count, MAX_NUM_PORTS); i++) {
 		if (memcmp(&e.mac[i], "\0\0\0\0\0\0", 6) &&
 		    memcmp(&e.mac[i], "\xFF\xFF\xFF\xFF\xFF\xFF", 6)) {
 			char ethaddr[18];
@@ -425,6 +451,13 @@ int mac_read_from_eeprom(void)
 				setenv(enetvar, ethaddr);
 		}
 	}
+
+#ifdef CONFIG_SYS_I2C_EEPROM_NXID
+	printf("%c%c%c%c v%u\n", e.id[0], e.id[1], e.id[2], e.id[3],
+		be32_to_cpu(e.version));
+#else
+	printf("%c%c%c%c\n", e.id[0], e.id[1], e.id[2], e.id[3]);
+#endif
 
 	return 0;
 }

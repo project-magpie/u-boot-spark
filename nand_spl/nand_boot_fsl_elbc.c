@@ -25,7 +25,6 @@
 
 #include <common.h>
 #include <asm/io.h>
-#include <asm/immap_83xx.h>
 #include <asm/fsl_lbc.h>
 #include <linux/mtd/nand.h>
 
@@ -120,7 +119,7 @@ static void nand_load(unsigned int offs, int uboot_size, uchar *dst)
 
 			pos += page_size;
 			offs += page_size;
-		} while (offs & (block_size - 1));
+		} while ((offs & (block_size - 1)) && (pos < uboot_size));
 	}
 }
 

@@ -20,6 +20,7 @@
  */
 
 #include <common.h>
+#include <netdev.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -43,7 +44,7 @@ int dram_init(void)
 	/* Take the Ethernet controller out of reset and wait
 	 * for the EEPROM load to complete. */
 	*((volatile unsigned short *) GPIO_DATA_OUTPUT_REG) |= 0x80;
-	udelay(10);	/* doesn't work before interrupt_init call */
+	udelay(10);	/* doesn't work before timer_init call */
 	*((volatile unsigned short *) GPIO_DATA_OUTPUT_REG) &= ~0x80;
 	udelay(500);
 
@@ -66,3 +67,14 @@ int board_late_init(void)
 
 	return 0;
 }
+
+#ifdef CONFIG_CMD_NET
+int board_eth_init(bd_t *bis)
+{
+	int rc = 0;
+#ifdef CONFIG_SMC91111
+	rc = smc91111_initialize(0, CONFIG_SMC91111_BASE);
+#endif
+	return rc;
+}
+#endif

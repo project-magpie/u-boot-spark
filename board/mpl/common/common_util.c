@@ -29,7 +29,6 @@
 #include <asm/processor.h>
 #include <asm/byteorder.h>
 #include <i2c.h>
-#include <devices.h>
 #include <pci.h>
 #include <malloc.h>
 #include <bzlib.h>
@@ -49,7 +48,6 @@ DECLARE_GLOBAL_DATA_PTR;
 #define FIRM_START 0xFFF00000
 #endif
 
-extern int gunzip(void *, int, uchar *, unsigned long *);
 extern int mem_test(ulong start, ulong ramsize, int quiet);
 
 #define I2C_BACKUP_ADDR 0x7C00		/* 0x200 bytes for backup */
@@ -425,35 +423,6 @@ void check_env(void)
 		if(strncmp(back.signature,"MPL\0",4)!=0) {
 			set_backup_values(0);
 		}
-	}
-}
-
-
-extern device_t *stdio_devices[];
-extern char *stdio_names[];
-
-void show_stdio_dev(void)
-{
-	/* Print information */
-	puts("In:    ");
-	if (stdio_devices[stdin] == NULL) {
-		puts("No input devices available!\n");
-	} else {
-		printf ("%s\n", stdio_devices[stdin]->name);
-	}
-
-	puts("Out:   ");
-	if (stdio_devices[stdout] == NULL) {
-		puts("No output devices available!\n");
-	} else {
-		printf ("%s\n", stdio_devices[stdout]->name);
-	}
-
-	puts("Err:   ");
-	if (stdio_devices[stderr] == NULL) {
-		puts("No error devices available!\n");
-	} else {
-		printf ("%s\n", stdio_devices[stderr]->name);
 	}
 }
 

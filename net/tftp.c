@@ -10,10 +10,6 @@
 #include "tftp.h"
 #include "bootp.h"
 
-#undef	ET_DEBUG
-
-#if defined(CONFIG_CMD_NET)
-
 #define WELL_KNOWN_PORT	69		/* Well known TFTP port #		*/
 #define TIMEOUT		5000UL		/* Millisecs to timeout for lost pkt */
 #ifndef	CONFIG_NET_RETRY_COUNT
@@ -49,6 +45,16 @@ static int TftpTimeoutCountMax = TIMEOUT_COUNT;
 ulong TftpRRQTimeoutMSecs = TIMEOUT;
 int TftpRRQTimeoutCountMax = TIMEOUT_COUNT;
 
+enum {
+	TFTP_ERR_UNDEFINED           = 0,
+	TFTP_ERR_FILE_NOT_FOUND      = 1,
+	TFTP_ERR_ACCESS_DENIED       = 2,
+	TFTP_ERR_DISK_FULL           = 3,
+	TFTP_ERR_UNEXPECTED_OPCODE   = 4,
+	TFTP_ERR_UNKNOWN_TRANSFER_ID  = 5,
+	TFTP_ERR_FILE_ALREADY_EXISTS = 6,
+};
+
 static IPaddr_t TftpServerIP;
 static int	TftpServerPort;		/* The UDP port at their end		*/
 static int	TftpOurPort;		/* The UDP port at our end		*/
@@ -58,6 +64,10 @@ static ulong	TftpLastBlock;		/* last packet sequence number received */
 static ulong	TftpBlockWrap;		/* count of sequence number wraparounds */
 static ulong	TftpBlockWrapOffset;	/* memory offset due to wrapping	*/
 static int	TftpState;
+#ifdef CONFIG_TFTP_TSIZE
+static int	TftpTsize;		/* The file size reported by the server */
+static short	TftpNumchars;		/* The number of hashes we printed      */
+#endif
 
 #define STATE_RRQ	1
 #define STATE_DATA	2
@@ -86,8 +96,14 @@ extern flash_info_t flash_info[];
 /* 512 is poor choice for ethernet, MTU is typically 1500.
  * Minus eth.hdrs thats 1468.  Can get 2x better throughput with
  * almost-MTU block sizes.  At least try... fall back to 512 if need be.
+ * (but those using CONFIG_IP_DEFRAG may want to set a larger block in cfg file)
  */
+#ifdef CONFIG_TFTP_BLOCKSIZE
+#define TFTP_MTU_BLOCKSIZE CONFIG_TFTP_BLOCKSIZE
+#else
 #define TFTP_MTU_BLOCKSIZE 1468
+#endif
+
 static unsigned short TftpBlkSize=TFTP_BLOCK_SIZE;
 static unsigned short TftpBlkSizeOption=TFTP_MTU_BLOCKSIZE;
 
@@ -195,11 +211,13 @@ TftpSend (void)
 		pkt += 5 /*strlen("octet")*/ + 1;
 		strcpy ((char *)pkt, "timeout");
 		pkt += 7 /*strlen("timeout")*/ + 1;
-		sprintf((char *)pkt, "%lu", TIMEOUT / 1000);
-#ifdef ET_DEBUG
-		printf("send option \"timeout %s\"\n", (char *)pkt);
-#endif
+		sprintf((char *)pkt, "%lu", TftpTimeoutMSecs / 1000);
+		debug("send option \"timeout %s\"\n", (char *)pkt);
 		pkt += strlen((char *)pkt) + 1;
+#ifdef CONFIG_TFTP_TSIZE
+		memcpy((char *)pkt, "tsize\0000\0", 8);
+		pkt += 8;
+#endif
 		/* try for more effic. blk size */
 		pkt += sprintf((char *)pkt,"blksize%c%d%c",
 				0,TftpBlkSizeOption,0);
@@ -295,9 +313,9 @@ TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
 		break;
 
 	case TFTP_OACK:
-#ifdef ET_DEBUG
-		printf("Got OACK: %s %s\n", pkt, pkt+strlen(pkt)+1);
-#endif
+		debug("Got OACK: %s %s\n",
+			pkt,
+			pkt + strlen((char *)pkt) + 1);
 		TftpState = STATE_OACK;
 		TftpServerPort = src;
 		/*
@@ -309,12 +327,16 @@ TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
 			if (strcmp ((char*)pkt+i,"blksize") == 0) {
 				TftpBlkSize = (unsigned short)
 					simple_strtoul((char*)pkt+i+8,NULL,10);
-#ifdef ET_DEBUG
-				printf ("Blocksize ack: %s, %d\n",
+				debug("Blocksize ack: %s, %d\n",
 					(char*)pkt+i+8,TftpBlkSize);
-#endif
-				break;
 			}
+#ifdef CONFIG_TFTP_TSIZE
+			if (strcmp ((char*)pkt+i,"tsize") == 0) {
+				TftpTsize = simple_strtoul((char*)pkt+i+6,NULL,10);
+				debug("size = %s, %d\n",
+					 (char*)pkt+i+6, TftpTsize);
+			}
+#endif
 		}
 #ifdef CONFIG_MCAST_TFTP
 		parse_multicast_oack((char *)pkt,len-1);
@@ -340,7 +362,16 @@ TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
 			TftpBlockWrap++;
 			TftpBlockWrapOffset += TftpBlkSize * TFTP_SEQUENCE_SIZE;
 			printf ("\n\t %lu MiB received\n\t ", TftpBlockWrapOffset>>20);
-		} else {
+		}
+#ifdef CONFIG_TFTP_TSIZE
+		else if (TftpTsize) {
+			while (TftpNumchars < NetBootFileXferSize * 50 / TftpTsize) {
+				putc('#');
+				TftpNumchars++;
+			}
+		}
+#endif
+		else {
 			if (((TftpBlock - 1) % 10) == 0) {
 				putc ('#');
 			} else if ((TftpBlock % (10 * HASHES_PER_LINE)) == 0) {
@@ -348,11 +379,8 @@ TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
 			}
 		}
 
-#ifdef ET_DEBUG
-		if (TftpState == STATE_RRQ) {
-			puts ("Server did not acknowledge timeout option!\n");
-		}
-#endif
+		if (TftpState == STATE_RRQ)
+			debug("Server did not acknowledge timeout option!\n");
 
 		if (TftpState == STATE_RRQ || TftpState == STATE_OACK) {
 			/* first block received */
@@ -385,7 +413,6 @@ TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
 		}
 
 		TftpLastBlock = TftpBlock;
-		TftpTimeoutMSecs = TIMEOUT;
 		TftpTimeoutCountMax = TIMEOUT_COUNT;
 		NetSetTimeout (TftpTimeoutMSecs, TftpTimeout);
 
@@ -437,6 +464,13 @@ TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
 			 *	We received the whole thing.  Try to
 			 *	run it.
 			 */
+#ifdef CONFIG_TFTP_TSIZE
+			/* Print out the hash marks for the last packet received */
+			while (TftpTsize && TftpNumchars < 49) {
+				putc('#');
+				TftpNumchars++;
+			}
+#endif
 			puts ("\ndone\n");
 			NetState = NETLOOP_SUCCESS;
 		}
@@ -445,11 +479,27 @@ TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
 	case TFTP_ERROR:
 		printf ("\nTFTP error: '%s' (%d)\n",
 					pkt + 2, ntohs(*(ushort *)pkt));
-		puts ("Starting again\n\n");
+
+		switch (ntohs(*(ushort *)pkt)) {
+		case TFTP_ERR_FILE_NOT_FOUND:
+		case TFTP_ERR_ACCESS_DENIED:
+			puts("Not retrying...\n");
+			eth_halt();
+			NetState = NETLOOP_FAIL;
+			break;
+		case TFTP_ERR_UNDEFINED:
+		case TFTP_ERR_DISK_FULL:
+		case TFTP_ERR_UNEXPECTED_OPCODE:
+		case TFTP_ERR_UNKNOWN_TRANSFER_ID:
+		case TFTP_ERR_FILE_ALREADY_EXISTS:
+		default:
+			puts("Starting again\n\n");
 #ifdef CONFIG_MCAST_TFTP
-		mcast_cleanup();
+			mcast_cleanup();
 #endif
-		NetStartAgain ();
+			NetStartAgain();
+			break;
+		}
 		break;
 	}
 }
@@ -475,9 +525,27 @@ TftpTimeout (void)
 void
 TftpStart (void)
 {
-#ifdef CONFIG_TFTP_PORT
 	char *ep;             /* Environment pointer */
-#endif
+
+	/*
+	 * Allow the user to choose TFTP blocksize and timeout.
+	 * TFTP protocol has a minimal timeout of 1 second.
+	 */
+	if ((ep = getenv("tftpblocksize")) != NULL)
+		TftpBlkSizeOption = simple_strtol(ep, NULL, 10);
+
+	if ((ep = getenv("tftptimeout")) != NULL)
+		TftpTimeoutMSecs = simple_strtol(ep, NULL, 10);
+
+	if (TftpTimeoutMSecs < 1000) {
+		printf("TFTP timeout (%ld ms) too low, "
+			"set minimum = 1000 ms\n",
+			TftpTimeoutMSecs);
+		TftpTimeoutMSecs = 1000;
+	}
+
+	debug("TFTP blocksize = %i, timeout = %ld ms\n",
+		TftpBlkSizeOption, TftpTimeoutMSecs);
 
 	TftpServerIP = NetServerIP;
 	if (BootFile[0] == '\0') {
@@ -508,18 +576,16 @@ TftpStart (void)
 #if defined(CONFIG_NET_MULTI)
 	printf ("Using %s device\n", eth_get_name());
 #endif
-	puts ("TFTP from server ");	print_IPaddr (TftpServerIP);
-	puts ("; our IP address is ");	print_IPaddr (NetOurIP);
+	printf("TFTP from server %pI4"
+		"; our IP address is %pI4", &TftpServerIP, &NetOurIP);
 
 	/* Check if we need to send across this subnet */
 	if (NetOurGatewayIP && NetOurSubnetMask) {
 	    IPaddr_t OurNet	= NetOurIP    & NetOurSubnetMask;
 	    IPaddr_t ServerNet	= TftpServerIP & NetOurSubnetMask;
 
-	    if (OurNet != ServerNet) {
-		puts ("; sending through gateway ");
-		print_IPaddr (NetOurGatewayIP) ;
-	    }
+	    if (OurNet != ServerNet)
+		printf("; sending through gateway %pI4", &NetOurGatewayIP);
 	}
 	putc ('\n');
 
@@ -536,7 +602,6 @@ TftpStart (void)
 
 	puts ("Loading: *\b");
 
-	TftpTimeoutMSecs = TftpRRQTimeoutMSecs;
 	TftpTimeoutCountMax = TftpRRQTimeoutCountMax;
 
 	NetSetTimeout (TftpTimeoutMSecs, TftpTimeout);
@@ -564,6 +629,10 @@ TftpStart (void)
 	TftpBlkSize = TFTP_BLOCK_SIZE;
 #ifdef CONFIG_MCAST_TFTP
 	mcast_cleanup();
+#endif
+#ifdef CONFIG_TFTP_TSIZE
+	TftpTsize = 0;
+	TftpNumchars = 0;
 #endif
 
 	TftpSend ();
@@ -658,5 +727,3 @@ static void parse_multicast_oack(char *pkt, int len)
 }
 
 #endif /* Multicast TFTP */
-
-#endif

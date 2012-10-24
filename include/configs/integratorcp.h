@@ -53,7 +53,8 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_DRIVER_SMC91111
+#define CONFIG_NET_MULTI
+#define CONFIG_SMC91111
 #define CONFIG_SMC_USE_32_BIT
 #define CONFIG_SMC91111_BASE    0xC8000000
 #undef CONFIG_SMC91111_EXT_PHY
@@ -121,7 +122,6 @@ SIB at Block62 End Block62 address 0x24f80000
 #define CONFIG_SYS_MAXARGS	16			/* max number of command args */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE		/* Boot Argument Buffer Size*/
 
-#undef	CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
 #define CONFIG_SYS_LOAD_ADDR	0x7fc0	/* default load address */
 
 /*-----------------------------------------------------------------------
@@ -156,9 +156,11 @@ SIB at Block62 End Block62 address 0x24f80000
 
  */
 #define CONFIG_SYS_FLASH_BASE		0x24000000
+#define CONFIG_SYS_FLASH_CFI		1
+#define CONFIG_FLASH_CFI_DRIVER		1
 #define CONFIG_SYS_MAX_FLASH_SECT	64
 #define CONFIG_SYS_MAX_FLASH_BANKS	1		/* max number of memory banks */
-#define PHYS_FLASH_SIZE		0x01000000	/* 16MB */
+#define PHYS_FLASH_SIZE			0x01000000	/* 16MB */
 #define CONFIG_SYS_FLASH_ERASE_TOUT	(2*CONFIG_SYS_HZ)	/* Timeout for Flash Erase */
 #define CONFIG_SYS_FLASH_WRITE_TOUT	(2*CONFIG_SYS_HZ)	/* Timeout for Flash Write */
 

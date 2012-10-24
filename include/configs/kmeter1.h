@@ -25,7 +25,7 @@
  */
 #define CONFIG_E300		1 /* E300 family */
 #define CONFIG_QE		1 /* Has QE */
-#define CONFIG_MPC83XX		1 /* MPC83XX family */
+#define CONFIG_MPC83xx		1 /* MPC83xx family */
 #define CONFIG_MPC8360		1 /* MPC8360 CPU specific */
 #define CONFIG_KMETER1		1 /* KMETER1 board specific */
 #define CONFIG_HOSTNAME		kmeter1
@@ -33,7 +33,13 @@
 /* include common defines/options for all Keymile boards */
 #include "keymile-common.h"
 
-#undef CONFIG_SYS_I2C_INIT_BOARD
+#define CONFIG_KM_UBI_PARTITION_NAME	"ubi0"
+
+#define MTDIDS_DEFAULT		"nor0=boot"
+#define MTDPARTS_DEFAULT	\
+	"mtdparts=boot:768k(u-boot),128k(env),128k(envred),"	\
+	"-(" CONFIG_KM_UBI_PARTITION_NAME ")"
+
 #define CONFIG_MISC_INIT_R	1
 /*
  * System Clock Setup
@@ -71,6 +77,14 @@
  * IMMR new address
  */
 #define CONFIG_SYS_IMMR		0xE0000000
+
+/*
+ * Bus Arbitration Configuration Register (ACR)
+ */
+#define CONFIG_SYS_ACR_PIPE_DEP 3       /* pipeline depth 4 transactions */
+#define CONFIG_SYS_ACR_RPTCNT   3       /* 4 consecutive transactions */
+#define CONFIG_SYS_ACR_APARK    0       /* park bus to master (below) */
+#define CONFIG_SYS_ACR_PARKM    3       /* parking master = QuiccEngine */
 
 /*
  * DDR Setup
@@ -145,7 +159,6 @@
  */
 #define CONFIG_SYS_MONITOR_BASE	TEXT_BASE /* start of monitor */
 #define CONFIG_SYS_FLASH_BASE		0xF0000000
-#define CONFIG_SYS_FLASH_BASE_1		0xF2000000
 #define CONFIG_SYS_PIGGY_BASE		0xE8000000
 #define	CONFIG_SYS_PIGGY_SIZE		128
 #define CONFIG_SYS_PAXE_BASE		0xA0000000
@@ -157,8 +170,7 @@
 #undef	CONFIG_SYS_RAMBOOT
 #endif
 
-#define CONFIG_SYS_MONITOR_LEN		(384 * 1024) /* Reserve 256 kB for Mon */
-#define CONFIG_SYS_MALLOC_LEN		(128 * 1024) /* Reserved for malloc */
+#define CONFIG_SYS_MONITOR_LEN		(384 * 1024) /* Reserve 384 kB for Mon */
 
 /*
  * Initial RAM Base Address Setup
@@ -172,7 +184,9 @@
 /*
  * Local Bus Configuration & Clock Setup
  */
-#define CONFIG_SYS_LCRR		(LCRR_DBYP | LCRR_EADC_2 | LCRR_CLKDIV_4)
+#define CONFIG_SYS_LCRR_DBYP	LCRR_DBYP
+#define CONFIG_SYS_LCRR_EADC	LCRR_EADC_2
+#define CONFIG_SYS_LCRR_CLKDIV	LCRR_CLKDIV_4
 
 /*
  * Init Local Bus Memory Controller:
@@ -205,9 +219,9 @@
 				OR_GPCM_SCY_5 | \
 				OR_GPCM_TRLX | OR_GPCM_EAD)
 
-#define CONFIG_SYS_MAX_FLASH_BANKS	2	/* max num of flash banks	*/
+#define CONFIG_SYS_MAX_FLASH_BANKS	1	/* max num of flash banks	*/
 #define CONFIG_SYS_MAX_FLASH_SECT	512	/* max num of sects on one chip */
-#define CONFIG_SYS_FLASH_BANKS_LIST { CONFIG_SYS_FLASH_BASE, CONFIG_SYS_FLASH_BASE_1 }
+#define CONFIG_SYS_FLASH_BANKS_LIST { CONFIG_SYS_FLASH_BASE }
 
 #undef	CONFIG_SYS_FLASH_CHECKSUM
 
@@ -281,7 +295,8 @@
 #define CONFIG_SYS_UEC1_TX_CLK		QE_CLK17
 #define CONFIG_SYS_UEC1_ETH_TYPE	FAST_ETH
 #define CONFIG_SYS_UEC1_PHY_ADDR	0
-#define CONFIG_SYS_UEC1_INTERFACE_MODE ENET_100_RMII
+#define CONFIG_SYS_UEC1_INTERFACE_TYPE RMII
+#define CONFIG_SYS_UEC1_INTERFACE_SPEED 100
 #endif
 
 /*
@@ -292,7 +307,6 @@
 #define CONFIG_ENV_IS_IN_FLASH	1
 #define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE + CONFIG_SYS_MONITOR_LEN)
 #define CONFIG_ENV_SECT_SIZE	0x20000 /* 128K(one sector) for env */
-#define CONFIG_ENV_SIZE		0x20000
 #define CONFIG_ENV_OFFSET	(CONFIG_SYS_MONITOR_LEN)
 
 /* Address and size of Redundant Environment Sector	*/
@@ -314,8 +328,6 @@
 #define CONFIG_SYS_I2C_SLAVE	0x7F
 #define CONFIG_SYS_I2C_OFFSET	0x3000
 #define CONFIG_I2C_MULTI_BUS	1
-#define CONFIG_I2C_CMD_TREE	1
-#define CONFIG_SYS_MAX_I2C_BUS		2
 #define CONFIG_I2C_MUX		1
 
 /* EEprom support */
@@ -327,7 +339,13 @@
 #define CONFIG_SYS_DTT_MAX_TEMP	70
 #define CONFIG_SYS_DTT_LOW_TEMP	-30
 #define CONFIG_SYS_DTT_HYSTERESIS	3
-#define CONFIG_SYS_DTT_BUS_NUM		(2)
+#define CONFIG_SYS_DTT_BUS_NUM		(CONFIG_SYS_MAX_I2C_BUS)
+
+#if defined(CONFIG_CMD_NAND)
+#define CONFIG_NAND_KMETER1
+#define CONFIG_SYS_MAX_NAND_DEVICE	1
+#define CONFIG_SYS_NAND_BASE		CONFIG_SYS_PIGGY_BASE
+#endif
 
 #if defined(CONFIG_PCI)
 #define CONFIG_CMD_PCI
@@ -433,11 +451,6 @@
 #define BOOTFLASH_START	F0000000
 
 #define CONFIG_PRAM	512	/* protected RAM [KBytes] */
-
-#define MTDIDS_DEFAULT		"nor0=app"
-#define MTDPARTS_DEFAULT \
-	"mtdparts=app:256k(u-boot),128k(env),128k(envred),"	\
-	"1536k(esw0),8704k(rootfs0),1536k(esw1),2432k(rootfs1),640k(var),768k(cfg)"
 
 /*
  * Environment Configuration

@@ -25,7 +25,6 @@
 #include <mpc8260.h>
 #include <ioports.h>
 #include <malloc.h>
-#include <net.h>
 #include <asm/io.h>
 
 #if defined(CONFIG_OF_BOARD_SETUP) && defined(CONFIG_OF_LIBFDT)
@@ -300,7 +299,9 @@ int checkboard(void)
 int board_early_init_r (void)
 {
 	/* setup the UPIOx */
-	out_8((u8 *)(CONFIG_SYS_PIGGY_BASE + 0x02), 0xc0);
+	/* General Unit Reset disabled, Flash Bank enabled, UnitLed on */
+	out_8((u8 *)(CONFIG_SYS_PIGGY_BASE + 0x02), 0xc2);
+	/* SCC4 enable, halfduplex, FCC1 powerdown */
 	out_8((u8 *)(CONFIG_SYS_PIGGY_BASE + 0x03), 0x15);
 	return 0;
 }
@@ -312,45 +313,8 @@ int hush_init_var (void)
 }
 
 #if defined(CONFIG_OF_BOARD_SETUP) && defined(CONFIG_OF_LIBFDT)
-extern int fdt_set_node_and_value (void *blob,
-				char *nodename,
-				char *regname,
-				void *var,
-				int size);
-
-/*
- * update "memory" property in the blob
- */
-void ft_blob_update (void *blob, bd_t *bd)
-{
-	ulong memory_data[2] = {0};
-	ulong flash_data[8] = {0};
-	flash_info_t	*info;
-
-	memory_data[0] = cpu_to_be32 (bd->bi_memstart);
-	memory_data[1] = cpu_to_be32 (bd->bi_memsize);
-	fdt_set_node_and_value (blob, "/memory", "reg", memory_data,
-				sizeof (memory_data));
-
-	/* update Flash addr, size */
-	info = flash_get_info(CONFIG_SYS_FLASH_BASE);
-	flash_data[2] = cpu_to_be32 (CONFIG_SYS_FLASH_BASE);
-	flash_data[3] = cpu_to_be32 (info->size);
-	flash_data[4] = cpu_to_be32 (5);
-	flash_data[5] = cpu_to_be32 (0);
-	info = flash_get_info(CONFIG_SYS_FLASH_BASE_1);
-	flash_data[6] = cpu_to_be32 (CONFIG_SYS_FLASH_BASE_1);
-	flash_data[7] = cpu_to_be32 (info->size);
-	fdt_set_node_and_value (blob, "/localbus", "ranges", flash_data,
-				sizeof (flash_data));
-	/* MAC addr */
-	fdt_set_node_and_value (blob, "/soc/cpm/ethernet", "mac-address",
-				bd->bi_enetaddr, sizeof (u8) * 6);
-}
-
 void ft_board_setup (void *blob, bd_t *bd)
 {
 	ft_cpu_setup (blob, bd);
-	ft_blob_update (blob, bd);
 }
 #endif /* defined(CONFIG_OF_BOARD_SETUP) && defined(CONFIG_OF_LIBFDT) */

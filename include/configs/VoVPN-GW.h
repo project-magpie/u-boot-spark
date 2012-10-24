@@ -124,6 +124,11 @@
 #define CONFIG_BITBANGMII
 
 #define MDIO_PORT			1		/* Port B */
+
+#define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
+					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
+#define MDC_DECLARE		MDIO_DECLARE
+
 #define CONFIG_SYS_MDIO_PIN			0x00002000	/* PB18 */
 #define CONFIG_SYS_MDC_PIN			0x00001000	/* PB19 */
 #define MDIO_ACTIVE			(iop->pdir |=  CONFIG_SYS_MDIO_PIN)
@@ -150,11 +155,9 @@
  * Command line configuration.
  */
 
-#define CONFIG_CMD_AUTOSCRIPT
 #define CONFIG_CMD_BDI
 #define CONFIG_CMD_CONSOLE
 #define CONFIG_CMD_ECHO
-#define CONFIG_CMD_SAVEENV
 #define CONFIG_CMD_FLASH
 #define CONFIG_CMD_IMI
 #define CONFIG_CMD_IMLS
@@ -164,6 +167,8 @@
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_RUN
+#define CONFIG_CMD_SAVEENV
+#define CONFIG_CMD_SOURCE
 
 
 /*

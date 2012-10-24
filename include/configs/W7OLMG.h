@@ -40,6 +40,7 @@
 
 #define CONFIG_BOARD_EARLY_INIT_F 1		/* Call board_early_init_f	*/
 #define	CONFIG_MISC_INIT_F	1		/* and misc_init_f()		*/
+#define	CONFIG_MISC_INIT_R	1		/* and misc_init_r()		*/
 
 #define CONFIG_SYS_CLK_FREQ	33333333	/* external frequency to pll	*/
 
@@ -68,6 +69,7 @@
 #define CONFIG_PPC4xx_EMAC
 #define CONFIG_MII		1		/* MII PHY management		*/
 #define CONFIG_PHY_ADDR		0		/* PHY address			*/
+#define CONFIG_NET_MULTI
 
 #define CONFIG_RTC_M48T35A	1		/* ST Electronics M48 timekeeper */
 #define CONFIG_DTT_LM75     1                /* ON Semi's LM75 */
@@ -138,8 +140,6 @@
 
 /* The following table includes the supported baudrates */
 #define CONFIG_SYS_BAUDRATE_TABLE	{9600}
-
-#define CONFIG_SYS_CLKS_IN_HZ		1		/* everything, incl board info, in Hz */
 
 #define CONFIG_SYS_LOAD_ADDR		0x100000	/* default load address		*/
 #define CONFIG_SYS_EXTBDINFO		1		/* use extended board_info (bd_t) */
@@ -215,9 +215,9 @@
 #define CONFIG_SYS_EBC_PB5CR   0xFD87A000
 
 /* bank 6 is unused */
-/* pb6ap = 0 */
+/* PB6AP = 0 */
 #define CONFIG_SYS_EBC_PB6AP   0x00000000
-/* pb6cr = 0 */
+/* PB6CR = 0 */
 #define CONFIG_SYS_EBC_PB6CR   0x00000000
 
 /* bank 7 is LED register */

@@ -2,7 +2,7 @@
  * (C) Copyright 2002
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Marius Groeger <mgroeger@sysgo.de>
- * Gary Jennejohn <gj@denx.de>
+ * Gary Jennejohn <garyj@denx.de>
  * David Mueller <d.mueller@elsoft.ch>
  *
  * (C) Copyright 2008
@@ -49,8 +49,6 @@
 #define CONFIG_ENABLE_MMU
 #endif
 
-#define CONFIG_MEMORY_UPPER_CODE
-
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_INITRD_TAG
@@ -74,9 +72,10 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_DRIVER_CS8900	1	/* we have a CS8900 on-board	*/
-#define CS8900_BASE	  	0x18800300
-#define CS8900_BUS16		1 	/* follow the Linux driver	*/
+#define CONFIG_NET_MULTI
+#define CONFIG_CS8900			/* we have a CS8900 on-board	*/
+#define CONFIG_CS8900_BASE	  	0x18800300
+#define CONFIG_CS8900_BUS16		/* follow the Linux driver	*/
 
 /*
  * select serial console configuration
@@ -209,6 +208,9 @@
 /* total memory available to uboot */
 #define CONFIG_SYS_UBOOT_SIZE		(1024 * 1024)
 
+/* Put environment copies after the end of U-Boot owned RAM */
+#define CONFIG_NAND_ENV_DST	(CONFIG_SYS_UBOOT_BASE + CONFIG_SYS_UBOOT_SIZE)
+
 #ifdef CONFIG_ENABLE_MMU
 #define CONFIG_SYS_MAPPED_RAM_BASE	0xc0000000
 #define CONFIG_BOOTCOMMAND	"nand read 0xc0018000 0x60000 0x1c0000;" \
@@ -288,6 +290,7 @@
 
 #if !defined(CONFIG_ENABLE_MMU)
 #define CONFIG_CMD_USB			1
+#define CONFIG_USB_S3C64XX
 #define CONFIG_USB_OHCI_NEW		1
 #define CONFIG_SYS_USB_OHCI_REGS_BASE		0x74300000
 #define CONFIG_SYS_USB_OHCI_SLOT_NAME		"s3c6400"

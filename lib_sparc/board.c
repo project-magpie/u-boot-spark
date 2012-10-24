@@ -28,7 +28,7 @@
 #include <common.h>
 #include <command.h>
 #include <malloc.h>
-#include <devices.h>
+#include <stdio_dev.h>
 #include <config.h>
 #if defined(CONFIG_CMD_IDE)
 #include <ide.h>
@@ -47,6 +47,10 @@
 #endif
 #ifdef CONFIG_CMD_AMBAPP
 #include <ambapp.h>
+#endif
+
+#ifdef CONFIG_BITBANGMII
+#include <miiphy.h>
 #endif
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -73,43 +77,6 @@ static char *failed = "*** failed ***\n";
 #include <environment.h>
 
 ulong monitor_flash_len;
-
-/*
- * Begin and End of memory area for malloc(), and current "brk"
- */
-static ulong mem_malloc_start = 0;
-static ulong mem_malloc_end = 0;
-static ulong mem_malloc_brk = 0;
-
-/************************************************************************
- * Utilities								*
- ************************************************************************
- */
-
-/*
- * The Malloc area is immediately below the monitor copy in RAM
- */
-static void mem_malloc_init(void)
-{
-	mem_malloc_start = CONFIG_SYS_MALLOC_BASE;
-	mem_malloc_end = CONFIG_SYS_MALLOC_END;
-	mem_malloc_brk = mem_malloc_start;
-	memset((void *)mem_malloc_start, 0, mem_malloc_end - mem_malloc_start);
-}
-
-void *sbrk(ptrdiff_t increment)
-{
-	ulong old = mem_malloc_brk;
-	ulong new = old + increment;
-
-	if ((new < mem_malloc_start) || (new > mem_malloc_end)) {
-		return (NULL);
-	}
-	mem_malloc_brk = new;
-	return ((void *)old);
-}
-
-/***********************************************************************/
 
 /************************************************************************
  * Init Utilities							*
@@ -331,6 +298,11 @@ void board_init_f(ulong bootflag)
 	 */
 	interrupt_init();
 
+	/* The Malloc area is immediately below the monitor copy in RAM */
+	mem_malloc_init(CONFIG_SYS_MALLOC_BASE,
+			CONFIG_SYS_MALLOC_END - CONFIG_SYS_MALLOC_BASE);
+	malloc_bin_reloc();
+
 #if !defined(CONFIG_SYS_NO_FLASH)
 	puts("FLASH: ");
 
@@ -371,11 +343,6 @@ void board_init_f(ulong bootflag)
 	bd->bi_flashoffset = 0;
 #endif				/* !CONFIG_SYS_NO_FLASH */
 
-	/* initialize malloc() area */
-	mem_malloc_init();
-
-	malloc_bin_reloc();
-
 #ifdef CONFIG_SPI
 # if !defined(CONFIG_ENV_IS_IN_EEPROM)
 	spi_init_f();
@@ -388,25 +355,6 @@ void board_init_f(ulong bootflag)
 
 #if defined(CONFIG_BOARD_LATE_INIT)
 	board_late_init();
-#endif
-
-	s = getenv("ethaddr");
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enetaddr[i] = s ? simple_strtoul(s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-
-#ifdef CONFIG_HAS_ETH1
-	/* handle the 2nd ethernet address */
-
-	s = getenv("eth1addr");
-
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enet1addr[i] = s ? simple_strtoul(s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
 #endif
 
 #ifdef CONFIG_ID_EEPROM
@@ -422,8 +370,8 @@ void board_init_f(ulong bootflag)
 	pci_init();
 #endif
 
-	/* Initialize devices */
-	devices_init();
+	/* Initialize stdio devices */
+	stdio_init();
 
 	/* Initialize the jump table for applications */
 	jumptable_init();
@@ -461,6 +409,9 @@ void board_init_f(ulong bootflag)
 	doc_init();
 #endif
 
+#ifdef CONFIG_BITBANGMII
+	bb_miiphy_init();
+#endif
 #if defined(CONFIG_CMD_NET)
 #if defined(CONFIG_NET_MULTI)
 	WATCHDOG_RESET();

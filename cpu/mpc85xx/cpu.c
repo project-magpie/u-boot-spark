@@ -1,5 +1,5 @@
 /*
- * Copyright 2004,2007,2008 Freescale Semiconductor, Inc.
+ * Copyright 2004,2007-2009 Freescale Semiconductor, Inc.
  * (C) Copyright 2002, 2003 Motorola Inc.
  * Xianghua Xiao (X.Xiao@motorola.com)
  *
@@ -29,53 +29,11 @@
 #include <common.h>
 #include <watchdog.h>
 #include <command.h>
-#include <tsec.h>
-#include <netdev.h>
 #include <fsl_esdhc.h>
 #include <asm/cache.h>
 #include <asm/io.h>
 
 DECLARE_GLOBAL_DATA_PTR;
-
-struct cpu_type cpu_type_list [] = {
-	CPU_TYPE_ENTRY(8533, 8533),
-	CPU_TYPE_ENTRY(8533, 8533_E),
-	CPU_TYPE_ENTRY(8536, 8536),
-	CPU_TYPE_ENTRY(8536, 8536_E),
-	CPU_TYPE_ENTRY(8540, 8540),
-	CPU_TYPE_ENTRY(8541, 8541),
-	CPU_TYPE_ENTRY(8541, 8541_E),
-	CPU_TYPE_ENTRY(8543, 8543),
-	CPU_TYPE_ENTRY(8543, 8543_E),
-	CPU_TYPE_ENTRY(8544, 8544),
-	CPU_TYPE_ENTRY(8544, 8544_E),
-	CPU_TYPE_ENTRY(8545, 8545),
-	CPU_TYPE_ENTRY(8545, 8545_E),
-	CPU_TYPE_ENTRY(8547, 8547_E),
-	CPU_TYPE_ENTRY(8548, 8548),
-	CPU_TYPE_ENTRY(8548, 8548_E),
-	CPU_TYPE_ENTRY(8555, 8555),
-	CPU_TYPE_ENTRY(8555, 8555_E),
-	CPU_TYPE_ENTRY(8560, 8560),
-	CPU_TYPE_ENTRY(8567, 8567),
-	CPU_TYPE_ENTRY(8567, 8567_E),
-	CPU_TYPE_ENTRY(8568, 8568),
-	CPU_TYPE_ENTRY(8568, 8568_E),
-	CPU_TYPE_ENTRY(8572, 8572),
-	CPU_TYPE_ENTRY(8572, 8572_E),
-	CPU_TYPE_ENTRY(P2020, P2020),
-	CPU_TYPE_ENTRY(P2020, P2020_E),
-};
-
-struct cpu_type *identify_cpu(u32 ver)
-{
-	int i;
-	for (i = 0; i < ARRAY_SIZE(cpu_type_list); i++)
-		if (cpu_type_list[i].soc_ver == ver)
-			return &cpu_type_list[i];
-
-	return NULL;
-}
 
 int checkcpu (void)
 {
@@ -88,37 +46,45 @@ int checkcpu (void)
 	char buf1[32], buf2[32];
 #ifdef CONFIG_DDR_CLK_FREQ
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
+#ifdef CONFIG_FSL_CORENET
+	u32 ddr_sync = ((gur->rcwsr[5]) & FSL_CORENET_RCWSR5_DDR_SYNC)
+		>> FSL_CORENET_RCWSR5_DDR_SYNC_SHIFT;
+#else
 	u32 ddr_ratio = ((gur->porpllsr) & MPC85xx_PORPLLSR_DDR_RATIO)
 		>> MPC85xx_PORPLLSR_DDR_RATIO_SHIFT;
+#endif
+#else
+#ifdef CONFIG_FSL_CORENET
+	u32 ddr_sync = 0;
 #else
 	u32 ddr_ratio = 0;
 #endif
+#endif /* CONFIG_DDR_CLK_FREQ */
 	int i;
 
 	svr = get_svr();
-	ver = SVR_SOC_VER(svr);
 	major = SVR_MAJ(svr);
 #ifdef CONFIG_MPC8536
 	major &= 0x7; /* the msb of this nibble is a mfg code */
 #endif
 	minor = SVR_MIN(svr);
 
-#if (CONFIG_NUM_CPUS > 1)
-	volatile ccsr_pic_t *pic = (void *)(CONFIG_SYS_MPC85xx_PIC_ADDR);
-	printf("CPU%d:  ", pic->whoami);
-#else
-	puts("CPU:   ");
+	if (cpu_numcores() > 1) {
+#ifndef CONFIG_MP
+		puts("Unicore software on multiprocessor system!!\n"
+		     "To enable mutlticore build define CONFIG_MP\n");
 #endif
-
-	cpu = identify_cpu(ver);
-	if (cpu) {
-		puts(cpu->name);
-
-		if (IS_E_PROCESSOR(svr))
-			puts("E");
+		volatile ccsr_pic_t *pic = (void *)(CONFIG_SYS_MPC85xx_PIC_ADDR);
+		printf("CPU%d:  ", pic->whoami);
 	} else {
-		puts("Unknown");
+		puts("CPU:   ");
 	}
+
+	cpu = gd->cpu;
+
+	puts(cpu->name);
+	if (IS_E_PROCESSOR(svr))
+		puts("E");
 
 	printf(", Version: %d.%d, (0x%08x)\n", major, minor, svr);
 
@@ -146,7 +112,7 @@ int checkcpu (void)
 	get_sys_info(&sysinfo);
 
 	puts("Clock Configuration:");
-	for (i = 0; i < CONFIG_NUM_CPUS; i++) {
+	for (i = 0; i < cpu_numcores(); i++) {
 		if (!(i & 3))
 			printf ("\n       ");
 		printf("CPU%d:%-4s MHz, ",
@@ -154,6 +120,19 @@ int checkcpu (void)
 	}
 	printf("\n       CCB:%-4s MHz,\n", strmhz(buf1, sysinfo.freqSystemBus));
 
+#ifdef CONFIG_FSL_CORENET
+	if (ddr_sync == 1) {
+		printf("       DDR:%-4s MHz (%s MT/s data rate) "
+			"(Synchronous), ",
+			strmhz(buf1, sysinfo.freqDDRBus/2),
+			strmhz(buf2, sysinfo.freqDDRBus));
+	} else {
+		printf("       DDR:%-4s MHz (%s MT/s data rate) "
+			"(Asynchronous), ",
+			strmhz(buf1, sysinfo.freqDDRBus/2),
+			strmhz(buf2, sysinfo.freqDDRBus));
+	}
+#else
 	switch (ddr_ratio) {
 	case 0x0:
 		printf("       DDR:%-4s MHz (%s MT/s data rate), ",
@@ -161,25 +140,44 @@ int checkcpu (void)
 			strmhz(buf2, sysinfo.freqDDRBus));
 		break;
 	case 0x7:
-		printf("       DDR:%-4s MHz (%s MT/s data rate) (Synchronous), ",
+		printf("       DDR:%-4s MHz (%s MT/s data rate) "
+			"(Synchronous), ",
 			strmhz(buf1, sysinfo.freqDDRBus/2),
 			strmhz(buf2, sysinfo.freqDDRBus));
 		break;
 	default:
-		printf("       DDR:%-4s MHz (%s MT/s data rate) (Asynchronous), ",
+		printf("       DDR:%-4s MHz (%s MT/s data rate) "
+			"(Asynchronous), ",
 			strmhz(buf1, sysinfo.freqDDRBus/2),
 			strmhz(buf2, sysinfo.freqDDRBus));
 		break;
 	}
+#endif
 
-	if (sysinfo.freqLocalBus > LCRR_CLKDIV)
+	if (sysinfo.freqLocalBus > LCRR_CLKDIV) {
 		printf("LBC:%-4s MHz\n", strmhz(buf1, sysinfo.freqLocalBus));
-	else
+	} else {
 		printf("LBC: unknown (LCRR[CLKDIV] = 0x%02lx)\n",
 		       sysinfo.freqLocalBus);
+	}
 
 #ifdef CONFIG_CPM2
 	printf("CPM:   %s MHz\n", strmhz(buf1, sysinfo.freqSystemBus));
+#endif
+
+#ifdef CONFIG_QE
+	printf("       QE:%-4s MHz\n", strmhz(buf1, sysinfo.freqQE));
+#endif
+
+#ifdef CONFIG_SYS_DPAA_FMAN
+	for (i = 0; i < CONFIG_SYS_NUM_FMAN; i++) {
+		printf("       FMAN%d: %s MHz\n", i,
+			strmhz(buf1, sysinfo.freqFMan[i]));
+	}
+#endif
+
+#ifdef CONFIG_SYS_DPAA_PME
+	printf("       PME:   %s MHz\n", strmhz(buf1, sysinfo.freqPME));
 #endif
 
 	puts("L1:    D-cache 32 kB enabled\n       I-cache 32 kB enabled\n");
@@ -192,27 +190,15 @@ int checkcpu (void)
 
 int do_reset (cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char *argv[])
 {
-	uint pvr;
-	uint ver;
+/* Everything after the first generation of PQ3 parts has RSTCR */
+#if defined(CONFIG_MPC8540) || defined(CONFIG_MPC8541) || \
+    defined(CONFIG_MPC8555) || defined(CONFIG_MPC8560)
 	unsigned long val, msr;
 
-	pvr = get_pvr();
-	ver = PVR_VER(pvr);
-
-	if (ver & 1){
-	/* e500 v2 core has reset control register */
-		volatile unsigned int * rstcr;
-		rstcr = (volatile unsigned int *)(CONFIG_SYS_IMMR + 0xE00B0);
-		*rstcr = 0x2;		/* HRESET_REQ */
-		udelay(100);
-	}
-
 	/*
-	 * Fallthrough if the code above failed
 	 * Initiate hard reset in debug control register DBCR0
-	 * Make sure MSR[DE] = 1
+	 * Make sure MSR[DE] = 1.  This only resets the core.
 	 */
-
 	msr = mfmsr ();
 	msr |= MSR_DE;
 	mtmsr (msr);
@@ -220,6 +206,11 @@ int do_reset (cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char *argv[])
 	val = mfspr(DBCR0);
 	val |= 0x70000000;
 	mtspr(DBCR0,val);
+#else
+	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
+	out_be32(&gur->rstcr, 0x2);	/* HRESET_REQ */
+	udelay(100);
+#endif
 
 	return 1;
 }
@@ -230,7 +221,11 @@ int do_reset (cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char *argv[])
  */
 unsigned long get_tbclk (void)
 {
+#ifdef CONFIG_FSL_CORENET
+	return (gd->bus_clk + 8) / 16;
+#else
 	return (gd->bus_clk + 4UL)/8UL;
+#endif
 }
 
 
@@ -255,50 +250,6 @@ reset_85xx_watchdog(void)
 	mtspr(SPRN_TSR, val);
 }
 #endif	/* CONFIG_WATCHDOG */
-
-#if defined(CONFIG_DDR_ECC)
-void dma_init(void) {
-	volatile ccsr_dma_t *dma = (void *)(CONFIG_SYS_MPC85xx_DMA_ADDR);
-
-	dma->satr0 = 0x02c40000;
-	dma->datr0 = 0x02c40000;
-	dma->sr0 = 0xfffffff; /* clear any errors */
-	asm("sync; isync; msync");
-	return;
-}
-
-uint dma_check(void) {
-	volatile ccsr_dma_t *dma = (void *)(CONFIG_SYS_MPC85xx_DMA_ADDR);
-	volatile uint status = dma->sr0;
-
-	/* While the channel is busy, spin */
-	while((status & 4) == 4) {
-		status = dma->sr0;
-	}
-
-	/* clear MR0[CS] channel start bit */
-	dma->mr0 &= 0x00000001;
-	asm("sync;isync;msync");
-
-	if (status != 0) {
-		printf ("DMA Error: status = %x\n", status);
-	}
-	return status;
-}
-
-int dma_xfer(void *dest, uint count, void *src) {
-	volatile ccsr_dma_t *dma = (void *)(CONFIG_SYS_MPC85xx_DMA_ADDR);
-
-	dma->dar0 = (uint) dest;
-	dma->sar0 = (uint) src;
-	dma->bcr0 = count;
-	dma->mr0 = 0xf000004;
-	asm("sync;isync;msync");
-	dma->mr0 = 0xf000005;
-	asm("sync;isync;msync");
-	return dma_check();
-}
-#endif
 
 /*
  * Configures a UPM. The function requires the respective MxMR to be set
@@ -363,41 +314,6 @@ void upmconfig (uint upm, uint * table, uint size)
 		old_mad = mad;
 	}
 	out_be32(mxmr, (in_be32(mxmr) & 0x4fffffc0) | MxMR_OP_NORM);
-}
-
-
-/*
- * Initializes on-chip ethernet controllers.
- * to override, implement board_eth_init()
- */
-int cpu_eth_init(bd_t *bis)
-{
-#if defined(CONFIG_ETHER_ON_FCC)
-	fec_initialize(bis);
-#endif
-#if defined(CONFIG_UEC_ETH1)
-	uec_initialize(0);
-#endif
-#if defined(CONFIG_UEC_ETH2)
-	uec_initialize(1);
-#endif
-#if defined(CONFIG_UEC_ETH3)
-	uec_initialize(2);
-#endif
-#if defined(CONFIG_UEC_ETH4)
-	uec_initialize(3);
-#endif
-#if defined(CONFIG_UEC_ETH5)
-	uec_initialize(4);
-#endif
-#if defined(CONFIG_UEC_ETH6)
-	uec_initialize(5);
-#endif
-#if defined(CONFIG_TSEC_ENET) || defined(CONFIG_MPC85XX_FEC)
-	tsec_standard_init(bis);
-#endif
-
-	return 0;
 }
 
 /*

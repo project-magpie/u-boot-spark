@@ -89,11 +89,11 @@ static int wait_for_dlllock(void)
 	/* -----------------------------------------------------------+
 	 * Wait for the DCC master delay line to finish calibration
 	 * ----------------------------------------------------------*/
-	mtdcr(memcfga, DDR0_17);
+	mtdcr(SDRAM0_CFGADDR, DDR0_17);
 	val = DDR0_17_DLLLOCKREG_UNLOCKED;
 
 	while (wait != 0xffff) {
-		val = mfdcr(memcfgd);
+		val = mfdcr(SDRAM0_CFGDATA);
 		if ((val & DDR0_17_DLLLOCKREG_MASK) ==
 		    DDR0_17_DLLLOCKREG_LOCKED)
 			/* dlllockreg bit on */
@@ -144,7 +144,7 @@ static void program_ecc(unsigned long start_address, unsigned long num_bytes)
 	u32 *magicPtr;
 	u32 magic;
 
-	if ((mfspr(dbcr0) & 0x80000000) == 0) {
+	if ((mfspr(SPRN_DBCR0) & 0x80000000) == 0) {
 		/* only if no external debugger is alive!
 		 * Check whether vxWorks is using EDR logging, if yes zero
 		 * also PostMortem and user reserved memory
@@ -182,7 +182,7 @@ static void program_ecc(unsigned long start_address, unsigned long num_bytes)
 	 * If not done, then we could get an interrupt later on when
 	 * exceptions are enabled.
 	 */
-	mtspr(mcsr, mfspr(mcsr));
+	mtspr(SPRN_MCSR, mfspr(SPRN_MCSR));
 
 	/* Set 'int_mask' parameter to functionnal value */
 	mfsdram(DDR0_01, val);

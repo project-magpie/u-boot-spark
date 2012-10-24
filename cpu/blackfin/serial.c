@@ -24,16 +24,25 @@
  * Licensed under the GPL-2 or later.
  */
 
+/* Anomaly notes:
+ *  05000086 - we don't support autobaud
+ *  05000099 - we only use DR bit, so losing others is not a problem
+ *  05000100 - we don't use the UART_IIR register
+ *  05000215 - we poll the uart (no dma/interrupts)
+ *  05000225 - no workaround possible, but this shouldnt cause errors ...
+ *  05000230 - we tweak the baud rate calculation slightly
+ *  05000231 - we always use 1 stop bit
+ *  05000309 - we always enable the uart before we modify it in anyway
+ *  05000350 - we always enable the uart regardless of boot mode
+ *  05000363 - we don't support break signals, so don't generate one
+ */
+
 #include <common.h>
 #include <watchdog.h>
 #include <asm/blackfin.h>
 #include <asm/mach-common/bits/uart.h>
 
 #ifdef CONFIG_UART_CONSOLE
-
-#if defined(UART_LSR) && (CONFIG_UART_CONSOLE != 0)
-# error CONFIG_UART_CONSOLE must be 0 on parts with only one UART
-#endif
 
 #include "serial.h"
 
@@ -43,12 +52,14 @@ uint16_t cached_rbr[256];
 size_t cache_count;
 
 /* The LSR is read-to-clear on some parts, so we have to make sure status
- * bits aren't inadvertently lost when doing various tests.
+ * bits aren't inadvertently lost when doing various tests.  This also
+ * works around anomaly 05000099 at the same time by keeping a cumulative
+ * tally of all the status bits.
  */
 static uint16_t uart_lsr_save;
 static uint16_t uart_lsr_read(void)
 {
-	uint16_t lsr = *pUART_LSR;
+	uint16_t lsr = bfin_read16(&pUART->lsr);
 	uart_lsr_save |= (lsr & (OE|PE|FE|BI));
 	return lsr | uart_lsr_save;
 }
@@ -56,11 +67,21 @@ static uint16_t uart_lsr_read(void)
 static void uart_lsr_clear(void)
 {
 	uart_lsr_save = 0;
-	*pUART_LSR |= -1;
+	bfin_write16(&pUART->lsr, bfin_read16(&pUART->lsr) | -1);
 }
 #else
-static inline uint16_t uart_lsr_read(void) { return *pUART_LSR; }
-static inline void uart_lsr_clear(void) { *pUART_LSR = -1; }
+/* When debugging is disabled, we only care about the DR bit, so if other
+ * bits get set/cleared, we don't really care since we don't read them
+ * anyways (and thus anomaly 05000099 is irrelevant).
+ */
+static uint16_t uart_lsr_read(void)
+{
+	return bfin_read16(&pUART->lsr);
+}
+static void uart_lsr_clear(void)
+{
+	bfin_write16(&pUART->lsr, bfin_read16(&pUART->lsr) | -1);
+}
 #endif
 
 /* Symbol for our assembly to call. */
@@ -111,14 +132,10 @@ void serial_putc(const char c)
 		continue;
 
 	/* queue the character for transmission */
-	*pUART_THR = c;
+	bfin_write16(&pUART->thr, c);
 	SSYNC();
 
 	WATCHDOG_RESET();
-
-	/* wait for the byte to be shifted over the line */
-	while (!(uart_lsr_read() & TEMT))
-		continue;
 }
 
 int serial_tstc(void)
@@ -136,7 +153,7 @@ int serial_getc(void)
 		continue;
 
 	/* grab the new byte */
-	uart_rbr_val = *pUART_RBR;
+	uart_rbr_val = bfin_read16(&pUART->rbr);
 
 #ifdef CONFIG_DEBUG_SERIAL
 	/* grab & clear the LSR */
@@ -150,8 +167,8 @@ int serial_getc(void)
 		uint16_t dll, dlh;
 		printf("\n[SERIAL ERROR]\n");
 		ACCESS_LATCH();
-		dll = *pUART_DLL;
-		dlh = *pUART_DLH;
+		dll = bfin_read16(&pUART->dll);
+		dlh = bfin_read16(&pUART->dlh);
 		ACCESS_PORT_IER();
 		printf("\tDLL=0x%x DLH=0x%x\n", dll, dlh);
 		do {

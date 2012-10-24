@@ -103,6 +103,10 @@
  * GPIO pins used for bit-banged MII communications
  */
 #define MDIO_PORT		2	/* Port C */
+#define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
+					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
+#define MDC_DECLARE		MDIO_DECLARE
+
 #define MDIO_ACTIVE		(iop->pdir |=  0x00400000)
 #define MDIO_TRISTATE		(iop->pdir &= ~0x00400000)
 #define MDIO_READ		((iop->pdat &  0x00400000) != 0)
@@ -202,7 +206,7 @@
  *
  */
 /* No command line, one static partition */
-#undef CONFIG_JFFS2_CMDLINE
+#undef CONFIG_CMD_MTDPARTS
 #define CONFIG_JFFS2_DEV		"nor0"
 #define CONFIG_JFFS2_PART_SIZE		0xFFFFFFFF
 #define CONFIG_JFFS2_PART_OFFSET	0x00100000
@@ -210,7 +214,7 @@
 /* mtdparts command line support */
 /* Note: fake mtd_id used, no linux mtd map file */
 /*
-#define CONFIG_JFFS2_CMDLINE
+#define CONFIG_CMD_MTDPARTS
 #define MTDIDS_DEFAULT		"nor0=rattler-0"
 #define MTDPARTS_DEFAULT	"mtdparts=rattler-0:-@1m(jffs2)"
 */

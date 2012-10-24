@@ -38,8 +38,8 @@
 #define	CONFIG_TQM8xxL		1
 
 #define	CONFIG_8xx_CONS_SMC1	1	/* Console is on SMC1		*/
-#undef	CONFIG_8xx_CONS_SMC2
-#undef	CONFIG_8xx_CONS_NONE
+#define CONFIG_SYS_SMC_RXBUFLEN	128
+#define CONFIG_SYS_MAXIDLE	10
 #define CONFIG_BAUDRATE		115200	/* console baudrate = 115kbps	*/
 
 #define	CONFIG_BOOTCOUNT_LIMIT
@@ -225,7 +225,9 @@
 /*-----------------------------------------------------------------------
  * Dynamic MTD partition support
  */
-#define CONFIG_JFFS2_CMDLINE
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_DEVICE		/* needed for mtdparts commands */
+#define CONFIG_FLASH_CFI_MTD
 #define MTDIDS_DEFAULT		"nor0=TQM8xxL-0"
 
 #define MTDPARTS_DEFAULT	"mtdparts=TQM8xxL-0:256k(u-boot),"	\
@@ -489,4 +491,10 @@
 						OR_SCY_2_CLK)
 #define CONFIG_SYS_BR4_PRELIM ((CONFIG_SYS_PERIPHERAL_BASE & BR_BA_MSK) | BR_PS_8 | BR_V)
 #define PCMCIA_CTRL (CONFIG_SYS_PERIPHERAL_BASE + 0xB00)
+
+/* pass open firmware flat tree */
+#define CONFIG_OF_LIBFDT	1
+#define CONFIG_OF_BOARD_SETUP	1
+#define CONFIG_HWCONFIG		1
+
 #endif	/* __CONFIG_H */

@@ -29,7 +29,8 @@
  */
 
 #include <common.h>
-#include <s3c6400.h>
+#include <netdev.h>
+#include <asm/arch/s3c6400.h>
 
 /* ------------------------------------------------------------------------- */
 #define CS8900_Tacs	0x0	/* 0clk		address set-up		*/
@@ -107,17 +108,6 @@ ulong virt_to_phy_smdk6400(ulong addr)
 }
 #endif
 
-#if defined(CONFIG_CMD_NAND) && defined(CONFIG_SYS_NAND_LEGACY)
-#include <linux/mtd/nand.h>
-extern struct nand_chip nand_dev_desc[CONFIG_SYS_MAX_NAND_DEVICE];
-void nand_init(void)
-{
-	nand_probe(CONFIG_SYS_NAND_BASE);
-	if (nand_dev_desc[0].ChipID != NAND_ChipID_UNKNOWN)
-		print_size(nand_dev_desc[0].totlen, "\n");
-}
-#endif
-
 ulong board_flash_get_legacy (ulong base, int banknum, flash_info_t *info)
 {
 	if (banknum == 0) {	/* non-CFI boot flash */
@@ -128,3 +118,14 @@ ulong board_flash_get_legacy (ulong base, int banknum, flash_info_t *info)
 	} else
 		return 0;
 }
+
+#ifdef CONFIG_CMD_NET
+int board_eth_init(bd_t *bis)
+{
+	int rc = 0;
+#ifdef CONFIG_CS8900
+	rc = cs8900_initialize(0, CONFIG_CS8900_BASE);
+#endif
+	return rc;
+}
+#endif

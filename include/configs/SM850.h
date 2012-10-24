@@ -38,15 +38,11 @@
 #define CONFIG_MPC850		1	/* This is a MPC850 CPU		*/
 #define CONFIG_SM850		1	/*...on a MPC850 Service Module	*/
 
-#undef	CONFIG_8xx_CONS_SMC1	/* SMC1 not usable because Ethernet on SCC3 */
 #define	CONFIG_8xx_CONS_SMC2	1	/* Console is on SMC2		*/
-#undef	CONFIG_8xx_CONS_NONE
+#define CONFIG_SYS_SMC_RXBUFLEN	128
+#define CONFIG_SYS_MAXIDLE	10
 #define CONFIG_BAUDRATE		115200
-#if 0
-#define CONFIG_BOOTDELAY	-1	/* autoboot disabled		*/
-#else
 #define CONFIG_BOOTDELAY	5	/* autoboot after 5 seconds	*/
-#endif
 
 #define	CONFIG_CLOCKS_IN_MHZ	1	/* clocks passsed to Linux in MHz */
 
@@ -375,5 +371,10 @@
  */
 #define	BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
 #define BOOTFLAG_WARM	0x02		/* Software reboot			*/
+
+/* pass open firmware flat tree */
+#define CONFIG_OF_LIBFDT	1
+#define CONFIG_OF_BOARD_SETUP	1
+#define CONFIG_HWCONFIG		1
 
 #endif	/* __CONFIG_H */

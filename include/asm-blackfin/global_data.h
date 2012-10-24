@@ -28,6 +28,8 @@
 #ifndef	__ASM_GBL_DATA_H
 #define __ASM_GBL_DATA_H
 
+#include <asm/u-boot.h>
+
 /*
  * The following data structure is placed in some memory wich is
  * available very early after boot (like DPRAM on MPC8xx/MPC82xx, or
@@ -44,7 +46,6 @@ typedef struct global_data {
 	unsigned long baudrate;
 	unsigned long have_console;	/* serial_init() was called */
 	phys_size_t ram_size;		/* RAM size */
-	unsigned long reloc_off;	/* Relocation Offset */
 	unsigned long env_addr;	/* Address  of Environment struct */
 	unsigned long env_valid;	/* Checksum of Environment valid? */
 #if defined(CONFIG_POST) || defined(CONFIG_LOGBUFFER)
@@ -66,6 +67,6 @@ typedef struct global_data {
 #define	GD_FLG_LOGINIT	0x00020	/* Log Buf has been initialized	 */
 #define GD_FLG_DISABLE_CONSOLE	0x00040		/* Disable console (in & out)	 */
 
-#define DECLARE_GLOBAL_DATA_PTR     register gd_t * volatile gd asm ("P5")
+#define DECLARE_GLOBAL_DATA_PTR     register gd_t * volatile gd asm ("P3")
 
 #endif

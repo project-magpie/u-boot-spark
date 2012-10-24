@@ -186,6 +186,9 @@ static int bfin_EMAC_recv(struct eth_device *dev)
 			printf("Ethernet: bad frame\n");
 			break;
 		}
+
+		debug("%s: len = %d\n", __func__, length - 4);
+
 		NetRxPackets[rxIdx] =
 		    (volatile uchar *)(rxbuf[rxIdx]->FrmData->Dest);
 		NetReceive(NetRxPackets[rxIdx], length - 4);
@@ -315,7 +318,7 @@ static int bfin_EMAC_init(struct eth_device *dev, bd_t *bd)
 		return -1;
 
 	/* Initialize EMAC address */
-	bfin_EMAC_setup_addr(bd);
+	bfin_EMAC_setup_addr(dev->enetaddr);
 
 	/* Initialize TX and RX buffer */
 	for (i = 0; i < PKTBUFSRX; i++) {
@@ -373,16 +376,16 @@ static void bfin_EMAC_halt(struct eth_device *dev)
 
 }
 
-void bfin_EMAC_setup_addr(bd_t *bd)
+void bfin_EMAC_setup_addr(uchar *enetaddr)
 {
 	*pEMAC_ADDRLO =
-		bd->bi_enetaddr[0] |
-		bd->bi_enetaddr[1] << 8 |
-		bd->bi_enetaddr[2] << 16 |
-		bd->bi_enetaddr[3] << 24;
+		enetaddr[0] |
+		enetaddr[1] << 8 |
+		enetaddr[2] << 16 |
+		enetaddr[3] << 24;
 	*pEMAC_ADDRHI =
-		bd->bi_enetaddr[4] |
-		bd->bi_enetaddr[5] << 8;
+		enetaddr[4] |
+		enetaddr[5] << 8;
 }
 
 ADI_ETHER_BUFFER *SetupRxBuffer(int no)

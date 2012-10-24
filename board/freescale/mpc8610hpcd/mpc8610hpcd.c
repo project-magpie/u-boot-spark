@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 Freescale Semiconductor, Inc.
+ * Copyright 2007,2009 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -25,7 +25,7 @@
 #include <pci.h>
 #include <asm/processor.h>
 #include <asm/immap_86xx.h>
-#include <asm/immap_fsl_pci.h>
+#include <asm/fsl_pci.h>
 #include <asm/fsl_ddr_sdram.h>
 #include <i2c.h>
 #include <asm/io.h>
@@ -55,16 +55,17 @@ int board_early_init_f(void)
 int misc_init_r(void)
 {
 	u8 tmp_val, version;
+	u8 *pixis_base = (u8 *)PIXIS_BASE;
 
 	/*Do not use 8259PIC*/
-	tmp_val = in8(PIXIS_BASE + PIXIS_BRDCFG0);
-	out8(PIXIS_BASE + PIXIS_BRDCFG0, tmp_val | 0x80);
+	tmp_val = in_8(pixis_base + PIXIS_BRDCFG0);
+	out_8(pixis_base + PIXIS_BRDCFG0, tmp_val | 0x80);
 
 	/*For FPGA V7 or higher, set the IRQMAPSEL to 0 to use MAP0 interrupt*/
-	version = in8(PIXIS_BASE + PIXIS_PVER);
+	version = in_8(pixis_base + PIXIS_PVER);
 	if(version >= 0x07) {
-		tmp_val = in8(PIXIS_BASE + PIXIS_BRDCFG0);
-		out8(PIXIS_BASE + PIXIS_BRDCFG0, tmp_val & 0xbf);
+		tmp_val = in_8(pixis_base + PIXIS_BRDCFG0);
+		out_8(pixis_base + PIXIS_BRDCFG0, tmp_val & 0xbf);
 	}
 
 	/* Using this for DIU init before the driver in linux takes over
@@ -96,11 +97,12 @@ int checkboard(void)
 {
 	volatile immap_t *immap = (immap_t *)CONFIG_SYS_IMMR;
 	volatile ccsr_local_mcm_t *mcm = &immap->im_local_mcm;
+	u8 *pixis_base = (u8 *)PIXIS_BASE;
 
 	printf ("Board: MPC8610HPCD, System ID: 0x%02x, "
 		"System Version: 0x%02x, FPGA Version: 0x%02x\n",
-		in8(PIXIS_BASE + PIXIS_ID), in8(PIXIS_BASE + PIXIS_VER),
-		in8(PIXIS_BASE + PIXIS_PVER));
+		in_8(pixis_base + PIXIS_ID), in_8(pixis_base + PIXIS_VER),
+		in_8(pixis_base + PIXIS_PVER));
 
 	mcm->abcr |= 0x00010000; /* 0 */
 	mcm->hpmr3 = 0x80000008; /* 4c */
@@ -125,10 +127,7 @@ initdram(int board_type)
 	dram_size = fixed_sdram();
 #endif
 
-#if defined(CONFIG_SYS_RAMBOOT)
-	puts(" DDR: ");
-	return dram_size;
-#endif
+	setup_ddr_bat(dram_size);
 
 	puts(" DDR: ");
 	return dram_size;
@@ -154,7 +153,7 @@ phys_size_t fixed_sdram(void)
 	ddr->timing_cfg_0 = 0x00260802;
 	ddr->timing_cfg_1 = 0x3935d322;
 	ddr->timing_cfg_2 = 0x14904cc8;
-	ddr->sdram_mode_1 = 0x00480432;
+	ddr->sdram_mode = 0x00480432;
 	ddr->sdram_mode_2 = 0x00000000;
 	ddr->sdram_interval = 0x06180fff; /* 0x06180100; */
 	ddr->sdram_data_init = 0xDEADBEEF;
@@ -170,7 +169,7 @@ phys_size_t fixed_sdram(void)
 
 	udelay(500);
 
-	ddr->sdram_cfg_1 = 0xc3000000; /* 0xe3008000;*/
+	ddr->sdram_cfg = 0xc3000000; /* 0xe3008000;*/
 
 
 #if defined(CONFIG_ECC_INIT_VIA_DDRCONTROLLER)
@@ -227,200 +226,90 @@ static struct pci_controller pcie1_hose;
 static struct pci_controller pcie2_hose;
 #endif
 
-int first_free_busno = 0;
-
-extern int fsl_pci_setup_inbound_windows(struct pci_region *r);
-extern void fsl_pci_init(struct pci_controller *hose);
-
 void pci_init_board(void)
 {
 	volatile immap_t *immap = (immap_t *) CONFIG_SYS_CCSRBAR;
 	volatile ccsr_gur_t *gur = &immap->im_gur;
-	uint devdisr = gur->devdisr;
-	uint io_sel = (gur->pordevsr & MPC8610_PORDEVSR_IO_SEL)
-		>> MPC8610_PORDEVSR_IO_SEL_SHIFT;
-	uint host_agent = (gur->porbmsr & MPC8610_PORBMSR_HA)
-		>> MPC8610_PORBMSR_HA_SHIFT;
+	struct fsl_pci_info pci_info[3];
+	u32 devdisr, pordevsr, io_sel;
+	int first_free_busno = 0;
+	int num = 0;
 
-	printf( " pci_init_board: devdisr=%x, io_sel=%x, host_agent=%x\n",
-		devdisr, io_sel, host_agent);
+	int pci_agent, pcie_ep, pcie_configured;
+
+	devdisr = in_be32(&gur->devdisr);
+	pordevsr = in_be32(&gur->pordevsr);
+	io_sel = (pordevsr & MPC8610_PORDEVSR_IO_SEL)
+			>> MPC8610_PORDEVSR_IO_SEL_SHIFT;
+
+	debug ("   pci_init_board: devdisr=%x, io_sel=%x\n", devdisr, io_sel);
 
 #ifdef CONFIG_PCIE1
- {
-	volatile ccsr_fsl_pci_t *pci = (ccsr_fsl_pci_t *) CONFIG_SYS_PCIE1_ADDR;
-	struct pci_controller *hose = &pcie1_hose;
-	int pcie_configured = (io_sel == 1) || (io_sel == 4);
-	int pcie_ep = (host_agent == 0) || (host_agent == 2) ||
-		(host_agent == 5);
-	struct pci_region *r = hose->regions;
+	pcie_configured = is_fsl_pci_cfg(LAW_TRGT_IF_PCIE_1, io_sel);
 
-	if (pcie_configured && !(devdisr & MPC86xx_DEVDISR_PCIE1)) {
-		printf(" PCIe 1 connected to Uli as %s (base address %x)\n",
-			pcie_ep ? "End Point" : "Root Complex",
-			(uint)pci);
-		if (pci->pme_msg_det)
-			pci->pme_msg_det = 0xffffffff;
+	if (pcie_configured && !(devdisr & MPC86xx_DEVDISR_PCIE1)){
+		SET_STD_PCIE_INFO(pci_info[num], 1);
+		pcie_ep = fsl_setup_hose(&pcie1_hose, pci_info[num].regs);
+		printf ("    PCIE1 connected to ULI as %s (base addr %lx)\n",
+				pcie_ep ? "Endpoint" : "Root Complex",
+				pci_info[num].regs);
 
-		/* inbound */
-		r += fsl_pci_setup_inbound_windows(r);
+		first_free_busno = fsl_pci_init_port(&pci_info[num++],
+					&pcie1_hose, first_free_busno);
+	} else {
+		printf ("    PCIE1: disabled\n");
+	}
 
-		/* outbound memory */
-		pci_set_region(r++,
-			 CONFIG_SYS_PCIE1_MEM_BUS,
-			 CONFIG_SYS_PCIE1_MEM_PHYS,
-			 CONFIG_SYS_PCIE1_MEM_SIZE,
-			 PCI_REGION_MEM);
-
-		/* outbound io */
-		pci_set_region(r++,
-			 CONFIG_SYS_PCIE1_IO_BUS,
-			 CONFIG_SYS_PCIE1_IO_PHYS,
-			 CONFIG_SYS_PCIE1_IO_SIZE,
-			 PCI_REGION_IO);
-
-		hose->region_count = r - hose->regions;
-
-		hose->first_busno = first_free_busno;
-		pci_setup_indirect(hose, (int)&pci->cfg_addr,
-				 (int)&pci->cfg_data);
-
-		fsl_pci_init(hose);
-
-		first_free_busno = hose->last_busno + 1;
-		printf(" PCI-Express 1 on bus %02x - %02x\n",
-			hose->first_busno, hose->last_busno);
-
-	} else
-		puts(" PCI-Express 1: Disabled\n");
- }
+	puts("\n");
 #else
-	puts("PCI-Express 1: Disabled\n");
-#endif /* CONFIG_PCIE1 */
-
+	setbits_be32(&gur->devdisr, MPC86xx_DEVDISR_PCIE1); /* disable */
+#endif
 
 #ifdef CONFIG_PCIE2
- {
-	volatile ccsr_fsl_pci_t *pci = (ccsr_fsl_pci_t *) CONFIG_SYS_PCIE2_ADDR;
-	struct pci_controller *hose = &pcie2_hose;
-	struct pci_region *r = hose->regions;
+	pcie_configured = is_fsl_pci_cfg(LAW_TRGT_IF_PCIE_2, io_sel);
 
-	int pcie_configured = (io_sel == 0) || (io_sel == 4);
-	int pcie_ep = (host_agent == 0) || (host_agent == 1) ||
-		(host_agent == 4);
+	if (pcie_configured && !(devdisr & MPC86xx_DEVDISR_PCIE2)){
+		SET_STD_PCIE_INFO(pci_info[num], 2);
+		pcie_ep = fsl_setup_hose(&pcie2_hose, pci_info[num].regs);
+		printf ("    PCIE2 connected to Slot as %s (base addr %lx)\n",
+				pcie_ep ? "Endpoint" : "Root Complex",
+				pci_info[num].regs);
+		first_free_busno = fsl_pci_init_port(&pci_info[num++],
+					&pcie2_hose, first_free_busno);
+	} else {
+		printf ("    PCIE2: disabled\n");
+	}
 
-	if (pcie_configured && !(devdisr & MPC86xx_DEVDISR_PCIE2)) {
-		printf(" PCI-Express 2 connected to slot as %s" \
-			" (base address %x)\n",
-			pcie_ep ? "End Point" : "Root Complex",
-			(uint)pci);
-		if (pci->pme_msg_det)
-			pci->pme_msg_det = 0xffffffff;
-
-		/* inbound */
-		r += fsl_pci_setup_inbound_windows(r);
-
-		/* outbound memory */
-		pci_set_region(r++,
-			 CONFIG_SYS_PCIE2_MEM_BUS,
-			 CONFIG_SYS_PCIE2_MEM_PHYS,
-			 CONFIG_SYS_PCIE2_MEM_SIZE,
-			 PCI_REGION_MEM);
-
-		/* outbound io */
-		pci_set_region(r++,
-			 CONFIG_SYS_PCIE2_IO_BUS,
-			 CONFIG_SYS_PCIE2_IO_PHYS,
-			 CONFIG_SYS_PCIE2_IO_SIZE,
-			 PCI_REGION_IO);
-
-		hose->region_count = r - hose->regions;
-
-		hose->first_busno = first_free_busno;
-		pci_setup_indirect(hose, (int)&pci->cfg_addr,
-				 (int)&pci->cfg_data);
-
-		fsl_pci_init(hose);
-
-		first_free_busno = hose->last_busno + 1;
-		printf(" PCI-Express 2 on bus %02x - %02x\n",
-			hose->first_busno, hose->last_busno);
-	} else
-		puts(" PCI-Express 2: Disabled\n");
- }
+	puts("\n");
 #else
-	puts("PCI-Express 2: Disabled\n");
-#endif /* CONFIG_PCIE2 */
-
+	setbits_be32(&gur->devdisr, MPC86xx_DEVDISR_PCIE2); /* disable */
+#endif
 
 #ifdef CONFIG_PCI1
- {
-	volatile ccsr_fsl_pci_t *pci = (ccsr_fsl_pci_t *) CONFIG_SYS_PCI1_ADDR;
-	struct pci_controller *hose = &pci1_hose;
-	int pci_agent = (host_agent >= 4) && (host_agent <= 6);
-	struct pci_region *r = hose->regions;
-
-	if ( !(devdisr & MPC86xx_DEVDISR_PCI1)) {
+	if (!(devdisr & MPC86xx_DEVDISR_PCI1)) {
+		SET_STD_PCI_INFO(pci_info[num], 1);
+		pci_agent = fsl_setup_hose(&pci1_hose, pci_info[num].regs);
 		printf(" PCI connected to PCI slots as %s" \
-			" (base address %x)\n",
+			" (base address %lx)\n",
 			pci_agent ? "Agent" : "Host",
-			(uint)pci);
+			pci_info[num].regs);
+		first_free_busno = fsl_pci_init_port(&pci_info[num++],
+					&pci1_hose, first_free_busno);
+	} else {
+		printf ("    PCI: disabled\n");
+	}
 
-		/* inbound */
-		r += fsl_pci_setup_inbound_windows(r);
-
-		/* outbound memory */
-		pci_set_region(r++,
-			 CONFIG_SYS_PCI1_MEM_BUS,
-			 CONFIG_SYS_PCI1_MEM_PHYS,
-			 CONFIG_SYS_PCI1_MEM_SIZE,
-			 PCI_REGION_MEM);
-
-		/* outbound io */
-		pci_set_region(r++,
-			 CONFIG_SYS_PCI1_IO_BUS,
-			 CONFIG_SYS_PCI1_IO_PHYS,
-			 CONFIG_SYS_PCI1_IO_SIZE,
-			 PCI_REGION_IO);
-
-		hose->region_count = r - hose->regions;
-
-		hose->first_busno = first_free_busno;
-		pci_setup_indirect(hose, (int) &pci->cfg_addr,
-				 (int) &pci->cfg_data);
-
-		fsl_pci_init(hose);
-
-		first_free_busno = hose->last_busno + 1;
-		printf(" PCI on bus %02x - %02x\n",
-			hose->first_busno, hose->last_busno);
-
-
-	} else
-		puts(" PCI: Disabled\n");
- }
-#endif /* CONFIG_PCI1 */
+	puts("\n");
+#else
+	setbits_be32(&gur->devdisr, MPC86xx_DEVDISR_PCI1); /* disable */
+#endif
 }
 
 #if defined(CONFIG_OF_BOARD_SETUP)
-extern void ft_fsl_pci_setup(void *blob, const char *pci_alias,
-			struct pci_controller *hose);
-
 void
 ft_board_setup(void *blob, bd_t *bd)
 {
-	do_fixup_by_prop_u32(blob, "device_type", "cpu", 4,
-			     "timebase-frequency", bd->bi_busfreq / 4, 1);
-	do_fixup_by_prop_u32(blob, "device_type", "cpu", 4,
-			     "bus-frequency", bd->bi_busfreq, 1);
-	do_fixup_by_prop_u32(blob, "device_type", "cpu", 4,
-			     "clock-frequency", bd->bi_intfreq, 1);
-	do_fixup_by_prop_u32(blob, "device_type", "soc", 4,
-			     "bus-frequency", bd->bi_busfreq, 1);
-
-	do_fixup_by_compat_u32(blob, "ns16550",
-			       "clock-frequency", bd->bi_busfreq, 1);
-
-	fdt_fixup_memory(blob, bd->bi_memstart, bd->bi_memsize);
+	ft_cpu_setup(blob, bd);
 
 #ifdef CONFIG_PCI1
 	ft_fsl_pci_setup(blob, "pci0", &pci1_hose);
@@ -444,10 +333,9 @@ get_board_sys_clk(ulong dummy)
 {
 	u8 i;
 	ulong val = 0;
-	ulong a;
+	u8 *pixis_base = (u8 *)PIXIS_BASE;
 
-	a = PIXIS_BASE + PIXIS_SPD;
-	i = in8(a);
+	i = in_8(pixis_base + PIXIS_SPD);
 	i &= 0x07;
 
 	switch (i) {
@@ -487,7 +375,9 @@ int board_eth_init(bd_t *bis)
 
 void board_reset(void)
 {
-	out8(PIXIS_BASE + PIXIS_RST, 0);
+	u8 *pixis_base = (u8 *)PIXIS_BASE;
+
+	out_8(pixis_base + PIXIS_RST, 0);
 
 	while (1)
 		;

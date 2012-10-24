@@ -28,13 +28,16 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define CONFIG_SKIP_RELOCATE_UBOOT
+
 /*
  * High Level Configuration Options
  * (easy to change)
  */
 
 #define CONFIG_X86		1	/* This is a X86 CPU		*/
-#define CONFIG_SC520		1	/* Include support for AMD SC520 */
+#define CONFIG_SYS_SC520	1	/* Include support for AMD SC520 */
+#define CONFIG_SYS_SC520_SSI
 
 #define CONFIG_SYS_SDRAM_PRECHARGE_DELAY 6     /* 6T */
 #define CONFIG_SYS_SDRAM_REFRESH_RATE    78    /* 7.8uS (choices are 7.8, 15.6, 31.2 or 62.5uS) */
@@ -45,10 +48,12 @@
 #define CONFIG_SYS_SDRAM_CAS_LATENCY_3T
 
 #define CONFIG_SYS_SC520_HIGH_SPEED    0       /* 100 or 133MHz */
-#undef  CONFIG_SYS_RESET_SC520                 /* use SC520 MMCR's to reset cpu */
-#undef  CONFIG_SYS_TIMER_SC520                 /* use SC520 swtimers */
-#define CONFIG_SYS_TIMER_GENERIC       1       /* use the i8254 PIT timers */
-#undef  CONFIG_SYS_TIMER_TSC                   /* use the Pentium TSC timers */
+#undef  CONFIG_SYS_SC520_RESET                 /* use SC520 MMCR's to reset cpu */
+#undef  CONFIG_SYS_SC520_TIMER                 /* use SC520 swtimers */
+#define CONFIG_SYS_GENERIC_TIMER       1       /* use the i8254 PIT timers */
+#undef  CONFIG_SYS_TSC_TIMER                   /* use the Pentium TSC timers */
+#define CONFIG_SYS_PCAT_INTERRUPTS
+#define CONFIG_SYS_NUM_IRQS		16
 
 #define CONFIG_SYS_STACK_SIZE          0x8000  /* Size of bootloader stack */
 
@@ -58,7 +63,7 @@
 /*
  * Size of malloc() pool
  */
-#define CONFIG_MALLOC_SIZE	(CONFIG_ENV_SIZE + 128*1024)
+#define CONFIG_SYS_MALLOC_LEN	(CONFIG_ENV_SIZE + 128*1024)
 
 
 #define CONFIG_BAUDRATE		9600
@@ -112,8 +117,6 @@
 
 #define CONFIG_SYS_MEMTEST_START	0x00100000	/* memtest works on	*/
 #define CONFIG_SYS_MEMTEST_END		0x01000000	/* 1 ... 16 MB in DRAM	*/
-
-#undef  CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
 
 #define	CONFIG_SYS_LOAD_ADDR		0x100000	/* default load address	*/
 
@@ -173,7 +176,7 @@
  *
  */
 /* No command line, one static partition, whole device */
-#undef CONFIG_JFFS2_CMDLINE
+#undef CONFIG_CMD_MTDPARTS
 #define CONFIG_JFFS2_DEV		"nor0"
 #define CONFIG_JFFS2_PART_SIZE		0xFFFFFFFF
 #define CONFIG_JFFS2_PART_OFFSET	0x00000000
@@ -181,7 +184,7 @@
 /* mtdparts command line support */
 /* Note: fake mtd_id used, no linux mtd map file */
 /*
-#define CONFIG_JFFS2_CMDLINE
+#define CONFIG_CMD_MTDPARTS
 #define MTDIDS_DEFAULT		"nor0=sc520_spunk-0"
 #define MTDPARTS_DEFAULT	"mtdparts=sc520_spunk-0:-(jffs2)"
 */
@@ -216,6 +219,7 @@
 #define CONFIG_SYS_PCMCIA_CIS_WIN_SIZE     0x00100000
 #define CONFIG_SYS_PCMCIA_IO_WIN           0xe000
 #define CONFIG_SYS_PCMCIA_IO_WIN_SIZE      16
+#define CONFIG_PCMCIA_SLOT_A /* TODO: Check this */
 
 /************************************************************
  * DISK Partition support

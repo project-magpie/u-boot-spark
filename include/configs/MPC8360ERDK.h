@@ -22,7 +22,7 @@
  */
 #define CONFIG_E300		1 /* E300 family */
 #define CONFIG_QE		1 /* Has QE */
-#define CONFIG_MPC83XX		1 /* MPC83XX family */
+#define CONFIG_MPC83xx		1 /* MPC83xx family */
 #define CONFIG_MPC8360		1 /* MPC8360 CPU specific */
 #define CONFIG_MPC8360ERDK	1 /* MPC8360ERDK board specific */
 
@@ -162,7 +162,7 @@
 #undef	CONFIG_SYS_RAMBOOT
 #endif
 
-#define CONFIG_SYS_MONITOR_LEN		(256 * 1024) /* Reserve 256 kB for Mon */
+#define CONFIG_SYS_MONITOR_LEN		(384 * 1024) /* Reserve 384 kB for Mon */
 #define CONFIG_SYS_MALLOC_LEN		(128 * 1024) /* Reserved for malloc */
 
 /*
@@ -177,7 +177,8 @@
 /*
  * Local Bus Configuration & Clock Setup
  */
-#define CONFIG_SYS_LCRR		(LCRR_DBYP | LCRR_CLKDIV_4)
+#define CONFIG_SYS_LCRR_DBYP	LCRR_DBYP
+#define CONFIG_SYS_LCRR_CLKDIV	LCRR_CLKDIV_4
 #define CONFIG_SYS_LBC_LBCR		0x00000000
 
 /*
@@ -265,7 +266,6 @@
 #undef	CONFIG_SOFT_I2C		/* I2C bit-banged */
 #define CONFIG_FSL_I2C
 #define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_CMD_TREE
 #define CONFIG_SYS_I2C_SPEED	400000	/* I2C speed and slave address */
 #define CONFIG_SYS_I2C_SLAVE	0x7F
 #define CONFIG_SYS_I2C_NOPROBES	{{0x52}} /* Don't probe these addrs */
@@ -277,7 +277,6 @@
  * Addresses are mapped 1-1.
  */
 #define CONFIG_PCI
-#define CONFIG_83XX_GENERIC_PCI	1
 
 #define CONFIG_SYS_PCI1_MEM_BASE	0x80000000
 #define CONFIG_SYS_PCI1_MEM_PHYS	CONFIG_SYS_PCI1_MEM_BASE
@@ -319,7 +318,8 @@
 #define CONFIG_SYS_UEC1_TX_CLK		QE_CLK9
 #define CONFIG_SYS_UEC1_ETH_TYPE	GIGA_ETH
 #define CONFIG_SYS_UEC1_PHY_ADDR	2
-#define CONFIG_SYS_UEC1_INTERFACE_MODE ENET_1000_RGMII_RXID
+#define CONFIG_SYS_UEC1_INTERFACE_TYPE RGMII_RXID
+#define CONFIG_SYS_UEC1_INTERFACE_SPEED 1000
 #endif
 
 #define CONFIG_UEC_ETH2		/* GETH2 */
@@ -330,7 +330,8 @@
 #define CONFIG_SYS_UEC2_TX_CLK		QE_CLK4
 #define CONFIG_SYS_UEC2_ETH_TYPE	GIGA_ETH
 #define CONFIG_SYS_UEC2_PHY_ADDR	4
-#define CONFIG_SYS_UEC2_INTERFACE_MODE ENET_1000_RGMII_RXID
+#define CONFIG_SYS_UEC2_INTERFACE_TYPE RGMII_RXID
+#define CONFIG_SYS_UEC2_INTERFACE_SPEED 1000
 #endif
 
 /*
@@ -339,7 +340,7 @@
 
 #ifndef CONFIG_SYS_RAMBOOT
 #define CONFIG_ENV_IS_IN_FLASH	1
-#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE + 0x40000)
+#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE + CONFIG_SYS_MONITOR_LEN)
 #define CONFIG_ENV_SECT_SIZE	0x20000 /* 128K(one sector) for env */
 #define CONFIG_ENV_SIZE		0x20000
 #else /* CONFIG_SYS_RAMBOOT */
@@ -505,10 +506,6 @@
 #define CONFIG_HAS_ETH1
 #define CONFIG_HAS_ETH2
 #define CONFIG_HAS_ETH3
-#define CONFIG_ETHADDR	00:04:9f:ef:01:01
-#define CONFIG_ETH1ADDR	00:04:9f:ef:01:02
-#define CONFIG_ETH2ADDR	00:04:9f:ef:01:03
-#define CONFIG_ETH3ADDR	00:04:9f:ef:01:04
 #endif
 
 #define CONFIG_BAUDRATE 115200
@@ -517,10 +514,6 @@
 #define CONFIG_HOSTNAME	mpc8360erdk
 #define CONFIG_BOOTFILE	uImage
 
-#define CONFIG_IPADDR		10.0.0.99
-#define CONFIG_SERVERIP		10.0.0.2
-#define CONFIG_GATEWAYIP	10.0.0.2
-#define CONFIG_NETMASK		255.255.255.0
 #define CONFIG_ROOTPATH		/nfsroot/
 
 #define	CONFIG_BOOTDELAY 2	/* -1 disables auto-boot */
@@ -531,7 +524,7 @@
    "consoledev=ttyS0\0"\
    "loadaddr=a00000\0"\
    "fdtaddr=900000\0"\
-   "fdtfile=dtb\0"\
+   "fdtfile=mpc836x_rdk.dtb\0"\
    "fsfile=fs\0"\
    "ubootfile=u-boot.bin\0"\
    "mtdparts=mtdparts=60000000.nand-flash:4096k(kernel),128k(dtb),-(rootfs)\0"\

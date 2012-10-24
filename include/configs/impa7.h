@@ -47,13 +47,15 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_DRIVER_CS8900	1	/* we have a CS8900 on-board */
-#define CS8900_BASE		0x20000000
-#define CS8900_BUS32		1
+#define CONFIG_NET_MULTI
+#define CONFIG_CS8900		/* we have a CS8900 on-board */
+#define CONFIG_CS8900_BASE	0x20000000
+#define CONFIG_CS8900_BUS32
 
 /*
  * select serial console configuration
  */
+#define CONFIG_CLPS7111_SERIAL
 #define CONFIG_SERIAL1		1	/* we use Serial line 1 */
 
 /* allow to overwrite serial and ethaddr */
@@ -105,8 +107,6 @@
 
 #define CONFIG_SYS_MEMTEST_START	0xc0400000	/* memtest works on	*/
 #define CONFIG_SYS_MEMTEST_END		0xc0800000	/* 4 ... 8 MB in DRAM	*/
-
-#undef  CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
 
 #define	CONFIG_SYS_LOAD_ADDR		0xc1000000	/* default load address	*/
 
@@ -160,14 +160,14 @@
  *
  */
 /* No command line, one static partition, whole device */
-#undef CONFIG_JFFS2_CMDLINE
+#undef CONFIG_CMD_MTDPARTS
 #define CONFIG_JFFS2_DEV		"nor0"
 #define CONFIG_JFFS2_PART_SIZE		0xFFFFFFFF
 #define CONFIG_JFFS2_PART_OFFSET	0x00020000
 
 /* mtdparts command line support */
 /*
-#define CONFIG_JFFS2_CMDLINE
+#define CONFIG_CMD_MTDPARTS
 #define MTDIDS_DEFAULT		"nor0=impA7 NOR Flash Bank #0,nor1=impA7 NOR Flash Bank #1"
 #define MTDPARTS_DEFAULT	"mtdparts=impA7 NOR Flash Bank #0:-(FileSystem1);impA7 NOR Flash Bank #1:-(FileSystem2)"
 */

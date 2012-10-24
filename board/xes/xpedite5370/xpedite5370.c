@@ -25,7 +25,7 @@
 #include <asm/processor.h>
 #include <asm/mmu.h>
 #include <asm/immap_85xx.h>
-#include <asm/immap_fsl_pci.h>
+#include <asm/fsl_pci.h>
 #include <asm/io.h>
 #include <asm/cache.h>
 #include <libfdt.h>
@@ -71,11 +71,11 @@ static void flash_cs_fixup(void)
 	printf("FLASH: Executed from FLASH%d\n", flash_sel ? 2 : 1);
 
 	if (flash_sel) {
-		lbc->br0 = CONFIG_SYS_BR1_PRELIM;
-		lbc->or0 = CONFIG_SYS_OR1_PRELIM;
+		out_be32(&lbc->br0, CONFIG_SYS_BR1_PRELIM);
+		out_be32(&lbc->or0, CONFIG_SYS_OR1_PRELIM);
 
-		lbc->br1 = CONFIG_SYS_BR0_PRELIM;
-		lbc->or1 = CONFIG_SYS_OR0_PRELIM;
+		out_be32(&lbc->br1, CONFIG_SYS_BR0_PRELIM);
+		out_be32(&lbc->or1, CONFIG_SYS_OR0_PRELIM);
 	}
 }
 
@@ -84,8 +84,8 @@ int board_early_init_r(void)
 	/* Initialize PCA9557 devices */
 	pca953x_set_pol(CONFIG_SYS_I2C_PCA953X_ADDR0, 0xff, 0);
 	pca953x_set_pol(CONFIG_SYS_I2C_PCA953X_ADDR1, 0xff, 0);
-	pca953x_set_pol(CONFIG_SYS_I2C_PCA953X_ADDR0, 0xff, 0);
-	pca953x_set_pol(CONFIG_SYS_I2C_PCA953X_ADDR0, 0xff, 0);
+	pca953x_set_pol(CONFIG_SYS_I2C_PCA953X_ADDR2, 0xff, 0);
+	pca953x_set_pol(CONFIG_SYS_I2C_PCA953X_ADDR3, 0xff, 0);
 
 	/*
 	 * Remap NOR flash region to caching-inhibited

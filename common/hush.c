@@ -2002,7 +2002,7 @@ static int free_pipe(struct pipe *pi, int indent)
 #ifndef __U_BOOT__
 			globfree(&child->glob_result);
 #else
-			for (a = child->argc;a >= 0;a--) {
+			for (a = 0; a < child->argc; a++) {
 				free(child->argv[a]);
 			}
 					free(child->argv);
@@ -3270,6 +3270,7 @@ int parse_file_outer(void)
 }
 
 #ifdef __U_BOOT__
+#ifndef CONFIG_RELOC_FIXUP_WORKS
 static void u_boot_hush_reloc(void)
 {
 	unsigned long addr;
@@ -3280,6 +3281,7 @@ static void u_boot_hush_reloc(void)
 		r->literal = (char *)addr;
 	}
 }
+#endif
 
 int u_boot_hush_start(void)
 {
@@ -3290,7 +3292,9 @@ int u_boot_hush_start(void)
 		top_vars->next = 0;
 		top_vars->flg_export = 0;
 		top_vars->flg_read_only = 1;
+#ifndef CONFIG_RELOC_FIXUP_WORKS
 		u_boot_hush_reloc();
+#endif
 	}
 	return 0;
 }
@@ -3627,7 +3631,7 @@ U_BOOT_CMD(
 	"print local hushshell variables",
 	"\n    - print values of all hushshell variables\n"
 	"showvar name ...\n"
-	"    - print value of hushshell variable 'name'\n"
+	"    - print value of hushshell variable 'name'"
 );
 
 #endif

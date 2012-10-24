@@ -30,6 +30,7 @@
 #include <ppc4xx.h>
 #include <asm/processor.h>
 #include <asm-ppc/io.h>
+#include <asm/errno.h>
 
 #if (defined(CONFIG_440SPE) || defined(CONFIG_405EX) ||	\
     defined(CONFIG_460EX) || defined(CONFIG_460GT)) && \
@@ -46,6 +47,125 @@ enum {
 	LNKW_X4			= 0x4,
 	LNKW_X8			= 0x8
 };
+
+static struct pci_controller pcie_hose[CONFIG_SYS_PCIE_NR_PORTS];
+
+/*
+ * Per default, all cards are present, so we need to check if the
+ * link comes up.
+ */
+int __board_pcie_card_present(int port)
+{
+	return 1;
+}
+int board_pcie_card_present(int port)
+	__attribute__((weak, alias("__board_pcie_card_present")));
+
+/*
+ * Some boards have runtime detection of the first and last PCIe
+ * slot used, so let's provide weak default functions for the
+ * common version.
+ */
+int __board_pcie_first(void)
+{
+	return 0;
+}
+int board_pcie_first(void)
+	__attribute__((weak, alias("__board_pcie_first")));
+
+int __board_pcie_last(void)
+{
+	return CONFIG_SYS_PCIE_NR_PORTS - 1;
+}
+int board_pcie_last(void)
+	__attribute__((weak, alias("__board_pcie_last")));
+
+void __board_pcie_setup_port(int port, int rootpoint)
+{
+	/* noting in this weak default implementation */
+}
+void board_pcie_setup_port(int port, int rootpoint)
+	__attribute__((weak, alias("__board_pcie_setup_port")));
+
+void pcie_setup_hoses(int busno)
+{
+	struct pci_controller *hose;
+	int i, bus;
+	int ret = 0;
+	char *env;
+	unsigned int delay;
+	int first = board_pcie_first();
+	int last = board_pcie_last();
+
+	/*
+	 * Assume we're called after the PCI(X) hose(s) are initialized,
+	 * which takes bus ID 0... and therefore start numbering PCIe's
+	 * from the next number.
+	 */
+	bus = busno;
+
+	for (i = first; i <= last; i++) {
+		/*
+		 * Some boards (e.g. Katmai) can detects via hardware
+		 * if a PCIe card is plugged, so let's check this.
+		 */
+		if (!board_pcie_card_present(i))
+			continue;
+
+		if (is_end_point(i)) {
+			board_pcie_setup_port(i, 0);
+			ret = ppc4xx_init_pcie_endport(i);
+		} else {
+			board_pcie_setup_port(i, 1);
+			ret = ppc4xx_init_pcie_rootport(i);
+		}
+		if (ret == -ENODEV)
+			continue;
+		if (ret) {
+			printf("PCIE%d: initialization as %s failed\n", i,
+			       is_end_point(i) ? "endpoint" : "root-complex");
+			continue;
+		}
+
+		hose = &pcie_hose[i];
+		hose->first_busno = bus;
+		hose->last_busno = bus;
+		hose->current_busno = bus;
+
+		/* setup mem resource */
+		pci_set_region(hose->regions + 0,
+			       CONFIG_SYS_PCIE_MEMBASE + i * CONFIG_SYS_PCIE_MEMSIZE,
+			       CONFIG_SYS_PCIE_MEMBASE + i * CONFIG_SYS_PCIE_MEMSIZE,
+			       CONFIG_SYS_PCIE_MEMSIZE,
+			       PCI_REGION_MEM);
+		hose->region_count = 1;
+		pci_register_hose(hose);
+
+		if (is_end_point(i)) {
+			ppc4xx_setup_pcie_endpoint(hose, i);
+			/*
+			 * Reson for no scanning is endpoint can not generate
+			 * upstream configuration accesses.
+			 */
+		} else {
+			ppc4xx_setup_pcie_rootpoint(hose, i);
+			env = getenv ("pciscandelay");
+			if (env != NULL) {
+				delay = simple_strtoul(env, NULL, 10);
+				if (delay > 5)
+					printf("Warning, expect noticable delay before "
+					       "PCIe scan due to 'pciscandelay' value!\n");
+				mdelay(delay * 1000);
+			}
+
+			/*
+			 * Config access can only go down stream
+			 */
+			hose->last_busno = pci_hose_scan(hose);
+			bus = hose->last_busno + 1;
+		}
+	}
+}
 
 static int validate_endpoint(struct pci_controller *hose)
 {
@@ -374,28 +494,35 @@ int ppc4xx_init_pcie(void)
 	/* Set PLL clock receiver to LVPECL */
 	SDR_WRITE(PESDR0_PLLLCT1, SDR_READ(PESDR0_PLLLCT1) | 1 << 28);
 
-	if (check_error())
-		return -1;
+	if (check_error()) {
+		printf("ERROR: failed to set PCIe reference clock receiver --"
+			"PESDR0_PLLLCT1 = 0x%08x\n", SDR_READ(PESDR0_PLLLCT1));
 
-	if (!(SDR_READ(PESDR0_PLLLCT2) & 0x10000))
-	{
-		printf("PCIE: PESDR_PLLCT2 resistance calibration failed (0x%08x)\n",
-		       SDR_READ(PESDR0_PLLLCT2));
+		return -1;
+	}
+
+	/* Did resistance calibration work? */
+	if (!(SDR_READ(PESDR0_PLLLCT2) & 0x10000)) {
+		printf("ERROR: PCIe resistance calibration failed --"
+			"PESDR0_PLLLCT2 = 0x%08x\n", SDR_READ(PESDR0_PLLLCT2));
+
 		return -1;
 	}
 	/* De-assert reset of PCIe PLL, wait for lock */
 	SDR_WRITE(PESDR0_PLLLCT1, SDR_READ(PESDR0_PLLLCT1) & ~(1 << 24));
-	udelay(3);
+	udelay(300);	/* 300 uS is maximum time lock should take */
 
 	while (time_out) {
 		if (!(SDR_READ(PESDR0_PLLLCT3) & 0x10000000)) {
 			time_out--;
-			udelay(1);
+			udelay(20);	/* Wait 20 uS more if needed */
 		} else
 			break;
 	}
 	if (!time_out) {
-		printf("PCIE: VCO output not locked\n");
+		printf("ERROR: PCIe PLL VCO output not locked to ref clock --"
+			"PESDR0_PLLLCTS=0x%08x\n", SDR_READ(PESDR0_PLLLCT3));
+
 		return -1;
 	}
 	return 0;
@@ -797,7 +924,7 @@ static inline u64 ppc4xx_get_cfgaddr(int port)
 }
 
 /*
- *  4xx boards as end point and root point setup
+ *  4xx boards as endpoint and root point setup
  *                    and
  *    testing inbound and out bound windows
  *
@@ -813,7 +940,7 @@ static inline u64 ppc4xx_get_cfgaddr(int port)
  *
  *  Once your board came up as root point , you can verify by reading
  *  /proc/bus/pci/devices. Where you can see the configuration registers
- *  of end point device attached to the port.
+ *  of endpoint device attached to the port.
  *
  *  Enpoint cofiguration can be verified by connecting 4xx board to any
  *  host or another 4xx board. Then try to scan the device. In case of
@@ -867,7 +994,7 @@ int ppc4xx_init_pcie_port(int port, int rootport)
 	val = SDR_READ(SDRN_PESDR_LOOP(port));
 	if (!(val & 0x00001000)) {
 		printf("PCIE%d: link is not up.\n", port);
-		return -1;
+		return -ENODEV;
 	}
 
 	/*

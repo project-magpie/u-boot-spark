@@ -1,5 +1,5 @@
 /*
- * Copyright 2004, 2007 Freescale Semiconductor.
+ * Copyright 2004, 2007-2009 Freescale Semiconductor, Inc.
  * Copyright (C) 2003  Motorola,Inc.
  *
  * See file CREDITS for list of people who contributed to this
@@ -51,16 +51,18 @@
 /*
  * Set up GOT: Global Offset Table
  *
- * Use r14 to access the GOT
+ * Use r12 to access the GOT
  */
 	START_GOT
 	GOT_ENTRY(_GOT2_TABLE_)
 	GOT_ENTRY(_FIXUP_TABLE_)
 
+#ifndef CONFIG_NAND_SPL
 	GOT_ENTRY(_start)
 	GOT_ENTRY(_start_of_vectors)
 	GOT_ENTRY(_end_of_vectors)
 	GOT_ENTRY(transfer_to_handler)
+#endif
 
 	GOT_ENTRY(__init_end)
 	GOT_ENTRY(_end)
@@ -100,13 +102,47 @@ _start_e500:
 	 *
 	 */
 
-	lis	r2,L1CSR0_CPE@H	/* enable parity */
-	ori	r2,r2,L1CSR0_DCE
-	mtspr	L1CSR0,r2	/* enable L1 Dcache */
+#if defined(CONFIG_E500MC) && defined(CONFIG_SYS_CACHE_STASHING)
+	/* set stash id to (coreID) * 2 + 32 + L1 CT (0) */
+	li	r2,(32 + 0)
+	mtspr	L1CSR2,r2
+#endif
+
+	/* Enable/invalidate the I-Cache */
+	lis	r2,(L1CSR1_ICFI|L1CSR1_ICLFR)@h
+	ori	r2,r2,(L1CSR1_ICFI|L1CSR1_ICLFR)@l
+	mtspr	SPRN_L1CSR1,r2
+1:
+	mfspr	r3,SPRN_L1CSR1
+	and.	r1,r3,r2
+	bne	1b
+
+	lis	r3,(L1CSR1_CPE|L1CSR1_ICE)@h
+	ori	r3,r3,(L1CSR1_CPE|L1CSR1_ICE)@l
+	mtspr	SPRN_L1CSR1,r3
 	isync
-	mtspr	L1CSR1,r2	/* enable L1 Icache */
+2:
+	mfspr	r3,SPRN_L1CSR1
+	andi.	r1,r3,L1CSR1_ICE@l
+	beq	2b
+
+	/* Enable/invalidate the D-Cache */
+	lis	r2,(L1CSR0_DCFI|L1CSR0_DCLFR)@h
+	ori	r2,r2,(L1CSR0_DCFI|L1CSR0_DCLFR)@l
+	mtspr	SPRN_L1CSR0,r2
+1:
+	mfspr	r3,SPRN_L1CSR0
+	and.	r1,r3,r2
+	bne	1b
+
+	lis	r3,(L1CSR0_CPE|L1CSR0_DCE)@h
+	ori	r3,r3,(L1CSR0_CPE|L1CSR0_DCE)@l
+	mtspr	SPRN_L1CSR0,r3
 	isync
-	msync
+2:
+	mfspr	r3,SPRN_L1CSR0
+	andi.	r1,r3,L1CSR0_DCE@l
+	beq	2b
 
 	/* Setup interrupt vectors */
 	lis	r1,TEXT_BASE@h
@@ -156,12 +192,18 @@ _start_e500:
 	mtspr	MCSR,r0			/* machine check syndrome register */
 	mtxer	r0			/* clear integer exception register */
 
+#ifdef CONFIG_SYS_BOOK3E_HV
+	mtspr	MAS8,r0			/* make sure MAS8 is clear */
+#endif
+
 	/* Enable Time Base and Select Time Base Clock */
 	lis	r0,HID0_EMCP@h		/* Enable machine check */
 #if defined(CONFIG_ENABLE_36BIT_PHYS)
 	ori	r0,r0,HID0_ENMAS7@l	/* Enable MAS7 */
 #endif
+#ifndef CONFIG_E500MC
 	ori	r0,r0,HID0_TBEN@l	/* Enable Timebase */
+#endif
 	mtspr	HID0,r0
 
 #ifndef CONFIG_E500MC
@@ -184,10 +226,60 @@ _start_e500:
 	mtspr	DBCR0,r0
 #endif
 
-	/* create a temp mapping in AS=1 to the 4M boot window */
+#ifdef CONFIG_MPC8569
+#define CONFIG_SYS_LBC_ADDR (CONFIG_SYS_CCSRBAR_DEFAULT + 0x5000)
+#define CONFIG_SYS_LBCR_ADDR (CONFIG_SYS_LBC_ADDR + 0xd0)
+
+	/* MPC8569 Rev.0 silcon needs to set bit 13 of LBCR to allow elBC to
+	 * use address space which is more than 12bits, and it must be done in
+	 * the 4K boot page. So we set this bit here.
+	 */
+
+	/* create a temp mapping TLB0[0] for LBCR  */
+	lis     r6,FSL_BOOKE_MAS0(0, 0, 0)@h
+	ori     r6,r6,FSL_BOOKE_MAS0(0, 0, 0)@l
+
+	lis     r7,FSL_BOOKE_MAS1(1, 0, 0, 0, BOOKE_PAGESZ_4K)@h
+	ori     r7,r7,FSL_BOOKE_MAS1(1, 0, 0, 0, BOOKE_PAGESZ_4K)@l
+
+	lis     r8,FSL_BOOKE_MAS2(CONFIG_SYS_LBC_ADDR, MAS2_I|MAS2_G)@h
+	ori     r8,r8,FSL_BOOKE_MAS2(CONFIG_SYS_LBC_ADDR, MAS2_I|MAS2_G)@l
+
+	lis     r9,FSL_BOOKE_MAS3(CONFIG_SYS_LBC_ADDR, 0,
+						(MAS3_SX|MAS3_SW|MAS3_SR))@h
+	ori     r9,r9,FSL_BOOKE_MAS3(CONFIG_SYS_LBC_ADDR, 0,
+						(MAS3_SX|MAS3_SW|MAS3_SR))@l
+
+	mtspr   MAS0,r6
+	mtspr   MAS1,r7
+	mtspr   MAS2,r8
+	mtspr   MAS3,r9
+	isync
+	msync
+	tlbwe
+
+	/* Set LBCR register */
+	lis     r4,CONFIG_SYS_LBCR_ADDR@h
+	ori     r4,r4,CONFIG_SYS_LBCR_ADDR@l
+
+	lis     r5,CONFIG_SYS_LBC_LBCR@h
+	ori     r5,r5,CONFIG_SYS_LBC_LBCR@l
+	stw     r5,0(r4)
+	isync
+
+	/* invalidate this temp TLB */
+	lis	r4,CONFIG_SYS_LBC_ADDR@h
+	ori	r4,r4,CONFIG_SYS_LBC_ADDR@l
+	tlbivax	0,r4
+	isync
+
+#endif /* CONFIG_MPC8569 */
+
 	lis     r6,FSL_BOOKE_MAS0(1, 15, 0)@h
 	ori     r6,r6,FSL_BOOKE_MAS0(1, 15, 0)@l
 
+#ifndef CONFIG_SYS_RAMBOOT
+	/* create a temp mapping in AS=1 to the 4M boot window */
 	lis     r7,FSL_BOOKE_MAS1(1, 1, 0, 1, BOOKE_PAGESZ_4M)@h
 	ori     r7,r7,FSL_BOOKE_MAS1(1, 1, 0, 1, BOOKE_PAGESZ_4M)@l
 
@@ -197,6 +289,20 @@ _start_e500:
 	/* The 85xx has the default boot window 0xff800000 - 0xffffffff */
 	lis     r9,FSL_BOOKE_MAS3(0xffc00000, 0, (MAS3_SX|MAS3_SW|MAS3_SR))@h
 	ori     r9,r9,FSL_BOOKE_MAS3(0xffc00000, 0, (MAS3_SX|MAS3_SW|MAS3_SR))@l
+#else
+	/*
+	 * create a temp mapping in AS=1 to the 1M TEXT_BASE space, the main
+	 * image has been relocated to TEXT_BASE on the second stage.
+	 */
+	lis     r7,FSL_BOOKE_MAS1(1, 1, 0, 1, BOOKE_PAGESZ_1M)@h
+	ori     r7,r7,FSL_BOOKE_MAS1(1, 1, 0, 1, BOOKE_PAGESZ_1M)@l
+
+	lis     r8,FSL_BOOKE_MAS2(TEXT_BASE, (MAS2_I|MAS2_G))@h
+	ori     r8,r8,FSL_BOOKE_MAS2(TEXT_BASE, (MAS2_I|MAS2_G))@l
+
+	lis     r9,FSL_BOOKE_MAS3(TEXT_BASE, 0, (MAS3_SX|MAS3_SW|MAS3_SR))@h
+	ori     r9,r9,FSL_BOOKE_MAS3(TEXT_BASE, 0, (MAS3_SX|MAS3_SW|MAS3_SR))@l
+#endif
 
 	mtspr   MAS0,r6
 	mtspr   MAS1,r7
@@ -227,8 +333,8 @@ _start_e500:
 	msync
 	tlbwe
 
-	lis	r6,MSR_CE|MSR_ME|MSR_DE|MSR_IS|MSR_DS@h
-	ori	r6,r6,MSR_CE|MSR_ME|MSR_DE|MSR_IS|MSR_DS@l
+	lis	r6,MSR_IS|MSR_DS@h
+	ori	r6,r6,MSR_IS|MSR_DS@l
 	lis	r7,switch_as@h
 	ori	r7,r7,switch_as@l
 
@@ -308,6 +414,7 @@ _start_cont:
 	bl	board_init_f
 	isync
 
+#ifndef CONFIG_NAND_SPL
 	. = EXC_OFF_SYS_RESET
 	.globl	_start_of_vectors
 _start_of_vectors:
@@ -336,28 +443,15 @@ Alignment:
 	mfspr	r5,DSISR
 	stw	r5,_DSISR(r21)
 	addi	r3,r1,STACK_FRAME_OVERHEAD
-	li	r20,MSR_KERNEL
-	rlwimi	r20,r23,0,16,16		/* copy EE bit from saved MSR */
-	lwz	r6,GOT(transfer_to_handler)
-	mtlr	r6
-	blrl
-.L_Alignment:
-	.long	AlignmentException - _start + _START_OFFSET
-	.long	int_return - _start + _START_OFFSET
+	EXC_XFER_TEMPLATE(Alignment, AlignmentException, MSR_KERNEL, COPY_EE)
 
 /* Program check exception */
 	. = 0x0700
 ProgramCheck:
 	EXCEPTION_PROLOG(SRR0, SRR1)
 	addi	r3,r1,STACK_FRAME_OVERHEAD
-	li	r20,MSR_KERNEL
-	rlwimi	r20,r23,0,16,16		/* copy EE bit from saved MSR */
-	lwz	r6,GOT(transfer_to_handler)
-	mtlr	r6
-	blrl
-.L_ProgramCheck:
-	.long	ProgramCheckException - _start + _START_OFFSET
-	.long	int_return - _start + _START_OFFSET
+	EXC_XFER_TEMPLATE(ProgramCheck, ProgramCheckException,
+		MSR_KERNEL, COPY_EE)
 
 	/* No FPU on MPC85xx.  This exception is not supposed to happen.
 	*/
@@ -762,8 +856,31 @@ in32:
 in32r:
 	lwbrx	r3,r0,r3
 	blr
+#endif  /* !CONFIG_NAND_SPL */
 
 /*------------------------------------------------------------------------------*/
+
+/*
+ * void write_tlb(mas0, mas1, mas2, mas3, mas7)
+ */
+	.globl	write_tlb
+write_tlb:
+	mtspr	MAS0,r3
+	mtspr	MAS1,r4
+	mtspr	MAS2,r5
+	mtspr	MAS3,r6
+#ifdef CONFIG_ENABLE_36BIT_PHYS
+	mtspr	MAS7,r7
+#endif
+	li	r3,0
+#ifdef CONFIG_SYS_BOOK3E_HV
+	mtspr	MAS8,r3
+#endif
+	isync
+	tlbwe
+	msync
+	isync
+	blr
 
 /*
  * void relocate_code (addr_sp, gd, addr_moni)
@@ -782,6 +899,7 @@ relocate_code:
 	mr	r9,r4		/* Save copy of Init Data pointer	*/
 	mr	r10,r5		/* Save copy of Destination Address	*/
 
+	GET_GOT
 	mr	r3,r5				/* Destination Address	*/
 	lis	r4,CONFIG_SYS_MONITOR_BASE@h		/* Source      Address	*/
 	ori	r4,r4,CONFIG_SYS_MONITOR_BASE@l
@@ -799,7 +917,7 @@ relocate_code:
 	sub	r15,r10,r4
 
 	/* First our own GOT */
-	add	r14,r14,r15
+	add	r12,r12,r15
 	/* the the one used by the C code */
 	add	r30,r30,r15
 
@@ -869,7 +987,7 @@ relocate_code:
 in_ram:
 
 	/*
-	 * Relocation Function, r14 point to got2+0x8000
+	 * Relocation Function, r12 point to got2+0x8000
 	 *
 	 * Adjust got2 pointers, no need to check for 0, this code
 	 * already puts a few entries in the table.
@@ -881,15 +999,17 @@ in_ram:
 	sub	r11,r3,r11
 	addi	r3,r3,-4
 1:	lwzu	r0,4(r3)
+	cmpwi	r0,0
+	beq-	2f
 	add	r0,r0,r11
 	stw	r0,0(r3)
-	bdnz	1b
+2:	bdnz	1b
 
 	/*
 	 * Now adjust the fixups and the pointers to the fixups
 	 * in case we need to move ourselves again.
 	 */
-2:	li	r0,__fixup_entries@sectoff@l
+	li	r0,__fixup_entries@sectoff@l
 	lwz	r3,GOT(_FIXUP_TABLE_)
 	cmpwi	r0,0
 	mtctr	r0
@@ -924,6 +1044,7 @@ clear_bss:
 	mr	r4,r10		/* Destination Address		*/
 	bl	board_init_r
 
+#ifndef CONFIG_NAND_SPL
 	/*
 	 * Copy exception vector code to low memory
 	 *
@@ -932,6 +1053,8 @@ clear_bss:
 	 */
 	.globl	trap_init
 trap_init:
+	mflr	r4			/* save link register		*/
+	GET_GOT
 	lwz	r7,GOT(_start_of_vectors)
 	lwz	r8,GOT(_end_of_vectors)
 
@@ -939,8 +1062,6 @@ trap_init:
 
 	cmplw	0,r7,r8
 	bgelr				/* return if r7>=r8 - just in case */
-
-	mflr	r4			/* save link register		*/
 1:
 	lwz	r0,0(r7)
 	stw	r0,0(r9)
@@ -982,20 +1103,6 @@ trap_init:
 	mtspr	IVPR,r7
 
 	mtlr	r4			/* restore link register	*/
-	blr
-
-	/*
-	 * Function: relocate entries for one exception vector
-	 */
-trap_reloc:
-	lwz	r0,0(r7)		/* hdlr ...			*/
-	add	r0,r0,r3		/*  ... += dest_addr		*/
-	stw	r0,0(r7)
-
-	lwz	r0,4(r7)		/* int_return ...		*/
-	add	r0,r0,r3		/*  ... += dest_addr		*/
-	stw	r0,4(r7)
-
 	blr
 
 .globl unlock_ram_in_cache
@@ -1071,3 +1178,10 @@ flush_dcache:
 	isync
 
 	blr
+
+.globl setup_ivors
+setup_ivors:
+
+#include "fixed_ivor.S"
+	blr
+#endif /* !CONFIG_NAND_SPL */

@@ -1,11 +1,15 @@
-#!/bin/sh
+#!/bin/bash
+
+# Print statistics when we exit
+trap exit 1 2 3 15
+trap print_stats 0
 
 # Determine number of CPU cores if no default was set
 : ${BUILD_NCPUS:="`getconf _NPROCESSORS_ONLN`"}
 
 if [ "$BUILD_NCPUS" -gt 1 ]
 then
-	JOBS=-j`expr "$BUILD_NCPUS" + 1`
+	JOBS="-j $((BUILD_NCPUS + 1))"
 else
 	JOBS=""
 fi
@@ -31,6 +35,12 @@ fi
 
 LIST=""
 
+# Keep track of the number of builds and errors
+ERR_CNT=0
+ERR_LIST=""
+TOTAL_CNT=0
+RC=0
+
 #########################################################################
 ## MPC5xx Systems
 #########################################################################
@@ -47,11 +57,14 @@ LIST_5xxx="		\
 	BC3450		\
 	cm5200		\
 	cpci5200	\
+	digsy_mtc	\
 	EVAL5200	\
 	fo300		\
+	galaxy5200	\
 	icecube_5100	\
 	icecube_5200	\
 	inka4x0		\
+	ipek01		\
 	lite5200b	\
 	mcc200		\
 	mecp5200	\
@@ -59,6 +72,7 @@ LIST_5xxx="		\
 	munices		\
 	MVBC_P		\
 	o2dnt		\
+	pcm030		\
 	pf5200		\
 	PM520		\
 	TB5200		\
@@ -76,7 +90,9 @@ LIST_5xxx="		\
 #########################################################################
 
 LIST_512x="		\
-	ads5121		\
+	aria		\
+	mecp5123	\
+	mpc5121ads	\
 "
 
 #########################################################################
@@ -190,12 +206,13 @@ LIST_4xx="		\
 	csb272		\
 	csb472		\
 	DASA_SIM	\
+	devconcenter	\
+	dlvision	\
 	DP405		\
 	DU405		\
 	DU440		\
 	ebony		\
 	ERIC		\
-	EXBITGEN	\
 	fx12mm		\
 	G2000		\
 	gdppc440etx	\
@@ -206,6 +223,7 @@ LIST_4xx="		\
 	hcu5		\
 	HH405		\
 	HUB405		\
+	intip		\
 	JSE		\
 	KAREF		\
 	katmai		\
@@ -220,7 +238,6 @@ LIST_4xx="		\
 	MIP405		\
 	MIP405T		\
 	ML2		\
-	ml300		\
 	ml507		\
 	ml507_flash	\
 	neo		\
@@ -233,6 +250,7 @@ LIST_4xx="		\
 	PIP405		\
 	PLU405		\
 	PMC405		\
+	PMC405DE	\
 	PMC440		\
 	PPChameleonEVB	\
 	quad100hd	\
@@ -254,7 +272,7 @@ LIST_4xx="		\
 	WUH405		\
 	xilinx-ppc440-generic \
 	xilinx-ppc440-generic_flash \
-	XPEDITE1K	\
+	XPEDITE1000	\
 	yellowstone	\
 	yosemite	\
 	yucca		\
@@ -283,6 +301,7 @@ LIST_824x="		\
 	debris		\
 	eXalion		\
 	HIDDEN_DRAGON	\
+	IDS8247		\
 	linkstation_HGLAN	\
 	MOUSSE		\
 	MUSENKI		\
@@ -292,7 +311,6 @@ LIST_824x="		\
 	Sandpoint8240	\
 	Sandpoint8245	\
 	sbc8240		\
-	SL8245		\
 	utx8245		\
 "
 
@@ -337,10 +355,12 @@ LIST_8260="		\
 #########################################################################
 
 LIST_83xx="		\
+	caddy2		\
 	kmeter1		\
 	MPC8313ERDB_33	\
 	MPC8313ERDB_NAND_66	\
 	MPC8315ERDB	\
+	MPC8315ERDB_NAND	\
 	MPC8323ERDB	\
 	MPC832XEMDS	\
 	MPC832XEMDS_ATM	\
@@ -357,6 +377,7 @@ LIST_83xx="		\
 	sbc8349		\
 	SIMPC8313_LP	\
 	TQM834x		\
+	vme8349		\
 "
 
 
@@ -367,6 +388,9 @@ LIST_83xx="		\
 LIST_85xx="		\
 	ATUM8548	\
 	MPC8536DS	\
+	MPC8536DS_NAND	\
+	MPC8536DS_SDCARD	\
+	MPC8536DS_SPIFLASH	\
 	MPC8540ADS	\
 	MPC8540EVAL	\
 	MPC8541CDS	\
@@ -375,12 +399,37 @@ LIST_85xx="		\
 	MPC8555CDS	\
 	MPC8560ADS	\
 	MPC8568MDS	\
+	MPC8569MDS	\
+	MPC8569MDS_ATM	\
+	MPC8569MDS_NAND \
 	MPC8572DS	\
 	MPC8572DS_36BIT	\
+	P2020DS		\
+	P2020DS_36BIT	\
+	P1011RDB	\
+	P1011RDB_NAND	\
+	P1011RDB_SDCARD	\
+	P1011RDB_SPIFLASH	\
+	P1020RDB	\
+	P1020RDB_NAND	\
+	P1020RDB_SDCARD	\
+	P1020RDB_SPIFLASH	\
+	P2010RDB	\
+	P2010RDB_NAND	\
+	P2010RDB_SDCARD	\
+	P2010RDB_SPIFLASH	\
+	P2020RDB	\
+	P2020RDB_NAND	\
+	P2020RDB_SDCARD	\
+	P2020RDB_SPIFLASH	\
 	PM854		\
 	PM856		\
 	sbc8540		\
 	sbc8548		\
+	sbc8548_PCI_33	\
+	sbc8548_PCI_66	\
+	sbc8548_PCI_33_PCIE \
+	sbc8548_PCI_66_PCIE \
 	sbc8560		\
 	socrates	\
 	stxgp3		\
@@ -404,6 +453,7 @@ LIST_86xx="		\
 	MPC8610HPCD	\
 	MPC8641HPCN	\
 	sbc8641d	\
+	XPEDITE5170	\
 "
 
 #########################################################################
@@ -491,6 +541,7 @@ LIST_ARM7="		\
 #########################################################################
 
 LIST_ARM9="			\
+	a320evb			\
 	ap920t			\
 	ap922_XA10		\
 	ap926ejs		\
@@ -501,20 +552,40 @@ LIST_ARM9="			\
 	cp926ejs		\
 	cp946es			\
 	cp966			\
+	da830evm		\
+	edb9301			\
+	edb9302			\
+	edb9302a		\
+	edb9307			\
+	edb9307a		\
+	edb9312			\
+	edb9315			\
+	edb9315a		\
+	imx27lite		\
 	lpd7a400		\
+	mv88f6281gtw_ge		\
 	mx1ads			\
 	mx1fs2			\
 	netstar			\
-	nmdk8815		\
+	nhk8815			\
+	nhk8815_onenand		\
 	omap1510inn		\
 	omap1610h2		\
 	omap1610inn		\
 	omap5912osk		\
 	omap730p2		\
+	openrd_base		\
+	rd6281a			\
 	sbc2410x		\
 	scb9328			\
+	sheevaplug		\
 	smdk2400		\
 	smdk2410		\
+	spear300		\
+	spear310		\
+	spear320		\
+	spear600		\
+	suen3			\
 	trab			\
 	VCMA9			\
 	versatile		\
@@ -525,6 +596,10 @@ LIST_ARM9="			\
 	davinci_schmoogie	\
 	davinci_sffsdr		\
 	davinci_sonata		\
+	davinci_dm355evm	\
+	davinci_dm355leopard	\
+	davinci_dm365evm	\
+	davinci_dm6467evm	\
 "
 
 #########################################################################
@@ -538,45 +613,68 @@ LIST_ARM10="		\
 #########################################################################
 ## ARM11 Systems
 #########################################################################
-LIST_ARM11="		\
-	cp1136		\
-	omap2420h4	\
-	apollon		\
-	imx31_litekit	\
-	imx31_phycore	\
-	mx31ads		\
-	qong		\
-	smdk6400	\
+LIST_ARM11="			\
+	cp1136			\
+	omap2420h4		\
+	apollon			\
+	imx31_litekit		\
+	imx31_phycore		\
+	imx31_phycore_eet	\
+	mx31ads			\
+	mx31pdk			\
+	mx31pdk_nand		\
+	qong			\
+	smdk6400		\
 "
 
 #########################################################################
 ## ARM Cortex-A8 Systems
 #########################################################################
 LIST_ARM_CORTEX_A8="		\
+	devkit8000		\
+	mx51evk			\
 	omap3_beagle		\
 	omap3_overo		\
 	omap3_evm		\
 	omap3_pandora		\
+	omap3_sdp3430		\
 	omap3_zoom1		\
+	omap3_zoom2		\
+	smdkc100		\
 "
 
 #########################################################################
 ## AT91 Systems
 #########################################################################
 
-LIST_at91="		\
-	afeb9260	\
-	at91cap9adk	\
-	at91rm9200dk	\
-	at91sam9260ek	\
-	at91sam9261ek	\
-	at91sam9263ek	\
-	at91sam9rlek	\
-	cmc_pu2		\
-	csb637		\
-	kb9202		\
-	mp2usb		\
-	m501sk		\
+LIST_at91="			\
+	afeb9260		\
+	at91cap9adk		\
+	at91rm9200dk		\
+	at91rm9200ek		\
+	at91sam9260ek		\
+	at91sam9261ek		\
+	at91sam9263ek		\
+	at91sam9g10ek		\
+	at91sam9g20ek		\
+	at91sam9m10g45ek	\
+	at91sam9rlek		\
+	cmc_pu2			\
+	CPUAT91			\
+	CPU9260			\
+	CPU9G20			\
+	csb637			\
+	eb_cpux9k2		\
+	kb9202			\
+	meesc			\
+	mp2usb			\
+	m501sk			\
+	otc570			\
+	pm9261			\
+	pm9263			\
+	SBC35_A9G20		\
+	TNY_A9260		\
+	TNY_A9G20		\
 "
 
 #########################################################################
@@ -591,7 +689,9 @@ LIST_pxa="		\
 	innokom		\
 	lubbock		\
 	pleb2		\
+	polaris		\
 	pxa255_idp	\
+	trizepsiv	\
 	wepep250	\
 	xaeniax		\
 	xm250		\
@@ -733,7 +833,6 @@ LIST_nios2="		\
 
 LIST_microblaze="			\
 	microblaze-generic		\
-	suzaku				\
 "
 
 #########################################################################
@@ -745,6 +844,7 @@ LIST_coldfire="			\
 	EB+MCF-EV123		\
 	EB+MCF-EV123_internal	\
 	idmr			\
+	M5208EVBE		\
 	M52277EVB		\
 	M5235EVB		\
 	M5249EVB		\
@@ -784,10 +884,30 @@ LIST_avr32="		\
 #########################################################################
 
 LIST_blackfin="		\
+	bf518f-ezbrd	\
+	bf526-ezbrd	\
+	bf527-ezkit	\
+	bf527-ezkit-v2	\
 	bf533-ezkit	\
 	bf533-stamp	\
+	bf537-minotaur	\
+	bf537-pnav	\
+	bf537-srv1	\
 	bf537-stamp	\
+	bf538f-ezkit	\
+	bf548-ezkit	\
+	bf561-acvilon	\
 	bf561-ezkit	\
+	blackstamp	\
+	cm-bf527	\
+	cm-bf533	\
+	cm-bf537e	\
+	cm-bf537u	\
+	cm-bf548	\
+	cm-bf561	\
+	ibf-dsp561	\
+	tcm-bf518	\
+	tcm-bf537	\
 "
 
 #########################################################################
@@ -859,6 +979,7 @@ LIST_sh4="		\
 	sh7763rdp	\
 	sh7785lcr	\
 	ap325rxa	\
+	espt		\
 "
 
 LIST_sh="		\
@@ -889,13 +1010,39 @@ build_target() {
 	${MAKE} ${JOBS} all 2>&1 >${LOG_DIR}/$target.MAKELOG \
 				| tee ${LOG_DIR}/$target.ERR
 
+	# Check for 'make' errors
+	if [ ${PIPESTATUS[0]} -ne 0 ] ; then
+		RC=1
+	fi
+
+	if [ -s ${LOG_DIR}/$target.ERR ] ; then
+		ERR_CNT=$((ERR_CNT + 1))
+		ERR_LIST="${ERR_LIST} $target"
+	else
+		rm ${LOG_DIR}/$target.ERR
+	fi
+
+	TOTAL_CNT=$((TOTAL_CNT + 1))
+
 	${CROSS_COMPILE}size ${BUILD_DIR}/u-boot \
 				| tee -a ${LOG_DIR}/$target.MAKELOG
 }
 
 #-----------------------------------------------------------------------
 
+print_stats() {
+	echo ""
+	echo "--------------------- SUMMARY ----------------------------"
+	echo "Boards compiled: ${TOTAL_CNT}"
+	if [ ${ERR_CNT} -gt 0 ] ; then
+		echo "Boards with warnings or errors: ${ERR_CNT} (${ERR_LIST} )"
+	fi
+	echo "----------------------------------------------------------"
 
+	exit $RC
+}
+
+#-----------------------------------------------------------------------
 for arg in $@
 do
 	case "$arg" in

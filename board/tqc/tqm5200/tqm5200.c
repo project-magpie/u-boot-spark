@@ -358,11 +358,9 @@ int post_hotkeys_pressed(void)
 	gpio = (struct mpc5xxx_gpio*) MPC5XXX_GPIO;
 
 	/*
-	 * Configure PSC6_1 and PSC6_3 as GPIO. PSC6 then couldn't be used in
-	 * CODEC or UART mode. Consumer IrDA should still be possible.
+	 * Configure PSC6_0 through PSC6_3 as GPIO.
 	 */
-	gpio->port_config &= ~(0x07000000);
-	gpio->port_config |=   0x03000000;
+	gpio->port_config &= ~(0x00700000);
 
 	/* Enable GPIO for GPIO_IRDA_1 (IR_USB_CLK pin) = PSC6_3 */
 	gpio->simple_gpioe |= 0x20000000;
@@ -747,7 +745,6 @@ int board_get_height (void)
 void ft_board_setup(void *blob, bd_t *bd)
 {
 	ft_cpu_setup(blob, bd);
-	fdt_fixup_memory(blob, (u64)bd->bi_memstart, (u64)bd->bi_memsize);
 }
 #endif /* defined(CONFIG_OF_LIBFDT) && defined(CONFIG_OF_BOARD_SETUP) */
 

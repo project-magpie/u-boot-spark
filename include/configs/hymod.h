@@ -93,6 +93,10 @@
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE|FCC_PSMR_LPB)
 
 # define MDIO_PORT		0		/* Port A */
+# define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
+					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
+# define MDC_DECLARE		MDIO_DECLARE
+
 # define MDIO_DATA_PINMASK	0x00040000	/* Pin 13 */
 # define MDIO_CLCK_PINMASK	0x00080000	/* Pin 12 */
 
@@ -110,6 +114,10 @@
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE|FCC_PSMR_LPB)
 
 # define MDIO_PORT		0		/* Port A */
+# define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
+					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
+# define MDC_DECLARE		MDIO_DECLARE
+
 # define MDIO_DATA_PINMASK	0x00000040	/* Pin 25 */
 # define MDIO_CLCK_PINMASK	0x00000080	/* Pin 24 */
 
@@ -127,6 +135,10 @@
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE|FCC_PSMR_LPB)
 
 # define MDIO_PORT		0		/* Port A */
+# define MDIO_DECLARE		volatile ioport_t *iop = ioport_addr ( \
+					(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
+# define MDC_DECLARE		MDIO_DECLARE
+
 # define MDIO_DATA_PINMASK	0x00000100	/* Pin 23 */
 # define MDIO_CLCK_PINMASK	0x00000200	/* Pin 22 */
 
@@ -270,8 +282,6 @@
 
 #define CONFIG_SYS_MEMTEST_START	0x00400000	/* memtest works on	*/
 #define CONFIG_SYS_MEMTEST_END		0x03c00000	/* 4 ... 60 MB in DRAM	*/
-
-#define CONFIG_SYS_CLKS_IN_HZ		1	/* everything, incl board info, in Hz */
 
 #define	CONFIG_SYS_LOAD_ADDR		0x100000	/* default load address	*/
 
@@ -730,14 +740,14 @@
  *
  */
 /* No command line, one static partition, whole device */
-#undef CONFIG_JFFS2_CMDLINE
+#undef CONFIG_CMD_MTDPARTS
 #define CONFIG_JFFS2_DEV		"nor0"
 #define CONFIG_JFFS2_PART_SIZE		0xFFFFFFFF
 #define CONFIG_JFFS2_PART_OFFSET	0x00000000
 
 /* mtdparts command line support */
 /*
-#define CONFIG_JFFS2_CMDLINE
+#define CONFIG_CMD_MTDPARTS
 #define MTDIDS_DEFAULT		""
 #define MTDPARTS_DEFAULT	""
 */

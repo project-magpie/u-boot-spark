@@ -36,9 +36,7 @@
 #define CONFIG_MPC8572		1
 #define CONFIG_XPEDITE5370	1
 #define CONFIG_SYS_BOARD_NAME	"XPedite5370"
-#define CONFIG_NUM_CPUS		2	/* 2 Cores */
 #define CONFIG_BOARD_EARLY_INIT_R	/* Call board_pre_init */
-#define CONFIG_RELOC_FIXUP_WORKS	/* Fully relocate to SDRAM */
 
 #define CONFIG_PCI		1	/* Enable PCI/PCIE */
 #define CONFIG_PCI_PNP		1	/* do pci plug-and-play */
@@ -49,6 +47,13 @@
 #define CONFIG_SYS_PCI_64BIT	1	/* enable 64-bit PCI resources */
 #define CONFIG_FSL_PCIE_RESET	1	/* need PCIe reset errata */
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code */
+
+/*
+ * Multicore config
+ */
+#define CONFIG_MP
+#define CONFIG_BPTR_VIRT_ADDR	0xee000000	/* virt boot page address */
+#define CONFIG_MPC8xxx_DISABLE_BPTR		/* Don't leave BPTR enabled */
 
 /*
  * DDR config
@@ -111,19 +116,26 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
  * 0xe000_0000	0xe7ff_ffff	SRAM/SSRAM/L1 Cache	128M non-cacheable
  * 0xe800_0000	0xe87f_ffff	PCIe1 IO		8M non-cacheable
  * 0xe880_0000	0xe8ff_ffff	PCIe2 IO		8M non-cacheable
+ * 0xee00_0000	0xee00_ffff	Boot page translation	4K non-cacheable
  * 0xef00_0000	0xef0f_ffff	CCSR/IMMR		1M non-cacheable
  * 0xef80_0000	0xef8f_ffff	NAND Flash		1M non-cacheable
  * 0xf000_0000	0xf7ff_ffff	NOR Flash 2		128M non-cacheable
  * 0xf800_0000	0xffff_ffff	NOR Flash 1		128M non-cacheable
  */
 
-#define CONFIG_SYS_LBC_LCRR	(LCRR_CLKDIV_4 | LCRR_EADC_3)
+#define CONFIG_SYS_LBC_LCRR	(LCRR_CLKDIV_8 | LCRR_EADC_3)
 
 /*
  * NAND flash configuration
  */
 #define CONFIG_SYS_NAND_BASE		0xef800000
 #define CONFIG_SYS_NAND_BASE2		0xef840000 /* Unused at this time */
+#define CONFIG_SYS_NAND_BASE_LIST	{CONFIG_SYS_NAND_BASE, \
+					 CONFIG_SYS_NAND_BASE2}
+#define CONFIG_SYS_MAX_NAND_DEVICE	2
+#define CONFIG_MTD_NAND_VERIFY_WRITE
+#define CONFIG_SYS_NAND_QUIET_TEST	/* 2nd NAND flash not always populated */
+#define CONFIG_NAND_FSL_ELBC
 
 /*
  * NOR flash configuration
@@ -137,6 +149,7 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500		/* Flash Write Timeout (ms) */
 #define CONFIG_FLASH_CFI_DRIVER
 #define CONFIG_SYS_FLASH_CFI
+#define CONFIG_SYS_FLASH_USE_BUFFER_WRITE
 #define CONFIG_SYS_FLASH_AUTOPROTECT_LIST	{ {0xfff40000, 0xc0000}, \
 						  {0xf7f40000, 0xc0000} }
 #define CONFIG_SYS_MONITOR_BASE	TEXT_BASE	/* start of monitor */
@@ -231,9 +244,6 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #define CONFIG_OF_BOARD_SETUP		1
 #define CONFIG_OF_STDOUT_VIA_ALIAS	1
 
-#define CONFIG_SYS_64BIT_VSPRINTF	1
-#define CONFIG_SYS_64BIT_STRTOUL	1
-
 /*
  * I2C
  */
@@ -244,7 +254,6 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #define CONFIG_SYS_I2C_OFFSET		0x3000
 #define CONFIG_SYS_I2C2_OFFSET		0x3100
 #define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_CMD_TREE
 
 /* PEX8518 slave I2C interface */
 #define CONFIG_SYS_I2C_PEX8518_ADDR	0x70
@@ -375,16 +384,17 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
 #define CONFIG_CMD_DTT
 #define CONFIG_CMD_EEPROM
 #define CONFIG_CMD_ELF
-#define CONFIG_CMD_SAVEENV
 #define CONFIG_CMD_FLASH
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_JFFS2
 #define CONFIG_CMD_MII
+#define CONFIG_CMD_NAND
 #define CONFIG_CMD_NET
 #define CONFIG_CMD_PCA953X
 #define CONFIG_CMD_PCA953X_INFO
 #define CONFIG_CMD_PCI
 #define CONFIG_CMD_PING
+#define CONFIG_CMD_SAVEENV
 #define CONFIG_CMD_SNTP
 
 /*
@@ -413,6 +423,7 @@ extern unsigned long get_board_ddr_clk(unsigned long dummy);
  * the maximum mapped by the Linux kernel during initialization.
  */
 #define CONFIG_SYS_BOOTMAPSZ	(16 << 20)	/* Initial Memory map for Linux*/
+#define CONFIG_SYS_BOOTM_LEN	(16 << 20)	/* Increase max gunzip size */
 
 /*
  * Boot Flags

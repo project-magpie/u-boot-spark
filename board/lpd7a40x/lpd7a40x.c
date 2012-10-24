@@ -4,7 +4,7 @@
  * Marius Groeger <mgroeger@sysgo.de>
  *
  * (C) Copyright 2002
- * Gary Jennejohn, DENX Software Engineering, <gj@denx.de>
+ * Gary Jennejohn, DENX Software Engineering, <garyj@denx.de>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -26,6 +26,7 @@
  */
 
 #include <common.h>
+#include <netdev.h>
 #if defined(CONFIG_LH7A400)
 #include <lh7a400.h>
 #elif defined(CONFIG_LH7A404)
@@ -79,3 +80,14 @@ int dram_init (void)
 
 	return 0;
 }
+
+#ifdef CONFIG_CMD_NET
+int board_eth_init(bd_t *bis)
+{
+	int rc = 0;
+#ifdef CONFIG_SMC91111
+	rc = smc91111_initialize(0, CONFIG_SMC91111_BASE);
+#endif
+	return rc;
+}
+#endif

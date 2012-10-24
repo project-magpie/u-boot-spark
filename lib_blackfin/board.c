@@ -11,9 +11,10 @@
 
 #include <common.h>
 #include <command.h>
-#include <devices.h>
+#include <stdio_dev.h>
 #include <environment.h>
 #include <malloc.h>
+#include <mmc.h>
 #include <net.h>
 #include <timestamp.h>
 #include <status_led.h>
@@ -21,9 +22,14 @@
 
 #include <asm/cplb.h>
 #include <asm/mach-common/bits/mpu.h>
+#include <kgdb.h>
 
 #ifdef CONFIG_CMD_NAND
 #include <nand.h>	/* cannot even include nand.h if it isnt configured */
+#endif
+
+#ifdef CONFIG_BITBANGMII
+#include <miiphy.h>
 #endif
 
 #if defined(CONFIG_POST)
@@ -42,29 +48,6 @@ static inline void serial_early_puts(const char *s)
 	serial_puts("Early: ");
 	serial_puts(s);
 #endif
-}
-
-static void *mem_malloc_start, *mem_malloc_end, *mem_malloc_brk;
-
-static void mem_malloc_init(void)
-{
-	mem_malloc_start = (void *)CONFIG_SYS_MALLOC_BASE;
-	mem_malloc_end = (void *)(CONFIG_SYS_MALLOC_BASE + CONFIG_SYS_MALLOC_LEN);
-	mem_malloc_brk = mem_malloc_start;
-	memset(mem_malloc_start, 0, mem_malloc_end - mem_malloc_start);
-}
-
-void *sbrk(ptrdiff_t increment)
-{
-	void *old = mem_malloc_brk;
-	void *new = old + increment;
-
-	if (new < mem_malloc_start || new > mem_malloc_end)
-		return NULL;
-
-	mem_malloc_brk = new;
-
-	return old;
 }
 
 static int display_banner(void)
@@ -93,29 +76,25 @@ static void display_global_data(void)
 #ifdef CONFIG_DEBUG_EARLY_SERIAL
 	bd_t *bd;
 	bd = gd->bd;
-	printf(" gd: %x\n", gd);
-	printf(" |-flags: %x\n", gd->flags);
-	printf(" |-board_type: %x\n", gd->board_type);
-	printf(" |-baudrate: %i\n", gd->baudrate);
-	printf(" |-have_console: %x\n", gd->have_console);
-	printf(" |-ram_size: %x\n", gd->ram_size);
-	printf(" |-reloc_off: %x\n", gd->reloc_off);
-	printf(" |-env_addr: %x\n", gd->env_addr);
-	printf(" |-env_valid: %x\n", gd->env_valid);
-	printf(" |-jt(%x): %x\n", gd->jt, *(gd->jt));
-	printf(" \\-bd: %x\n", gd->bd);
+	printf(" gd: %p\n", gd);
+	printf(" |-flags: %lx\n", gd->flags);
+	printf(" |-board_type: %lx\n", gd->board_type);
+	printf(" |-baudrate: %lu\n", gd->baudrate);
+	printf(" |-have_console: %lx\n", gd->have_console);
+	printf(" |-ram_size: %lx\n", gd->ram_size);
+	printf(" |-reloc_off: %lx\n", gd->reloc_off);
+	printf(" |-env_addr: %lx\n", gd->env_addr);
+	printf(" |-env_valid: %lx\n", gd->env_valid);
+	printf(" |-jt(%p): %p\n", gd->jt, *(gd->jt));
+	printf(" \\-bd: %p\n", gd->bd);
 	printf("   |-bi_baudrate: %x\n", bd->bi_baudrate);
-	printf("   |-bi_ip_addr: %x\n", bd->bi_ip_addr);
-	printf("   |-bi_enetaddr: %x %x %x %x %x %x\n",
-	       bd->bi_enetaddr[0], bd->bi_enetaddr[1],
-	       bd->bi_enetaddr[2], bd->bi_enetaddr[3],
-	       bd->bi_enetaddr[4], bd->bi_enetaddr[5]);
-	printf("   |-bi_boot_params: %x\n", bd->bi_boot_params);
-	printf("   |-bi_memstart: %x\n", bd->bi_memstart);
-	printf("   |-bi_memsize: %x\n", bd->bi_memsize);
-	printf("   |-bi_flashstart: %x\n", bd->bi_flashstart);
-	printf("   |-bi_flashsize: %x\n", bd->bi_flashsize);
-	printf("   \\-bi_flashoffset: %x\n", bd->bi_flashoffset);
+	printf("   |-bi_ip_addr: %lx\n", bd->bi_ip_addr);
+	printf("   |-bi_boot_params: %lx\n", bd->bi_boot_params);
+	printf("   |-bi_memstart: %lx\n", bd->bi_memstart);
+	printf("   |-bi_memsize: %lx\n", bd->bi_memsize);
+	printf("   |-bi_flashstart: %lx\n", bd->bi_flashstart);
+	printf("   |-bi_flashsize: %lx\n", bd->bi_flashsize);
+	printf("   \\-bi_flashoffset: %lx\n", bd->bi_flashoffset);
 #endif
 }
 
@@ -153,17 +132,26 @@ void init_cplbtables(void)
 	dcplb_add(0xFF800000, L1_DMEMORY);
 	++i;
 
-	icplb_add(CONFIG_SYS_MONITOR_BASE & CPLB_PAGE_MASK, SDRAM_IKERNEL);
-	dcplb_add(CONFIG_SYS_MONITOR_BASE & CPLB_PAGE_MASK, SDRAM_DKERNEL);
-	++i;
+	if (CONFIG_MEM_SIZE) {
+		uint32_t mbase = CONFIG_SYS_MONITOR_BASE;
+		uint32_t mend  = mbase + CONFIG_SYS_MONITOR_LEN;
+		mbase &= CPLB_PAGE_MASK;
+		mend &= CPLB_PAGE_MASK;
 
-	/* If the monitor crosses a 4 meg boundary, we'll need
-	 * to lock two entries for it.
-	 */
-	if ((CONFIG_SYS_MONITOR_BASE & CPLB_PAGE_MASK) != ((CONFIG_SYS_MONITOR_BASE + CONFIG_SYS_MONITOR_LEN) & CPLB_PAGE_MASK)) {
-		icplb_add((CONFIG_SYS_MONITOR_BASE + CONFIG_SYS_MONITOR_LEN) & CPLB_PAGE_MASK, SDRAM_IKERNEL);
-		dcplb_add((CONFIG_SYS_MONITOR_BASE + CONFIG_SYS_MONITOR_LEN) & CPLB_PAGE_MASK, SDRAM_DKERNEL);
+		icplb_add(mbase, SDRAM_IKERNEL);
+		dcplb_add(mbase, SDRAM_DKERNEL);
 		++i;
+
+		/*
+		 * If the monitor crosses a 4 meg boundary, we'll need
+		 * to lock two entries for it.  We assume it doesn't
+		 * cross two 4 meg boundaries ...
+		 */
+		if (mbase != mend) {
+			icplb_add(mend, SDRAM_IKERNEL);
+			dcplb_add(mend, SDRAM_DKERNEL);
+			++i;
+		}
 	}
 
 	icplb_add(0x20000000, SDRAM_INON_CHBL);
@@ -262,6 +250,8 @@ void board_init_f(ulong bootflag)
 	bd->bi_vco = get_vco();
 	bd->bi_cclk = get_cclk();
 	bd->bi_sclk = get_sclk();
+	bd->bi_memstart = CONFIG_SYS_SDRAM_BASE;
+	bd->bi_memsize = CONFIG_SYS_MAX_RAM_SIZE;
 
 	/* Initialize */
 	serial_early_puts("IRQ init\n");
@@ -285,7 +275,7 @@ void board_init_f(ulong bootflag)
 	printf("System: %s MHz\n", strmhz(buf, get_sclk()));
 
 	printf("RAM:   ");
-	print_size(initdram(0), "\n");
+	print_size(bd->bi_memsize, "\n");
 #if defined(CONFIG_POST)
 	post_init_f();
 	post_bootmode_init();
@@ -295,9 +285,26 @@ void board_init_f(ulong bootflag)
 	board_init_r((gd_t *) gd, 0x20000010);
 }
 
+static void board_net_init_r(bd_t *bd)
+{
+#ifdef CONFIG_BITBANGMII
+	bb_miiphy_init();
+#endif
+#ifdef CONFIG_CMD_NET
+	char *s;
+
+	if ((s = getenv("bootfile")) != NULL)
+		copy_filename(BootFile, s, sizeof(BootFile));
+
+	bd->bi_ip_addr = getenv_IPaddr("ipaddr");
+
+	printf("Net:   ");
+	eth_initialize(gd->bd);
+#endif
+}
+
 void board_init_r(gd_t * id, ulong dest_addr)
 {
-	extern void malloc_bin_reloc(void);
 	char *s;
 	bd_t *bd;
 	gd = id;
@@ -309,11 +316,14 @@ void board_init_r(gd_t * id, ulong dest_addr)
 	post_reloc();
 #endif
 
+	/* initialize malloc() area */
+	mem_malloc_init(CONFIG_SYS_MALLOC_BASE, CONFIG_SYS_MALLOC_LEN);
+
 #if	!defined(CONFIG_SYS_NO_FLASH)
 	/* Initialize the flash and protect u-boot by default */
 	extern flash_info_t flash_info[];
-	ulong size = flash_init();
 	puts("Flash: ");
+	ulong size = flash_init();
 	print_size(size, "\n");
 	flash_protect(FLAG_PROTECT_SET, CONFIG_SYS_FLASH_BASE,
 		CONFIG_SYS_FLASH_BASE + CONFIG_SYS_MONITOR_LEN - 1,
@@ -326,53 +336,31 @@ void board_init_r(gd_t * id, ulong dest_addr)
 	bd->bi_flashsize = 0;
 	bd->bi_flashoffset = 0;
 #endif
-	/* initialize malloc() area */
-	mem_malloc_init();
-	malloc_bin_reloc();
 
 #ifdef CONFIG_CMD_NAND
 	puts("NAND:  ");
 	nand_init();		/* go init the NAND */
 #endif
 
+#ifdef CONFIG_GENERIC_MMC
+	puts("MMC:  ");
+	mmc_initialize(bd);
+#endif
+
 	/* relocate environment function pointers etc. */
 	env_relocate();
 
-#ifdef CONFIG_CMD_NET
-	/* board MAC address */
-	s = getenv("ethaddr");
-	if (s == NULL) {
-# ifndef CONFIG_ETHADDR
-#  if 0
-		if (!board_get_enetaddr(bd->bi_enetaddr)) {
-			char nid[20];
-			sprintf(nid, "%02X:%02X:%02X:%02X:%02X:%02X",
-				bd->bi_enetaddr[0], bd->bi_enetaddr[1],
-				bd->bi_enetaddr[2], bd->bi_enetaddr[3],
-				bd->bi_enetaddr[4], bd->bi_enetaddr[5]);
-			setenv("ethaddr", nid);
-		}
-#  endif
-# endif
-	} else {
-		int i;
-		char *e;
-		for (i = 0; i < 6; ++i) {
-			bd->bi_enetaddr[i] = simple_strtoul(s, &e, 16);
-			s = (*e) ? e + 1 : e;
-		}
-	}
-
-	/* IP Address */
-	bd->bi_ip_addr = getenv_IPaddr("ipaddr");
-#endif
-
-	/* Initialize devices */
-	devices_init();
+	/* Initialize stdio devices */
+	stdio_init();
 	jumptable_init();
 
 	/* Initialize the console (after the relocation and devices init) */
 	console_init_r();
+
+#ifdef CONFIG_CMD_KGDB
+	puts("KGDB:  ");
+	kgdb_init();
+#endif
 
 #ifdef CONFIG_STATUS_LED
 	status_led_set(STATUS_LED_BOOT, STATUS_LED_BLINKING);
@@ -382,33 +370,13 @@ void board_init_r(gd_t * id, ulong dest_addr)
 	/* Initialize from environment */
 	if ((s = getenv("loadaddr")) != NULL)
 		load_addr = simple_strtoul(s, NULL, 16);
-#ifdef CONFIG_CMD_NET
-	if ((s = getenv("bootfile")) != NULL)
-		copy_filename(BootFile, s, sizeof(BootFile));
-#endif
 
 #if defined(CONFIG_MISC_INIT_R)
 	/* miscellaneous platform dependent initialisations */
 	misc_init_r();
 #endif
 
-#ifdef CONFIG_CMD_NET
-	printf("Net:   ");
-	eth_initialize(gd->bd);
-	if ((s = getenv("ethaddr"))) {
-# ifndef CONFIG_NET_MULTI
-		size_t i;
-		char *e;
-		for (i = 0; i < 6; ++i) {
-			bd->bi_enetaddr[i] = simple_strtoul(s, &e, 16);
-			s = (*e) ? e + 1 : e;
-		}
-# endif
-		printf("MAC:   %02X:%02X:%02X:%02X:%02X:%02X\n",
-			bd->bi_enetaddr[0], bd->bi_enetaddr[1], bd->bi_enetaddr[2],
-			bd->bi_enetaddr[3], bd->bi_enetaddr[4], bd->bi_enetaddr[5]);
-	}
-#endif
+	board_net_init_r(bd);
 
 	display_global_data();
 
@@ -416,6 +384,12 @@ void board_init_r(gd_t * id, ulong dest_addr)
 	if (post_flag)
 		post_run(NULL, POST_RAM | post_bootmode_get(0));
 #endif
+
+	if (bfin_os_log_check()) {
+		puts("\nLog buffer from operating system:\n");
+		bfin_os_log_dump();
+		puts("\n");
+	}
 
 	/* main_loop() can return to retry autoboot, if so just run it again. */
 	for (;;)

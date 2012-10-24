@@ -32,16 +32,21 @@
 #include <i2c.h>
 
 extern omap3_sysinfo sysinfo;
-static gpmc_csx_t *gpmc_cs_base = (gpmc_csx_t *)GPMC_CONFIG_CS0_BASE;
-static sdrc_t *sdrc_base = (sdrc_t *)OMAP34XX_SDRC_BASE;
-static ctrl_t *ctrl_base = (ctrl_t *)OMAP34XX_CTRL_BASE;
+static struct sdrc *sdrc_base = (struct sdrc *)OMAP34XX_SDRC_BASE;
+static struct ctrl *ctrl_base = (struct ctrl *)OMAP34XX_CTRL_BASE;
+static char *rev_s[CPU_3XX_MAX_REV] = {
+				"1.0",
+				"2.0",
+				"2.1",
+				"3.0",
+				"3.1"};
 
 /*****************************************************************
  * dieid_num_r(void) - read and set die ID
  *****************************************************************/
 void dieid_num_r(void)
 {
-	ctrl_id_t *id_base = (ctrl_id_t *)OMAP34XX_ID_L4_IO_BASE;
+	struct ctrl_id *id_base = (struct ctrl_id *)OMAP34XX_ID_L4_IO_BASE;
 	char *uid_s, die_id[34];
 	u32 id[4];
 
@@ -76,18 +81,27 @@ u32 get_cpu_type(void)
 u32 get_cpu_rev(void)
 {
 	u32 cpuid = 0;
+	struct ctrl_id *id_base;
 
 	/*
 	 * On ES1.0 the IDCODE register is not exposed on L4
-	 * so using CPU ID to differentiate
-	 * between ES2.0 and ES1.0.
+	 * so using CPU ID to differentiate between ES1.0 and > ES1.0.
 	 */
 	__asm__ __volatile__("mrc p15, 0, %0, c0, c0, 0":"=r"(cpuid));
 	if ((cpuid & 0xf) == 0x0)
-		return CPU_3430_ES1;
-	else
-		return CPU_3430_ES2;
+		return CPU_3XX_ES10;
+	else {
+		/* Decode the IDs on > ES1.0 */
+		id_base = (struct ctrl_id *) OMAP34XX_ID_L4_IO_BASE;
 
+		cpuid = (readl(&id_base->idcode) >> CPU_3XX_ID_SHIFT) & 0xf;
+
+		/* Some early ES2.0 seem to report ID 0, fix this */
+		if(cpuid == 0)
+			cpuid = CPU_3XX_ES20;
+
+		return cpuid;
+	}
 }
 
 /****************************************************
@@ -95,7 +109,7 @@ u32 get_cpu_rev(void)
  ****************************************************/
 u32 is_mem_sdr(void)
 {
-	if (readl(&sdrc_base->cs[CS0].mr) == SDP_SDRC_MR_0_SDR)
+	if (readl(&sdrc_base->cs[CS0].mr) == SDRC_MR_0_SDR)
 		return 1;
 	return 0;
 }
@@ -110,7 +124,7 @@ u32 get_sdr_cs_size(u32 cs)
 	/* get ram size field */
 	size = readl(&sdrc_base->cs[cs].mcfg) >> 8;
 	size &= 0x3FF;		/* remove unwanted bits */
-	size *= SZ_2M;		/* find size in MB */
+	size <<= 21;		/* multiply by 2 MiB to find size in MB */
 	return size;
 }
 
@@ -130,23 +144,6 @@ u32 get_sdr_cs_offset(u32 cs)
 	return offset;
 }
 
-/***********************************************************************
- * get_board_type() - get board type based on current production stats.
- *  - NOTE-1-: 2 I2C EEPROMs will someday be populated with proper info.
- *    when they are available we can get info from there.  This should
- *    be correct of all known boards up until today.
- *  - NOTE-2- EEPROMs are populated but they are updated very slowly.  To
- *    avoid waiting on them we will use ES version of the chip to get info.
- *    A later version of the FPGA migth solve their speed issue.
- ************************************************************************/
-u32 get_board_type(void)
-{
-	if (get_cpu_rev() == CPU_3430_ES2)
-		return sysinfo.board_type_v2;
-	else
-		return sysinfo.board_type_v1;
-}
-
 /***************************************************************************
  *  get_gpmc0_base() - Return current address hardware will be
  *     fetching from. The below effectively gives what is correct, its a bit
@@ -162,7 +159,7 @@ u32 get_gpmc0_base(void)
 {
 	u32 b;
 
-	b = readl(&gpmc_cs_base->config7);
+	b = readl(&gpmc_cfg->cs[0].config7);
 	b &= 0x1F;		/* keep base [5:0] */
 	b = b << 24;		/* ret 0x0b000000 */
 	return b;
@@ -183,61 +180,6 @@ u32 get_gpmc0_width(void)
 u32 get_board_rev(void)
 {
 	return 0x20;
-}
-
-/*********************************************************************
- *  display_board_info() - print banner with board info.
- *********************************************************************/
-void display_board_info(u32 btype)
-{
-	char *cpu_s, *mem_s, *sec_s;
-
-	switch (get_cpu_type()) {
-	case OMAP3503:
-		cpu_s = "3503";
-		break;
-	case OMAP3515:
-		cpu_s = "3515";
-		break;
-	case OMAP3525:
-		cpu_s = "3525";
-		break;
-	case OMAP3530:
-		cpu_s = "3530";
-		break;
-	default:
-		cpu_s = "35XX";
-		break;
-	}
-
-	if (is_mem_sdr())
-		mem_s = "mSDR";
-	else
-		mem_s = "LPDDR";
-
-	switch (get_device_type()) {
-	case TST_DEVICE:
-		sec_s = "TST";
-		break;
-	case EMU_DEVICE:
-		sec_s = "EMU";
-		break;
-	case HS_DEVICE:
-		sec_s = "HS";
-		break;
-	case GP_DEVICE:
-		sec_s = "GP";
-		break;
-	default:
-		sec_s = "?";
-	}
-
-
-	printf("OMAP%s-%s rev %d, CPU-OPP2 L3-165MHz\n", cpu_s,
-	       sec_s, get_cpu_rev());
-	printf("%s + %s/%s\n", sysinfo.board_string,
-	       mem_s, sysinfo.nand_string);
-
 }
 
 /********************************************************
@@ -305,3 +247,53 @@ u32 get_device_type(void)
 {
 	return ((readl(&ctrl_base->status) & (DEVICE_MASK)) >> 8);
 }
+
+#ifdef CONFIG_DISPLAY_CPUINFO
+/**
+ * Print CPU information
+ */
+int print_cpuinfo (void)
+{
+	char *cpu_s, *sec_s;
+
+	switch (get_cpu_type()) {
+	case OMAP3503:
+		cpu_s = "3503";
+		break;
+	case OMAP3515:
+		cpu_s = "3515";
+		break;
+	case OMAP3525:
+		cpu_s = "3525";
+		break;
+	case OMAP3530:
+		cpu_s = "3530";
+		break;
+	default:
+		cpu_s = "35XX";
+		break;
+	}
+
+	switch (get_device_type()) {
+	case TST_DEVICE:
+		sec_s = "TST";
+		break;
+	case EMU_DEVICE:
+		sec_s = "EMU";
+		break;
+	case HS_DEVICE:
+		sec_s = "HS";
+		break;
+	case GP_DEVICE:
+		sec_s = "GP";
+		break;
+	default:
+		sec_s = "?";
+	}
+
+	printf("OMAP%s-%s ES%s, CPU-OPP2 L3-165MHz\n",
+			cpu_s, sec_s, rev_s[get_cpu_rev()]);
+
+	return 0;
+}
+#endif	/* CONFIG_DISPLAY_CPUINFO */

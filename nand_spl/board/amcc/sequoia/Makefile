@@ -25,7 +25,7 @@ include $(TOPDIR)/config.mk
 include $(TOPDIR)/nand_spl/board/$(BOARDDIR)/config.mk
 
 LDSCRIPT= $(TOPDIR)/nand_spl/board/$(BOARDDIR)/u-boot.lds
-LDFLAGS	= -Bstatic -T $(LDSCRIPT) -Ttext $(TEXT_BASE) $(PLATFORM_LDFLAGS)
+LDFLAGS	= -Bstatic -T $(nandobj)u-boot.lds -Ttext $(TEXT_BASE) $(PLATFORM_LDFLAGS)
 AFLAGS	+= -DCONFIG_NAND_SPL
 CFLAGS	+= -DCONFIG_NAND_SPL
 
@@ -49,10 +49,13 @@ $(nandobj)u-boot-spl-16k.bin: $(nandobj)u-boot-spl
 $(nandobj)u-boot-spl.bin:	$(nandobj)u-boot-spl
 	$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
 
-$(nandobj)u-boot-spl:	$(OBJS)
+$(nandobj)u-boot-spl:	$(OBJS) $(nandobj)u-boot.lds
 	cd $(LNDIR) && $(LD) $(LDFLAGS) $(__OBJS) \
 		-Map $(nandobj)u-boot-spl.map \
 		-o $(nandobj)u-boot-spl
+
+$(nandobj)u-boot.lds: $(LDSCRIPT)
+	$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ -P - <$^ >$@
 
 # create symbolic links for common files
 
@@ -63,7 +66,7 @@ $(obj)denali_data_eye.c:
 
 $(obj)ndfc.c:
 	@rm -f $(obj)ndfc.c
-	ln -s $(SRCTREE)/cpu/ppc4xx/ndfc.c $(obj)ndfc.c
+	ln -s $(SRCTREE)/drivers/mtd/nand/ndfc.c $(obj)ndfc.c
 
 $(obj)resetvec.S:
 	@rm -f $(obj)resetvec.S

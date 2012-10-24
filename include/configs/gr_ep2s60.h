@@ -87,7 +87,7 @@
 #define CONFIG_CMD_USB
 #define CONFIG_USB_STORAGE
 /* Enable needed helper functions */
-#define CONFIG_SYS_DEVICE_DEREGISTER	/* needs device_deregister */
+#define CONFIG_SYS_STDIO_DEREGISTER	/* needs stdio_deregister */
 #endif
 
 /*
@@ -267,7 +267,8 @@
 #ifndef USE_GRETH
 
 /* USE SMC91C111 MAC */
-#define CONFIG_DRIVER_SMC91111          1
+#define CONFIG_NET_MULTI
+#define CONFIG_SMC91111          1
 #define CONFIG_SMC91111_BASE		0x20000300	/* chip select 3         */
 #define CONFIG_SMC_USE_32_BIT		1	/* 32 bit bus  */
 #undef  CONFIG_SMC_91111_EXT_PHY	/* we use internal phy   */

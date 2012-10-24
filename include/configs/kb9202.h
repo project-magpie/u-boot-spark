@@ -29,6 +29,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define CONFIG_AT91_LEGACY
+
 /* ARM asynchronous clock */
 #define AT91C_MAIN_CLOCK	180000000	/* from 10 MHz crystal */
 #define AT91C_MASTER_CLOCK	60000000	/* peripheral clock (AT91C_MASTER_CLOCK / 3) */
@@ -72,6 +74,7 @@
  */
 
 /* define one of these to choose the DBGU, USART0  or USART1 as console */
+#define CONFIG_AT91RM9200_USART
 #define CONFIG_DBGU
 #undef CONFIG_USART0
 #undef CONFIG_USART1
@@ -114,7 +117,13 @@
 #define CONFIG_SYS_MEMTEST_START		PHYS_SDRAM
 #define CONFIG_SYS_MEMTEST_END			CONFIG_SYS_MEMTEST_START + PHYS_SDRAM_SIZE - (512*1024)
 
-#define CONFIG_DRIVER_ETHER
+#define CONFIG_NET_MULTI		1
+#ifdef CONFIG_NET_MULTI
+#define CONFIG_DRIVER_AT91EMAC		1
+#define CONFIG_SYS_RX_ETH_BUFFER	8
+#else
+#define CONFIG_DRIVER_ETHER		1
+#endif
 #define CONFIG_NET_RETRY_COUNT		20
 
 #define CONFIG_SYS_FLASH_BASE			0x10000000

@@ -34,6 +34,9 @@
 #endif
 #include <watchdog.h>
 
+#include <u-boot/md5.h>
+#include <sha1.h>
+
 #ifdef	CMD_MEM_DEBUG
 #define	PRINTF(fmt,args...)	printf (fmt ,##args)
 #else
@@ -651,7 +654,7 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	vu_long	*addr, *start, *end;
 	ulong	val;
 	ulong	readback;
-	int     rcode = 0;
+	ulong	errs = 0;
 	int iterations = 1;
 	int iteration_limit;
 
@@ -720,9 +723,9 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 
 
 		if (iteration_limit && iterations > iteration_limit) {
-			printf("Tested %d iteration(s) without errors.\n",
-				iterations-1);
-			return 0;
+			printf("Tested %d iteration(s) with %lu errors.\n",
+				iterations-1, errs);
+			return errs != 0;
 		}
 
 		printf("Iteration: %6d\r", iterations);
@@ -754,9 +757,14 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			*dummy  = ~val; /* clear the test data off of the bus */
 			readback = *addr;
 			if(readback != val) {
-			     printf ("FAILURE (data line): "
+			    printf ("FAILURE (data line): "
 				"expected %08lx, actual %08lx\n",
 					  val, readback);
+			    errs++;
+			    if (ctrlc()) {
+				putc ('\n');
+				return 1;
+			    }
 			}
 			*addr  = ~val;
 			*dummy  = val;
@@ -765,6 +773,11 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			    printf ("FAILURE (data line): "
 				"Is %08lx, should be %08lx\n",
 					readback, ~val);
+			    errs++;
+			    if (ctrlc()) {
+				putc ('\n');
+				return 1;
+			    }
 			}
 		    }
 		}
@@ -830,7 +843,11 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			printf ("\nFAILURE: Address bit stuck high @ 0x%.8lx:"
 				" expected 0x%.8lx, actual 0x%.8lx\n",
 				(ulong)&start[offset], pattern, temp);
-			return 1;
+			errs++;
+			if (ctrlc()) {
+			    putc ('\n');
+			    return 1;
+			}
 		    }
 		}
 		start[test_offset] = pattern;
@@ -848,7 +865,11 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			    printf ("\nFAILURE: Address bit stuck low or shorted @"
 				" 0x%.8lx: expected 0x%.8lx, actual 0x%.8lx\n",
 				(ulong)&start[offset], pattern, temp);
-			    return 1;
+			    errs++;
+			    if (ctrlc()) {
+				putc ('\n');
+				return 1;
+			    }
 			}
 		    }
 		    start[test_offset] = pattern;
@@ -886,7 +907,11 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			printf ("\nFAILURE (read/write) @ 0x%.8lx:"
 				" expected 0x%.8lx, actual 0x%.8lx)\n",
 				(ulong)&start[offset], pattern, temp);
-			return 1;
+			errs++;
+			if (ctrlc()) {
+			    putc ('\n');
+			    return 1;
+			}
 		    }
 
 		    anti_pattern = ~pattern;
@@ -904,7 +929,11 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			printf ("\nFAILURE (read/write): @ 0x%.8lx:"
 				" expected 0x%.8lx, actual 0x%.8lx)\n",
 				(ulong)&start[offset], anti_pattern, temp);
-			return 1;
+			errs++;
+			if (ctrlc()) {
+			    putc ('\n');
+			    return 1;
+			}
 		    }
 		    start[offset] = 0;
 		}
@@ -919,9 +948,9 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		}
 
 		if (iteration_limit && iterations > iteration_limit) {
-			printf("Tested %d iteration(s) without errors.\n",
-				iterations-1);
-			return 0;
+			printf("Tested %d iteration(s) with %lu errors.\n",
+				iterations-1, errs);
+			return errs != 0;
 		}
 		++iterations;
 
@@ -945,7 +974,11 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				printf ("\nMem error @ 0x%08X: "
 					"found %08lX, expected %08lX\n",
 					(uint)addr, readback, val);
-				rcode = 1;
+				errs++;
+				if (ctrlc()) {
+					putc ('\n');
+					return 1;
+				}
 			}
 			val += incr;
 		}
@@ -965,7 +998,7 @@ int do_mem_mtest (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		incr = -incr;
 	}
 #endif
-	return rcode;
+	return 0;	/* not reached */
 }
 
 
@@ -1166,10 +1199,57 @@ int do_mem_crc (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 }
 #endif	/* CONFIG_CRC32_VERIFY */
 
+#ifdef CONFIG_CMD_MD5SUM
+int do_md5sum(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	unsigned long addr, len;
+	unsigned int i;
+	u8 output[16];
+
+	if (argc < 3) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
+
+	addr = simple_strtoul(argv[1], NULL, 16);
+	len = simple_strtoul(argv[2], NULL, 16);
+
+	md5((unsigned char *) addr, len, output);
+	printf("md5 for %08lx ... %08lx ==> ", addr, addr + len - 1);
+	for (i = 0; i < 16; i++)
+		printf("%02x", output[i]);
+	printf("\n");
+
+	return 0;
+}
+#endif
+
+#ifdef CONFIG_CMD_SHA1
+int do_sha1sum(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+{
+	unsigned long addr, len;
+	unsigned int i;
+	u8 output[20];
+
+	if (argc < 3) {
+		cmd_usage(cmdtp);
+		return 1;
+	}
+
+	addr = simple_strtoul(argv[1], NULL, 16);
+	len = simple_strtoul(argv[2], NULL, 16);
+
+	sha1_csum((unsigned char *) addr, len, output);
+	printf("SHA1 for %08lx ... %08lx ==> ", addr, addr + len - 1);
+	for (i = 0; i < 20; i++)
+		printf("%02x", output[i]);
+	printf("\n");
+
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_CMD_UNZIP
-int  gunzip (void *, int, unsigned char *, unsigned long *);
-
 int do_unzip ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
 	unsigned long src, dst;
@@ -1197,39 +1277,39 @@ int do_unzip ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	md,	3,	1,	do_mem_md,
 	"memory display",
-	"[.b, .w, .l] address [# of objects]\n	  - memory display\n"
+	"[.b, .w, .l] address [# of objects]"
 );
 
 
 U_BOOT_CMD(
 	mm,	2,	1,	do_mem_mm,
-	"memory modify (auto-incrementing)",
-	"[.b, .w, .l] address\n" "    - memory modify, auto increment address\n"
+	"memory modify (auto-incrementing address)",
+	"[.b, .w, .l] address"
 );
 
 
 U_BOOT_CMD(
 	nm,	2,	1,	do_mem_nm,
 	"memory modify (constant address)",
-	"[.b, .w, .l] address\n    - memory modify, read and keep address\n"
+	"[.b, .w, .l] address"
 );
 
 U_BOOT_CMD(
 	mw,	4,	1,	do_mem_mw,
 	"memory write (fill)",
-	"[.b, .w, .l] address value [count]\n	- write memory\n"
+	"[.b, .w, .l] address value [count]"
 );
 
 U_BOOT_CMD(
 	cp,	4,	1,	do_mem_cp,
 	"memory copy",
-	"[.b, .w, .l] source target count\n    - copy memory\n"
+	"[.b, .w, .l] source target count"
 );
 
 U_BOOT_CMD(
 	cmp,	4,	1,	do_mem_cmp,
 	"memory compare",
-	"[.b, .w, .l] addr1 addr2 count\n    - compare memory\n"
+	"[.b, .w, .l] addr1 addr2 count"
 );
 
 #ifndef CONFIG_CRC32_VERIFY
@@ -1237,7 +1317,7 @@ U_BOOT_CMD(
 U_BOOT_CMD(
 	crc32,	4,	1,	do_mem_crc,
 	"checksum calculation",
-	"address count [addr]\n    - compute CRC32 checksum [save at addr]\n"
+	"address count [addr]\n    - compute CRC32 checksum [save at addr]"
 );
 
 #else	/* CONFIG_CRC32_VERIFY */
@@ -1246,7 +1326,7 @@ U_BOOT_CMD(
 	crc32,	5,	1,	do_mem_crc,
 	"checksum calculation",
 	"address count [addr]\n    - compute CRC32 checksum [save at addr]\n"
-	"-v address count crc\n    - verify crc of memory area\n"
+	"-v address count crc\n    - verify crc of memory area"
 );
 
 #endif	/* CONFIG_CRC32_VERIFY */
@@ -1255,50 +1335,63 @@ U_BOOT_CMD(
 	base,	2,	1,	do_mem_base,
 	"print or set address offset",
 	"\n    - print address offset for memory commands\n"
-	"base off\n    - set address offset for memory commands to 'off'\n"
+	"base off\n    - set address offset for memory commands to 'off'"
 );
 
 U_BOOT_CMD(
 	loop,	3,	1,	do_mem_loop,
 	"infinite loop on address range",
-	"[.b, .w, .l] address number_of_objects\n"
-	"    - loop on a set of addresses\n"
+	"[.b, .w, .l] address number_of_objects"
 );
 
 #ifdef CONFIG_LOOPW
 U_BOOT_CMD(
 	loopw,	4,	1,	do_mem_loopw,
 	"infinite write loop on address range",
-	"[.b, .w, .l] address number_of_objects data_to_write\n"
-	"    - loop on a set of addresses\n"
+	"[.b, .w, .l] address number_of_objects data_to_write"
 );
 #endif /* CONFIG_LOOPW */
 
 U_BOOT_CMD(
 	mtest,	5,	1,	do_mem_mtest,
-	"simple RAM test",
-	"[start [end [pattern [iterations]]]]\n"
-	"    - simple RAM read/write test\n"
+	"simple RAM read/write test",
+	"[start [end [pattern [iterations]]]]"
 );
 
 #ifdef CONFIG_MX_CYCLIC
 U_BOOT_CMD(
 	mdc,	4,	1,	do_mem_mdc,
 	"memory display cyclic",
-	"[.b, .w, .l] address count delay(ms)\n    - memory display cyclic\n"
+	"[.b, .w, .l] address count delay(ms)"
 );
 
 U_BOOT_CMD(
 	mwc,	4,	1,	do_mem_mwc,
 	"memory write cyclic",
-	"[.b, .w, .l] address value delay(ms)\n    - memory write cyclic\n"
+	"[.b, .w, .l] address value delay(ms)"
 );
 #endif /* CONFIG_MX_CYCLIC */
+
+#ifdef CONFIG_CMD_MD5SUM
+U_BOOT_CMD(
+	md5sum,	3,	1,	do_md5sum,
+	"compute MD5 message digest",
+	"address count"
+);
+#endif
+
+#ifdef CONFIG_CMD_SHA1SUM
+U_BOOT_CMD(
+	sha1sum,	3,	1,	do_sha1sum,
+	"compute SHA1 message digest",
+	"address count"
+);
+#endif /* CONFIG_CMD_SHA1 */
 
 #ifdef CONFIG_CMD_UNZIP
 U_BOOT_CMD(
 	unzip,	4,	1,	do_unzip,
 	"unzip a memory region",
-	"srcaddr dstaddr [dstsize]\n"
+	"srcaddr dstaddr [dstsize]"
 );
 #endif /* CONFIG_CMD_UNZIP */

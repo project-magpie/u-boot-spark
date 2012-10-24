@@ -1,4 +1,6 @@
 /*----------------------------------------------------------------------------+
+|   This source code is dual-licensed.  You may use it under the terms of the
+|   GNU General Public License version 2, or under the license below.
 |
 |	This source code has been made available to you by IBM on an AS-IS
 |	basis.	Anyone receiving this source is licensed under IBM
@@ -17,6 +19,8 @@
 |
 |	COPYRIGHT   I B M   CORPORATION 1999
 |	LICENSED MATERIAL  -  PROGRAM PROPERTY OF I B M
+|
+|   Additions (C) Copyright 2009 Industrie Dial Face S.p.A.
 +----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------+
 |
@@ -59,12 +63,33 @@ char *miiphy_get_current_dev (void);
 
 void miiphy_listdev (void);
 
-#define BB_MII_DEVNAME	"bbmii"
+#ifdef CONFIG_BITBANGMII
 
+#define BB_MII_DEVNAME	"bb_miiphy"
+
+struct bb_miiphy_bus {
+	char name[NAMESIZE];
+	int (*init)(struct bb_miiphy_bus *bus);
+	int (*mdio_active)(struct bb_miiphy_bus *bus);
+	int (*mdio_tristate)(struct bb_miiphy_bus *bus);
+	int (*set_mdio)(struct bb_miiphy_bus *bus, int v);
+	int (*get_mdio)(struct bb_miiphy_bus *bus, int *v);
+	int (*set_mdc)(struct bb_miiphy_bus *bus, int v);
+	int (*delay)(struct bb_miiphy_bus *bus);
+#ifdef CONFIG_BITBANGMII_MULTI
+	void *priv;
+#endif
+};
+
+extern struct bb_miiphy_bus bb_miiphy_buses[];
+extern int bb_miiphy_buses_num;
+
+void bb_miiphy_init (void);
 int bb_miiphy_read (char *devname, unsigned char addr,
 		    unsigned char reg, unsigned short *value);
 int bb_miiphy_write (char *devname, unsigned char addr,
 		     unsigned char reg, unsigned short value);
+#endif
 
 /* phy seed setup */
 #define AUTO			99

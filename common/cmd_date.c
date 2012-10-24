@@ -35,7 +35,11 @@ const char *weekdays[] = {
 	"Sun", "Mon", "Tues", "Wednes", "Thurs", "Fri", "Satur",
 };
 
+#ifdef CONFIG_RELOC_FIXUP_WORKS
+#define RELOC(a)	a
+#else
 #define RELOC(a)	((typeof(a))((unsigned long)(a) + gd->reloc_off))
+#endif
 
 int mk_date (char *, struct rtc_time *);
 
@@ -67,9 +71,9 @@ int do_date (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				/* and write to RTC */
 				rcode = rtc_set (&tm);
 				if(rcode)
-					puts("## Set date failled\n");
+					puts("## Set date failed\n");
 			} else {
-				puts("## Get date failled\n");
+				puts("## Get date failed\n");
 			}
 		}
 		/* FALL TROUGH */
@@ -77,7 +81,7 @@ int do_date (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		rcode = rtc_get (&tm);
 
 		if (rcode) {
-			puts("## Get date failled\n");
+			puts("## Get date failed\n");
 			break;
 		}
 
@@ -218,5 +222,5 @@ U_BOOT_CMD(
 	"[MMDDhhmm[[CC]YY][.ss]]\ndate reset\n"
 	"  - without arguments: print date & time\n"
 	"  - with numeric argument: set the system date & time\n"
-	"  - with 'reset' argument: reset the RTC\n"
+	"  - with 'reset' argument: reset the RTC"
 );

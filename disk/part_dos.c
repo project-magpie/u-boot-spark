@@ -36,6 +36,7 @@
 #include "part_dos.h"
 
 #if defined(CONFIG_CMD_IDE) || \
+    defined(CONFIG_CMD_MG_DISK) || \
     defined(CONFIG_CMD_SATA) || \
     defined(CONFIG_CMD_SCSI) || \
     defined(CONFIG_CMD_USB) || \
@@ -187,7 +188,8 @@ static int get_partition_info_extended (block_dev_desc_t *dev_desc, int ext_part
 		 * fdisk does not show the extended partitions that
 		 * are not in the MBR
 		 */
-		if ((pt->sys_ind != 0) &&
+		if (((pt->boot_ind & ~0x80) == 0) &&
+		    (pt->sys_ind != 0) &&
 		    (part_num == which_part) &&
 		    (is_extended(pt->sys_ind) == 0)) {
 			info->blksz = 512;
@@ -197,19 +199,24 @@ static int get_partition_info_extended (block_dev_desc_t *dev_desc, int ext_part
 				case IF_TYPE_IDE:
 				case IF_TYPE_SATA:
 				case IF_TYPE_ATAPI:
-					sprintf ((char *)info->name, "hd%c%d\n", 'a' + dev_desc->dev, part_num);
+					sprintf ((char *)info->name, "hd%c%d",
+						'a' + dev_desc->dev, part_num);
 					break;
 				case IF_TYPE_SCSI:
-					sprintf ((char *)info->name, "sd%c%d\n", 'a' + dev_desc->dev, part_num);
+					sprintf ((char *)info->name, "sd%c%d",
+						'a' + dev_desc->dev, part_num);
 					break;
 				case IF_TYPE_USB:
-					sprintf ((char *)info->name, "usbd%c%d\n", 'a' + dev_desc->dev, part_num);
+					sprintf ((char *)info->name, "usbd%c%d",
+						'a' + dev_desc->dev, part_num);
 					break;
 				case IF_TYPE_DOC:
-					sprintf ((char *)info->name, "docd%c%d\n", 'a' + dev_desc->dev, part_num);
+					sprintf ((char *)info->name, "docd%c%d",
+						'a' + dev_desc->dev, part_num);
 					break;
 				default:
-					sprintf ((char *)info->name, "xx%c%d\n", 'a' + dev_desc->dev, part_num);
+					sprintf ((char *)info->name, "xx%c%d",
+						'a' + dev_desc->dev, part_num);
 					break;
 			}
 			/* sprintf(info->type, "%d, pt->sys_ind); */

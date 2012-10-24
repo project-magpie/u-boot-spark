@@ -23,9 +23,15 @@
  */
 
 #include <common.h>
+#include <exports.h>
+#include <netdev.h>
 #include <asm/arch/AT91RM9200.h>
+#include <asm/io.h>
+
+#if defined(CONFIG_DRIVER_ETHER)
 #include <at91rm9200_net.h>
 #include <dm9161.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -52,6 +58,16 @@ int board_init (void)
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
 	return 0;
+}
+
+void board_reset (void)
+{
+	AT91PS_PIO pio = AT91C_BASE_PIOA;
+
+	/* Clear PA19 to trigger the hard reset */
+	writel(0x00080000, pio->PIO_CODR);
+	writel(0x00080000, pio->PIO_OER);
+	writel(0x00080000, pio->PIO_PER);
 }
 
 int dram_init (void)
@@ -84,6 +100,15 @@ void at91rm9200_GetPhyInterface(AT91PS_PhyOps p_phyops)
 
 #endif
 #endif	/* CONFIG_DRIVER_ETHER */
+
+#ifdef CONFIG_DRIVER_AT91EMAC
+int board_eth_init(bd_t *bis)
+{
+	int rc = 0;
+	rc = at91emac_register(bis, 0);
+	return rc;
+}
+#endif
 
 /*
  * Disk On Chip (NAND) Millenium initialization.

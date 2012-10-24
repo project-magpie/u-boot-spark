@@ -2,7 +2,7 @@
  * (C) Copyright 2002, 2003
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Marius Groeger <mgroeger@sysgo.de>
- * Gary Jennejohn <gj@denx.de>
+ * Gary Jennejohn <garyj@denx.de>
  * David Mueller <d.mueller@elsoft.ch>
  *
  * Configuation settings for the MPL VCMA9 board.
@@ -33,9 +33,10 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_ARM920T		1	/* This is an ARM920T Core	*/
-#define	CONFIG_S3C2410		1	/* in a SAMSUNG S3C2410 SoC     */
-#define CONFIG_VCMA9		1	/* on a MPL VCMA9 Board  */
+#define CONFIG_ARM920T	1	/* This is an ARM920T Core	*/
+#define CONFIG_S3C24X0	1	/* in a SAMSUNG S3C24x0-type SoC	*/
+#define CONFIG_S3C2410	1	/* specifically a SAMSUNG S3C2410 SoC	*/
+#define CONFIG_VCMA9	1	/* on a MPL VCMA9 Board  */
 
 /* input clock of PLL */
 #define CONFIG_SYS_CLK_FREQ	12000000/* VCMA9 has 12MHz input clock	*/
@@ -108,15 +109,17 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_DRIVER_CS8900	1		/* we have a CS8900 on-board */
-#define CS8900_BASE		0x20000300
-#define CS8900_BUS16		1		/* the Linux driver does accesses as shorts */
+#define CONFIG_NET_MULTI
+#define CONFIG_CS8900		/* we have a CS8900 on-board */
+#define CONFIG_CS8900_BASE	0x20000300
+#define CONFIG_CS8900_BUS16	/* the Linux driver does accesses as shorts */
 
 #define CONFIG_DRIVER_S3C24X0_I2C	1	/* we use the buildin I2C controller */
 
 /*
  * select serial console configuration
  */
+#define CONFIG_S3C24X0_SERIAL
 #define CONFIG_SERIAL1          1	/* we use SERIAL 1 on VCMA9 */
 
 /************************************************************
@@ -128,7 +131,7 @@
 #define CONFIG_DOS_PARTITION	1
 
 /* Enable needed helper functions */
-#define CONFIG_SYS_DEVICE_DEREGISTER		/* needs device_deregister */
+#define CONFIG_SYS_STDIO_DEREGISTER		/* needs stdio_deregister */
 
 /************************************************************
  * RTC
@@ -171,9 +174,6 @@
 
 #define CONFIG_SYS_ALT_MEMTEST
 #define	CONFIG_SYS_LOAD_ADDR		0x30800000	/* default load address	*/
-
-
-#undef  CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
 
 /* we configure PWM Timer 4 to 1us ~ 1MHz */
 /*#define	CONFIG_SYS_HZ			1000000 */
@@ -247,43 +247,5 @@
 #define CONFIG_SYS_JFFS2_NUM_BANKS	1
 
 #define MULTI_PURPOSE_SOCKET_ADDR 0x08000000
-
-/*-----------------------------------------------------------------------
- * NAND flash settings
- */
-#if defined(CONFIG_CMD_NAND)
-
-#define CONFIG_NAND_LEGACY
-#define CONFIG_SYS_MAX_NAND_DEVICE	1	/* Max number of NAND devices		*/
-#define SECTORSIZE 512
-
-#define ADDR_COLUMN 1
-#define ADDR_PAGE 2
-#define ADDR_COLUMN_PAGE 3
-
-#define NAND_ChipID_UNKNOWN	0x00
-#define NAND_MAX_FLOORS 1
-
-#define NAND_WAIT_READY(nand)	NF_WaitRB()
-
-#define NAND_DISABLE_CE(nand)	NF_SetCE(NFCE_HIGH)
-#define NAND_ENABLE_CE(nand)	NF_SetCE(NFCE_LOW)
-
-
-#define WRITE_NAND_COMMAND(d, adr)	NF_Cmd(d)
-#define WRITE_NAND_COMMANDW(d, adr)	NF_CmdW(d)
-#define WRITE_NAND_ADDRESS(d, adr)	NF_Addr(d)
-#define WRITE_NAND(d, adr)		NF_Write(d)
-#define READ_NAND(adr)			NF_Read()
-/* the following functions are NOP's because S3C24X0 handles this in hardware */
-#define NAND_CTL_CLRALE(nandptr)
-#define NAND_CTL_SETALE(nandptr)
-#define NAND_CTL_CLRCLE(nandptr)
-#define NAND_CTL_SETCLE(nandptr)
-
-#define CONFIG_MTD_NAND_VERIFY_WRITE	1
-#define CONFIG_MTD_NAND_ECC_JFFS2	1
-
-#endif
 
 #endif	/* __CONFIG_H */

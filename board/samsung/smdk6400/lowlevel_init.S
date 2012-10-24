@@ -34,7 +34,7 @@
 #include <config.h>
 #include <version.h>
 
-#include <s3c6400.h>
+#include <asm/arch/s3c6400.h>
 
 #ifdef CONFIG_SERIAL1
 #define ELFIN_UART_CONSOLE_BASE (ELFIN_UART_BASE + ELFIN_UART0_OFFSET)
@@ -103,6 +103,13 @@ lowlevel_init:
 	/* simple init for NAND */
 	bl nand_asm_init
 #endif
+
+	/* Memory subsystem address 0x7e00f120 */
+	ldr	r0, =ELFIN_MEM_SYS_CFG
+
+	/* Xm0CSn2 = NFCON CS0, Xm0CSn3 = NFCON CS1 */
+	mov	r1, #S3C64XX_MEM_SYS_CFG_NAND
+	str	r1, [r0]
 
 	bl	mem_ctrl_asm_init
 

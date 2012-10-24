@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2002
- * Daniel Engström, Omicron Ceti AB, daniel@omicron.se
+ * Daniel Engstrï¿½m, Omicron Ceti AB, daniel@omicron.se
  *
  * (C) Copyright 2002
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
@@ -31,83 +31,30 @@
 #include <common.h>
 #include <watchdog.h>
 #include <command.h>
-#include <devices.h>
+#include <stdio_dev.h>
 #include <timestamp.h>
 #include <version.h>
 #include <malloc.h>
 #include <net.h>
 #include <ide.h>
 #include <asm/u-boot-i386.h>
+#include <elf.h>
+
+#ifdef CONFIG_BITBANGMII
+#include <miiphy.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
-extern long _i386boot_start;
-extern long _i386boot_end;
-extern long _i386boot_romdata_start;
-extern long _i386boot_romdata_dest;
-extern long _i386boot_romdata_size;
-extern long _i386boot_bss_start;
-extern long _i386boot_bss_size;
-
-extern long _i386boot_realmode;
-extern long _i386boot_realmode_size;
-extern long _i386boot_bios;
-extern long _i386boot_bios_size;
-
-/* The symbols defined by the linker script becomes pointers
- * which is somewhat inconveient ... */
-ulong i386boot_start         = (ulong)&_i386boot_start;         /* code start (in flash) defined in start.S */
-ulong i386boot_end           = (ulong)&_i386boot_end;	        /* code end (in flash) */
-ulong i386boot_romdata_start = (ulong)&_i386boot_romdata_start; /* datasegment in flash (also code+rodata end) */
-ulong i386boot_romdata_dest  = (ulong)&_i386boot_romdata_dest;  /* data location segment in ram */
-ulong i386boot_romdata_size  = (ulong)&_i386boot_romdata_size;  /* size of data segment */
-ulong i386boot_bss_start     = (ulong)&_i386boot_bss_start;     /* bss start */
-ulong i386boot_bss_size      = (ulong)&_i386boot_bss_size;      /* bss size */
-
-ulong i386boot_realmode      = (ulong)&_i386boot_realmode;      /* start of realmode entry code */
-ulong i386boot_realmode_size = (ulong)&_i386boot_realmode_size; /* size of realmode entry code */
-ulong i386boot_bios          = (ulong)&_i386boot_bios;          /* start of BIOS emulation code */
-ulong i386boot_bios_size     = (ulong)&_i386boot_bios_size;     /* size of BIOS emulation code */
-
-
+/* Exports from the Linker Script */
+extern ulong _i386boot_text_start;
+extern ulong _i386boot_rel_dyn_start;
+extern ulong _i386boot_rel_dyn_end;
+extern ulong _i386boot_bss_start;
+extern ulong _i386boot_bss_size;
+void ram_bootstrap (void *);
 const char version_string[] =
 	U_BOOT_VERSION" (" U_BOOT_DATE " - " U_BOOT_TIME ")";
-
-
-/*
- * Begin and End of memory area for malloc(), and current "brk"
- */
-static ulong mem_malloc_start = 0;
-static ulong mem_malloc_end = 0;
-static ulong mem_malloc_brk = 0;
-
-static int mem_malloc_init(void)
-{
-	/* start malloc area right after the stack */
-	mem_malloc_start = i386boot_bss_start +
-		i386boot_bss_size + CONFIG_SYS_STACK_SIZE;
-	mem_malloc_start = (mem_malloc_start+3)&~3;
-
-	/* Use all available RAM for malloc() */
-	mem_malloc_end = gd->ram_size;
-
-	mem_malloc_brk = mem_malloc_start;
-
-	return 0;
-}
-
-void *sbrk (ptrdiff_t increment)
-{
-	ulong old = mem_malloc_brk;
-	ulong new = old + increment;
-
-	if ((new < mem_malloc_start) || (new > mem_malloc_end)) {
-		return (NULL);
-	}
-	mem_malloc_brk = new;
-
-	return ((void *) old);
-}
 
 /************************************************************************
  * Init Utilities							*
@@ -132,6 +79,7 @@ static int display_banner (void)
 {
 
 	printf ("\n\n%s\n\n", version_string);
+/*
 	printf ("U-Boot code: %08lX -> %08lX  data: %08lX -> %08lX\n"
 		"        BSS: %08lX -> %08lX stack: %08lX -> %08lX\n",
 		i386boot_start, i386boot_romdata_start-1,
@@ -140,6 +88,7 @@ static int display_banner (void)
 		i386boot_bss_start+i386boot_bss_size,
 		i386boot_bss_start+i386boot_bss_size+CONFIG_SYS_STACK_SIZE-1);
 
+*/
 
 	return (0);
 }
@@ -171,7 +120,6 @@ static void display_flash_config (ulong size)
 	print_size (size, "\n");
 }
 
-
 /*
  * Breath some life into the board...
  *
@@ -182,6 +130,7 @@ static void display_flash_config (ulong size)
  * its main purpose is to initialize the RAM so that we
  * can relocate the monitor code to RAM.
  */
+
 
 /*
  * All attempts to come up with a "common" initialization sequence
@@ -198,13 +147,12 @@ static void display_flash_config (ulong size)
 typedef int (init_fnc_t) (void);
 
 init_fnc_t *init_sequence[] = {
-	cpu_init,		/* basic cpu dependent setup */
-	board_init,		/* basic board dependent setup */
+	serial_init,
+	cpu_init_r,		/* basic cpu dependent setup */
+	board_early_init_r,	/* basic board dependent setup */
 	dram_init,		/* configure available RAM banks */
-	mem_malloc_init,        /* dependant on dram_init */
 	interrupt_init,		/* set up exceptions */
 	timer_init,
-	serial_init,
 	env_init,		/* initialize environment */
 	init_baudrate,		/* initialze baudrate settings */
 	serial_init,		/* serial communications setup */
@@ -216,18 +164,86 @@ init_fnc_t *init_sequence[] = {
 
 gd_t *gd;
 
-void start_i386boot (void)
+/*
+ * Load U-Boot into RAM, initialize BSS, perform relocation adjustments
+ */
+void board_init_f (ulong stack_limit)
+{
+	void *text_start = &_i386boot_text_start;
+	void *u_boot_cmd_end = &__u_boot_cmd_end;
+	Elf32_Rel *rel_dyn_start = (Elf32_Rel *)&_i386boot_rel_dyn_start;
+	Elf32_Rel *rel_dyn_end = (Elf32_Rel *)&_i386boot_rel_dyn_end;
+	void *bss_start = &_i386boot_bss_start;
+	void *bss_size = &_i386boot_bss_size;
+
+	size_t uboot_size;
+	void *ram_start;
+	ulong rel_offset;
+	Elf32_Rel *re;
+
+	void (*start_func)(void *);
+
+	/* compiler optimization barrier needed for GCC >= 3.4 */
+	__asm__ __volatile__("": : :"memory");
+
+	uboot_size = (size_t)u_boot_cmd_end - (size_t)text_start;
+	ram_start  = (void *)stack_limit - (uboot_size + (ulong)bss_size);
+	rel_offset = text_start - ram_start;
+	start_func = ram_bootstrap - rel_offset;
+
+	/* First stage CPU initialization */
+	if (cpu_init_f() != 0)
+		hang();
+
+	/* First stage Board initialization */
+	if (board_early_init_f() != 0)
+		hang();
+
+	/* Copy U-Boot into RAM */
+	memcpy(ram_start, text_start, (size_t)uboot_size);
+
+	/* Clear BSS */
+	memset(bss_start - rel_offset,	0, (size_t)bss_size);
+
+	/* Perform relocation adjustments */
+	for (re = rel_dyn_start; re < rel_dyn_end; re++)
+	{
+		if (re->r_offset >= TEXT_BASE)
+			if (*(ulong *)re->r_offset >= TEXT_BASE)
+				*(ulong *)(re->r_offset - rel_offset) -= (Elf32_Addr)rel_offset;
+	}
+
+	start_func(ram_start);
+
+	/* NOTREACHED - relocate_code() does not return */
+	while(1);
+}
+
+/*
+ * All attempts to jump straight from board_init_f() to board_init_r()
+ * have failed, hence this special 'bootstrap' function.
+ */
+void ram_bootstrap (void *ram_start)
+{
+	static gd_t gd_data;
+
+	/* compiler optimization barrier needed for GCC >= 3.4 */
+	__asm__ __volatile__("": : :"memory");
+
+	board_init_r(&gd_data, (ulong)ram_start);
+}
+
+void board_init_r(gd_t *id, ulong ram_start)
 {
 	char *s;
 	int i;
 	ulong size;
-	static gd_t gd_data;
 	static bd_t bd_data;
 	init_fnc_t **init_fnc_ptr;
 
 	show_boot_progress(0x21);
 
-	gd = &gd_data;
+	gd = id;
 	/* compiler optimization barrier needed for GCC >= 3.4 */
 	__asm__ __volatile__("": : :"memory");
 
@@ -237,6 +253,11 @@ void start_i386boot (void)
 	show_boot_progress(0x22);
 
 	gd->baudrate =  CONFIG_BAUDRATE;
+
+	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
+
+	mem_malloc_init((((ulong)ram_start - CONFIG_SYS_MALLOC_LEN)+3)&~3,
+			CONFIG_SYS_MALLOC_LEN);
 
 	for (init_fnc_ptr = init_sequence, i=0; *init_fnc_ptr; ++init_fnc_ptr, i++) {
 		show_boot_progress(0xa130|i);
@@ -262,23 +283,6 @@ void start_i386boot (void)
 	/* IP Address */
 	bd_data.bi_ip_addr = getenv_IPaddr ("ipaddr");
 
-	/* MAC Address */
-	{
-		int i;
-		ulong reg;
-		char *s, *e;
-		char tmp[64];
-
-		i = getenv_r ("ethaddr", tmp, sizeof (tmp));
-		s = (i > 0) ? tmp : NULL;
-
-		for (reg = 0; reg < 6; ++reg) {
-			bd_data.bi_enetaddr[reg] = s ? simple_strtoul (s, &e, 16) : 0;
-			if (s)
-				s = (*e) ? e + 1 : e;
-		}
-	}
-
 #if defined(CONFIG_PCI)
 	/*
 	 * Do pci configuration
@@ -289,7 +293,7 @@ void start_i386boot (void)
 	show_boot_progress(0x27);
 
 
-	devices_init ();
+	stdio_init ();
 
 	jumptable_init ();
 
@@ -362,6 +366,9 @@ void start_i386boot (void)
 	doc_init();
 #endif
 
+#ifdef CONFIG_BITBANGMII
+	bb_miiphy_init();
+#endif
 #if defined(CONFIG_CMD_NET)
 #if defined(CONFIG_NET_MULTI)
 	WATCHDOG_RESET();

@@ -48,12 +48,12 @@ int board_early_init_f (void)
    |       IRQ 30 (EXT IRQ 5) SystemACE BRdy (unused)
    |       IRQ 31 (EXT IRQ 6) (unused)
    +-------------------------------------------------------------------------*/
-	mtdcr (uicsr, 0xFFFFFFFF);	/* clear all ints */
-	mtdcr (uicer, 0x00000000);	/* disable all ints */
-	mtdcr (uiccr, 0x00000000);	/* set all to be non-critical */
-	mtdcr (uicpr, 0xFFFFFF87);	/* set int polarities */
-	mtdcr (uictr, 0x10000000);	/* set int trigger levels */
-	mtdcr (uicsr, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr (UIC0SR, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr (UIC0ER, 0x00000000);	/* disable all ints */
+	mtdcr (UIC0CR, 0x00000000);	/* set all to be non-critical */
+	mtdcr (UIC0PR, 0xFFFFFF87);	/* set int polarities */
+	mtdcr (UIC0TR, 0x10000000);	/* set int trigger levels */
+	mtdcr (UIC0SR, 0xFFFFFFFF);	/* clear all ints */
 
 	/* Configure the interface to the SystemACE MCU port.
 	   The SystemACE is fast, but there is no reason to have
@@ -62,12 +62,12 @@ int board_early_init_f (void)
 
 	/* EBC0_B1AP: BME=1, TWT=2, CSN=0, OEN=1,
 	   WBN=0, WBF=1, TH=0,  RE=0,  SOR=0, BEM=0, PEN=0 */
-	mtdcr (ebccfga, pb1ap);
-	mtdcr (ebccfgd, 0x01011000);
+	mtdcr (EBC0_CFGADDR, PB1AP);
+	mtdcr (EBC0_CFGDATA, 0x01011000);
 
 	/* EBC0_B1CR: BAS=x, BS=0(1MB), BU=3(R/W), BW=0(8bits) */
-	mtdcr (ebccfga, pb1cr);
-	mtdcr (ebccfgd, CONFIG_SYS_SYSTEMACE_BASE | 0x00018000);
+	mtdcr (EBC0_CFGADDR, PB1CR);
+	mtdcr (EBC0_CFGDATA, CONFIG_SYS_SYSTEMACE_BASE | 0x00018000);
 
 	/* Enable the /PerWE output as /PerWE, instead of /PCIINT. */
 	/* CPC0_CR1 |= PCIPW */

@@ -20,14 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA
 #
+TEXT_BASE = 0xFFFC0000
 
-#
-# esd ADCIOP boards
-#
-
-# FLASH:
-#TEXT_BASE = 0xFFFE0000
-TEXT_BASE = 0xFFFD0000
-
-# SDRAM:
-#TEXT_BASE = 0x00FE0000
+# Use board specific linker script
+LDSCRIPT := $(SRCTREE)/board/esd/dasa_sim/u-boot.lds

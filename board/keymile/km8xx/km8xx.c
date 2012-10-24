@@ -147,7 +147,9 @@ phys_size_t initdram (int board_type)
 int board_early_init_r(void)
 {
 	/* setup the UPIOx */
-	out_8((u8 *)(CONFIG_SYS_PIGGY_BASE + 0x02), 0xc0);
+	/* General Unit Reset disabled, Flash Bank enabled, UnitLed on */
+	out_8((u8 *)(CONFIG_SYS_PIGGY_BASE + 0x02), 0xc2);
+	/* SCC4 enable, halfduplex, FCC1 powerdown, ANDI enable*/
 	out_8((u8 *)(CONFIG_SYS_PIGGY_BASE + 0x03), 0x35);
 	return 0;
 }
@@ -159,35 +161,12 @@ int hush_init_var (void)
 }
 
 #if defined(CONFIG_OF_BOARD_SETUP) && defined(CONFIG_OF_LIBFDT)
-extern int fdt_set_node_and_value (void *blob,
-				char *nodename,
-				char *regname,
-				void *var,
-				int size);
-
 /*
- * update "memory" property in the blob
+ * update "brg" property in the blob
  */
 void ft_blob_update (void *blob, bd_t *bd)
 {
 	ulong brg_data[1] = {0};
-	ulong memory_data[2] = {0};
-	ulong flash_data[4] = {0};
-	ulong flash_reg[3] = {0};
-
-	memory_data[0] = cpu_to_be32 (bd->bi_memstart);
-	memory_data[1] = cpu_to_be32 (bd->bi_memsize);
-	fdt_set_node_and_value (blob, "/memory", "reg", memory_data,
-				sizeof (memory_data));
-
-	flash_data[2] = cpu_to_be32 (bd->bi_flashstart);
-	flash_data[3] = cpu_to_be32 (bd->bi_flashsize);
-	fdt_set_node_and_value (blob, "/localbus", "ranges", flash_data,
-				sizeof (flash_data));
-
-	flash_reg[2] = cpu_to_be32 (bd->bi_flashsize);
-	fdt_set_node_and_value (blob, "/localbus/flash@0,0", "reg", flash_reg,
-				sizeof (flash_reg));
 
 	/* BRG */
 	brg_data[0] = cpu_to_be32 (bd->bi_busfreq);

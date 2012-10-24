@@ -47,7 +47,9 @@
 #define I2C_RXTX_LEN	128	/* maximum tx/rx buffer length */
 
 #if defined(CONFIG_I2C_MULTI_BUS)
+#if !defined(CONFIG_SYS_MAX_I2C_BUS)
 #define CONFIG_SYS_MAX_I2C_BUS		2
+#endif
 #define I2C_GET_BUS()		i2c_get_bus_num()
 #define I2C_SET_BUS(a)		i2c_set_bus_num(a)
 #else
@@ -72,22 +74,33 @@
 #  define I2C_SOFT_DECLARATIONS volatile ioport_t *iop = ioport_addr((immap_t *)CONFIG_SYS_IMMR, I2C_PORT);
 # elif defined(CONFIG_8xx)
 #  define I2C_SOFT_DECLARATIONS	volatile immap_t *immr = (immap_t *)CONFIG_SYS_IMMR;
+
+# elif (defined(CONFIG_AT91RM9200) || \
+	defined(CONFIG_AT91SAM9260) ||  defined(CONFIG_AT91SAM9261) || \
+	defined(CONFIG_AT91SAM9263)) && !defined(CONFIG_AT91_LEGACY)
+#  define I2C_SOFT_DECLARATIONS	at91_pio_t *pio	= (at91_pio_t *) AT91_PIO_BASE;
 # else
 #  define I2C_SOFT_DECLARATIONS
 # endif
 #endif
 
 #ifdef CONFIG_8xx
-/* Set default values for the I2C bus speed and slave address on 8xx. In the
+/* Set default value for the I2C bus speed on 8xx. In the
  * future, we'll define these in all 8xx board config files.
  */
 #ifndef	CONFIG_SYS_I2C_SPEED
 #define	CONFIG_SYS_I2C_SPEED	50000
 #endif
-
-#ifndef	CONFIG_SYS_I2C_SLAVE
-#define	CONFIG_SYS_I2C_SLAVE	0xFE
 #endif
+
+/*
+ * Many boards/controllers/drivers don't support an I2C slave interface so
+ * provide a default slave address for them for use in common code.  A real
+ * value for CONFIG_SYS_I2C_SLAVE should be defined for any board which does
+ * support a slave interface.
+ */
+#ifndef	CONFIG_SYS_I2C_SLAVE
+#define	CONFIG_SYS_I2C_SLAVE	0xfe
 #endif
 
 /*

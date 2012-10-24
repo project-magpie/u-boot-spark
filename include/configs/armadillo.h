@@ -34,7 +34,7 @@
  * If we are developing, we might want to start armboot from ram
  * so we MUST NOT initialize critical regs like mem-timing ...
  */
-/*#define	CONFIG_INIT_CRITICAL*/		/* undef for developing */
+#undef  CONFIG_SKIP_LOWLEVEL_INIT
 
 /*
  * High Level Configuration Options
@@ -56,14 +56,16 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_DRIVER_CS8900	1	/* we have a CS8900 on-board */
-#define CS8900_BASE		0x20000300 /* armadillo board */
-#define CS8900_BUS16		1
-#undef  CS8900_BUS32
+#define CONFIG_NET_MULTI
+#define CONFIG_CS8900		/* we have a CS8900 on-board */
+#define CONFIG_CS8900_BASE	0x20000300 /* armadillo board */
+#define CONFIG_CS8900_BUS16
+#undef  CONFIG_CS8900_BUS32
 
 /*
  * select serial console configuration
  */
+#define CONFIG_CLPS7111_SERIAL
 #define CONFIG_SERIAL1		1	/* we use Serial line 1 */
 
 /* allow to overwrite serial and ethaddr */
@@ -104,8 +106,6 @@
 
 #define CONFIG_SYS_MEMTEST_START	0xc0400000	/* memtest works on	*/
 #define CONFIG_SYS_MEMTEST_END		0xc0800000	/* 4 ... 8 MB in DRAM	*/
-
-#undef  CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
 
 #define	CONFIG_SYS_LOAD_ADDR		0x00040000	/* default load address	for armadillo: kernel img is here*/
 

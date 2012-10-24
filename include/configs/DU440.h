@@ -60,8 +60,9 @@
 #define CONFIG_SYS_PCI_MEMBASE1	CONFIG_SYS_PCI_MEMBASE  + 0x10000000
 #define CONFIG_SYS_PCI_MEMBASE2	CONFIG_SYS_PCI_MEMBASE1 + 0x10000000
 #define CONFIG_SYS_PCI_MEMBASE3	CONFIG_SYS_PCI_MEMBASE2 + 0x10000000
-#define CONFIG_SYS_PCI_IOBASE          0xe8000000
-
+#define CONFIG_SYS_PCI_IOBASE		0xe8000000
+#define CONFIG_SYS_PCI_SUBSYS_VENDORID	PCI_VENDOR_ID_ESDGMBH
+#define CONFIG_SYS_PCI_SUBSYS_ID	0x0444		/* device ID for DU440 */
 
 /* Don't change either of these */
 #define CONFIG_SYS_PERIPHERAL_BASE	0xef600000	/* internal peripherals	*/
@@ -170,7 +171,6 @@
 #undef	CONFIG_SOFT_I2C			/* I2C bit-banged	        */
 #define CONFIG_SYS_I2C_SPEED		100000	/* I2C speed and slave address  */
 #define CONFIG_SYS_I2C_SLAVE		0x7F
-#define CONFIG_I2C_CMD_TREE     1
 #define CONFIG_I2C_MULTI_BUS    1
 
 #define CONFIG_SYS_SPD_BUS_NUM         0
@@ -290,14 +290,13 @@ int du440_phy_addr(int devnum);
 
 #include <config_cmd_default.h>
 
-#define CONFIG_CMD_AUTOSCRIPT
-#define CONFIG_CMD_BSP
-#define CONFIG_CMD_BMP
-#define CONFIG_CMD_DATE
 #define CONFIG_CMD_ASKENV
+#define CONFIG_CMD_BMP
+#define CONFIG_CMD_BSP
+#define CONFIG_CMD_DATE
 #define CONFIG_CMD_DHCP
-#define CONFIG_CMD_DTT
 #define CONFIG_CMD_DIAG
+#define CONFIG_CMD_DTT
 #define CONFIG_CMD_EEPROM
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_FAT
@@ -309,9 +308,10 @@ int du440_phy_addr(int devnum);
 #define CONFIG_CMD_NFS
 #define CONFIG_CMD_PCI
 #define CONFIG_CMD_PING
-#define CONFIG_CMD_USB
 #define CONFIG_CMD_REGINFO
 #define CONFIG_CMD_SDRAM
+#define CONFIG_CMD_SOURCE
+#define CONFIG_CMD_USB
 
 #define CONFIG_SUPPORT_VFAT
 
@@ -428,7 +428,7 @@ int du440_phy_addr(int devnum);
 #define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
 #endif
 
-#define CONFIG_AUTOSCRIPT	1
+#define CONFIG_SOURCE		1
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_OF_BOARD_SETUP

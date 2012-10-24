@@ -33,6 +33,10 @@
 #include <i2c.h>
 #include "../common/sb_common.h"
 #include "../common/ppc440gx_i2c.h"
+#if defined(CONFIG_HAS_ETH0) || defined(CONFIG_HAS_ETH1) || \
+    defined(CONFIG_HAS_ETH2) || defined(CONFIG_HAS_ETH3)
+#include <net.h>
+#endif
 
 void fpga_init (void);
 
@@ -63,7 +67,7 @@ int board_early_init_f (void)
 	ppc440_gpio_regs_t *gpio_regs;
 
 	/* Enable GPIO interrupts */
-	mtsdr(sdr_pfc0, 0x00103E00);
+	mtsdr(SDR0_PFC0, 0x00103E00);
 
 	/* Setup access for LEDs, and system topology info */
 	gpio_regs = (ppc440_gpio_regs_t *)CONFIG_SYS_GPIO_BASE;
@@ -76,7 +80,7 @@ int board_early_init_f (void)
 	/*--------------------------------------------------------------------+
 	  | Initialize EBC CONFIG
 	  +-------------------------------------------------------------------*/
-	mtebc(xbcfg,
+	mtebc(EBC0_CFG,
 	      EBC_CFG_LE_UNLOCK	   | EBC_CFG_PTD_ENABLE |
 	      EBC_CFG_RTC_64PERCLK | EBC_CFG_ATC_PREVIOUS |
 	      EBC_CFG_DTC_PREVIOUS | EBC_CFG_CTC_PREVIOUS |
@@ -86,7 +90,7 @@ int board_early_init_f (void)
 	/*--------------------------------------------------------------------+
 	  | 1/2 MB FLASH. Initialize bank 0 with default values.
 	  +-------------------------------------------------------------------*/
-	mtebc(pb0ap,
+	mtebc(PB0AP,
 	      EBC_BXAP_BME_DISABLED | EBC_BXAP_TWT_ENCODE(8) |
 	      EBC_BXAP_BCE_DISABLE  | EBC_BXAP_CSN_ENCODE(1) |
 	      EBC_BXAP_OEN_ENCODE(1)| EBC_BXAP_WBN_ENCODE(1) |
@@ -94,12 +98,12 @@ int board_early_init_f (void)
 	      EBC_BXAP_RE_DISABLED  | EBC_BXAP_BEM_WRITEONLY |
 	      EBC_BXAP_PEN_DISABLED);
 
-	mtebc(pb0cr, EBC_BXCR_BAS_ENCODE(CONFIG_SYS_FLASH_BASE) |
+	mtebc(PB0CR, EBC_BXCR_BAS_ENCODE(CONFIG_SYS_FLASH_BASE) |
 	      EBC_BXCR_BS_1MB | EBC_BXCR_BU_RW | EBC_BXCR_BW_8BIT);
 	/*--------------------------------------------------------------------+
 	  | 8KB NVRAM/RTC. Initialize bank 1 with default values.
 	  +-------------------------------------------------------------------*/
-	mtebc(pb1ap,
+	mtebc(PB1AP,
 	      EBC_BXAP_BME_DISABLED | EBC_BXAP_TWT_ENCODE(10) |
 	      EBC_BXAP_BCE_DISABLE  | EBC_BXAP_CSN_ENCODE(1) |
 	      EBC_BXAP_OEN_ENCODE(1)| EBC_BXAP_WBN_ENCODE(1) |
@@ -107,13 +111,13 @@ int board_early_init_f (void)
 	      EBC_BXAP_RE_DISABLED  | EBC_BXAP_BEM_WRITEONLY |
 	      EBC_BXAP_PEN_DISABLED);
 
-	mtebc(pb1cr, EBC_BXCR_BAS_ENCODE(0x48000000) |
+	mtebc(PB1CR, EBC_BXCR_BAS_ENCODE(0x48000000) |
 	      EBC_BXCR_BS_1MB | EBC_BXCR_BU_RW | EBC_BXCR_BW_8BIT);
 
 	/*--------------------------------------------------------------------+
 	  | Compact Flash, uses 2 Chip Selects (2 & 6)
 	  +-------------------------------------------------------------------*/
-	mtebc(pb2ap,
+	mtebc(PB2AP,
 	      EBC_BXAP_BME_DISABLED | EBC_BXAP_TWT_ENCODE(8) |
 	      EBC_BXAP_BCE_DISABLE  | EBC_BXAP_CSN_ENCODE(1) |
 	      EBC_BXAP_OEN_ENCODE(1)| EBC_BXAP_WBN_ENCODE(1) |
@@ -121,40 +125,40 @@ int board_early_init_f (void)
 	      EBC_BXAP_RE_DISABLED  | EBC_BXAP_BEM_WRITEONLY |
 	      EBC_BXAP_PEN_DISABLED);
 
-	mtebc(pb2cr, EBC_BXCR_BAS_ENCODE(0xF0000000) |
+	mtebc(PB2CR, EBC_BXCR_BAS_ENCODE(0xF0000000) |
 	      EBC_BXCR_BS_1MB | EBC_BXCR_BU_RW | EBC_BXCR_BW_16BIT);
 
 	/*--------------------------------------------------------------------+
 	  | KaRef Scan FPGA. Initialize bank 3 with default values.
 	  +-------------------------------------------------------------------*/
-	mtebc(pb5ap,
+	mtebc(PB5AP,
 	      EBC_BXAP_RE_ENABLED    | EBC_BXAP_SOR_NONDELAYED |
 	      EBC_BXAP_BME_DISABLED  | EBC_BXAP_TWT_ENCODE(3) |
 	      EBC_BXAP_TH_ENCODE(1)  | EBC_BXAP_WBF_ENCODE(0) |
 	      EBC_BXAP_CSN_ENCODE(1) | EBC_BXAP_PEN_DISABLED |
 	      EBC_BXAP_OEN_ENCODE(1) | EBC_BXAP_BEM_RW);
 
-	mtebc(pb5cr, EBC_BXCR_BAS_ENCODE(0x48200000) |
+	mtebc(PB5CR, EBC_BXCR_BAS_ENCODE(0x48200000) |
 	      EBC_BXCR_BS_1MB | EBC_BXCR_BU_RW | EBC_BXCR_BW_32BIT);
 
 	/*--------------------------------------------------------------------+
 	  | MAC A & B for Kamino.  OFEM FPGA decodes the addresses
 	  | Initialize bank 4 with default values.
 	  +-------------------------------------------------------------------*/
-	mtebc(pb4ap,
+	mtebc(PB4AP,
 	      EBC_BXAP_RE_ENABLED    | EBC_BXAP_SOR_NONDELAYED |
 	      EBC_BXAP_BME_DISABLED  | EBC_BXAP_TWT_ENCODE(3) |
 	      EBC_BXAP_TH_ENCODE(1)  | EBC_BXAP_WBF_ENCODE(0) |
 	      EBC_BXAP_CSN_ENCODE(1) | EBC_BXAP_PEN_DISABLED |
 	      EBC_BXAP_OEN_ENCODE(1) | EBC_BXAP_BEM_RW);
 
-	mtebc(pb4cr, EBC_BXCR_BAS_ENCODE(0x48600000) |
+	mtebc(PB4CR, EBC_BXCR_BAS_ENCODE(0x48600000) |
 	      EBC_BXCR_BS_2MB | EBC_BXCR_BU_RW | EBC_BXCR_BW_32BIT);
 
 	/*--------------------------------------------------------------------+
 	  | OFEM FPGA  Initialize bank 5 with default values.
 	  +-------------------------------------------------------------------*/
-	mtebc(pb3ap,
+	mtebc(PB3AP,
 	      EBC_BXAP_RE_ENABLED    | EBC_BXAP_SOR_NONDELAYED |
 	      EBC_BXAP_BME_DISABLED  | EBC_BXAP_TWT_ENCODE(3) |
 	      EBC_BXAP_TH_ENCODE(1)  | EBC_BXAP_WBF_ENCODE(0) |
@@ -162,14 +166,14 @@ int board_early_init_f (void)
 	      EBC_BXAP_OEN_ENCODE(1) | EBC_BXAP_BEM_RW);
 
 
-	mtebc(pb3cr, EBC_BXCR_BAS_ENCODE(0x48400000) |
+	mtebc(PB3CR, EBC_BXCR_BAS_ENCODE(0x48400000) |
 	      EBC_BXCR_BS_1MB | EBC_BXCR_BU_RW | EBC_BXCR_BW_32BIT);
 
 
 	/*--------------------------------------------------------------------+
 	  | Compact Flash, uses 2 Chip Selects (2 & 6)
 	  +-------------------------------------------------------------------*/
-	mtebc(pb6ap,
+	mtebc(PB6AP,
 	      EBC_BXAP_BME_DISABLED | EBC_BXAP_TWT_ENCODE(8) |
 	      EBC_BXAP_BCE_DISABLE  | EBC_BXAP_CSN_ENCODE(1) |
 	      EBC_BXAP_OEN_ENCODE(1)| EBC_BXAP_WBN_ENCODE(1) |
@@ -177,20 +181,20 @@ int board_early_init_f (void)
 	      EBC_BXAP_RE_DISABLED  | EBC_BXAP_BEM_WRITEONLY |
 	      EBC_BXAP_PEN_DISABLED);
 
-	mtebc(pb6cr, EBC_BXCR_BAS_ENCODE(0xF0100000) |
+	mtebc(PB6CR, EBC_BXCR_BAS_ENCODE(0xF0100000) |
 	      EBC_BXCR_BS_1MB | EBC_BXCR_BU_RW | EBC_BXCR_BW_16BIT);
 
 	/*--------------------------------------------------------------------+
 	  | BME-32. Initialize bank 7 with default values.
 	  +-------------------------------------------------------------------*/
-	mtebc(pb7ap,
+	mtebc(PB7AP,
 	      EBC_BXAP_RE_ENABLED    | EBC_BXAP_SOR_NONDELAYED |
 	      EBC_BXAP_BME_DISABLED  | EBC_BXAP_TWT_ENCODE(3) |
 	      EBC_BXAP_TH_ENCODE(1)  | EBC_BXAP_WBF_ENCODE(0) |
 	      EBC_BXAP_CSN_ENCODE(1) | EBC_BXAP_PEN_DISABLED |
 	      EBC_BXAP_OEN_ENCODE(1) | EBC_BXAP_BEM_RW);
 
-	mtebc(pb7cr, EBC_BXCR_BAS_ENCODE(0x48500000) |
+	mtebc(PB7CR, EBC_BXCR_BAS_ENCODE(0x48500000) |
 	      EBC_BXCR_BS_1MB | EBC_BXCR_BU_RW | EBC_BXCR_BW_32BIT);
 
 	/*--------------------------------------------------------------------+
@@ -208,36 +212,36 @@ int board_early_init_f (void)
 	 * UIC2		UIC1
 	 * UIC3		UIC2
 	 */
-	mtdcr (uic1sr, 0xffffffff);	/* clear all */
-	mtdcr (uic1er, 0x00000000);	/* disable all */
-	mtdcr (uic1cr, 0x00000000);	/* all non- critical */
-	mtdcr (uic1pr, 0xfffffe03);	/* polarity */
-	mtdcr (uic1tr, 0x01c00000);	/* trigger edge vs level */
-	mtdcr (uic1vr, 0x00000001);	/* int31 highest, base=0x000 */
-	mtdcr (uic1sr, 0xffffffff);	/* clear all */
+	mtdcr (UIC1SR, 0xffffffff);	/* clear all */
+	mtdcr (UIC1ER, 0x00000000);	/* disable all */
+	mtdcr (UIC1CR, 0x00000000);	/* all non- critical */
+	mtdcr (UIC1PR, 0xfffffe03);	/* polarity */
+	mtdcr (UIC1TR, 0x01c00000);	/* trigger edge vs level */
+	mtdcr (UIC1VR, 0x00000001);	/* int31 highest, base=0x000 */
+	mtdcr (UIC1SR, 0xffffffff);	/* clear all */
 
-	mtdcr (uic2sr, 0xffffffff);	/* clear all */
-	mtdcr (uic2er, 0x00000000);	/* disable all */
-	mtdcr (uic2cr, 0x00000000);	/* all non-critical */
-	mtdcr (uic2pr, 0xffffc8ff);	/* polarity */
-	mtdcr (uic2tr, 0x00ff0000);	/* trigger edge vs level */
-	mtdcr (uic2vr, 0x00000001);	/* int31 highest, base=0x000 */
-	mtdcr (uic2sr, 0xffffffff);	/* clear all */
+	mtdcr (UIC2SR, 0xffffffff);	/* clear all */
+	mtdcr (UIC2ER, 0x00000000);	/* disable all */
+	mtdcr (UIC2CR, 0x00000000);	/* all non-critical */
+	mtdcr (UIC2PR, 0xffffc8ff);	/* polarity */
+	mtdcr (UIC2TR, 0x00ff0000);	/* trigger edge vs level */
+	mtdcr (UIC2VR, 0x00000001);	/* int31 highest, base=0x000 */
+	mtdcr (UIC2SR, 0xffffffff);	/* clear all */
 
-	mtdcr (uic3sr, 0xffffffff);	/* clear all */
-	mtdcr (uic3er, 0x00000000);	/* disable all */
-	mtdcr (uic3cr, 0x00000000);	/* all non-critical */
-	mtdcr (uic3pr, 0xffff83ff);	/* polarity */
-	mtdcr (uic3tr, 0x00ff8c0f);	/* trigger edge vs level */
-	mtdcr (uic3vr, 0x00000001);	/* int31 highest, base=0x000 */
-	mtdcr (uic3sr, 0xffffffff);	/* clear all */
+	mtdcr (UIC3SR, 0xffffffff);	/* clear all */
+	mtdcr (UIC3ER, 0x00000000);	/* disable all */
+	mtdcr (UIC3CR, 0x00000000);	/* all non-critical */
+	mtdcr (UIC3PR, 0xffff83ff);	/* polarity */
+	mtdcr (UIC3TR, 0x00ff8c0f);	/* trigger edge vs level */
+	mtdcr (UIC3VR, 0x00000001);	/* int31 highest, base=0x000 */
+	mtdcr (UIC3SR, 0xffffffff);	/* clear all */
 
-	mtdcr (uic0sr, 0xfc000000);	/* clear all */
-	mtdcr (uic0er, 0x00000000);	/* disable all */
-	mtdcr (uic0cr, 0x00000000);	/* all non-critical */
-	mtdcr (uic0pr, 0xfc000000);
-	mtdcr (uic0tr, 0x00000000);
-	mtdcr (uic0vr, 0x00000001);
+	mtdcr (UIC0SR, 0xfc000000);	/* clear all */
+	mtdcr (UIC0ER, 0x00000000);	/* disable all */
+	mtdcr (UIC0CR, 0x00000000);	/* all non-critical */
+	mtdcr (UIC0PR, 0xfc000000);
+	mtdcr (UIC0TR, 0x00000000);
+	mtdcr (UIC0VR, 0x00000001);
 
 	fpga_init();
 
@@ -354,6 +358,7 @@ int misc_init_r (void)
 {
 	unsigned short sernum;
 	char envstr[255];
+	uchar enetaddr[6];
 	KAREF_FPGA_REGS_ST *karef_ps;
 	OFEM_FPGA_REGS_ST *ofem_ps;
 
@@ -407,6 +412,34 @@ int misc_init_r (void)
 		saveenv();
 		printf("fakeled is set. use 'setenv fakeled ; setenv bootdelay 5 ; saveenv' to recover\n");
 	}
+
+#ifdef CONFIG_HAS_ETH0
+	if (!eth_getenv_enetaddr("ethaddr", enetaddr)) {
+		board_get_enetaddr(0, enetaddr);
+		eth_setenv_enetaddr("ethaddr", enetaddr);
+	}
+#endif
+
+#ifdef CONFIG_HAS_ETH1
+	if (!eth_getenv_enetaddr("eth1addr", enetaddr)) {
+		board_get_enetaddr(1, enetaddr);
+		eth_setenv_enetaddr("eth1addr", enetaddr);
+	}
+#endif
+
+#ifdef CONFIG_HAS_ETH2
+	if (!eth_getenv_enetaddr("eth2addr", enetaddr)) {
+		board_get_enetaddr(2, enetaddr);
+		eth_setenv_enetaddr("eth2addr", enetaddr);
+	}
+#endif
+
+#ifdef CONFIG_HAS_ETH3
+	if (!eth_getenv_enetaddr("eth3addr", enetaddr)) {
+		board_get_enetaddr(3, enetaddr);
+		eth_setenv_enetaddr("eth3addr", enetaddr);
+	}
+#endif
 
 	return (0);
 }
@@ -578,7 +611,7 @@ int karefRecover(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 }
 
 U_BOOT_CMD(kasetup, 1, 1, karefSetupVars,
-	   "Set environment to factory defaults", NULL);
+	   "Set environment to factory defaults", "");
 
 U_BOOT_CMD(karecover, 1, 1, karefRecover,
-	   "Set environment to allow for fs recovery", NULL);
+	   "Set environment to allow for fs recovery", "");

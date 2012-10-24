@@ -1,5 +1,6 @@
 /*
- * Copyright 2004 Freescale Semiconductor.
+ * Copyright 2004, 2007-2009 Freescale Semiconductor, Inc.
+ *
  * (C) Copyright 2003 Motorola Inc.
  * Xianghua Xiao, (X.Xiao@motorola.com)
  *
@@ -37,9 +38,96 @@ DECLARE_GLOBAL_DATA_PTR;
 void get_sys_info (sys_info_t * sysInfo)
 {
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
+#ifdef CONFIG_FSL_CORENET
+	volatile ccsr_clk_t *clk = (void *)(CONFIG_SYS_FSL_CORENET_CLK_ADDR);
+
+	const u8 core_cplx_PLL[16] = {
+		[ 0] = 0,	/* CC1 PPL / 1 */
+		[ 1] = 0,	/* CC1 PPL / 2 */
+		[ 2] = 0,	/* CC1 PPL / 4 */
+		[ 4] = 1,	/* CC2 PPL / 1 */
+		[ 5] = 1,	/* CC2 PPL / 2 */
+		[ 6] = 1,	/* CC2 PPL / 4 */
+		[ 8] = 2,	/* CC3 PPL / 1 */
+		[ 9] = 2,	/* CC3 PPL / 2 */
+		[10] = 2,	/* CC3 PPL / 4 */
+		[12] = 3,	/* CC4 PPL / 1 */
+		[13] = 3,	/* CC4 PPL / 2 */
+		[14] = 3,	/* CC4 PPL / 4 */
+	};
+
+	const u8 core_cplx_PLL_div[16] = {
+		[ 0] = 1,	/* CC1 PPL / 1 */
+		[ 1] = 2,	/* CC1 PPL / 2 */
+		[ 2] = 4,	/* CC1 PPL / 4 */
+		[ 4] = 1,	/* CC2 PPL / 1 */
+		[ 5] = 2,	/* CC2 PPL / 2 */
+		[ 6] = 4,	/* CC2 PPL / 4 */
+		[ 8] = 1,	/* CC3 PPL / 1 */
+		[ 9] = 2,	/* CC3 PPL / 2 */
+		[10] = 4,	/* CC3 PPL / 4 */
+		[12] = 1,	/* CC4 PPL / 1 */
+		[13] = 2,	/* CC4 PPL / 2 */
+		[14] = 4,	/* CC4 PPL / 4 */
+	};
+	uint lcrr_div, i, freqCC_PLL[4], rcw_tmp;
+	unsigned long sysclk = CONFIG_SYS_CLK_FREQ;
+
+	sysInfo->freqSystemBus = sysclk;
+	sysInfo->freqDDRBus = sysclk;
+	freqCC_PLL[0] = sysclk;
+	freqCC_PLL[1] = sysclk;
+	freqCC_PLL[2] = sysclk;
+	freqCC_PLL[3] = sysclk;
+
+	sysInfo->freqSystemBus *= (in_be32(&gur->rcwsr[0]) >> 25) & 0x1f;
+	sysInfo->freqDDRBus *= ((in_be32(&gur->rcwsr[0]) >> 17) & 0x1f);
+	freqCC_PLL[0] *= (in_be32(&clk->pllc1gsr) >> 1) & 0x3f;
+	freqCC_PLL[1] *= (in_be32(&clk->pllc2gsr) >> 1) & 0x3f;
+	freqCC_PLL[2] *= (in_be32(&clk->pllc3gsr) >> 1) & 0x3f;
+	freqCC_PLL[3] *= (in_be32(&clk->pllc4gsr) >> 1) & 0x3f;
+
+	rcw_tmp = in_be32(&gur->rcwsr[3]);
+	for (i = 0; i < cpu_numcores(); i++) {
+		u32 c_pll_sel = (in_be32(&clk->clkc0csr + i*8) >> 27) & 0xf;
+		u32 cplx_pll = core_cplx_PLL[c_pll_sel];
+
+		sysInfo->freqProcessor[i] =
+			 freqCC_PLL[cplx_pll] / core_cplx_PLL_div[c_pll_sel];
+	}
+
+#define PME_CLK_SEL	0x80000000
+#define FM1_CLK_SEL	0x40000000
+#define FM2_CLK_SEL	0x20000000
+	rcw_tmp = in_be32(&gur->rcwsr[7]);
+
+#ifdef CONFIG_SYS_DPAA_PME
+	if (rcw_tmp & PME_CLK_SEL)
+		sysInfo->freqPME = freqCC_PLL[2] / 2;
+	else
+		sysInfo->freqPME = sysInfo->freqSystemBus / 2;
+#endif
+
+#ifdef CONFIG_SYS_DPAA_FMAN
+	if (rcw_tmp & FM1_CLK_SEL)
+		sysInfo->freqFMan[0] = freqCC_PLL[2] / 2;
+	else
+		sysInfo->freqFMan[0] = sysInfo->freqSystemBus / 2;
+#if (CONFIG_SYS_NUM_FMAN) == 2
+	if (rcw_tmp & FM2_CLK_SEL)
+		sysInfo->freqFMan[1] = freqCC_PLL[2] / 2;
+	else
+		sysInfo->freqFMan[1] = sysInfo->freqSystemBus / 2;
+#endif
+#endif
+
+#else
 	uint plat_ratio,e500_ratio,half_freqSystemBus;
 	uint lcrr_div;
 	int i;
+#ifdef CONFIG_QE
+	u32 qe_ratio;
+#endif
 
 	plat_ratio = (gur->porpllsr) & 0x0000003e;
 	plat_ratio >>= 1;
@@ -48,7 +136,7 @@ void get_sys_info (sys_info_t * sysInfo)
 	/* Divide before multiply to avoid integer
 	 * overflow for processor speeds above 2GHz */
 	half_freqSystemBus = sysInfo->freqSystemBus/2;
-	for (i = 0; i < CONFIG_NUM_CPUS; i++) {
+	for (i = 0; i < cpu_numcores(); i++) {
 		e500_ratio = ((gur->porpllsr) >> (i * 8 + 16)) & 0x3f;
 		sysInfo->freqProcessor[i] = e500_ratio * half_freqSystemBus;
 	}
@@ -64,6 +152,13 @@ void get_sys_info (sys_info_t * sysInfo)
 			sysInfo->freqDDRBus = ddr_ratio * CONFIG_DDR_CLK_FREQ;
 	}
 #endif
+#endif
+
+#ifdef CONFIG_QE
+	qe_ratio = ((gur->porpllsr) & MPC85xx_PORPLLSR_QE_RATIO)
+			>> MPC85xx_PORPLLSR_QE_RATIO_SHIFT;
+	sysInfo->freqQE = qe_ratio * CONFIG_SYS_CLK_FREQ;
+#endif
 
 #if defined(CONFIG_SYS_LBC_LCRR)
 	/* We will program LCRR to this value later */
@@ -75,7 +170,12 @@ void get_sys_info (sys_info_t * sysInfo)
 	}
 #endif
 	if (lcrr_div == 2 || lcrr_div == 4 || lcrr_div == 8) {
-#if !defined(CONFIG_MPC8540) && !defined(CONFIG_MPC8541) && \
+#if defined(CONFIG_FSL_CORENET)
+		/* If this is corenet based SoC, bit-representation
+		 * for four times the clock divider values.
+		 */
+		lcrr_div *= 4;
+#elif !defined(CONFIG_MPC8540) && !defined(CONFIG_MPC8541) && \
     !defined(CONFIG_MPC8555) && !defined(CONFIG_MPC8560)
 		/*
 		 * Yes, the entire PQ38 family use the same
@@ -112,6 +212,10 @@ int get_clocks (void)
 	gd->mem_clk = sys_info.freqDDRBus;
 	gd->lbc_clk = sys_info.freqLocalBus;
 
+#ifdef CONFIG_QE
+	gd->qe_clk = sys_info.freqQE;
+	gd->brg_clk = gd->qe_clk / 2;
+#endif
 	/*
 	 * The base clock for I2C depends on the actual SOC.  Unfortunately,
 	 * there is no pattern that can be used to determine the frequency, so
@@ -140,9 +244,13 @@ int get_clocks (void)
 #endif
 	gd->i2c2_clk = gd->i2c1_clk;
 
-#if defined(CONFIG_MPC8536)
+#if defined(CONFIG_FSL_ESDHC)
+#ifdef CONFIG_MPC8569
+	gd->sdhc_clk = gd->bus_clk;
+#else
 	gd->sdhc_clk = gd->bus_clk / 2;
 #endif
+#endif /* defined(CONFIG_FSL_ESDHC) */
 
 #if defined(CONFIG_CPM2)
 	gd->vco_out = 2*sys_info.freqSystemBus;

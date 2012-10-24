@@ -181,6 +181,8 @@
 #define CONFIG_SYS_PCI_PTM2MS  0xff000001	/* 16MB, enable */
 #define CONFIG_SYS_PCI_PTM2PCI 0x00000000	/* Host: use this pci address */
 
+#define CONFIG_PCI_4xx_PTM_OVERWRITE	1 /* overwrite PTMx settings by env */
+
 /*
  * Start addresses for the final memory configuration
  * (Set up by the startup code)
@@ -282,9 +284,6 @@
 /*
  * FPGA stuff
  */
-#define CONFIG_SYS_FPGA_XC95XL		1	/* using Xilinx XC95XL CPLD */
-#define CONFIG_SYS_FPGA_MAX_SIZE	(32 * 1024) /* 32kByte for CPLD */
-
 /* FPGA program pin configuration */
 #define CONFIG_SYS_FPGA_PRG		0x04000000 /* JTAG TMS pin (output) */
 #define CONFIG_SYS_FPGA_CLK		0x02000000 /* JTAG TCK pin (output) */

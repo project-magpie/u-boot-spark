@@ -24,6 +24,7 @@
 #include <common.h>
 #include "canbt.h"
 #include <asm/processor.h>
+#include <asm/io.h>
 #include <command.h>
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -51,16 +52,16 @@ const unsigned char fpgadata[] = {
 
 int board_early_init_f (void)
 {
-	unsigned long cntrl0Reg;
+	unsigned long CPC0_CR0Reg;
 	int index, len, i;
 	int status;
 
 	/*
 	 * Setup GPIO pins
 	 */
-	cntrl0Reg = mfdcr (cntrl0) & 0xf0001fff;
-	cntrl0Reg |= 0x0070f000;
-	mtdcr (cntrl0, cntrl0Reg);
+	CPC0_CR0Reg = mfdcr (CPC0_CR0) & 0xf0001fff;
+	CPC0_CR0Reg |= 0x0070f000;
+	mtdcr (CPC0_CR0, CPC0_CR0Reg);
 
 #ifdef FPGA_DEBUG
 	/* set up serial port with default baudrate */
@@ -117,9 +118,9 @@ int board_early_init_f (void)
 	/*
 	 * Setup port pins for normal operation
 	 */
-	out32 (GPIO0_ODR, 0x00000000);	/* no open drain pins */
-	out32 (GPIO0_TCR, 0x07038100);	/* setup for output */
-	out32 (GPIO0_OR, 0x07030100);	/* set output pins to high (default) */
+	out_be32 ((void *)GPIO0_ODR, 0x00000000);	/* no open drain pins */
+	out_be32 ((void *)GPIO0_TCR, 0x07038100);	/* setup for output */
+	out_be32 ((void *)GPIO0_OR, 0x07030100);	/* set output pins to high (default) */
 
 	/*
 	 * IRQ 0-15  405GP internally generated; active high; level sensitive
@@ -133,13 +134,13 @@ int board_early_init_f (void)
 	 * IRQ 30 (EXT IRQ 5) PCI SLOT 3; active low; level sensitive
 	 * IRQ 31 (EXT IRQ 6) COMPACT FLASH; active high; level sensitive
 	 */
-	mtdcr (uicsr, 0xFFFFFFFF);	/* clear all ints */
-	mtdcr (uicer, 0x00000000);	/* disable all ints */
-	mtdcr (uiccr, 0x00000000);	/* set all to be non-critical */
-	mtdcr (uicpr, 0xFFFFFF81);	/* set int polarities */
-	mtdcr (uictr, 0x10000000);	/* set int trigger levels */
-	mtdcr (uicvcr, 0x00000001);	/* set vect base=0,INT0 highest priority */
-	mtdcr (uicsr, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr (UIC0SR, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr (UIC0ER, 0x00000000);	/* disable all ints */
+	mtdcr (UIC0CR, 0x00000000);	/* set all to be non-critical */
+	mtdcr (UIC0PR, 0xFFFFFF81);	/* set int polarities */
+	mtdcr (UIC0TR, 0x10000000);	/* set int trigger levels */
+	mtdcr (UIC0VCR, 0x00000001);	/* set vect base=0,INT0 highest priority */
+	mtdcr (UIC0SR, 0xFFFFFFFF);	/* clear all ints */
 
 	return 0;
 }

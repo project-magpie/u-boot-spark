@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 Freescale Semiconductor, Inc.
+ * Copyright 2007-2009 Freescale Semiconductor, Inc.
  *
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
@@ -27,10 +27,15 @@
 #include <libfdt.h>
 #include <fdt_support.h>
 #include <asm/processor.h>
+#include <linux/ctype.h>
+#ifdef CONFIG_FSL_ESDHC
+#include <fsl_esdhc.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
 extern void ft_qe_setup(void *blob);
+extern void ft_fixup_num_cores(void *blob);
 
 #ifdef CONFIG_MP
 #include "mp.h"
@@ -38,14 +43,9 @@ extern void ft_qe_setup(void *blob);
 void ft_fixup_cpu(void *blob, u64 memory_limit)
 {
 	int off;
-	ulong spin_tbl_addr = get_spin_addr();
-	u32 bootpg, id = get_my_id();
-
-	/* if we have 4G or more of memory, put the boot page at 4Gb-4k */
-	if ((u64)gd->ram_size > 0xfffff000)
-		bootpg = 0xfffff000;
-	else
-		bootpg = gd->ram_size - 4096;
+	ulong spin_tbl_addr = get_spin_phys_addr();
+	u32 bootpg = determine_mp_bootpg();
+	u32 id = get_my_id();
 
 	off = fdt_node_offset_by_prop_value(blob, -1, "device_type", "cpu", 4);
 	while (off != -FDT_ERR_NOTFOUND) {
@@ -80,7 +80,9 @@ void ft_fixup_cpu(void *blob, u64 memory_limit)
 }
 #endif
 
-#ifdef CONFIG_L2_CACHE
+#define ft_fixup_l3cache(x, y)
+
+#if defined(CONFIG_L2_CACHE)
 /* return size in kilobytes */
 static inline u32 l2cache_size(void)
 {
@@ -147,8 +149,14 @@ static inline void ft_fixup_l2cache(void *blob)
 	}
 
 	if (cpu) {
-		len = sprintf(compat_buf, "fsl,mpc%s-l2-cache-controller",
-				cpu->name);
+		if (isdigit(cpu->name[0]))
+			len = sprintf(compat_buf,
+				"fsl,mpc%s-l2-cache-controller", cpu->name);
+		else
+			len = sprintf(compat_buf,
+				"fsl,%c%s-l2-cache-controller",
+				tolower(cpu->name[0]), cpu->name + 1);
+
 		sprintf(&compat_buf[len + 1], "cache");
 	}
 	fdt_setprop(blob, off, "cache-unified", NULL, 0);
@@ -157,6 +165,75 @@ static inline void ft_fixup_l2cache(void *blob)
 	fdt_setprop_cell(blob, off, "cache-sets", num_sets);
 	fdt_setprop_cell(blob, off, "cache-level", 2);
 	fdt_setprop(blob, off, "compatible", compat_buf, sizeof(compat_buf));
+
+	/* we dont bother w/L3 since no platform of this type has one */
+}
+#elif defined(CONFIG_BACKSIDE_L2_CACHE)
+static inline void ft_fixup_l2cache(void *blob)
+{
+	int off, l2_off, l3_off = -1;
+	u32 *ph;
+	u32 l2cfg0 = mfspr(SPRN_L2CFG0);
+	u32 size, line_size, num_ways, num_sets;
+
+	size = (l2cfg0 & 0x3fff) * 64 * 1024;
+	num_ways = ((l2cfg0 >> 14) & 0x1f) + 1;
+	line_size = (((l2cfg0 >> 23) & 0x3) + 1) * 32;
+	num_sets = size / (line_size * num_ways);
+
+	off = fdt_node_offset_by_prop_value(blob, -1, "device_type", "cpu", 4);
+
+	while (off != -FDT_ERR_NOTFOUND) {
+		ph = (u32 *)fdt_getprop(blob, off, "next-level-cache", 0);
+
+		if (ph == NULL) {
+			debug("no next-level-cache property\n");
+			goto next;
+		}
+
+		l2_off = fdt_node_offset_by_phandle(blob, *ph);
+		if (l2_off < 0) {
+			printf("%s: %s\n", __func__, fdt_strerror(off));
+			goto next;
+		}
+
+#ifdef CONFIG_SYS_CACHE_STASHING
+		{
+			u32 *reg = (u32 *)fdt_getprop(blob, off, "reg", 0);
+			if (reg)
+				fdt_setprop_cell(blob, l2_off, "cache-stash-id",
+					 (*reg * 2) + 32 + 1);
+		}
+#endif
+
+		fdt_setprop(blob, l2_off, "cache-unified", NULL, 0);
+		fdt_setprop_cell(blob, l2_off, "cache-block-size", line_size);
+		fdt_setprop_cell(blob, l2_off, "cache-size", size);
+		fdt_setprop_cell(blob, l2_off, "cache-sets", num_sets);
+		fdt_setprop_cell(blob, l2_off, "cache-level", 2);
+		fdt_setprop(blob, l2_off, "compatible", "cache", 6);
+
+		if (l3_off < 0) {
+			ph = (u32 *)fdt_getprop(blob, l2_off, "next-level-cache", 0);
+
+			if (ph == NULL) {
+				debug("no next-level-cache property\n");
+				goto next;
+			}
+			l3_off = *ph;
+		}
+next:
+		off = fdt_node_offset_by_prop_value(blob, off,
+				"device_type", "cpu", 4);
+	}
+	if (l3_off > 0) {
+		l3_off = fdt_node_offset_by_phandle(blob, l3_off);
+		if (l3_off < 0) {
+			printf("%s: %s\n", __func__, fdt_strerror(off));
+			return ;
+		}
+		ft_fixup_l3cache(blob, l3_off);
+	}
 }
 #else
 #define ft_fixup_l2cache(x)
@@ -183,6 +260,15 @@ static inline void ft_fixup_cache(void *blob)
 		fdt_setprop_cell(blob, off, "d-cache-block-size", dline_size);
 		fdt_setprop_cell(blob, off, "d-cache-size", dsize);
 		fdt_setprop_cell(blob, off, "d-cache-sets", dnum_sets);
+
+#ifdef CONFIG_SYS_CACHE_STASHING
+		{
+			u32 *reg = (u32 *)fdt_getprop(blob, off, "reg", 0);
+			if (reg)
+				fdt_setprop_cell(blob, off, "cache-stash-id",
+					 (*reg * 2) + 32 + 0);
+		}
+#endif
 
 		/* i-side config */
 		isize = (l1cfg1 & 0x7ff) * 1024;
@@ -211,6 +297,57 @@ void fdt_add_enet_stashing(void *fdt)
 	do_fixup_by_compat_u32(fdt, "gianfar", "rx-stash-idx", 0, 1);
 }
 
+#if defined(CONFIG_SYS_DPAA_FMAN) || defined(CONFIG_SYS_DPAA_PME)
+static void ft_fixup_clks(void *blob, const char *alias, unsigned long freq)
+{
+	const char *path = fdt_get_alias(blob, alias);
+
+	int off = fdt_path_offset(blob, path);
+
+	if (off >= 0) {
+		off = fdt_setprop_cell(blob, off, "clock-frequency", freq);
+		if (off > 0)
+			printf("WARNING enable to set clock-frequency "
+				"for %s: %s\n", alias, fdt_strerror(off));
+	}
+}
+
+static void ft_fixup_dpaa_clks(void *blob)
+{
+	sys_info_t sysinfo;
+
+	get_sys_info(&sysinfo);
+	ft_fixup_clks(blob, "fman0", sysinfo.freqFMan[0]);
+
+#if (CONFIG_SYS_NUM_FMAN == 2)
+	ft_fixup_clks(blob, "fman1", sysinfo.freqFMan[1]);
+#endif
+
+#ifdef CONFIG_SYS_DPAA_PME
+	ft_fixup_clks(blob, "pme", sysinfo.freqPME);
+#endif
+}
+#else
+#define ft_fixup_dpaa_clks(x)
+#endif
+
+#ifdef CONFIG_QE
+static void ft_fixup_qe_snum(void *blob)
+{
+	unsigned int svr;
+
+	svr = mfspr(SPRN_SVR);
+	if (SVR_SOC_VER(svr) == SVR_8569_E) {
+		if(IS_SVR_REV(svr, 1, 0))
+			do_fixup_by_compat_u32(blob, "fsl,qe",
+				"fsl,qe-num-snums", 46, 1);
+		else
+			do_fixup_by_compat_u32(blob, "fsl,qe",
+				"fsl,qe-num-snums", 76, 1);
+	}
+}
+#endif
+
 void ft_cpu_setup(void *blob, bd_t *bd)
 {
 	int off;
@@ -221,15 +358,12 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 	if (!IS_E_PROCESSOR(get_svr()))
 		fdt_fixup_crypto_node(blob, 0);
 
-#if defined(CONFIG_HAS_ETH0) || defined(CONFIG_HAS_ETH1) ||\
-    defined(CONFIG_HAS_ETH2) || defined(CONFIG_HAS_ETH3)
 	fdt_fixup_ethernet(blob);
 
 	fdt_add_enet_stashing(blob);
-#endif
 
 	do_fixup_by_prop_u32(blob, "device_type", "cpu", 4,
-		"timebase-frequency", bd->bi_busfreq / 8, 1);
+		"timebase-frequency", get_tbclk(), 1);
 	do_fixup_by_prop_u32(blob, "device_type", "cpu", 4,
 		"bus-frequency", bd->bi_busfreq, 1);
 	get_sys_info(&sysinfo);
@@ -250,6 +384,7 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 		"bus-frequency", gd->lbc_clk, 1);
 #ifdef CONFIG_QE
 	ft_qe_setup(blob);
+	ft_fixup_qe_snum(blob);
 #endif
 
 #ifdef CONFIG_SYS_NS16550
@@ -270,6 +405,13 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 #ifdef CONFIG_MP
 	ft_fixup_cpu(blob, (u64)bd->bi_memstart + (u64)bd->bi_memsize);
 #endif
+	ft_fixup_num_cores(blob);
 
 	ft_fixup_cache(blob);
+
+#if defined(CONFIG_FSL_ESDHC)
+	fdt_fixup_esdhc(blob, bd);
+#endif
+
+	ft_fixup_dpaa_clks(blob);
 }

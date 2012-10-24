@@ -44,13 +44,6 @@
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code */
 
-/*
- * When initializing flash, if we cannot find the manufacturer ID,
- * assume this is the AMD flash associated with the MDS board.
- * This allows booting from a promjet.
- */
-#define CONFIG_ASSUME_AMD_FLASH
-
 #ifndef __ASSEMBLY__
 extern unsigned long get_clock_freq(void);
 #endif						  /*Replace a call to get_clock_freq (after it is implemented)*/
@@ -188,41 +181,18 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_SYS_LBC_MRTPR		0x00000000	/* LB refresh timer prescal*/
 
 /*
- * LSDMR masks
- */
-#define CONFIG_SYS_LBC_LSDMR_RFEN	(1 << (31 -  1))
-#define CONFIG_SYS_LBC_LSDMR_BSMA1516	(3 << (31 - 10))
-#define CONFIG_SYS_LBC_LSDMR_BSMA1617	(4 << (31 - 10))
-#define CONFIG_SYS_LBC_LSDMR_RFCR16	(7 << (31 - 16))
-#define CONFIG_SYS_LBC_LSDMR_PRETOACT7	(7 << (31 - 19))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW7	(7 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW6	(6 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_BL8	(1 << (31 - 23))
-#define CONFIG_SYS_LBC_LSDMR_WRC4	(0 << (31 - 27))
-#define CONFIG_SYS_LBC_LSDMR_CL3	(3 << (31 - 31))
-
-#define CONFIG_SYS_LBC_LSDMR_OP_NORMAL	(0 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ARFRSH	(1 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_SRFRSH	(2 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_MRW	(3 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PRECH	(4 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PCHALL	(5 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ACTBNK	(6 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_RWINV	(7 << (31 - 4))
-
-/*
  * Common settings for all Local Bus SDRAM commands.
  * At run time, either BSMA1516 (for CPU 1.1)
  *                  or BSMA1617 (for CPU 1.0) (old)
  * is OR'ed in too.
  */
-#define CONFIG_SYS_LBC_LSDMR_COMMON	( CONFIG_SYS_LBC_LSDMR_RFCR16		\
-				| CONFIG_SYS_LBC_LSDMR_PRETOACT7	\
-				| CONFIG_SYS_LBC_LSDMR_ACTTORW7	\
-				| CONFIG_SYS_LBC_LSDMR_BL8		\
-				| CONFIG_SYS_LBC_LSDMR_WRC4		\
-				| CONFIG_SYS_LBC_LSDMR_CL3		\
-				| CONFIG_SYS_LBC_LSDMR_RFEN		\
+#define CONFIG_SYS_LBC_LSDMR_COMMON	( LSDMR_RFCR16		\
+				| LSDMR_PRETOACT7	\
+				| LSDMR_ACTTORW7	\
+				| LSDMR_BL8		\
+				| LSDMR_WRC4		\
+				| LSDMR_CL3		\
+				| LSDMR_RFEN		\
 				)
 
 /*
@@ -300,9 +270,6 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_OF_BOARD_SETUP		1
 #define CONFIG_OF_STDOUT_VIA_ALIAS	1
 
-#define CONFIG_SYS_64BIT_VSPRINTF	1
-#define CONFIG_SYS_64BIT_STRTOUL	1
-
 /*
  * I2C
  */
@@ -310,7 +277,6 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_HARD_I2C		/* I2C with hardware support*/
 #undef	CONFIG_SOFT_I2C			/* I2C bit-banged */
 #define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_CMD_TREE
 #define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x52
 #define CONFIG_SYS_I2C_SLAVE		0x7F
@@ -367,7 +333,8 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_SYS_UEC1_TX_CLK         QE_CLK16
 #define CONFIG_SYS_UEC1_ETH_TYPE       GIGA_ETH
 #define CONFIG_SYS_UEC1_PHY_ADDR       7
-#define CONFIG_SYS_UEC1_INTERFACE_MODE ENET_1000_RGMII_ID
+#define CONFIG_SYS_UEC1_INTERFACE_TYPE RGMII_ID
+#define CONFIG_SYS_UEC1_INTERFACE_SPEED 1000
 #endif
 
 #define CONFIG_UEC_ETH2         /* GETH2 */
@@ -378,7 +345,8 @@ extern unsigned long get_clock_freq(void);
 #define CONFIG_SYS_UEC2_TX_CLK         QE_CLK16
 #define CONFIG_SYS_UEC2_ETH_TYPE       GIGA_ETH
 #define CONFIG_SYS_UEC2_PHY_ADDR       1
-#define CONFIG_SYS_UEC2_INTERFACE_MODE ENET_1000_RGMII_ID
+#define CONFIG_SYS_UEC2_INTERFACE_TYPE RGMII_ID
+#define CONFIG_SYS_UEC2_INTERFACE_SPEED 1000
 #endif
 #endif /* CONFIG_QE */
 
@@ -480,10 +448,10 @@ extern unsigned long get_clock_freq(void);
 
 /*
  * For booting Linux, the board info and command line data
- * have to be in the first 8 MB of memory, since this is
+ * have to be in the first 16 MB of memory, since this is
  * the maximum mapped by the Linux kernel during initialization.
  */
-#define CONFIG_SYS_BOOTMAPSZ	(8 << 20)	/* Initial Memory map for Linux*/
+#define CONFIG_SYS_BOOTMAPSZ	(16 << 20)	/* Initial Memory map for Linux*/
 
 /*
  * Internal Definitions

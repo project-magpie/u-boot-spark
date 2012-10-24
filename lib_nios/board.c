@@ -25,8 +25,9 @@
  */
 
 #include <common.h>
-#include <devices.h>
+#include <stdio_dev.h>
 #include <watchdog.h>
+#include <malloc.h>
 #include <net.h>
 #ifdef CONFIG_STATUS_LED
 #include <status_led.h>
@@ -48,40 +49,7 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 
 
-extern void malloc_bin_reloc (void);
 typedef int (init_fnc_t) (void);
-
-/*
- * Begin and End of memory area for malloc(), and current "brk"
- */
-static	ulong	mem_malloc_start = 0;
-static	ulong	mem_malloc_end	 = 0;
-static	ulong	mem_malloc_brk	 = 0;
-
-/*
- * The Malloc area is immediately below the monitor copy in RAM
- */
-static void mem_malloc_init (void)
-{
-	mem_malloc_start = CONFIG_SYS_MALLOC_BASE;
-	mem_malloc_end = mem_malloc_start + CONFIG_SYS_MALLOC_LEN;
-	mem_malloc_brk = mem_malloc_start;
-	memset ((void *) mem_malloc_start,
-		0,
-		mem_malloc_end - mem_malloc_start);
-}
-
-void *sbrk (ptrdiff_t increment)
-{
-	ulong old = mem_malloc_brk;
-	ulong new = old + increment;
-
-	if ((new < mem_malloc_start) || (new > mem_malloc_end)) {
-		return (NULL);
-	}
-	mem_malloc_brk = new;
-	return ((void *) old);
-}
 
 
 /************************************************************************
@@ -143,22 +111,20 @@ void board_init (void)
 	}
 
 	WATCHDOG_RESET ();
+
+	/* The Malloc area is immediately below the monitor copy in RAM */
+	mem_malloc_init(CONFIG_SYS_MALLOC_BASE, CONFIG_SYS_MALLOC_LEN);
+
+	WATCHDOG_RESET ();
 	bd->bi_flashsize = flash_init();
 
 	WATCHDOG_RESET ();
-	mem_malloc_init();
-	malloc_bin_reloc();
 	env_relocate();
 
 	bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
-	s = getenv ("ethaddr");
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enetaddr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s) s = (*e) ? e + 1 : e;
-	}
 
 	WATCHDOG_RESET ();
-	devices_init();
+	stdio_init();
 	jumptable_init();
 	console_init_r();
 	/*

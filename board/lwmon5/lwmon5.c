@@ -38,35 +38,35 @@ int board_early_init_f(void)
 	u32 reg;
 
 	/* PLB Write pipelining disabled. Denali Core workaround */
-	mtdcr(plb0_acr, 0xDE000000);
-	mtdcr(plb1_acr, 0xDE000000);
+	mtdcr(PLB0_ACR, 0xDE000000);
+	mtdcr(PLB1_ACR, 0xDE000000);
 
 	/*--------------------------------------------------------------------
 	 * Setup the interrupt controller polarities, triggers, etc.
 	 *-------------------------------------------------------------------*/
-	mtdcr(uic0sr, 0xffffffff);  /* clear all. if write with 1 then the status is cleared  */
-	mtdcr(uic0er, 0x00000000);  /* disable all */
-	mtdcr(uic0cr, 0x00000000);  /* we have not critical interrupts at the moment */
-	mtdcr(uic0pr, 0xFFBFF1EF);  /* Adjustment of the polarity */
-	mtdcr(uic0tr, 0x00000900);  /* per ref-board manual */
-	mtdcr(uic0vr, 0x00000000);  /* int31 highest, base=0x000 is within DDRAM */
-	mtdcr(uic0sr, 0xffffffff);  /* clear all */
+	mtdcr(UIC0SR, 0xffffffff);  /* clear all. if write with 1 then the status is cleared  */
+	mtdcr(UIC0ER, 0x00000000);  /* disable all */
+	mtdcr(UIC0CR, 0x00000000);  /* we have not critical interrupts at the moment */
+	mtdcr(UIC0PR, 0xFFBFF1EF);  /* Adjustment of the polarity */
+	mtdcr(UIC0TR, 0x00000900);  /* per ref-board manual */
+	mtdcr(UIC0VR, 0x00000000);  /* int31 highest, base=0x000 is within DDRAM */
+	mtdcr(UIC0SR, 0xffffffff);  /* clear all */
 
-	mtdcr(uic1sr, 0xffffffff);  /* clear all */
-	mtdcr(uic1er, 0x00000000);  /* disable all */
-	mtdcr(uic1cr, 0x00000000);  /* all non-critical */
-	mtdcr(uic1pr, 0xFFFFC6A5);  /* Adjustment of the polarity */
-	mtdcr(uic1tr, 0x60000040);  /* per ref-board manual */
-	mtdcr(uic1vr, 0x00000000);  /* int31 highest, base=0x000 is within DDRAM */
-	mtdcr(uic1sr, 0xffffffff);  /* clear all */
+	mtdcr(UIC1SR, 0xffffffff);  /* clear all */
+	mtdcr(UIC1ER, 0x00000000);  /* disable all */
+	mtdcr(UIC1CR, 0x00000000);  /* all non-critical */
+	mtdcr(UIC1PR, 0xFFFFC6A5);  /* Adjustment of the polarity */
+	mtdcr(UIC1TR, 0x60000040);  /* per ref-board manual */
+	mtdcr(UIC1VR, 0x00000000);  /* int31 highest, base=0x000 is within DDRAM */
+	mtdcr(UIC1SR, 0xffffffff);  /* clear all */
 
-	mtdcr(uic2sr, 0xffffffff);  /* clear all */
-	mtdcr(uic2er, 0x00000000);  /* disable all */
-	mtdcr(uic2cr, 0x00000000);  /* all non-critical */
-	mtdcr(uic2pr, 0x27C00000);  /* Adjustment of the polarity */
-	mtdcr(uic2tr, 0x3C000000);  /* per ref-board manual */
-	mtdcr(uic2vr, 0x00000000);  /* int31 highest, base=0x000 is within DDRAM */
-	mtdcr(uic2sr, 0xffffffff);  /* clear all */
+	mtdcr(UIC2SR, 0xffffffff);  /* clear all */
+	mtdcr(UIC2ER, 0x00000000);  /* disable all */
+	mtdcr(UIC2CR, 0x00000000);  /* all non-critical */
+	mtdcr(UIC2PR, 0x27C00000);  /* Adjustment of the polarity */
+	mtdcr(UIC2TR, 0x3C000000);  /* per ref-board manual */
+	mtdcr(UIC2VR, 0x00000000);  /* int31 highest, base=0x000 is within DDRAM */
+	mtdcr(UIC2SR, 0xffffffff);  /* clear all */
 
 	/* Trace Pins are disabled. SDR0_PFC0 Register */
 	mtsdr(SDR0_PFC0, 0x0);
@@ -90,9 +90,9 @@ int board_early_init_f(void)
 
 	/* PCI arbiter disabled */
 	/* PCI Host Configuration disbaled */
-	mfsdr(sdr_pci0, reg);
+	mfsdr(SDR0_PCI0, reg);
 	reg = 0;
-	mtsdr(sdr_pci0, 0x00000000 | reg);
+	mtsdr(SDR0_PCI0, 0x00000000 | reg);
 
 	gpio_write_bit(CONFIG_SYS_GPIO_FLASH_WP, 1);
 
@@ -157,7 +157,7 @@ int misc_init_r(void)
 	gd->bd->bi_flashstart = 0 - gd->bd->bi_flashsize;
 	gd->bd->bi_flashoffset = 0;
 
-	mfebc(pb0cr, pbcr);
+	mfebc(PB0CR, pbcr);
 	switch (gd->bd->bi_flashsize) {
 	case 1 << 20:
 		size_val = 0;
@@ -185,7 +185,7 @@ int misc_init_r(void)
 		break;
 	}
 	pbcr = (pbcr & 0x0001ffff) | gd->bd->bi_flashstart | (size_val << 17);
-	mtebc(pb0cr, pbcr);
+	mtebc(PB0CR, pbcr);
 
 	/*
 	 * Re-check to get correct base address
@@ -249,8 +249,8 @@ int misc_init_r(void)
 	 * This fix will make the MAL burst disabling patch for the Linux
 	 * EMAC driver obsolete.
 	 */
-	reg = mfdcr(plb4_acr) & ~PLB4_ACR_WRP;
-	mtdcr(plb4_acr, reg);
+	reg = mfdcr(PLB4_ACR) & ~PLB4_ACR_WRP;
+	mtdcr(PLB4_ACR, reg);
 
 	/*
 	 * Init matrix keyboard
@@ -274,166 +274,6 @@ int checkboard(void)
 
 	return (0);
 }
-
-/*************************************************************************
- *  pci_pre_init
- *
- *  This routine is called just prior to registering the hose and gives
- *  the board the opportunity to check things. Returning a value of zero
- *  indicates that things are bad & PCI initialization should be aborted.
- *
- *	Different boards may wish to customize the pci controller structure
- *	(add regions, override default access routines, etc) or perform
- *	certain pre-initialization actions.
- *
- ************************************************************************/
-#if defined(CONFIG_PCI)
-int pci_pre_init(struct pci_controller *hose)
-{
-	unsigned long addr;
-
-	/*-------------------------------------------------------------------------+
-	  | Set priority for all PLB3 devices to 0.
-	  | Set PLB3 arbiter to fair mode.
-	  +-------------------------------------------------------------------------*/
-	mfsdr(sdr_amp1, addr);
-	mtsdr(sdr_amp1, (addr & 0x000000FF) | 0x0000FF00);
-	addr = mfdcr(plb3_acr);
-	mtdcr(plb3_acr, addr | 0x80000000);
-
-	/*-------------------------------------------------------------------------+
-	  | Set priority for all PLB4 devices to 0.
-	  +-------------------------------------------------------------------------*/
-	mfsdr(sdr_amp0, addr);
-	mtsdr(sdr_amp0, (addr & 0x000000FF) | 0x0000FF00);
-	addr = mfdcr(plb4_acr) | 0xa0000000;	/* Was 0x8---- */
-	mtdcr(plb4_acr, addr);
-
-	/*-------------------------------------------------------------------------+
-	  | Set Nebula PLB4 arbiter to fair mode.
-	  +-------------------------------------------------------------------------*/
-	/* Segment0 */
-	addr = (mfdcr(plb0_acr) & ~plb0_acr_ppm_mask) | plb0_acr_ppm_fair;
-	addr = (addr & ~plb0_acr_hbu_mask) | plb0_acr_hbu_enabled;
-	addr = (addr & ~plb0_acr_rdp_mask) | plb0_acr_rdp_4deep;
-	addr = (addr & ~plb0_acr_wrp_mask) | plb0_acr_wrp_2deep;
-	mtdcr(plb0_acr, addr);
-
-	/* Segment1 */
-	addr = (mfdcr(plb1_acr) & ~plb1_acr_ppm_mask) | plb1_acr_ppm_fair;
-	addr = (addr & ~plb1_acr_hbu_mask) | plb1_acr_hbu_enabled;
-	addr = (addr & ~plb1_acr_rdp_mask) | plb1_acr_rdp_4deep;
-	addr = (addr & ~plb1_acr_wrp_mask) | plb1_acr_wrp_2deep;
-	mtdcr(plb1_acr, addr);
-
-	return 1;
-}
-#endif	/* defined(CONFIG_PCI) */
-
-/*************************************************************************
- *  pci_target_init
- *
- *	The bootstrap configuration provides default settings for the pci
- *	inbound map (PIM). But the bootstrap config choices are limited and
- *	may not be sufficient for a given board.
- *
- ************************************************************************/
-#if defined(CONFIG_PCI) && defined(CONFIG_SYS_PCI_TARGET_INIT)
-void pci_target_init(struct pci_controller *hose)
-{
-	/*--------------------------------------------------------------------------+
-	 * Set up Direct MMIO registers
-	 *--------------------------------------------------------------------------*/
-	/*--------------------------------------------------------------------------+
-	  | PowerPC440EPX PCI Master configuration.
-	  | Map one 1Gig range of PLB/processor addresses to PCI memory space.
-	  |   PLB address 0xA0000000-0xDFFFFFFF ==> PCI address 0xA0000000-0xDFFFFFFF
-	  |   Use byte reversed out routines to handle endianess.
-	  | Make this region non-prefetchable.
-	  +--------------------------------------------------------------------------*/
-	out32r(PCIX0_PMM0MA, 0x00000000);	/* PMM0 Mask/Attribute - disabled b4 setting */
-	out32r(PCIX0_PMM0LA, CONFIG_SYS_PCI_MEMBASE);	/* PMM0 Local Address */
-	out32r(PCIX0_PMM0PCILA, CONFIG_SYS_PCI_MEMBASE);	/* PMM0 PCI Low Address */
-	out32r(PCIX0_PMM0PCIHA, 0x00000000);	/* PMM0 PCI High Address */
-	out32r(PCIX0_PMM0MA, 0xE0000001);	/* 512M + No prefetching, and enable region */
-
-	out32r(PCIX0_PMM1MA, 0x00000000);	/* PMM0 Mask/Attribute - disabled b4 setting */
-	out32r(PCIX0_PMM1LA, CONFIG_SYS_PCI_MEMBASE2); /* PMM0 Local Address */
-	out32r(PCIX0_PMM1PCILA, CONFIG_SYS_PCI_MEMBASE2);	/* PMM0 PCI Low Address */
-	out32r(PCIX0_PMM1PCIHA, 0x00000000);	/* PMM0 PCI High Address */
-	out32r(PCIX0_PMM1MA, 0xE0000001);	/* 512M + No prefetching, and enable region */
-
-	out32r(PCIX0_PTM1MS, 0x00000001);	/* Memory Size/Attribute */
-	out32r(PCIX0_PTM1LA, 0);	/* Local Addr. Reg */
-	out32r(PCIX0_PTM2MS, 0);	/* Memory Size/Attribute */
-	out32r(PCIX0_PTM2LA, 0);	/* Local Addr. Reg */
-
-	/*--------------------------------------------------------------------------+
-	 * Set up Configuration registers
-	 *--------------------------------------------------------------------------*/
-
-	/* Program the board's subsystem id/vendor id */
-	pci_write_config_word(0, PCI_SUBSYSTEM_VENDOR_ID,
-			      CONFIG_SYS_PCI_SUBSYS_VENDORID);
-	pci_write_config_word(0, PCI_SUBSYSTEM_ID, CONFIG_SYS_PCI_SUBSYS_ID);
-
-	/* Configure command register as bus master */
-	pci_write_config_word(0, PCI_COMMAND, PCI_COMMAND_MASTER);
-
-	/* 240nS PCI clock */
-	pci_write_config_word(0, PCI_LATENCY_TIMER, 1);
-
-	/* No error reporting */
-	pci_write_config_word(0, PCI_ERREN, 0);
-
-	pci_write_config_dword(0, PCI_BRDGOPT2, 0x00000101);
-
-}
-#endif				/* defined(CONFIG_PCI) && defined(CONFIG_SYS_PCI_TARGET_INIT) */
-
-/*************************************************************************
- *  pci_master_init
- *
- ************************************************************************/
-#if defined(CONFIG_PCI) && defined(CONFIG_SYS_PCI_MASTER_INIT)
-void pci_master_init(struct pci_controller *hose)
-{
-	unsigned short temp_short;
-
-	/*--------------------------------------------------------------------------+
-	  | Write the PowerPC440 EP PCI Configuration regs.
-	  |   Enable PowerPC440 EP to be a master on the PCI bus (PMM).
-	  |   Enable PowerPC440 EP to act as a PCI memory target (PTM).
-	  +--------------------------------------------------------------------------*/
-	pci_read_config_word(0, PCI_COMMAND, &temp_short);
-	pci_write_config_word(0, PCI_COMMAND,
-			      temp_short | PCI_COMMAND_MASTER |
-			      PCI_COMMAND_MEMORY);
-}
-#endif				/* defined(CONFIG_PCI) && defined(CONFIG_SYS_PCI_MASTER_INIT) */
-
-/*************************************************************************
- *  is_pci_host
- *
- *	This routine is called to determine if a pci scan should be
- *	performed. With various hardware environments (especially cPCI and
- *	PPMC) it's insufficient to depend on the state of the arbiter enable
- *	bit in the strap register, or generic host/adapter assumptions.
- *
- *	Rather than hard-code a bad assumption in the general 440 code, the
- *	440 pci code requires the board to decide at runtime.
- *
- *	Return 0 for adapter mode, non-zero for host (monarch) mode.
- *
- *
- ************************************************************************/
-#if defined(CONFIG_PCI)
-int is_pci_host(struct pci_controller *hose)
-{
-	/* Cactus is always configured as host. */
-	return (1);
-}
-#endif				/* defined(CONFIG_PCI) */
 
 void hw_watchdog_reset(void)
 {
@@ -487,7 +327,7 @@ int do_eeprom_wp(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	eepromwp,	2,	0,	do_eeprom_wp,
 	"eeprom write protect off/on",
-	"<on|off> - enable (on) or disable (off) I2C EEPROM write protect\n"
+	"<on|off> - enable (on) or disable (off) I2C EEPROM write protect"
 );
 
 #if defined(CONFIG_VIDEO)
@@ -531,13 +371,6 @@ unsigned int board_video_init (void)
 	gpio_write_bit(CONFIG_SYS_GPIO_LIME_S, 1);
 	udelay(500);
 	gpio_write_bit(CONFIG_SYS_GPIO_LIME_RST, 1);
-
-	/* Lime memory clock adjusted to 100MHz */
-	out_be32((void *)CONFIG_SYS_LIME_SDRAM_CLOCK, CONFIG_SYS_LIME_CLOCK_100MHZ);
-	/* Wait untill time expired. Because of requirements in lime manual */
-	udelay(300);
-	/* Write lime controller memory parameters */
-	out_be32((void *)CONFIG_SYS_LIME_MMR, CONFIG_SYS_LIME_MMR_VALUE);
 
 	mb862xx.winSizeX = 640;
 	mb862xx.winSizeY = 480;

@@ -47,7 +47,7 @@
 
 #define SD_DATA_4BIT	0x00040000
 
-#define IS_SD(x) (mmc->version & SD_VERSION_SD)
+#define IS_SD(x) (x->version & SD_VERSION_SD)
 
 #define MMC_DATA_READ		1
 #define MMC_DATA_WRITE		2
@@ -91,7 +91,7 @@
 #define MMC_HS_TIMING		0x00000100
 #define MMC_HS_52MHZ		0x2
 
-#define OCR_BUSY	0x80
+#define OCR_BUSY	0x80000000
 #define OCR_HCS		0x40000000
 
 #define MMC_VDD_165_195		0x00000080	/* VDD voltage 1.65 - 1.95 */
@@ -223,7 +223,7 @@ struct mmc_cmd {
 	ushort cmdidx;
 	uint resp_type;
 	uint cmdarg;
-	char response[18];
+	uint response[4];
 	uint flags;
 };
 
@@ -253,7 +253,7 @@ struct mmc {
 	uint ocr;
 	uint scr[2];
 	uint csd[4];
-	char cid[16];
+	uint cid[4];
 	ushort rca;
 	uint tran_speed;
 	uint read_bl_len;
@@ -272,6 +272,7 @@ int mmc_init(struct mmc *mmc);
 int mmc_read(struct mmc *mmc, u64 src, uchar *dst, int size);
 struct mmc *find_mmc_device(int dev_num);
 void print_mmc_devices(char separator);
+int board_mmc_getcd(u8 *cd, struct mmc *mmc);
 
 #ifndef CONFIG_GENERIC_MMC
 int mmc_legacy_init(int verbose);

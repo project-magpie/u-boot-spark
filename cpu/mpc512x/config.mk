@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2007 DENX Software Engineering
+# (C) Copyright 2007-2009 DENX Software Engineering
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -19,7 +19,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA
 #
-PLATFORM_RELFLAGS += -fPIC -ffixed-r14 -meabi
+PLATFORM_RELFLAGS += -fPIC -meabi
 
 PLATFORM_CPPFLAGS += -DCONFIG_MPC512X -DCONFIG_E300 \
 			-ffixed-r2 -msoft-float -mcpu=603e
+
+# Use default linker script.
+# A board port can override this setting in board/*/config.mk
+LDSCRIPT := $(SRCTREE)/cpu/mpc512x/u-boot.lds

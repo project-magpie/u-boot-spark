@@ -99,6 +99,10 @@ int board_early_init_r (void)
 	}
 	/* enable the PHY on the PIGGY */
 	setbits (8, (void *)(CONFIG_SYS_PIGGY_BASE + 0x10003), 0x01);
+	/* enable the Unit LED (green) */
+	setbits (8, (void *)(CONFIG_SYS_PIGGY_BASE + 0x00002), 0x01);
+	/* take FE/GbE PHYs out of reset */
+	setbits (8, (void *)(CONFIG_SYS_PIGGY_BASE + 0x0000f), 0x1c);
 
 	return 0;
 }
@@ -153,7 +157,7 @@ int fixed_sdram(void)
 
 phys_size_t initdram (int board_type)
 {
-#if defined(CONFIG_DDR_ECC) && !defined(CONFIG_ECC_INIT_VIA_DDRC)
+#if defined(CONFIG_DDR_ECC) && !defined(CONFIG_ECC_INIT_VIA_DDRCONTROLLER)
 	extern void ddr_enable_ecc (unsigned int dram_size);
 #endif
 	volatile immap_t *im = (immap_t *)CONFIG_SYS_IMMR;
@@ -166,7 +170,7 @@ phys_size_t initdram (int board_type)
 	im->sysconf.ddrlaw[0].bar = CONFIG_SYS_DDR_BASE & LAWBAR_BAR;
 	msize = fixed_sdram ();
 
-#if defined(CONFIG_DDR_ECC) && !defined(CONFIG_ECC_INIT_VIA_DDRC)
+#if defined(CONFIG_DDR_ECC) && !defined(CONFIG_ECC_INIT_VIA_DDRCONTROLLER)
 	/*
 	 * Initialize DDR ECC byte
 	 */
@@ -187,9 +191,19 @@ int checkboard (void)
 }
 
 #if defined(CONFIG_OF_BOARD_SETUP)
+/*
+ * update property in the blob
+ */
+void ft_blob_update (void *blob, bd_t *bd)
+{
+  /* no board specific update */
+}
+
+
 void ft_board_setup (void *blob, bd_t *bd)
 {
 	ft_cpu_setup (blob, bd);
+	ft_blob_update (blob, bd);
 }
 #endif
 

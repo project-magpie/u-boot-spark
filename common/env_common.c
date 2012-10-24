@@ -139,11 +139,6 @@ uchar default_environment[] = {
 	"\0"
 };
 
-#if defined(CONFIG_ENV_IS_IN_NAND)		/* Environment is in Nand Flash */ \
-	|| defined(CONFIG_ENV_IS_IN_SPI_FLASH)
-int default_environment_size = sizeof(default_environment);
-#endif
-
 void env_crc_update (void)
 {
 	env_ptr->crc = crc32(0, env_ptr->data, ENV_SIZE);
@@ -229,8 +224,10 @@ void set_default_env(void)
 
 void env_relocate (void)
 {
+#ifndef CONFIG_RELOC_FIXUP_WORKS
 	DEBUGF ("%s[%d] offset = 0x%lx\n", __FUNCTION__,__LINE__,
 		gd->reloc_off);
+#endif
 
 #ifdef CONFIG_AMIGAONEG3SE
 	enable_nvram();
@@ -241,7 +238,9 @@ void env_relocate (void)
 	 * The environment buffer is embedded with the text segment,
 	 * just relocate the environment pointer
 	 */
+#ifndef CONFIG_RELOC_FIXUP_WORKS
 	env_ptr = (env_t *)((ulong)env_ptr + gd->reloc_off);
+#endif
 	DEBUGF ("%s[%d] embedded ENV at %p\n", __FUNCTION__,__LINE__,env_ptr);
 #else
 	/*

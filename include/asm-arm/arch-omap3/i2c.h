@@ -25,21 +25,40 @@
 
 #define I2C_DEFAULT_BASE	I2C_BASE1
 
-#define I2C_REV		(I2C_DEFAULT_BASE + 0x00)
-#define I2C_IE 		(I2C_DEFAULT_BASE + 0x04)
-#define I2C_STAT	(I2C_DEFAULT_BASE + 0x08)
-#define I2C_IV 		(I2C_DEFAULT_BASE + 0x0c)
-#define I2C_BUF		(I2C_DEFAULT_BASE + 0x14)
-#define I2C_CNT		(I2C_DEFAULT_BASE + 0x18)
-#define I2C_DATA	(I2C_DEFAULT_BASE + 0x1c)
-#define I2C_SYSC	(I2C_DEFAULT_BASE + 0x20)
-#define I2C_CON		(I2C_DEFAULT_BASE + 0x24)
-#define I2C_OA 		(I2C_DEFAULT_BASE + 0x28)
-#define I2C_SA 		(I2C_DEFAULT_BASE + 0x2c)
-#define I2C_PSC		(I2C_DEFAULT_BASE + 0x30)
-#define I2C_SCLL	(I2C_DEFAULT_BASE + 0x34)
-#define I2C_SCLH	(I2C_DEFAULT_BASE + 0x38)
-#define I2C_SYSTEST	(I2C_DEFAULT_BASE + 0x3c)
+struct i2c {
+	unsigned short rev;	/* 0x00 */
+	unsigned short res1;
+	unsigned short ie;	/* 0x04 */
+	unsigned short res2;
+	unsigned short stat;	/* 0x08 */
+	unsigned short res3;
+	unsigned short iv;	/* 0x0C */
+	unsigned short res4[3];
+	unsigned short buf;	/* 0x14 */
+	unsigned short res5;
+	unsigned short cnt;	/* 0x18 */
+	unsigned short res6;
+	unsigned short data;	/* 0x1C */
+	unsigned short res7;
+	unsigned short sysc;	/* 0x20 */
+	unsigned short res8;
+	unsigned short con;	/* 0x24 */
+	unsigned short res9;
+	unsigned short oa;	/* 0x28 */
+	unsigned short res10;
+	unsigned short sa;	/* 0x2C */
+	unsigned short res11;
+	unsigned short psc;	/* 0x30 */
+	unsigned short res12;
+	unsigned short scll;	/* 0x34 */
+	unsigned short res13;
+	unsigned short sclh;	/* 0x38 */
+	unsigned short res14;
+	unsigned short systest;	/* 0x3c */
+	unsigned short res15;
+};
+
+#define I2C_BUS_MAX	3
 
 /* I2C masks */
 
@@ -112,16 +131,72 @@
 #define I2C_SCLH_HSSCLH		8
 #define I2C_SCLH_HSSCLH_M	0xFF
 
-#define OMAP_I2C_STANDARD	100
-#define OMAP_I2C_FAST_MODE	400
-#define OMAP_I2C_HIGH_SPEED	3400
+#define OMAP_I2C_STANDARD	100000
+#define OMAP_I2C_FAST_MODE	400000
+#define OMAP_I2C_HIGH_SPEED	3400000
 
-#define SYSTEM_CLOCK_12		12000
-#define SYSTEM_CLOCK_13		13000
-#define SYSTEM_CLOCK_192	19200
-#define SYSTEM_CLOCK_96		96000
+#define SYSTEM_CLOCK_12		12000000
+#define SYSTEM_CLOCK_13		13000000
+#define SYSTEM_CLOCK_192	19200000
+#define SYSTEM_CLOCK_96		96000000
 
+/* Use the reference value of 96MHz if not explicitly set by the board */
+#ifndef I2C_IP_CLK
 #define I2C_IP_CLK		SYSTEM_CLOCK_96
+#endif
+
+/*
+ * The reference minimum clock for high speed is 19.2MHz.
+ * The linux 2.6.30 kernel uses this value.
+ * The reference minimum clock for fast mode is 9.6MHz
+ * The reference minimum clock for standard mode is 4MHz
+ * In TRM, the value of 12MHz is used.
+ */
+#ifndef I2C_INTERNAL_SAMPLING_CLK
+#define I2C_INTERNAL_SAMPLING_CLK	19200000
+#endif
+
+/*
+ * The equation for the low and high time is
+ * tlow = scll + scll_trim = (sampling clock * tlow_duty) / speed
+ * thigh = sclh + sclh_trim = (sampling clock * (1 - tlow_duty)) / speed
+ *
+ * If the duty cycle is 50%
+ *
+ * tlow = scll + scll_trim = sampling clock / (2 * speed)
+ * thigh = sclh + sclh_trim = sampling clock / (2 * speed)
+ *
+ * In TRM
+ * scll_trim = 7
+ * sclh_trim = 5
+ *
+ * The linux 2.6.30 kernel uses
+ * scll_trim = 6
+ * sclh_trim = 6
+ *
+ * These are the trim values for standard and fast speed
+ */
+#ifndef I2C_FASTSPEED_SCLL_TRIM
+#define I2C_FASTSPEED_SCLL_TRIM		6
+#endif
+#ifndef I2C_FASTSPEED_SCLH_TRIM
+#define I2C_FASTSPEED_SCLH_TRIM		6
+#endif
+
+/* These are the trim values for high speed */
+#ifndef I2C_HIGHSPEED_PHASE_ONE_SCLL_TRIM
+#define I2C_HIGHSPEED_PHASE_ONE_SCLL_TRIM	I2C_FASTSPEED_SCLL_TRIM
+#endif
+#ifndef I2C_HIGHSPEED_PHASE_ONE_SCLH_TRIM
+#define I2C_HIGHSPEED_PHASE_ONE_SCLH_TRIM	I2C_FASTSPEED_SCLH_TRIM
+#endif
+#ifndef I2C_HIGHSPEED_PHASE_TWO_SCLL_TRIM
+#define I2C_HIGHSPEED_PHASE_TWO_SCLL_TRIM	I2C_FASTSPEED_SCLL_TRIM
+#endif
+#ifndef I2C_HIGHSPEED_PHASE_TWO_SCLH_TRIM
+#define I2C_HIGHSPEED_PHASE_TWO_SCLH_TRIM	I2C_FASTSPEED_SCLH_TRIM
+#endif
+
 #define I2C_PSC_MAX		0x0f
 #define I2C_PSC_MIN		0x00
 

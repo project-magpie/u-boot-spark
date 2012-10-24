@@ -35,6 +35,8 @@
 #define CONFIG_LART		1	/* on an LART Board      */
 
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
+/* we will never enable dcache, because we have to setup MMU first */
+#define CONFIG_SYS_NO_DCACHE
 
 /*
  * Size of malloc() pool
@@ -45,13 +47,15 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_DRIVER_CS8900	1	/* we have a CS8900 on-board */
-#define CS8900_BASE		0x20008300
-#define CS8900_BUS16		1
+#define CONFIG_NET_MULTI
+#define CONFIG_CS8900		/* we have a CS8900 on-board */
+#define CONFIG_CS8900_BASE	0x20008300
+#define CONFIG_CS8900_BUS16
 
 /*
  * select serial console configuration
  */
+#define CONFIG_SA1100_SERIAL
 #define CONFIG_SERIAL3          1	/* we use SERIAL 3 on LART */
 
 /* allow to overwrite serial and ethaddr */
@@ -101,8 +105,6 @@
 
 #define CONFIG_SYS_MEMTEST_START	0xc0400000	/* memtest works on	*/
 #define CONFIG_SYS_MEMTEST_END		0xc0800000	/* 4 ... 8 MB in DRAM	*/
-
-#undef  CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
 
 #define	CONFIG_SYS_LOAD_ADDR		0xc8000000	/* default load address	*/
 

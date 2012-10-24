@@ -57,7 +57,7 @@
  * Hardware drivers
  */
 
-#define CONFIG_MX31_UART	1
+#define CONFIG_MXC_UART	1
 #define CONFIG_SYS_MX31_UART1		1
 
 #define CONFIG_HARD_SPI		1
@@ -109,9 +109,10 @@
 		"cp.b ${loadaddr} ${uboot_addr} ${filesize}; "		\
 		"setenv filesize; saveenv\0"
 
-#define CONFIG_DRIVER_CS8900	1
-#define CS8900_BASE		0xb4020300
-#define CS8900_BUS16		1	/* follow the Linux driver */
+#define CONFIG_NET_MULTI
+#define CONFIG_CS8900
+#define CONFIG_CS8900_BASE	0xb4020300
+#define CONFIG_CS8900_BUS16		1	/* follow the Linux driver */
 
 /*
  * The MX31ADS board seems to have a hardware "peculiarity" confirmed under
@@ -194,7 +195,7 @@
 /*
  * JFFS2 partitions
  */
-#undef CONFIG_JFFS2_CMDLINE
+#undef CONFIG_CMD_MTDPARTS
 #define CONFIG_JFFS2_DEV	"nor0"
 
 #endif /* __CONFIG_H */

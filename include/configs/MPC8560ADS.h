@@ -48,6 +48,7 @@
 #undef CONFIG_ETHER_ON_FCC             /* cpm FCC ethernet support */
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code */
+#define CONFIG_RESET_PHY_R	1	/* Call reset_phy() */
 
 /*
  * sysclk for MPC85xx
@@ -193,57 +194,24 @@
 #define CONFIG_SYS_LBC_LSRT		0x20000000    /* LB sdram refresh timer */
 #define CONFIG_SYS_LBC_MRTPR		0x20000000    /* LB refresh timer prescal*/
 
-/*
- * LSDMR masks
- */
-#define CONFIG_SYS_LBC_LSDMR_RFEN	(1 << (31 -  1))
-#define CONFIG_SYS_LBC_LSDMR_BSMA1516	(3 << (31 - 10))
-#define CONFIG_SYS_LBC_LSDMR_BSMA1617	(4 << (31 - 10))
-#define CONFIG_SYS_LBC_LSDMR_RFCR5	(3 << (31 - 16))
-#define CONFIG_SYS_LBC_LSDMR_RFCR16	(7 << (31 - 16))
-#define CONFIG_SYS_LBC_LSDMR_PRETOACT3	(3 << (31 - 19))
-#define CONFIG_SYS_LBC_LSDMR_PRETOACT7	(7 << (31 - 19))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW3	(3 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW7	(7 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW6	(6 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_BL8	(1 << (31 - 23))
-#define CONFIG_SYS_LBC_LSDMR_WRC2	(2 << (31 - 27))
-#define CONFIG_SYS_LBC_LSDMR_WRC4	(0 << (31 - 27))
-#define CONFIG_SYS_LBC_LSDMR_BUFCMD	(1 << (31 - 29))
-#define CONFIG_SYS_LBC_LSDMR_CL3	(3 << (31 - 31))
-
-#define CONFIG_SYS_LBC_LSDMR_OP_NORMAL	(0 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ARFRSH	(1 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_SRFRSH	(2 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_MRW	(3 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PRECH	(4 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PCHALL	(5 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ACTBNK	(6 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_RWINV	(7 << (31 - 4))
-
-#define CONFIG_SYS_LBC_LSDMR_COMMON	( CONFIG_SYS_LBC_LSDMR_BSMA1516	\
-				| CONFIG_SYS_LBC_LSDMR_RFCR5		\
-				| CONFIG_SYS_LBC_LSDMR_PRETOACT3	\
-				| CONFIG_SYS_LBC_LSDMR_ACTTORW3	\
-				| CONFIG_SYS_LBC_LSDMR_BL8		\
-				| CONFIG_SYS_LBC_LSDMR_WRC2		\
-				| CONFIG_SYS_LBC_LSDMR_CL3		\
-				| CONFIG_SYS_LBC_LSDMR_RFEN		\
+#define CONFIG_SYS_LBC_LSDMR_COMMON	( LSDMR_BSMA1516	\
+				| LSDMR_RFCR5		\
+				| LSDMR_PRETOACT3	\
+				| LSDMR_ACTTORW3	\
+				| LSDMR_BL8		\
+				| LSDMR_WRC2		\
+				| LSDMR_CL3		\
+				| LSDMR_RFEN		\
 				)
 
 /*
  * SDRAM Controller configuration sequence.
  */
-#define CONFIG_SYS_LBC_LSDMR_1		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_PCHALL)
-#define CONFIG_SYS_LBC_LSDMR_2		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_ARFRSH)
-#define CONFIG_SYS_LBC_LSDMR_3		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_ARFRSH)
-#define CONFIG_SYS_LBC_LSDMR_4		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_MRW)
-#define CONFIG_SYS_LBC_LSDMR_5		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_NORMAL)
+#define CONFIG_SYS_LBC_LSDMR_1	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_PCHALL)
+#define CONFIG_SYS_LBC_LSDMR_2	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_ARFRSH)
+#define CONFIG_SYS_LBC_LSDMR_3	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_ARFRSH)
+#define CONFIG_SYS_LBC_LSDMR_4	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_MRW)
+#define CONFIG_SYS_LBC_LSDMR_5	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_NORMAL)
 
 
 /*
@@ -284,9 +252,6 @@
 #define CONFIG_OF_LIBFDT		1
 #define CONFIG_OF_BOARD_SETUP		1
 #define CONFIG_OF_STDOUT_VIA_ALIAS	1
-
-#define CONFIG_SYS_64BIT_VSPRINTF	1
-#define CONFIG_SYS_64BIT_STRTOUL	1
 
 /*
  * I2C
@@ -395,6 +360,10 @@
  * GPIO pins used for bit-banged MII communications
  */
 #define MDIO_PORT	2		/* Port C */
+#define MDIO_DECLARE	volatile ioport_t *iop = ioport_addr ( \
+				(immap_t *) CONFIG_SYS_IMMR, MDIO_PORT )
+#define MDC_DECLARE	MDIO_DECLARE
+
 #define MDIO_ACTIVE	(iop->pdir |=  0x00400000)
 #define MDIO_TRISTATE	(iop->pdir &= ~0x00400000)
 #define MDIO_READ	((iop->pdat &  0x00400000) != 0)
@@ -485,10 +454,10 @@
 
 /*
  * For booting Linux, the board info and command line data
- * have to be in the first 8 MB of memory, since this is
+ * have to be in the first 16 MB of memory, since this is
  * the maximum mapped by the Linux kernel during initialization.
  */
-#define CONFIG_SYS_BOOTMAPSZ	(8 << 20)	/* Initial Memory map for Linux*/
+#define CONFIG_SYS_BOOTMAPSZ	(16 << 20)	/* Initial Memory map for Linux*/
 
 /*
  * Internal Definitions

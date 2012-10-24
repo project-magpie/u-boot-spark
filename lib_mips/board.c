@@ -24,7 +24,7 @@
 #include <common.h>
 #include <command.h>
 #include <malloc.h>
-#include <devices.h>
+#include <stdio_dev.h>
 #include <timestamp.h>
 #include <version.h>
 #include <net.h>
@@ -32,6 +32,10 @@
 #include <nand.h>
 #include <onenand_uboot.h>
 #include <spi.h>
+
+#ifdef CONFIG_BITBANGMII
+#include <miiphy.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -60,13 +64,6 @@ const char version_string[] =
 static char *failed = "*** failed ***\n";
 
 /*
- * Begin and End of memory area for malloc(), and current "brk"
- */
-static ulong mem_malloc_start;
-static ulong mem_malloc_end;
-static ulong mem_malloc_brk;
-
-/*
  * mips_io_port_base is the begin of the address space to which x86 style
  * I/O ports are mapped.
  */
@@ -80,34 +77,6 @@ int __board_early_init_f(void)
 	return 0;
 }
 int board_early_init_f(void) __attribute__((weak, alias("__board_early_init_f")));
-
-/*
- * The Malloc area is immediately below the monitor copy in DRAM
- */
-static void mem_malloc_init (void)
-{
-	ulong dest_addr = CONFIG_SYS_MONITOR_BASE + gd->reloc_off;
-
-	mem_malloc_end = dest_addr;
-	mem_malloc_start = dest_addr - TOTAL_MALLOC_LEN;
-	mem_malloc_brk = mem_malloc_start;
-
-	memset ((void *) mem_malloc_start,
-		0,
-		mem_malloc_end - mem_malloc_start);
-}
-
-void *sbrk (ptrdiff_t increment)
-{
-	ulong old = mem_malloc_brk;
-	ulong new = old + increment;
-
-	if ((new < mem_malloc_start) || (new > mem_malloc_end)) {
-		return (NULL);
-	}
-	mem_malloc_brk = new;
-	return ((void *) old);
-}
 
 
 static int init_func_ram (void)
@@ -323,9 +292,8 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #ifndef CONFIG_ENV_IS_NOWHERE
 	extern char * env_name_spec;
 #endif
-	char *s, *e;
+	char *s;
 	bd_t *bd;
-	int i;
 
 	gd = id;
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
@@ -371,6 +339,11 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	bd = gd->bd;
 
+	/* The Malloc area is immediately below the monitor copy in DRAM */
+	mem_malloc_init(CONFIG_SYS_MONITOR_BASE + gd->reloc_off -
+			TOTAL_MALLOC_LEN, TOTAL_MALLOC_LEN);
+	malloc_bin_reloc();
+
 #ifndef CONFIG_SYS_NO_FLASH
 	/* configure available FLASH banks */
 	size = flash_init();
@@ -385,10 +358,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	bd->bi_flashoffset = 0;
 #endif
 
-	/* initialize malloc() area */
-	mem_malloc_init();
-	malloc_bin_reloc();
-
 #ifdef CONFIG_CMD_NAND
 	puts ("NAND:  ");
 	nand_init ();		/* go init the NAND */
@@ -401,14 +370,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	/* relocate environment function pointers etc. */
 	env_relocate();
 
-	/* board MAC address */
-	s = getenv ("ethaddr");
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enetaddr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-
 	/* IP Address */
 	bd->bi_ip_addr = getenv_IPaddr("ipaddr");
 
@@ -420,8 +381,8 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 
 /** leave this here (after malloc(), environment and PCI are working) **/
-	/* Initialize devices */
-	devices_init ();
+	/* Initialize stdio devices */
+	stdio_init ();
 
 	jumptable_init ();
 
@@ -450,6 +411,9 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	misc_init_r ();
 #endif
 
+#ifdef CONFIG_BITBANGMII
+	bb_miiphy_init();
+#endif
 #if defined(CONFIG_CMD_NET)
 #if defined(CONFIG_NET_MULTI)
 	puts ("Net:   ");

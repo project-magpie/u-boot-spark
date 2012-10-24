@@ -28,7 +28,7 @@
 #include <watchdog.h>
 #include <command.h>
 #include <malloc.h>
-#include <devices.h>
+#include <stdio_dev.h>
 
 #include <asm/immap.h>
 
@@ -61,6 +61,10 @@
 
 #ifdef CONFIG_CMD_SPI
 #include <spi.h>
+#endif
+
+#ifdef CONFIG_BITBANGMII
+#include <miiphy.h>
 #endif
 
 #include <nand.h>
@@ -101,46 +105,10 @@ extern int watchdog_disable(void);
 
 ulong monitor_flash_len;
 
-/*
- * Begin and End of memory area for malloc(), and current "brk"
- */
-static	ulong	mem_malloc_start = 0;
-static	ulong	mem_malloc_end	 = 0;
-static	ulong	mem_malloc_brk	 = 0;
-
 /************************************************************************
  * Utilities								*
  ************************************************************************
  */
-
-/*
- * The Malloc area is immediately below the monitor copy in DRAM
- */
-static void mem_malloc_init (void)
-{
-	ulong dest_addr = CONFIG_SYS_MONITOR_BASE + gd->reloc_off;
-
-	mem_malloc_end = dest_addr;
-	mem_malloc_start = dest_addr - TOTAL_MALLOC_LEN;
-	mem_malloc_brk = mem_malloc_start;
-
-	memset ((void *) mem_malloc_start,
-		0,
-		mem_malloc_end - mem_malloc_start);
-}
-
-void *sbrk (ptrdiff_t increment)
-{
-	ulong old = mem_malloc_brk;
-	ulong new = old + increment;
-
-	if ((new < mem_malloc_start) ||
-	    (new > mem_malloc_end) ) {
-		return (NULL);
-	}
-	mem_malloc_brk = new;
-	return ((void *)old);
-}
 
 /*
  * All attempts to come up with a "common" initialization sequence
@@ -438,9 +406,8 @@ board_init_f (ulong bootflag)
 void board_init_r (gd_t *id, ulong dest_addr)
 {
 	cmd_tbl_t *cmdtp;
-	char *s, *e;
+	char *s;
 	bd_t *bd;
-	int i;
 	extern void malloc_bin_reloc (void);
 
 #ifndef CONFIG_ENV_IS_NOWHERE
@@ -519,6 +486,11 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	 */
 	trap_init (CONFIG_SYS_SDRAM_BASE);
 
+	/* The Malloc area is immediately below the monitor copy in DRAM */
+	mem_malloc_init (CONFIG_SYS_MONITOR_BASE + gd->reloc_off -
+			TOTAL_MALLOC_LEN, TOTAL_MALLOC_LEN);
+	malloc_bin_reloc ();
+
 #if !defined(CONFIG_SYS_NO_FLASH)
 	puts ("FLASH: ");
 
@@ -532,7 +504,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 		 */
 		s = getenv ("flashchecksum");
 		if (s && (*s == 'y')) {
-			printf ("  CRC: %08lX",
+			printf ("  CRC: %08X",
 					crc32 (0,
 						   (const unsigned char *) CONFIG_SYS_FLASH_BASE,
 						   flash_size)
@@ -563,10 +535,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	WATCHDOG_RESET ();
 
-	/* initialize malloc() area */
-	mem_malloc_init ();
-	malloc_bin_reloc ();
-
 #ifdef CONFIG_SPI
 # if !defined(CONFIG_ENV_IS_IN_EEPROM)
 	spi_init_f ();
@@ -584,44 +552,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	 * where had to use getenv_r(), which can be pretty slow when
 	 * the environment is in EEPROM.
 	 */
-	s = getenv ("ethaddr");
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enetaddr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-#ifdef CONFIG_HAS_ETH1
-	/* handle the 2nd ethernet address */
-
-	s = getenv ("eth1addr");
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enet1addr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-#endif
-#ifdef CONFIG_HAS_ETH2
-	/* handle the 3rd ethernet address */
-
-	s = getenv ("eth2addr");
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enet2addr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-#endif
-
-#ifdef CONFIG_HAS_ETH3
-	/* handle 4th ethernet address */
-	s = getenv("eth3addr");
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enet3addr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-#endif
-
-	/* IP Address */
 	bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
 
 	WATCHDOG_RESET ();
@@ -634,8 +564,8 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 
 	/** leave this here (after malloc(), environment and PCI are working) **/
-	/* Initialize devices */
-	devices_init ();
+	/* Initialize stdio devices */
+	stdio_init ();
 
 	/* Initialize the jump table for applications */
 	jumptable_init ();
@@ -704,6 +634,9 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	nand_init();		/* go init the NAND */
 #endif
 
+#ifdef CONFIG_BITBANGMII
+	bb_miiphy_init();
+#endif
 #if defined(CONFIG_CMD_NET)
 	WATCHDOG_RESET();
 #if defined(FEC_ENET)

@@ -25,6 +25,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define CONFIG_AT91_LEGACY
+
 /* ARM asynchronous clock */
 #define AT91C_MAIN_CLOCK	179712000	/* from 18.432 MHz crystal (18432000 / 4 * 39) */
 #define AT91C_MASTER_CLOCK	59904000	/* peripheral clock (AT91C_MASTER_CLOCK / 3) */
@@ -45,11 +47,6 @@
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_SYS_USE_MAIN_OSCILLATOR		1
 /* flash */
-#define CONFIG_SYS_MC_PUIA_VAL	0x00000000
-#define CONFIG_SYS_MC_PUP_VAL	0x00000000
-#define CONFIG_SYS_MC_PUER_VAL	0x00000000
-#define CONFIG_SYS_MC_ASR_VAL	0x00000000
-#define CONFIG_SYS_MC_AASR_VAL	0x00000000
 #define CONFIG_SYS_EBI_CFGR_VAL	0x00000000
 #define CONFIG_SYS_SMC_CSR0_VAL	0x00003284 /* 16bit, 2 TDF, 4 WS */
 
@@ -88,6 +85,7 @@
  */
 
 /* define one of these to choose the DBGU, USART0  or USART1 as console */
+#define CONFIG_AT91RM9200_USART
 #define CONFIG_DBGU
 #undef CONFIG_USART0
 #undef CONFIG_USART1
@@ -116,38 +114,8 @@
 
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_MII
-#define CONFIG_CMD_NAND
-
-#define CONFIG_NAND_LEGACY
-
-#define CONFIG_SYS_MAX_NAND_DEVICE	1	/* Max number of NAND devices		*/
-#define SECTORSIZE 512
-
-#define ADDR_COLUMN 1
-#define ADDR_PAGE 2
-#define ADDR_COLUMN_PAGE 3
-
-#define NAND_ChipID_UNKNOWN	0x00
-#define NAND_MAX_FLOORS 1
-
-#define AT91_SMART_MEDIA_ALE (1 << 22)	/* our ALE is AD22 */
-#define AT91_SMART_MEDIA_CLE (1 << 21)	/* our CLE is AD21 */
 
 #include <asm/arch/AT91RM9200.h>	/* needed for port definitions */
-#define NAND_DISABLE_CE(nand) do { *AT91C_PIOC_SODR = AT91C_PIO_PC0;} while(0)
-#define NAND_ENABLE_CE(nand) do { *AT91C_PIOC_CODR = AT91C_PIO_PC0;} while(0)
-
-#define NAND_WAIT_READY(nand) while (!(*AT91C_PIOC_PDSR & AT91C_PIO_PC2))
-
-#define WRITE_NAND_COMMAND(d, adr) do{ *(volatile __u8 *)((unsigned long)adr | AT91_SMART_MEDIA_CLE) = (__u8)(d); } while(0)
-#define WRITE_NAND_ADDRESS(d, adr) do{ *(volatile __u8 *)((unsigned long)adr | AT91_SMART_MEDIA_ALE) = (__u8)(d); } while(0)
-#define WRITE_NAND(d, adr) do{ *(volatile __u8 *)((unsigned long)adr) = (__u8)d; } while(0)
-#define READ_NAND(adr) ((volatile unsigned char)(*(volatile __u8 *)(unsigned long)adr))
-/* the following are NOP's in our implementation */
-#define NAND_CTL_CLRALE(nandptr)
-#define NAND_CTL_SETALE(nandptr)
-#define NAND_CTL_CLRCLE(nandptr)
-#define NAND_CTL_SETCLE(nandptr)
 
 #define CONFIG_NR_DRAM_BANKS 1
 #define PHYS_SDRAM 0x20000000
@@ -156,7 +124,14 @@
 #define CONFIG_SYS_MEMTEST_START		PHYS_SDRAM
 #define CONFIG_SYS_MEMTEST_END			CONFIG_SYS_MEMTEST_START + PHYS_SDRAM_SIZE - 262144
 
-#define CONFIG_DRIVER_ETHER
+#define CONFIG_NET_MULTI		1
+#ifdef CONFIG_NET_MULTI
+#define CONFIG_DRIVER_AT91EMAC		1
+#define CONFIG_SYS_RX_ETH_BUFFER	8
+#else
+#define CONFIG_DRIVER_ETHER		1
+#endif
+
 #define CONFIG_NET_RETRY_COUNT		20
 #define CONFIG_AT91C_USE_RMII
 

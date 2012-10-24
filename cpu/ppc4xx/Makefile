@@ -33,6 +33,7 @@ SOBJS	+= dcr.o
 SOBJS	+= kgdb.o
 
 COBJS	:= 40x_spd_sdram.o
+
 COBJS	+= 44x_spd_ddr.o
 COBJS	+= 44x_spd_ddr2.o
 ifdef CONFIG_PPC4xx_DDR_AUTOCALIBRATION
@@ -41,6 +42,9 @@ endif
 COBJS	+= 4xx_pci.o
 COBJS	+= 4xx_pcie.o
 COBJS	+= bedbug_405.o
+ifdef CONFIG_CMD_CHIP_CONFIG
+COBJS	+= cmd_chip_config.o
+endif
 COBJS	+= commproc.o
 COBJS	+= cpu.o
 COBJS	+= cpu_init.o
@@ -51,7 +55,9 @@ COBJS	+= fdt.o
 COBJS	+= i2c.o
 COBJS	+= interrupts.o
 COBJS	+= iop480_uart.o
-COBJS	+= ndfc.o
+ifdef CONFIG_CMD_REGINFO
+COBJS	+= reginfo.o
+endif
 COBJS	+= sdram.o
 COBJS	+= speed.o
 COBJS	+= tlb.o

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 Freescale Semiconductor
+ * Copyright 2006,2009-2010 Freescale Semiconductor, Inc.
  * Jeff Brown
  * Srikanth Srinivasan (srikanth.srinivasan@freescale.com)
  *
@@ -28,9 +28,9 @@
 #include <asm/cache.h>
 #include <asm/mmu.h>
 #include <mpc86xx.h>
-#include <tsec.h>
 #include <asm/fsl_law.h>
 
+DECLARE_GLOBAL_DATA_PTR;
 
 /*
  * Default board reset function
@@ -40,7 +40,7 @@ __board_reset(void)
 {
 	/* Do nothing */
 }
-void board_reset(void) __attribute((weak, alias("__board_reset")));
+void board_reset(void) __attribute__((weak, alias("__board_reset")));
 
 
 int
@@ -53,6 +53,7 @@ checkcpu(void)
 	char buf1[32], buf2[32];
 	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
 	volatile ccsr_gur_t *gur = &immap->im_gur;
+	struct cpu_type *cpu;
 	uint msscr0 = mfspr(MSSCR0);
 
 	svr = get_svr();
@@ -60,22 +61,18 @@ checkcpu(void)
 	major = SVR_MAJ(svr);
 	minor = SVR_MIN(svr);
 
+	if (cpu_numcores() > 1) {
+#ifndef CONFIG_MP
+		puts("Unicore software on multiprocessor system!!\n"
+		     "To enable mutlticore build define CONFIG_MP\n");
+#endif
+	}
 	puts("CPU:   ");
 
-	switch (ver) {
-	case SVR_8641:
-		puts("8641");
-		break;
-	case SVR_8641D:
-		puts("8641D");
-		break;
-	case SVR_8610:
-		puts("8610");
-		break;
-	default:
-		puts("Unknown");
-		break;
-	}
+	cpu = gd->cpu;
+
+	puts(cpu->name);
+
 	printf(", Version: %d.%d, (0x%08x)\n", major, minor, svr);
 	puts("Core:  ");
 
@@ -177,56 +174,6 @@ watchdog_reset(void)
 }
 #endif	/* CONFIG_WATCHDOG */
 
-
-#if defined(CONFIG_DDR_ECC)
-void
-dma_init(void)
-{
-	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
-	volatile ccsr_dma_t *dma = &immap->im_dma;
-
-	dma->satr0 = 0x00040000;
-	dma->datr0 = 0x00040000;
-	asm("sync; isync");
-}
-
-uint
-dma_check(void)
-{
-	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
-	volatile ccsr_dma_t *dma = &immap->im_dma;
-	volatile uint status = dma->sr0;
-
-	/* While the channel is busy, spin */
-	while ((status & 4) == 4) {
-		status = dma->sr0;
-	}
-
-	if (status != 0) {
-		printf("DMA Error: status = %x\n", status);
-	}
-	return status;
-}
-
-int
-dma_xfer(void *dest, uint count, void *src)
-{
-	volatile immap_t *immap = (immap_t *) CONFIG_SYS_IMMR;
-	volatile ccsr_dma_t *dma = &immap->im_dma;
-
-	dma->dar0 = (uint) dest;
-	dma->sar0 = (uint) src;
-	dma->bcr0 = count;
-	dma->mr0 = 0xf000004;
-	asm("sync;isync");
-	dma->mr0 = 0xf000005;
-	asm("sync;isync");
-	return dma_check();
-}
-
-#endif	/* CONFIG_DDR_ECC */
-
-
 /*
  * Print out the state of various machine registers.
  * Currently prints out LAWs, BR0/OR0, and BATs
@@ -252,14 +199,35 @@ void mpc86xx_reginfo(void)
 }
 
 /*
- * Initializes on-chip ethernet controllers.
- * to override, implement board_eth_init()
+ * Set the DDR BATs to reflect the actual size of DDR.
+ *
+ * dram_size is the actual size of DDR, in bytes
+ *
+ * Note: we assume that CONFIG_MAX_MEM_MAPPED is 2G or smaller as we only
+ * are using a single BAT to cover DDR.
+ *
+ * If this is not true, (e.g. CONFIG_MAX_MEM_MAPPED is 2GB but HID0_XBSEN
+ * is not defined) then we might have a situation where U-Boot will attempt
+ * to relocated itself outside of the region mapped by DBAT0.
+ * This will cause a machine check.
+ *
+ * Currently we are limited to power of two sized DDR since we only use a
+ * single bat.  If a non-power of two size is used that is less than
+ * CONFIG_MAX_MEM_MAPPED u-boot will crash.
+ *
  */
-int cpu_eth_init(bd_t *bis)
+void setup_ddr_bat(phys_addr_t dram_size)
 {
-#if defined(CONFIG_TSEC_ENET)
-	tsec_standard_init(bis);
-#endif
+	unsigned long batu, bl;
 
-	return 0;
+	bl = TO_BATU_BL(min(dram_size, CONFIG_MAX_MEM_MAPPED));
+
+	if (BATU_SIZE(bl) != dram_size) {
+		u64 sz = (u64)dram_size - BATU_SIZE(bl);
+		print_size(sz, " left unmapped\n");
+	}
+
+	batu = bl | BATU_VS | BATU_VP;
+	write_bat(DBAT0, batu, CONFIG_SYS_DBAT0L);
+	write_bat(IBAT0, batu, CONFIG_SYS_IBAT0L);
 }

@@ -40,6 +40,7 @@
 /*
  * Select serial console configuration
   */
+#define CONFIG_IMX_SERIAL
 #define CONFIG_IMX_SERIAL1		/* internal uart 1 */
 /* #define _CONFIG_UART2 */		/* internal uart 2 */
 /* #define CONFIG_SILENT_CONSOLE */	/* use this to disable output */
@@ -65,9 +66,10 @@
 /*
  *  CS8900 Ethernet drivers
  */
-#define CONFIG_DRIVER_CS8900	1	/* we have a CS8900 on-board */
-#define CS8900_BASE		0x15000300
-#define CS8900_BUS16		1	/* the Linux driver does accesses as shorts */
+#define CONFIG_NET_MULTI
+#define CONFIG_CS8900		/* we have a CS8900 on-board */
+#define CONFIG_CS8900_BASE	0x15000300
+#define CONFIG_CS8900_BUS16	/* the Linux driver does accesses as shorts */
 
 /*
  * select serial console configuration
@@ -133,7 +135,6 @@
 #define CONFIG_SYS_MEMTEST_START	0x09000000	/* memtest works on	*/
 #define CONFIG_SYS_MEMTEST_END		0x0AF00000	/* 63 MB in DRAM	*/
 
-#undef	CONFIG_SYS_CLKS_IN_HZ				/* everything, incl board info, in Hz */
 #define CONFIG_SYS_LOAD_ADDR		0x08800000	/* default load address */
 /*#define	CONFIG_SYS_HZ			1000 */
 #define CONFIG_SYS_HZ			3686400

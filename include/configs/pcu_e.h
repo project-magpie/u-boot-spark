@@ -42,6 +42,9 @@
 #define CONFIG_MPC860T		1
 #define CONFIG_PCU_E		1	/* ...on a PCU E board		*/
 
+#define CONFIG_MISC_INIT_R	1	/* Call misc_init_r()		*/
+#define CONFIG_RESET_PHY_R	1	/* Call reset_phy()		*/
+
 #define	CONFIG_8xx_CONS_SMC1	1	/* Console is on SMC1		*/
 
 #define CONFIG_BAUDRATE		9600
@@ -231,7 +234,6 @@
 #define CONFIG_ENV_SIZE		0x2000	/* Total Size of Environment		*/
 #define CONFIG_ENV_ADDR	    0xFFFFE000	/* Address    of Environment Sector	*/
 #define CONFIG_ENV_SECT_SIZE	0x2000	/* use the top-most 8k boot sector	*/
-#define	CONFIG_ENV_IS_EMBEDDED	1	/* short-cut compile-time test		*/
 #else
 /* Final version: environment in EEPROM */
 #define CONFIG_ENV_IS_IN_EEPROM	1

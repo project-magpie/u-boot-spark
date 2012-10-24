@@ -35,6 +35,7 @@
 #endif
 
 #if (defined(CONFIG_CMD_IDE) || \
+     defined(CONFIG_CMD_MG_DISK) || \
      defined(CONFIG_CMD_SATA) || \
      defined(CONFIG_CMD_SCSI) || \
      defined(CONFIG_CMD_USB) || \
@@ -65,6 +66,9 @@ static const struct block_drvr block_drvr[] = {
 #if defined(CONFIG_SYSTEMACE)
 	{ .name = "ace", .get_dev = systemace_get_dev, },
 #endif
+#if defined(CONFIG_CMD_MG_DISK)
+	{ .name = "mgd", .get_dev = mg_disk_get_dev, },
+#endif
 	{ },
 };
 
@@ -76,7 +80,10 @@ block_dev_desc_t *get_dev(char* ifname, int dev)
 	block_dev_desc_t* (*reloc_get_dev)(int dev);
 
 	while (drvr->name) {
-		reloc_get_dev = drvr->get_dev + gd->reloc_off;
+		reloc_get_dev = drvr->get_dev;
+#ifndef CONFIG_RELOC_FIXUP_WORKS
+		reloc_get_dev += gd->reloc_off;
+#endif
 		if (strncmp(ifname, drvr->name, strlen(drvr->name)) == 0)
 			return reloc_get_dev(dev);
 		drvr++;
@@ -91,6 +98,7 @@ block_dev_desc_t *get_dev(char* ifname, int dev)
 #endif
 
 #if (defined(CONFIG_CMD_IDE) || \
+     defined(CONFIG_CMD_MG_DISK) || \
      defined(CONFIG_CMD_SATA) || \
      defined(CONFIG_CMD_SCSI) || \
      defined(CONFIG_CMD_USB) || \
@@ -108,6 +116,11 @@ void dev_print (block_dev_desc_t *dev_desc)
 #else
 	lbaint_t lba512;
 #endif
+
+	if (dev_desc->type == DEV_TYPE_UNKNOWN) {
+		puts ("not available\n");
+		return;
+	}
 
 	switch (dev_desc->if_type) {
 	case IF_TYPE_SCSI:
@@ -183,8 +196,8 @@ void dev_print (block_dev_desc_t *dev_desc)
 		if (dev_desc->lba48)
 			printf ("            Supports 48-bit addressing\n");
 #endif
-#if defined(CONFIG_SYS_64BIT_LBA) && defined(CONFIG_SYS_64BIT_VSPRINTF)
-		printf ("            Capacity: %ld.%ld MiB = %ld.%ld GiB (%qd x %ld)\n",
+#if defined(CONFIG_SYS_64BIT_LBA)
+		printf ("            Capacity: %ld.%ld MiB = %ld.%ld GiB (%Ld x %ld)\n",
 			mb_quot, mb_rem,
 			gb_quot, gb_rem,
 			lba,
@@ -203,11 +216,12 @@ void dev_print (block_dev_desc_t *dev_desc)
 #endif
 
 #if (defined(CONFIG_CMD_IDE) || \
+     defined(CONFIG_CMD_MG_DISK) || \
      defined(CONFIG_CMD_SATA) || \
      defined(CONFIG_CMD_SCSI) || \
      defined(CONFIG_CMD_USB) || \
      defined(CONFIG_MMC)		|| \
-     defined(CONFIG_SYSTEMACE)          )
+     defined(CONFIG_SYSTEMACE) )
 
 #if defined(CONFIG_MAC_PARTITION) || \
     defined(CONFIG_DOS_PARTITION) || \

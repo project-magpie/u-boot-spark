@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2000-2003
+ * (C) Copyright 2000-2010
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
  * See file CREDITS for list of people who contributed to this
@@ -28,6 +28,7 @@
 #include <common.h>
 #include <watchdog.h>
 #include <command.h>
+#include <net.h>
 #include <mpc5xxx.h>
 #include <netdev.h>
 #include <asm/io.h>
@@ -37,6 +38,10 @@
 #include <libfdt.h>
 #include <libfdt_env.h>
 #include <fdt_support.h>
+#endif
+
+#if defined(CONFIG_OF_IDE_FIXUP)
+#include <ide.h>
 #endif
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -121,6 +126,7 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 	int div = in_8((void*)CONFIG_SYS_MBAR + 0x204) & 0x0020 ? 8 : 4;
 	char * cpu_path = "/cpus/" OF_CPU;
 #ifdef CONFIG_MPC5xxx_FEC
+	uchar enetaddr[6];
 	char * eth_path = "/" OF_SOC "/ethernet@3000";
 #endif
 
@@ -131,9 +137,27 @@ void ft_cpu_setup(void *blob, bd_t *bd)
 	do_fixup_by_path_u32(blob, "/" OF_SOC, "system-frequency",
 				bd->bi_busfreq*div, 1);
 #ifdef CONFIG_MPC5xxx_FEC
-	do_fixup_by_path(blob, eth_path, "mac-address", bd->bi_enetaddr, 6, 0);
-	do_fixup_by_path(blob, eth_path, "local-mac-address", bd->bi_enetaddr, 6, 0);
+	eth_getenv_enetaddr("ethaddr", enetaddr);
+	do_fixup_by_path(blob, eth_path, "mac-address", enetaddr, 6, 0);
+	do_fixup_by_path(blob, eth_path, "local-mac-address", enetaddr, 6, 0);
 #endif
+#if defined(CONFIG_OF_IDE_FIXUP)
+	if (!ide_device_present(0)) {
+		/* NO CF card detected -> delete ata node in DTS */
+		int nodeoffset = 0;
+		char nodename[] = "/soc5200@f0000000/ata@3a00";
+
+		nodeoffset = fdt_path_offset(blob, nodename);
+		if (nodeoffset >= 0) {
+			fdt_del_node(blob, nodeoffset);
+		} else {
+			printf("%s: cannot find %s node err:%s\n",
+				__func__, nodename, fdt_strerror(nodeoffset));
+		}
+	}
+
+#endif
+	fdt_fixup_memory(blob, (u64)bd->bi_memstart, (u64)bd->bi_memsize);
 }
 #endif
 
@@ -168,3 +192,21 @@ int cpu_eth_init(bd_t *bis)
 	return mpc5xxx_fec_initialize(bis);
 }
 #endif
+
+#if defined(CONFIG_WATCHDOG)
+void watchdog_reset(void)
+{
+	int re_enable = disable_interrupts();
+	reset_5xxx_watchdog();
+	if (re_enable) enable_interrupts();
+}
+
+void reset_5xxx_watchdog(void)
+{
+	volatile struct mpc5xxx_gpt *gpt0 =
+		(struct mpc5xxx_gpt *) MPC5XXX_GPT;
+
+	/* Trigger TIMER_0 by writing A5 to OCPW */
+	clrsetbits_be32(&gpt0->emsr, 0xff000000, 0xa5000000);
+}
+#endif	/* CONFIG_WATCHDOG */

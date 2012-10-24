@@ -47,8 +47,9 @@
 #define CONFIG_OVERWRITE_ETHADDR_ONCE   1
 #endif
 
-#define CONFIG_BOARD_EARLY_INIT_F 1	/* Call board_early_init_f	*/
-#define CONFIG_BOARD_POSTCLK_INIT 1	/* Call board_postclk_init	*/
+#define CONFIG_BOARD_EARLY_INIT_F 1	/* Call board_early_init_f()	*/
+#define CONFIG_BOARD_POSTCLK_INIT 1	/* Call board_postclk_init()	*/
+#define CONFIG_MISC_INIT_R	1	/* Call misc_init_r()		*/
 
 #define CONFIG_LCD		1	/* use LCD controller ...	*/
 #define CONFIG_HLD1045		1	/* ... with a HLD1045 display	*/
@@ -93,7 +94,7 @@
  * 3 = 0x3C+0x3F = F3 + F6 :	enable test mode
  */
 
-#define CONFIG_BOOTCOMMAND "autoscr 40040000;saveenv"
+#define CONFIG_BOOTCOMMAND "source 40040000;saveenv"
 
 /*	"gatewayip=10.8.211.250\0"			                \ */
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
@@ -108,7 +109,7 @@
 	"key_magic2=3A+3C\0"						\
 	"key_cmd2=echo *** Entering Update Mode ***;"			\
 		"if fatload ide 0:3 10000 update.scr;"			\
-			"then autoscr 10000;"				\
+			"then source 10000;"				\
 			"else echo *** UPDATE FAILED ***;"		\
 		"fi\0"							\
 	"key_magic3=3C+3F\0"						\

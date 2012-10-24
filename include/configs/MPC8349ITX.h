@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Freescale Semiconductor, Inc. 2006. All rights reserved.
+ * Copyright (C) Freescale Semiconductor, Inc. 2006.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -63,7 +63,7 @@
 /*
  * High Level Configuration Options
  */
-#define CONFIG_MPC834X		/* MPC834x family (8343, 8347, 8349) */
+#define CONFIG_MPC834x		/* MPC834x family (8343, 8347, 8349) */
 #define CONFIG_MPC8349		/* MPC8349 specific */
 
 #define CONFIG_SYS_IMMR		0xE0000000	/* The IMMR is relocated to here */
@@ -79,6 +79,7 @@
 #define CONFIG_COMPACT_FLASH	/* The CF card interface on the back of the board */
 #define CONFIG_VSC7385_ENET	/* VSC7385 ethernet support */
 #define CONFIG_SATA_SIL3114	/* SIL3114 SATA controller */
+#define CONFIG_SYS_USB_HOST	/* use the EHCI USB controller */
 #endif
 
 #define CONFIG_PCI
@@ -95,7 +96,6 @@
 
 #define CONFIG_FSL_I2C
 #define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_CMD_TREE
 #define CONFIG_SYS_I2C_OFFSET		0x3000
 #define CONFIG_SYS_I2C2_OFFSET		0x3100
 #define CONFIG_SYS_SPD_BUS_NUM		1	/* The I2C bus for SPD */
@@ -153,6 +153,25 @@
 #define CONFIG_SYS_SATA_MAX_DEVICE      4
 #define CONFIG_LIBATA
 #define CONFIG_LBA48
+
+#endif
+
+#ifdef CONFIG_SYS_USB_HOST
+/*
+ * Support USB
+ */
+#define CONFIG_CMD_USB
+#define CONFIG_USB_STORAGE
+#define CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_FSL
+
+/* Current USB implementation supports the only USB controller,
+ * so we have to choose between the MPH or the DR ones */
+#if 1
+#define CONFIG_HAS_FSL_MPH_USB
+#else
+#define CONFIG_HAS_FSL_DR_USB
+#endif
 
 #endif
 
@@ -289,7 +308,7 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /* CONFIG_SYS_MONITOR_LEN must be a multiple of CONFIG_ENV_SECT_SIZE */
-#define CONFIG_SYS_MONITOR_LEN		(256 * 1024) /* Reserve 256 kB for Mon */
+#define CONFIG_SYS_MONITOR_LEN		(384 * 1024) /* Reserve 384 kB for Mon */
 #define CONFIG_SYS_MALLOC_LEN		(128 * 1024) /* Reserved for malloc */
 
 /*
@@ -298,7 +317,8 @@ boards, we say we have two, but don't display a message if we find only one. */
  * External Local Bus rate is
  *    CLKIN * HRCWL_CSB_TO_CLKIN / HRCWL_LCL_BUS_TO_SCB_CLK / LCRR_CLKDIV
  */
-#define CONFIG_SYS_LCRR	(LCRR_DBYP | LCRR_CLKDIV_4)
+#define CONFIG_SYS_LCRR_DBYP	LCRR_DBYP
+#define CONFIG_SYS_LCRR_CLKDIV	LCRR_CLKDIV_4
 #define CONFIG_SYS_LBC_LBCR	0x00000000
 
 #define CONFIG_SYS_LBC_LSRT	0x32000000    /* LB sdram refresh timer, about 6us */
@@ -361,15 +381,8 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_SYS_PCI2_IO_SIZE	0x01000000	/* 16M */
 #endif
 
-#define _IO_BASE		0x00000000	/* points to PCI I/O space */
-
 #define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
-
-#ifdef CONFIG_RTL8139
-/* This macro is used by RTL8139 but not defined in PPC architecture */
-#define KSEG1ADDR(x)	    (x)
-#endif
 
 #ifndef CONFIG_PCI_PNP
     #define PCI_ENET0_IOADDR	0x00000000
@@ -464,9 +477,11 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_CMD_DHCP
 #define CONFIG_CMD_SDRAM
 
-#if defined(CONFIG_COMPACT_FLASH) || defined(CONFIG_SATA_SIL3114)
+#if defined(CONFIG_COMPACT_FLASH) || defined(CONFIG_SATA_SIL3114) \
+    || defined(CONFIG_USB_STORAGE)
     #define CONFIG_DOS_PARTITION
     #define CONFIG_CMD_FAT
+    #define CONFIG_SUPPORT_VFAT
 #endif
 
 #ifdef CONFIG_COMPACT_FLASH
@@ -475,6 +490,9 @@ boards, we say we have two, but don't display a message if we find only one. */
 
 #ifdef CONFIG_SATA_SIL3114
     #define CONFIG_CMD_SATA
+#endif
+
+#if defined(CONFIG_SATA_SIL3114) || defined(CONFIG_USB_STORAGE)
     #define CONFIG_CMD_EXT2
 #endif
 
@@ -498,7 +516,7 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 
 #define CONFIG_SYS_LOAD_ADDR	0x2000000	/* default load address */
-#define CONFIG_LOADADDR	500000	/* default location for tftp and bootm */
+#define CONFIG_LOADADDR	800000	/* default location for tftp and bootm */
 
 #ifdef CONFIG_MPC8349ITX
 #define CONFIG_SYS_PROMPT	"MPC8349E-mITX> "	/* Monitor Command Prompt */
@@ -568,12 +586,14 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_SYS_SPCR_TSEC2EP	3	/* TSEC2 emergency priority (0-3) */
 #define CONFIG_SYS_SCCR_TSEC1CM	1	/* TSEC1 clock mode (0-3) */
 #define CONFIG_SYS_SCCR_TSEC2CM	1	/* TSEC2 & I2C0 clock mode (0-3) */
+#define CONFIG_SYS_SCCR_USBMPHCM 3	/* USB MPH controller's clock */
+#define CONFIG_SYS_SCCR_USBDRCM	0	/* USB DR controller's clock */
 
 /*
  * System IO Config
  */
 #define CONFIG_SYS_SICRH SICRH_TSOBI1	/* Needed for gigabit to work on TSEC 1 */
-#define CONFIG_SYS_SICRL (SICRL_LDP_A | SICRL_USB1)
+#define CONFIG_SYS_SICRL (SICRL_LDP_A | SICRL_USB1)	/* USB DR as device + USB MPH as host */
 
 #define CONFIG_SYS_HID0_INIT	0x000000000
 #define CONFIG_SYS_HID0_FINAL	CONFIG_SYS_HID0_INIT
@@ -615,7 +635,8 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_SYS_IBAT5U	(CONFIG_SYS_IMMR | BATU_BL_256M | BATU_VS | BATU_VP)
 
 /* SDRAM @ 0xF0000000, stack in DCACHE 0xFDF00000 & FLASH @ 0xFE000000 */
-#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10 | BATL_MEMCOHERENCE)
+#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10 | BATL_MEMCOHERENCE | \
+				 BATL_GUARDEDSTORAGE)
 #define CONFIG_SYS_IBAT6U	(0xF0000000 | BATU_BL_256M | BATU_VS | BATU_VP)
 
 #define CONFIG_SYS_IBAT7L	0
@@ -657,18 +678,6 @@ boards, we say we have two, but don't display a message if we find only one. */
  */
 #define CONFIG_ENV_OVERWRITE
 
-#ifdef CONFIG_HAS_ETH0
-#define CONFIG_ETHADDR		00:E0:0C:00:8C:01
-#endif
-
-#ifdef CONFIG_HAS_ETH1
-#define CONFIG_ETH1ADDR		00:E0:0C:00:8C:02
-#endif
-
-#define CONFIG_IPADDR		192.168.1.253
-#define CONFIG_SERVERIP		192.168.1.1
-#define CONFIG_GATEWAYIP	192.168.1.1
-#define CONFIG_NETMASK		255.255.252.0
 #define CONFIG_NETDEV		eth0
 
 #ifdef CONFIG_MPC8349ITX
@@ -688,7 +697,7 @@ boards, we say we have two, but don't display a message if we find only one. */
 #define CONFIG_FDTFILE		mpc8349emitxgp.dtb
 #endif
 
-#define CONFIG_BOOTDELAY	0
+#define CONFIG_BOOTDELAY	6
 
 #define XMK_STR(x)	#x
 #define MK_STR(x)	XMK_STR(x)
@@ -711,7 +720,7 @@ boards, we say we have two, but don't display a message if we find only one. */
 		"cp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize; "	\
 		"protect on " MK_STR(TEXT_BASE) " +$filesize; "		\
 		"cmp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize\0"	\
-	"fdtaddr=400000\0"						\
+	"fdtaddr=780000\0"						\
 	"fdtfile=" MK_STR(CONFIG_FDTFILE) "\0"
 
 #define CONFIG_NFSBOOTCOMMAND						\

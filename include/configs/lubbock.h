@@ -46,6 +46,9 @@
 
 #undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
 
+/* we will never enable dcache, because we have to setup MMU first */
+#define CONFIG_SYS_NO_DCACHE
+
 /*
  * Size of malloc() pool
  */
@@ -55,12 +58,14 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_DRIVER_LAN91C96
+#define CONFIG_NET_MULTI
+#define CONFIG_LAN91C96
 #define CONFIG_LAN91C96_BASE 0x0C000000
 
 /*
  * select serial console configuration
  */
+#define CONFIG_PXA_SERIAL
 #define CONFIG_FFUART	       1       /* we use FFUART on LUBBOCK */
 
 /* allow to overwrite serial and ethaddr */
@@ -121,8 +126,6 @@
 
 #define CONFIG_SYS_MEMTEST_START	0xa0400000	/* memtest works on	*/
 #define CONFIG_SYS_MEMTEST_END		0xa0800000	/* 4 ... 8 MB in DRAM	*/
-
-#undef	CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
 
 #define CONFIG_SYS_LOAD_ADDR	(CONFIG_SYS_DRAM_BASE + 0x8000) /* default load address */
 

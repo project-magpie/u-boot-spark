@@ -33,27 +33,24 @@
  * High Level Configuration Options
  */
 #define CONFIG_E300	1
-#define CONFIG_MPC83XX	1
-#define CONFIG_MPC834X	1
+#define CONFIG_MPC83xx	1
+#define CONFIG_MPC834x	1
 #define CONFIG_MPC8343	1
 
 #define CONFIG_SYS_IMMR		0xE0000000
 
 #define CONFIG_PCI
-#define CONFIG_83XX_GENERIC_PCI
 #define CONFIG_PCI_SKIP_HOST_BRIDGE
 #define CONFIG_HARD_I2C
 #define CONFIG_TSEC_ENET
 #define CONFIG_MPC8XXX_SPI
 #define CONFIG_HARD_SPI
 #define MVBLM7_MMC_CS   0x04000000
+#define CONFIG_MISC_INIT_R
 
 /* I2C */
-#undef CONFIG_SOFT_I2C
-
 #define CONFIG_FSL_I2C
 #define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_CMD_TREE
 #define CONFIG_SYS_I2C_OFFSET		0x3000
 #define CONFIG_SYS_I2C2_OFFSET		0x3100
 
@@ -63,44 +60,36 @@
 /*
  * DDR Setup
  */
+#undef	CONFIG_SPD_EEPROM
+
 #define CONFIG_SYS_DDR_BASE		0x00000000
 #define CONFIG_SYS_SDRAM_BASE		CONFIG_SYS_DDR_BASE
 #define CONFIG_SYS_DDR_SDRAM_BASE	CONFIG_SYS_DDR_BASE
 #define CONFIG_SYS_83XX_DDR_USES_CS0	1
 #define CONFIG_SYS_MEMTEST_START	(60<<20)
 #define CONFIG_SYS_MEMTEST_END		(70<<20)
+#define CONFIG_VERY_BIG_RAM
 
-#define CONFIG_SYS_DDR_SDRAM_CLK_CNTL	(DDR_SDRAM_CLK_CNTL_SS_EN | \
-				DDR_SDRAM_CLK_CNTL_CLK_ADJUST_05
+#define CONFIG_SYS_DDRCDR		0x22000001
+#define CONFIG_SYS_DDR_SDRAM_CLK_CNTL	DDR_SDRAM_CLK_CNTL_CLK_ADJUST_05
 
-#define CONFIG_SYS_DDR_SIZE		256
+#define CONFIG_SYS_DDR_SIZE		512
 
-/* HC, 75Ohm, DDR-II, DRQ */
-#define CONFIG_SYS_DDRCDR		0x80000001
-/* EN, ODT_WR, 3BA, 14row, 10col */
-#define CONFIG_SYS_DDR_CS0_CONFIG	0x80014102
-#define CONFIG_SYS_DDR_CS1_CONFIG	0x0
-#define CONFIG_SYS_DDR_CS2_CONFIG	0x0
-#define CONFIG_SYS_DDR_CS3_CONFIG	0x0
+#define CONFIG_SYS_DDR_CS0_CONFIG	0x80014202
 
-#define CONFIG_SYS_DDR_CS0_BNDS	0x0000000f
-#define CONFIG_SYS_DDR_CS1_BNDS	0x0
-#define CONFIG_SYS_DDR_CS2_BNDS	0x0
-#define CONFIG_SYS_DDR_CS3_BNDS	0x0
+#define CONFIG_SYS_DDR_CS0_BNDS		0x0000003f
 
-#define CONFIG_SYS_DDR_CLK_CNTL	0x02000000
+#define CONFIG_SYS_DDR_TIMING_0		0x00260802
+#define CONFIG_SYS_DDR_TIMING_1		0x3837c322
+#define CONFIG_SYS_DDR_TIMING_2		0x0f9848c6
+#define CONFIG_SYS_DDR_TIMING_3		0x00000000
 
-#define CONFIG_SYS_DDR_TIMING_0	0x00260802
-#define CONFIG_SYS_DDR_TIMING_1	0x2625b221
-#define CONFIG_SYS_DDR_TIMING_2	0x1f9820c7
-#define CONFIG_SYS_DDR_TIMING_3	0x00000000
-
-/* ~MEM_EN, SREN, DDR-II, 32_BE */
-#define CONFIG_SYS_DDR_SDRAM_CFG	0x43080000
+#define CONFIG_SYS_DDR_SDRAM_CFG	0x43080008
 #define CONFIG_SYS_DDR_SDRAM_CFG2	0x00401000
-#define CONFIG_SYS_DDR_INTERVAL	0x04060100
+#define CONFIG_SYS_DDR_INTERVAL		0x02000100
 
-#define CONFIG_SYS_DDR_MODE		0x078e0232
+#define CONFIG_SYS_DDR_MODE		0x04040242
+#define CONFIG_SYS_DDR_MODE2		0x00800000
 
 /* Flash */
 #define CONFIG_SYS_FLASH_CFI
@@ -148,7 +137,8 @@
  * External Local Bus rate is
  *  CLKIN * HRCWL_CSB_TO_CLKIN / HRCWL_LCL_BUS_TO_SCB_CLK / LCRR_CLKDIV
  */
-#define CONFIG_SYS_LCRR	(LCRR_DBYP | LCRR_CLKDIV_4)
+#define CONFIG_SYS_LCRR_DBYP	LCRR_DBYP
+#define CONFIG_SYS_LCRR_CLKDIV	LCRR_CLKDIV_4
 #define CONFIG_SYS_LBC_LBCR	0x00000000
 
 /* LB sdram refresh timer, about 6us */
@@ -193,8 +183,6 @@
 #define CONFIG_SYS_PCI1_IO_BASE	0x00000000
 #define CONFIG_SYS_PCI1_IO_PHYS	0xE2000000
 #define CONFIG_SYS_PCI1_IO_SIZE	0x01000000
-
-#define _IO_BASE		0x00000000
 
 #define CONFIG_NET_MULTI	1
 #define CONFIG_NET_RETRY_COUNT	3
@@ -360,7 +348,8 @@
 #define CONFIG_SYS_IBAT5U	(CONFIG_SYS_IMMR | BATU_BL_256M | BATU_VS | BATU_VP)
 
 /* stack in DCACHE 0xFDF00000 & FLASH @ 0xFF800000 */
-#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10 | BATL_MEMCOHERENCE)
+#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10 | BATL_MEMCOHERENCE | \
+				 BATL_GUARDEDSTORAGE)
 #define CONFIG_SYS_IBAT6U	(0xF0000000 | BATU_BL_256M | BATU_VS | BATU_VP)
 #define CONFIG_SYS_IBAT7L	0
 #define CONFIG_SYS_IBAT7U	0
@@ -407,12 +396,12 @@
 
 #define MV_CI			mvBL-M7
 #define MV_VCI			mvBL-M7
-#define MV_FPGA_DATA		0xfff80000
-#define MV_FPGA_SIZE		0x00076ca2
+#define MV_FPGA_DATA		0xfff40000
+#define MV_FPGA_SIZE		0
 #define MV_KERNEL_ADDR		0xff810000
 #define MV_INITRD_ADDR		0xffb00000
-#define MV_AUTOSCR_ADDR		0xff804000
-#define MV_AUTOSCR_ADDR2	0xff806000
+#define MV_SCRIPT_ADDR		0xff804000
+#define MV_SCRIPT_ADDR2		0xff806000
 #define MV_DTB_ADDR		0xff808000
 #define MV_INITRD_LENGTH	0x00400000
 
@@ -422,9 +411,9 @@
 #define MV_DTB_ADDR_RAM		0x00600000
 #define MV_INITRD_ADDR_RAM	0x01000000
 
-#define CONFIG_BOOTCOMMAND	"if imi ${autoscr_addr}; \
-					then autoscr ${autoscr_addr};  \
-					else autoscr ${autoscr_addr2}; \
+#define CONFIG_BOOTCOMMAND	"if imi ${script_addr}; \
+					then source ${script_addr};  \
+					else source ${script_addr2}; \
 				fi;"
 #define CONFIG_BOOTARGS		"root=/dev/ram ro rootfstype=squashfs"
 
@@ -437,8 +426,8 @@
 	"fpga=0\0"						\
 	"fpgadata=" MK_STR(MV_FPGA_DATA) "\0"			\
 	"fpgadatasize=" MK_STR(MV_FPGA_SIZE) "\0"		\
-	"autoscr_addr=" MK_STR(MV_AUTOSCR_ADDR) "\0"		\
-	"autoscr_addr2=" MK_STR(MV_AUTOSCR_ADDR2) "\0"		\
+	"script_addr=" MK_STR(MV_SCRIPT_ADDR) "\0"		\
+	"script_addr2=" MK_STR(MV_SCRIPT_ADDR2) "\0"		\
 	"mv_kernel_addr=" MK_STR(MV_KERNEL_ADDR) "\0"		\
 	"mv_kernel_addr_ram=" MK_STR(MV_KERNEL_ADDR_RAM) "\0"	\
 	"mv_initrd_addr=" MK_STR(MV_INITRD_ADDR) "\0"		\
@@ -455,7 +444,7 @@
 	"static_ipaddr=192.168.90.10\0"				\
 	"static_netmask=255.255.255.0\0"			\
 	"static_gateway=0.0.0.0\0"				\
-	"initrd_name=uInitrd.mvblm7-xenorfs\0"			\
+	"initrd_name=uInitrd.mvBL-M7-rfs\0"			\
 	"zcip=no\0"						\
 	"netboot=yes\0"						\
 	"mvtest=Ff\0"						\

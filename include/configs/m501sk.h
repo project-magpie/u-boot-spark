@@ -27,6 +27,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define CONFIG_AT91_LEGACY
+
 /* ARM asynchronous clock */
 /* from 18.432 MHz crystal (18432000 / 4 * 39) */
 #define AT91C_MAIN_CLOCK	179712000
@@ -34,6 +36,7 @@
 #define AT91C_MASTER_CLOCK	59904000
 #define AT91_SLOW_CLOCK	32768 /* slow clock */
 
+#define CONFIG_AT91RM9200	1	/* It's an Atmel AT91RM9200 SoC	*/
 #define CONFIG_AT91RM9200DK	1 /* on an AT91RM9200DK Board    */
 #undef CONFIG_USE_IRQ /* we don't need IRQ/FIQ stuff */
 #define CONFIG_CMDLINE_TAG	1 /* enable passing of ATAGs    */
@@ -46,11 +49,6 @@
  */
 #define CONFIG_SYS_USE_MAIN_OSCILLATOR		1
 /* flash */
-#define CONFIG_SYS_MC_PUIA_VAL	0x00000000
-#define CONFIG_SYS_MC_PUP_VAL	0x00000000
-#define CONFIG_SYS_MC_PUER_VAL	0x00000000
-#define CONFIG_SYS_MC_ASR_VAL	0x00000000
-#define CONFIG_SYS_MC_AASR_VAL	0x00000000
 #define CONFIG_SYS_EBI_CFGR_VAL	0x00000000
 #define CONFIG_SYS_SMC_CSR0_VAL	0x00003284 /* 16bit, 2 TDF, 4 WS */
 
@@ -110,6 +108,7 @@
 #define CONFIG_CMC_PU2
 
 /* define one of these to choose the DBGU, USART0  or USART1 as console */
+#define CONFIG_AT91RM9200_USART
 #define CONFIG_DBGU
 #undef CONFIG_USART0
 #undef CONFIG_USART1
@@ -161,11 +160,6 @@
 #define CONFIG_SYS_PROMPT_HUSH_PS2	    ">>"
 
 #define CONFIG_SYS_MAX_NAND_DEVICE	0 /* Max number of NAND devices */
-#define SECTORSIZE			     512
-
-#define ADDR_COLUMN		1
-#define ADDR_PAGE		2
-#define ADDR_COLUMN_PAGE	3
 
 #define CONFIG_NR_DRAM_BANKS	1
 #define PHYS_SDRAM		0x20000000
@@ -175,7 +169,13 @@
 /* CONFIG_SYS_MEMTEST_START + PHYS_SDRAM_SIZE - 262144 */
 #define CONFIG_SYS_MEMTEST_END	0x00100000
 
-#define CONFIG_DRIVER_ETHER
+#define CONFIG_NET_MULTI		1
+#ifdef CONFIG_NET_MULTI
+#define CONFIG_DRIVER_AT91EMAC		1
+#define CONFIG_SYS_RX_ETH_BUFFER	8
+#else
+#define CONFIG_DRIVER_ETHER		1
+#endif
 #define CONFIG_NET_RETRY_COUNT	20
 #define CONFIG_AT91C_USE_RMII
 

@@ -121,14 +121,14 @@ void tsc2000_set_range (unsigned int);
 void tsc2000_reg_init (void);
 s32 tsc2000_contact_temp (void);
 void spi_wait_transmit_done (void);
-void spi_init(void);
+void tsc2000_spi_init(void);
 int tsc2000_interpolate(long value, long data[][2], long *result);
 void adc_wait_conversion_done(void);
 
 
 static inline void SET_CS_TOUCH(void)
 {
-	S3C24X0_GPIO * const gpio = S3C24X0_GetBase_GPIO();
+	struct s3c24x0_gpio * const gpio = s3c24x0_get_base_gpio();
 
 	gpio->PDDAT &= 0x5FF;
 }
@@ -136,7 +136,7 @@ static inline void SET_CS_TOUCH(void)
 
 static inline void CLR_CS_TOUCH(void)
 {
-	S3C24X0_GPIO * const gpio = S3C24X0_GetBase_GPIO();
+	struct s3c24x0_gpio * const gpio = s3c24x0_get_base_gpio();
 
 	gpio->PDDAT |= 0x200;
 }

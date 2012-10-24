@@ -1,4 +1,6 @@
 /*-----------------------------------------------------------------------------+
+|       This source code is dual-licensed.  You may use it under the terms of
+|       the GNU General Public License version 2, or under the license below.
 |
 |       This source code has been made available to you by IBM on an AS-IS
 |       basis.  Anyone receiving this source is licensed under IBM
@@ -92,29 +94,11 @@ static struct pci_controller hose = {
 };
 
 
-static void reloc_pci_cfg_table(struct pci_config_table *table)
-{
-	unsigned long addr;
-
-	for (; table && table->vendor; table++) {
-		addr = (ulong) (table->config_device) + gd->reloc_off;
-#ifdef DEBUG
-		printf ("device \"%d\": 0x%08lx => 0x%08lx\n",
-				table->device, (ulong) (table->config_device), addr);
-#endif
-		table->config_device =
-			(void (*)(struct pci_controller* hose, pci_dev_t dev,
-			      struct pci_config_table *))addr;
-		table->priv[0]+=gd->reloc_off;
-	}
-}
-
 void pci_init_board(void)
 {
 	/*we want the ptrs to RAM not flash (ie don't use init list)*/
 	hose.fixup_irq    = pci_pip405_fixup_irq;
 	hose.config_table = pci_pip405_config_table;
-	reloc_pci_cfg_table(hose.config_table);
 #ifdef DEBUG
 	printf("Init PCI: fixup_irq=%p config_table=%p hose=%p\n",pci_pip405_fixup_irq,pci_pip405_config_table,hose);
 #endif

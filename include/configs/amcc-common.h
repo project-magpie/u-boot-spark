@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008
+ * (C) Copyright 2008, 2009
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
  * Common configuration options for all AMCC boards
@@ -76,6 +76,17 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_REGINFO
 
+#if defined(CONFIG_SYS_RAMBOOT)
+/*
+ * Disable NOR FLASH commands on RAM-booting version. One main reason for this
+ * RAM-booting version is boards with NAND and without NOR. This image can
+ * be used for initial NAND programming.
+ */
+#define CONFIG_SYS_NO_FLASH
+#undef CONFIG_CMD_FLASH
+#undef CONFIG_CMD_IMLS
+#endif
+
 /*
  * Miscellaneous configurable options
  */
@@ -126,10 +137,11 @@
 
 /*
  * For booting Linux, the board info and command line data
- * have to be in the first 8 MB of memory, since this is
- * the maximum mapped by the Linux kernel during initialization.
+ * have to be in the first 16 MB of memory, since this is
+ * the maximum mapped by the 40x Linux kernel during initialization.
  */
-#define CONFIG_SYS_BOOTMAPSZ		(8 << 20) /* Initial Memory map for Linux */
+#define CONFIG_SYS_BOOTMAPSZ		(16 << 20) /* Initial Memory map for Linux */
+#define CONFIG_SYS_BOOTM_LEN		(16 << 20) /* Increase max gunzip size */
 
 /*
  * Internal Definitions
@@ -144,6 +156,8 @@
  */
 #define CONFIG_OF_LIBFDT
 #define CONFIG_OF_BOARD_SETUP
+/* Update size in "reg" property of NOR FLASH device tree nodes */
+#define CONFIG_FDT_FIXUP_NOR_FLASH_SIZE
 
 /*
  * Booting and default environment
@@ -203,9 +217,9 @@
 		" console=" xstr(CONFIG_USE_TTY) ",${baudrate}\0"	\
 	CONFIG_ADDMISC							\
 	"initrd_high=30000000\0"					\
-	"kernel_addr_r=400000\0"					\
-	"fdt_addr_r=800000\0"						\
-	"ramdisk_addr_r=C00000\0"					\
+	"kernel_addr_r=1000000\0"					\
+	"fdt_addr_r=1800000\0"						\
+	"ramdisk_addr_r=1900000\0"					\
 	"hostname=" xstr(CONFIG_HOSTNAME) "\0"				\
 	"bootfile=" xstr(CONFIG_HOSTNAME) "/uImage\0"			\
 	"ramdisk_file=" xstr(CONFIG_HOSTNAME) "/uRamdisk\0"		\
@@ -259,7 +273,8 @@
 		"bootm ${kernel_addr_r}\0"
 
 #define CONFIG_AMCC_DEF_ENV_NOR_UPD					\
-	"load=tftp 200000 " xstr(CONFIG_HOSTNAME) "/u-boot.bin\0"	\
+	"u-boot=" xstr(CONFIG_HOSTNAME) "/u-boot.bin\0"			\
+	"load=tftp 200000 ${u-boot}\0"					\
 	"update=protect off " xstr(CONFIG_SYS_MONITOR_BASE) " FFFFFFFF;"	\
 		"era " xstr(CONFIG_SYS_MONITOR_BASE) " FFFFFFFF;"		\
 		"cp.b ${fileaddr} " xstr(CONFIG_SYS_MONITOR_BASE) " ${filesize};" \
@@ -267,7 +282,8 @@
 	"upd=run load update\0"						\
 
 #define CONFIG_AMCC_DEF_ENV_NAND_UPD					\
-	"nload=tftp 200000 " xstr(CONFIG_HOSTNAME) "/u-boot-nand.bin\0"	\
+	"u-boot-nand=" xstr(CONFIG_HOSTNAME) "/u-boot-nand.bin\0"	\
+	"nload=tftp 200000 ${u-boot-nand}\0"				\
 	"nupdate=nand erase 0 100000;nand write 200000 0 100000;"	\
 		"setenv filesize;saveenv\0"				\
 	"nupd=run nload nupdate\0"

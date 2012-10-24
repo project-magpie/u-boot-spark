@@ -89,7 +89,6 @@ int N_AU_IMAGES = (sizeof(au_image) / sizeof(au_image[0]));
 
 /* Prototypes */
 int cpci405_version(void);
-int gunzip(void *, int, unsigned char *, unsigned long *);
 void lxt971_no_sleep(void);
 
 int board_early_init_f(void)
@@ -111,10 +110,10 @@ int board_early_init_f(void)
 	 * First pull fpga-prg pin low,
 	 * to disable fpga logic (on version 2 board)
 	 */
-	out32(GPIO0_ODR, 0x00000000);	     /* no open drain pins	*/
-	out32(GPIO0_TCR, CONFIG_SYS_FPGA_PRG); /* setup for output	*/
-	out32(GPIO0_OR, CONFIG_SYS_FPGA_PRG); /* set output pins to high */
-	out32(GPIO0_OR, 0);		     /* pull prg low		*/
+	out_be32((void *)GPIO0_ODR, 0x00000000);	     /* no open drain pins	*/
+	out_be32((void *)GPIO0_TCR, CONFIG_SYS_FPGA_PRG); /* setup for output	*/
+	out_be32((void *)GPIO0_OR, CONFIG_SYS_FPGA_PRG); /* set output pins to high */
+	out_be32((void *)GPIO0_OR, 0);		     /* pull prg low		*/
 
 	/*
 	 * Boot onboard FPGA
@@ -179,22 +178,22 @@ int board_early_init_f(void)
 	 * IRQ 30 (EXT IRQ 5) PCI SLOT 3; active low; level sensitive
 	 * IRQ 31 (EXT IRQ 6) COMPACT FLASH; active high; level sensitive
 	 */
-	mtdcr(uicsr, 0xFFFFFFFF);	/* clear all ints */
-	mtdcr(uicer, 0x00000000);	/* disable all ints */
-	mtdcr(uiccr, 0x00000000);	/* set all to be non-critical*/
+	mtdcr(UIC0SR, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr(UIC0ER, 0x00000000);	/* disable all ints */
+	mtdcr(UIC0CR, 0x00000000);	/* set all to be non-critical*/
 #if defined(CONFIG_CPCI405_6U)
 	if (cpci405_version() == 3) {
-		mtdcr(uicpr, 0xFFFFFF99);	/* set int polarities */
+		mtdcr(UIC0PR, 0xFFFFFF99);	/* set int polarities */
 	} else {
-		mtdcr(uicpr, 0xFFFFFF81);	/* set int polarities */
+		mtdcr(UIC0PR, 0xFFFFFF81);	/* set int polarities */
 	}
 #else
-	mtdcr(uicpr, 0xFFFFFF81);	/* set int polarities */
+	mtdcr(UIC0PR, 0xFFFFFF81);	/* set int polarities */
 #endif
-	mtdcr(uictr, 0x10000000);	/* set int trigger levels */
-	mtdcr(uicvcr, 0x00000001);	/* set vect base=0,
+	mtdcr(UIC0TR, 0x10000000);	/* set int trigger levels */
+	mtdcr(UIC0VCR, 0x00000001);	/* set vect base=0,
 					 * INT0 highest priority */
-	mtdcr(uicsr, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr(UIC0SR, 0xFFFFFFFF);	/* clear all ints */
 
 	return 0;
 }
@@ -214,7 +213,7 @@ int ctermm2(void)
 
 int cpci405_host(void)
 {
-	if (mfdcr(strap) & PSR_PCI_ARBIT_EN)
+	if (mfdcr(CPC0_PSR) & PSR_PCI_ARBIT_EN)
 		return -1;		/* yes, board is cpci405 host */
 	else
 		return 0;		/* no, board is cpci405 adapter */
@@ -222,14 +221,14 @@ int cpci405_host(void)
 
 int cpci405_version(void)
 {
-	unsigned long cntrl0Reg;
+	unsigned long CPC0_CR0Reg;
 	unsigned long value;
 
 	/*
 	 * Setup GPIO pins (CS2/GPIO11 and CS3/GPIO12 as GPIO)
 	 */
-	cntrl0Reg = mfdcr(cntrl0);
-	mtdcr(cntrl0, cntrl0Reg | 0x03000000);
+	CPC0_CR0Reg = mfdcr(CPC0_CR0);
+	mtdcr(CPC0_CR0, CPC0_CR0Reg | 0x03000000);
 	out_be32((void*)GPIO0_ODR, in_be32((void*)GPIO0_ODR) & ~0x00180000);
 	out_be32((void*)GPIO0_TCR, in_be32((void*)GPIO0_TCR) & ~0x00180000);
 	udelay(1000); /* wait some time before reading input */
@@ -238,7 +237,7 @@ int cpci405_version(void)
 	/*
 	 * Restore GPIO settings
 	 */
-	mtdcr(cntrl0, cntrl0Reg);
+	mtdcr(CPC0_CR0, CPC0_CR0Reg);
 
 	switch (value) {
 	case 0x00180000:
@@ -261,7 +260,7 @@ int cpci405_version(void)
 
 int misc_init_r (void)
 {
-	unsigned long cntrl0Reg;
+	unsigned long CPC0_CR0Reg;
 
 	/* adjust flash start and offset */
 	gd->bd->bi_flashstart = 0 - gd->bd->bi_flashsize;
@@ -283,8 +282,8 @@ int misc_init_r (void)
 		/*
 		 * Setup GPIO pins (CS6+CS7 as GPIO)
 		 */
-		cntrl0Reg = mfdcr(cntrl0);
-		mtdcr(cntrl0, cntrl0Reg | 0x00300000);
+		CPC0_CR0Reg = mfdcr(CPC0_CR0);
+		mtdcr(CPC0_CR0, CPC0_CR0Reg | 0x00300000);
 
 		dst = malloc(CONFIG_SYS_FPGA_MAX_SIZE);
 		if (gunzip(dst, CONFIG_SYS_FPGA_MAX_SIZE,
@@ -330,7 +329,7 @@ int misc_init_r (void)
 		}
 
 		/* restore gpio/cs settings */
-		mtdcr(cntrl0, cntrl0Reg);
+		mtdcr(CPC0_CR0, CPC0_CR0Reg);
 
 		puts("FPGA:  ");
 
@@ -400,8 +399,8 @@ int misc_init_r (void)
 	/*
 	 * Select cts (and not dsr) on uart1
 	 */
-	cntrl0Reg = mfdcr(cntrl0);
-	mtdcr(cntrl0, cntrl0Reg | 0x00001000);
+	CPC0_CR0Reg = mfdcr(CPC0_CR0);
+	mtdcr(CPC0_CR0, CPC0_CR0Reg | 0x00001000);
 
 	return 0;
 }
@@ -690,8 +689,8 @@ int do_onewire(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	onewire,	1,	1,	do_onewire,
 	"Read 1-write ID",
-	NULL
-	);
+	""
+);
 
 #define CONFIG_SYS_I2C_EEPROM_ADDR_2 0x51 /* EEPROM CAT24WC32 */
 #define CONFIG_ENV_SIZE_2 0x800 /* 2048 bytes may be used for env vars */
@@ -751,8 +750,8 @@ int do_get_bpip(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	getbpip,	1,	1,	do_get_bpip,
 	"Update IP-Address with Backplane IP-Address",
-	NULL
-	);
+	""
+);
 
 /*
  * Set and print backplane ip...
@@ -787,7 +786,7 @@ int do_set_bpip(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	setbpip,	2,	1,	do_set_bpip,
 	"Write Backplane IP-Address",
-	NULL
-	);
+	""
+);
 
 #endif /* CONFIG_CPCI405AB */

@@ -22,10 +22,14 @@
 #include <common.h>
 #include <command.h>
 #include <malloc.h>
-#include <devices.h>
+#include <stdio_dev.h>
 #include <timestamp.h>
 #include <version.h>
 #include <net.h>
+
+#ifdef CONFIG_BITBANGMII
+#include <miiphy.h>
+#endif
 
 #include <asm/initcalls.h>
 #include <asm/sections.h>
@@ -41,44 +45,16 @@ const char version_string[] =
 
 unsigned long monitor_flash_len;
 
-/*
- * Begin and end of memory area for malloc(), and current "brk"
- */
-static unsigned long mem_malloc_start = 0;
-static unsigned long mem_malloc_end = 0;
-static unsigned long mem_malloc_brk = 0;
-
-/* The malloc area is right below the monitor image in RAM */
-static void mem_malloc_init(void)
+/* Weak aliases for optional board functions */
+static int __do_nothing(void)
 {
-	unsigned long monitor_addr;
-
-	monitor_addr = CONFIG_SYS_MONITOR_BASE + gd->reloc_off;
-	mem_malloc_end = monitor_addr;
-	mem_malloc_start = mem_malloc_end - CONFIG_SYS_MALLOC_LEN;
-	mem_malloc_brk = mem_malloc_start;
-
-	printf("malloc: Using memory from 0x%08lx to 0x%08lx\n",
-	       mem_malloc_start, mem_malloc_end);
-
-	memset ((void *)mem_malloc_start, 0,
-		mem_malloc_end - mem_malloc_start);
+	return 0;
 }
-
-void *sbrk(ptrdiff_t increment)
-{
-	unsigned long old = mem_malloc_brk;
-	unsigned long new = old + increment;
-
-	if ((new < mem_malloc_start) || (new > mem_malloc_end))
-		return NULL;
-
-	mem_malloc_brk = new;
-	return ((void *)old);
-}
+int board_postclk_init(void) __attribute__((weak, alias("__do_nothing")));
+int board_early_init_r(void) __attribute__((weak, alias("__do_nothing")));
 
 #ifdef CONFIG_SYS_DMA_ALLOC_LEN
-#include <asm/cacheflush.h>
+#include <asm/arch/cacheflush.h>
 #include <asm/io.h>
 
 static unsigned long dma_alloc_start;
@@ -188,6 +164,7 @@ void board_init_f(ulong board_type)
 	/* Perform initialization sequence */
 	board_early_init_f();
 	cpu_init();
+	board_postclk_init();
 	env_init();
 	init_baudrate();
 	serial_init();
@@ -229,6 +206,18 @@ void board_init_f(ulong board_type)
 	addr &= ~(CONFIG_SYS_DCACHE_LINESZ - 1);
 	addr -= CONFIG_SYS_DMA_ALLOC_LEN;
 #endif
+
+#ifdef CONFIG_LCD
+#ifdef CONFIG_FB_ADDR
+	printf("LCD: Frame buffer allocated at preset 0x%08x\n",
+	       CONFIG_FB_ADDR);
+	gd->fb_base = (void *)CONFIG_FB_ADDR;
+#else
+	addr = lcd_setmem(addr);
+	printf("LCD: Frame buffer allocated at 0x%08lx\n", addr);
+	gd->fb_base = (void *)addr;
+#endif /* CONFIG_FB_ADDR */
+#endif /* CONFIG_LCD */
 
 	/* Allocate a Board Info struct on a word boundary */
 	addr -= sizeof(bd_t);
@@ -275,6 +264,8 @@ void board_init_r(gd_t *new_gd, ulong dest_addr)
 	gd->flags |= GD_FLG_RELOC;
 	gd->reloc_off = dest_addr - CONFIG_SYS_MONITOR_BASE;
 
+	board_early_init_r();
+
 	monitor_flash_len = _edata - _text;
 
 	/*
@@ -308,10 +299,12 @@ void board_init_r(gd_t *new_gd, ulong dest_addr)
 #endif
 
 	timer_init();
-	mem_malloc_init();
+
+	/* The malloc area is right below the monitor image in RAM */
+	mem_malloc_init(CONFIG_SYS_MONITOR_BASE + gd->reloc_off -
+			CONFIG_SYS_MALLOC_LEN, CONFIG_SYS_MALLOC_LEN);
 	malloc_bin_reloc();
 	dma_alloc_init();
-	board_init_info();
 
 	enable_interrupts();
 
@@ -340,7 +333,7 @@ void board_init_r(gd_t *new_gd, ulong dest_addr)
 
 	bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
 
-	devices_init();
+	stdio_init();
 	jumptable_init();
 	console_init_r();
 
@@ -348,6 +341,9 @@ void board_init_r(gd_t *new_gd, ulong dest_addr)
 	if (s)
 		load_addr = simple_strtoul(s, NULL, 16);
 
+#ifdef CONFIG_BITBANGMII
+	bb_miiphy_init();
+#endif
 #if defined(CONFIG_CMD_NET)
 	s = getenv("bootfile");
 	if (s)

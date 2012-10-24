@@ -46,13 +46,41 @@ PLATFORM_LDFLAGS =
 
 #########################################################################
 
+HOSTCFLAGS	= -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer \
+		  $(HOSTCPPFLAGS)
+HOSTSTRIP	= strip
+
+#
+# Mac OS X / Darwin's C preprocessor is Apple specific.  It
+# generates numerous errors and warnings.  We want to bypass it
+# and use GNU C's cpp.  To do this we pass the -traditional-cpp
+# option to the compiler.  Note that the -traditional-cpp flag
+# DOES NOT have the same semantics as GNU C's flag, all it does
+# is invoke the GNU preprocessor in stock ANSI/ISO C fashion.
+#
+# Apple's linker is similar, thanks to the new 2 stage linking
+# multiple symbol definitions are treated as errors, hence the
+# -multiply_defined suppress option to turn off this error.
+#
+
 ifeq ($(HOSTOS),darwin)
 HOSTCC		= cc
+HOSTCFLAGS	+= -traditional-cpp
+HOSTLDFLAGS	+= -multiply_defined suppress
 else
 HOSTCC		= gcc
 endif
-HOSTCFLAGS	= -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
-HOSTSTRIP	= strip
+
+ifeq ($(HOSTOS),cygwin)
+HOSTCFLAGS	+= -ansi
+endif
+
+# We build some files with extra pedantic flags to try to minimize things
+# that won't build on some weird host compiler -- though there are lots of
+# exceptions for files that aren't complaint.
+
+HOSTCFLAGS_NOPED = $(filter-out -pedantic,$(HOSTCFLAGS))
+HOSTCFLAGS	+= -pedantic
 
 #########################################################################
 #
@@ -83,10 +111,10 @@ RANLIB	= $(CROSS_COMPILE)RANLIB
 sinclude $(OBJTREE)/include/autoconf.mk
 
 ifdef	ARCH
-sinclude $(TOPDIR)/$(ARCH)_config.mk	# include architecture dependend rules
+sinclude $(TOPDIR)/lib_$(ARCH)/config.mk	# include architecture dependend rules
 endif
 ifdef	CPU
-sinclude $(TOPDIR)/cpu/$(CPU)/config.mk	# include  CPU	specific rules
+sinclude $(TOPDIR)/cpu/$(CPU)/config.mk		# include  CPU	specific rules
 endif
 ifdef	SOC
 sinclude $(TOPDIR)/cpu/$(CPU)/$(SOC)/config.mk	# include  SoC	specific rules
@@ -128,6 +156,10 @@ ifneq ($(TEXT_BASE),)
 CPPFLAGS += -DTEXT_BASE=$(TEXT_BASE)
 endif
 
+ifneq ($(RESET_VECTOR_ADDRESS),)
+CPPFLAGS += -DRESET_VECTOR_ADDRESS=$(RESET_VECTOR_ADDRESS)
+endif
+
 ifneq ($(OBJTREE),$(SRCTREE))
 CPPFLAGS += -I$(OBJTREE)/include2 -I$(OBJTREE)/include
 endif
@@ -166,7 +198,7 @@ endif
 
 AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS)
 
-LDFLAGS += -Bstatic -T $(LDSCRIPT) $(PLATFORM_LDFLAGS)
+LDFLAGS += -Bstatic -T $(obj)u-boot.lds $(PLATFORM_LDFLAGS)
 ifneq ($(TEXT_BASE),)
 LDFLAGS += -Ttext $(TEXT_BASE)
 endif
@@ -194,35 +226,25 @@ BFD_ROOT_DIR =		/opt/powerpc
 endif
 endif
 
-ifeq ($(PCI_CLOCK),PCI_66M)
-CFLAGS := $(CFLAGS) -DPCI_66M
-endif
-
 #########################################################################
 
-export	HPATH HOSTCC HOSTCFLAGS CROSS_COMPILE \
+export	HOSTCC HOSTCFLAGS HOSTLDFLAGS PEDCFLAGS HOSTSTRIP CROSS_COMPILE \
 	AS LD CC CPP AR NM STRIP OBJCOPY OBJDUMP MAKE
 export	TEXT_BASE PLATFORM_CPPFLAGS PLATFORM_RELFLAGS CPPFLAGS CFLAGS AFLAGS
 
 #########################################################################
 
-ifndef REMOTE_BUILD
-
-%.s:	%.S
-	$(CPP) $(AFLAGS) -o $@ $<
-%.o:	%.S
-	$(CC) $(AFLAGS) -c -o $@ $<
-%.o:	%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-else
-
+# Allow boards to use custom optimize flags on a per dir/file basis
+BCURDIR := $(notdir $(CURDIR))
 $(obj)%.s:	%.S
-	$(CPP) $(AFLAGS) -o $@ $<
+	$(CPP) $(AFLAGS) $(AFLAGS_$(@F)) $(AFLAGS_$(BCURDIR)) -o $@ $<
 $(obj)%.o:	%.S
-	$(CC) $(AFLAGS) -c -o $@ $<
+	$(CC)  $(AFLAGS) $(AFLAGS_$(@F)) $(AFLAGS_$(BCURDIR)) -o $@ $< -c
 $(obj)%.o:	%.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-endif
+	$(CC)  $(CFLAGS) $(CFLAGS_$(@F)) $(CFLAGS_$(BCURDIR)) -o $@ $< -c
+$(obj)%.i:	%.c
+	$(CPP) $(CFLAGS) $(CFLAGS_$(@F)) $(CFLAGS_$(BCURDIR)) -o $@ $< -c
+$(obj)%.s:	%.c
+	$(CC)  $(CFLAGS) $(CFLAGS_$(@F)) $(CFLAGS_$(BCURDIR)) -o $@ $< -c -S
 
 #########################################################################

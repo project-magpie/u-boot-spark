@@ -20,6 +20,7 @@
 
 #include <common.h>
 #include <config.h>
+#include <watchdog.h>
 #include <asm/blackfin.h>
 #include "cpu.h"
 
@@ -63,13 +64,15 @@ int disable_interrupts(void)
 	return 1;
 }
 
-void udelay(unsigned long usec)
+void __udelay(unsigned long usec)
 {
 	unsigned long delay, start, stop;
 	unsigned long cclk;
 	cclk = (CONFIG_CCLK_HZ);
 
 	while (usec > 1) {
+		WATCHDOG_RESET();
+
 		/*
 		 * how many clock ticks to delay?
 		 *  - request(in useconds) * clock_ticks(Hz) / useconds/second
@@ -94,12 +97,13 @@ void udelay(unsigned long usec)
 #define MAX_TIM_LOAD	0xFFFFFFFF
 int timer_init(void)
 {
-	*pTCNTL = 0x1;
-	*pTSCALE = 0x0;
-	*pTCOUNT = MAX_TIM_LOAD;
-	*pTPERIOD = MAX_TIM_LOAD;
-	*pTCNTL = 0x7;
-	asm("CSYNC;");
+	bfin_write_TCNTL(0x1);
+	CSYNC();
+	bfin_write_TSCALE(0x0);
+	bfin_write_TCOUNT(MAX_TIM_LOAD);
+	bfin_write_TPERIOD(MAX_TIM_LOAD);
+	bfin_write_TCNTL(0x7);
+	CSYNC();
 
 	timestamp = 0;
 	last_time = 0;
@@ -126,7 +130,7 @@ ulong get_timer(ulong base)
 	ulong milisec;
 
 	/* Number of clocks elapsed */
-	ulong clocks = (MAX_TIM_LOAD - (*pTCOUNT));
+	ulong clocks = (MAX_TIM_LOAD - bfin_read_TCOUNT());
 
 	/*
 	 * Find if the TCOUNT is reset
@@ -151,5 +155,5 @@ ulong get_timer(ulong base)
 
 void reset_timer(void)
 {
-	timestamp = 0;
+	timer_init();
 }

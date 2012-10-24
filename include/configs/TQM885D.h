@@ -47,7 +47,8 @@
 						/* 'cpuclk' variable with valid value)	*/
 
 #define CONFIG_8xx_CONS_SMC1	1	/* Console is on SMC1		*/
-
+#define CONFIG_SYS_SMC_RXBUFLEN	128
+#define CONFIG_SYS_MAXIDLE	10
 #define CONFIG_BAUDRATE		115200	/* console baudrate = 115kbps	*/
 
 #define CONFIG_BOOTCOUNT_LIMIT
@@ -506,5 +507,10 @@
 					   tried network is unreachable) */
 
 #define CONFIG_ETHPRIME		"SCC ETHERNET"
+
+/* pass open firmware flat tree */
+#define CONFIG_OF_LIBFDT	1
+#define CONFIG_OF_BOARD_SETUP	1
+#define CONFIG_HWCONFIG		1
 
 #endif	/* __CONFIG_H */

@@ -47,6 +47,7 @@
 
 #define CONFIG_BOARD_EARLY_INIT_F 1		/* Call board_early_init_f */
 #define CONFIG_MISC_INIT_R	1		/* Call misc_init_r	*/
+#define CONFIG_BOARD_TYPES
 #define CONFIG_BOARD_EMAC_COUNT
 
 /*-----------------------------------------------------------------------
@@ -234,9 +235,11 @@
  *
  * DDR Autocalibration Method_B is the default.
  */
+#if !defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL)
 #define	CONFIG_PPC4xx_DDR_AUTOCALIBRATION	/* IBM DDR autocalibration */
 #define	DEBUG_PPC4xx_DDR_AUTOCALIBRATION	/* dynamic DDR autocal debug */
 #undef	CONFIG_PPC4xx_DDR_METHOD_A
+#endif
 
 #define	CONFIG_SYS_SDRAM0_MB0CF_BASE	((  0 << 20) + CONFIG_SYS_SDRAM_BASE)
 
@@ -372,9 +375,15 @@
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address	*/
 
-#define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	6	/* 24C02 requires 5ms delay */
 #define CONFIG_SYS_I2C_EEPROM_ADDR	0x52	/* I2C boot EEPROM (24C02BN)	*/
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1	/* Bytes of address		*/
+#define CONFIG_SYS_EEPROM_PAGE_WRITE_BITS	3
+#define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	10
+
+/* I2C bootstrap EEPROM */
+#define CONFIG_4xx_CONFIG_I2C_EEPROM_ADDR	0x52
+#define CONFIG_4xx_CONFIG_I2C_EEPROM_OFFSET	0
+#define CONFIG_4xx_CONFIG_BLOCKSIZE		16
 
 /* Standard DTT sensor configuration */
 #define CONFIG_DTT_DS1775	1
@@ -424,18 +433,30 @@
 /*
  * Commands additional to the ones defined in amcc-common.h
  */
+#define CONFIG_CMD_CHIP_CONFIG
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_LOG
 #define CONFIG_CMD_NAND
 #define CONFIG_CMD_PCI
 #define CONFIG_CMD_SNTP
 
+/*
+ * Don't run the memory POST on the NAND-booting version. It will
+ * overwrite part of the U-Boot image which is already loaded from NAND
+ * to SDRAM.
+ */
+#if defined(CONFIG_NAND_U_BOOT)
+#define CONFIG_SYS_POST_MEMORY_ON	0
+#else
+#define CONFIG_SYS_POST_MEMORY_ON	CONFIG_SYS_POST_MEMORY
+#endif
+
 /* POST support */
 #define CONFIG_POST		(CONFIG_SYS_POST_CACHE		| \
 				 CONFIG_SYS_POST_CPU		| \
 				 CONFIG_SYS_POST_ETHER		| \
 				 CONFIG_SYS_POST_I2C		| \
-				 CONFIG_SYS_POST_MEMORY	| \
+				 CONFIG_SYS_POST_MEMORY_ON	| \
 				 CONFIG_SYS_POST_UART)
 
 /* Define here the base-addresses of the UARTs to test in POST */
@@ -500,9 +521,22 @@
 #define CONFIG_SYS_EBC_PB1CR		(CONFIG_SYS_NAND_ADDR | 0x1e000)
 #endif
 
-/* Memory Bank 2 (FPGA) initialization						*/
-#define CONFIG_SYS_EBC_PB2AP           0x9400C800
-#define CONFIG_SYS_EBC_PB2CR		(CONFIG_SYS_FPGA_BASE | 0x18000)
+/* Memory Bank 2 (FPGA) initialization					*/
+#define CONFIG_SYS_EBC_PB2AP		(EBC_BXAP_BME_ENABLED |		\
+					 EBC_BXAP_FWT_ENCODE(6) |	\
+					 EBC_BXAP_BWT_ENCODE(1) |	\
+					 EBC_BXAP_BCE_DISABLE |		\
+					 EBC_BXAP_BCT_2TRANS |		\
+					 EBC_BXAP_CSN_ENCODE(0) |	\
+					 EBC_BXAP_OEN_ENCODE(0) |	\
+					 EBC_BXAP_WBN_ENCODE(3) |	\
+					 EBC_BXAP_WBF_ENCODE(1) |	\
+					 EBC_BXAP_TH_ENCODE(4) |	\
+					 EBC_BXAP_RE_DISABLED |		\
+					 EBC_BXAP_SOR_DELAYED |		\
+					 EBC_BXAP_BEM_WRITEONLY |	\
+					 EBC_BXAP_PEN_DISABLED)
+#define CONFIG_SYS_EBC_PB2CR	(CONFIG_SYS_FPGA_BASE | 0x18000)
 
 #define CONFIG_SYS_EBC_CFG		0x7FC00000 /*  EBC0_CFG */
 
@@ -551,7 +585,7 @@
  * Some Kilauea stuff..., mainly fpga registers
  */
 #define CONFIG_SYS_FPGA_REG_BASE		CONFIG_SYS_FPGA_BASE
-#define CONFIG_SYS_FPGA_FIFO_BASE		(in32(CONFIG_SYS_FPGA_BASE) | (1 << 10))
+#define CONFIG_SYS_FPGA_FIFO_BASE		(CONFIG_SYS_FPGA_BASE | (1 << 10))
 
 /* interrupt */
 #define CONFIG_SYS_FPGA_SLIC0_R_DPRAM_INT	0x80000000
@@ -581,5 +615,9 @@
 #define CONFIG_SYS_FPGA_SLIC1_CS		0x00000400
 #define CONFIG_SYS_FPGA_USER_LED0		0x00000200
 #define CONFIG_SYS_FPGA_USER_LED1		0x00000100
+
+#define CONFIG_SYS_FPGA_MAGIC_MASK		0xffff0000
+#define CONFIG_SYS_FPGA_MAGIC			0xabcd0000
+#define CONFIG_SYS_FPGA_VER_MASK		0x0000ff00
 
 #endif	/* __CONFIG_H */

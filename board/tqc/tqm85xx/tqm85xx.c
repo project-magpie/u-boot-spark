@@ -36,7 +36,7 @@
 #include <pci.h>
 #include <asm/processor.h>
 #include <asm/immap_85xx.h>
-#include <asm/immap_fsl_pci.h>
+#include <asm/fsl_pci.h>
 #include <asm/io.h>
 #include <ioports.h>
 #include <flash.h>
@@ -328,7 +328,7 @@ int misc_init_r (void)
 	/* Redundant environment protection ON by default */
 	flash_protect (FLAG_PROTECT_SET,
 		       CONFIG_ENV_ADDR_REDUND,
-		       CONFIG_ENV_ADDR_REDUND + CONFIG_ENV_SIZE_REDUND - 1,
+		       CONFIG_ENV_ADDR_REDUND + CONFIG_ENV_SECT_SIZE - 1,
 		       &flash_info[CONFIG_SYS_MAX_FLASH_BANKS - 1]);
 #endif
 
@@ -537,9 +537,6 @@ void local_bus_init (void)
  */
 static int first_free_busno;
 
-extern int fsl_pci_setup_inbound_windows(struct pci_region *r);
-extern void fsl_pci_init(struct pci_controller *hose);
-
 #ifdef CONFIG_PCI1
 static struct pci_controller pci1_hose;
 #endif /* CONFIG_PCI1 */
@@ -552,7 +549,6 @@ static inline void init_pci1(void)
 {
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 #ifdef CONFIG_PCI1
-	uint host_agent = (gur->porbmsr & MPC85xx_PORBMSR_HA) >> 16;
 	volatile ccsr_fsl_pci_t *pci = (ccsr_fsl_pci_t *)CONFIG_SYS_PCI1_ADDR;
 	struct pci_controller *hose = &pci1_hose;
 	struct pci_region *r = hose->regions;
@@ -564,8 +560,7 @@ static inline void init_pci1(void)
 	/* PORPLLSR[16] */
 	uint pci_clk_sel = gur->porpllsr & MPC85xx_PORDEVSR_PCI1_SPD;
 
-	uint pci_agent = (host_agent == 3) || (host_agent == 4 ) ||
-		(host_agent == 6);
+	int pci_agent = fsl_setup_hose(hose, CONFIG_SYS_PCI1_ADDR);
 
 	uint pci_speed = CONFIG_SYS_CLK_FREQ;	/* PCI PSPEED in [4:5] */
 
@@ -577,10 +572,6 @@ static inline void init_pci1(void)
 			pci_clk_sel ? "sync" : "async",
 			pci_agent ? "agent" : "host",
 			pci_arb ? "arbiter" : "external-arbiter");
-
-
-		/* inbound */
-		r += fsl_pci_setup_inbound_windows(r);
 
 		/* outbound memory */
 		pci_set_region (r++,
@@ -599,10 +590,8 @@ static inline void init_pci1(void)
 		hose->region_count = r - hose->regions;
 
 		hose->first_busno = first_free_busno;
-		pci_setup_indirect (hose, (int)&pci->cfg_addr,
-				    (int)&pci->cfg_data);
 
-		fsl_pci_init (hose);
+		fsl_pci_init(hose, (u32)&pci->cfg_addr, (u32)&pci->cfg_data);
 
 		printf ("       PCI on bus %02x..%02x\n",
 			hose->first_busno, hose->last_busno);
@@ -636,18 +625,18 @@ static inline void init_pcie1(void)
 	volatile ccsr_gur_t *gur = (void *)(CONFIG_SYS_MPC85xx_GUTS_ADDR);
 #ifdef CONFIG_PCIE1
 	uint io_sel = (gur->pordevsr & MPC85xx_PORDEVSR_IO_SEL) >> 19;
-	uint host_agent = (gur->porbmsr & MPC85xx_PORBMSR_HA) >> 16;
 	volatile ccsr_fsl_pci_t *pci = (ccsr_fsl_pci_t *)CONFIG_SYS_PCIE1_ADDR;
 	struct pci_controller *hose = &pcie1_hose;
-	int pcie_ep =  (host_agent == 0) || (host_agent == 2 ) ||
-		(host_agent == 3);
+	int pcie_ep;
 	struct pci_region *r = hose->regions;
 
-	int pcie_configured  = io_sel >= 1;
+	int pcie_configured = is_fsl_pci_cfg(LAW_TRGT_IF_PCIE_1, io_sel);
+
+	pcie_ep = fsl_setup_hose(hose, CONFIG_SYS_PCIE1_ADDR);
 
 	if (pcie_configured && !(gur->devdisr & MPC85xx_DEVDISR_PCIE)){
 		printf ("PCIe:  %s, base address %x",
-			pcie_ep ? "End point" : "Root complex", (uint)pci);
+			pcie_ep ? "Endpoint" : "Root complex", (uint)pci);
 
 		if (pci->pme_msg_det) {
 			pci->pme_msg_det = 0xffffffff;
@@ -655,9 +644,6 @@ static inline void init_pcie1(void)
 			       pci->pme_msg_det);
 		}
 		puts ("\n");
-
-		/* inbound */
-		r += fsl_pci_setup_inbound_windows(r);
 
 		/* outbound memory */
 		pci_set_region (r++,
@@ -676,10 +662,8 @@ static inline void init_pcie1(void)
 		hose->region_count = r - hose->regions;
 
 		hose->first_busno = first_free_busno;
-		pci_setup_indirect(hose, (int)&pci->cfg_addr,
-				   (int)&pci->cfg_data);
 
-		fsl_pci_init (hose);
+		fsl_pci_init(hose, (u32)&pci->cfg_addr, (u32)&pci->cfg_data);
 		printf ("       PCIe on bus %02x..%02x\n",
 			hose->first_busno, hose->last_busno);
 
@@ -700,9 +684,6 @@ void pci_init_board (void)
 }
 
 #ifdef CONFIG_OF_BOARD_SETUP
-extern void ft_fsl_pci_setup(void *blob, const char *pci_alias,
-			struct pci_controller *hose);
-
 void ft_board_setup (void *blob, bd_t *bd)
 {
 	ft_cpu_setup (blob, bd);

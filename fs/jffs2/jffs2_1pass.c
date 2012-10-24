@@ -120,6 +120,7 @@
 #include <jffs2/jffs2.h>
 #include <jffs2/jffs2_1pass.h>
 #include <linux/mtd/compat.h>
+#include <asm/errno.h>
 
 #include "jffs2_private.h"
 
@@ -146,11 +147,7 @@ static struct part_info *current_part;
 
 #if (defined(CONFIG_JFFS2_NAND) && \
      defined(CONFIG_CMD_NAND) )
-#if defined(CONFIG_NAND_LEGACY)
-#include <linux/mtd/nand_legacy.h>
-#else
 #include <nand.h>
-#endif
 /*
  * Support for jffs2 on top of NAND-flash
  *
@@ -160,12 +157,6 @@ static struct part_info *current_part;
  * here do.
  *
  */
-
-#if defined(CONFIG_NAND_LEGACY)
-/* this one defined in nand_legacy.c */
-int read_jffs2_nand(size_t start, size_t len,
-		size_t * retlen, u_char * buf, int nanddev);
-#endif
 
 #define NAND_PAGE_SIZE 512
 #define NAND_PAGE_SHIFT 9
@@ -201,15 +192,6 @@ static int read_nand_cached(u32 off, u32 size, u_char *buf)
 				}
 			}
 
-#if defined(CONFIG_NAND_LEGACY)
-			if (read_jffs2_nand(nand_cache_off, NAND_CACHE_SIZE,
-						&retlen, nand_cache, id->num) < 0 ||
-					retlen != NAND_CACHE_SIZE) {
-				printf("read_nand_cached: error reading nand off %#x size %d bytes\n",
-						nand_cache_off, NAND_CACHE_SIZE);
-				return -1;
-			}
-#else
 			retlen = NAND_CACHE_SIZE;
 			if (nand_read(&nand_info[id->num], nand_cache_off,
 						&retlen, nand_cache) != 0 ||
@@ -234,7 +216,6 @@ static int read_nand_cached(u32 off, u32 size, u_char *buf)
 				return -1;
 #endif	/* fix up bad blocks */
 			}
-#endif
 		}
 		cpy_bytes = nand_cache_off + NAND_CACHE_SIZE - (off + bytes_read);
 		if (cpy_bytes > size - bytes_read)
@@ -433,23 +414,26 @@ static inline void *get_fl_mem(u32 off, u32 size, void *ext_buf)
 {
 	struct mtdids *id = current_part->dev->id;
 
+	switch(id->type) {
 #if defined(CONFIG_CMD_FLASH)
-	if (id->type == MTD_DEV_TYPE_NOR) {
+	case MTD_DEV_TYPE_NOR:
 		return get_fl_mem_nor(off, size, ext_buf);
-	}
+		break;
 #endif
-
 #if defined(CONFIG_JFFS2_NAND) && defined(CONFIG_CMD_NAND)
-	if (id->type == MTD_DEV_TYPE_NAND)
+	case MTD_DEV_TYPE_NAND:
 		return get_fl_mem_nand(off, size, ext_buf);
+		break;
 #endif
-
 #if defined(CONFIG_CMD_ONENAND)
-	if (id->type == MTD_DEV_TYPE_ONENAND)
+	case MTD_DEV_TYPE_ONENAND:
 		return get_fl_mem_onenand(off, size, ext_buf);
+		break;
 #endif
-
-	printf("get_fl_mem: unknown device type, using raw offset!\n");
+	default:
+		printf("get_fl_mem: unknown device type, " \
+			"using raw offset!\n");
+	}
 	return (void*)off;
 }
 
@@ -457,23 +441,27 @@ static inline void *get_node_mem(u32 off, void *ext_buf)
 {
 	struct mtdids *id = current_part->dev->id;
 
+	switch(id->type) {
 #if defined(CONFIG_CMD_FLASH)
-	if (id->type == MTD_DEV_TYPE_NOR)
+	case MTD_DEV_TYPE_NOR:
 		return get_node_mem_nor(off, ext_buf);
+		break;
 #endif
-
 #if defined(CONFIG_JFFS2_NAND) && \
     defined(CONFIG_CMD_NAND)
-	if (id->type == MTD_DEV_TYPE_NAND)
+	case MTD_DEV_TYPE_NAND:
 		return get_node_mem_nand(off, ext_buf);
+		break;
 #endif
-
 #if defined(CONFIG_CMD_ONENAND)
-	if (id->type == MTD_DEV_TYPE_ONENAND)
+	case MTD_DEV_TYPE_ONENAND:
 		return get_node_mem_onenand(off, ext_buf);
+		break;
 #endif
-
-	printf("get_node_mem: unknown device type, using raw offset!\n");
+	default:
+		printf("get_fl_mem: unknown device type, " \
+			"using raw offset!\n");
+	}
 	return (void*)off;
 }
 
@@ -506,9 +494,8 @@ static char *compr_names[] = {
 	"COPY",
 	"DYNRUBIN",
 	"ZLIB",
-#if defined(CONFIG_JFFS2_LZO_LZARI)
+#if defined(CONFIG_JFFS2_LZO)
 	"LZO",
-	"LZARI",
 #endif
 };
 
@@ -812,12 +799,9 @@ jffs2_1pass_read_inode(struct b_lists *pL, u32 inode, char *dest)
 				case JFFS2_COMPR_ZLIB:
 					(void)zlib_decompress(src, lDest, jNode->csize, jNode->dsize);
 					break;
-#if defined(CONFIG_JFFS2_LZO_LZARI)
+#if defined(CONFIG_JFFS2_LZO)
 				case JFFS2_COMPR_LZO:
 					(void)lzo_decompress(src, lDest, jNode->csize, jNode->dsize);
-					break;
-				case JFFS2_COMPR_LZARI:
-					(void)lzari_decompress(src, lDest, jNode->csize, jNode->dsize);
 					break;
 #endif
 				default:
@@ -1231,8 +1215,30 @@ jffs2_1pass_rescan_needed(struct part_info *part)
 	return 0;
 }
 
+#ifdef CONFIG_JFFS2_SUMMARY
+static u32 sum_get_unaligned32(u32 *ptr)
+{
+	u32 val;
+	u8 *p = (u8 *)ptr;
+
+	val = *p | (*(p + 1) << 8) | (*(p + 2) << 16) | (*(p + 3) << 24);
+
+	return __le32_to_cpu(val);
+}
+
+static u16 sum_get_unaligned16(u16 *ptr)
+{
+	u16 val;
+	u8 *p = (u8 *)ptr;
+
+	val = *p | (*(p + 1) << 8);
+
+	return __le16_to_cpu(val);
+}
+
 #define dbg_summary(...) do {} while (0);
-/* Process the stored summary information - helper function for
+/*
+ * Process the stored summary information - helper function for
  * jffs2_sum_scan_sumnode()
  */
 
@@ -1241,54 +1247,64 @@ static int jffs2_sum_process_sum_data(struct part_info *part, uint32_t offset,
 				struct b_lists *pL)
 {
 	void *sp;
-	int i;
+	int i, pass;
+	void *ret;
 
-	sp = summary->sum;
+	for (pass = 0; pass < 2; pass++) {
+		sp = summary->sum;
 
-	for (i = 0; i < summary->sum_num; i++) {
-		dbg_summary("processing summary index %d\n", i);
+		for (i = 0; i < summary->sum_num; i++) {
+			struct jffs2_sum_unknown_flash *spu = sp;
+			dbg_summary("processing summary index %d\n", i);
 
-		switch (((struct jffs2_sum_unknown_flash *)sp)->nodetype) {
-			case JFFS2_NODETYPE_INODE: {
+			switch (sum_get_unaligned16(&spu->nodetype)) {
+				case JFFS2_NODETYPE_INODE: {
 				struct jffs2_sum_inode_flash *spi;
-				spi = sp;
+					if (pass) {
+						spi = sp;
 
-				dbg_summary("Inode at 0x%08x-0x%08x\n",
-					    offset + spi->offset,
-					    offset + spi->offset + spi->totlen);
+						ret = insert_node(&pL->frag,
+							(u32)part->offset +
+							offset +
+							sum_get_unaligned32(
+								&spi->offset));
+						if (ret == NULL)
+							return -1;
+					}
 
-				if (insert_node(&pL->frag, (u32) part->offset +
-						offset + spi->offset) == NULL)
-					return -1;
+					sp += JFFS2_SUMMARY_INODE_SIZE;
 
-				sp += JFFS2_SUMMARY_INODE_SIZE;
+					break;
+				}
+				case JFFS2_NODETYPE_DIRENT: {
+					struct jffs2_sum_dirent_flash *spd;
+					spd = sp;
+					if (pass) {
+						ret = insert_node(&pL->dir,
+							(u32) part->offset +
+							offset +
+							sum_get_unaligned32(
+								&spd->offset));
+						if (ret == NULL)
+							return -1;
+					}
 
-				break;
-			}
+					sp += JFFS2_SUMMARY_DIRENT_SIZE(
+							spd->nsize);
 
-			case JFFS2_NODETYPE_DIRENT: {
-				struct jffs2_sum_dirent_flash *spd;
-				spd = sp;
-
-				dbg_summary("Dirent at 0x%08x-0x%08x\n",
-					    offset + spd->offset,
-					    offset + spd->offset + spd->totlen);
-
-				if (insert_node(&pL->dir, (u32) part->offset +
-						offset + spd->offset) == NULL)
-					return -1;
-
-				sp += JFFS2_SUMMARY_DIRENT_SIZE(spd->nsize);
-
-				break;
-			}
-			default : {
-				uint16_t nodetype =
-					((struct jffs2_sum_unknown_flash *)
-					 sp)->nodetype;
-				printf("Unsupported node type %x found in "
-						"summary!\n", nodetype);
-				break;
+					break;
+				}
+				default : {
+					uint16_t nodetype = sum_get_unaligned16(
+								&spu->nodetype);
+					printf("Unsupported node type %x found"
+							" in summary!\n",
+							nodetype);
+					if ((nodetype & JFFS2_COMPAT_MASK) ==
+							JFFS2_FEATURE_INCOMPAT)
+						return -EIO;
+					return -EBADMSG;
+				}
 			}
 		}
 	}
@@ -1344,6 +1360,8 @@ int jffs2_sum_scan_sumnode(struct part_info *part, uint32_t offset,
 		dbg_summary("Summary : CLEANMARKER node \n");
 
 	ret = jffs2_sum_process_sum_data(part, offset, summary, pL);
+	if (ret == -EBADMSG)
+		return 0;
 	if (ret)
 		return ret;		/* real error */
 
@@ -1354,6 +1372,7 @@ crc_err:
 
 	return 0;
 }
+#endif /* CONFIG_JFFS2_SUMMARY */
 
 #ifdef DEBUG_FRAGMENTS
 static void
@@ -1459,13 +1478,16 @@ jffs2_1pass_build_lists(struct part_info * part)
 		uint32_t buf_ofs = sector_ofs;
 		uint32_t buf_len;
 		uint32_t ofs, prevofs;
+#ifdef CONFIG_JFFS2_SUMMARY
 		struct jffs2_sum_marker *sm;
 		void *sumptr = NULL;
 		uint32_t sumlen;
 		int ret;
+#endif
 
 		WATCHDOG_RESET();
 
+#ifdef CONFIG_JFFS2_SUMMARY
 		buf_len = sizeof(*sm);
 
 		/* Read as much as we want into the _end_ of the preallocated
@@ -1486,6 +1508,8 @@ jffs2_1pass_build_lists(struct part_info * part)
 				if (!sumptr) {
 					putstr("Can't get memory for summary "
 							"node!\n");
+					free(buf);
+					jffs2_free_cache(part);
 					return 0;
 				}
 				memcpy(sumptr + sumlen - buf_len, buf +
@@ -1507,12 +1531,16 @@ jffs2_1pass_build_lists(struct part_info * part)
 
 			if (buf_size && sumlen > buf_size)
 				free(sumptr);
-			if (ret < 0)
+			if (ret < 0) {
+				free(buf);
+				jffs2_free_cache(part);
 				return 0;
+			}
 			if (ret)
 				continue;
 
 		}
+#endif /* CONFIG_JFFS2_SUMMARY */
 
 		buf_len = EMPTY_SCAN_SIZE(part->sector_size);
 
@@ -1620,8 +1648,11 @@ jffs2_1pass_build_lists(struct part_info * part)
 				       break;
 
 				if (insert_node(&pL->frag, (u32) part->offset +
-						ofs) == NULL)
+						ofs) == NULL) {
+					free(buf);
+					jffs2_free_cache(part);
 					return 0;
+				}
 				if (max_totlen < node->totlen)
 					max_totlen = node->totlen;
 				break;
@@ -1647,8 +1678,11 @@ jffs2_1pass_build_lists(struct part_info * part)
 				if (! (counterN%100))
 					puts ("\b\b.  ");
 				if (insert_node(&pL->dir, (u32) part->offset +
-						ofs) == NULL)
+						ofs) == NULL) {
+					free(buf);
+					jffs2_free_cache(part);
 					return 0;
+				}
 				if (max_totlen < node->totlen)
 					max_totlen = node->totlen;
 				counterN++;

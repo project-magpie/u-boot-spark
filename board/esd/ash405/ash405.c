@@ -48,10 +48,6 @@ const unsigned char fpgadata[] =
 #include "../common/fpga.c"
 
 
-/* Prototypes */
-int gunzip(void *, int, unsigned char *, unsigned long *);
-
-
 int board_early_init_f (void)
 {
 	/*
@@ -66,28 +62,24 @@ int board_early_init_f (void)
 	 * IRQ 30 (EXT IRQ 5) PCI INTA; active low; level sensitive
 	 * IRQ 31 (EXT IRQ 6) COMPACT FLASH; active high; level sensitive
 	 */
-	mtdcr(uicsr, 0xFFFFFFFF);       /* clear all ints */
-	mtdcr(uicer, 0x00000000);       /* disable all ints */
-	mtdcr(uiccr, 0x00000000);       /* set all to be non-critical*/
-	mtdcr(uicpr, 0xFFFFFF9F);       /* set int polarities */
-	mtdcr(uictr, 0x10000000);       /* set int trigger levels */
-	mtdcr(uicvcr, 0x00000001);      /* set vect base=0,INT0 highest priority*/
-	mtdcr(uicsr, 0xFFFFFFFF);       /* clear all ints */
+	mtdcr(UIC0SR, 0xFFFFFFFF);       /* clear all ints */
+	mtdcr(UIC0ER, 0x00000000);       /* disable all ints */
+	mtdcr(UIC0CR, 0x00000000);       /* set all to be non-critical*/
+	mtdcr(UIC0PR, 0xFFFFFF9F);       /* set int polarities */
+	mtdcr(UIC0TR, 0x10000000);       /* set int trigger levels */
+	mtdcr(UIC0VCR, 0x00000001);      /* set vect base=0,INT0 highest priority*/
+	mtdcr(UIC0SR, 0xFFFFFFFF);       /* clear all ints */
 
 	/*
 	 * EBC Configuration Register: set ready timeout to 512 ebc-clks -> ca. 15 us
 	 */
-	mtebc (epcr, 0xa8400000); /* ebc always driven */
+	mtebc (EBC0_CFG, 0xa8400000); /* ebc always driven */
 
 	return 0;
 }
 
 int misc_init_r (void)
 {
-	volatile unsigned char *duart0_mcr = (unsigned char *)((ulong)DUART0_BA + 4);
-	volatile unsigned char *duart1_mcr = (unsigned char *)((ulong)DUART1_BA + 4);
-	volatile unsigned char *duart2_mcr = (unsigned char *)((ulong)DUART2_BA + 4);
-	volatile unsigned char *duart3_mcr = (unsigned char *)((ulong)DUART3_BA + 4);
 	unsigned char *dst;
 	ulong len = sizeof(fpgadata);
 	int status;
@@ -165,10 +157,10 @@ int misc_init_r (void)
 	/*
 	 * Enable interrupts in exar duart mcr[3]
 	 */
-	*duart0_mcr = 0x08;
-	*duart1_mcr = 0x08;
-	*duart2_mcr = 0x08;
-	*duart3_mcr = 0x08;
+	out_8((void *)(DUART0_BA + 4), 0x08);
+	out_8((void *)(DUART1_BA + 4), 0x08);
+	out_8((void *)(DUART2_BA + 4), 0x08);
+	out_8((void *)(DUART3_BA + 4), 0x08);
 
 	return (0);
 }

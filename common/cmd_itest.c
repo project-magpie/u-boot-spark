@@ -66,13 +66,13 @@ op_tbl_t op_table [] = {
 
 static long evalexp(char *s, int w)
 {
-	long l=0, *p;
+	long l = 0;
+	long *p;
 
 	/* if the parameter starts with a * then assume is a pointer to the value we want */
 	if (s[0] == '*') {
 		p = (long *)simple_strtoul(&s[1], NULL, 16);
-		switch (w)
-		{
+		switch (w) {
 		  case 1: l = *(char*)p; break;
 		  case 2: l = *(short*)p; break;
 		  case 4: l = *(long*)p; break;
@@ -197,5 +197,5 @@ int do_itest ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[] )
 U_BOOT_CMD(
 	itest, 4, 0, do_itest,
 	"return true/false on integer compare",
-	"[.b, .w, .l, .s] [*]value1 <op> [*]value2\n"
+	"[.b, .w, .l, .s] [*]value1 <op> [*]value2"
 );

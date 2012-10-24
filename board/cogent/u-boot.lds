@@ -54,17 +54,14 @@ SECTIONS
   {
     *(.text)
     common/env_embedded.o(.text)
-    *(.fixup)
     *(.got1)
   }
   _etext = .;
   PROVIDE (etext = .);
   .rodata    :
   {
-    *(.rodata)
-    *(.rodata1)
-    *(.rodata.str1.4)
     *(.eh_frame)
+    *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*)))
   }
   .fini      : { *(.fini)    } =0
   .ctors     : { *(.ctors)   }

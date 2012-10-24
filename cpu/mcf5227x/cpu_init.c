@@ -117,7 +117,6 @@ int cpu_init_r(void)
 #ifdef CONFIG_MCFRTC
 	volatile rtc_t *rtc = (volatile rtc_t *)(CONFIG_SYS_MCFRTC_BASE);
 	volatile rtcex_t *rtcex = (volatile rtcex_t *)&rtc->extended;
-	u32 oscillator = CONFIG_SYS_RTC_OSCILLATOR;
 
 	rtcex->gocu = (CONFIG_SYS_RTC_OSCILLATOR >> 16) & 0xFFFF;
 	rtcex->gocl = CONFIG_SYS_RTC_OSCILLATOR & 0xFFFF;
@@ -152,3 +151,56 @@ void uart_port_conf(void)
 		break;
 	}
 }
+
+#ifdef CONFIG_CF_DSPI
+void cfspi_port_conf(void)
+{
+	volatile gpio_t *gpio = (gpio_t *) MMAP_GPIO;
+
+	gpio->par_dspi =
+	    GPIO_PAR_DSPI_SIN_SIN | GPIO_PAR_DSPI_SOUT_SOUT |
+	    GPIO_PAR_DSPI_SCK_SCK;
+}
+
+int cfspi_claim_bus(uint bus, uint cs)
+{
+	volatile dspi_t *dspi = (dspi_t *) MMAP_DSPI;
+	volatile gpio_t *gpio = (gpio_t *) MMAP_GPIO;
+
+	if ((dspi->sr & DSPI_SR_TXRXS) != DSPI_SR_TXRXS)
+		return -1;
+
+	/* Clear FIFO and resume transfer */
+	dspi->mcr &= ~(DSPI_MCR_CTXF | DSPI_MCR_CRXF);
+
+	switch (cs) {
+	case 0:
+		gpio->par_dspi &= ~GPIO_PAR_DSPI_PCS0_MASK;
+		gpio->par_dspi |= GPIO_PAR_DSPI_PCS0_PCS0;
+		break;
+	case 2:
+		gpio->par_timer &= GPIO_PAR_TIMER_T2IN_MASK;
+		gpio->par_timer |= GPIO_PAR_TIMER_T2IN_DSPIPCS2;
+		break;
+	}
+
+	return 0;
+}
+
+void cfspi_release_bus(uint bus, uint cs)
+{
+	volatile dspi_t *dspi = (dspi_t *) MMAP_DSPI;
+	volatile gpio_t *gpio = (gpio_t *) MMAP_GPIO;
+
+	dspi->mcr &= ~(DSPI_MCR_CTXF | DSPI_MCR_CRXF);	/* Clear FIFO */
+
+	switch (cs) {
+	case 0:
+		gpio->par_dspi &= ~GPIO_PAR_DSPI_PCS0_PCS0;
+		break;
+	case 2:
+		gpio->par_timer &= GPIO_PAR_TIMER_T2IN_MASK;
+		break;
+	}
+}
+#endif

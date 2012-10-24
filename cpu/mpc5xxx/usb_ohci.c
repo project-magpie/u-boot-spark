@@ -2,7 +2,7 @@
  * URB OHCI HCD (Host Controller Driver) for USB on the MPC5200.
  *
  * (C) Copyright 2003-2004
- * Gary Jennejohn, DENX Software Engineering <gj@denx.de>
+ * Gary Jennejohn, DENX Software Engineering <garyj@denx.de>
  *
  * (C) Copyright 2004
  * Pierre Aubert, Staubli Faverges <p.aubert@staubli.com>
@@ -1576,9 +1576,13 @@ int usb_lowlevel_init(void)
 	/* Set the USB Clock						     */
 	*(vu_long *)MPC5XXX_CDM_48_FDC = CONFIG_USB_CLOCK;
 
+#ifdef CONFIG_PSC3_USB /* USB is using the alternate configuration */
+	/* remove all PSC3 USB bits first before ORing in ours */
+	*(vu_long *)MPC5XXX_GPS_PORT_CONFIG &= ~0x00804f00;
+#else
 	/* remove all USB bits first before ORing in ours */
 	*(vu_long *)MPC5XXX_GPS_PORT_CONFIG &= ~0x00807000;
-
+#endif
 	/* Activate USB port						     */
 	*(vu_long *)MPC5XXX_GPS_PORT_CONFIG |= CONFIG_USB_CONFIG;
 

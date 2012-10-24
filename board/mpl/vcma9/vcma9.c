@@ -26,7 +26,9 @@
  */
 
 #include <common.h>
-#include <s3c2410.h>
+#include <netdev.h>
+#include <asm/arch/s3c24x0_cpu.h>
+#include <stdio_dev.h>
 #include <i2c.h>
 
 #include "vcma9.h"
@@ -71,8 +73,9 @@ static inline void delay(unsigned long loops)
 
 int board_init(void)
 {
-	S3C24X0_CLOCK_POWER * const clk_power = S3C24X0_GetBase_CLOCK_POWER();
-	S3C24X0_GPIO * const gpio = S3C24X0_GetBase_GPIO();
+	struct s3c24x0_clock_power * const clk_power =
+					s3c24x0_get_base_clock_power();
+	struct s3c24x0_gpio * const gpio = s3c24x0_get_base_gpio();
 
 	/* to reduce PLL lock time, adjust the LOCKTIME register */
 	clk_power->LOCKTIME = 0xFFFFFF;
@@ -172,7 +175,7 @@ static inline void NF_Init(void)
 void
 nand_init(void)
 {
-	S3C2410_NAND * const nand = S3C2410_GetBase_NAND();
+	struct s3c2410_nand * const nand = s3c2410_get_base_nand();
 
 	NF_Init();
 #ifdef DEBUG
@@ -188,21 +191,21 @@ nand_init(void)
 
 static u8 Get_PLD_ID(void)
 {
-	VCMA9_PLD * const pld = VCMA9_GetBase_PLD();
+	VCMA9_PLD * const pld = VCMA9_get_base_PLD();
 
 	return(pld->ID);
 }
 
 static u8 Get_PLD_BOARD(void)
 {
-	VCMA9_PLD * const pld = VCMA9_GetBase_PLD();
+	VCMA9_PLD * const pld = VCMA9_get_base_PLD();
 
 	return(pld->BOARD);
 }
 
 static u8 Get_PLD_SDRAM(void)
 {
-	VCMA9_PLD * const pld = VCMA9_GetBase_PLD();
+	VCMA9_PLD * const pld = VCMA9_get_base_PLD();
 
 	return(pld->SDRAM);
 }
@@ -310,13 +313,10 @@ int checkboard(void)
 }
 
 
-extern void mem_test_reloc(void);
-
 int last_stage_init(void)
 {
-	mem_test_reloc();
 	checkboard();
-	show_stdio_dev();
+	stdio_print_current_devices();
 	check_env();
 	return 0;
 }
@@ -348,3 +348,14 @@ void print_vcma9_info(void)
 		Show_VCMA9_Info(s, &s[6]);
 	}
 }
+
+#ifdef CONFIG_CMD_NET
+int board_eth_init(bd_t *bis)
+{
+	int rc = 0;
+#ifdef CONFIG_CS8900
+	rc = cs8900_initialize(0, CONFIG_CS8900_BASE);
+#endif
+	return rc;
+}
+#endif

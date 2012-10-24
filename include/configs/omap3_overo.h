@@ -19,7 +19,6 @@
 
 #ifndef __CONFIG_H
 #define __CONFIG_H
-#include <asm/sizes.h>
 
 /*
  * High Level Configuration Options
@@ -28,10 +27,16 @@
 #define CONFIG_OMAP		1	/* in a TI OMAP core */
 #define CONFIG_OMAP34XX		1	/* which is a 34XX */
 #define CONFIG_OMAP3430		1	/* which is in a 3430 */
-#define CONFIG_OMAP3_OVERO		1	/* working with overo */
+#define CONFIG_OMAP3_OVERO	1	/* working with overo */
 
 #include <asm/arch/cpu.h>	/* get chip and board defs */
 #include <asm/arch/omap3.h>
+
+/*
+ * Display CPU and Board information
+ */
+#define CONFIG_DISPLAY_CPUINFO		1
+#define CONFIG_DISPLAY_BOARDINFO	1
 
 /* Clock Defines */
 #define V_OSCK			26000000	/* Clock output from T2 */
@@ -48,9 +53,9 @@
 /*
  * Size of malloc() pool
  */
-#define CONFIG_ENV_SIZE			SZ_128K	/* Total Size Environment */
+#define CONFIG_ENV_SIZE			(128 << 10)	/* 128 KiB */
 						/* Sector */
-#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + SZ_128K)
+#define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (128 << 10))
 #define CONFIG_SYS_GBL_DATA_SIZE	128	/* bytes reserved for */
 						/* initial data */
 
@@ -84,6 +89,9 @@
 #define CONFIG_OMAP3_MMC		1
 #define CONFIG_DOS_PARTITION		1
 
+/* DDR - I use Micron DDR */
+#define CONFIG_OMAP3_MICRON_DDR		1
+
 /* commands to include */
 #include <config_cmd_default.h>
 
@@ -99,15 +107,22 @@
 #undef CONFIG_CMD_FPGA		/* FPGA configuration Support	*/
 #undef CONFIG_CMD_IMI		/* iminfo			*/
 #undef CONFIG_CMD_IMLS		/* List all found images	*/
-#undef CONFIG_CMD_NET		/* bootp, tftpboot, rarpboot	*/
 #undef CONFIG_CMD_NFS		/* NFS support			*/
+#define CONFIG_CMD_NET		/* bootp, tftpboot, rarpboot	*/
 
 #define CONFIG_SYS_NO_FLASH
+#define CONFIG_HARD_I2C			1
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		1
 #define CONFIG_SYS_I2C_BUS		0
 #define CONFIG_SYS_I2C_BUS_SELECT	1
 #define CONFIG_DRIVER_OMAP34XX_I2C	1
+
+/*
+ * TWL4030
+ */
+#define CONFIG_TWL4030_POWER		1
+#define CONFIG_TWL4030_LED		1
 
 /*
  * Board NAND Info.
@@ -122,19 +137,6 @@
 
 #define CONFIG_SYS_MAX_NAND_DEVICE	1	/* Max number of NAND */
 						/* devices */
-#define SECTORSIZE			512
-
-#define NAND_ALLOW_ERASE_ALL
-#define ADDR_COLUMN			1
-#define ADDR_PAGE			2
-#define ADDR_COLUMN_PAGE		3
-
-#define NAND_ChipID_UNKNOWN		0x00
-#define NAND_MAX_FLOORS			1
-#define NAND_MAX_CHIPS			1
-#define NAND_NO_RB			1
-#define CONFIG_SYS_NAND_WP
-
 #define CONFIG_JFFS2_NAND
 /* nand device jffs2 lives on */
 #define CONFIG_JFFS2_DEV		"nand0"
@@ -149,19 +151,30 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"loadaddr=0x82000000\0" \
 	"console=ttyS2,115200n8\0" \
-	"videomode=1024x768@60,vxres=1024,vyres=768\0" \
-	"videospec=omapfb:vram:2M,vram:4M\0" \
+	"vram=12M\0" \
+	"dvimode=1024x768MR-16@60\0" \
+	"defaultdisplay=dvi\0" \
+	"mmcroot=/dev/mmcblk0p2 rw\0" \
+	"mmcrootfstype=ext3 rootwait\0" \
+	"nandroot=/dev/mtdblock4 rw\0" \
+	"nandrootfstype=jffs2\0" \
 	"mmcargs=setenv bootargs console=${console} " \
-		"video=${videospec},mode:${videomode} " \
-		"root=/dev/mmcblk0p2 rw " \
-		"rootfstype=ext3 rootwait\0" \
+		"vram=${vram} " \
+		"omapfb.mode=dvi:${dvimode} " \
+		"omapfb.debug=y " \
+		"omapdss.def_disp=${defaultdisplay} " \
+		"root=${mmcroot} " \
+		"rootfstype=${mmcrootfstype}\0" \
 	"nandargs=setenv bootargs console=${console} " \
-		"video=${videospec},mode:${videomode} " \
-		"root=/dev/mtdblock4 rw " \
-		"rootfstype=jffs2\0" \
+		"vram=${vram} " \
+		"omapfb.mode=dvi:${dvimode} " \
+		"omapfb.debug=y " \
+		"omapdss.def_disp=${defaultdisplay} " \
+		"root=${nandroot} " \
+		"rootfstype=${nandrootfstype}\0" \
 	"loadbootscript=fatload mmc 0 ${loadaddr} boot.scr\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
-		"autoscr ${loadaddr}\0" \
+		"source ${loadaddr}\0" \
 	"loaduimage=fatload mmc 0 ${loadaddr} uImage\0" \
 	"mmcboot=echo Booting from mmc ...; " \
 		"run mmcargs; " \
@@ -172,7 +185,7 @@
 		"bootm ${loadaddr}\0" \
 
 #define CONFIG_BOOTCOMMAND \
-	"if mmcinit; then " \
+	"if mmc init; then " \
 		"if run loadbootscript; then " \
 			"run bootscript; " \
 		"else " \
@@ -187,12 +200,10 @@
 /*
  * Miscellaneous configurable options
  */
-#define V_PROMPT		"Overo # "
-
 #define CONFIG_SYS_LONGHELP		/* undef to save memory */
 #define CONFIG_SYS_HUSH_PARSER		/* use "hush" command parser */
 #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#define CONFIG_SYS_PROMPT		V_PROMPT
+#define CONFIG_SYS_PROMPT		"Overo # "
 #define CONFIG_SYS_CBSIZE		256	/* Console I/O Buffer Size */
 /* Print Buffer Size */
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE + \
@@ -206,31 +217,26 @@
 #define CONFIG_SYS_MEMTEST_END		(OMAP34XX_SDRC_CS0 + \
 					0x01F00000) /* 31MB */
 
-#undef	CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, */
-					/* in Hz */
-
 #define CONFIG_SYS_LOAD_ADDR		(OMAP34XX_SDRC_CS0) /* default load */
 								/* address */
-
 /*
- * 2430 has 12 GP timers, they can be driven by the SysClk (12/13/19.2) or by
- * 32KHz clk, or from external sig. This rate is divided by a local divisor.
+ * OMAP3 has 12 GP timers, they can be driven by the system clock
+ * (12/13/16.8/19.2/38.4MHz) or by 32KHz clock. We use 13MHz (V_SCLK).
+ * This rate is divided by a local divisor.
  */
-#define V_PVT				7
-
-#define CONFIG_SYS_TIMERBASE		(OMAP34XX_GPT2)
-#define CONFIG_SYS_PVT			V_PVT	/* 2^(pvt+1) */
-#define CONFIG_SYS_HZ			((V_SCLK) / (2 << CONFIG_SYS_PVT))
+#define CONFIG_SYS_TIMERBASE		OMAP34XX_GPT2
+#define CONFIG_SYS_PTV			2	/* Divisor: 2^(PTV+1) => 8 */
+#define CONFIG_SYS_HZ			1000
 
 /*-----------------------------------------------------------------------
  * Stack sizes
  *
  * The stack sizes are set up in start.S using the settings below
  */
-#define CONFIG_STACKSIZE	SZ_128K	/* regular stack */
+#define CONFIG_STACKSIZE	(128 << 10)	/* regular stack 128 KiB */
 #ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	SZ_4K	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	SZ_4K	/* FIQ stack */
+#define CONFIG_STACKSIZE_IRQ	(4 << 10)	/* IRQ stack 4 KiB */
+#define CONFIG_STACKSIZE_FIQ	(4 << 10)	/* FIQ stack 4 KiB */
 #endif
 
 /*-----------------------------------------------------------------------
@@ -238,7 +244,7 @@
  */
 #define CONFIG_NR_DRAM_BANKS	2	/* CS1 may or may not be populated */
 #define PHYS_SDRAM_1		OMAP34XX_SDRC_CS0
-#define PHYS_SDRAM_1_SIZE	SZ_32M	/* at least 32 meg */
+#define PHYS_SDRAM_1_SIZE	(32 << 20)	/* at least 32 MiB */
 #define PHYS_SDRAM_2		OMAP34XX_SDRC_CS1
 
 /* SDRAM Bank Allocation method */
@@ -257,7 +263,7 @@
 #define CONFIG_SYS_MAX_FLASH_SECT	520	/* max number of sectors on */
 						/* one chip */
 #define CONFIG_SYS_MAX_FLASH_BANKS	2	/* max number of flash banks */
-#define CONFIG_SYS_MONITOR_LEN		SZ_256K	/* Reserve 2 sectors */
+#define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 2 sectors */
 
 #define CONFIG_SYS_FLASH_BASE		boot_flash_base
 
@@ -289,8 +295,6 @@
 #define CONFIG_SYS_JFFS2_NUM_BANKS	1
 
 #ifndef __ASSEMBLY__
-extern gpmc_csx_t *nand_cs_base;
-extern gpmc_t *gpmc_cfg_base;
 extern unsigned int boot_flash_base;
 extern volatile unsigned int boot_flash_env_addr;
 extern unsigned int boot_flash_off;
@@ -298,21 +302,17 @@ extern unsigned int boot_flash_sec;
 extern unsigned int boot_flash_type;
 #endif
 
+#if defined(CONFIG_CMD_NET)
+/*----------------------------------------------------------------------------
+ * SMSC9211 Ethernet from SMSC9118 family
+ *----------------------------------------------------------------------------
+ */
 
-#define WRITE_NAND_COMMAND(d, adr)\
-			writel(d, &nand_cs_base->nand_cmd)
-#define WRITE_NAND_ADDRESS(d, adr)\
-			writel(d, &nand_cs_base->nand_adr)
-#define WRITE_NAND(d, adr) writew(d, &nand_cs_base->nand_dat)
-#define READ_NAND(adr) readl(&nand_cs_base->nand_dat)
+#define CONFIG_NET_MULTI
+#define CONFIG_SMC911X		1
+#define CONFIG_SMC911X_32_BIT
+#define CONFIG_SMC911X_BASE     0x2C000000
 
-/* Other NAND Access APIs */
-#define NAND_WP_OFF() do {readl(&gpmc_cfg_base->config) |= GPMC_CONFIG_WP; } \
-			while (0)
-#define NAND_WP_ON() do {readl(&gpmc_cfg_base->config) &= ~GPMC_CONFIG_WP; } \
-			while (0)
-#define NAND_DISABLE_CE(nand)
-#define NAND_ENABLE_CE(nand)
-#define NAND_WAIT_READY(nand)	udelay(10)
+#endif /* (CONFIG_CMD_NET) */
 
 #endif				/* __CONFIG_H */

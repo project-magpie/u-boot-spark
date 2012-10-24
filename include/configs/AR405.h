@@ -71,6 +71,7 @@
 #define CONFIG_MII		1	/* MII PHY management		*/
 #define CONFIG_PHY_ADDR		0	/* PHY address			*/
 #define CONFIG_LXT971_NO_SLEEP  1       /* disable sleep mode in LXT971 */
+#define CONFIG_NET_MULTI
 
 
 /*
@@ -92,6 +93,7 @@
 #define CONFIG_CMD_IRQ
 #define CONFIG_CMD_ELF
 #define CONFIG_CMD_MII
+#undef CONFIG_CMD_NFS
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_BSP
 

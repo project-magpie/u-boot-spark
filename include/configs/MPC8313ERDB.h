@@ -30,13 +30,12 @@
  * High Level Configuration Options
  */
 #define CONFIG_E300		1
-#define CONFIG_MPC83XX		1
-#define CONFIG_MPC831X		1
+#define CONFIG_MPC83xx		1
+#define CONFIG_MPC831x		1
 #define CONFIG_MPC8313		1
 #define CONFIG_MPC8313ERDB	1
 
 #define CONFIG_PCI
-#define CONFIG_83XX_GENERIC_PCI
 
 #define CONFIG_MISC_INIT_R
 
@@ -211,13 +210,14 @@
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /* CONFIG_SYS_MONITOR_LEN must be a multiple of CONFIG_ENV_SECT_SIZE */
-#define CONFIG_SYS_MONITOR_LEN		(256 * 1024)	/* Reserve 256 kB for Mon */
+#define CONFIG_SYS_MONITOR_LEN		(384 * 1024)	/* Reserve 384 kB for Mon */
 #define CONFIG_SYS_MALLOC_LEN		(512 * 1024)	/* Reserved for malloc */
 
 /*
  * Local Bus LCRR and LBCR regs
  */
-#define CONFIG_SYS_LCRR	LCRR_EADC_1 | LCRR_CLKDIV_4
+#define CONFIG_SYS_LCRR_EADC	LCRR_EADC_1
+#define CONFIG_SYS_LCRR_CLKDIV	LCRR_CLKDIV_4
 #define CONFIG_SYS_LBC_LBCR	( 0x00040000 /* TODO */ \
 			| (0xFF << LBCR_BMT_SHIFT) \
 			| 0xF )	/* 0x0004ff0f */
@@ -242,6 +242,7 @@
 #define CONFIG_SYS_NAND_U_BOOT_START 0x00100100
 #define CONFIG_SYS_NAND_U_BOOT_OFFS  16384
 #define CONFIG_SYS_NAND_U_BOOT_RELOC 0x00010000
+#define CONFIG_SYS_NAND_U_BOOT_RELOC_SP (CONFIG_SYS_NAND_U_BOOT_RELOC + 0x10000)
 
 #define CONFIG_SYS_NAND_BR_PRELIM	( CONFIG_SYS_NAND_BASE \
 				| (2<<BR_DECC_SHIFT)	/* Use HW ECC */ \
@@ -321,7 +322,6 @@
 #define CONFIG_HARD_I2C			/* I2C with hardware support*/
 #define CONFIG_FSL_I2C
 #define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_CMD_TREE
 #define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
 #define CONFIG_SYS_I2C_SLAVE		0x7F
 #define CONFIG_SYS_I2C_NOPROBES	{{0,0x69}} /* Don't probe these addrs */
@@ -544,7 +544,7 @@
 #define CONFIG_SYS_IBAT5U	(CONFIG_SYS_IMMR | BATU_BL_256M | BATU_VS | BATU_VP)
 
 /* SDRAM @ 0xF0000000, stack in DCACHE 0xFDF00000 & FLASH @ 0xFE000000 */
-#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10)
+#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10 | BATL_GUARDEDSTORAGE)
 #define CONFIG_SYS_IBAT6U	(0xF0000000 | BATU_BL_256M | BATU_VS | BATU_VP)
 
 #define CONFIG_SYS_IBAT7L	(0)
@@ -580,13 +580,6 @@
  */
 #define CONFIG_ENV_OVERWRITE
 
-#define CONFIG_ETHADDR		00:E0:0C:00:95:01
-#define CONFIG_ETH1ADDR		00:E0:0C:00:95:02
-
-#define CONFIG_IPADDR		10.0.0.2
-#define CONFIG_SERVERIP		10.0.0.1
-#define CONFIG_GATEWAYIP	10.0.0.1
-#define CONFIG_NETMASK		255.0.0.0
 #define CONFIG_NETDEV		eth1
 
 #define CONFIG_HOSTNAME		mpc8313erdb
@@ -595,7 +588,7 @@
 #define CONFIG_UBOOTPATH	u-boot.bin	/* U-Boot image on TFTP server */
 #define CONFIG_FDTFILE		mpc8313erdb.dtb
 
-#define CONFIG_LOADADDR		500000	/* default location for tftp and bootm */
+#define CONFIG_LOADADDR		800000	/* default location for tftp and bootm */
 #define CONFIG_BOOTDELAY	6	/* -1 disables auto-boot */
 #define CONFIG_BAUDRATE		115200
 
@@ -612,7 +605,7 @@
 		"cp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize; "	\
 		"protect on " MK_STR(TEXT_BASE) " +$filesize; "		\
 		"cmp.b $loadaddr " MK_STR(TEXT_BASE) " $filesize\0"	\
-	"fdtaddr=400000\0"						\
+	"fdtaddr=780000\0"						\
 	"fdtfile=" MK_STR(CONFIG_FDTFILE) "\0"				\
 	"console=ttyS0\0"						\
 	"setbootargs=setenv bootargs "					\

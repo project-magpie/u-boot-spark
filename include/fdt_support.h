@@ -59,7 +59,7 @@ void fdt_fixup_dr_usb(void *blob, bd_t *bd);
 static inline void fdt_fixup_dr_usb(void *blob, bd_t *bd) {}
 #endif /* CONFIG_HAS_FSL_DR_USB */
 
-#if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC83XX)
+#if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC83xx)
 void fdt_fixup_crypto_node(void *blob, int sec_rev);
 #else
 static inline void fdt_fixup_crypto_node(void *blob, int sec_rev) {}
@@ -78,6 +78,8 @@ void ft_pci_setup(void *blob, bd_t *bd);
 
 void set_working_fdt_addr(void *addr);
 int fdt_resize(void *blob);
+
+int fdt_fixup_nor_flash_size(void *blob, int cs, u32 size);
 
 #endif /* ifdef CONFIG_OF_LIBFDT */
 #endif /* ifndef __FDT_SUPPORT_H */

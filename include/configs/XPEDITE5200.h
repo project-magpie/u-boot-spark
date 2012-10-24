@@ -37,7 +37,6 @@
 #define CONFIG_XPEDITE5200	1
 #define CONFIG_SYS_BOARD_NAME	"XPedite5200"
 #define CONFIG_BOARD_EARLY_INIT_R	/* Call board_pre_init */
-#define CONFIG_RELOC_FIXUP_WORKS	/* Fully relocate to SDRAM */
 
 #define CONFIG_PCI		1	/* Enable PCI/PCIE */
 #define CONFIG_PCI_PNP		1	/* do pci plug-and-play */
@@ -103,7 +102,7 @@
  * 0xfc00_0000	0xffff_ffff	NOR Flash 1		64M non-cacheable
  */
 
-#define CONFIG_SYS_LBC_LCRR	(LCRR_CLKDIV_4 | LCRR_EADC_3)
+#define CONFIG_SYS_LBC_LCRR	(LCRR_CLKDIV_8 | LCRR_EADC_3)
 
 /*
  * NAND flash configuration
@@ -129,6 +128,7 @@
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500		/* Flash Write Timeout (ms) */
 #define CONFIG_FLASH_CFI_DRIVER
 #define CONFIG_SYS_FLASH_CFI
+#define CONFIG_SYS_FLASH_USE_BUFFER_WRITE
 #define CONFIG_SYS_FLASH_AUTOPROTECT_LIST	{ {0xfff40000, 0xc0000}, \
 						  {0xfbf40000, 0xc0000} }
 #define CONFIG_SYS_MONITOR_BASE	TEXT_BASE	/* start of monitor */
@@ -213,9 +213,6 @@
 #define CONFIG_OF_BOARD_SETUP		1
 #define CONFIG_OF_STDOUT_VIA_ALIAS	1
 
-#define CONFIG_SYS_64BIT_VSPRINTF	1
-#define CONFIG_SYS_64BIT_STRTOUL	1
-
 /*
  * I2C
  */
@@ -226,7 +223,6 @@
 #define CONFIG_SYS_I2C_OFFSET		0x3000
 #define CONFIG_SYS_I2C2_OFFSET		0x3100
 #define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_CMD_TREE
 
 /* I2C EEPROM */
 #define CONFIG_SYS_I2C_EEPROM_ADDR		0x50
@@ -370,6 +366,7 @@
  * the maximum mapped by the Linux kernel during initialization.
  */
 #define CONFIG_SYS_BOOTMAPSZ	(16 << 20)	/* Initial Memory map for Linux*/
+#define CONFIG_SYS_BOOTM_LEN	(16 << 20)	/* Increase max gunzip size */
 
 /*
  * Boot Flags

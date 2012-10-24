@@ -99,8 +99,8 @@ int do_waithci(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	waithci,	1,	1,	do_waithci,
 	"Wait for host control interrupt",
-	NULL
-	);
+	""
+);
 
 void dump_fifo(pmc440_fpga_t *fpga, int f, int *n)
 {
@@ -242,7 +242,7 @@ int do_fifo(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 				       "address %08x\n",
 				       n, data, f);
 				for (i=0; i<n; i++)
-					out32(f, data);
+					out_be32((void *)f, data);
 			}
 		} else {
 			printf("Usage:\nfifo %s\n", cmdtp->help);
@@ -266,8 +266,8 @@ U_BOOT_CMD(
 	"  - with 'wait' argument: interrupt driven read from all fifos\n"
 	"  - with 'read' argument: read current contents from all fifos\n"
 	"  - with 'write' argument: write 'data' 'cnt' times to "
-	"'fifo' or 'address'\n"
-	);
+	"'fifo' or 'address'"
+);
 
 int do_setup_bootstrap_eeprom(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
@@ -338,7 +338,7 @@ U_BOOT_CMD(
 	sbe, 4, 0, do_setup_bootstrap_eeprom,
 	"setup bootstrap eeprom",
 	"<cpufreq:400|533|667> [<console-uart:0|1> [<bringup delay (0..20s)>]]"
-	);
+);
 
 #if defined(CONFIG_PRAM)
 #include <environment.h>
@@ -400,8 +400,8 @@ int do_painit(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	painit,	1,	1,	do_painit,
 	"prepare PciAccess system",
-	NULL
-	);
+	""
+);
 #endif /* CONFIG_PRAM */
 
 int do_selfreset(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
@@ -412,8 +412,8 @@ int do_selfreset(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	selfreset,	1,	1,	do_selfreset,
 	"assert self-reset# signal",
-	NULL
-	);
+	""
+);
 
 int do_resetout(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
@@ -449,8 +449,8 @@ int do_resetout(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	resetout,	2,	1,	do_resetout,
 	"assert PMC-RESETOUT# signal",
-	NULL
-	);
+	""
+);
 
 int do_inta(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 {
@@ -481,8 +481,8 @@ int do_inta(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	inta,	2,	1,	do_inta,
 	"Assert/Deassert or query INTA# state in non-monarch mode",
-	NULL
-	);
+	""
+);
 
 /* test-only */
 int do_pmm(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
@@ -497,15 +497,15 @@ int do_pmm(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		/* map PCI address at 0xc0000000 in PLB space */
 
 		/* PMM1 Mask/Attribute - disabled b4 setting */
-		out32r(PCIX0_PMM1MA, 0x00000000);
+		out32r(PCIL0_PMM1MA, 0x00000000);
 		/* PMM1 Local Address */
-		out32r(PCIX0_PMM1LA, 0xc0000000);
+		out32r(PCIL0_PMM1LA, 0xc0000000);
 		/* PMM1 PCI Low Address */
-		out32r(PCIX0_PMM1PCILA, pciaddr);
+		out32r(PCIL0_PMM1PCILA, pciaddr);
 		/* PMM1 PCI High Address */
-		out32r(PCIX0_PMM1PCIHA, 0x00000000);
+		out32r(PCIL0_PMM1PCIHA, 0x00000000);
 		/* 256MB + No prefetching, and enable region */
-		out32r(PCIX0_PMM1MA, 0xf0000001);
+		out32r(PCIL0_PMM1MA, 0xf0000001);
 	} else {
 		printf("Usage:\npmm %s\n", cmdtp->help);
 	}
@@ -514,8 +514,8 @@ int do_pmm(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	pmm,	2,	1,	do_pmm,
 	"Setup pmm[1] registers",
-	"<pciaddr> (pciaddr will be aligned to 256MB)\n"
-	);
+	"<pciaddr> (pciaddr will be aligned to 256MB)"
+);
 
 #if defined(CONFIG_SYS_EEPROM_WREN)
 int do_eep_wren(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
@@ -549,8 +549,9 @@ int do_eep_wren(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	return state;
 }
 U_BOOT_CMD(eepwren, 2, 0, do_eep_wren,
-	   "Enable / disable / query EEPROM write access",
-	   NULL);
+	"Enable / disable / query EEPROM write access",
+	""
+);
 #endif /* #if defined(CONFIG_SYS_EEPROM_WREN) */
 
 #endif /* CONFIG_CMD_BSP */

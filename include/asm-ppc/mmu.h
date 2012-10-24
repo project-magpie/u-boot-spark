@@ -213,7 +213,11 @@ extern void print_bats(void);
 #define BATL_PADDR(x) ((phys_addr_t)((x & 0xfffe0000)		\
 				     | ((x & 0x0e00ULL) << 24)	\
 				     | ((x & 0x04ULL) << 30)))
-#define BATU_SIZE(x) (1UL << (fls((x & BATU_BL_MAX) >> 2) + 17))
+#define BATU_SIZE(x) (1ULL << (fls((x & BATU_BL_MAX) >> 2) + 17))
+
+/* bytes into BATU_BL */
+#define TO_BATU_BL(x) \
+	(u32)((((1ull << __ilog2_u64((u64)x)) / (128 * 1024)) - 1) * 4)
 
 /* Used to set up SDR1 register */
 #define HASH_TABLE_SIZE_64K	0x00010000
@@ -387,8 +391,10 @@ extern void print_bats(void);
  * FSL Book-E support
  */
 
-#define MAS0_TLBSEL(x)	((x << 28) & 0x30000000)
-#define MAS0_ESEL(x)	((x << 16) & 0x0FFF0000)
+#define MAS0_TLBSEL_MSK	0x30000000
+#define MAS0_TLBSEL(x)	((x << 28) & MAS0_TLBSEL_MSK)
+#define MAS0_ESEL_MSK	0x0FFF0000
+#define MAS0_ESEL(x)	((x << 16) & MAS0_ESEL_MSK)
 #define MAS0_NV(x)	((x) & 0x00000FFF)
 
 #define MAS1_VALID	0x80000000
@@ -448,6 +454,8 @@ extern void print_bats(void);
 		(((epn) & MAS3_RPN) | (wimge))
 #define FSL_BOOKE_MAS3(rpn, user, perms) \
 		(((rpn) & MAS3_RPN) | (user) | (perms))
+#define FSL_BOOKE_MAS7(rpn) \
+		(((u64)(rpn)) >> 32)
 
 #define BOOKE_PAGESZ_1K         0
 #define BOOKE_PAGESZ_4K         1
@@ -474,23 +482,27 @@ extern void set_tlb(u8 tlb, u32 epn, u64 rpn,
 extern void disable_tlb(u8 esel);
 extern void invalidate_tlb(u8 tlb);
 extern void init_tlbs(void);
+extern int find_tlb_idx(void *addr, u8 tlbsel);
+extern void init_used_tlb_cams(void);
+extern int find_free_tlbcam(void);
 
 extern unsigned int setup_ddr_tlbs(unsigned int memsize_in_meg);
 
+extern void write_tlb(u32 _mas0, u32 _mas1, u32 _mas2, u32 _mas3, u32 _mas7);
+
 #define SET_TLB_ENTRY(_tlb, _epn, _rpn, _perms, _wimge, _ts, _esel, _sz, _iprot) \
-	{ .tlb = _tlb, .epn = _epn, .rpn = _rpn, .perms = _perms, \
-	  .wimge = _wimge, .ts = _ts, .esel = _esel, .tsize = _sz, .iprot = _iprot }
+	{ .mas0 = FSL_BOOKE_MAS0(_tlb, _esel, 0), \
+	  .mas1 = FSL_BOOKE_MAS1(1, _iprot, 0, _ts, _sz), \
+	  .mas2 = FSL_BOOKE_MAS2(_epn, _wimge), \
+	  .mas3 = FSL_BOOKE_MAS3(_rpn, 0, _perms), \
+	  .mas7 = FSL_BOOKE_MAS7(_rpn), }
 
 struct fsl_e_tlb_entry {
-	u8	tlb;
-	u32	epn;
-	u64	rpn;
-	u8	perms;
-	u8	wimge;
-	u8	ts;
-	u8	esel;
-	u8	tsize;
-	u8	iprot;
+	u32	mas0;
+	u32	mas1;
+	u32	mas2;
+	u32	mas3;
+	u32	mas7;
 };
 
 extern struct fsl_e_tlb_entry tlb_table[];
@@ -498,13 +510,7 @@ extern int num_tlb_entries;
 #endif
 #endif
 
-#if defined(CONFIG_MPC86xx)
-#define LAWBAR_BASE_ADDR	0x00FFFFFF
-#define LAWAR_TRGT_IF		0x01F00000
-#else
-#define LAWBAR_BASE_ADDR	0x000FFFFF
-#define LAWAR_TRGT_IF		0x00F00000
-#endif
+#ifdef CONFIG_E300
 #define LAWAR_EN		0x80000000
 #define LAWAR_SIZE		0x0000003F
 
@@ -548,6 +554,7 @@ extern int num_tlb_entries;
 #define LAWAR_SIZE_8G		(LAWAR_SIZE_BASE+22)
 #define LAWAR_SIZE_16G		(LAWAR_SIZE_BASE+23)
 #define LAWAR_SIZE_32G		(LAWAR_SIZE_BASE+24)
+#endif
 
 #ifdef CONFIG_440
 /* General */

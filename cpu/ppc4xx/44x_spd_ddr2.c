@@ -9,7 +9,7 @@
  * Copyright (c) 2008 Nuovation System Designs, LLC
  *   Grant Erickson <gerickson@nuovations.com>
 
- * (C) Copyright 2007-2008
+ * (C) Copyright 2007-2009
  * Stefan Roese, DENX Software Engineering, sr@denx.de.
  *
  * COPYRIGHT   AMCC   CORPORATION 2004
@@ -60,6 +60,14 @@
 		       "SDRAM_" #mnemonic, SDRAM_##mnemonic, data);	\
 	} while (0)
 
+#define PPC4xx_IBM_DDR2_DUMP_MQ_REGISTER(mnemonic)			\
+	do {								\
+		u32 data;						\
+		data = mfdcr(SDRAM_##mnemonic);				\
+		printf("%20s[%02x] = 0x%08X\n",				\
+		       "SDRAM_" #mnemonic, SDRAM_##mnemonic, data);	\
+	} while (0)
+
 #if defined(CONFIG_440)
 /*
  * This DDR2 setup code can dynamically setup the TLB entries for the DDR2
@@ -78,7 +86,132 @@
 /* disable caching on SDRAM */
 #define MY_TLB_WORD2_I_ENABLE		TLB_WORD2_I_ENABLE
 #endif /* CONFIG_4xx_DCACHE */
+
+void dcbz_area(u32 start_address, u32 num_bytes);
 #endif /* CONFIG_440 */
+
+#define MAXRANKS	4
+#define MAXBXCF		4
+
+#define MULDIV64(m1, m2, d)	(u32)(((u64)(m1) * (u64)(m2)) / (u64)(d))
+
+#if !defined(CONFIG_NAND_SPL)
+/*-----------------------------------------------------------------------------+
+ * sdram_memsize
+ *-----------------------------------------------------------------------------*/
+phys_size_t sdram_memsize(void)
+{
+	phys_size_t mem_size;
+	unsigned long mcopt2;
+	unsigned long mcstat;
+	unsigned long mb0cf;
+	unsigned long sdsz;
+	unsigned long i;
+
+	mem_size = 0;
+
+	mfsdram(SDRAM_MCOPT2, mcopt2);
+	mfsdram(SDRAM_MCSTAT, mcstat);
+
+	/* DDR controller must be enabled and not in self-refresh. */
+	/* Otherwise memsize is zero. */
+	if (((mcopt2 & SDRAM_MCOPT2_DCEN_MASK) == SDRAM_MCOPT2_DCEN_ENABLE)
+	    && ((mcopt2 & SDRAM_MCOPT2_SREN_MASK) == SDRAM_MCOPT2_SREN_EXIT)
+	    && ((mcstat & (SDRAM_MCSTAT_MIC_MASK | SDRAM_MCSTAT_SRMS_MASK))
+		== (SDRAM_MCSTAT_MIC_COMP | SDRAM_MCSTAT_SRMS_NOT_SF))) {
+		for (i = 0; i < MAXBXCF; i++) {
+			mfsdram(SDRAM_MB0CF + (i << 2), mb0cf);
+			/* Banks enabled */
+			if ((mb0cf & SDRAM_BXCF_M_BE_MASK) == SDRAM_BXCF_M_BE_ENABLE) {
+#if defined(CONFIG_440)
+				sdsz = mfdcr_any(SDRAM_R0BAS + i) & SDRAM_RXBAS_SDSZ_MASK;
+#else
+				sdsz = mb0cf & SDRAM_RXBAS_SDSZ_MASK;
+#endif
+				switch(sdsz) {
+				case SDRAM_RXBAS_SDSZ_8:
+					mem_size+=8;
+					break;
+				case SDRAM_RXBAS_SDSZ_16:
+					mem_size+=16;
+					break;
+				case SDRAM_RXBAS_SDSZ_32:
+					mem_size+=32;
+					break;
+				case SDRAM_RXBAS_SDSZ_64:
+					mem_size+=64;
+					break;
+				case SDRAM_RXBAS_SDSZ_128:
+					mem_size+=128;
+					break;
+				case SDRAM_RXBAS_SDSZ_256:
+					mem_size+=256;
+					break;
+				case SDRAM_RXBAS_SDSZ_512:
+					mem_size+=512;
+					break;
+				case SDRAM_RXBAS_SDSZ_1024:
+					mem_size+=1024;
+					break;
+				case SDRAM_RXBAS_SDSZ_2048:
+					mem_size+=2048;
+					break;
+				case SDRAM_RXBAS_SDSZ_4096:
+					mem_size+=4096;
+					break;
+				default:
+					printf("WARNING: Unsupported bank size (SDSZ=0x%lx)!\n"
+					       , sdsz);
+					mem_size=0;
+					break;
+				}
+			}
+		}
+	}
+
+	return mem_size << 20;
+}
+
+/*-----------------------------------------------------------------------------+
+ * is_ecc_enabled
+ *-----------------------------------------------------------------------------*/
+static unsigned long is_ecc_enabled(void)
+{
+	unsigned long val;
+
+	mfsdram(SDRAM_MCOPT1, val);
+
+	return SDRAM_MCOPT1_MCHK_CHK_DECODE(val);
+}
+
+/*-----------------------------------------------------------------------------+
+ * board_add_ram_info
+ *-----------------------------------------------------------------------------*/
+void board_add_ram_info(int use_default)
+{
+	PPC4xx_SYS_INFO board_cfg;
+	u32 val;
+
+	if (is_ecc_enabled())
+		puts(" (ECC");
+	else
+		puts(" (ECC not");
+
+	get_sys_info(&board_cfg);
+
+#if defined(CONFIG_405EX)
+	val = board_cfg.freqPLB;
+#else
+	mfsdr(SDR0_DDR0, val);
+	val = MULDIV64((board_cfg.freqPLB), SDR0_DDR0_DDRM_DECODE(val), 1);
+#endif
+	printf(" enabled, %d MHz", (val * 2) / 1000000);
+
+	mfsdram(SDRAM_MMODE, val);
+	val = (val & SDRAM_MMODE_DCL_MASK) >> 4;
+	printf(", CL%d)", val);
+}
+#endif /* !CONFIG_NAND_SPL */
 
 #if defined(CONFIG_SPD_EEPROM)
 
@@ -97,13 +230,9 @@
 #define SDRAM_NONE	0
 
 #define MAXDIMMS	2
-#define MAXRANKS	4
-#define MAXBXCF		4
 #define MAX_SPD_BYTES	256   /* Max number of bytes on the DIMM's SPD EEPROM */
 
 #define ONE_BILLION	1000000000
-
-#define MULDIV64(m1, m2, d)	(u32)(((u64)(m1) * (u64)(m2)) / (u64)(d))
 
 #define CMD_NOP		(7 << 19)
 #define CMD_PRECHARGE	(2 << 19)
@@ -205,7 +334,6 @@ typedef enum ddr_cas_id {
 /*-----------------------------------------------------------------------------+
  * Prototypes
  *-----------------------------------------------------------------------------*/
-static phys_size_t sdram_memsize(void);
 static void get_spd_info(unsigned long *dimm_populated,
 			 unsigned char *iic0_dimm_addr,
 			 unsigned long num_dimm_banks);
@@ -249,15 +377,11 @@ static void program_initplr(unsigned long *dimm_populated,
 			    unsigned long num_dimm_banks,
 			    ddr_cas_id_t selected_cas,
 			    int write_recovery);
-static unsigned long is_ecc_enabled(void);
 #ifdef CONFIG_DDR_ECC
 static void program_ecc(unsigned long *dimm_populated,
 			unsigned char *iic0_dimm_addr,
 			unsigned long num_dimm_banks,
 			unsigned long tlb_word2_i_value);
-static void program_ecc_addr(unsigned long start_address,
-			     unsigned long num_bytes,
-			     unsigned long tlb_word2_i_value);
 #endif
 #if !defined(CONFIG_PPC4xx_DDR_AUTOCALIBRATION)
 static void program_DQS_calibration(unsigned long *dimm_populated,
@@ -270,7 +394,6 @@ static void	DQS_calibration_process(void);
 #endif
 #endif
 int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
-void dcbz_area(u32 start_address, u32 num_bytes);
 
 static unsigned char spd_read(uchar chip, uint addr)
 {
@@ -281,79 +404,6 @@ static unsigned char spd_read(uchar chip, uint addr)
 			return data[0];
 
 	return 0;
-}
-
-/*-----------------------------------------------------------------------------+
- * sdram_memsize
- *-----------------------------------------------------------------------------*/
-static phys_size_t sdram_memsize(void)
-{
-	phys_size_t mem_size;
-	unsigned long mcopt2;
-	unsigned long mcstat;
-	unsigned long mb0cf;
-	unsigned long sdsz;
-	unsigned long i;
-
-	mem_size = 0;
-
-	mfsdram(SDRAM_MCOPT2, mcopt2);
-	mfsdram(SDRAM_MCSTAT, mcstat);
-
-	/* DDR controller must be enabled and not in self-refresh. */
-	/* Otherwise memsize is zero. */
-	if (((mcopt2 & SDRAM_MCOPT2_DCEN_MASK) == SDRAM_MCOPT2_DCEN_ENABLE)
-	    && ((mcopt2 & SDRAM_MCOPT2_SREN_MASK) == SDRAM_MCOPT2_SREN_EXIT)
-	    && ((mcstat & (SDRAM_MCSTAT_MIC_MASK | SDRAM_MCSTAT_SRMS_MASK))
-		== (SDRAM_MCSTAT_MIC_COMP | SDRAM_MCSTAT_SRMS_NOT_SF))) {
-		for (i = 0; i < MAXBXCF; i++) {
-			mfsdram(SDRAM_MB0CF + (i << 2), mb0cf);
-			/* Banks enabled */
-			if ((mb0cf & SDRAM_BXCF_M_BE_MASK) == SDRAM_BXCF_M_BE_ENABLE) {
-				sdsz = mfdcr_any(SDRAM_R0BAS + i) & SDRAM_RXBAS_SDSZ_MASK;
-
-				switch(sdsz) {
-				case SDRAM_RXBAS_SDSZ_8:
-					mem_size+=8;
-					break;
-				case SDRAM_RXBAS_SDSZ_16:
-					mem_size+=16;
-					break;
-				case SDRAM_RXBAS_SDSZ_32:
-					mem_size+=32;
-					break;
-				case SDRAM_RXBAS_SDSZ_64:
-					mem_size+=64;
-					break;
-				case SDRAM_RXBAS_SDSZ_128:
-					mem_size+=128;
-					break;
-				case SDRAM_RXBAS_SDSZ_256:
-					mem_size+=256;
-					break;
-				case SDRAM_RXBAS_SDSZ_512:
-					mem_size+=512;
-					break;
-				case SDRAM_RXBAS_SDSZ_1024:
-					mem_size+=1024;
-					break;
-				case SDRAM_RXBAS_SDSZ_2048:
-					mem_size+=2048;
-					break;
-				case SDRAM_RXBAS_SDSZ_4096:
-					mem_size+=4096;
-					break;
-				default:
-					printf("WARNING: Unsupported bank size (SDSZ=0x%lx)!\n"
-					       , sdsz);
-					mem_size=0;
-					break;
-				}
-			}
-		}
-	}
-
-	return mem_size << 20;
 }
 
 /*-----------------------------------------------------------------------------+
@@ -376,7 +426,7 @@ phys_size_t initdram(int board_type)
 	unsigned char spd0[MAX_SPD_BYTES];
 	unsigned char spd1[MAX_SPD_BYTES];
 	unsigned char *dimm_spd[MAXDIMMS];
-	unsigned long dimm_populated[MAXDIMMS];
+	unsigned long dimm_populated[MAXDIMMS] = {SDRAM_NONE, SDRAM_NONE};
 	unsigned long num_dimm_banks;		/* on board dimm banks */
 	unsigned long val;
 	ddr_cas_id_t selected_cas = DDR_CAS_5;	/* preset to silence compiler */
@@ -635,26 +685,6 @@ static void get_spd_info(unsigned long *dimm_populated,
 	}
 }
 
-void board_add_ram_info(int use_default)
-{
-	PPC4xx_SYS_INFO board_cfg;
-	u32 val;
-
-	if (is_ecc_enabled())
-		puts(" (ECC");
-	else
-		puts(" (ECC not");
-
-	get_sys_info(&board_cfg);
-
-	mfsdr(SDR0_DDR0, val);
-	val = MULDIV64((board_cfg.freqPLB), SDR0_DDR0_DDRM_DECODE(val), 1);
-	printf(" enabled, %d MHz", (val * 2) / 1000000);
-
-	mfsdram(SDRAM_MMODE, val);
-	val = (val & SDRAM_MMODE_DCL_MASK) >> 4;
-	printf(", CL%d)", val);
-}
 
 /*------------------------------------------------------------------
  * For the memory DIMMs installed, this routine verifies that they
@@ -714,11 +744,11 @@ static void check_mem_type(unsigned long *dimm_populated,
 				spd_ddr_init_hang ();
 				break;
 			case 7:
-				debug("DIMM slot %d: DDR1 SDRAM detected\n", dimm_num);
+				debug("DIMM slot %lu: DDR1 SDRAM detected\n", dimm_num);
 				dimm_populated[dimm_num] = SDRAM_DDR1;
 				break;
 			case 8:
-				debug("DIMM slot %d: DDR2 SDRAM detected\n", dimm_num);
+				debug("DIMM slot %lu: DDR2 SDRAM detected\n", dimm_num);
 				dimm_populated[dimm_num] = SDRAM_DDR2;
 				break;
 			default:
@@ -796,7 +826,7 @@ static void check_frequency(unsigned long *dimm_populated,
 			else
 				cycle_time = (((tcyc_reg & 0xF0) >> 4) * 100) +
 					((tcyc_reg & 0x0F)*10);
-			debug("cycle_time=%d [10 picoseconds]\n", cycle_time);
+			debug("cycle_time=%lu [10 picoseconds]\n", cycle_time);
 
 			if  (cycle_time > (calc_cycle_time + 10)) {
 				/*
@@ -1407,7 +1437,7 @@ static void program_mode(unsigned long *dimm_populated,
 
 	mfsdr(SDR0_DDR0, sdr_ddrpll);
 	sdram_freq = MULDIV64((board_cfg.freqPLB), SDR0_DDR0_DDRM_DECODE(sdr_ddrpll), 1);
-	debug("sdram_freq=%d\n", sdram_freq);
+	debug("sdram_freq=%lu\n", sdram_freq);
 
 	/*------------------------------------------------------------------
 	 * Handle the timing.  We need to find the worst case timing of all
@@ -1437,7 +1467,7 @@ static void program_mode(unsigned long *dimm_populated,
 
 			/* t_wr_ns = max(t_wr_ns, (unsigned long)dimm_spd[dimm_num][36] >> 2); */ /*  not used in this loop. */
 			cas_bit = spd_read(iic0_dimm_addr[dimm_num], 18);
-			debug("cas_bit[SPD byte 18]=%02x\n", cas_bit);
+			debug("cas_bit[SPD byte 18]=%02lx\n", cas_bit);
 
 			/* For a particular DIMM, grab the three CAS values it supports */
 			for (cas_index = 0; cas_index < 3; cas_index++) {
@@ -1469,7 +1499,7 @@ static void program_mode(unsigned long *dimm_populated,
 						(((tcyc_reg & 0xF0) >> 4) * 100) +
 						((tcyc_reg & 0x0F)*10);
 				}
-				debug("cas_index=%d: cycle_time_ns_x_100=%d\n", cas_index,
+				debug("cas_index=%lu: cycle_time_ns_x_100=%lu\n", cas_index,
 				      cycle_time_ns_x_100[cas_index]);
 			}
 
@@ -1580,9 +1610,9 @@ static void program_mode(unsigned long *dimm_populated,
 	cycle_3_0_clk = MULDIV64(ONE_BILLION, 100, max_3_0_tcyc_ns_x_100) + 10;
 	cycle_4_0_clk = MULDIV64(ONE_BILLION, 100, max_4_0_tcyc_ns_x_100) + 10;
 	cycle_5_0_clk = MULDIV64(ONE_BILLION, 100, max_5_0_tcyc_ns_x_100) + 10;
-	debug("cycle_3_0_clk=%d\n", cycle_3_0_clk);
-	debug("cycle_4_0_clk=%d\n", cycle_4_0_clk);
-	debug("cycle_5_0_clk=%d\n", cycle_5_0_clk);
+	debug("cycle_3_0_clk=%lu\n", cycle_3_0_clk);
+	debug("cycle_4_0_clk=%lu\n", cycle_4_0_clk);
+	debug("cycle_5_0_clk=%lu\n", cycle_5_0_clk);
 
 	if (sdram_ddr1 == TRUE) { /* DDR1 */
 		if ((cas_2_0_available == TRUE) && (sdram_freq <= cycle_2_0_clk)) {
@@ -2269,25 +2299,6 @@ static void program_memory_queue(unsigned long *dimm_populated,
 #endif
 }
 
-/*-----------------------------------------------------------------------------+
- * is_ecc_enabled.
- *-----------------------------------------------------------------------------*/
-static unsigned long is_ecc_enabled(void)
-{
-	unsigned long dimm_num;
-	unsigned long ecc;
-	unsigned long val;
-
-	ecc = 0;
-	/* loop through all the DIMM slots on the board */
-	for (dimm_num = 0; dimm_num < MAXDIMMS; dimm_num++) {
-		mfsdram(SDRAM_MCOPT1, val);
-		ecc = max(ecc, SDRAM_MCOPT1_MCHK_CHK_DECODE(val));
-	}
-
-	return ecc;
-}
-
 #ifdef CONFIG_DDR_ECC
 /*-----------------------------------------------------------------------------+
  * program_ecc.
@@ -2297,9 +2308,6 @@ static void program_ecc(unsigned long *dimm_populated,
 			unsigned long num_dimm_banks,
 			unsigned long tlb_word2_i_value)
 {
-	unsigned long mcopt1;
-	unsigned long mcopt2;
-	unsigned long mcstat;
 	unsigned long dimm_num;
 	unsigned long ecc;
 
@@ -2313,105 +2321,7 @@ static void program_ecc(unsigned long *dimm_populated,
 	if (ecc == 0)
 		return;
 
-	if (sdram_memsize() > CONFIG_MAX_MEM_MAPPED) {
-		printf("\nWarning: Can't enable ECC on systems with more than 2GB of SDRAM!\n");
-		return;
-	}
-
-	mfsdram(SDRAM_MCOPT1, mcopt1);
-	mfsdram(SDRAM_MCOPT2, mcopt2);
-
-	if ((mcopt1 & SDRAM_MCOPT1_MCHK_MASK) != SDRAM_MCOPT1_MCHK_NON) {
-		/* DDR controller must be enabled and not in self-refresh. */
-		mfsdram(SDRAM_MCSTAT, mcstat);
-		if (((mcopt2 & SDRAM_MCOPT2_DCEN_MASK) == SDRAM_MCOPT2_DCEN_ENABLE)
-		    && ((mcopt2 & SDRAM_MCOPT2_SREN_MASK) == SDRAM_MCOPT2_SREN_EXIT)
-		    && ((mcstat & (SDRAM_MCSTAT_MIC_MASK | SDRAM_MCSTAT_SRMS_MASK))
-			== (SDRAM_MCSTAT_MIC_COMP | SDRAM_MCSTAT_SRMS_NOT_SF))) {
-
-			program_ecc_addr(0, sdram_memsize(), tlb_word2_i_value);
-		}
-	}
-
-	return;
-}
-
-static void wait_ddr_idle(void)
-{
-	u32 val;
-
-	do {
-		mfsdram(SDRAM_MCSTAT, val);
-	} while ((val & SDRAM_MCSTAT_IDLE_MASK) == SDRAM_MCSTAT_IDLE_NOT);
-}
-
-/*-----------------------------------------------------------------------------+
- * program_ecc_addr.
- *-----------------------------------------------------------------------------*/
-static void program_ecc_addr(unsigned long start_address,
-			     unsigned long num_bytes,
-			     unsigned long tlb_word2_i_value)
-{
-	unsigned long current_address;
-	unsigned long end_address;
-	unsigned long address_increment;
-	unsigned long mcopt1;
-	char str[] = "ECC generation -";
-	char slash[] = "\\|/-\\|/-";
-	int loop = 0;
-	int loopi = 0;
-
-	current_address = start_address;
-	mfsdram(SDRAM_MCOPT1, mcopt1);
-	if ((mcopt1 & SDRAM_MCOPT1_MCHK_MASK) != SDRAM_MCOPT1_MCHK_NON) {
-		mtsdram(SDRAM_MCOPT1,
-			(mcopt1 & ~SDRAM_MCOPT1_MCHK_MASK) | SDRAM_MCOPT1_MCHK_GEN);
-		sync();
-		eieio();
-		wait_ddr_idle();
-
-		puts(str);
-		if (tlb_word2_i_value == TLB_WORD2_I_ENABLE) {
-			/* ECC bit set method for non-cached memory */
-			if ((mcopt1 & SDRAM_MCOPT1_DMWD_MASK) == SDRAM_MCOPT1_DMWD_32)
-				address_increment = 4;
-			else
-				address_increment = 8;
-			end_address = current_address + num_bytes;
-
-			while (current_address < end_address) {
-				*((unsigned long *)current_address) = 0x00000000;
-				current_address += address_increment;
-
-				if ((loop++ % (2 << 20)) == 0) {
-					putc('\b');
-					putc(slash[loopi++ % 8]);
-				}
-			}
-
-		} else {
-			/* ECC bit set method for cached memory */
-			dcbz_area(start_address, num_bytes);
-			/* Write modified dcache lines back to memory */
-			clean_dcache_range(start_address, start_address + num_bytes);
-		}
-
-		blank_string(strlen(str));
-
-		sync();
-		eieio();
-		wait_ddr_idle();
-
-		/* clear ECC error repoting registers */
-		mtsdram(SDRAM_ECCCR, 0xffffffff);
-		mtdcr(0x4c, 0xffffffff);
-
-		mtsdram(SDRAM_MCOPT1,
-			(mcopt1 & ~SDRAM_MCOPT1_MCHK_MASK) | SDRAM_MCOPT1_MCHK_CHK_REP);
-		sync();
-		eieio();
-		wait_ddr_idle();
-	}
+	do_program_ecc(tlb_word2_i_value);
 }
 #endif
 
@@ -2797,13 +2707,13 @@ calibration_loop:
 	}
 
 	mfsdram(SDRAM_DLCR, val);
-	debug("%s[%d] DLCR: 0x%08X\n", __FUNCTION__, __LINE__, val);
+	debug("%s[%d] DLCR: 0x%08lX\n", __FUNCTION__, __LINE__, val);
 	mfsdram(SDRAM_RQDC, val);
-	debug("%s[%d] RQDC: 0x%08X\n", __FUNCTION__, __LINE__, val);
+	debug("%s[%d] RQDC: 0x%08lX\n", __FUNCTION__, __LINE__, val);
 	mfsdram(SDRAM_RFDC, val);
-	debug("%s[%d] RFDC: 0x%08X\n", __FUNCTION__, __LINE__, val);
+	debug("%s[%d] RFDC: 0x%08lX\n", __FUNCTION__, __LINE__, val);
 	mfsdram(SDRAM_RDCC, val);
-	debug("%s[%d] RDCC: 0x%08X\n", __FUNCTION__, __LINE__, val);
+	debug("%s[%d] RDCC: 0x%08lX\n", __FUNCTION__, __LINE__, val);
 }
 #else /* calibration test with hardvalues */
 /*-----------------------------------------------------------------------------+
@@ -3098,7 +3008,7 @@ phys_size_t initdram(int board_type)
 #endif /* CONFIG_PPC4xx_DDR_AUTOCALIBRATION */
 
 #if defined(CONFIG_DDR_ECC)
-	ecc_init(CONFIG_SYS_SDRAM_BASE, CONFIG_SYS_MBYTES_SDRAM << 20);
+	do_program_ecc(0);
 #endif /* defined(CONFIG_DDR_ECC) */
 
 #if defined(CONFIG_440)
@@ -3175,18 +3085,6 @@ void mtdcr_any(u32 dcr, u32 val)
 	}
 }
 #endif /* defined(CONFIG_440) */
-
-void blank_string(int size)
-{
-	int i;
-
-	for (i = 0; i < size; i++)
-		putc('\b');
-	for (i = 0; i < size; i++)
-		putc(' ');
-	for (i = 0; i < size; i++)
-		putc('\b');
-}
 #endif /* !defined(CONFIG_NAND_U_BOOT) &&  !defined(CONFIG_NAND_SPL) */
 
 inline void ppc4xx_ibm_ddr2_register_dump(void)
@@ -3196,10 +3094,10 @@ inline void ppc4xx_ibm_ddr2_register_dump(void)
 
 #if (defined(CONFIG_440SP) || defined(CONFIG_440SPE) || \
      defined(CONFIG_460EX) || defined(CONFIG_460GT))
-	PPC4xx_IBM_DDR2_DUMP_REGISTER(R0BAS);
-	PPC4xx_IBM_DDR2_DUMP_REGISTER(R1BAS);
-	PPC4xx_IBM_DDR2_DUMP_REGISTER(R2BAS);
-	PPC4xx_IBM_DDR2_DUMP_REGISTER(R3BAS);
+	PPC4xx_IBM_DDR2_DUMP_MQ_REGISTER(R0BAS);
+	PPC4xx_IBM_DDR2_DUMP_MQ_REGISTER(R1BAS);
+	PPC4xx_IBM_DDR2_DUMP_MQ_REGISTER(R2BAS);
+	PPC4xx_IBM_DDR2_DUMP_MQ_REGISTER(R3BAS);
 #endif /* (defined(CONFIG_440SP) || ... */
 #if defined(CONFIG_405EX)
 	PPC4xx_IBM_DDR2_DUMP_REGISTER(BESR);
@@ -3262,7 +3160,7 @@ inline void ppc4xx_ibm_ddr2_register_dump(void)
 	PPC4xx_IBM_DDR2_DUMP_REGISTER(SDTR3);
 	PPC4xx_IBM_DDR2_DUMP_REGISTER(MMODE);
 	PPC4xx_IBM_DDR2_DUMP_REGISTER(MEMODE);
-	PPC4xx_IBM_DDR2_DUMP_REGISTER(ECCCR);
+	PPC4xx_IBM_DDR2_DUMP_REGISTER(ECCES);
 #if (defined(CONFIG_440SP) || defined(CONFIG_440SPE) || \
      defined(CONFIG_460EX) || defined(CONFIG_460GT))
 	PPC4xx_IBM_DDR2_DUMP_REGISTER(CID);

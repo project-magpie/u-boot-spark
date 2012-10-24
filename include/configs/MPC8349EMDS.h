@@ -33,13 +33,10 @@
  * High Level Configuration Options
  */
 #define CONFIG_E300		1	/* E300 Family */
-#define CONFIG_MPC83XX		1	/* MPC83XX family */
-#define CONFIG_MPC834X		1	/* MPC834X family */
+#define CONFIG_MPC83xx		1	/* MPC83xx family */
+#define CONFIG_MPC834x		1	/* MPC834x family */
 #define CONFIG_MPC8349		1	/* MPC8349 specific */
 #define CONFIG_MPC8349EMDS	1	/* MPC8349EMDS board specific */
-
-#undef CONFIG_PCI
-#undef CONFIG_MPC83XX_PCI2		/* support for 2nd PCI controller */
 
 #define PCI_66M
 #ifdef PCI_66M
@@ -175,7 +172,6 @@
 #define CONFIG_SYS_FLASH_ERASE_TOUT	60000	/* Flash Erase Timeout (ms) */
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (ms) */
 
-#define CONFIG_SYS_MID_FLASH_JUMP	0x7F000000
 #define CONFIG_SYS_MONITOR_BASE	TEXT_BASE	/* start of monitor */
 
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
@@ -201,7 +197,7 @@
 #define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_LEN		(256 * 1024)		/* Reserve 256 kB for Mon */
+#define CONFIG_SYS_MONITOR_LEN		(384 * 1024)		/* Reserve 384 kB for Mon */
 #define CONFIG_SYS_MALLOC_LEN		(128 * 1024)		/* Reserved for malloc */
 
 /*
@@ -210,7 +206,8 @@
  * External Local Bus rate is
  *    CLKIN * HRCWL_CSB_TO_CLKIN / HRCWL_LCL_BUS_TO_SCB_CLK / LCRR_CLKDIV
  */
-#define CONFIG_SYS_LCRR	(LCRR_DBYP | LCRR_CLKDIV_4)
+#define CONFIG_SYS_LCRR_DBYP		LCRR_DBYP
+#define CONFIG_SYS_LCRR_CLKDIV		LCRR_CLKDIV_4
 #define CONFIG_SYS_LBC_LBCR	0x00000000
 
 /*
@@ -262,60 +259,24 @@
 #define CONFIG_SYS_LBC_LSRT	0x32000000    /* LB sdram refresh timer, about 6us */
 #define CONFIG_SYS_LBC_MRTPR	0x20000000    /* LB refresh timer prescal, 266MHz/32 */
 
-/*
- * LSDMR masks
- */
-#define CONFIG_SYS_LBC_LSDMR_RFEN	(1 << (31 -  1))
-#define CONFIG_SYS_LBC_LSDMR_BSMA1516	(3 << (31 - 10))
-#define CONFIG_SYS_LBC_LSDMR_BSMA1617	(4 << (31 - 10))
-#define CONFIG_SYS_LBC_LSDMR_RFCR5	(3 << (31 - 16))
-#define CONFIG_SYS_LBC_LSDMR_RFCR8	(5 << (31 - 16))
-#define CONFIG_SYS_LBC_LSDMR_RFCR16	(7 << (31 - 16))
-#define CONFIG_SYS_LBC_LSDMR_PRETOACT3	(3 << (31 - 19))
-#define CONFIG_SYS_LBC_LSDMR_PRETOACT6	(5 << (31 - 19))
-#define CONFIG_SYS_LBC_LSDMR_PRETOACT7	(7 << (31 - 19))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW3	(3 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW7	(7 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW6	(6 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_BL8	(1 << (31 - 23))
-#define CONFIG_SYS_LBC_LSDMR_WRC2	(2 << (31 - 27))
-#define CONFIG_SYS_LBC_LSDMR_WRC3	(3 << (31 - 27))
-#define CONFIG_SYS_LBC_LSDMR_WRC4	(0 << (31 - 27))
-#define CONFIG_SYS_LBC_LSDMR_BUFCMD	(1 << (31 - 29))
-#define CONFIG_SYS_LBC_LSDMR_CL3	(3 << (31 - 31))
-
-#define CONFIG_SYS_LBC_LSDMR_OP_NORMAL	(0 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ARFRSH	(1 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_SRFRSH	(2 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_MRW	(3 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PRECH	(4 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PCHALL	(5 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ACTBNK	(6 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_RWINV	(7 << (31 - 4))
-
-#define CONFIG_SYS_LBC_LSDMR_COMMON    ( CONFIG_SYS_LBC_LSDMR_RFEN            \
-				| CONFIG_SYS_LBC_LSDMR_BSMA1516	\
-				| CONFIG_SYS_LBC_LSDMR_RFCR8		\
-				| CONFIG_SYS_LBC_LSDMR_PRETOACT6	\
-				| CONFIG_SYS_LBC_LSDMR_ACTTORW3	\
-				| CONFIG_SYS_LBC_LSDMR_BL8		\
-				| CONFIG_SYS_LBC_LSDMR_WRC3		\
-				| CONFIG_SYS_LBC_LSDMR_CL3		\
+#define CONFIG_SYS_LBC_LSDMR_COMMON    ( LSDMR_RFEN            \
+				| LSDMR_BSMA1516	\
+				| LSDMR_RFCR8		\
+				| LSDMR_PRETOACT6	\
+				| LSDMR_ACTTORW3	\
+				| LSDMR_BL8		\
+				| LSDMR_WRC3		\
+				| LSDMR_CL3		\
 				)
 
 /*
  * SDRAM Controller configuration sequence.
  */
-#define CONFIG_SYS_LBC_LSDMR_1		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_PCHALL)
-#define CONFIG_SYS_LBC_LSDMR_2		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_ARFRSH)
-#define CONFIG_SYS_LBC_LSDMR_3		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_ARFRSH)
-#define CONFIG_SYS_LBC_LSDMR_4		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_MRW)
-#define CONFIG_SYS_LBC_LSDMR_5		( CONFIG_SYS_LBC_LSDMR_COMMON \
-				| CONFIG_SYS_LBC_LSDMR_OP_NORMAL)
+#define CONFIG_SYS_LBC_LSDMR_1	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_PCHALL)
+#define CONFIG_SYS_LBC_LSDMR_2	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_ARFRSH)
+#define CONFIG_SYS_LBC_LSDMR_3	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_ARFRSH)
+#define CONFIG_SYS_LBC_LSDMR_4	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_MRW)
+#define CONFIG_SYS_LBC_LSDMR_5	(CONFIG_SYS_LBC_LSDMR_COMMON | LSDMR_OP_NORMAL)
 #endif
 
 /*
@@ -351,7 +312,6 @@
 #undef CONFIG_SOFT_I2C			/* I2C bit-banged */
 #define CONFIG_FSL_I2C
 #define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_CMD_TREE
 #define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
 #define CONFIG_SYS_I2C_SLAVE		0x7F
 #define CONFIG_SYS_I2C_NOPROBES	{{0,0x69}}	/* Don't probe these addrs */
@@ -411,7 +371,6 @@
 
 #define CONFIG_NET_MULTI
 #define CONFIG_PCI_PNP		/* do pci plug-and-play */
-#define CONFIG_83XX_GENERIC_PCI
 #define CONFIG_83XX_PCI_STREAMING
 
 #undef CONFIG_EEPRO100
@@ -634,7 +593,7 @@
 #define CONFIG_SYS_SCCR_TSEC2CM	1	/* TSEC2 & I2C0 clock mode (0-3) */
 
 /* System IO Config */
-#define CONFIG_SYS_SICRH SICRH_TSOBI1
+#define CONFIG_SYS_SICRH 0
 #define CONFIG_SYS_SICRL SICRL_LDP_A
 
 #define CONFIG_SYS_HID0_INIT	0x000000000
@@ -683,7 +642,8 @@
 #define CONFIG_SYS_IBAT5U	(CONFIG_SYS_IMMR | BATU_BL_256M | BATU_VS | BATU_VP)
 
 /* SDRAM @ 0xF0000000, stack in DCACHE 0xFDF00000 & FLASH @ 0xFE000000 */
-#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10 | BATL_MEMCOHERENCE)
+#define CONFIG_SYS_IBAT6L	(0xF0000000 | BATL_PP_10 | BATL_MEMCOHERENCE | \
+				 BATL_GUARDEDSTORAGE)
 #define CONFIG_SYS_IBAT6U	(0xF0000000 | BATU_BL_256M | BATU_VS | BATU_VP)
 
 #define CONFIG_SYS_IBAT7L	(0)
@@ -725,23 +685,15 @@
 #define CONFIG_ENV_OVERWRITE
 
 #if defined(CONFIG_TSEC_ENET)
-#define CONFIG_ETHADDR		00:04:9f:ef:23:33
 #define CONFIG_HAS_ETH1
 #define CONFIG_HAS_ETH0
-#define CONFIG_ETH1ADDR		00:E0:0C:00:7E:21
 #endif
-
-#define CONFIG_IPADDR		192.168.1.253
 
 #define CONFIG_HOSTNAME		mpc8349emds
 #define CONFIG_ROOTPATH		/nfsroot/rootfs
 #define CONFIG_BOOTFILE		uImage
 
-#define CONFIG_SERVERIP		192.168.1.1
-#define CONFIG_GATEWAYIP	192.168.1.1
-#define CONFIG_NETMASK		255.255.255.0
-
-#define CONFIG_LOADADDR		500000	/* default location for tftp and bootm */
+#define CONFIG_LOADADDR		800000	/* default location for tftp and bootm */
 
 #define CONFIG_BOOTDELAY	6	/* -1 disables auto-boot */
 #undef  CONFIG_BOOTARGS			/* the boot command will set bootargs */
@@ -772,8 +724,8 @@
 	"update=protect off fe000000 fe03ffff; "			\
 		"era fe000000 fe03ffff; cp.b 100000 fe000000 ${filesize}\0"	\
 	"upd=run load update\0"						\
-	"fdtaddr=400000\0"						\
-	"fdtfile=mpc8349emds.dtb\0"					\
+	"fdtaddr=780000\0"						\
+	"fdtfile=mpc834x_mds.dtb\0"					\
 	""
 
 #define CONFIG_NFSBOOTCOMMAND	                                        \

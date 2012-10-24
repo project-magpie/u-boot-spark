@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 Wind River Systems <www.windriver.com>
+ * Copyright 2007,2009 Wind River Systems <www.windriver.com>
  * Copyright 2007 Embedded Specialties, Inc.
  * Copyright 2004, 2007 Freescale Semiconductor.
  *
@@ -24,26 +24,49 @@
 
 /*
  * sbc8548 board configuration file
- *
- * Please refer to doc/README.sbc85xx for more info.
- *
+ * Please refer to doc/README.sbc8548 for more info.
  */
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-/* High Level Configuration Options */
+/*
+ * Top level Makefile configuration choices
+ */
+#ifdef CONFIG_MK_PCI
+#define CONFIG_PCI
+#define CONFIG_PCI1
+#endif
+
+#ifdef CONFIG_MK_66
+#define CONFIG_SYS_CLK_DIV 1
+#endif
+
+#ifdef CONFIG_MK_33
+#define CONFIG_SYS_CLK_DIV 2
+#endif
+
+#ifdef CONFIG_MK_PCIE
+#define CONFIG_PCIE1
+#endif
+
+/*
+ * High Level Configuration Options
+ */
 #define CONFIG_BOOKE		1	/* BOOKE */
 #define CONFIG_E500		1	/* BOOKE e500 family */
 #define CONFIG_MPC85xx		1	/* MPC8540/60/55/41/48 */
 #define CONFIG_MPC8548		1	/* MPC8548 specific */
 #define CONFIG_SBC8548		1	/* SBC8548 board specific */
 
-#undef CONFIG_PCI		/* enable any pci type devices */
-#undef CONFIG_PCI1		/* PCI controller 1 */
-#undef CONFIG_PCIE1		/* PCIE controler 1 (slot 1) */
 #undef CONFIG_RIO
-#undef CONFIG_PCI2
-#undef CONFIG_FSL_PCI_INIT		/* Use common FSL init code */
+
+#ifdef CONFIG_PCI
+#define CONFIG_FSL_PCI_INIT		/* Use common FSL init code */
+#define CONFIG_SYS_PCI_64BIT    1	/* enable 64-bit PCI resources */
+#endif
+#ifdef CONFIG_PCIE1
+#define CONFIG_FSL_PCIE_RESET   1	/* need PCIe reset errata */
+#endif
 
 #define CONFIG_TSEC_ENET		/* tsec ethernet support */
 #define CONFIG_ENV_OVERWRITE
@@ -52,14 +75,19 @@
 
 #define CONFIG_FSL_LAW		1	/* Use common FSL init code */
 
-#define CONFIG_SYS_CLK_FREQ	66000000 /* SBC8548 default SYSCLK */
+/*
+ * Below assumes that CCB:SYSCLK remains unchanged at 6:1 via SW2:[1-4]
+ */
+#ifndef CONFIG_SYS_CLK_DIV
+#define CONFIG_SYS_CLK_DIV	1	/* 2, if 33MHz PCI card installed */
+#endif
+#define CONFIG_SYS_CLK_FREQ	(66000000 / CONFIG_SYS_CLK_DIV)
 
 /*
  * These can be toggled for performance analysis, otherwise use default.
  */
 #define CONFIG_L2_CACHE			/* toggle L2 cache */
 #define CONFIG_BTB			/* toggle branch predition */
-#define CONFIG_CLEAR_LAW0		/* Clear LAW0 in cpu_init_r */
 
 /*
  * Only possible on E500 Version 2 or newer cores.
@@ -165,6 +193,7 @@
  */
 
 #define CONFIG_SYS_BOOT_BLOCK		0xff800000	/* start of 8MB Flash */
+#define CONFIG_SYS_ALT_FLASH		0xfb800000	/* 64MB "user" flash */
 #define CONFIG_SYS_FLASH_BASE		CONFIG_SYS_BOOT_BLOCK	/* start of FLASH 16M */
 
 #define CONFIG_SYS_BR0_PRELIM		0xff800801
@@ -173,9 +202,10 @@
 #define	CONFIG_SYS_OR0_PRELIM		0xff806e65
 #define	CONFIG_SYS_OR6_PRELIM		0xf8006e65
 
-#define CONFIG_SYS_FLASH_BANKS_LIST	{CONFIG_SYS_FLASH_BASE}
-#define CONFIG_SYS_MAX_FLASH_BANKS	1		/* number of banks */
-#define CONFIG_SYS_MAX_FLASH_SECT	128		/* sectors per device */
+#define CONFIG_SYS_FLASH_BANKS_LIST	{CONFIG_SYS_FLASH_BASE, \
+					 CONFIG_SYS_ALT_FLASH}
+#define CONFIG_SYS_MAX_FLASH_BANKS	2		/* number of banks */
+#define CONFIG_SYS_MAX_FLASH_SECT	256		/* sectors per device */
 #undef	CONFIG_SYS_FLASH_CHECKSUM
 #define CONFIG_SYS_FLASH_ERASE_TOUT	60000	/* Flash Erase Timeout (ms) */
 #define CONFIG_SYS_FLASH_WRITE_TOUT	500	/* Flash Write Timeout (ms) */
@@ -197,13 +227,13 @@
 #define CONFIG_SYS_EEPROM_BASE		0xf8b00000
 
 /*
- * SDRAM on the Local Bus
+ * SDRAM on the Local Bus (CS3 and CS4)
  */
 #define CONFIG_SYS_LBC_SDRAM_BASE	0xf0000000	/* Localbus SDRAM */
-#define CONFIG_SYS_LBC_SDRAM_SIZE	64		/* LBC SDRAM is 64MB */
+#define CONFIG_SYS_LBC_SDRAM_SIZE	128		/* LBC SDRAM is 128MB */
 
 /*
- * Base Register 3 and Option Register 3 configure SDRAM.
+ * Base Register 3 and Option Register 3 configure the 1st 1/2 SDRAM.
  * The SDRAM base address, CONFIG_SYS_LBC_SDRAM_BASE, is 0xf0000000.
  *
  * For BR3, need:
@@ -221,7 +251,7 @@
 #define CONFIG_SYS_BR3_PRELIM		0xf0001861
 
 /*
- * The SDRAM size in MB, CONFIG_SYS_LBC_SDRAM_SIZE, is 64.
+ * The SDRAM size in MB, of 1/2 CONFIG_SYS_LBC_SDRAM_SIZE, is 64.
  *
  * For OR3, need:
  *    64MB mask for AM, OR3[0:7] = 1111 1100
@@ -236,33 +266,44 @@
 
 #define CONFIG_SYS_OR3_PRELIM		0xfc006cc0
 
+/*
+ * Base Register 4 and Option Register 4 configure the 2nd 1/2 SDRAM.
+ * The base address, (SDRAM_BASE + 1/2*SIZE), is 0xf4000000.
+ *
+ * For BR4, need:
+ *    Base address of 0xf4000000 = BR[0:16] = 1111 0100 0000 0000 0
+ *    port-size = 32-bits = BR2[19:20] = 11
+ *    no parity checking = BR2[21:22] = 00
+ *    SDRAM for MSEL = BR2[24:26] = 011
+ *    Valid = BR[31] = 1
+ *
+ * 0    4    8    12   16   20   24   28
+ * 1111 0000 0000 0000 0001 1000 0110 0001 = f4001861
+ *
+ */
+
+#define CONFIG_SYS_BR4_PRELIM		0xf4001861
+
+/*
+ * The SDRAM size in MB, of 1/2 CONFIG_SYS_LBC_SDRAM_SIZE, is 64.
+ *
+ * For OR4, need:
+ *    64MB mask for AM, OR3[0:7] = 1111 1100
+ *		   XAM, OR3[17:18] = 11
+ *    10 columns OR3[19-21] = 011
+ *    12 rows   OR3[23-25] = 011
+ *    EAD set for extra time OR[31] = 0
+ *
+ * 0    4    8    12   16   20   24   28
+ * 1111 1100 0000 0000 0110 1100 1100 0000 = fc006cc0
+ */
+
+#define CONFIG_SYS_OR4_PRELIM		0xfc006cc0
+
 #define CONFIG_SYS_LBC_LCRR		0x00000002    /* LB clock ratio reg */
 #define CONFIG_SYS_LBC_LBCR		0x00000000    /* LB config reg */
 #define CONFIG_SYS_LBC_LSRT		0x20000000  /* LB sdram refresh timer */
 #define CONFIG_SYS_LBC_MRTPR		0x00000000  /* LB refresh timer prescal*/
-
-/*
- * LSDMR masks
- */
-#define CONFIG_SYS_LBC_LSDMR_RFEN	(1 << (31 -  1))
-#define CONFIG_SYS_LBC_LSDMR_BSMA1516	(3 << (31 - 10))
-#define CONFIG_SYS_LBC_LSDMR_BSMA1617	(4 << (31 - 10))
-#define CONFIG_SYS_LBC_LSDMR_RFCR16	(7 << (31 - 16))
-#define CONFIG_SYS_LBC_LSDMR_PRETOACT7	(7 << (31 - 19))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW7	(7 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_ACTTORW6	(6 << (31 - 22))
-#define CONFIG_SYS_LBC_LSDMR_BL8	(1 << (31 - 23))
-#define CONFIG_SYS_LBC_LSDMR_WRC4	(0 << (31 - 27))
-#define CONFIG_SYS_LBC_LSDMR_CL3	(3 << (31 - 31))
-
-#define CONFIG_SYS_LBC_LSDMR_OP_NORMAL	(0 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ARFRSH	(1 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_SRFRSH	(2 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_MRW	(3 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PRECH	(4 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_PCHALL	(5 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_ACTBNK	(6 << (31 - 4))
-#define CONFIG_SYS_LBC_LSDMR_OP_RWINV	(7 << (31 - 4))
 
 /*
  * Common settings for all Local Bus SDRAM commands.
@@ -270,13 +311,13 @@
  *                  or BSMA1617 (for CPU 1.0) (old)
  * is OR'ed in too.
  */
-#define CONFIG_SYS_LBC_LSDMR_COMMON	( CONFIG_SYS_LBC_LSDMR_RFCR16		\
-				| CONFIG_SYS_LBC_LSDMR_PRETOACT7	\
-				| CONFIG_SYS_LBC_LSDMR_ACTTORW7	\
-				| CONFIG_SYS_LBC_LSDMR_BL8		\
-				| CONFIG_SYS_LBC_LSDMR_WRC4		\
-				| CONFIG_SYS_LBC_LSDMR_CL3		\
-				| CONFIG_SYS_LBC_LSDMR_RFEN		\
+#define CONFIG_SYS_LBC_LSDMR_COMMON	( LSDMR_RFCR16		\
+				| LSDMR_PRETOACT7	\
+				| LSDMR_ACTTORW7	\
+				| LSDMR_BL8		\
+				| LSDMR_WRC4		\
+				| LSDMR_CL3		\
+				| LSDMR_RFEN		\
 				)
 
 #define CONFIG_SYS_INIT_RAM_LOCK	1
@@ -289,7 +330,14 @@
 #define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_LEN		(256 * 1024) /* Reserve 256 kB for Mon */
+/*
+ * For soldered on flash, (128kB/sector) we use 2 sectors for u-boot and
+ * one for env+bootpg (TEXT_BASE=0xfffa_0000, 384kB total).  For SODIMM
+ * flash (512kB/sector) we use 1 sector for u-boot, and one for env+bootpg
+ * (TEXT_BASE=0xfff0_0000, 1MB total).  This dynamically sets the right
+ * thing for MONITOR_LEN in both cases.
+ */
+#define CONFIG_SYS_MONITOR_LEN		(~TEXT_BASE + 1)
 #define CONFIG_SYS_MALLOC_LEN		(128 * 1024)	/* Reserved for malloc */
 
 /* Serial Port */
@@ -298,7 +346,7 @@
 #define CONFIG_SYS_NS16550
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
-#define CONFIG_SYS_NS16550_CLK		400000000 /* get_bus_freq(0) */
+#define CONFIG_SYS_NS16550_CLK		(400000000 / CONFIG_SYS_CLK_DIV)
 
 #define CONFIG_SYS_BAUDRATE_TABLE \
 	{300, 600, 1200, 2400, 4800, 9600, 19200, 38400,115200}
@@ -332,31 +380,27 @@
  * General PCI
  * Memory space is mapped 1-1, but I/O space must start from 0.
  */
+#define CONFIG_SYS_PCI_VIRT		0x80000000	/* 1G PCI TLB */
 #define CONFIG_SYS_PCI_PHYS		0x80000000	/* 1G PCI TLB */
 
-#define CONFIG_SYS_PCI1_MEM_BASE	0x80000000
-#define CONFIG_SYS_PCI1_MEM_PHYS	CONFIG_SYS_PCI1_MEM_BASE
+#define CONFIG_SYS_PCI1_MEM_VIRT	0x80000000
+#define CONFIG_SYS_PCI1_MEM_BUS		0x80000000
+#define CONFIG_SYS_PCI1_MEM_PHYS	0x80000000
 #define CONFIG_SYS_PCI1_MEM_SIZE	0x20000000	/* 512M */
-#define CONFIG_SYS_PCI1_IO_BASE	0x00000000
-#define CONFIG_SYS_PCI1_IO_PHYS	0xe2000000
-#define CONFIG_SYS_PCI1_IO_SIZE	0x00100000	/* 1M */
-
-#ifdef CONFIG_PCI2
-#define CONFIG_SYS_PCI2_MEM_BASE	0xa0000000
-#define CONFIG_SYS_PCI2_MEM_PHYS	CONFIG_SYS_PCI2_MEM_BASE
-#define CONFIG_SYS_PCI2_MEM_SIZE	0x20000000	/* 512M */
-#define CONFIG_SYS_PCI2_IO_BASE	0x00000000
-#define CONFIG_SYS_PCI2_IO_PHYS	0xe2800000
-#define CONFIG_SYS_PCI2_IO_SIZE	0x00100000	/* 1M */
-#endif
+#define CONFIG_SYS_PCI1_IO_VIRT		0xe2000000
+#define CONFIG_SYS_PCI1_IO_BUS		0x00000000
+#define CONFIG_SYS_PCI1_IO_PHYS		0xe2000000
+#define CONFIG_SYS_PCI1_IO_SIZE		0x00800000	/* 8M */
 
 #ifdef CONFIG_PCIE1
-#define CONFIG_SYS_PCIE1_MEM_BASE	0xa0000000
-#define CONFIG_SYS_PCIE1_MEM_PHYS	CONFIG_SYS_PCIE1_MEM_BASE
+#define CONFIG_SYS_PCIE1_MEM_VIRT	0xa0000000
+#define CONFIG_SYS_PCIE1_MEM_BUS	0xa0000000
+#define CONFIG_SYS_PCIE1_MEM_PHYS	0xa0000000
 #define CONFIG_SYS_PCIE1_MEM_SIZE	0x20000000	/* 512M */
-#define CONFIG_SYS_PCIE1_IO_BASE	0x00000000
-#define CONFIG_SYS_PCIE1_IO_PHYS	0xe3000000
-#define CONFIG_SYS_PCIE1_IO_SIZE	0x00100000	/*   1M */
+#define CONFIG_SYS_PCIE1_IO_VIRT	0xe2800000
+#define CONFIG_SYS_PCIE1_IO_BUS		0x00000000
+#define CONFIG_SYS_PCIE1_IO_PHYS	0xe2800000
+#define CONFIG_SYS_PCIE1_IO_SIZE	0x00800000	/* 8M */
 #endif
 
 #ifdef CONFIG_RIO
@@ -367,14 +411,6 @@
 #define CONFIG_SYS_RIO_MEM_SIZE	0x20000000	/* 512M */
 #endif
 
-#ifdef CONFIG_LEGACY
-#define BRIDGE_ID 17
-#define VIA_ID 2
-#else
-#define BRIDGE_ID 28
-#define VIA_ID 4
-#endif
-
 #if defined(CONFIG_PCI)
 
 #define CONFIG_NET_MULTI
@@ -383,7 +419,7 @@
 #undef CONFIG_EEPRO100
 #undef CONFIG_TULIP
 
-#undef CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup */
+#define CONFIG_PCI_SCAN_SHOW		/* show pci devices on startup */
 
 #endif	/* CONFIG_PCI */
 
@@ -419,9 +455,16 @@
  * Environment
  */
 #define CONFIG_ENV_IS_IN_FLASH	1
-#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE + 0x40000)
-#define CONFIG_ENV_SECT_SIZE	0x40000	/* 256K(one sector) for env */
 #define CONFIG_ENV_SIZE		0x2000
+#if TEXT_BASE == 0xfff00000	/* Boot from 64MB SODIMM */
+#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE + 0x80000)
+#define CONFIG_ENV_SECT_SIZE	0x80000	/* 512K(one sector) for env */
+#elif TEXT_BASE == 0xfffa0000	/* Boot from 8MB soldered flash */
+#define CONFIG_ENV_ADDR		(CONFIG_SYS_MONITOR_BASE + 0x40000)
+#define CONFIG_ENV_SECT_SIZE	0x20000	/* 128K(one sector) for env */
+#else
+#warning undefined environment size/location.
+#endif
 
 #define CONFIG_LOADS_ECHO	1	/* echo on for serial download */
 #define CONFIG_SYS_LOADS_BAUD_CHANGE	1	/* allow baudrate change */

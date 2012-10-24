@@ -29,10 +29,6 @@
 #include "nfs.h"
 #include "bootp.h"
 
-/*#define NFS_DEBUG*/
-
-#if defined(CONFIG_CMD_NET) && defined(CONFIG_CMD_NFS)
-
 #define HASHES_PER_LINE 65	/* Number of "loading" hashes per line	*/
 #define NFS_RETRY_COUNT 30
 #define NFS_TIMEOUT 2000UL
@@ -357,9 +353,7 @@ RPC request dispatcher
 static void
 NfsSend (void)
 {
-#ifdef NFS_DEBUG
-	printf ("%s\n", __FUNCTION__);
-#endif
+	debug("%s\n", __func__);
 
 	switch (NfsState) {
 	case STATE_PRCLOOKUP_PROG_MOUNT_REQ:
@@ -397,9 +391,7 @@ rpc_lookup_reply (int prog, uchar *pkt, unsigned len)
 
 	memcpy ((unsigned char *)&rpc_pkt, pkt, len);
 
-#ifdef NFS_DEBUG
-	printf ("%s\n", __FUNCTION__);
-#endif
+	debug("%s\n", __func__);
 
 	if (ntohl(rpc_pkt.u.reply.id) != rpc_id)
 		return -1;
@@ -427,9 +419,7 @@ nfs_mount_reply (uchar *pkt, unsigned len)
 {
 	struct rpc_t rpc_pkt;
 
-#ifdef NFS_DEBUG
-	printf ("%s\n", __FUNCTION__);
-#endif
+	debug("%s\n", __func__);
 
 	memcpy ((unsigned char *)&rpc_pkt, pkt, len);
 
@@ -454,9 +444,7 @@ nfs_umountall_reply (uchar *pkt, unsigned len)
 {
 	struct rpc_t rpc_pkt;
 
-#ifdef NFS_DEBUG
-	printf ("%s\n", __FUNCTION__);
-#endif
+	debug("%s\n", __func__);
 
 	memcpy ((unsigned char *)&rpc_pkt, pkt, len);
 
@@ -480,9 +468,7 @@ nfs_lookup_reply (uchar *pkt, unsigned len)
 {
 	struct rpc_t rpc_pkt;
 
-#ifdef NFS_DEBUG
-	printf ("%s\n", __FUNCTION__);
-#endif
+	debug("%s\n", __func__);
 
 	memcpy ((unsigned char *)&rpc_pkt, pkt, len);
 
@@ -507,9 +493,7 @@ nfs_readlink_reply (uchar *pkt, unsigned len)
 	struct rpc_t rpc_pkt;
 	int rlen;
 
-#ifdef NFS_DEBUG
-	printf ("%s\n", __FUNCTION__);
-#endif
+	debug("%s\n", __func__);
 
 	memcpy ((unsigned char *)&rpc_pkt, pkt, len);
 
@@ -530,7 +514,7 @@ nfs_readlink_reply (uchar *pkt, unsigned len)
 		strcat (nfs_path, "/");
 		pathlen = strlen(nfs_path);
 		memcpy (nfs_path+pathlen, (uchar *)&(rpc_pkt.u.reply.data[2]), rlen);
-		nfs_path[pathlen+rlen+1] = 0;
+		nfs_path[pathlen + rlen] = 0;
 	} else {
 		memcpy (nfs_path, (uchar *)&(rpc_pkt.u.reply.data[2]), rlen);
 		nfs_path[rlen] = 0;
@@ -544,9 +528,7 @@ nfs_read_reply (uchar *pkt, unsigned len)
 	struct rpc_t rpc_pkt;
 	int rlen;
 
-#ifdef NFS_DEBUG_nop
-	printf ("%s\n", __FUNCTION__);
-#endif
+	debug("%s\n", __func__);
 
 	memcpy ((uchar *)&rpc_pkt, pkt, sizeof(rpc_pkt.u.reply));
 
@@ -587,13 +569,14 @@ Interfaces of U-BOOT
 static void
 NfsTimeout (void)
 {
-	if ( NfsTimeoutCount++ < NFS_RETRY_COUNT ) {
+	if ( ++NfsTimeoutCount > NFS_RETRY_COUNT ) {
+		puts ("\nRetry count exceeded; starting again\n");
+		NetStartAgain ();
+	} else {
+		puts("T ");
+		NetSetTimeout (NFS_TIMEOUT, NfsTimeout);
 		NfsSend ();
-		return;
 	}
-	puts ("Timeout\n");
-	NetState = NETLOOP_FAIL;
-	return;
 }
 
 static void
@@ -601,9 +584,7 @@ NfsHandler (uchar *pkt, unsigned dest, unsigned src, unsigned len)
 {
 	int rlen;
 
-#ifdef NFS_DEBUG
-	printf ("%s\n", __FUNCTION__);
-#endif
+	debug("%s\n", __func__);
 
 	if (dest != NfsOurPort) return;
 
@@ -661,9 +642,7 @@ NfsHandler (uchar *pkt, unsigned dest, unsigned src, unsigned len)
 			NfsState = STATE_UMOUNT_REQ;
 			NfsSend ();
 		} else {
-#ifdef NFS_DEBUG
-			printf ("Symlink --> %s\n", nfs_path);
-#endif
+			debug("Symlink --> %s\n", nfs_path);
 			nfs_filename = basename (nfs_path);
 			nfs_path     = dirname (nfs_path);
 
@@ -696,9 +675,7 @@ NfsHandler (uchar *pkt, unsigned dest, unsigned src, unsigned len)
 void
 NfsStart (void)
 {
-#ifdef NFS_DEBUG
-	printf ("%s\n", __FUNCTION__);
-#endif
+	debug("%s\n", __func__);
 	NfsDownloadState = NETLOOP_FAIL;
 
 	NfsServerIP = NetServerIP;
@@ -741,18 +718,16 @@ NfsStart (void)
 	printf ("Using %s device\n", eth_get_name());
 #endif
 
-	puts ("File transfer via NFS from server "); print_IPaddr (NfsServerIP);
-	puts ("; our IP address is ");		    print_IPaddr (NetOurIP);
+	printf("File transfer via NFS from server %pI4"
+		"; our IP address is %pI4", &NfsServerIP, &NetOurIP);
 
 	/* Check if we need to send across this subnet */
 	if (NetOurGatewayIP && NetOurSubnetMask) {
 		IPaddr_t OurNet	    = NetOurIP	  & NetOurSubnetMask;
 		IPaddr_t ServerNet  = NetServerIP & NetOurSubnetMask;
 
-		if (OurNet != ServerNet) {
-			puts ("; sending through gateway ");
-			print_IPaddr (NetOurGatewayIP) ;
-		}
+		if (OurNet != ServerNet)
+			printf("; sending through gateway %pI4", &NetOurGatewayIP);
 	}
 	printf ("\nFilename '%s/%s'.", nfs_path, nfs_filename);
 
@@ -778,5 +753,3 @@ NfsStart (void)
 
 	NfsSend ();
 }
-
-#endif

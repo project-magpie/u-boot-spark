@@ -3,7 +3,7 @@
  *
  *  Copyright (c) 2001	Marius Gröger <mag@sysgo.de>
  *  Copyright (c) 2002	Alex Züpke <azu@sysgo.de>
- *  Copyright (c) 2002	Gary Jennejohn <gj@denx.de>
+ *  Copyright (c) 2002	Gary Jennejohn <garyj@denx.de>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -24,9 +24,8 @@
  * MA 02111-1307 USA
  */
 
+#include <common.h>
 #include <config.h>
-#include <version.h>
-#include <status_led.h>
 
 /*
  *************************************************************************
@@ -38,7 +37,7 @@
 
 
 .globl _start
-_start:	b       start_code
+_start:	b	start_code
 	ldr	pc, _undefined_instruction
 	ldr	pc, _software_interrupt
 	ldr	pc, _prefetch_abort
@@ -110,13 +109,13 @@ start_code:
 	/*
 	 * set the cpu to SVC32 mode
 	 */
-	mrs	r0,cpsr
-	bic	r0,r0,#0x1f
-	orr	r0,r0,#0xd3
-	msr	cpsr,r0
+	mrs	r0, cpsr
+	bic	r0, r0, #0x1f
+	orr	r0, r0, #0xd3
+	msr	cpsr, r0
 
-	bl coloured_LED_init
-	bl red_LED_on
+	bl	coloured_LED_init
+	bl	red_LED_on
 
 #if	defined(CONFIG_AT91RM9200DK) || defined(CONFIG_AT91RM9200EK)
 	/*
@@ -132,23 +131,23 @@ copyex:
 	bne	copyex
 #endif
 
-#if defined(CONFIG_S3C2400) || defined(CONFIG_S3C2410)
+#ifdef CONFIG_S3C24X0
 	/* turn off the watchdog */
 
 # if defined(CONFIG_S3C2400)
-#  define pWTCON		0x15300000
-#  define INTMSK		0x14400008	/* Interupt-Controller base addresses */
+#  define pWTCON	0x15300000
+#  define INTMSK	0x14400008	/* Interupt-Controller base addresses */
 #  define CLKDIVN	0x14800014	/* clock divisor register */
 #else
-#  define pWTCON		0x53000000
-#  define INTMSK		0x4A000008	/* Interupt-Controller base addresses */
+#  define pWTCON	0x53000000
+#  define INTMSK	0x4A000008	/* Interupt-Controller base addresses */
 #  define INTSUBMSK	0x4A00001C
 #  define CLKDIVN	0x4C000014	/* clock divisor register */
 # endif
 
-	ldr     r0, =pWTCON
-	mov     r1, #0x0
-	str     r1, [r0]
+	ldr	r0, =pWTCON
+	mov	r1, #0x0
+	str	r1, [r0]
 
 	/*
 	 * mask all IRQs by setting all bits in the INTMR - default
@@ -167,7 +166,7 @@ copyex:
 	ldr	r0, =CLKDIVN
 	mov	r1, #3
 	str	r1, [r0]
-#endif	/* CONFIG_S3C2400 || CONFIG_S3C2410 */
+#endif	/* CONFIG_S3C24X0 */
 
 	/*
 	 * we do sys-critical inits only at reboot,
@@ -181,8 +180,8 @@ copyex:
 relocate:				/* relocate U-Boot to RAM	    */
 	adr	r0, _start		/* r0 <- current position of code   */
 	ldr	r1, _TEXT_BASE		/* test if we run from flash or RAM */
-	cmp     r0, r1                  /* don't reloc during debug         */
-	beq     stack_setup
+	cmp	r0, r1			/* don't reloc during debug         */
+	beq	stack_setup
 
 	ldr	r2, _armboot_start
 	ldr	r3, _bss_start
@@ -199,8 +198,8 @@ copy_loop:
 	/* Set up the stack						    */
 stack_setup:
 	ldr	r0, _TEXT_BASE		/* upper 128 KiB: relocated uboot   */
-	sub	r0, r0, #CONFIG_SYS_MALLOC_LEN	/* malloc area                      */
-	sub	r0, r0, #CONFIG_SYS_GBL_DATA_SIZE /* bdinfo                        */
+	sub	r0, r0, #CONFIG_SYS_MALLOC_LEN	/* malloc area              */
+	sub	r0, r0, #CONFIG_SYS_GBL_DATA_SIZE /* bdinfo                 */
 #ifdef CONFIG_USE_IRQ
 	sub	r0, r0, #(CONFIG_STACKSIZE_IRQ+CONFIG_STACKSIZE_FIQ)
 #endif
@@ -258,11 +257,9 @@ cpu_init_crit:
 	 * find a lowlevel_init.S in your board directory.
 	 */
 	mov	ip, lr
-#if	defined(CONFIG_AT91RM9200EK)
 
-#else
 	bl	lowlevel_init
-#endif
+
 	mov	lr, ip
 	mov	pc, lr
 #endif /* CONFIG_SKIP_LOWLEVEL_INIT */
@@ -300,8 +297,8 @@ cpu_init_crit:
 #define S_R1		4
 #define S_R0		0
 
-#define MODE_SVC 0x13
-#define I_BIT	 0x80
+#define MODE_SVC	0x13
+#define I_BIT		0x80
 
 /*
  * use bad_save_user_regs for abort/prefetch/undef/swi ...
@@ -314,7 +311,8 @@ cpu_init_crit:
 	ldr	r2, _armboot_start
 	sub	r2, r2, #(CONFIG_STACKSIZE)
 	sub	r2, r2, #(CONFIG_SYS_MALLOC_LEN)
-	sub	r2, r2, #(CONFIG_SYS_GBL_DATA_SIZE+8)  @ set base 2 words into abort stack
+	/* set base 2 words into abort stack */
+	sub	r2, r2, #(CONFIG_SYS_GBL_DATA_SIZE+8)
 	ldmia	r2, {r2 - r3}			@ get pc, cpsr
 	add	r0, sp, #S_FRAME_SIZE		@ restore sp_SVC
 
@@ -327,12 +325,12 @@ cpu_init_crit:
 	.macro	irq_save_user_regs
 	sub	sp, sp, #S_FRAME_SIZE
 	stmia	sp, {r0 - r12}			@ Calling r0-r12
-	add     r7, sp, #S_PC
-	stmdb   r7, {sp, lr}^                   @ Calling SP, LR
-	str     lr, [r7, #0]                    @ Save calling PC
-	mrs     r6, spsr
-	str     r6, [r7, #4]                    @ Save CPSR
-	str     r0, [r7, #8]                    @ Save OLD_R0
+	add	r7, sp, #S_PC
+	stmdb	r7, {sp, lr}^			@ Calling SP, LR
+	str	lr, [r7, #0]			@ Save calling PC
+	mrs	r6, spsr
+	str	r6, [r7, #4]			@ Save CPSR
+	str	r0, [r7, #8]			@ Save OLD_R0
 	mov	r0, sp
 	.endm
 
@@ -341,18 +339,20 @@ cpu_init_crit:
 	mov	r0, r0
 	ldr	lr, [sp, #S_PC]			@ Get PC
 	add	sp, sp, #S_FRAME_SIZE
-	subs	pc, lr, #4			@ return & move spsr_svc into cpsr
+	/* return & move spsr_svc into cpsr */
+	subs	pc, lr, #4
 	.endm
 
 	.macro get_bad_stack
 	ldr	r13, _armboot_start		@ setup our mode stack
 	sub	r13, r13, #(CONFIG_STACKSIZE)
 	sub	r13, r13, #(CONFIG_SYS_MALLOC_LEN)
-	sub	r13, r13, #(CONFIG_SYS_GBL_DATA_SIZE+8) @ reserved a couple spots in abort stack
+	/* reserve a couple spots in abort stack */
+	sub	r13, r13, #(CONFIG_SYS_GBL_DATA_SIZE+8)
 
 	str	lr, [r13]			@ save caller lr / spsr
 	mrs	lr, spsr
-	str     lr, [r13, #4]
+	str	lr, [r13, #4]
 
 	mov	r13, #MODE_SVC			@ prepare SVC-Mode
 	@ msr	spsr_c, r13

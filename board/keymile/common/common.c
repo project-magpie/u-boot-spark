@@ -35,6 +35,7 @@
 #include <libfdt.h>
 #endif
 
+#include "../common/common.h"
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
 #include <i2c.h>
 
@@ -203,8 +204,9 @@ static int ivm_check_crc (unsigned char *buf, int block)
 	crceeprom = (buf[CONFIG_SYS_IVM_EEPROM_PAGE_LEN - 1] + \
 			buf[CONFIG_SYS_IVM_EEPROM_PAGE_LEN - 2] * 256);
 	if (crc != crceeprom) {
-		printf ("Error CRC Block: %d EEprom: calculated: %lx EEprom: %lx\n",
-			block, crc, crceeprom);
+		if (block == 0)
+			printf ("Error CRC Block: %d EEprom: calculated: \
+			%lx EEprom: %lx\n", block, crc, crceeprom);
 		return -1;
 	}
 	return 0;
@@ -287,7 +289,7 @@ int ivm_analyze_eeprom (unsigned char *buf, int len)
 	GET_STRING("IVM_CustomerProductID", IVM_POS_CUSTOMER_PROD_ID, 32)
 
 	if (ivm_check_crc (&buf[CONFIG_SYS_IVM_EEPROM_PAGE_LEN * 2], 2) != 0)
-		return -2;
+		return 0;
 	ivm_analyze_block2 (&buf[CONFIG_SYS_IVM_EEPROM_PAGE_LEN * 2], CONFIG_SYS_IVM_EEPROM_PAGE_LEN);
 
 	return 0;
@@ -420,9 +422,9 @@ static int get_scl (void)
 
 	return ((val & SCL_BIT) == SCL_BIT);
 }
-
 #endif
 
+#if !defined(CONFIG_KMETER1)
 static void writeStartSeq (void)
 {
 	set_sda (1);
@@ -473,6 +475,7 @@ static int i2c_make_abort (void)
 	get_sda ();
 	return ret;
 }
+#endif
 
 /**
  * i2c_init_board - reset i2c bus. When the board is powercycled during a
@@ -480,7 +483,24 @@ static int i2c_make_abort (void)
  */
 void i2c_init_board(void)
 {
-#if defined(CONFIG_HARD_I2C)
+#if defined(CONFIG_KMETER1)
+	struct fsl_i2c *dev;
+	dev = (struct fsl_i2c *) (CONFIG_SYS_IMMR + CONFIG_SYS_I2C_OFFSET);
+	uchar	dummy;
+
+	out_8 (&dev->cr, (I2C_CR_MSTA));
+	out_8 (&dev->cr, (I2C_CR_MEN | I2C_CR_MSTA));
+	dummy = in_8(&dev->dr);
+	dummy = in_8(&dev->dr);
+	if (dummy != 0xff) {
+		dummy = in_8(&dev->dr);
+	}
+	out_8 (&dev->cr, (I2C_CR_MEN));
+	out_8 (&dev->cr, 0x00);
+	out_8 (&dev->cr, (I2C_CR_MEN));
+
+#else
+#if defined(CONFIG_HARD_I2C) && !defined(CONFIG_MACH_SUEN3)
 	volatile immap_t *immap = (immap_t *)CONFIG_SYS_IMMR ;
 	volatile i2c8260_t *i2c	= (i2c8260_t *)&immap->im_i2c;
 
@@ -498,6 +518,7 @@ void i2c_init_board(void)
 #if defined(CONFIG_HARD_I2C)
 	/* Set the PortPins back to use for I2C */
 	setports (0);
+#endif
 #endif
 }
 #endif
@@ -527,12 +548,42 @@ int fdt_set_node_and_value (void *blob,
 	}
 	return ret;
 }
+int fdt_get_node_and_value (void *blob,
+				char *nodename,
+				char *propname,
+				void **var)
+{
+	int len;
+	int nodeoffset = 0;
+
+	nodeoffset = fdt_path_offset (blob, nodename);
+	if (nodeoffset >= 0) {
+		*var = (void *)fdt_getprop (blob, nodeoffset, propname, &len);
+		if (len == 0) {
+			/* no value */
+			printf ("%s no value\n", __FUNCTION__);
+			return -1;
+		} else if (len > 0) {
+			return len;
+		} else {
+			printf ("libfdt fdt_getprop(): %s\n",
+				fdt_strerror(len));
+			return -2;
+		}
+	} else {
+		printf("%s: cannot find %s node err:%s\n", __FUNCTION__,
+			nodename, fdt_strerror (nodeoffset));
+		return -3;
+	}
+}
 #endif
 
+#if !defined(CONFIG_MACH_SUEN3)
 int ethernet_present (void)
 {
 	return (in_8((u8 *)CONFIG_SYS_PIGGY_BASE + CONFIG_SYS_SLOT_ID_OFF) & 0x80);
 }
+#endif
 
 int board_eth_init (bd_t *bis)
 {

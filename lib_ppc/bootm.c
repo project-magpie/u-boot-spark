@@ -29,7 +29,7 @@
 #include <command.h>
 #include <image.h>
 #include <malloc.h>
-#include <zlib.h>
+#include <u-boot/zlib.h>
 #include <bzlib.h>
 #include <environment.h>
 #include <asm/byteorder.h>
@@ -94,6 +94,7 @@ static void boot_jump_linux(bootm_headers_t *images)
 #endif
 
 		debug ("   Booting using OF flat tree...\n");
+		WATCHDOG_RESET ();
 		(*kernel) ((bd_t *)of_flat_tree, 0, 0, EPAPR_MAGIC,
 			   CONFIG_SYS_BOOTMAPSZ, 0, 0);
 		/* does not return */
@@ -117,6 +118,7 @@ static void boot_jump_linux(bootm_headers_t *images)
 		bd_t *kbd = images->kbd;
 
 		debug ("   Booting using board info...\n");
+		WATCHDOG_RESET ();
 		(*kernel) (kbd, initrd_start, initrd_end,
 			   cmd_start, cmd_end, 0, 0);
 		/* does not return */
@@ -170,7 +172,7 @@ void arch_lmb_reserve(struct lmb *lmb)
 
 static void boot_prep_linux(void)
 {
-#if (CONFIG_NUM_CPUS > 1)
+#ifdef CONFIG_MP
 	/* if we are MP make sure to flush the dcache() to any changes are made
 	 * visibile to all other cores */
 	flush_dcache();

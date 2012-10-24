@@ -2,7 +2,7 @@
 *
 *			Realmode X86 Emulator Library
 *
-*  Copyright (C) 2007 Freescale Semiconductor, Inc. All rights reserved.
+*  Copyright (C) 2007 Freescale Semiconductor, Inc.
 *  Jason Jin <Jason.jin@freescale.com>
 *
 *		Copyright (C) 1991-2004 SciTech Software, Inc.
@@ -38,9 +38,6 @@
 * Description:	This file includes subroutines to implement the decoding
 *		and emulation of all the x86 extended two-byte processor
 *		instructions.
-*
-*		Jason port this file to u-boot. Put the function pointer into
-*		got2 sector.
 *
 ****************************************************************************/
 
@@ -1495,7 +1492,7 @@ void x86emuOp2_movsx_word_R_RM(u8 X86EMU_UNUSED(op2))
 /***************************************************************************
  * Double byte operation code table:
  **************************************************************************/
-void (*x86emu_optab2[256])(u8) __attribute__((section(GOT2_TYPE))) =
+void (*x86emu_optab2[256])(u8) =
 {
 /*  0x00 */ x86emuOp2_illegal_op,  /* Group F (ring 0 PM)      */
 /*  0x01 */ x86emuOp2_illegal_op,  /* Group G (ring 0 PM)      */

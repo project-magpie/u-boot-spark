@@ -555,21 +555,6 @@ int board_early_init_f(void)
 	return 0;
 }
 
-#if defined(CONFIG_CMD_NAND) && defined(CONFIG_NAND_LEGACY)
-
-#include <linux/mtd/nand_legacy.h>
-
-extern ulong nand_probe(ulong physadr);
-extern struct nand_chip nand_dev_desc[CONFIG_SYS_MAX_NAND_DEVICE];
-
-void nand_init(void)
-{
-	unsigned long totlen = nand_probe(CONFIG_SYS_NAND_BASE);
-
-	printf ("%4lu MB\n", totlen >> 20);
-}
-#endif
-
 #if defined(CONFIG_CMD_PCMCIA)
 
 int pcmcia_init(void)
@@ -577,17 +562,6 @@ int pcmcia_init(void)
 	return 0;
 }
 
-#endif
-
-#ifdef CONFIG_POST
-/*
- * Returns 1 if keys pressed to start the power-on long-running tests
- * Called from board_init_f().
- */
-int post_hotkeys_pressed(void)
-{
-	return 0;	/* No hotkeys supported */
-}
 #endif
 
 #ifdef CONFIG_HW_WATCHDOG

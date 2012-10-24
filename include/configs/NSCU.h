@@ -38,6 +38,8 @@
 #define CONFIG_NSCU		1
 
 #define	CONFIG_8xx_CONS_SCC1	1	/* Console is on SMC1		*/
+#define CONFIG_SYS_SMC_RXBUFLEN	128
+#define CONFIG_SYS_MAXIDLE	10
 
 #define	CONFIG_66MHz		1	/* running at 66 MHz, 1:1 clock	*/
 
@@ -484,5 +486,10 @@
 #undef CONFIG_SCC1_ENET
 #define CONFIG_FEC_ENET
 /* #define CONFIG_ETHPRIME		"FEC ETHERNET" */
+
+/* pass open firmware flat tree */
+#define CONFIG_OF_LIBFDT	1
+#define CONFIG_OF_BOARD_SETUP	1
+#define CONFIG_HWCONFIG		1
 
 #endif	/* __CONFIG_H */

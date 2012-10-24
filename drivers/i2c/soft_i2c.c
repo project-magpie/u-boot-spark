@@ -30,9 +30,15 @@
 #include <ioports.h>
 #include <asm/io.h>
 #endif
-#ifdef	CONFIG_AT91RM9200		/* need this for the at91rm9200 */
+#if defined(CONFIG_AT91RM9200) || \
+	defined(CONFIG_AT91SAM9260) ||  defined(CONFIG_AT91SAM9261) || \
+	defined(CONFIG_AT91SAM9263)
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
+#include <asm/arch/at91_pio.h>
+#ifdef CONFIG_AT91_LEGACY
+#include <asm/arch/gpio.h>
+#endif
 #endif
 #ifdef	CONFIG_IXP425			/* only valid for IXP425 */
 #include <asm/arch/ixp425.h>
@@ -57,13 +63,11 @@
 DECLARE_GLOBAL_DATA_PTR;
 #endif
 
-
 /*-----------------------------------------------------------------------
  * Definitions
  */
 
 #define RETRIES		0
-
 
 #define I2C_ACK		0		/* PD_SDA level to ack a byte */
 #define I2C_NOACK	1		/* PD_SDA level to noack a byte */
@@ -160,7 +164,6 @@ static void send_stop(void)
 	I2C_TRISTATE;
 }
 
-
 /*-----------------------------------------------------------------------
  * ack should be I2C_ACK or I2C_NOACK
  */
@@ -179,7 +182,6 @@ static void send_ack(int ack)
 	I2C_SCL(0);
 	I2C_DELAY;
 }
-
 
 /*-----------------------------------------------------------------------
  * Send 8 bits and look for an acknowledgement.
@@ -250,20 +252,6 @@ int i2c_set_bus_num(unsigned int bus)
 		return -1;
 	i2c_bus_num = bus;
 #endif
-	return 0;
-}
-
-/* TODO: add 100/400k switching */
-unsigned int i2c_get_bus_speed(void)
-{
-	return CONFIG_SYS_I2C_SPEED;
-}
-
-int i2c_set_bus_speed(unsigned int speed)
-{
-	if (speed != CONFIG_SYS_I2C_SPEED)
-		return -1;
-
 	return 0;
 }
 #endif

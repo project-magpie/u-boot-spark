@@ -28,6 +28,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define CONFIG_AT91_LEGACY
+
 /* ARM asynchronous clock */
 #define AT91C_MAIN_CLOCK	179712000	/* from 18.432 MHz crystal (18432000 / 4 * 45) */
 #define AT91C_MASTER_CLOCK	(AT91C_MAIN_CLOCK/3)	/* peripheral clock */
@@ -49,11 +51,6 @@
 #ifndef CONFIG_SKIP_LOWLEVEL_INIT
 #define CONFIG_SYS_USE_MAIN_OSCILLATOR	1
 /* flash */
-#define CONFIG_SYS_MC_PUIA_VAL	0x00000000
-#define CONFIG_SYS_MC_PUP_VAL	0x00000000
-#define CONFIG_SYS_MC_PUER_VAL	0x00000000
-#define CONFIG_SYS_MC_ASR_VAL	0x00000000
-#define CONFIG_SYS_MC_AASR_VAL	0x00000000
 #define CONFIG_SYS_EBI_CFGR_VAL	0x00000000
 #define CONFIG_SYS_SMC_CSR0_VAL	0x00003084 /* 16bit, 2 TDF, 4 WS */
 
@@ -95,6 +92,7 @@
  */
 
 /* define one of these to choose the DBGU, USART0  or USART1 as console */
+#define CONFIG_AT91RM9200_USART
 #define CONFIG_DBGU
 #undef CONFIG_USART0
 #undef CONFIG_USART1
@@ -163,15 +161,15 @@
 
 #else
 
-    #define CONFIG_CMD_USB
     #define CONFIG_CMD_CACHE
+    #define CONFIG_CMD_USB
 
-    #undef CONFIG_CMD_AUTOSCRIPT
     #undef CONFIG_CMD_BDI
     #undef CONFIG_CMD_FPGA
     #undef CONFIG_CMD_IMI
     #undef CONFIG_CMD_LOADS
     #undef CONFIG_CMD_MISC
+    #undef CONFIG_CMD_SOURCE
 
 #endif
 
@@ -185,7 +183,13 @@
 #define CONFIG_SYS_MEMTEST_START	PHYS_SDRAM
 #define CONFIG_SYS_MEMTEST_END		CONFIG_SYS_MEMTEST_START + PHYS_SDRAM_SIZE - 262144
 
-#define CONFIG_DRIVER_ETHER
+#define CONFIG_NET_MULTI		1
+#ifdef CONFIG_NET_MULTI
+#define CONFIG_DRIVER_AT91EMAC		1
+#define CONFIG_SYS_RX_ETH_BUFFER	8
+#else
+#define CONFIG_DRIVER_ETHER		1
+#endif
 #define CONFIG_NET_RETRY_COUNT		20
 #undef CONFIG_AT91C_USE_RMII
 
@@ -215,7 +219,7 @@
 #define CONFIG_SYS_MAXARGS		32		/* max number of command args */
 #define CONFIG_SYS_PBSIZE		(CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16) /* Print Buffer Size */
 
-#define CONFIG_SYS_DEVICE_DEREGISTER           /* needs device_deregister */
+#define CONFIG_SYS_STDIO_DEREGISTER           /* needs stdio_deregister */
 
 #define CONFIG_SYS_HZ 1000
 #define CONFIG_SYS_HZ_CLOCK (AT91C_MASTER_CLOCK/2)	/* AT91C_TC0_CMR is implicitly set to */

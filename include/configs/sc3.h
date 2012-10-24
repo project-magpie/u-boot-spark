@@ -63,6 +63,7 @@
 #define CONFIG_405GP	1
 
 #define CONFIG_BOARD_EARLY_INIT_F	1
+#define CONFIG_MISC_INIT_R		1	/* Call misc_init_r() */
 
 /*
  * Define IDE_USES_ISA_EMULATION for slower IDE access in the ISA-IO address range
@@ -122,7 +123,7 @@
 	"rootpath=/opt/eldk/ppc_4xx\0"					\
 	"bootfile=/tftpboot/sc3/uImage\0"				\
 	"u-boot=/tftpboot/sc3/u-boot.bin\0"				\
-	"setup=tftp 200000 /tftpboot/sc3/setup.img;autoscr 200000\0"	\
+	"setup=tftp 200000 /tftpboot/sc3/setup.img;source 200000\0"	\
 	"kernel_addr=FFE08000\0"					\
 	""
 #undef CONFIG_BOOTCOMMAND
@@ -186,20 +187,20 @@
 #include <config_cmd_default.h>
 
 
-#define CONFIG_CMD_AUTOSCRIPT
-#define CONFIG_CMD_PCI
-#define CONFIG_CMD_IRQ
-#define CONFIG_CMD_NET
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_NAND
-#define CONFIG_CMD_JFFS2
-#define CONFIG_CMD_I2C
-#define CONFIG_CMD_IDE
+#define CONFIG_CMD_CACHE
 #define CONFIG_CMD_DATE
 #define CONFIG_CMD_DHCP
-#define CONFIG_CMD_CACHE
 #define CONFIG_CMD_ELF
+#define CONFIG_CMD_I2C
+#define CONFIG_CMD_IDE
+#define CONFIG_CMD_IRQ
+#define CONFIG_CMD_JFFS2
+#define CONFIG_CMD_MII
+#define CONFIG_CMD_NAND
+#define CONFIG_CMD_NET
+#define CONFIG_CMD_PCI
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_SOURCE
 
 
 #undef CONFIG_WATCHDOG			/* watchdog disabled		*/
@@ -375,11 +376,6 @@
  * CONFIG_SYS_FLASH_BASE   -> start address of internal flash
  * CONFIG_SYS_MONITOR_BASE -> start of u-boot
  */
-#ifndef __ASSEMBLER__
-extern unsigned long offsetOfBigFlash;
-extern unsigned long offsetOfEnvironment;
-#endif
-
 #define CONFIG_SYS_SDRAM_BASE		0x00000000
 #define CONFIG_SYS_FLASH_BASE		0xFFE00000
 #define CONFIG_SYS_MONITOR_BASE	0xFFFC0000     /* placed last 256k */
@@ -426,11 +422,10 @@ extern unsigned long offsetOfEnvironment;
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_BASE		0x77D00000
 
-
 #define CONFIG_JFFS2_NAND 1			/* jffs2 on nand support */
 
 /* No command line, one static partition */
-#undef	CONFIG_JFFS2_CMDLINE
+#undef	CONFIG_CMD_MTDPARTS
 #define CONFIG_JFFS2_DEV		"nand0"
 #define CONFIG_JFFS2_PART_SIZE		0x01000000
 #define CONFIG_JFFS2_PART_OFFSET	0x00000000

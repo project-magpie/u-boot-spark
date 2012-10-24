@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 Freescale Semiconductor, Inc.
+ * Copyright 2008-2009 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -34,9 +34,9 @@ cpu_cmd(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	}
 
 	cpuid = simple_strtoul(argv[1], NULL, 10);
-	if (cpuid >= CONFIG_NUM_CPUS) {
+	if (cpuid >= cpu_numcores()) {
 		printf ("Core num: %lu is out of range[0..%d]\n",
-				cpuid, CONFIG_NUM_CPUS - 1);
+				cpuid, cpu_numcores() - 1);
 		return 1;
 	}
 
@@ -46,6 +46,8 @@ cpu_cmd(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			cpu_reset(cpuid);
 		} else if (strncmp(argv[2], "status", 6) == 0) {
 			cpu_status(cpuid);
+		} else if (strncmp(argv[2], "disable", 7) == 0) {
+			return cpu_disable(cpuid);
 		} else {
 			cmd_usage(cmdtp);
 			return 1;
@@ -78,7 +80,7 @@ cpu_cmd(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	"     Default for r3 is <num> and r6 is 0\n" \
 	"\n" \
 	"     When cpu <num> is released r4 and r5 = 0.\n" \
-	"     r7 will contain the size of the initial mapped area\n"
+	"     r7 will contain the size of the initial mapped area"
 #endif
 
 U_BOOT_CMD(
@@ -86,8 +88,10 @@ U_BOOT_CMD(
 	"Multiprocessor CPU boot manipulation and release",
 	    "<num> reset                 - Reset cpu <num>\n"
 	"cpu <num> status                - Status of cpu <num>\n"
-	"cpu <num> release <addr> [args] - Release cpu <num> at <addr> with [args]\n"
+	"cpu <num> disable               - Disable cpu <num>\n"
+	"cpu <num> release <addr> [args] - Release cpu <num> at <addr> with [args]"
 #ifdef CPU_ARCH_HELP
+	"\n"
 	CPU_ARCH_HELP
 #endif
-	);
+);

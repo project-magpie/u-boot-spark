@@ -50,18 +50,18 @@ static u32 start_time;
 
 int board_early_init_f(void)
 {
-	mtdcr(uicsr, 0xFFFFFFFF);	/* clear all ints */
-	mtdcr(uicer, 0x00000000);	/* disable all ints */
-	mtdcr(uiccr, 0x00000000);
-	mtdcr(uicpr, 0xFFFF7F00);	/* set int polarities */
-	mtdcr(uictr, 0x00000000);	/* set int trigger levels */
-	mtdcr(uicsr, 0xFFFFFFFF);	/* clear all ints */
-	mtdcr(uicvcr, 0x00000001);	/* set vect base=0,INT0 highest priority */
+	mtdcr(UIC0SR, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr(UIC0ER, 0x00000000);	/* disable all ints */
+	mtdcr(UIC0CR, 0x00000000);
+	mtdcr(UIC0PR, 0xFFFF7F00);	/* set int polarities */
+	mtdcr(UIC0TR, 0x00000000);	/* set int trigger levels */
+	mtdcr(UIC0SR, 0xFFFFFFFF);	/* clear all ints */
+	mtdcr(UIC0VCR, 0x00000001);	/* set vect base=0,INT0 highest priority */
 
 	/*
 	 * Configure CPC0_PCI to enable PerWE as output
 	 */
-	mtdcr(cpc0_pci, CPC0_PCI_SPE);
+	mtdcr(CPC0_PCI, CPC0_PCI_SPE);
 
 	return 0;
 }
@@ -107,7 +107,7 @@ int misc_init_r(void)
 	/* Re-do sizing to get full correct info */
 
 	/* adjust flash start and offset */
-	mfebc(pb0cr, pbcr);
+	mfebc(PB0CR, pbcr);
 	switch (gd->bd->bi_flashsize) {
 	case 1 << 20:
 		size_val = 0;
@@ -135,7 +135,7 @@ int misc_init_r(void)
 		break;
 	}
 	pbcr = (pbcr & 0x0001ffff) | gd->bd->bi_flashstart | (size_val << 17);
-	mtebc(pb0cr, pbcr);
+	mtebc(PB0CR, pbcr);
 
 	/*
 	 * Re-check to get correct base address
@@ -328,7 +328,7 @@ int do_set_default(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 U_BOOT_CMD(
 	setdef,	4,	1,	do_set_default,
 	"write board-specific values to EEPROM (ethaddr...)",
-	"ethaddr eth1addr serial#\n    - write board-specific values to EEPROM\n"
+	"ethaddr eth1addr serial#\n    - write board-specific values to EEPROM"
 	);
 
 static inline int sw_reset_pressed(void)
@@ -419,7 +419,7 @@ int do_chkreset(cmd_tbl_t* cmdtp, int flag, int argc, char* argv[])
 U_BOOT_CMD (
 	chkreset, 1, 1, do_chkreset,
 	"Check for status of SW-reset button and act accordingly",
-	NULL
+	""
 );
 
 #if defined(CONFIG_POST)

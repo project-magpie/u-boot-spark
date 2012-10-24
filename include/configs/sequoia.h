@@ -112,13 +112,26 @@
 /*
  * Environment
  */
-#if !defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL)
-#define CONFIG_ENV_IS_IN_FLASH	1	/* use FLASH for environ vars	*/
+#if defined(CONFIG_NAND_U_BOOT) || defined(CONFIG_NAND_SPL)
+#define CONFIG_ENV_IS_IN_NAND		/* use NAND for environ vars	*/
+#define CONFIG_ENV_IS_EMBEDDED		/* use embedded environment	*/
+#elif defined(CONFIG_SYS_RAMBOOT)
+#define CONFIG_ENV_IS_NOWHERE		/* Store env in memory only	*/
+#define CONFIG_ENV_SIZE		(8 << 10)
+/*
+ * In RAM-booting version, we have no environment storage. So we need to
+ * provide at least preliminary MAC addresses for the 4xx EMAC driver to
+ * register the interfaces. Those two addresses are generated via the
+ * tools/gen_eth_addr tool and should only be used in a closed laboratory
+ * environment.
+ */
+#define	CONFIG_ETHADDR		4a:56:49:22:3e:43
+#define	CONFIG_ETH1ADDR		02:93:53:d5:06:98
 #else
-#define CONFIG_ENV_IS_IN_NAND	1	/* use NAND for environ vars	*/
-#define CONFIG_ENV_IS_EMBEDDED	1	/* use embedded environment	*/
+#define CONFIG_ENV_IS_IN_FLASH		/* use FLASH for environ vars	*/
 #endif
 
+#if defined(CONFIG_CMD_FLASH)
 /*
  * FLASH related
  */
@@ -148,6 +161,7 @@
 #define CONFIG_ENV_ADDR_REDUND	(CONFIG_ENV_ADDR-CONFIG_ENV_SECT_SIZE)
 #define CONFIG_ENV_SIZE_REDUND	(CONFIG_ENV_SIZE)
 #endif
+#endif /* CONFIG_CMD_FLASH */
 
 /*
  * IPL (Initial Program Loader, integrated inside CPU)
@@ -211,7 +225,8 @@
  * DDR SDRAM
  */
 #define CONFIG_SYS_MBYTES_SDRAM        (256)	/* 256MB			*/
-#if !defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL)
+#if !defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL) && \
+    !defined(CONFIG_SYS_RAMBOOT)
 #define CONFIG_DDR_DATA_EYE		/* use DDR2 optimization	*/
 #endif
 #define CONFIG_SYS_MEM_TOP_HIDE	(4 << 10) /* don't use last 4kbytes	*/
@@ -227,6 +242,11 @@
 #define CONFIG_SYS_I2C_EEPROM_ADDR_LEN 1
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_BITS 3
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS 10
+
+/* I2C bootstrap EEPROM */
+#define CONFIG_4xx_CONFIG_I2C_EEPROM_ADDR	0x52
+#define CONFIG_4xx_CONFIG_I2C_EEPROM_OFFSET	0
+#define CONFIG_4xx_CONFIG_BLOCKSIZE		16
 
 /* I2C SYSMON (LM75, AD7414 is almost compatible)			*/
 #define CONFIG_DTT_LM75		1	/* ON Semi's LM75		*/
@@ -262,8 +282,20 @@
 
 /* USB */
 #ifdef CONFIG_440EPX
+
+#undef CONFIG_USB_EHCI	/* OHCI by default */
+
+#ifdef CONFIG_USB_EHCI
+#define CONFIG_USB_EHCI_PPC4XX
+#define CONFIG_SYS_PPC4XX_USB_ADDR	0xe0000300
+#define CONFIG_EHCI_HCD_INIT_AFTER_RESET
+#define CONFIG_EHCI_MMIO_BIG_ENDIAN
+#define CONFIG_EHCI_DESC_BIG_ENDIAN
+#ifdef CONFIG_4xx_DCACHE
+#define CONFIG_EHCI_DCACHE
+#endif
+#else /* CONFIG_USB_EHCI */
 #define CONFIG_USB_OHCI_NEW
-#define CONFIG_USB_STORAGE
 #define CONFIG_SYS_OHCI_BE_CONTROLLER
 
 #undef CONFIG_SYS_USB_OHCI_BOARD_INIT
@@ -271,7 +303,9 @@
 #define CONFIG_SYS_USB_OHCI_REGS_BASE	CONFIG_SYS_USB_HOST
 #define CONFIG_SYS_USB_OHCI_SLOT_NAME	"ppc440"
 #define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS 15
+#endif
 
+#define CONFIG_USB_STORAGE
 /* Comment this out to enable USB 1.1 device */
 #define USB_2_0_DEVICE
 
@@ -285,6 +319,7 @@
 /*
  * Commands additional to the ones defined in amcc-common.h
  */
+#define CONFIG_CMD_CHIP_CONFIG
 #define CONFIG_CMD_DTT
 #define CONFIG_CMD_FAT
 #define CONFIG_CMD_NAND
@@ -301,13 +336,24 @@
 #define CONFIG_SYS_POST_FPU_ON		0
 #endif
 
+/*
+ * Don't run the memory POST on the NAND-booting version. It will
+ * overwrite part of the U-Boot image which is already loaded from NAND
+ * to SDRAM.
+ */
+#if defined(CONFIG_NAND_U_BOOT) || defined(CONFIG_SYS_RAMBOOT)
+#define CONFIG_SYS_POST_MEMORY_ON	0
+#else
+#define CONFIG_SYS_POST_MEMORY_ON	CONFIG_SYS_POST_MEMORY
+#endif
+
 /* POST support */
 #define CONFIG_POST		(CONFIG_SYS_POST_CACHE	   | \
 				 CONFIG_SYS_POST_CPU	   | \
 				 CONFIG_SYS_POST_ETHER	   | \
-				 CONFIG_SYS_POST_FPU_ON   | \
+				 CONFIG_SYS_POST_FPU_ON    | \
 				 CONFIG_SYS_POST_I2C	   | \
-				 CONFIG_SYS_POST_MEMORY   | \
+				 CONFIG_SYS_POST_MEMORY_ON | \
 				 CONFIG_SYS_POST_SPR	   | \
 				 CONFIG_SYS_POST_UART)
 
@@ -332,6 +378,7 @@
 /* Board-specific PCI */
 #define CONFIG_SYS_PCI_TARGET_INIT
 #define CONFIG_SYS_PCI_MASTER_INIT
+#define CONFIG_SYS_PCI_BOARD_FIXUP_IRQ
 
 #define CONFIG_SYS_PCI_SUBSYS_VENDORID 0x10e8	/* AMCC				*/
 #define CONFIG_SYS_PCI_SUBSYS_ID       0xcafe	/* Whatever			*/
@@ -343,7 +390,8 @@
 /*
  * On Sequoia CS0 and CS3 are switched when configuring for NAND booting
  */
-#if !defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL)
+#if !defined(CONFIG_NAND_U_BOOT) && !defined(CONFIG_NAND_SPL) && \
+    !defined(CONFIG_SYS_RAMBOOT)
 #define CONFIG_SYS_NAND_CS		3	/* NAND chip connected to CSx	*/
 /* Memory Bank 0 (NOR-FLASH) initialization				*/
 #define CONFIG_SYS_EBC_PB0AP		0x03017200

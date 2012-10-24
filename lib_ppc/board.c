@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2000-2006
+ * (C) Copyright 2000-2010
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
  * See file CREDITS for list of people who contributed to this
@@ -25,7 +25,7 @@
 #include <watchdog.h>
 #include <command.h>
 #include <malloc.h>
-#include <devices.h>
+#include <stdio_dev.h>
 #ifdef CONFIG_8xx
 #include <mpc8xx.h>
 #endif
@@ -77,6 +77,14 @@
 
 #ifdef CONFIG_ADDR_MAP
 #include <asm/mmu.h>
+#endif
+
+#ifdef CONFIG_MP
+#include <asm/mp.h>
+#endif
+
+#ifdef CONFIG_BITBANGMII
+#include <miiphy.h>
 #endif
 
 #ifdef CONFIG_SYS_UPDATE_FLASH_SIZE
@@ -132,45 +140,10 @@ ulong monitor_flash_len;
 #include <bedbug/type.h>
 #endif
 
-/*
- * Begin and End of memory area for malloc(), and current "brk"
- */
-static	ulong	mem_malloc_start = 0;
-static	ulong	mem_malloc_end	 = 0;
-static	ulong	mem_malloc_brk	 = 0;
-
 /************************************************************************
  * Utilities								*
  ************************************************************************
  */
-
-/*
- * The Malloc area is immediately below the monitor copy in DRAM
- */
-static void mem_malloc_init (void)
-{
-#if !defined(CONFIG_RELOC_FIXUP_WORKS)
-	mem_malloc_end = CONFIG_SYS_MONITOR_BASE + gd->reloc_off;
-#endif
-	mem_malloc_start = mem_malloc_end - TOTAL_MALLOC_LEN;
-	mem_malloc_brk = mem_malloc_start;
-
-	memset ((void *) mem_malloc_start,
-		0,
-		mem_malloc_end - mem_malloc_start);
-}
-
-void *sbrk (ptrdiff_t increment)
-{
-	ulong old = mem_malloc_brk;
-	ulong new = old + increment;
-
-	if ((new < mem_malloc_start) || (new > mem_malloc_end)) {
-		return (NULL);
-	}
-	mem_malloc_brk = new;
-	return ((void *) old);
-}
 
 /*
  * All attempts to come up with a "common" initialization sequence
@@ -282,11 +255,12 @@ static int init_func_watchdog_reset (void)
  */
 
 init_fnc_t *init_sequence[] = {
-
+#if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
+	probecpu,
+#endif
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 	board_early_init_f,
 #endif
-
 #if !defined(CONFIG_8xx_CPUCLK_DEFAULT)
 	get_clocks,		/* get CPU and bus clocks (etc.) */
 #if defined(CONFIG_TQM8xxL) && !defined(CONFIG_TQM866M) \
@@ -317,7 +291,7 @@ init_fnc_t *init_sequence[] = {
 	prt_8260_rsr,
 	prt_8260_clks,
 #endif /* CONFIG_8260 */
-#if defined(CONFIG_MPC83XX)
+#if defined(CONFIG_MPC83xx)
 	prt_83xx_rsr,
 #endif
 	checkcpu,
@@ -404,8 +378,9 @@ void board_init_f (ulong bootflag)
 	/* compiler optimization barrier needed for GCC >= 3.4 */
 	__asm__ __volatile__("": : :"memory");
 
-#if !defined(CONFIG_CPM2) && !defined(CONFIG_MPC83XX) && \
-    !defined(CONFIG_MPC85xx) && !defined(CONFIG_MPC86xx)
+#if !defined(CONFIG_CPM2) && !defined(CONFIG_MPC512X) && \
+    !defined(CONFIG_MPC83xx) && !defined(CONFIG_MPC85xx) && \
+    !defined(CONFIG_MPC86xx)
 	/* Clear initial global data */
 	memset ((void *) gd, 0, sizeof (gd_t));
 #endif
@@ -443,6 +418,17 @@ void board_init_f (ulong bootflag)
 	gd->ram_size -= CONFIG_SYS_MEM_TOP_HIDE;
 
 	addr = CONFIG_SYS_SDRAM_BASE + get_effective_memsize();
+
+#if defined(CONFIG_MP) && (defined(CONFIG_MPC86xx) || defined(CONFIG_E500))
+	/*
+	 * We need to make sure the location we intend to put secondary core
+	 * boot code is reserved and not used by any part of u-boot
+	 */
+	if (addr > determine_mp_bootpg()) {
+		addr = determine_mp_bootpg();
+		debug ("Reserving MP boot page to %08lx\n", addr);
+	}
+#endif
 
 #ifdef CONFIG_LOGBUFFER
 #ifndef CONFIG_ALT_LB_ADDR
@@ -490,10 +476,6 @@ void board_init_f (ulong bootflag)
 #endif
 
 	debug ("Reserving %ldk for U-Boot at: %08lx\n", len >> 10, addr);
-
-#ifdef CONFIG_AMIGAONEG3SE
-	gd->relocaddr = addr;
-#endif
 
 	/*
 	 * reserve memory for malloc() arena
@@ -555,7 +537,7 @@ void board_init_f (ulong bootflag)
 #if defined(CONFIG_MPC5xxx)
 	bd->bi_mbar_base = CONFIG_SYS_MBAR;	/* base of internal registers */
 #endif
-#if defined(CONFIG_MPC83XX)
+#if defined(CONFIG_MPC83xx)
 	bd->bi_immrbar = CONFIG_SYS_IMMR;
 #endif
 #if defined(CONFIG_MPC8220)
@@ -626,6 +608,8 @@ void board_init_f (ulong bootflag)
 
 	WATCHDOG_RESET();
 
+	gd->relocaddr = addr; /* Record relocation address, useful for debug */
+
 	memcpy (id, (void *)gd, sizeof (gd_t));
 
 	relocate_code (addr_sp, id, addr);
@@ -644,14 +628,9 @@ void board_init_f (ulong bootflag)
  */
 void board_init_r (gd_t *id, ulong dest_addr)
 {
-	cmd_tbl_t *cmdtp;
-	char *s, *e;
+	char *s;
 	bd_t *bd;
-	int i;
-	extern void malloc_bin_reloc (void);
-#ifndef CONFIG_ENV_IS_NOWHERE
-	extern char * env_name_spec;
-#endif
+	ulong malloc_start;
 
 #ifndef CONFIG_SYS_NO_FLASH
 	ulong flash_size;
@@ -662,11 +641,15 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
 
-#if defined(CONFIG_RELOC_FIXUP_WORKS)
-	gd->reloc_off = 0;
-	mem_malloc_end = dest_addr;
-#else
-	gd->reloc_off = dest_addr - CONFIG_SYS_MONITOR_BASE;
+	/* The Malloc area is immediately below the monitor copy in DRAM */
+	malloc_start = dest_addr - TOTAL_MALLOC_LEN;
+
+#if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
+	/*
+	 * The gd->cpu pointer is set to an address in flash before relocation.
+	 * We need to update it to point to the same CPU entry in RAM.
+	 */
+	gd->cpu += dest_addr - CONFIG_SYS_MONITOR_BASE;
 #endif
 
 #ifdef CONFIG_SERIAL_MULTI
@@ -692,38 +675,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	monitor_flash_len = (ulong)&__init_end - dest_addr;
 
-	/*
-	 * We have to relocate the command table manually
-	 */
-	for (cmdtp = &__u_boot_cmd_start; cmdtp !=  &__u_boot_cmd_end; cmdtp++) {
-		ulong addr;
-		addr = (ulong) (cmdtp->cmd) + gd->reloc_off;
-#if 0
-		printf ("Command \"%s\": 0x%08lx => 0x%08lx\n",
-				cmdtp->name, (ulong) (cmdtp->cmd), addr);
-#endif
-		cmdtp->cmd =
-			(int (*)(struct cmd_tbl_s *, int, int, char *[]))addr;
-
-		addr = (ulong)(cmdtp->name) + gd->reloc_off;
-		cmdtp->name = (char *)addr;
-
-		if (cmdtp->usage) {
-			addr = (ulong)(cmdtp->usage) + gd->reloc_off;
-			cmdtp->usage = (char *)addr;
-		}
-#ifdef	CONFIG_SYS_LONGHELP
-		if (cmdtp->help) {
-			addr = (ulong)(cmdtp->help) + gd->reloc_off;
-			cmdtp->help = (char *)addr;
-		}
-#endif
-	}
-	/* there are some other pointer constants we must deal with */
-#ifndef CONFIG_ENV_IS_NOWHERE
-	env_name_spec += gd->reloc_off;
-#endif
-
 	WATCHDOG_RESET ();
 
 #ifdef CONFIG_LOGBUFFER
@@ -731,12 +682,11 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 #ifdef CONFIG_POST
 	post_output_backlog ();
-	post_reloc ();
 #endif
 
 	WATCHDOG_RESET();
 
-#if defined(CONFIG_SYS_DELAYED_ICACHE) || defined(CONFIG_MPC83XX)
+#if defined(CONFIG_SYS_DELAYED_ICACHE) || defined(CONFIG_MPC83xx)
 	icache_enable ();	/* it's time to enable the instruction cache */
 #endif
 
@@ -760,6 +710,8 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 
 	asm ("sync ; isync");
+
+	mem_malloc_init (malloc_start, TOTAL_MALLOC_LEN);
 
 #if !defined(CONFIG_SYS_NO_FLASH)
 	puts ("FLASH: ");
@@ -818,10 +770,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 
 	WATCHDOG_RESET ();
 
-	/* initialize malloc() area */
-	mem_malloc_init ();
-	malloc_bin_reloc ();
-
 #ifdef CONFIG_SPI
 # if !defined(CONFIG_ENV_IS_IN_EEPROM)
 	spi_init_f ();
@@ -878,20 +826,6 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	mac_read_from_eeprom();
 #endif
 
-	s = getenv ("ethaddr");
-#if defined (CONFIG_MBX) || \
-    defined (CONFIG_RPXCLASSIC) || \
-    defined(CONFIG_IAD210) || \
-    defined(CONFIG_V38B)
-	if (s == NULL)
-		board_get_enetaddr (bd->bi_enetaddr);
-	else
-#endif
-		for (i = 0; i < 6; ++i) {
-			bd->bi_enetaddr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-			if (s)
-				s = (*e) ? e + 1 : e;
-		}
 #ifdef	CONFIG_HERMES
 	if ((gd->board_type >> 16) == 2)
 		bd->bi_ethspeed = gd->board_type & 0xFFFF;
@@ -899,88 +833,26 @@ void board_init_r (gd_t *id, ulong dest_addr)
 		bd->bi_ethspeed = 0xFFFF;
 #endif
 
-#ifdef CONFIG_NX823
-	load_sernum_ethaddr ();
-#endif
-
+#ifdef CONFIG_CMD_NET
+	/* kept around for legacy kernels only ... ignore the next section */
+	eth_getenv_enetaddr("ethaddr", bd->bi_enetaddr);
 #ifdef CONFIG_HAS_ETH1
-	/* handle the 2nd ethernet address */
-
-	s = getenv ("eth1addr");
-
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enet1addr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
+	eth_getenv_enetaddr("eth1addr", bd->bi_enet1addr);
 #endif
 #ifdef CONFIG_HAS_ETH2
-	/* handle the 3rd ethernet address */
-
-	s = getenv ("eth2addr");
-#if defined(CONFIG_XPEDITE1K) || defined(CONFIG_METROBOX) || defined(CONFIG_KAREF)
-	if (s == NULL)
-		board_get_enetaddr(bd->bi_enet2addr);
-	else
+	eth_getenv_enetaddr("eth2addr", bd->bi_enet2addr);
 #endif
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enet2addr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-#endif
-
 #ifdef CONFIG_HAS_ETH3
-	/* handle 4th ethernet address */
-	s = getenv("eth3addr");
-#if defined(CONFIG_XPEDITE1K) || defined(CONFIG_METROBOX) || defined(CONFIG_KAREF)
-	if (s == NULL)
-		board_get_enetaddr(bd->bi_enet3addr);
-	else
+	eth_getenv_enetaddr("eth3addr", bd->bi_enet3addr);
 #endif
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enet3addr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-#endif
-
 #ifdef CONFIG_HAS_ETH4
-	/* handle 5th ethernet address */
-	s = getenv("eth4addr");
-#if defined(CONFIG_XPEDITE1K) || defined(CONFIG_METROBOX) || defined(CONFIG_KAREF)
-	if (s == NULL)
-		board_get_enetaddr(bd->bi_enet4addr);
-	else
+	eth_getenv_enetaddr("eth4addr", bd->bi_enet4addr);
 #endif
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enet4addr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-#endif
-
 #ifdef CONFIG_HAS_ETH5
-	/* handle 6th ethernet address */
-	s = getenv("eth5addr");
-#if defined(CONFIG_XPEDITE1K) || defined(CONFIG_METROBOX) || defined(CONFIG_KAREF)
-	if (s == NULL)
-		board_get_enetaddr(bd->bi_enet5addr);
-	else
+	eth_getenv_enetaddr("eth5addr", bd->bi_enet5addr);
 #endif
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enet5addr[i] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-#endif
+#endif /* CONFIG_CMD_NET */
 
-#if defined(CONFIG_TQM8xxL) || defined(CONFIG_TQM8260) || \
-    defined(CONFIG_TQM8272) || \
-    defined(CONFIG_CCM) || defined(CONFIG_KUP4K) || \
-    defined(CONFIG_KUP4X) || defined(CONFIG_PCS440EP)
-	load_sernum_ethaddr ();
-#endif
 	/* IP Address */
 	bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
 
@@ -994,8 +866,8 @@ void board_init_r (gd_t *id, ulong dest_addr)
 #endif
 
 /** leave this here (after malloc(), environment and PCI are working) **/
-	/* Initialize devices */
-	devices_init ();
+	/* Initialize stdio devices */
+	stdio_init ();
 
 	/* Initialize the jump table for applications */
 	jumptable_init ();
@@ -1008,17 +880,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	/* Initialize the console (after the relocation and devices init) */
 	console_init_r ();
 
-#if defined(CONFIG_CCM)		|| \
-    defined(CONFIG_COGENT)	|| \
-    defined(CONFIG_CPCI405)	|| \
-    defined(CONFIG_EVB64260)	|| \
-    defined(CONFIG_KUP4K)	|| \
-    defined(CONFIG_KUP4X)	|| \
-    defined(CONFIG_LWMON)	|| \
-    defined(CONFIG_PCU_E)	|| \
-    defined(CONFIG_SC3)		|| \
-    defined(CONFIG_W7O)		|| \
-    defined(CONFIG_MISC_INIT_R)
+#if defined(CONFIG_MISC_INIT_R)
 	/* miscellaneous platform dependent initialisations */
 	misc_init_r ();
 #endif
@@ -1089,6 +951,9 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	doc_init ();
 #endif
 
+#ifdef CONFIG_BITBANGMII
+	bb_miiphy_init();
+#endif
 #if defined(CONFIG_CMD_NET)
 #if defined(CONFIG_NET_MULTI)
 	WATCHDOG_RESET ();
@@ -1097,22 +962,7 @@ void board_init_r (gd_t *id, ulong dest_addr)
 	eth_initialize (bd);
 #endif
 
-#if defined(CONFIG_CMD_NET) && ( \
-    defined(CONFIG_CCM)		|| \
-    defined(CONFIG_ELPT860)	|| \
-    defined(CONFIG_EP8260)	|| \
-    defined(CONFIG_IP860)	|| \
-    defined(CONFIG_IVML24)	|| \
-    defined(CONFIG_IVMS8)	|| \
-    defined(CONFIG_MPC8260ADS)	|| \
-    defined(CONFIG_MPC8266ADS)	|| \
-    defined(CONFIG_MPC8560ADS)	|| \
-    defined(CONFIG_PCU_E)	|| \
-    defined(CONFIG_RPXSUPER)	|| \
-    defined(CONFIG_STXGP3)	|| \
-    defined(CONFIG_SPD823TS)	|| \
-    defined(CONFIG_RESET_PHY_R)	)
-
+#if defined(CONFIG_CMD_NET) && defined(CONFIG_RESET_PHY_R)
 	WATCHDOG_RESET ();
 	debug ("Reset Ethernet PHY\n");
 	reset_phy ();
@@ -1219,103 +1069,6 @@ void hang (void)
 	for (;;);
 }
 
-#ifdef CONFIG_MODEM_SUPPORT
-/* called from main loop (common/main.c) */
-/* 'inline' - We have to do it fast */
-static inline void mdm_readline(char *buf, int bufsiz)
-{
-	char c;
-	char *p;
-	int n;
-
-	n = 0;
-	p = buf;
-	for(;;) {
-		c = serial_getc();
-
-		/*		dbg("(%c)", c); */
-
-		switch(c) {
-		case '\r':
-			break;
-		case '\n':
-			*p = '\0';
-			return;
-
-		default:
-			if(n++ > bufsiz) {
-				*p = '\0';
-				return; /* sanity check */
-			}
-			*p = c;
-			p++;
-			break;
-		}
-	}
-}
-
-extern void  dbg(const char *fmt, ...);
-int mdm_init (void)
-{
-	char env_str[16];
-	char *init_str;
-	int i;
-	extern char console_buffer[];
-	extern void enable_putc(void);
-	extern int hwflow_onoff(int);
-
-	enable_putc(); /* enable serial_putc() */
-
-#ifdef CONFIG_HWFLOW
-	init_str = getenv("mdm_flow_control");
-	if (init_str && (strcmp(init_str, "rts/cts") == 0))
-		hwflow_onoff (1);
-	else
-		hwflow_onoff(-1);
-#endif
-
-	for (i = 1;;i++) {
-		sprintf(env_str, "mdm_init%d", i);
-		if ((init_str = getenv(env_str)) != NULL) {
-			serial_puts(init_str);
-			serial_puts("\n");
-			for(;;) {
-				mdm_readline(console_buffer, CONFIG_SYS_CBSIZE);
-				dbg("ini%d: [%s]", i, console_buffer);
-
-				if ((strcmp(console_buffer, "OK") == 0) ||
-					(strcmp(console_buffer, "ERROR") == 0)) {
-					dbg("ini%d: cmd done", i);
-					break;
-				} else /* in case we are originating call ... */
-					if (strncmp(console_buffer, "CONNECT", 7) == 0) {
-						dbg("ini%d: connect", i);
-						return 0;
-					}
-			}
-		} else
-			break; /* no init string - stop modem init */
-
-		udelay(100000);
-	}
-
-	udelay(100000);
-
-	/* final stage - wait for connect */
-	for(;i > 1;) { /* if 'i' > 1 - wait for connection
-				  message from modem */
-		mdm_readline(console_buffer, CONFIG_SYS_CBSIZE);
-		dbg("ini_f: [%s]", console_buffer);
-		if (strncmp(console_buffer, "CONNECT", 7) == 0) {
-			dbg("ini_f: connected");
-			return 0;
-		}
-	}
-
-	return 0;
-}
-
-#endif
 
 #if 0 /* We could use plain global data, but the resulting code is bigger */
 /*

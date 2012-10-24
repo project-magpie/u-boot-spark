@@ -39,6 +39,7 @@
 #define CONFIG_CPCI405_VER2	1	/* ...version 2			*/
 
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* call board_early_init_f()	*/
+#define CONFIG_MISC_INIT_R	 1	/* call misc_init_r()		*/
 
 #define CONFIG_SYS_CLK_FREQ	33330000 /* external frequency to pll	*/
 
@@ -192,6 +193,8 @@
 #define CONFIG_SYS_PCI_PTM2LA  0xffc00000      /* point to flash               */
 #define CONFIG_SYS_PCI_PTM2MS  0xffc00001      /* 4MB, enable                  */
 #define CONFIG_SYS_PCI_PTM2PCI 0x04000000      /* Host: use this pci address   */
+
+#define CONFIG_PCI_4xx_PTM_OVERWRITE	1 /* overwrite PTMx settings by env */
 
 /*-----------------------------------------------------------------------
  * IDE/ATA stuff

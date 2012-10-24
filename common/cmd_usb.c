@@ -624,7 +624,7 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 					ok++;
 					if (devno)
 						printf("\n");
-					printf("print_part of %x\n", devno);
+					debug("print_part of %x\n", devno);
 					print_part(stor_dev);
 				}
 			}
@@ -633,7 +633,7 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			stor_dev = usb_stor_get_dev(devno);
 			if (stor_dev->type != DEV_TYPE_UNKNOWN) {
 				ok++;
-				printf("print_part of %x\n", devno);
+				debug("print_part of %x\n", devno);
 				print_part(stor_dev);
 			}
 		}
@@ -662,6 +662,28 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			n = stor_dev->block_read(usb_stor_curr_dev, blk, cnt,
 						 (ulong *)addr);
 			printf("%ld blocks read: %s\n", n,
+				(n == cnt) ? "OK" : "ERROR");
+			if (n == cnt)
+				return 0;
+			return 1;
+		}
+	}
+	if (strcmp(argv[1], "write") == 0) {
+		if (usb_stor_curr_dev < 0) {
+			printf("no current device selected\n");
+			return 1;
+		}
+		if (argc == 5) {
+			unsigned long addr = simple_strtoul(argv[2], NULL, 16);
+			unsigned long blk  = simple_strtoul(argv[3], NULL, 16);
+			unsigned long cnt  = simple_strtoul(argv[4], NULL, 16);
+			unsigned long n;
+			printf("\nUSB write: device %d block # %ld, count %ld"
+				" ... ", usb_stor_curr_dev, blk, cnt);
+			stor_dev = usb_stor_get_dev(usb_stor_curr_dev);
+			n = stor_dev->block_write(usb_stor_curr_dev, blk, cnt,
+						(ulong *)addr);
+			printf("%ld blocks write: %s\n", n,
 				(n == cnt) ? "OK" : "ERROR");
 			if (n == cnt)
 				return 0;
@@ -712,14 +734,16 @@ U_BOOT_CMD(
 	"usb part [dev] - print partition table of one or all USB storage"
 	" devices\n"
 	"usb read addr blk# cnt - read `cnt' blocks starting at block `blk#'\n"
-	"    to memory address `addr'\n"
+	"    to memory address `addr'"
+	"usb write addr blk# cnt - write `cnt' blocks starting at block `blk#'\n"
+	"    from memory address `addr'"
 );
 
 
 U_BOOT_CMD(
 	usbboot,	3,	1,	do_usbboot,
 	"boot from USB device",
-	"loadAddr dev:part\n"
+	"loadAddr dev:part"
 );
 
 #else
@@ -728,6 +752,6 @@ U_BOOT_CMD(
 	"USB sub-system",
 	"reset - reset (rescan) USB controller\n"
 	"usb  tree  - show USB device tree\n"
-	"usb  info [dev] - show available USB devices\n"
+	"usb  info [dev] - show available USB devices"
 );
 #endif

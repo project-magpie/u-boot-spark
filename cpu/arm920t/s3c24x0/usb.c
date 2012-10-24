@@ -23,50 +23,49 @@
 
 #include <common.h>
 
-#if defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT)
-# if defined(CONFIG_S3C2400) || defined(CONFIG_S3C2410)
+#if defined(CONFIG_USB_OHCI_NEW) && \
+    defined(CONFIG_SYS_USB_OHCI_CPU_INIT) && \
+    defined(CONFIG_S3C24X0)
 
-#if defined(CONFIG_S3C2400)
-# include <s3c2400.h>
-#elif defined(CONFIG_S3C2410)
-# include <s3c2410.h>
-#endif
+#include <asm/arch/s3c24x0_cpu.h>
+#include <asm/io.h>
 
-int usb_cpu_init (void)
+int usb_cpu_init(void)
 {
-
-	S3C24X0_CLOCK_POWER * const clk_power = S3C24X0_GetBase_CLOCK_POWER();
-	S3C24X0_GPIO * const gpio = S3C24X0_GetBase_GPIO();
+	struct s3c24x0_clock_power *clk_power = s3c24x0_get_base_clock_power();
+	struct s3c24x0_gpio *gpio = s3c24x0_get_base_gpio();
 
 	/*
 	 * Set the 48 MHz UPLL clocking. Values are taken from
 	 * "PLL value selection guide", 6-23, s3c2400_UM.pdf.
 	 */
-	clk_power->UPLLCON = ((40 << 12) + (1 << 4) + 2);
-	gpio->MISCCR |= 0x8; /* 1 = use pads related USB for USB host */
+	writel((40 << 12) + (1 << 4) + 2, &clk_power->UPLLCON);
+	/* 1 = use pads related USB for USB host */
+	writel(readl(&gpio->MISCCR) | 0x8, &gpio->MISCCR);
 
 	/*
 	 * Enable USB host clock.
 	 */
-	clk_power->CLKCON |= (1 << 4);
+	writel(readl(&clk_power->CLKCON) | (1 << 4), &clk_power->CLKCON);
 
 	return 0;
 }
 
-int usb_cpu_stop (void)
+int usb_cpu_stop(void)
 {
-	S3C24X0_CLOCK_POWER * const clk_power = S3C24X0_GetBase_CLOCK_POWER();
+	struct s3c24x0_clock_power *clk_power = s3c24x0_get_base_clock_power();
 	/* may not want to do this */
-	clk_power->CLKCON &= ~(1 << 4);
+	writel(readl(&clk_power->CLKCON) & ~(1 << 4), &clk_power->CLKCON);
 	return 0;
 }
 
-int usb_cpu_init_fail (void)
+int usb_cpu_init_fail(void)
 {
-	S3C24X0_CLOCK_POWER * const clk_power = S3C24X0_GetBase_CLOCK_POWER();
-	clk_power->CLKCON &= ~(1 << 4);
+	struct s3c24x0_clock_power *clk_power = s3c24x0_get_base_clock_power();
+	writel(readl(&clk_power->CLKCON) & ~(1 << 4), &clk_power->CLKCON);
 	return 0;
 }
 
-# endif /* defined(CONFIG_S3C2400) || defined(CONFIG_S3C2410) */
-#endif /* defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT) */
+#endif /* defined(CONFIG_USB_OHCI_NEW) && \
+	   defined(CONFIG_SYS_USB_OHCI_CPU_INIT) && \
+	   defined(CONFIG_S3C24X0) */

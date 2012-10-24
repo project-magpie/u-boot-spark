@@ -1,6 +1,9 @@
 /*
- * (C) Copyright 2008
+ * (C) Copyright 2009
  * Graeme Russ, graeme.russ@gmail.com
+ *
+ * (C) Copyright 2002
+ * Daniel Engström, Omicron Ceti AB, daniel@omicron.se
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -24,6 +27,20 @@
 #ifndef __ASM_INTERRUPT_H_
 #define __ASM_INTERRUPT_H_ 1
 
-void set_vector(int intnum, void *routine);
+/* cpu/i386/interrupts.c */
+void set_vector(u8 intnum, void *routine);
+
+/* lib_i386/interupts.c */
+void disable_irq(int irq);
+void enable_irq(int irq);
+
+/* Architecture specific functions */
+void mask_irq(int irq);
+void unmask_irq(int irq);
+void specific_eoi(int irq);
+
+extern char exception_stack[];
+
+#define __isr__ void __attribute__ ((regparm(0)))
 
 #endif

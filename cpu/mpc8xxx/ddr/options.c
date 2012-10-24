@@ -22,9 +22,7 @@ unsigned int populate_memctl_options(int all_DIMMs_registered,
 			unsigned int ctrl_num)
 {
 	unsigned int i;
-#if (CONFIG_NUM_DDR_CONTROLLERS > 1)
 	const char *p;
-#endif
 
 	/* Chip select options. */
 
@@ -96,10 +94,8 @@ unsigned int populate_memctl_options(int all_DIMMs_registered,
 	 */
 #if defined(CONFIG_FSL_DDR1)
 	popts->DQS_config = 0;
-#elif defined(CONFIG_FSL_DDR2)
+#elif defined(CONFIG_FSL_DDR2) || defined(CONFIG_FSL_DDR3)
 	popts->DQS_config = 1;
-#else
-#error "Fix DQS for DDR3"
 #endif
 
 	/* Choose self-refresh during sleep. */
@@ -112,7 +108,17 @@ unsigned int populate_memctl_options(int all_DIMMs_registered,
 	popts->data_bus_width = 0;
 
 	/* Choose burst length. */
-	popts->burst_length = 4;	/* has to be 4 for DDR2 */
+#if defined(CONFIG_FSL_DDR3)
+	popts->OTF_burst_chop_en = 1;	/* on-the-fly burst chop */
+	popts->burst_length = DDR_OTF;	/* on-the-fly BC4 and BL8 */
+#else
+	popts->burst_length = DDR_BL4;	/* has to be 4 for DDR2 */
+#endif
+
+	/* Choose ddr controller address mirror mode */
+#if defined(CONFIG_FSL_DDR3)
+	popts->mirrored_dimm = pdimm[0].mirrored_dimm;
+#endif
 
 	/* Global Timing Parameters. */
 	debug("mclk_ps = %u ps\n", get_memory_clk_period_ps());
@@ -181,7 +187,18 @@ unsigned int populate_memctl_options(int all_DIMMs_registered,
 	popts->tFAW_window_four_activates_ps = 37500;
 
 #elif defined(CONFIG_FSL_DDR3)
-#error "FIXME determine four activates for DDR3"
+	popts->tFAW_window_four_activates_ps = pdimm[0].tFAW_ps;
+#endif
+	popts->zq_en = 0;
+	popts->wrlvl_en = 0;
+#if defined(CONFIG_FSL_DDR3)
+	/*
+	 * due to ddr3 dimm is fly-by topology
+	 * we suggest to enable write leveling to
+	 * meet the tQDSS under different loading.
+	 */
+	popts->wrlvl_en = 1;
+	popts->wrlvl_override = 0;
 #endif
 
 	/*
@@ -224,8 +241,10 @@ unsigned int populate_memctl_options(int all_DIMMs_registered,
 						simple_strtoul(p, NULL, 0);
 		}
 	}
+#endif
 
-	if( (p = getenv("ba_intlv_ctl")) != NULL) {
+	if( ((p = getenv("ba_intlv_ctl")) != NULL) &&
+		(CONFIG_CHIP_SELECTS_PER_CTRL > 1)) {
 		if (strcmp(p, "cs0_cs1") == 0)
 			popts->ba_intlv_ctl = FSL_DDR_CS0_CS1;
 		else if (strcmp(p, "cs2_cs3") == 0)
@@ -265,7 +284,6 @@ unsigned int populate_memctl_options(int all_DIMMs_registered,
 			break;
 		}
 	}
-#endif
 
 	fsl_ddr_board_options(popts, pdimm, ctrl_num);
 

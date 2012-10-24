@@ -54,12 +54,9 @@ SECTIONS
   {
     cpu/mpc5xxx/start.o	(.text)
     *(.text)
-    *(.fixup)
     *(.got1)
     . = ALIGN(16);
-    *(.rodata)
-    *(.rodata1)
-    *(.rodata.str1.4)
+    *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*)))
   }
   .fini      : { *(.fini)    } =0
   .ctors     : { *(.ctors)   }

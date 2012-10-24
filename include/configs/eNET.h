@@ -28,6 +28,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define CONFIG_RELOC_FIXUP_WORKS
+
 /*
  * Stuff still to be dealt with -
  */
@@ -40,8 +42,8 @@
 #define DEBUG_PARSER
 
 #define CONFIG_X86			1	/* Intel X86 CPU */
-#define CONFIG_SC520			1	/* AMD SC520 */
-#define CONFIG_SC520_SSI
+#define CONFIG_SYS_SC520		1	/* AMD SC520 */
+#define CONFIG_SYS_SC520_SSI
 #define CONFIG_SHOW_BOOT_PROGRESS	1
 #define CONFIG_LAST_STAGE_INIT		1
 
@@ -61,7 +63,7 @@
 /*
  * Size of malloc() pool
  */
-#define CONFIG_MALLOC_SIZE	(CONFIG_SYS_ENV_SIZE + 128*1024)
+#define CONFIG_SYS_MALLOC_LEN	(CONFIG_ENV_SIZE + 128*1024)
 
 #define CONFIG_BAUDRATE		9600
 
@@ -70,16 +72,15 @@
  */
 #include <config_cmd_default.h>
 
-#define CONFIG_CMD_AUTOSCRIPT	/* Autoscript Support		*/
 #define CONFIG_CMD_BDI		/* bdinfo			*/
 #define CONFIG_CMD_BOOTD	/* bootd			*/
 #define CONFIG_CMD_CONSOLE	/* coninfo			*/
 #define CONFIG_CMD_ECHO		/* echo arguments		*/
-#define CONFIG_CMD_SAVEENV	/* saveenv			*/
 #define CONFIG_CMD_FLASH	/* flinfo, erase, protect	*/
 #define CONFIG_CMD_FPGA		/* FPGA configuration Support	*/
 #define CONFIG_CMD_IMI		/* iminfo			*/
 #define CONFIG_CMD_IMLS		/* List all found images	*/
+#define CONFIG_CMD_IRQ		/* IRQ Information		*/
 #define CONFIG_CMD_ITEST	/* Integer (and string) test	*/
 #define CONFIG_CMD_LOADB	/* loadb			*/
 #define CONFIG_CMD_LOADS	/* loads			*/
@@ -87,10 +88,12 @@
 #define CONFIG_CMD_MISC		/* Misc functions like sleep etc*/
 #undef CONFIG_CMD_NET		/* bootp, tftpboot, rarpboot	*/
 #undef CONFIG_CMD_NFS		/* NFS support			*/
+#define CONFIG_CMD_PCI		/* PCI support			*/
 #define CONFIG_CMD_RUN		/* run command in env variable	*/
+#define CONFIG_CMD_SAVEENV	/* saveenv			*/
 #define CONFIG_CMD_SETGETDCR	/* DCR support on 4xx		*/
+#define CONFIG_CMD_SOURCE	/* "source" command Support	*/
 #define CONFIG_CMD_XIMG		/* Load part of Multi Image	*/
-#undef CONFIG_CMD_IRQ		/* IRQ Information		*/
 
 #define CONFIG_BOOTDELAY		15
 #define CONFIG_BOOTARGS			"root=/dev/mtdblock0 console=ttyS0,9600"
@@ -116,8 +119,6 @@
 #define CONFIG_SYS_MEMTEST_START	0x00100000	/* memtest works on	*/
 #define CONFIG_SYS_MEMTEST_END		0x01000000	/* 1 ... 16 MB in DRAM	*/
 
-#undef  CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
-
 #define	CONFIG_SYS_LOAD_ADDR		0x100000	/* default load address	*/
 
 #define	CONFIG_SYS_HZ			1024		/* incrementer freq: 1kHz */
@@ -142,12 +143,14 @@
  * CPU Features
  */
 #define CONFIG_SYS_SC520_HIGH_SPEED	0	/* 100 or 133MHz */
-#undef  CONFIG_SYS_RESET_SC520			/* use SC520 MMCR's to reset cpu */
-#define CONFIG_SYS_TIMER_SC520			/* use SC520 swtimers */
-#undef  CONFIG_SYS_TIMER_GENERIC		/* use the i8254 PIT timers */
-#undef  CONFIG_SYS_TIMER_TSC			/* use the Pentium TSC timers */
+#undef  CONFIG_SYS_SC520_RESET			/* use SC520 MMCR's to reset cpu */
+#define CONFIG_SYS_SC520_TIMER			/* use SC520 swtimers */
+#undef  CONFIG_SYS_GENERIC_TIMER		/* use the i8254 PIT timers */
+#undef  CONFIG_SYS_TSC_TIMER			/* use the Pentium TSC timers */
 #define CONFIG_SYS_USE_SIO_UART		0       /* prefer the uarts on the SIO to those
 					 * in the SC520 on the CDP */
+#define CONFIG_SYS_PCAT_INTERRUPTS
+#define CONFIG_SYS_NUM_IRQS		16
 
 /*-----------------------------------------------------------------------
  * Memory organization
@@ -188,26 +191,24 @@
   * Environment configuration
   */
 #define CONFIG_ENV_IS_IN_FLASH		1
-#define CONFIG_ENV_OFFSET		0x20000 /*   Offset   of Environment Sector */
-#define CONFIG_ENV_SIZE			0x08000 /* Total Size of Environment Sector */
 #define CONFIG_ENV_SECT_SIZE		0x20000 /* Total Size of Environment Sector */
-#define CONFIG_ENV_ADDR			(CONFIG_SYS_FLASH_BASE_1 + \
-					 CONFIG_ENV_OFFSET)
-#define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET + \
+#define CONFIG_ENV_SIZE			CONFIG_ENV_SECT_SIZE
+#define CONFIG_ENV_ADDR			CONFIG_SYS_FLASH_BASE_1
+/* Redundant Copy */
+#define CONFIG_ENV_ADDR_REDUND		(CONFIG_SYS_FLASH_BASE_1 + \
 					 CONFIG_ENV_SECT_SIZE)
-#define CONFIG_ENV_SIZE_REDUND		(CONFIG_ENV_SIZE)
+#define CONFIG_ENV_SIZE_REDUND		CONFIG_ENV_SECT_SIZE
 
 
  /*-----------------------------------------------------------------------
   * PCI configuration
   */
-#undef CONFIG_PCI                                /* include pci support */
-#undef CONFIG_PCI_PNP                            /* pci plug-and-play */
-#undef CONFIG_PCI_SCAN_SHOW
-#undef CONFIG_SYS_FIRST_PCI_IRQ
-#undef CONFIG_SYS_SECOND_PCI_IRQ
-#undef CONFIG_SYS_THIRD_PCI_IRQ
-#undef CONFIG_SYS_FORTH_PCI_IRQ
+#define CONFIG_PCI                                /* include pci support */
+#define CONFIG_PCI_PNP                            /* pci plug-and-play */
+#define CONFIG_SYS_FIRST_PCI_IRQ   10
+#define CONFIG_SYS_SECOND_PCI_IRQ  9
+#define CONFIG_SYS_THIRD_PCI_IRQ   11
+#define CONFIG_SYS_FORTH_PCI_IRQ   15
 
 /*-----------------------------------------------------------------------
  * Hardware watchdog configuration
@@ -235,8 +236,8 @@
 #ifndef __ASSEMBLER__
 extern unsigned long ip;
 
-#define PRINTIP				asm ("call next_line\n" \
-					    "next_line:\n" \
+#define PRINTIP				asm ("call 0\n" \
+					    "0:\n" \
 					    "pop %%eax\n" \
 					    "movl %%eax, %0\n" \
 					    :"=r"(ip) \

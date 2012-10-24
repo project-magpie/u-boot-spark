@@ -26,7 +26,6 @@
 #include <asm/io.h>
 #include <asm/pci.h>
 
-#ifdef CONFIG_PCI
 #undef PCI_ROM_SCAN_VERBOSE
 
 int pci_shadow_rom(pci_dev_t dev, unsigned char *dest)
@@ -60,7 +59,7 @@ int pci_shadow_rom(pci_dev_t dev, unsigned char *dest)
 	       vendor, device, class_code);
 #endif
 	/* Enable the rom addess decoder */
-	pci_write_config_dword(dev, PCI_ROM_ADDRESS, PCI_ROM_ADDRESS_MASK);
+	pci_write_config_dword(dev, PCI_ROM_ADDRESS, (u32)PCI_ROM_ADDRESS_MASK);
 	pci_read_config_dword(dev, PCI_ROM_ADDRESS, &addr_reg);
 
 	if (!addr_reg) {
@@ -151,5 +150,3 @@ int pci_shadow_rom(pci_dev_t dev, unsigned char *dest)
 
 	return res;
 }
-
-#endif

@@ -11,7 +11,7 @@
  * Alex Zuepke <azu@sysgo.de>
  *
  * (C) Copyright 2002-2004
- * Gary Jennejohn, DENX Software Engineering, <gj@denx.de>
+ * Gary Jennejohn, DENX Software Engineering, <garyj@denx.de>
  *
  * (C) Copyright 2004
  * Philippe Robin, ARM Ltd. <philippe.robin@arm.com>
@@ -38,9 +38,9 @@
  */
 
 #include <common.h>
-#include <arm926ejs.h>
+#include <asm/io.h>
 
-typedef volatile struct {
+struct davinci_timer {
 	u_int32_t	pid12;
 	u_int32_t	emumgt;
 	u_int32_t	na1;
@@ -52,9 +52,10 @@ typedef volatile struct {
 	u_int32_t	tcr;
 	u_int32_t	tgcr;
 	u_int32_t	wdtcr;
-} davinci_timer;
+};
 
-davinci_timer		*timer = (davinci_timer *)CONFIG_SYS_TIMERBASE;
+static struct davinci_timer * const timer =
+	(struct davinci_timer *)CONFIG_SYS_TIMERBASE;
 
 #define TIMER_LOAD_VAL	(CONFIG_SYS_HZ_CLOCK / CONFIG_SYS_HZ)
 #define TIM_CLK_DIV	16
@@ -65,30 +66,30 @@ static ulong lastinc;
 int timer_init(void)
 {
 	/* We are using timer34 in unchained 32-bit mode, full speed */
-	timer->tcr = 0x0;
-	timer->tgcr = 0x0;
-	timer->tgcr = 0x06 | ((TIM_CLK_DIV - 1) << 8);
-	timer->tim34 = 0x0;
-	timer->prd34 = TIMER_LOAD_VAL;
+	writel(0x0, &timer->tcr);
+	writel(0x0, &timer->tgcr);
+	writel(0x06 | ((TIM_CLK_DIV - 1) << 8), &timer->tgcr);
+	writel(0x0, &timer->tim34);
+	writel(TIMER_LOAD_VAL, &timer->prd34);
 	lastinc = 0;
 	timestamp = 0;
-	timer->tcr = 2 << 22;
+	writel(2 << 22, &timer->tcr);
 
 	return(0);
 }
 
 void reset_timer(void)
 {
-	timer->tcr = 0x0;
-	timer->tim34 = 0;
+	writel(0x0, &timer->tcr);
+	writel(0x0, &timer->tim34);
 	lastinc = 0;
 	timestamp = 0;
-	timer->tcr = 2 << 22;
+	writel(2 << 22, &timer->tcr);
 }
 
 static ulong get_timer_raw(void)
 {
-	ulong now = timer->tim34;
+	ulong now = readl(&timer->tim34);
 
 	if (now >= lastinc) {
 		/* normal mode */
@@ -111,7 +112,7 @@ void set_timer(ulong t)
 	timestamp = t;
 }
 
-void udelay(unsigned long usec)
+void __udelay(unsigned long usec)
 {
 	ulong tmo;
 	ulong endtime;

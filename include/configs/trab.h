@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2002-2005
- * Gary Jennejohn <gj@denx.de>
+ * Gary Jennejohn <garyj@denx.de>
  *
  * Configuation settings for the TRAB board.
  *
@@ -40,10 +40,11 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_ARM920T		1	/* This is an arm920t CPU	*/
-#define CONFIG_S3C2400		1	/* in a SAMSUNG S3C2400 SoC	*/
-#define CONFIG_TRAB		1	/* on a TRAB Board		*/
-#undef CONFIG_TRAB_50MHZ		/* run the CPU at 50 MHz	*/
+#define CONFIG_ARM920T	1	/* This is an arm920t CPU	*/
+#define CONFIG_S3C24X0	1	/* in a SAMSUNG S3C24x0-type SoC	*/
+#define CONFIG_S3C2400	1	/* specifically a SAMSUNG S3C2400 SoC	*/
+#define CONFIG_TRAB	1	/* on a TRAB Board		*/
+#undef CONFIG_TRAB_50MHZ	/* run the CPU at 50 MHz	*/
 
 /* automatic software updates (see board/trab/auto_update.c) */
 #define CONFIG_AUTO_UPDATE	1
@@ -99,9 +100,10 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_DRIVER_CS8900	1	/* we have a CS8900 on-board */
-#define CS8900_BASE		0x07000300 /* agrees with WIN CE PA */
-#define CS8900_BUS16		1 /* the Linux driver does accesses as shorts */
+#define CONFIG_NET_MULTI
+#define CONFIG_CS8900		/* we have a CS8900 on-board */
+#define CONFIG_CS8900_BASE	0x07000300 /* agrees with WIN CE PA */
+#define CONFIG_CS8900_BUS16	/* the Linux driver does accesses as shorts */
 
 #define CONFIG_DRIVER_S3C24X0_I2C 1	/* we use the buildin I2C controller */
 
@@ -111,6 +113,7 @@
 /*
  * select serial console configuration
  */
+#define CONFIG_S3C24X0_SERIAL
 #define CONFIG_SERIAL1		1	/* we use SERIAL 1 on TRAB */
 
 #define CONFIG_HWFLOW			/* include RTS/CTS flow control support	*/
@@ -316,21 +319,9 @@
 #define CONFIG_SYS_MEMTEST_START	0x0C000000	/* memtest works on	*/
 #define CONFIG_SYS_MEMTEST_END		0x0D000000	/* 16 MB in DRAM	*/
 
-#undef CONFIG_SYS_CLKS_IN_HZ		/* everything, incl board info, in Hz */
-
 #define	CONFIG_SYS_LOAD_ADDR		0x0CF00000	/* default load address	*/
 
-#ifdef CONFIG_TRAB_50MHZ
-/* the PWM TImer 4 uses a counter of 15625 for 10 ms, so we need */
-/* it to wrap 100 times (total 1562500) to get 1 sec. */
-/* this should _really_ be calculated !! */
-#define	CONFIG_SYS_HZ			1562500
-#else
-/* the PWM TImer 4 uses a counter of 10390 for 10 ms, so we need */
-/* it to wrap 100 times (total 1039000) to get 1 sec. */
-/* this should _really_ be calculated !! */
-#define	CONFIG_SYS_HZ			1039000
-#endif
+#define	CONFIG_SYS_HZ			1000
 
 /* valid baudrates */
 #define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
@@ -375,7 +366,9 @@
 #define	CONFIG_SYS_MONITOR_LEN		(256 << 10)
 
 /* Dynamic MTD partition support */
-#define CONFIG_JFFS2_CMDLINE
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_DEVICE		/* needed for mtdparts commands */
+#define CONFIG_FLASH_CFI_MTD
 #define MTDIDS_DEFAULT		"nor0=0"
 
 /* production flash layout */

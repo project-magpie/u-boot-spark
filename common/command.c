@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2000-2003
+ * (C) Copyright 2000-2009
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
  * See file CREDITS for list of people who contributed to this
@@ -28,225 +28,23 @@
 #include <common.h>
 #include <command.h>
 
-int
-do_version (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
-{
-	extern char version_string[];
-	printf ("\n%s\n", version_string);
-	return 0;
-}
-
-U_BOOT_CMD(
-	version,	1,		1,	do_version,
-	"print monitor version",
-	NULL
-);
-
-#if defined(CONFIG_CMD_ECHO)
-
-int
-do_echo (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
-{
-	int i, putnl = 1;
-
-	for (i = 1; i < argc; i++) {
-		char *p = argv[i], c;
-
-		if (i > 1)
-			putc(' ');
-		while ((c = *p++) != '\0') {
-			if (c == '\\' && *p == 'c') {
-				putnl = 0;
-				p++;
-			} else {
-				putc(c);
-			}
-		}
-	}
-
-	if (putnl)
-		putc('\n');
-	return 0;
-}
-
-U_BOOT_CMD(
-	echo,	CONFIG_SYS_MAXARGS,	1,	do_echo,
-	"echo args to console",
-	"[args..]\n"
-	"    - echo args to console; \\c suppresses newline\n"
-);
-
-#endif
-
-#ifdef CONFIG_SYS_HUSH_PARSER
-
-int
-do_test (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
-{
-	char **ap;
-	int left, adv, expr, last_expr, neg, last_cmp;
-
-	/* args? */
-	if (argc < 3)
-		return 1;
-
-#if 0
-	{
-		printf("test:");
-		left = 1;
-		while (argv[left])
-			printf(" %s", argv[left++]);
-	}
-#endif
-
-	last_expr = 0;
-	left = argc - 1; ap = argv + 1;
-	if (left > 0 && strcmp(ap[0], "!") == 0) {
-		neg = 1;
-		ap++;
-		left--;
-	} else
-		neg = 0;
-
-	expr = -1;
-	last_cmp = -1;
-	last_expr = -1;
-	while (left > 0) {
-
-		if (strcmp(ap[0], "-o") == 0 || strcmp(ap[0], "-a") == 0)
-			adv = 1;
-		else if (strcmp(ap[0], "-z") == 0 || strcmp(ap[0], "-n") == 0)
-			adv = 2;
-		else
-			adv = 3;
-
-		if (left < adv) {
-			expr = 1;
-			break;
-		}
-
-		if (adv == 1) {
-			if (strcmp(ap[0], "-o") == 0) {
-				last_expr = expr;
-				last_cmp = 0;
-			} else if (strcmp(ap[0], "-a") == 0) {
-				last_expr = expr;
-				last_cmp = 1;
-			} else {
-				expr = 1;
-				break;
-			}
-		}
-
-		if (adv == 2) {
-			if (strcmp(ap[0], "-z") == 0)
-				expr = strlen(ap[1]) == 0 ? 1 : 0;
-			else if (strcmp(ap[0], "-n") == 0)
-				expr = strlen(ap[1]) == 0 ? 0 : 1;
-			else {
-				expr = 1;
-				break;
-			}
-
-			if (last_cmp == 0)
-				expr = last_expr || expr;
-			else if (last_cmp == 1)
-				expr = last_expr && expr;
-			last_cmp = -1;
-		}
-
-		if (adv == 3) {
-			if (strcmp(ap[1], "=") == 0)
-				expr = strcmp(ap[0], ap[2]) == 0;
-			else if (strcmp(ap[1], "!=") == 0)
-				expr = strcmp(ap[0], ap[2]) != 0;
-			else if (strcmp(ap[1], ">") == 0)
-				expr = strcmp(ap[0], ap[2]) > 0;
-			else if (strcmp(ap[1], "<") == 0)
-				expr = strcmp(ap[0], ap[2]) < 0;
-			else if (strcmp(ap[1], "-eq") == 0)
-				expr = simple_strtol(ap[0], NULL, 10) == simple_strtol(ap[2], NULL, 10);
-			else if (strcmp(ap[1], "-ne") == 0)
-				expr = simple_strtol(ap[0], NULL, 10) != simple_strtol(ap[2], NULL, 10);
-			else if (strcmp(ap[1], "-lt") == 0)
-				expr = simple_strtol(ap[0], NULL, 10) < simple_strtol(ap[2], NULL, 10);
-			else if (strcmp(ap[1], "-le") == 0)
-				expr = simple_strtol(ap[0], NULL, 10) <= simple_strtol(ap[2], NULL, 10);
-			else if (strcmp(ap[1], "-gt") == 0)
-				expr = simple_strtol(ap[0], NULL, 10) > simple_strtol(ap[2], NULL, 10);
-			else if (strcmp(ap[1], "-ge") == 0)
-				expr = simple_strtol(ap[0], NULL, 10) >= simple_strtol(ap[2], NULL, 10);
-			else {
-				expr = 1;
-				break;
-			}
-
-			if (last_cmp == 0)
-				expr = last_expr || expr;
-			else if (last_cmp == 1)
-				expr = last_expr && expr;
-			last_cmp = -1;
-		}
-
-		ap += adv; left -= adv;
-	}
-
-	if (neg)
-		expr = !expr;
-
-	expr = !expr;
-
-	debug (": returns %d\n", expr);
-
-	return expr;
-}
-
-U_BOOT_CMD(
-	test,	CONFIG_SYS_MAXARGS,	1,	do_test,
-	"minimal test like /bin/sh",
-	"[args..]\n"
-	"    - test functionality\n"
-);
-
-int
-do_exit (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
-{
-	int r;
-
-	r = 0;
-	if (argc > 1)
-		r = simple_strtoul(argv[1], NULL, 10);
-
-	return -r - 2;
-}
-
-U_BOOT_CMD(
-	exit,	2,	1,	do_exit,
-	"exit script",
-	"    - exit functionality\n"
-);
-
-
-#endif
-
 /*
  * Use puts() instead of printf() to avoid printf buffer overflow
  * for long help messages
  */
-int do_help (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+
+int _do_help (cmd_tbl_t *cmd_start, int cmd_items, cmd_tbl_t * cmdtp, int
+	      flag, int argc, char *argv[])
 {
 	int i;
 	int rcode = 0;
 
 	if (argc == 1) {	/*show list of commands */
-
-		int cmd_items = &__u_boot_cmd_end -
-				&__u_boot_cmd_start;	/* pointer arith! */
 		cmd_tbl_t *cmd_array[cmd_items];
 		int i, j, swaps;
 
 		/* Make array of commands from .uboot_cmd section */
-		cmdtp = &__u_boot_cmd_start;
+		cmdtp = cmd_start;
 		for (i = 0; i < cmd_items; i++) {
 			cmd_array[i] = cmdtp++;
 		}
@@ -286,22 +84,8 @@ int do_help (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	 * command help (long version)
 	 */
 	for (i = 1; i < argc; ++i) {
-		if ((cmdtp = find_cmd (argv[i])) != NULL) {
-#ifdef	CONFIG_SYS_LONGHELP
-			/* found - print (long) help info */
-			puts (cmdtp->name);
-			putc (' ');
-			if (cmdtp->help) {
-				puts (cmdtp->help);
-			} else {
-				puts ("- No help available.\n");
-				rcode = 1;
-			}
-			putc ('\n');
-#else	/* no long help available */
-			if (cmdtp->usage)
-				printf ("%s - %s\n", cmdtp->name, cmdtp->usage);
-#endif	/* CONFIG_SYS_LONGHELP */
+		if ((cmdtp = find_cmd_tbl (argv[i], cmd_start, cmd_items )) != NULL) {
+			rcode |= cmd_usage(cmdtp);
 		} else {
 			printf ("Unknown command '%s' - try 'help'"
 				" without arguments for list of all"
@@ -312,32 +96,6 @@ int do_help (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	}
 	return rcode;
 }
-
-
-U_BOOT_CMD(
-	help,	CONFIG_SYS_MAXARGS,	1,	do_help,
-	"print online help",
-	"[command ...]\n"
-	"    - show help information (for 'command')\n"
-	"'help' prints online help for the monitor commands.\n\n"
-	"Without arguments, it prints a short usage message for all commands.\n\n"
-	"To get detailed help information for specific commands you can type\n"
-  "'help' with one or more command names as arguments.\n"
-);
-
-/* This do not ust the U_BOOT_CMD macro as ? can't be used in symbol names */
-#ifdef  CONFIG_SYS_LONGHELP
-cmd_tbl_t __u_boot_cmd_question_mark Struct_Section = {
-	"?",	CONFIG_SYS_MAXARGS,	1,	do_help,
-	"alias for 'help'",
-	NULL
-};
-#else
-cmd_tbl_t __u_boot_cmd_question_mark Struct_Section = {
-	"?",	CONFIG_SYS_MAXARGS,	1,	do_help,
-	"alias for 'help'"
-};
-#endif /* CONFIG_SYS_LONGHELP */
 
 /***************************************************************************
  * find command table entry for a command
@@ -380,9 +138,22 @@ cmd_tbl_t *find_cmd (const char *cmd)
 	return find_cmd_tbl(cmd, &__u_boot_cmd_start, len);
 }
 
-void cmd_usage(cmd_tbl_t *cmdtp)
+int cmd_usage(cmd_tbl_t *cmdtp)
 {
-	printf("Usage:\n%s - %s\n\n", cmdtp->name, cmdtp->usage);
+	printf("%s - %s\n\n", cmdtp->name, cmdtp->usage);
+
+#ifdef	CONFIG_SYS_LONGHELP
+	printf("Usage:\n%s ", cmdtp->name);
+
+	if (!cmdtp->help) {
+		puts ("- No additional help available.\n");
+		return 1;
+	}
+
+	puts (cmdtp->help);
+	putc ('\n');
+#endif	/* CONFIG_SYS_LONGHELP */
+	return 0;
 }
 
 #ifdef CONFIG_AUTO_COMPLETE

@@ -151,7 +151,8 @@
  * cache bypass so there's no need to monkey with inx/outx macros.
  *----------------------------------------------------------------------*/
 #define CONFIG_SMC91111_BASE	0x82110300	/* Base addr (bypass)	*/
-#define CONFIG_DRIVER_SMC91111			/* Using SMC91c111	*/
+#define CONFIG_NET_MULTI
+#define CONFIG_SMC91111			/* Using SMC91c111	*/
 #undef	CONFIG_SMC91111_EXT_PHY			/* Internal PHY		*/
 #define CONFIG_SMC_USE_32_BIT			/* 32-bit interface	*/
 
@@ -180,7 +181,6 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SAVES
 
-#undef CONFIG_CMD_AUTOSCRIPT
 #undef CONFIG_CMD_BOOTD
 #undef CONFIG_CMD_CONSOLE
 #undef CONFIG_CMD_FPGA
@@ -188,6 +188,7 @@
 #undef CONFIG_CMD_ITEST
 #undef CONFIG_CMD_NFS
 #undef CONFIG_CMD_SETGETDCR
+#undef CONFIG_CMD_SOURCE
 #undef CONFIG_CMD_XIMG
 
 
