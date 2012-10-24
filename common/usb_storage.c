@@ -175,7 +175,7 @@ int usb_storage_probe(struct usb_device *dev, unsigned int ifnum,
 		      struct us_data *ss);
 unsigned long usb_stor_read(int device, lbaint_t blknr,
 			    unsigned long blkcnt, void *buffer);
-unsigned long usb_stor_write(int device, unsigned long blknr,
+unsigned long usb_stor_write(int device, lbaint_t blknr,
 			     unsigned long blkcnt, const void *buffer);
 struct usb_device * usb_get_dev_index(int index);
 void uhci_show_temp_int_td(void);
@@ -1119,7 +1119,7 @@ retry_it:
 
 #define USB_MAX_WRITE_BLK 20
 
-unsigned long usb_stor_write(int device, unsigned long blknr,
+unsigned long usb_stor_write(int device, lbaint_t blknr,
 				unsigned long blkcnt, const void *buffer)
 {
 	unsigned long start, blks, buf_addr;

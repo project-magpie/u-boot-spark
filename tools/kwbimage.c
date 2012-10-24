@@ -347,14 +347,13 @@ static int kwbimage_verify_header (unsigned char *ptr, int image_size,
 	bhr_t *mhdr = &hdr->kwb_hdr;
 	extbhr_t *exthdr = &hdr->kwb_exthdr;
 	uint8_t calc_hdrcsum;
-	uint8_t calc_exthdrcsum;
 
 	calc_hdrcsum = kwbimage_checksum8 ((void *)mhdr,
 			sizeof(bhr_t) - sizeof(uint8_t), 0);
 	if (calc_hdrcsum != mhdr->checkSum)
 		return -FDT_ERR_BADSTRUCTURE;	/* mhdr csum not matched */
 
-	calc_exthdrcsum = kwbimage_checksum8 ((void *)exthdr,
+	kwbimage_checksum8 ((void *)exthdr,
 			sizeof(extbhr_t) - sizeof(uint8_t), 0);
 	if (calc_hdrcsum != mhdr->checkSum)
 		return -FDT_ERR_BADSTRUCTURE; /* exthdr csum not matched */
