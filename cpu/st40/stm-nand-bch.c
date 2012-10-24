@@ -117,7 +117,6 @@
 static u32 * dma_buffer_list = NULL;
 static void * dma_buffer = NULL;
 static int bch_ecc_mode = BCH_NO_ECC;
-static int pageNumber;				/* used by bch_ecc_read_page() */
 
 
 /*************************************************************************
@@ -325,9 +324,6 @@ static void flex_command_lp(
 #endif /* DEBUG_BCH */
 
 	emiss_nandi_select(STM_NANDI_HAMMING);
-
-	if (command == NAND_CMD_READ0)
-		pageNumber = page;		/* may be used soon by bch_ecc_read_page() */
 
 	/* Emulate NAND_CMD_READOOB */
 	if (command == NAND_CMD_READOOB) {
@@ -756,22 +752,16 @@ static void bch_init_dma_buffers(struct mtd_info * const mtd)
 }
 
 
-/*
- * Note: we expect nand_do_read_ops() to call chip->cmdfunc() (i.e. flex_command_lp)
- * before calling chip->ecc.read_page() (i.e. bch_ecc_read_page). The "page" number
- * from the first call is saved in a global variable "pageNumber", and used here.
- * A bit ugly, but it works, and saves us implementing nand_do_read_ops() locally!
- */
 static int bch_ecc_read_page (
 	struct mtd_info * const mtd,
 	struct nand_chip * const chip,
-	uint8_t * const buf)
+	uint8_t * const buf,
+	int page)
 {
 	const uint32_t page_size = mtd->writesize;
 	const uint32_t sectors_per_page = chip->ecc.steps;
 	struct bch_prog * const prog = &bch_prog_read_page;
 	int status = 0;
-	int page = pageNumber;
 	uint8_t * buffer;
 	uint8_t * const oobbuf = buf + page_size;
 	uint8_t * bbt_buf;
@@ -784,7 +774,7 @@ static int bch_ecc_read_page (
 	const int bbt_first_page = bbt_last_page - (descr->maxblocks * pages_per_block) + 1;
 
 #if defined(DEBUG_BCH)
-	printf("info: bch_ecc_read_page(mtd=%p, chip=%p, buf=%p) ... page_size = %u\n", mtd, chip, buf, page_size);
+	printf("info: bch_ecc_read_page(mtd=%p, chip=%p, buf=%p, page=%u) ... page_size = %u\n", mtd, chip, buf, page, page_size);
 #endif /* DEBUG_BCH */
 
 	/* Activate the BCH controller */
@@ -911,8 +901,7 @@ static int bch_ecc_read_page (
 #endif /* DEBUG_BCH */
 
 	/* now read what he hope is the BBT header from the *last* page in the same block */
-	pageNumber = page;
-	status = bch_ecc_read_page (mtd, chip, (void*)header);
+	status = bch_ecc_read_page (mtd, chip, (void*)header, page);
 
 	/*
 	 * Copy a sub-set of info from "inband" into the OOB region in the caller's buffer
@@ -954,11 +943,8 @@ extern int stm_bch_scan_read_raw(
 	BUG_ON(len != page_size);		/* paranoia */
 	BUG_ON((offs & (page_size-1)));		/* paranoia */
 
-	/* kludge to set page number to be read */
-	pageNumber = page;
-
 	/* now read the page with the BCH controller ... */
-	return bch_ecc_read_page (mtd, chip, buf);
+	return bch_ecc_read_page (mtd, chip, buf, page);
 }
 
 

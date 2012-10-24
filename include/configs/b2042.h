@@ -483,7 +483,8 @@
 #	ifdef CONFIG_CMD_NAND			/* NAND flash present ? */
 #		define CONFIG_JFFS2_NAND	/* JFFS2 support on NAND Flash */
 #	endif	/* CONFIG_CMD_NAND */
-#	define CONFIG_JFFS2_CMDLINE		/* mtdparts command line support */
+#	define CONFIG_CMD_MTDPARTS		/* mtdparts command line support */
+#	define CONFIG_MTD_DEVICE		/* needed for mtdparts commands */
 #endif	/* CONFIG_CMD_JFFS2 */
 
 

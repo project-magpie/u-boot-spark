@@ -137,14 +137,14 @@ static inline void tick_delay (const unsigned long long delta)
 	}
 }
 
-void udelay (unsigned long usec)		/* delay in micro-seconds */
+void __udelay (unsigned long usec)		/* delay in micro-seconds */
 {
 	u64 delta = usec_to_tick(usec);		/* time to wait */
 
 	tick_delay (delta);			/* wait ... */
 }
 
-void ndelay (unsigned long nsec)		/* delay in nano-seconds */
+void __ndelay (unsigned long nsec)		/* delay in nano-seconds */
 {
 	u64 delta = usec_to_tick(nsec);		/* time to wait */
 

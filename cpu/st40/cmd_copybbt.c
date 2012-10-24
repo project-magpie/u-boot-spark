@@ -247,7 +247,7 @@ U_BOOT_CMD(
 	"copies abridged version of NAND BBT",
 	"info [addr] - shows status of copied BBT in RAM\n"
 	"copybbt copy [addr] - copies BBT into RAM copy of u-boot.bin\n"
-	"\t\t      this may be done prior to burning to NAND\n"
+	"\t\t      this may be done prior to burning to NAND"
 );
 
 

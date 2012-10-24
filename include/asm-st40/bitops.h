@@ -251,7 +251,7 @@ static __inline__ int find_next_zero_bit (void *addr, int size, int offset)
  * differs in spirit from the above ffz (man ffs).
  */
 
-#define ffs(x) generic_ffs(x)
+#undef PLATFORM_FFS
 
 /*
  * hweightN: returns the hamming weight (i.e. the number

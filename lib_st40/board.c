@@ -26,7 +26,7 @@
 #include <common.h>
 #include <command.h>
 #include <malloc.h>
-#include <devices.h>
+#include <stdio_dev.h>
 #include <version.h>
 #include <timestamp.h>
 #include <net.h>
@@ -169,15 +169,6 @@ ulong monitor_flash_len = (ulong)&__uboot_bin_size;
 const char version_string[] =
 	U_BOOT_VERSION" (" U_BOOT_DATE " - " U_BOOT_TIME ") - " CONFIG_IDENT_STRING ;
 
-/*
- * Begin and End of memory area for malloc(), and current "brk"
- */
-
-#define	TOTAL_MALLOC_LEN	CONFIG_SYS_MALLOC_LEN
-
-static ulong mem_malloc_start;
-static ulong mem_malloc_end;
-static ulong mem_malloc_brk;
 
 extern int soc_init (void); 	/* Detect/set SOC settings  */
 extern int board_init (void);   /* Set up board             */
@@ -185,29 +176,6 @@ extern int timer_init (void);
 extern int checkboard (void);   /* Give info about board    */
 extern int env_init_after_spi_done (void);
 
-static void mem_malloc_init (void)
-{
-	ulong dest_addr = TEXT_BASE + gd->reloc_off;
-
-	mem_malloc_end = dest_addr;
-	mem_malloc_start = dest_addr - TOTAL_MALLOC_LEN;
-	mem_malloc_brk = mem_malloc_start;
-
-	memset ((void *) mem_malloc_start,
-		0, mem_malloc_end - mem_malloc_start);
-}
-
-void *sbrk (ptrdiff_t increment)
-{
-	ulong old = mem_malloc_brk;
-	ulong new = old + increment;
-
-	if ((new < mem_malloc_start) || (new > mem_malloc_end)) {
-		return (NULL);
-	}
-	mem_malloc_brk = new;
-	return ((void *) old);
-}
 
 static int init_func_ram (void)
 {
@@ -290,12 +258,11 @@ void start_st40_boot (void)
 	ulong size;
 #endif /* CONFIG_SYS_NO_FLASH */
 
-	char *s, *e;
-	int i;
+	char *s;
 
 	addr = TEXT_BASE;
 	/* Reserve memory for malloc() arena. */
-	addr -= TOTAL_MALLOC_LEN;
+	addr -= CONFIG_SYS_MALLOC_LEN;
 	/* (permanently) allocate a Board Info struct
 	 * and a permanent copy of the "global" data
 	 */
@@ -315,7 +282,6 @@ void start_st40_boot (void)
 		}
 	}
 
-	gd->reloc_off = 0;
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
 
 	/* configure available FLASH banks */
@@ -340,7 +306,8 @@ void start_st40_boot (void)
 #endif /* CONFIG_SYS_NO_FLASH */
 
 	/* initialize malloc() area */
-	mem_malloc_init ();
+	mem_malloc_init(TEXT_BASE - CONFIG_SYS_MALLOC_LEN,
+		CONFIG_SYS_MALLOC_LEN);
 
 #if defined(CONFIG_CMD_NAND)
 	puts ("NAND:  ");
@@ -358,15 +325,6 @@ void start_st40_boot (void)
 	/* Allocate environment function pointers etc. */
 	env_relocate ();
 
-	/* board MAC address */
-	s = getenv ("ethaddr");
-	for (i = 0; i < 6; ++i) {
-		bd->bi_enetaddr[i] = (s ? simple_strtoul (s, &e, 16) : 0)
-			&& 0xff;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-
 	/* IP Address */
 	bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
 
@@ -378,8 +336,8 @@ void start_st40_boot (void)
 #endif
 
 /** leave this here (after malloc(), environment and PCI are working) **/
-	/* Initialize devices */
-	devices_init ();
+	/* Initialize stdio devices */
+	stdio_init ();
 
 	jumptable_init ();
 

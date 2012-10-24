@@ -1293,15 +1293,9 @@ static void stmac_eth_rx (void)
 			frame_len = drx->des01.rx.frame_length;
 			if ((frame_len >= 0) && (frame_len <= PKTSIZE_ALIGN)) {
 #if defined(DEBUG) || defined(CONFIG_PHY_LOOPBACK) || defined(DUMP_ENCAPSULATION_HEADER)
-				const unsigned char *p = rx_packets[cur_rx];
-				printf("\nRX[%d]:  0x%08x ", cur_rx, p);
-				printf("DA=%02x:%02x:%02x:%02x:%02x:%02x",
-					p[0], p[1], p[2], p[3], p[4], p[5]);
-				p+=6;
-				printf(" SA=%02x:%02x:%02x:%02x:%02x:%02x",
-					p[0], p[1], p[2], p[3], p[4], p[5]);
-				p+=6;
-				printf(" Type=%04x\n", p[0]<<8|p[1]);
+				const unsigned char * const p = rx_packets[cur_rx];
+				printf("\nRX[%d]:  0x%08x DA=%pM SA=%pM Type=%04x\n",
+					cur_rx, (unsigned int)p, p, p+6, p[12]<<8|p[13]);
 #endif
 				memcpy ((void*)NetRxPackets[0], rx_packets[cur_rx],
 					frame_len);
@@ -1331,83 +1325,58 @@ static void stmac_eth_rx (void)
 	return;
 }
 
-static int stmac_get_ethaddr (bd_t * bd)
+static int stmac_get_ethaddr(void)
 {
-	int env_size, rom_valid, env_present = 0, reg;
-	char *s = NULL, *e, es[] = "11:22:33:44:55:66";
-	char s_env_mac[64];
+	int rom_valid, env_valid;
 	uchar v_env_mac[6], v_rom_mac[6], *v_mac;
 
-	env_size = getenv_r ("ethaddr", s_env_mac, sizeof (s_env_mac));
-	if ((env_size > 0) && (env_size < sizeof (es))) {	/* exit if env is bad */
-		printf ("\n*** ERROR: ethaddr is not set properly!!\n");
-		return (-1);
-	}
+	/*
+	 * Get the MAC address from the environment variable "ethaddr".
+	 * Returns 1, if environment exists, and the MAC is valid.
+	 */
+	env_valid = eth_getenv_enetaddr("ethaddr", v_env_mac);
 
-	if (env_size > 0) {
-		env_present = 1;
-		s = s_env_mac;
-	}
+	/*
+	 * Get the MAC address from the ROM via the MAC/GMAC hardware.
+	 * Returns 1, if the MAC is valid.
+	 */
+	rom_valid = stmac_get_mac_addr(v_rom_mac);
 
-	for (reg = 0; reg < 6; ++reg) {	/* turn string into mac value */
-		v_env_mac[reg] = s ? simple_strtoul (s, &e, 16) : 0;
-		if (s)
-			s = (*e) ? e + 1 : e;
-	}
-
-	rom_valid = stmac_get_mac_addr (v_rom_mac);	/* get ROM mac value if any */
-
-	if (!env_present) {	/* if NO env */
+	if (!env_valid) {	/* if NO valid MAC in the environment */
 		if (rom_valid) {	/* but ROM is valid */
-			v_mac = v_rom_mac;
-			sprintf (s_env_mac, "%02X:%02X:%02X:%02X:%02X:%02X",
-				 v_mac[0], v_mac[1], v_mac[2], v_mac[3],
-				 v_mac[4], v_mac[5]);
-			setenv ("ethaddr", s_env_mac);
-		} else {	/* no env, bad ROM */
-			printf ("\n*** ERROR: ethaddr is NOT set !!\n");
+			eth_setenv_enetaddr("ethaddr", v_mac=v_rom_mac);
+		} else {	/* invalid env, and bad ROM - give up! */
+			printf("\n*** ERROR: ethaddr is NOT set !!\n");
 			return (-1);
 		}
 	} else {		/* good env, don't care ROM */
 		v_mac = v_env_mac;	/* always use a good env over a ROM */
 	}
 
-	if (env_present && rom_valid) {	/* if both env and ROM are good */
+	if (env_valid && rom_valid) {	/* if both env and ROM are good */
 		if (memcmp (v_env_mac, v_rom_mac, 6) != 0) {
-			printf ("\nWarning: MAC addresses don't match:\n");
-			printf ("\tHW MAC address:  "
-				"%02X:%02X:%02X:%02X:%02X:%02X\n",
-				v_rom_mac[0], v_rom_mac[1],
-				v_rom_mac[2], v_rom_mac[3],
-				v_rom_mac[4], v_rom_mac[5]);
-			printf ("\t\"ethaddr\" value: "
-				"%02X:%02X:%02X:%02X:%02X:%02X\n",
-				v_env_mac[0], v_env_mac[1],
-				v_env_mac[2], v_env_mac[3],
-				v_env_mac[4], v_env_mac[5]);
+			printf("\nWarning: MAC addresses don't match:\n");
+			printf("\tHW MAC address:  %pM\n", v_rom_mac);
+			printf("\t\"ethaddr\" value: %pM\n", v_env_mac);
 		}
 	}
-	memcpy (bd->bi_enetaddr, v_mac, 6);	/* update global address to match env (allows env changing) */
-	stmac_set_mac_addr (v_mac);	/* use old function to update default */
-	printf ("Using MAC Address %02X:%02X:%02X:%02X:%02X:%02X\n", v_mac[0],
-		v_mac[1], v_mac[2], v_mac[3], v_mac[4], v_mac[5]);
+
+	printf("Using MAC Address %pM\n", v_mac);
+	stmac_set_mac_addr(v_mac);	/* update H/W (volatile only) */
+
 	return (0);
 }
 
-static int stmac_reset_eth (bd_t * bd)
+static int stmac_reset_eth(void)
 {
-	int err;
-
 	/* MAC Software reset */
 	stmac_dma_reset ();		/* Must be done early  */
 
-	/* set smc_mac_addr, and sync it with u-boot globals */
-	err = stmac_get_ethaddr (bd);
-
-	if (err < 0) {
-		/* hack to make error stick! upper code will abort if not set */
-		memset (bd->bi_enetaddr, 0, 6);
-		/* upper code ignores return value, but NOT bi_enetaddr */
+	/*
+	 * set MAC address (in H/W), and sync it with the global
+	 * U-Boot environment variable "ethaddr".
+	 */
+	if (stmac_get_ethaddr() < 0) {
 		return (-1);
 	}
 
@@ -1440,7 +1409,7 @@ static int stmac_reset_eth (bd_t * bd)
 extern int eth_init (bd_t * bd)
 {
 	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
-	return stmac_reset_eth (bd);
+	return stmac_reset_eth();
 }
 
 extern void eth_halt (void)
@@ -1470,15 +1439,9 @@ extern int eth_send (volatile void *packet, int length)
 {
 	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
 #if defined(DEBUG) || defined(CONFIG_PHY_LOOPBACK) || defined(DUMP_ENCAPSULATION_HEADER)
-	const unsigned char * p = (const unsigned char*)packet;
-	printf("TX   :  0x%08x ", p);
-	printf("DA=%02x:%02x:%02x:%02x:%02x:%02x",
-		p[0], p[1], p[2], p[3], p[4], p[5]);
-	p+=6;
-	printf(" SA=%02x:%02x:%02x:%02x:%02x:%02x",
-		p[0], p[1], p[2], p[3], p[4], p[5]);
-	p+=6;
-	printf(" Type=%04x\n", p[0]<<8|p[1]);
+	const unsigned char * const p = (const unsigned char*)packet;
+	printf("TX   :  0x%08x DA=%pM SA=%pM Type=%04x\n",
+		(unsigned int)p, p, p+6, p[12]<<8|p[13]);
 #endif
 
 	return stmac_eth_tx (packet, length);

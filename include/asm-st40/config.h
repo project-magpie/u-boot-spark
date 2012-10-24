@@ -1,5 +1,7 @@
 /*
  * Copyright 2009 Freescale Semiconductor, Inc.
+ * Copyright 2012 STMicroelectronics Ltd.
+ *	Sean McGoogan <Sean.McGoogan@st.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,4 +23,10 @@
 #ifndef _ASM_CONFIG_H_
 #define _ASM_CONFIG_H_
 
-#endif
+/* Relocation to SDRAM works on all ST40 boards */
+#define CONFIG_RELOC_FIXUP_WORKS
+
+/* Enable use of the Logical Memory Blocks (LMB). */
+#define CONFIG_LMB
+
+#endif /* _ASM_CONFIG_H_ */

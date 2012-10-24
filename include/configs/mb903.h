@@ -362,7 +362,8 @@
 #endif
 
 #if defined(CONFIG_CMD_JFFS2)
-#	define CONFIG_JFFS2_CMDLINE		/* mtdparts command line support */
+#	define CONFIG_CMD_MTDPARTS		/* mtdparts command line support */
+#	define CONFIG_MTD_DEVICE		/* needed for mtdparts commands */
 #	if defined(CONFIG_CMD_FLASH)		/* Only NOR flash devices */
 #		define MTDPARTS_DEFAULT	"mtdparts=" MTDPARTS_NOR
 #		define MTDIDS_DEFAULT	MTDIDS_NOR

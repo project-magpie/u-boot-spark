@@ -58,5 +58,5 @@ U_BOOT_CMD(
 	"STMicro Memory tests",
 	"start length delay - STMicro memory tests\n"
 	"      all values in decimal (prepend '0x' for hex)\n"
-	"      delay specified in ms\n"
+	"      delay specified in ms"
 );

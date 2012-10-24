@@ -24,8 +24,8 @@
  */
 #include <common.h>
 #include <usb.h>
-#include "usb_ehci.h"
-#include "usb_ehci_core.h"
+#include "ehci.h"
+#include "ehci-core.h"
 #include <asm/stbus.h>
 
 

@@ -323,7 +323,7 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	u32 base[MAX_EMI_BANKS+1];	/* Base address for each bank */
 	u32 enabled;			/* number of enabled EMI banks */
 #endif	/* CONFIG_CMD_BDI_DUMP_EMI_BANKS */
-#if defined(CONFIG_CMD_NET) || CONFIG_CMD_BDI_DUMP_EMI_BANKS
+#if CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	unsigned int i;
 #endif
 	bd_t * const bd = gd->bd;
@@ -337,14 +337,10 @@ int do_bdinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 #endif /* CONFIG_SYS_NO_FLASH */
 
 #if defined(CONFIG_CMD_NET)
-	puts ("ethaddr     =");
-	for (i=0; i<6; ++i) {
-		printf ("%c%02X", i ? ':' : ' ', bd->bi_enetaddr[i]);
-	}
-	puts ("\nip_addr     = ");
-	print_IPaddr (bd->bi_ip_addr);
+	print_eth(0);
+	printf ("ip_addr     = %pI4\n", &bd->bi_ip_addr);
 #endif
-	printf ("\nbaudrate    = %d bps\n", bd->bi_baudrate);
+	printf ("baudrate    = %d bps\n", bd->bi_baudrate);
 
 #if defined(CONFIG_ST40_STX5197)
 	if (STX5197_DEVICEID_5197(bd->bi_devid))

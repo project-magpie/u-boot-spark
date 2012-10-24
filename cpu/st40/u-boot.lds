@@ -120,7 +120,7 @@ SECTIONS
 	.rodata ALIGN(0x4):
 	{
 		__rodata_start = .;
-		*(.rodata)
+		*(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*)))
 		__rodata_end = .;
 	}
 

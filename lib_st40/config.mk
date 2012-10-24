@@ -27,7 +27,12 @@
 # for actual build number, in the following identifier.
 # Regular Expression for string is:
 # 	"stm[2-9][0-9]-[2-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]"
-ST40_IDENT_STRING="\"stm24-2012-10-18\""
+ST40_IDENT_STRING="\"stm24-2012-10-24\""
+
+CROSS_COMPILE ?= sh4-linux-
+
+sinclude $(OBJTREE)/include/autoconf.mk
+STANDALONE_LOAD_ADDR = $(CONFIG_SYS_SDRAM_BASE)
 
 PLATFORM_CPPFLAGS += -DCONFIG_ST40 -D__SH4__ -DCONFIG_IDENT_STRING=$(ST40_IDENT_STRING)
 PLATFORM_LDFLAGS  += -n

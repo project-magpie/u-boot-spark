@@ -459,7 +459,8 @@
 #endif
 
 #if defined(CONFIG_CMD_JFFS2)
-#	define CONFIG_JFFS2_CMDLINE		/* mtdparts command line support */
+#	define CONFIG_CMD_MTDPARTS		/* mtdparts command line support */
+#	define CONFIG_MTD_DEVICE		/* needed for mtdparts commands */
 #	define CONFIG_JFFS2_NAND		/* JFFS2 support on NAND Flash */
 #	if defined(CONFIG_CMD_FLASH) && defined(CONFIG_CMD_NAND) /* Both NOR + NAND */
 #		define MTDPARTS_DEFAULT						\
