@@ -40,9 +40,9 @@ static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 int board_early_init_f(void)
 {
-	spear320_pins_default();
-
 	spear320_select_mode(SPEAR320_EXTENDED_MODE);
+
+	spear320_pins_default();
 
 	spear320_enable_pins(PMX_I2C0, 0);
 	spear320_enable_pins(PMX_SSP0, 0);

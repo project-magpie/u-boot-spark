@@ -57,8 +57,6 @@ void arch_get_mdio_control(const char *devname)
 /* Pinmux for EMI */
 static void enable_emi_pins(void)
 {
-	int i;
-
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_40_49_REG,
 			PMX_PL_46_47_MASK | PMX_PL_48_49_MASK,
 			PMX_FSMC_EMI_PL_46_47_VAL | PMX_FSMC_EMI_PL_48_49_VAL);
@@ -91,17 +89,11 @@ static void enable_emi_pins(void)
 	pinmux_maskval(SPEAR320_EXT_CTRL_REG,
 			EMI_FSMC_DYNAMIC_MUX_MASK,
 			EMI_FSMC_DYNAMIC_MUX_MASK);
-
-	/* Place all EMI pins in RAS IP mode */
-	for (i = 46; i <= 97; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 /* Pinmux for 8bit NAND interface */
 static void enable_nand8bit_pins(void)
 {
-	int i;
-
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_50_59_REG,
 			PMX_PL_52_53_MASK | PMX_PL_54_55_56_MASK |
 			PMX_PL_57_MASK | PMX_PL_58_59_MASK,
@@ -115,17 +107,11 @@ static void enable_nand8bit_pins(void)
 	pinmux_maskval(SPEAR320_EXT_CTRL_REG,
 			EMI_FSMC_DYNAMIC_MUX_MASK,
 			EMI_FSMC_DYNAMIC_MUX_MASK);
-
-	/* Place all NAND 8 bit pins in RAS IP mode */
-	for (i = 52; i <= 68; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 /* Pinmux for 16bit NAND interface */
 static void enable_nand16bit_pins(void)
 {
-	int i;
-
 	enable_nand8bit_pins();
 
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
@@ -138,12 +124,6 @@ static void enable_nand16bit_pins(void)
 			PMX_PL_70_MASK | PMX_PL_71_72_MASK | PMX_PL_73_MASK,
 			PMX_FSMC_EMI_PL_70_VAL | PMX_FSMC_EMI_PL_71_72_VAL |
 			PMX_FSMC_EMI_PL_73_VAL);
-
-	/* Place all NAND 16 bit pins in RAS IP mode */
-	for (i = 46; i <= 49; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
-	for (i = 70; i <= 73; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_nand_pins(u32 mode)
@@ -166,15 +146,10 @@ static void enable_sdmmc_led_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_30_39_REG,
 			PMX_PL_34_MASK,
 			PMX_PWM2_PL_34_VAL);
-
-	/* Place all SDMMC LED pins in RAS IP mode */
-	pinmux_clear_bit(34, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_sdmmc_common_pins(void)
 {
-	int i;
-
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_TIMER_0_1_MASK | PMX_TIMER_2_3_MASK,
 			0);
@@ -192,12 +167,6 @@ static void enable_sdmmc_common_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_PL_100_101_MASK,
 			PMX_SDHCI_PL_100_101_VAL);
-
-	/* Place all SDMMC common pins in RAS IP mode */
-	for (i = 43; i <= 50; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
-	for (i = 99; i <= 101; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_sdmmc_cd12_pins(void)
@@ -213,9 +182,6 @@ static void enable_sdmmc_cd12_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SDHCI_CD_PORT_SEL_MASK,
 			PMX_SDHCI_CD_PORT_12_VAL);
-
-	/* Place SDMMC CD12 pin in RAS IP mode */
-	pinmux_clear_bit(12, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_sdmmc_cd51_pins(void)
@@ -228,9 +194,6 @@ static void enable_sdmmc_cd51_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SDHCI_CD_PORT_SEL_MASK,
 			PMX_SDHCI_CD_PORT_51_VAL);
-
-	/* Place SDMMC CD51 pin in RAS IP mode */
-	pinmux_clear_bit(51, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_sdmmc_pins(u32 mode)
@@ -251,24 +214,17 @@ static void enable_sdmmc_pins(u32 mode)
 /* Pinmux for UART1 */
 static void enable_uart1simple_pins(void)
 {
-	int i;
-
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_GPIO_PIN0_MASK | PMX_GPIO_PIN1_MASK,
 			0);
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_20_29_REG,
 			PMX_PL_28_29_MASK,
 			PMX_UART1_PL_28_29_VAL);
-
-	/* Place all UART1 simple pins in RAS IP mode */
-	for (i = 28; i <= 29; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 /* Pinmux for UART1 modem */
 static void enable_uart1_modem_2to7_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_UART0_MASK | PMX_I2C_MASK | PMX_SSP_MASK,
 			0);
@@ -279,15 +235,10 @@ static void enable_uart1_modem_2to7_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_UART1_ENH_PORT_SEL_MASK,
 			PMX_UART1_ENH_PORT_3_TO_5_7_VAL);
-
-	/* Place all UART1 modem 2 to 7 pins in RAS IP mode */
-	for (i = 2; i <= 7; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_uart1_modem_31to36_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_GPIO_PIN3_MASK | PMX_GPIO_PIN4_MASK |
 			PMX_GPIO_PIN5_MASK | PMX_SSP_CS_MASK,
@@ -301,15 +252,10 @@ static void enable_uart1_modem_31to36_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_UART1_ENH_PORT_SEL_MASK,
 			PMX_UART1_ENH_PORT_32_TO_34_36_VAL);
-
-	/* Place all UART1 modem 31 to 36 pins in RAS IP mode */
-	for (i = 31; i <= 36; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_uart1_modem_34to45_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_TIMER_0_1_MASK | PMX_TIMER_2_3_MASK |
 			PMX_SSP_CS_MASK,
@@ -324,17 +270,10 @@ static void enable_uart1_modem_34to45_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_UART1_ENH_PORT_SEL_MASK,
 			PMX_UART1_ENH_PORT_44_45_34_36_VAL);
-
-	/* Place all UART1 modem 34 to 45 pins in RAS IP mode */
-	for (i = 34; i <= 36; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
-	for (i = 43; i <= 45; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_uart1_modem_80to85_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_80_89_REG,
 			PMX_PL_80_TO_85_MASK,
 			PMX_UART1_ENH_PL_80_TO_85_VAL);
@@ -344,10 +283,6 @@ static void enable_uart1_modem_80to85_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_UART1_ENH_PORT_SEL_MASK,
 			PMX_UART1_ENH_PORT_81_TO_85_VAL);
-
-	/* Place all UART1 modem 80 to 85 pins in RAS IP mode */
-	for (i = 80; i <= 85; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_uart1_pins(u32 mode)
@@ -374,23 +309,17 @@ static void enable_uart1_pins(u32 mode)
 /* Pinmux for UART2 */
 static void enable_uart2_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_FIRDA_MASK,
 			0);
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_0_9_REG,
 			PMX_PL_0_1_MASK,
 			PMX_UART2_PL_0_1_VAL);
-
-	/* Place all UART2 modem 0 to 1 pins in RAS IP mode */
-	for (i = 0; i <= 1; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 };
 
 /* Pinmux for SSP1 */
 static void enable_ssp1_17to20_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_MII_MASK,
 			0);
@@ -403,15 +332,10 @@ static void enable_ssp1_17to20_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SSP1_PORT_SEL_MASK,
 			PMX_SSP1_PORT_17_TO_20_VAL);
-
-	/* Place all SSP1 17 to 20 pins in RAS IP mode */
-	for (i = 17; i <= 20; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_ssp1_36to39_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_UART0_MODEM_MASK | PMX_SSP_CS_MASK,
 			0);
@@ -422,15 +346,10 @@ static void enable_ssp1_36to39_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SSP1_PORT_SEL_MASK,
 			PMX_SSP1_PORT_36_TO_39_VAL);
-
-	/* Place all SSP1 36 to 39 pins in RAS IP mode */
-	for (i = 36; i <= 39; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_ssp1_48to51_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_TIMER_0_1_MASK | PMX_TIMER_2_3_MASK,
 			0);
@@ -443,40 +362,26 @@ static void enable_ssp1_48to51_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SSP1_PORT_SEL_MASK,
 			PMX_SSP1_PORT_48_TO_51_VAL);
-
-	/* Place all SSP1 48 to 51 pins in RAS IP mode */
-	for (i = 48; i <= 51; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_ssp1_65to68_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_60_69_REG,
 			PMX_PL_65_TO_68_MASK,
 			PMX_SSP1_PL_65_TO_68_VAL);
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SSP1_PORT_SEL_MASK,
 			PMX_SSP1_PORT_65_TO_68_VAL);
-
-	/* Place all SSP1 65 to 68 pins in RAS IP mode */
-	for (i = 65; i <= 68; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_ssp1_94to97_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_90_99_REG,
 			PMX_PL_94_95_MASK | PMX_PL_96_97_MASK,
 			PMX_SSP1_PL_94_95_VAL | PMX_SSP1_PL_96_97_VAL);
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SSP1_PORT_SEL_MASK,
 			PMX_SSP1_PORT_94_TO_97_VAL);
-
-	/* Place all SSP1 94 to 97 pins in RAS IP mode */
-	for (i = 94; i <= 97; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_ssp1_pins(u32 mode)
@@ -503,7 +408,6 @@ static void enable_ssp1_pins(u32 mode)
 /* Pinmux for SSP2 */
 static void enable_ssp2_13to16_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_MII_MASK,
 			0);
@@ -513,15 +417,10 @@ static void enable_ssp2_13to16_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SSP2_PORT_SEL_MASK,
 			PMX_SSP2_PORT_13_TO_16_VAL);
-
-	/* Place all SSP2 13 to 16 pins in RAS IP mode */
-	for (i = 13; i <= 16; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_ssp2_32to35_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_SSP_CS_MASK | PMX_GPIO_PIN4_MASK |
 			PMX_GPIO_PIN5_MASK,
@@ -533,15 +432,10 @@ static void enable_ssp2_32to35_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SSP2_PORT_SEL_MASK,
 			PMX_SSP2_PORT_32_TO_35_VAL);
-
-	/* Place all SSP2 32 to 35 pins in RAS IP mode */
-	for (i = 32; i <= 35; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_ssp2_44to47_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_TIMER_0_1_MASK | PMX_TIMER_2_3_MASK,
 			0);
@@ -551,40 +445,26 @@ static void enable_ssp2_44to47_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SSP2_PORT_SEL_MASK,
 			PMX_SSP2_PORT_44_TO_47_VAL);
-
-	/* Place all SSP2 44 to 47 pins in RAS IP mode */
-	for (i = 44; i <= 47; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_ssp2_61to64_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_60_69_REG,
 			PMX_PL_61_TO_64_MASK,
 			PMX_SSP2_PL_61_TO_64_VAL);
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SSP2_PORT_SEL_MASK,
 			PMX_SSP2_PORT_61_TO_64_VAL);
-
-	/* Place all SSP2 61 to 64 pins in RAS IP mode */
-	for (i = 61; i <= 64; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_ssp2_90to93_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_90_99_REG,
 			PMX_PL_90_91_MASK | PMX_PL_92_93_MASK,
 			PMX_SSP2_PL_90_91_VAL | PMX_SSP2_PL_92_93_VAL);
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_SSP2_PORT_SEL_MASK,
 			PMX_SSP2_PORT_90_TO_93_VAL);
-
-	/* Place all SSP2 90 to 93 pins in RAS IP mode */
-	for (i = 17; i <= 20; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_ssp2_pins(u32 mode)
@@ -611,7 +491,6 @@ static void enable_ssp2_pins(u32 mode)
 /* Pinmux for ETH2 */
 static void enable_mii2_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_80_89_REG,
 			PMX_PL_80_TO_85_MASK | PMX_PL_86_87_MASK |
 			PMX_PL_88_89_MASK,
@@ -629,15 +508,10 @@ static void enable_mii2_pins(void)
 			(MAC_MODE_MII << MAC2_MODE_SHIFT) |
 			(MAC_MODE_MII << MAC1_MODE_SHIFT) |
 			MII_MDIO_81_VAL);
-
-	/* Place all MII2 pins in RAS IP mode */
-	for (i = 80; i <= 97; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_smii2_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_MII_MASK,
 			0);
@@ -654,17 +528,10 @@ static void enable_smii2_pins(void)
 			(MAC_MODE_SMII << MAC2_MODE_SHIFT)
 			| (MAC_MODE_SMII << MAC1_MODE_SHIFT)
 			| MII_MDIO_10_11_VAL);
-
-	/* Place all SMII2 pins in RAS IP mode */
-	for (i = 10; i <= 11; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
-	for (i = 21; i <= 27; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_rmii2_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_MII_MASK,
 			0);
@@ -684,10 +551,6 @@ static void enable_rmii2_pins(void)
 			(MAC_MODE_RMII << MAC2_MODE_SHIFT)
 			| (MAC_MODE_RMII << MAC1_MODE_SHIFT)
 			| MII_MDIO_10_11_VAL);
-
-	/* Place all SMII2 pins in RAS IP mode */
-	for (i = 10; i <= 27; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_eth2_pins(u32 mode)
@@ -714,7 +577,6 @@ static void enable_eth1_eth2_pins(u32 mode)
 /* Pinmux for I2C1 */
 static void enable_i2c1_8to9_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_SSP_CS_MASK,
 			0);
@@ -724,25 +586,16 @@ static void enable_i2c1_8to9_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_I2C1_PORT_SEL_MASK,
 			PMX_I2C1_PORT_8_9_VAL);
-
-	/* Place all I2C1 pins in RAS IP mode */
-	for (i = 8; i <= 9; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_i2c1_98to99_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_90_99_REG,
 			PMX_PL_98_MASK | PMX_PL_99_MASK,
 			PMX_I2C1_PL_98_VAL | PMX_I2C1_PL_99_VAL);
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_I2C1_PORT_SEL_MASK,
 			PMX_I2C1_PORT_98_99_VAL);
-
-	/* Place all I2C1 pins in RAS IP mode */
-	for (i = 98; i <= 99; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_i2c1_pins(u32 mode)
@@ -760,7 +613,6 @@ static void enable_i2c1_pins(u32 mode)
 /* Pinmux for I2C2 */
 static void enable_i2c2_0to1_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_FIRDA_MASK,
 			0);
@@ -770,15 +622,10 @@ static void enable_i2c2_0to1_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_I2C2_PORT_SEL_MASK,
 			PMX_I2C2_PORT_0_1_VAL);
-
-	/* Place all I2C2 pins in RAS IP mode */
-	for (i = 0; i <= 1; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_i2c2_2to3_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_UART0_MASK,
 			0);
@@ -788,15 +635,10 @@ static void enable_i2c2_2to3_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_I2C2_PORT_SEL_MASK,
 			PMX_I2C2_PORT_2_3_VAL);
-
-	/* Place all I2C2 pins in RAS IP mode */
-	for (i = 2; i <= 3; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_i2c2_19to20_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_RASSELECT_REG,
 			PMX_MII_MASK,
 			0);
@@ -809,40 +651,26 @@ static void enable_i2c2_19to20_pins(void)
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_I2C2_PORT_SEL_MASK,
 			PMX_I2C2_PORT_19_20_VAL);
-
-	/* Place all I2C2 pins in RAS IP mode */
-	for (i = 19; i <= 20; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_i2c2_75to76_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_70_79_REG,
 			PMX_PL_75_76_MASK,
 			PMX_I2C2_PL_75_76_VAL);
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_I2C2_PORT_SEL_MASK,
 			PMX_I2C2_PORT_75_76_VAL);
-
-	/* Place all I2C2 pins in RAS IP mode */
-	for (i = 75; i <= 76; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_i2c2_96to97_pins(void)
 {
-	int i;
 	pinmux_maskval(SPEAR320_IP_SEL_PAD_90_99_REG,
 			PMX_PL_96_97_MASK,
 			PMX_I2C2_PL_96_97_VAL);
 	pinmux_maskval(SPEAR320_IP_SEL_MIX_PAD_REG,
 			PMX_I2C2_PORT_SEL_MASK,
 			PMX_I2C2_PORT_96_97_VAL);
-
-	/* Place all I2C2 pins in RAS IP mode */
-	for (i = 96; i <= 97; i++)
-		pinmux_clear_bit(i, SPEAR320_GPIO_SELECT0);
 }
 
 static void enable_i2c2_pins(u32 mode)
@@ -877,7 +705,7 @@ void spear320_select_mode(u32 mode)
 				EXT_MODE_MASK,
 				EXT_MODE_MASK);
 	} else
-		printf("deprecated: Run device only in extended mode\n");
+		printf("deprecated: Please run device only in ext mode\n");
 }
 
 /**
@@ -889,22 +717,6 @@ void spear320_select_mode(u32 mode)
  */
 void spear320_pins_default(void)
 {
-	spear320_select_mode(SPEAR320_EXTENDED_MODE);
-
-	/* Set all pins to GPIO IN mode */
-	writel(0xFFFFFFFF, SPEAR320_GPIO_EN0);
-	writel(0xFFFFFFFF, SPEAR320_GPIO_EN1);
-	writel(0xFFFFFFFF, SPEAR320_GPIO_EN2);
-	writel(0x0000003F, SPEAR320_GPIO_EN3);
-
-	/* Select GPIO mode for all pins */
-	writel(0xFFFFFFFF, SPEAR320_GPIO_SELECT0);
-	writel(0xFFFFFFFF, SPEAR320_GPIO_SELECT1);
-	writel(0xFFFFFFFF, SPEAR320_GPIO_SELECT2);
-	writel(0x0000003F, SPEAR320_GPIO_SELECT3);
-
-	/* Switch all pins to RAS GPIO IN mode */
-	writel(0x00000000, SPEAR3XX_FUNC_ENB_REG);
 }
 
 /**
