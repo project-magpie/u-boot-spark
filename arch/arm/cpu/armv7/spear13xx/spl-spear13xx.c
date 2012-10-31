@@ -137,11 +137,11 @@ void lowlevel_init(void)
 	/* ARCH specific initialization */
 	spear13xx_init();
 
-	/* Initialize the SoC */
-	soc_init();
-
 	/* Board initializations required for ddr initialization */
 	board_pre_ddrinit();
+
+	/* Initialize the SoC */
+	soc_init();
 
 	/* Initialize RAM */
 	ddr_init();
