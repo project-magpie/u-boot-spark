@@ -29,4 +29,17 @@
 /* Enable use of the Logical Memory Blocks (LMB). */
 #define CONFIG_LMB
 
+/*
+ * (Optionally) enable a few more generally 'useful' commands ...
+ */
+#if 0
+#	define CONFIG_CMD_STTESTS	/* provides "st_mtest" */
+#	define CONFIG_CMD_MD5SUM	/* provides "md5sum" */
+#	define CONFIG_CMD_SHA1		/* provides "sha1sum" */
+#	define CONFIG_CMD_STRINGS	/* provides "strings" */
+#	define CONFIG_CMD_UNZIP		/* provides "unzip" */
+#	define CONFIG_MD5		/* needed by CONFIG_CMD_MD5SUM */
+#	define CONFIG_SHA1		/* needed by CONFIG_CMD_SHA1 */
+#endif
+
 #endif /* _ASM_CONFIG_H_ */

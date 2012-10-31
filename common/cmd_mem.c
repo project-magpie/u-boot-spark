@@ -1380,7 +1380,7 @@ U_BOOT_CMD(
 );
 #endif
 
-#ifdef CONFIG_CMD_SHA1SUM
+#ifdef CONFIG_CMD_SHA1
 U_BOOT_CMD(
 	sha1sum,	3,	1,	do_sha1sum,
 	"compute SHA1 message digest",
