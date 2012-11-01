@@ -3864,6 +3864,16 @@ b2067se_config :		unconfig
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2067 st40 st40 b2057 st stxh205
 
+b2075se_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/b2057
+	@echo "#define CONFIG_ST40_STXH205   1" >>$(obj)include/config.h
+	@echo "#define CONFIG_ST40_B2075     1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
+	$(if $(findstring se,$@), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
+	@$(MKCONFIG) -a -n $@ b2075 st40 st40 b2057 st stxh205
+
 b2000se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/b2000
 	@echo "#define CONFIG_ST40_STXH415   1" >>$(obj)include/config.h
