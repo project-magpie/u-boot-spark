@@ -585,7 +585,6 @@ static struct bch_prog bch_prog_read_page = {
 		BCH_STOP,
 	},
 	.gen_cfg = (GEN_CFG_DATA_8_NOT_16 |
-		    GEN_CFG_EXTRA_ADD_CYCLE |
 		    GEN_CFG_LAST_SEQ_NODE),
 	.seq_cfg = SEQ_CFG_GO_STOP,
 };
@@ -605,7 +604,6 @@ static struct bch_prog bch_prog_write_page = {
 		BCH_STOP,
 	},
 	.gen_cfg = (GEN_CFG_DATA_8_NOT_16 |
-		    GEN_CFG_EXTRA_ADD_CYCLE |
 		    GEN_CFG_LAST_SEQ_NODE),
 	.seq_cfg = (SEQ_CFG_GO_STOP |
 		    SEQ_CFG_DATA_WRITE),
@@ -632,6 +630,7 @@ struct bch_nand_bbt_inband_header
 /* Configure BCH read/write/erase programs */
 static void bch_configure_progs(struct mtd_info * const mtd)
 {
+	const struct nand_chip * const chip = mtd->priv;
 	const uint32_t page_size = mtd->writesize;
 	const uint32_t sectors_per_page = page_size / NANDI_BCH_SECTOR_SIZE;
 	const uint8_t data_opa = ffs(sectors_per_page) - 1;
@@ -645,6 +644,13 @@ static void bch_configure_progs(struct mtd_info * const mtd)
 	/* Set ECC mode */
 	bch_prog_read_page.gen_cfg  |= gen_cfg_ecc;
 	bch_prog_write_page.gen_cfg |= gen_cfg_ecc;
+
+	/* Need one extra address cycle for devices > 128MiB */
+	if (chip->chipsize > (128 << 20))
+	{
+		bch_prog_read_page.gen_cfg  |= GEN_CFG_EXTRA_ADD_CYCLE;
+		bch_prog_write_page.gen_cfg |= GEN_CFG_EXTRA_ADD_CYCLE;
+	}
 }
 
 
