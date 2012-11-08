@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007,2009-2010 STMicroelectronics.
+ * (C) Copyright 2007,2009-2012 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -71,6 +71,7 @@
 #define OP_READ_FLAG_STATUS	0x70u			/* Read Flag Status Register */
 #define OP_READ_DEVID		0x9fu			/* Read ID */
 #define OP_READ_ARRAY		0x03u			/* Read Data Bytes */
+#define OP_READ_4BYTE		0x13u			/* Read Data Bytes, with 4-byte addressing */
 #define OP_WREN			0x06u			/* Write Enable */
 #define OP_SE			0xD8u			/* Sector Erase */
 #define OP_SSE			0x20u			/* Sub-Sector Erase, for M25PXxx */

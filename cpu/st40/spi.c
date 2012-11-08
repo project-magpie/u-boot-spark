@@ -151,8 +151,16 @@ static unsigned deviceSize;	/* Size of the device in Bytes */
 static const char * deviceName;	/* Name of the device */
 
 #if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
-static unsigned char op_erase = OP_SE;	/* erase command opcode to use */
+static unsigned char op_erase = OP_SE;		/* default erase command opcode to use */
 #endif
+static unsigned char op_read  = OP_READ_ARRAY;	/* default read command opcode to use */
+
+/*
+ * Helper to return the number of address bytes we need to use.
+ * i.e. 3 bytes for <= 16MiB, and 4 bytes for > 16MiB.
+ */
+#define NUM_ADDRESS_BYTES()	( (op_read == OP_READ_ARRAY) ? 3 : 4 )
+
 
 /**********************************************************************/
 
@@ -695,6 +703,7 @@ static int spi_probe_serial_flash(
 		else if (devid[3] == 0x19u)
 		{
 			deviceName = "ST N25Q256";	/* 256 Mbit == 32 MiB */
+			op_read = OP_READ_4BYTE;	/* use 4-byte addressing for READ */
 		}
 	}
 	else
@@ -793,9 +802,9 @@ static int spi_probe_serial_flash(
 
 	/*
 	 * With only 24-bit addresses, we can only access the first 16MiB!
-	 * QQQ - Need to add proper support for 32-bit addresses.
 	 */
-	if (deviceSize > (1u << 24))	/* need more than 24-bit addresses ? */
+	if ( (deviceSize > (1u << 24))	&&	/* need more than 24-bit addresses ? */
+	     (NUM_ADDRESS_BYTES() == 3) )	/* but, still using 24-bit addressing ? */
 	{
 		printf("warning: SPI device (%s) effectively capped at first 16MiB only!\n", deviceName);
 		deviceSize = 16u << 20;	/* cap to the first 16 MiB */
@@ -1024,9 +1033,14 @@ extern ssize_t spi_read (
 	spi_cs_activate(MyDefaultSlave);
 
 	/* issue appropriate READ array command */
-	spi_xfer_one_word(OP_READ_ARRAY);
+	spi_xfer_one_word(op_read);
 
-	/* write the 24-bit address to start reading from */
+	/* (optionally) write the MSB of the 32-bit start address */
+	if (NUM_ADDRESS_BYTES() == 4)	/* using 4-byte addressing ? */
+	{
+		spi_xfer_one_word( (offset>>24) & 0xffu );
+	}
+	/* write the (bottom) 24-bit address to start reading from */
 	spi_xfer_one_word( (offset>>16) & 0xffu );
 	spi_xfer_one_word( (offset>>8)  & 0xffu );
 	spi_xfer_one_word( (offset>>0)  & 0xffu );

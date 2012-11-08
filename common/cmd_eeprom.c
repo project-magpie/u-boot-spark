@@ -1,6 +1,8 @@
 /*
  * (C) Copyright 2000, 2001
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+ * (C) Copyright 2012 STMicroelectronics.
+ *	Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -173,14 +175,15 @@ int eeprom_read (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt
 		addr[1] = blk_off;		/* block offset */
 		alen	= 2;
 #else
-		uchar addr[3];
+		uchar addr[4];			/* need 4 bytes for SPI devices > 16MiB */
 
 		blk_off = offset & 0xFF;	/* block offset */
 
-		addr[0] = offset >> 16;		/* block number */
-		addr[1] = offset >>  8;		/* upper address octet */
-		addr[2] = blk_off;		/* lower address octet */
-		alen	= 3;
+		addr[0] = offset >> 24;		/* most-significant bits [31..24] */
+		addr[1] = offset >> 16;		/* block number */
+		addr[2] = offset >>  8;		/* upper address octet */
+		addr[3] = blk_off;		/* lower address octet */
+		alen	= sizeof(addr);
 #endif	/* CONFIG_SYS_I2C_EEPROM_ADDR_LEN, CONFIG_SPI_X */
 
 		addr[0] |= dev_addr;		/* insert device address */
@@ -189,7 +192,7 @@ int eeprom_read (unsigned dev_addr, unsigned offset, uchar *buffer, unsigned cnt
 
 		/*
 		 * For a FRAM device there is no limit on the number of the
-		 * bytes that can be ccessed with the single read or write
+		 * bytes that can be accessed with the single read or write
 		 * operation.
 		 */
 #if !defined(CONFIG_SYS_I2C_FRAM)
