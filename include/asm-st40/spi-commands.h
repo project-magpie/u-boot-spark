@@ -76,6 +76,8 @@
 #define OP_SE			0xD8u			/* Sector Erase */
 #define OP_SSE			0x20u			/* Sub-Sector Erase, for M25PXxx */
 #define OP_PP			0x02u			/* Page Program */
+#define OP_ENTER_4BYTE		0xb7u			/* Enter 4-byte addressing mode */
+#define OP_EXIT_4BYTE		0xe9u			/* Exit  4-byte addressing mode */
 
 #define SR_WIP			(1u<<0)			/* Status Register Write In Progress bit */
 #define SR_BP_MASK		0x1c			/* Block Protect Bits (BP[2:0]) */

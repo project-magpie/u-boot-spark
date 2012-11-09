@@ -547,6 +547,37 @@ extern void spi_wait_till_ready(
 /**********************************************************************/
 
 
+#if defined(CONFIG_SPI_FLASH_ST)
+/*
+ * ENTER "4-BYTE ADDRESS" mode (and leave the pervasive 3-byte address mode),
+ * or (if enter == 0),
+ * EXIT "4-BYTE ADDRESS" mode (and enter the pervasive 3-byte address mode).
+ *
+ * For Micron, we (sometimes) need to issue a WREN first!
+ */
+static void spi_enter_4byte_mode(
+	struct spi_slave * const slave,
+	const int enter)
+{
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* QQQ - TO DO! */
+#else	/* CONFIG_STM_FSM_SPI */
+	const unsigned char enable[1] = { OP_WREN };
+	const unsigned char cmd[1] = { (enter) ? OP_ENTER_4BYTE : OP_EXIT_4BYTE };
+
+	/* issue a WRITE ENABLE (WREN) command */
+	spi_xfer(slave, sizeof(enable)*8, enable, NULL, DEFAULT_SPI_XFER_FLAGS);
+
+	/* issue an "Enter/Exit 4-Byte Address Mode" command */
+	spi_xfer(slave, sizeof(cmd)*8, cmd, NULL, DEFAULT_SPI_XFER_FLAGS);
+#endif	/* CONFIG_STM_FSM_SPI */
+}
+#endif	/* CONFIG_SPI_FLASH_ST */
+
+
+/**********************************************************************/
+
+
 /*
  * probe the serial flash on the SPI bus, to ensure
  * it is a known type, and initialize its properties.
@@ -1153,17 +1184,12 @@ static void my_spi_write(
 #endif
 #if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 	const unsigned char enable[1] = { OP_WREN };
-	      unsigned char erase[4] = {
-		op_erase,
-		(sector>>16) & 0xffu,
-		(sector>>8)  & 0xffu,
-		(sector>>0)  & 0xffu,
-	};
+	      unsigned char erase[5]  = { op_erase };
 #endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
 #if 0	/* QQQ - DELETE */
-	printf("%s():\t buffer=0x%08x, len=%-5u  0x%06x..0x%06x\n",
-		__FUNCTION__, buffer, len, address, address+len-1u);
+	printf("%s():\t buffer=0x%08x, len=%-5lu  0x%06lx..0x%06lx\n",
+		__FUNCTION__, (unsigned)buffer, len, address, address+len-1u);
 #endif	/* QQQ - DELETE */
 
 	if (len != eraseSize)	/* partial sector update ? */
@@ -1175,7 +1201,8 @@ static void my_spi_write(
 		 * with the new data to be updated (in 'buffer'). Then
 		 * we erase & write back the whole (merged) sector.
 		 */
-		unsigned char addr[3] = {
+		unsigned char addr[4] = {
+			(sector>>24) & 0xffu,
 			(sector>>16) & 0xffu,
 			(sector>>8)  & 0xffu,
 			(sector>>0)  & 0xffu,
@@ -1198,14 +1225,29 @@ static void my_spi_write(
 	}
 
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
-	/* erase ONE sector (using comand op_erase) */
+	/* erase ONE sector (using command op_erase) */
 	fsm_erase_sector(sector, op_erase);
 #else	/* CONFIG_STM_FSM_SPI */
 	/* issue a WRITE ENABLE (WREN) command */
 	spi_xfer(slave, sizeof(enable)*8, enable, NULL, DEFAULT_SPI_XFER_FLAGS);
 
+	/* Transform the sector number, ready for serialization */
+	if (NUM_ADDRESS_BYTES() == 3)	/* 3-byte addresses ? */
+	{
+		erase[1] = (sector>>16) & 0xffu;
+		erase[2] = (sector>>8)  & 0xffu;
+		erase[3] = (sector>>0)  & 0xffu;
+	}
+	else				/* else, 4-byte addresses */
+	{
+		erase[1] = (sector>>24) & 0xffu;
+		erase[2] = (sector>>16) & 0xffu;
+		erase[3] = (sector>>8)  & 0xffu;
+		erase[4] = (sector>>0)  & 0xffu;
+	}
+
 	/* issue a Sector Erase command */
-	spi_xfer(slave, sizeof(erase)*8, erase, NULL, DEFAULT_SPI_XFER_FLAGS);
+	spi_xfer(slave, (NUM_ADDRESS_BYTES()+1)*8, erase, NULL, DEFAULT_SPI_XFER_FLAGS);
 #endif	/* CONFIG_STM_FSM_SPI */
 
 	/* now wait until the erase has completed ... */
@@ -1228,7 +1270,12 @@ static void my_spi_write(
 		/* issue a Page Program command */
 		spi_xfer_one_word(OP_PP);
 
-		/* write the 24-bit address to start writing to */
+		/* (optionally) write the MSB of the 32-bit start address */
+		if (NUM_ADDRESS_BYTES() == 4)	/* using 4-byte addressing ? */
+		{
+			spi_xfer_one_word( (page_base>>24) & 0xffu );
+		}
+		/* write the (bottom) 24-bit address to start writing to */
 		spi_xfer_one_word( (page_base>>16) & 0xffu );
 		spi_xfer_one_word( (page_base>>8)  & 0xffu );
 		spi_xfer_one_word( (page_base>>0)  & 0xffu );
@@ -1271,6 +1318,7 @@ extern ssize_t spi_write (
 	const unsigned long byte   = first % eraseSize;
 	      unsigned long ptr    = first;
 	unsigned written = 0;		/* amount written between two dots */
+	struct spi_slave * const slave = MyDefaultSlave;
 
 	if (len < 1) return len;
 	if (deviceSize == 0) return 0;	/* no valid device found ? */
@@ -1281,12 +1329,20 @@ extern ssize_t spi_write (
 		return 0;
 	}
 
+#if defined(CONFIG_SPI_FLASH_ST)
+	/* Enter 4-Byte Address mode, if we need to */
+	if (NUM_ADDRESS_BYTES() == 4)	/* using 4-byte addressing ? */
+	{
+		spi_enter_4byte_mode(slave, 1);
+	}
+#endif	/* CONFIG_SPI_FLASH_ST */
+
 	/* process up to end of first erase block */
 	if (byte != 0)
 	{
 		/* till end of first erase block, or entirety, which is less */
 		const unsigned long size = MIN(len,eraseSize-byte);
-		my_spi_write(MyDefaultSlave, first, buffer, size);
+		my_spi_write(slave, first, buffer, size);
 
 		sector++;
 		ptr += size;
@@ -1305,7 +1361,7 @@ extern ssize_t spi_write (
 		}
 
 		/* a whole erase block */
-		my_spi_write(MyDefaultSlave, ptr, buffer, eraseSize);
+		my_spi_write(slave, ptr, buffer, eraseSize);
 
 		sector++;
 		ptr += eraseSize;
@@ -1317,8 +1373,16 @@ extern ssize_t spi_write (
 	/* finally, process any data at the tail */
 	if (ptr <= last)
 	{
-		my_spi_write(MyDefaultSlave, ptr, buffer, last-ptr+1u);
+		my_spi_write(slave, ptr, buffer, last-ptr+1u);
 	}
+
+#if defined(CONFIG_SPI_FLASH_ST)
+	/* Exit from 4-Byte Address mode, if we needed to use it */
+	if (NUM_ADDRESS_BYTES() == 4)	/* using 4-byte addressing ? */
+	{
+		spi_enter_4byte_mode(slave, 0);
+	}
+#endif	/* CONFIG_SPI_FLASH_ST */
 
 	return len;
 }
