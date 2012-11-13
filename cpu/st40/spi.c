@@ -770,8 +770,8 @@ static int spi_probe_serial_flash(
 			status);
 #if 0	/* do we want to un-lock it, if we can ? */
 {
-	unsigned char enable[1] = { OP_WREN };
-	unsigned char unlock[2] = { OP_WRITE_STATUS, 0x00 };
+	const unsigned char enable[1] = { OP_WREN };
+	const unsigned char unlock[2] = { OP_WRITE_STATUS, 0x00 };
 
 	/* let the user know we are trying to un-lock it */
 	printf("info: unlocking SPI ...\n");
@@ -1046,7 +1046,7 @@ static void my_spi_write(
 		 * we erase & write back the whole (merged) page.
 		 */
 
-		unsigned char transfer[4] = {
+		const unsigned char transfer[4] = {
 			OP_PAGE_TO_BUFFER1,
 			(offset>>16) & 0xffu,
 			(offset>>8)  & 0xffu,
@@ -1098,8 +1098,8 @@ static void my_spi_write(
 	unsigned char buff[4<<10];	/* maximum of 4 KiB erase size */
 #endif
 #if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
-	unsigned char enable[1] = { OP_WREN };
-	unsigned char erase[4] = {
+	const unsigned char enable[1] = { OP_WREN };
+	      unsigned char erase[4] = {
 		op_erase,
 		(sector>>16) & 0xffu,
 		(sector>>8)  & 0xffu,
