@@ -197,7 +197,6 @@ static struct fsm_seq seq_erase_sector = {
 		    SEQ_CFG_ERASE |
 		    SEQ_CFG_READNOTWRITE |
 		    SEQ_CFG_CSDEASSERT |
-		    0x2 |			/* QQQ - what is this for ??? */
 		    SEQ_CFG_STARTSEQ),
 };
 
