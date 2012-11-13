@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2008,2010-2011
+ * Copyright (C) STMicroelectronics Ltd. 2008,2010-2012
  *
  * All rights reserved.
  */
@@ -198,6 +198,15 @@
  */
 #define STXH415_SYSSTS(x)	(STXH415_SYSCFG(x))
 
+
+/*----------------------------------------------------------------------------*/
+
+/*
+ * Does the FSM SPI Serial Flash Controller support 32-bit addresses on this SoC?
+ */
+#if !defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
+#define CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES	/* yes, it is supported */
+#endif
 
 /*----------------------------------------------------------------------------*/
 

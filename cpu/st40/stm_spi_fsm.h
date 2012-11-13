@@ -75,11 +75,13 @@
 #define ADR_CFG_PADS_2_ADD1		(0x1 << 6)	/* dual   I/O-mode */
 #define ADR_CFG_PADS_4_ADD1		(0x3 << 6)	/* quad   I/O-mode */
 #define ADR_CFG_CSDEASSERT_ADD1		(1   << 8)	/* de-assert CSn after address 1 */
+#define ADR_CFG_ADDR1_32_BIT		(1   << 9)	/* address 1 is 32-bits long */
 #define ADR_CFG_CYCLES_ADD2(x)		((x) << (0+16))	/* number of cycles for address 2 */
 #define ADR_CFG_PADS_1_ADD2		(0x0 << (6+16))	/* single I/O-mode */
 #define ADR_CFG_PADS_2_ADD2		(0x1 << (6+16))	/* dual   I/O-mode */
 #define ADR_CFG_PADS_4_ADD2		(0x3 << (6+16))	/* quad   I/O-mode */
 #define ADR_CFG_CSDEASSERT_ADD2		(1   << (8+16))	/* de-assert CSn after address 2 */
+#define ADR_CFG_ADDR2_32_BIT		(1   << (9+16))	/* address 2 is 32-bits long */
 
 	/*
 	 * Register: SPI_FAST_SEQ_n
@@ -147,12 +149,19 @@
 	 * Exported function declarations.
 	 */
 extern int fsm_init(void);
+extern void fsm_init_4byte_mode(
+	const unsigned char op_read);
+
 extern uint8_t fsm_read_status(void);
 extern uint8_t fsm_read_flag_status(void);
+
+extern void fsm_enter_4byte_mode(
+	const int enter);
 
 extern int fsm_read_jedec(
 	const size_t bytes,
 	uint8_t *const jedec);
+
 extern int fsm_read(
 	uint8_t * buf,
 	const uint32_t size,

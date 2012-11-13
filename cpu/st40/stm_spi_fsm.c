@@ -110,7 +110,7 @@ struct fsm_seq {
 	      uint32_t data_size;
 	      uint32_t addr1;
 	const uint32_t addr2;
-	const uint32_t addr_cfg;
+	      uint32_t addr_cfg;
 	const uint32_t seq_opc[5];
 	const uint32_t mode;
 	const uint32_t dummy;
@@ -168,6 +168,27 @@ static const struct fsm_seq seq_read_flag_status = {
 		    SEQ_CFG_STARTSEQ),
 };
 #endif	/* CONFIG_SPI_FLASH_ST && CONFIG_STM_SPI_READ_FLAG_FUNCTION */
+
+#if defined(CONFIG_SPI_FLASH_ST)
+static struct fsm_seq seq_enter_4byte_mode = {
+	.seq_opc = {
+		/* Note: for seq_opc[0], "| SEQ_OPC_OPCODE(cmd)" is done in fsm_enter_4byte_mode() */
+		SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8)                           | SEQ_OPC_CSDEASSERT,
+		SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_WREN) | SEQ_OPC_CSDEASSERT,
+	},
+	.seq = {
+		FSM_INST_CMD2,			/* Note the order: seq_opc[1], before seq_opc[0] */
+		FSM_INST_CMD1,
+		FSM_INST_WAIT,
+		FSM_INST_STOP,
+	},
+	.seq_cfg = (SEQ_CFG_PADS_1 |
+		    SEQ_CFG_ERASE |		/* Needed by FSM controller! */
+		    SEQ_CFG_READNOTWRITE |
+		    SEQ_CFG_CSDEASSERT |
+		    SEQ_CFG_STARTSEQ),
+};
+#endif	/* CONFIG_SPI_FLASH_ST */
 
 static struct fsm_seq seq_read_data = {
 	.seq_opc[0] = SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_READ_ARRAY),
@@ -412,11 +433,42 @@ extern int fsm_read_jedec(const size_t bytes, uint8_t *const jedec)
 	return 0;
 }
 
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI_FLASH_ST)
+/*
+ * ENTER "4-BYTE ADDRESS" mode (and leave the pervasive 3-byte address mode),
+ * or (if enter == 0),
+ * EXIT "4-BYTE ADDRESS" mode (and enter the pervasive 3-byte address mode).
+ *
+ * For Micron, we (sometimes) need to issue a WREN first!
+ */
+extern void fsm_enter_4byte_mode(const int enter)
+{
+	struct fsm_seq * const seq = &seq_enter_4byte_mode;
+	const uint32_t cmd = enter ? OP_ENTER_4BYTE : OP_EXIT_4BYTE;
+
+	DEBUG("debug: in %s( enter=%u )\n",
+		__FUNCTION__, enter);
+
+	/* over-write the default enter/exit op-code - this is dirty! */
+	*(volatile uint8_t*)&seq->seq_opc[0] = cmd;
+
+	/* Now load + execute the FSM sequence */
+	fsm_load_seq(seq);
+
+	/* Wait for FSM sequence to finish */
+	fsm_wait_seq();
+}
+#endif	/* CONFIG_SPI_FLASH_ST */
+
 extern int fsm_erase_sector(const uint32_t offset, const uint8_t op_erase)
 {
 	struct fsm_seq * const seq = &seq_erase_sector;
 
-	DEBUG("debug: in %s( offset=%p, op_erase=0x%02x )\n",
+	DEBUG("debug: in %s( offset=0x%x, op_erase=0x%02x )\n",
 		__FUNCTION__, offset, op_erase);
 
 	/* over-write the default erase op-code - this is dirty! */
@@ -433,6 +485,10 @@ extern int fsm_erase_sector(const uint32_t offset, const uint8_t op_erase)
 
 	return 0;
 }
+
+
+/**********************************************************************/
+
 
 #if 0
 static int fsm_erase_chip(void)
@@ -612,6 +668,50 @@ extern int fsm_init(void)
 
 	return 0;
 }
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI_FLASH_ST)
+/*
+ * The probed SPI device is >16MiB, so we want to use 32-bit (4-byte)
+ * addresses to access everything above the first 16MiB.
+ * We need now to "re-configure" the default FSM sequences to deal
+ * with the consequences of larger (32-bit) address sizes.
+ */
+extern void fsm_init_4byte_mode(
+	const unsigned char op_read)
+{
+	const uint32_t addr_xor =
+		(ADR_CFG_CYCLES_ADD1(24) ^ ADR_CFG_CYCLES_ADD1(32))
+		| ADR_CFG_ADDR1_32_BIT;
+
+	DEBUG("debug: in %s( op_read=0x%02x )\n",
+		__FUNCTION__, op_read);
+
+	/*
+	 * Note: the use of the bit-field ADR_CFG_ADDRx_32_BIT is supported
+	 * only on some SoCs (such as Lille/Liege), but not on others (such
+	 * as the STx7105, and STx7108). To support 32-bit addresses on
+	 * all SoCs, one would need to use 2 address commands with 16+16
+	 * cycles, or use 8+16 cycles for 24-bit addresses.
+	 * QQQ - Provide a more "robust" implementation for *ALL* SoCs!
+	 * For time being, we BUG() if it is not known to be supported.
+	 */
+#if !defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
+	BUG();
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
+
+	/* over-write the default "read" op-code - this is dirty! */
+	*(volatile uint8_t*)&seq_read_data.seq_opc[0] = op_read;
+
+	/* change the number of address cycles from 24 to 32 bits */
+	seq_read_data.addr_cfg    ^= addr_xor;
+	seq_write_data.addr_cfg   ^= addr_xor;
+	seq_erase_sector.addr_cfg ^= addr_xor;
+}
+#endif	/* CONFIG_SPI_FLASH_ST */
 
 
 /**********************************************************************/

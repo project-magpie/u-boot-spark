@@ -560,7 +560,8 @@ static void spi_enter_4byte_mode(
 	const int enter)
 {
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
-	/* QQQ - TO DO! */
+	/* issue "WREN" +  "Enter/Exit 4-Byte Address Mode" commands */
+	fsm_enter_4byte_mode(enter);
 #else	/* CONFIG_STM_FSM_SPI */
 	const unsigned char enable[1] = { OP_WREN };
 	const unsigned char cmd[1] = { (enter) ? OP_ENTER_4BYTE : OP_EXIT_4BYTE };
@@ -831,6 +832,20 @@ static int spi_probe_serial_flash(
 		eraseSize);		/* in bytes */
 #endif
 
+#if defined(CONFIG_STM_FSM_SPI) && !defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
+	/*
+	 * If using FSM, then we (currently) need 32-bit H/W support for
+	 * 32-bit addresses, which is only on *some* SoCs!
+	 * So, we revert back to using 24-bit addresses only, if we need to.
+	 * QQQ - Provide a more "robust" implementation for *ALL* SoCs!
+	 */
+	if (NUM_ADDRESS_BYTES() == 4)	/* but, needing 32-bit addressing ? */
+	{				/* restore the default read command opcode to use */
+		op_read = OP_READ_ARRAY;/* i.e. switch back to 3-byte addresses */
+		printf("warning: SPI FSM controller does not support 32-bit addresses!\n");
+	}
+#endif	/* CONFIG_STM_FSM_SPI && !CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
+
 	/*
 	 * With only 24-bit addresses, we can only access the first 16MiB!
 	 */
@@ -981,6 +996,17 @@ extern void spi_init(void)
 
 	/* now probe the serial flash, to ensure it is the correct one */
 	spi_probe_serial_flash(MyDefaultSlave);
+
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+#if defined(CONFIG_SPI_FLASH_ST)
+	/* Enable support for 4-Byte Address mode, if we need to */
+	if (NUM_ADDRESS_BYTES() == 4)	/* using 4-byte addressing ? */
+	{
+		/* configure FSM driver to use 32-bit addresses */
+		fsm_init_4byte_mode(op_read);
+	}
+#endif	/* CONFIG_SPI_FLASH_ST */
+#endif	/* CONFIG_STM_FSM_SPI */
 }
 
 
