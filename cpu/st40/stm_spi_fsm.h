@@ -148,6 +148,8 @@
 	 */
 extern int fsm_init(void);
 extern uint8_t fsm_read_status(void);
+extern uint8_t fsm_read_flag_status(void);
+
 extern int fsm_read_jedec(
 	const size_t bytes,
 	uint8_t *const jedec);

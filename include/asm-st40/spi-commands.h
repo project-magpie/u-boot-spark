@@ -68,6 +68,7 @@
 
 #define OP_READ_STATUS		0x05u			/* Read Status Register */
 #define OP_WRITE_STATUS		0x01u			/* Write Status Register */
+#define OP_READ_FLAG_STATUS	0x70u			/* Read Flag Status Register */
 #define OP_READ_DEVID		0x9fu			/* Read ID */
 #define OP_READ_ARRAY		0x03u			/* Read Data Bytes */
 #define OP_WREN			0x06u			/* Write Enable */

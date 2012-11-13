@@ -62,6 +62,17 @@
 /**********************************************************************/
 
 
+/*
+ * Define the following macro to define the helper function
+ * spi_read_flag_status(), to read the FLAG register.
+ * This is usually only for DEBUG purposes.
+ */
+//#define CONFIG_STM_SPI_READ_FLAG_FUNCTION
+
+
+/**********************************************************************/
+
+
 static struct spi_slave * MyDefaultSlave = NULL;	/* QQQ - TO DO SOMETHING HERE ??? */
 
 #define DEFAULT_SPI_XFER_FLAGS	(SPI_XFER_BEGIN | SPI_XFER_END)
@@ -470,6 +481,35 @@ static unsigned int spi_read_status(
 	return data[1];
 #endif	/* CONFIG_STM_FSM_SPI */
 }
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI_FLASH_ST) && defined(CONFIG_STM_SPI_READ_FLAG_FUNCTION)
+/*
+ * read the SPI slave device's "Flag Status Register".
+ *
+ * input:   slave, the SPI slave which will be sending/receiving the data.
+ * returns: the value of the flag status register.
+ */
+static unsigned int spi_read_flag_status(
+	struct spi_slave * const slave)
+{
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* return the flag status byte read */
+	return fsm_read_flag_status();
+#else	/* CONFIG_STM_FSM_SPI */
+	unsigned char data[2] = { OP_READ_FLAG_STATUS, 0x00 };
+
+	/* issue the Flag Status Register Read command */
+	spi_xfer(slave, sizeof(data)*8, data, data, DEFAULT_SPI_XFER_FLAGS);
+
+	/* return the flag status byte read */
+	return data[1];
+#endif	/* CONFIG_STM_FSM_SPI */
+}
+#endif	/* CONFIG_SPI_FLASH_ST && CONFIG_STM_SPI_READ_FLAG_FUNCTION */
 
 
 /**********************************************************************/
