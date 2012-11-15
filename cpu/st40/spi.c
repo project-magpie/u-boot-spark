@@ -150,7 +150,7 @@ static unsigned eraseSize;	/* smallest supported erase size */
 static unsigned deviceSize;	/* Size of the device in Bytes */
 static const char * deviceName;	/* Name of the device */
 
-#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND) || defined(CONFIG_SPI_FLASH_SPANSION)
 static unsigned char op_erase = OP_SE;		/* default erase command opcode to use */
 #endif
 static unsigned char op_read  = OP_READ_ARRAY;	/* default read command opcode to use */
@@ -535,7 +535,7 @@ extern void spi_wait_till_ready(
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 	while (!(spi_read_status(slave) & SR_READY))
 		;	/* do nothing */
-#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
+#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND) || defined(CONFIG_SPI_FLASH_SPANSION)
 	while (spi_read_status(slave) & SR_WIP)
 		;	/* do nothing */
 #else
@@ -819,6 +819,33 @@ static int spi_probe_serial_flash(
 		deviceName = "Winbond W25Q128V";/* 128 Mbit == 16 MiB */
 	}
 
+#elif defined(CONFIG_SPI_FLASH_SPANSION)
+
+	if (
+		(devid[1] != 0x01u)				||	/* Manufacturer ID */
+		(
+			( (devid[2] != 0x20u) || (devid[3] != 0x18) )	&&	/* S25FL128S */
+			( (devid[2] != 0x02u) || (devid[3] != 0x19) )		/* S25FL256S */
+		)
+	   )
+	{
+		printf("ERROR: Unknown SPI Device detected, devid = 0x%02x, 0x%02x, 0x%02x\n",
+			devid[1], devid[2], devid[3]);
+		return -1;
+	}
+	pageSize   = 256u;
+	eraseSize  = 64u<<10;				/* 64 KiB, 256 pages/sector */
+	deviceSize = 1u<<devid[3];			/* Memory Capacity */
+	if (devid[3] == 0x18u)
+	{
+		deviceName = "Spansion S25FL128S";	/* 128 Mbit == 16 MiB */
+	}
+	else if (devid[3] == 0x19u)
+	{
+		deviceName = "Spansion S25FL256S";	/* 256 Mbit == 32 MiB */
+		op_read = OP_READ_4BYTE;		/* use 4-byte addressing for READ */
+	}
+
 #else
 #error Please specify which SPI Serial Flash is being used
 #endif	/* defined(CONFIG_STM_SPI_xxxxxx) */
@@ -998,14 +1025,14 @@ extern void spi_init(void)
 	spi_probe_serial_flash(MyDefaultSlave);
 
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
-#if defined(CONFIG_SPI_FLASH_ST)
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_SPANSION)
 	/* Enable support for 4-Byte Address mode, if we need to */
 	if (NUM_ADDRESS_BYTES() == 4)	/* using 4-byte addressing ? */
 	{
 		/* configure FSM driver to use 32-bit addresses */
 		fsm_init_4byte_mode(op_read);
 	}
-#endif	/* CONFIG_SPI_FLASH_ST */
+#endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_SPANSION */
 #endif	/* CONFIG_STM_FSM_SPI */
 }
 
@@ -1195,7 +1222,7 @@ static void my_spi_write(
 	spi_wait_till_ready(slave);
 #endif	/* CONFIG_STM_FSM_SPI */
 }
-#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
+#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND) || defined(CONFIG_SPI_FLASH_SPANSION)
 {
 	const unsigned pages       = eraseSize / pageSize;
 	const unsigned long sector = (address / eraseSize) * eraseSize;
@@ -1203,7 +1230,7 @@ static void my_spi_write(
 	size_t i;
 	unsigned page;
 	const uchar * ptr;
-#if defined(CONFIG_SPI_FLASH_ST)
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_SPANSION)
 	unsigned char buff[256<<10];	/* maximum of 256 KiB erase size */
 #elif defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
 	unsigned char buff[4<<10];	/* maximum of 4 KiB erase size */

@@ -129,6 +129,33 @@
 #define SR_BP_MASK		0x1c			/* Block Protect Bits (BP[2:0]) */
 
 
+#elif defined(CONFIG_SPI_FLASH_SPANSION)	/******************************/
+
+
+/* For Spansion S25FLxxxS Serial Flash */
+#define CONFIG_SYS_STM_SPI_MODE	SPI_MODE_3
+#if !defined(CONFIG_SYS_STM_SPI_FREQUENCY)
+#  define CONFIG_SYS_STM_SPI_FREQUENCY	(5*1000*1000)	/* 5 MHz */
+#endif	/* CONFIG_SYS_STM_SPI_FREQUENCY */
+#define CONFIG_SYS_STM_SPI_DEVICE_MASK	0x00u		/* Mask Bits */
+#define CONFIG_SYS_STM_SPI_DEVICE_VAL	0x00u		/* Binary xxxxxxxx */
+
+#define OP_READ_STATUS		0x05u			/* Read Status Register #1 */
+#define OP_WRITE_STATUS		0x01u			/* Write Status Register #1 */
+#define OP_READ_DEVID		0x9fu			/* Read ID */
+#define OP_READ_ARRAY		0x03u			/* Read Data Bytes */
+#define OP_READ_4BYTE		0x13u			/* Read Data Bytes, with 4-byte addressing */
+#define OP_WREN			0x06u			/* Write Enable */
+#define OP_SE			0xd8u			/* Sector Erase */
+#define OP_SE_4BYTE		0xdcu			/* Sector Erase, with 4-byte addressing */
+#define OP_SSE			0x20u			/* Parameter 4 KiB Erase */
+#define OP_SSE_4BYTE		0x21u			/* Parameter 4 KiB Erase, with 4-byte addressing */
+#define OP_PP			0x02u			/* Page Program */
+#define OP_PP_4BYTE		0x12u			/* Page Program, with 4-byte addressing */
+
+#define SR_WIP			(1u<<0)			/* Status Register Write In Progress bit */
+
+
 #else					/******************************/
 
 #error Please specify which SPI Serial Flash is being used

@@ -261,8 +261,6 @@
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
 #define CONFIG_CMD_NAND		/* define for NAND flash */
 #define CONFIG_SPI_FLASH	/* define for SPI serial flash */
-/* NOTE: SPI currently is *not* supported in this release! (QQQ) */
-#undef  CONFIG_SPI_FLASH	/* define for SPI serial flash */
 
 /*-----------------------------------------------------------------------
  * NOR FLASH organization
@@ -413,12 +411,12 @@
 /*
  *	Name	Device
  *	-----	------
- *	UD15	N25Q256
- *	UD16	MX25L256
- *	or	Spansion FL256
+ *	UD15	N25Q256			(not normally populated)
+ *	UD16	MX25L256		(not normally populated)
+ *	or	Spansion S25FL256S	(normally IS populated)
  */
 #if defined(CONFIG_SPI_FLASH)				/* SPI serial flash present ? */
-#	define CONFIG_SPI_FLASH_ST			/* ST N25Qxxx */
+#	define CONFIG_SPI_FLASH_SPANSION		/* Spansion S25FL256S */
 #	define CONFIG_SPI				/* enable the SPI driver */
 #	define CONFIG_CMD_EEPROM			/* enable the "eeprom" command set */
 #	define CONFIG_SYS_I2C_FRAM			/* to minimize performance degradation */
