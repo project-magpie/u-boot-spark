@@ -464,17 +464,21 @@ extern void fsm_enter_4byte_mode(const int enter)
 }
 #endif	/* CONFIG_SPI_FLASH_ST */
 
-extern int fsm_erase_sector(const uint32_t offset, const uint8_t op_erase)
+
+/**********************************************************************/
+
+
+extern int fsm_erase_sector(const uint32_t offset)
 {
 	struct fsm_seq * const seq = &seq_erase_sector;
 
-	DEBUG("debug: in %s( offset=0x%x, op_erase=0x%02x )\n",
-		__FUNCTION__, offset, op_erase);
+	DEBUG("debug: in %s( offset=0x%x )\n",
+		__FUNCTION__, offset);
 
-	/* over-write the default erase op-code - this is dirty! */
-	*(volatile uint8_t*)&seq->seq_opc[1] = op_erase;
-
+	/* First, we customise the FSM sequence */
 	seq->addr1 = offset;
+
+	/* Now load + execute the FSM sequence */
 	fsm_load_seq(seq);
 
 	/* Wait for FSM sequence to finish */
@@ -681,14 +685,16 @@ extern int fsm_init(void)
  * with the consequences of larger (32-bit) address sizes.
  */
 extern void fsm_init_4byte_mode(
-	const unsigned char op_read)
+	const unsigned char op_read,
+	const unsigned char op_write,
+	const unsigned char op_erase)
 {
 	const uint32_t addr_xor =
 		(ADR_CFG_CYCLES_ADD1(24) ^ ADR_CFG_CYCLES_ADD1(32))
 		| ADR_CFG_ADDR1_32_BIT;
 
-	DEBUG("debug: in %s( op_read=0x%02x )\n",
-		__FUNCTION__, op_read);
+	DEBUG("debug: in %s( op_read=0x%02x, op_write=0x%02x, op_erase=0x%02x )\n",
+		__FUNCTION__, op_read, op_write, op_erase);
 
 	/*
 	 * Note: the use of the bit-field ADR_CFG_ADDRx_32_BIT is supported
@@ -703,8 +709,10 @@ extern void fsm_init_4byte_mode(
 	BUG();
 #endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 
-	/* over-write the default "read" op-code - this is dirty! */
-	*(volatile uint8_t*)&seq_read_data.seq_opc[0] = op_read;
+	/* over-write the default op-codes for read/write/erase - this is dirty! */
+	*(volatile uint8_t*)&seq_read_data.seq_opc[0]    = op_read;
+	*(volatile uint8_t*)&seq_write_data.seq_opc[1]   = op_write;
+	*(volatile uint8_t*)&seq_erase_sector.seq_opc[1] = op_erase;
 
 	/* change the number of address cycles from 24 to 32 bits */
 	seq_read_data.addr_cfg    ^= addr_xor;

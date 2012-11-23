@@ -150,7 +150,9 @@
 	 */
 extern int fsm_init(void);
 extern void fsm_init_4byte_mode(
-	const unsigned char op_read);
+	const unsigned char op_read,
+	const unsigned char op_write,
+	const unsigned char op_erase);
 
 extern uint8_t fsm_read_status(void);
 extern uint8_t fsm_read_flag_status(void);
@@ -167,8 +169,7 @@ extern int fsm_read(
 	const uint32_t size,
 	uint32_t offset);
 extern int fsm_erase_sector(
-	const uint32_t offset,
-	const uint8_t op_erase);
+	const uint32_t offset);
 extern int fsm_write(
 	const uint8_t *buf,
 	const uint32_t bufsize,

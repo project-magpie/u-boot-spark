@@ -151,6 +151,7 @@ static unsigned deviceSize;	/* Size of the device in Bytes */
 static const char * deviceName;	/* Name of the device */
 
 #if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND) || defined(CONFIG_SPI_FLASH_SPANSION)
+static unsigned char op_write = OP_PP;		/* default write command opcode to use */
 static unsigned char op_erase = OP_SE;		/* default erase command opcode to use */
 #endif
 static unsigned char op_read  = OP_READ_ARRAY;	/* default read command opcode to use */
@@ -215,7 +216,7 @@ static void hexdump(
  * Returns: 1 if bus:cs identifies a valid chip on this board, 0
  * otherwise.
  *
- * Note: Initally, we will only accept CS #0, on BUS #0 (i.e. 0:0).
+ * Note: Initially, we will only accept CS #0, on BUS #0 (i.e. 0:0).
  */
 extern int spi_cs_is_valid(
 	const unsigned int bus,
@@ -843,7 +844,9 @@ static int spi_probe_serial_flash(
 	else if (devid[3] == 0x19u)
 	{
 		deviceName = "Spansion S25FL256S";	/* 256 Mbit == 32 MiB */
-		op_read = OP_READ_4BYTE;		/* use 4-byte addressing for READ */
+		op_read  = OP_READ_4BYTE;		/* use 4-byte addressing for READ */
+		op_write = OP_PP_4BYTE;			/* use 4-byte addressing for WRITE */
+		op_erase = OP_SE_4BYTE;			/* use 4-byte addressing for ERASE */
 	}
 
 #else
@@ -1029,8 +1032,8 @@ extern void spi_init(void)
 	/* Enable support for 4-Byte Address mode, if we need to */
 	if (NUM_ADDRESS_BYTES() == 4)	/* using 4-byte addressing ? */
 	{
-		/* configure FSM driver to use 32-bit addresses */
-		fsm_init_4byte_mode(op_read);
+		/* configure FSM driver to use opcodes with 32-bit addresses */
+		fsm_init_4byte_mode(op_read, op_write, op_erase);
 	}
 #endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_SPANSION */
 #endif	/* CONFIG_STM_FSM_SPI */
@@ -1279,7 +1282,7 @@ static void my_spi_write(
 
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
 	/* erase ONE sector (using command op_erase) */
-	fsm_erase_sector(sector, op_erase);
+	fsm_erase_sector(sector);
 #else	/* CONFIG_STM_FSM_SPI */
 	/* issue a WRITE ENABLE (WREN) command */
 	spi_xfer(slave, sizeof(enable)*8, enable, NULL, DEFAULT_SPI_XFER_FLAGS);
@@ -1321,7 +1324,7 @@ static void my_spi_write(
 		spi_cs_activate(slave);
 
 		/* issue a Page Program command */
-		spi_xfer_one_word(OP_PP);
+		spi_xfer_one_word(op_write);
 
 		/* (optionally) write the MSB of the 32-bit start address */
 		if (NUM_ADDRESS_BYTES() == 4)	/* using 4-byte addressing ? */
