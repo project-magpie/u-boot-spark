@@ -166,6 +166,16 @@ static unsigned char op_read  = OP_READ_ARRAY;	/* default read command opcode to
 /**********************************************************************/
 
 
+/*
+ * "DYB Access Register" values for the Spansion S25FLxxxS family.
+ */
+#define DYB_LOCKED	0x00u
+#define DYB_UNLOCK	0xffu
+
+
+/**********************************************************************/
+
+
 #if 0
 #define isprint(x)    ( ((x)>=0x20u) && ((x)<0x7fu) )
 static void hexdump(
@@ -580,6 +590,185 @@ static void spi_enter_4byte_mode(
 /**********************************************************************/
 
 
+#if defined(CONFIG_SPI_FLASH_SPANSION)
+/*
+ * read the SPI slave device's "DYB Access Register".
+ *
+ *	input:   slave, the SPI slave which will be sending/receiving the data.
+ *		 sector, the sector whose DYB access register is to be accessed.
+ *	returns: the value of the DYB access register.
+ */
+static unsigned int spi_read_dyb_access(
+	struct spi_slave * const slave,
+	const unsigned long sector)
+{
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* return the DYB Access Register byte read */
+	return fsm_read_dyb_access(sector);
+#else	/* CONFIG_STM_FSM_SPI */
+	unsigned char data[6] = {
+		OP_DYB_READ,
+		(sector>>24) & 0xffu,
+		(sector>>16) & 0xffu,
+		(sector>>8)  & 0xffu,
+		(sector>>0)  & 0xffu,
+	};
+
+	/* issue the Read DYB Access Register command */
+	spi_xfer(slave, sizeof(data)*8, data, data, DEFAULT_SPI_XFER_FLAGS);
+
+	/* return the DYB Access Register byte read */
+	return data[5];
+#endif	/* CONFIG_STM_FSM_SPI */
+}
+#endif	/* CONFIG_SPI_FLASH_SPANSION */
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI_FLASH_SPANSION)
+/*
+ * write to the SPI slave device's "DYB Access Register".
+ *
+ *	input:   slave, the SPI slave which will be sending/receiving the data.
+ *		 sector, the sector whose DYB access register is to be accessed.
+ *		 dyb, the value that will be written to the DYB access register.
+ *	returns: none.
+ */
+static void spi_write_dyb_access(
+	struct spi_slave * const slave,
+	const unsigned long sector,
+	const unsigned char dyb)
+{
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* issue "WREN" +  "Write DYB" commands */
+	fsm_write_dyb_access(sector, dyb);
+#else	/* CONFIG_STM_FSM_SPI */
+	const unsigned char enable[1] = { OP_WREN };
+	const unsigned char data[6] = {
+		OP_DYB_WRITE,
+		(sector>>24) & 0xffu,
+		(sector>>16) & 0xffu,
+		(sector>>8)  & 0xffu,
+		(sector>>0)  & 0xffu,
+		dyb,
+	};
+
+	/* issue a WRITE ENABLE (WREN) command */
+	spi_xfer(slave, sizeof(enable)*8, enable, NULL, DEFAULT_SPI_XFER_FLAGS);
+
+	/* issue the Write DYB Access Register command */
+	spi_xfer(slave, sizeof(data)*8, data, NULL, DEFAULT_SPI_XFER_FLAGS);
+
+	/* now wait until the programming has completed ... */
+	spi_wait_till_ready(slave);
+#endif	/* CONFIG_STM_FSM_SPI */
+}
+#endif	/* CONFIG_SPI_FLASH_SPANSION */
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI_FLASH_SPANSION)
+static void spi_dby_unlock_all(
+	struct spi_slave * const slave)
+{
+	const unsigned long sizeOfNonUniform = 4 << 10;	/* 4KiB sectors, and ... */
+	const unsigned long numNonUniform = 32;		/* ... there are 32 of them. */
+	const unsigned long sizeOfUniform = 64 << 10;	/* 64KiB sectors */
+	const unsigned long startOfTop = deviceSize - sizeOfNonUniform * numNonUniform;
+	unsigned long address;
+	unsigned int dyb;
+	unsigned int unlocked = 0;		/* total number of sectors unlocked */
+
+	/*
+	 * For the Spansion S25FLxxxS family of parts, there are three
+	 * main sector topologies: "UNIFORM", "BOTTOM", or "TOP".
+	 *
+	 *	UNIFORM: all sectors are of the same size, being 256KiB.
+	 *
+	 *	BOTTOM:	the first 32 sectors are all 4KiB, and the
+	 *		remainder are all 64KiB.
+	 *
+	 *	TOP:	the last 32 sectors are all 4KiB, and the
+	 *		remainder are all 64KiB.
+	 *
+	 * In order to lock/unlock all the sectors, then it is essential
+	 * that each sector is individually addresses. However, we play
+	 * it safe here, and assume the device is a "union" of "TOP" and
+	 * "BOTTOM", by unlocking every block assuming a 64KiB stride,
+	 * and also unlocking the top 32 and bottom 32 with a 4KiB stride.
+	 * This results in doing more that than strictly necessary, but
+	 * it means we do not need to know the exact topology, but we
+	 * can be confident of unlocking *all* of the sectors.
+	 *
+	 * Note: to be more efficient, we only try and unlock sectors
+	 * that we know to be locked, by reading the DYB access register
+	 * for each sector first. Reading the DYB should be much faster
+	 * (only 48 SPI clock cycles) than writing the DYB access
+	 * registers (WIP delay). Hence, the intrinsic inefficiencies
+	 * are expected to be small enough, not to be significant.
+	 */
+
+	/* BOTTOM: first 32 * 4KiB sectors */
+	for (	address = 0x0;
+		address < sizeOfNonUniform * numNonUniform;
+		address += sizeOfNonUniform)
+	{
+		dyb = spi_read_dyb_access(slave, address);
+		if (dyb == DYB_LOCKED)
+		{
+			// printf("info: UN-LOCKING address 0x%08lx\n", address);
+			spi_write_dyb_access(slave, address, DYB_UNLOCK);
+			unlocked++;
+		}
+	}
+
+	/* UNIFORM: (middle) assume a uniform 64KiB sector size */
+	for (	address = sizeOfNonUniform * numNonUniform;
+		address < startOfTop;
+		address += sizeOfUniform)
+	{
+		dyb = spi_read_dyb_access(slave, address);
+		if (dyb == DYB_LOCKED)
+		{
+			// printf("info: UN-LOCKING address 0x%08lx\n", address);
+			spi_write_dyb_access(slave, address, DYB_UNLOCK);
+			unlocked++;
+		}
+	}
+
+	/* TOP: last 32 * 4KiB sectors */
+	for (	address = startOfTop;
+		address < deviceSize;
+		address += sizeOfNonUniform)
+	{
+		dyb = spi_read_dyb_access(slave, address);
+		if (dyb == DYB_LOCKED)
+		{
+			// printf("info: UN-LOCKING address 0x%08lx\n", address);
+			spi_write_dyb_access(slave, address, DYB_UNLOCK);
+			unlocked++;
+		}
+	}
+
+	/*
+	 * if we unlocked any, then tell the user how many we unlocked.
+	 */
+	if (unlocked)
+	{
+		printf("info: Unlocked %u sectors with DYB on %s\n",
+			unlocked, deviceName);
+	}
+}
+#endif	/* CONFIG_SPI_FLASH_SPANSION */
+
+
+/**********************************************************************/
+
+
 /*
  * probe the serial flash on the SPI bus, to ensure
  * it is a known type, and initialize its properties.
@@ -925,6 +1114,14 @@ static int spi_probe_serial_flash(
 #endif	/* unlock it */
 	}
 #endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_MXIC || defined(CONFIG_SPI_FLASH_WINBOND) */
+
+#if defined(CONFIG_SPI_FLASH_SPANSION)
+	if (1)	/* if from the S25FLxxxS family ? */
+	{
+		/* Unlock all the sectors protected with DBY */
+		spi_dby_unlock_all(slave);
+	}
+#endif	/* CONFIG_SPI_FLASH_SPANSION */
 
 	return 0;
 }

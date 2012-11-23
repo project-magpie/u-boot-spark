@@ -45,7 +45,6 @@
  *			c) 30-bits of ECC per 1KiB sector (needs 54 bytes OOB/1KiB)
  *
  *		2) Boot from SPI Serial (NOR) FLASH
- *		   NOTE: SPI currently is *not* supported in this release! (QQQ)
  *
  *	Note:	Using NAND withOUT ECC is not recommended!
  *
@@ -79,7 +78,6 @@
  * If so, then define the "CONFIG_SYS_BOOT_FROM_SPI" macro,
  * otherwise (e.g. for NAND Flash booting), do not define it.
  */
-/* NOTE: SPI currently is *not* supported in this release! (QQQ) */
 #undef CONFIG_SYS_BOOT_FROM_SPI			/* define to build a SPI-bootable image */
 
 

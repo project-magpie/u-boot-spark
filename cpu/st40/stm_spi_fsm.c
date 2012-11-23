@@ -114,7 +114,7 @@ struct fsm_seq {
 	const uint32_t seq_opc[5];
 	const uint32_t mode;
 	const uint32_t dummy;
-	const uint32_t status;
+	      uint32_t status;
 	const uint8_t  seq[16];
 	const uint32_t seq_cfg;
 } __attribute__((__packed__,aligned(4)));
@@ -189,6 +189,46 @@ static struct fsm_seq seq_enter_4byte_mode = {
 		    SEQ_CFG_STARTSEQ),
 };
 #endif	/* CONFIG_SPI_FLASH_ST */
+
+#if defined(CONFIG_SPI_FLASH_SPANSION)
+static struct fsm_seq seq_read_dyb = {
+	.data_size = TRANSFER_SIZE(4),
+	.seq_opc[0] = SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_DYB_READ),
+	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(32) | ADR_CFG_ADDR1_32_BIT,
+	.seq = {
+		FSM_INST_CMD1,
+		FSM_INST_ADD1,
+		FSM_INST_DATA_READ,
+		FSM_INST_STOP,
+	},
+	.seq_cfg = (SEQ_CFG_PADS_1 |
+		    SEQ_CFG_READNOTWRITE |
+		    SEQ_CFG_CSDEASSERT |
+		    SEQ_CFG_STARTSEQ),
+};
+#endif	/* CONFIG_SPI_FLASH_SPANSION */
+
+#if defined(CONFIG_SPI_FLASH_SPANSION)
+static struct fsm_seq seq_write_dyb = {
+	.seq_opc = {
+		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_WREN) | SEQ_OPC_CSDEASSERT),
+		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_DYB_WRITE)),
+	},
+	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(32) | ADR_CFG_ADDR1_32_BIT,
+	.status = STA_PADS_1 | STA_CSDEASSERT /* | STA_DATA_BYTE1(dyb) */,
+	.seq = {
+		FSM_INST_CMD1,
+		FSM_INST_CMD2,
+		FSM_INST_ADD1,
+		FSM_INST_STA_WR1,
+		FSM_INST_STOP,
+	},
+	.seq_cfg = (SEQ_CFG_PADS_1 |
+		    SEQ_CFG_READNOTWRITE |
+		    SEQ_CFG_CSDEASSERT |
+		    SEQ_CFG_STARTSEQ),
+};
+#endif	/* CONFIG_SPI_FLASH_SPANSION */
 
 static struct fsm_seq seq_read_data = {
 	.seq_opc[0] = SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_READ_ARRAY),
@@ -720,6 +760,85 @@ extern void fsm_init_4byte_mode(
 	seq_erase_sector.addr_cfg ^= addr_xor;
 }
 #endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_SPANSION */
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI_FLASH_SPANSION)
+/*
+ * read the SPI slave device's "DYB Access Register".
+ *
+ *	input:   offset, the sector whose DYB access register is to be accessed.
+ *	returns: the value of the DYB access register.
+ */
+extern unsigned int fsm_read_dyb_access(
+	const unsigned long offset)
+{
+	struct fsm_seq * const seq = &seq_read_dyb;
+	uint8_t tmp[4];
+
+#if 0
+	DEBUG("debug: in %s( offset=0x%lx )\n",
+		__FUNCTION__, offset);
+#endif
+
+	/* First, we customise the FSM sequence */
+	seq->addr1 = offset;
+
+	/* Now load + execute the FSM sequence */
+	fsm_load_seq(seq);
+
+	/* Read the captured data out from the FIFO */
+	fsm_read_fifo((uint32_t *)tmp, sizeof(tmp));
+
+	/* Wait for FSM sequence to finish */
+	fsm_wait_seq();
+
+	/* return the LAST byte retrieved */
+	return tmp[sizeof(tmp)-1u];
+}
+#endif	/* CONFIG_SPI_FLASH_SPANSION */
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI_FLASH_SPANSION)
+/*
+ * write to the SPI slave device's "DYB Access Register".
+ *
+ *	input:   offset, the sector whose DYB access register is to be accessed.
+ *		 dyb, the value that will be written to the DYB access register.
+ *	returns: none.
+ */
+extern void fsm_write_dyb_access(
+	const unsigned long offset,
+	const unsigned char dyb)
+{
+	struct fsm_seq * const seq = &seq_write_dyb;
+
+#if 0
+	DEBUG("debug: in %s( offset=0x%lx, dyb=0x%02x )\n",
+		__FUNCTION__, offset, dyb);
+#endif
+
+	/* First, we customise the FSM sequence */
+	seq->addr1  = offset;
+	seq->status = STA_DATA_BYTE1(dyb) | STA_PADS_1 | STA_CSDEASSERT;
+
+	/* Now load + execute the FSM sequence */
+	fsm_load_seq(seq);
+
+	/* Wait for FSM sequence to finish */
+	fsm_wait_seq();
+
+	/* Wait for SPI device to complete */
+	spi_wait_till_ready(NULL);
+
+	return;
+}
+#endif	/* CONFIG_SPI_FLASH_SPANSION */
 
 
 /**********************************************************************/

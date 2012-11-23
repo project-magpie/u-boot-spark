@@ -152,6 +152,8 @@
 #define OP_SSE_4BYTE		0x21u			/* Parameter 4 KiB Erase, with 4-byte addressing */
 #define OP_PP			0x02u			/* Page Program */
 #define OP_PP_4BYTE		0x12u			/* Page Program, with 4-byte addressing */
+#define OP_DYB_READ		0xe0u			/* Read the DYB access register */
+#define OP_DYB_WRITE		0xe1u			/* Write the DYB access register */
 
 #define SR_WIP			(1u<<0)			/* Status Register Write In Progress bit */
 

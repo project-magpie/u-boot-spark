@@ -84,6 +84,17 @@
 #define ADR_CFG_ADDR2_32_BIT		(1   << (9+16))	/* address 2 is 32-bits long */
 
 	/*
+	 * Register: SPI_FAST_SEQ_FLASH_STA_DATA
+	 */
+#define STA_DATA_BYTE1(x)		((x & 0xffu) << 0) /* 1st data byte to be written to the Flash */
+#define STA_DATA_BYTE2(x)		((x & 0xffu) << 8) /* 2nd data byte to be written to the Flash */
+#define STA_PADS_1			(0x0 << 16)	/* single I/O-mode */
+#define STA_PADS_2			(0x1 << 16)	/* dual   I/O-mode */
+#define STA_PADS_4			(0x3 << 16)	/* quad   I/O-mode */
+#define STA_CSDEASSERT			(0x1 << 20)	/* de-assert CSn after command */
+#define STA_RDNOTWR			(0x1 << 21)	/* status register read not write */
+
+	/*
 	 * Register: SPI_FAST_SEQ_n
 	 */
 #define SEQ_OPC_OPCODE(x)		((x) << 0)	/* Flash Command */
@@ -110,7 +121,7 @@
 	 */
 #define FSM_OPC_CMD			0x1
 #define FSM_OPC_ADD			0x2
-#define FSM_OPC_STATUS_REG_DATA		0x3
+#define FSM_OPC_STA			0x3
 #define FSM_OPC_MODE			0x4
 #define FSM_OPC_DUMMY			0x5
 #define FSM_OPC_DATA			0x6
@@ -144,6 +155,10 @@
 
 #define FSM_INST_STOP			FSM_INSTR(FSM_OPC_STOP,	0)
 
+#define FSM_INST_STA_RD1		FSM_INSTR(FSM_OPC_STA,	1)
+#define FSM_INST_STA_WR1		FSM_INSTR(FSM_OPC_STA,	1)
+#define FSM_INST_STA_RD2		FSM_INSTR(FSM_OPC_STA,	2)
+#define FSM_INST_STA_WR1_2		FSM_INSTR(FSM_OPC_STA,	3)
 
 	/*
 	 * Exported function declarations.
@@ -159,6 +174,12 @@ extern uint8_t fsm_read_flag_status(void);
 
 extern void fsm_enter_4byte_mode(
 	const int enter);
+
+extern unsigned int fsm_read_dyb_access(
+	const unsigned long offset);
+extern void fsm_write_dyb_access(
+	const unsigned long offset,
+	const unsigned char dyb);
 
 extern int fsm_read_jedec(
 	const size_t bytes,
