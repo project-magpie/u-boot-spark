@@ -1024,7 +1024,14 @@ static int spi_probe_serial_flash(
 		return -1;
 	}
 	pageSize   = 256u;
-	eraseSize  = 64u<<10;				/* 64 KiB, 256 pages/sector */
+	if (devid[5] == 0)				/* Uniform Sector Architecture ? */
+	{
+		eraseSize = 256u<<10;			/* Uniform 256 KiB sector */
+	}
+	else
+	{
+		eraseSize = 64u<<10;			/* Hybrid: 64 KiB + 4KiB parameter sectors  */
+	}
 	deviceSize = 1u<<devid[3];			/* Memory Capacity */
 	if (devid[3] == 0x18u)
 	{
