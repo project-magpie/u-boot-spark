@@ -1051,20 +1051,6 @@ static int spi_probe_serial_flash(
 		eraseSize);		/* in bytes */
 #endif
 
-#if defined(CONFIG_STM_FSM_SPI) && !defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
-	/*
-	 * If using FSM, then we (currently) need 32-bit H/W support for
-	 * 32-bit addresses, which is only on *some* SoCs!
-	 * So, we revert back to using 24-bit addresses only, if we need to.
-	 * QQQ - Provide a more "robust" implementation for *ALL* SoCs!
-	 */
-	if (NUM_ADDRESS_BYTES() == 4)	/* but, needing 32-bit addressing ? */
-	{				/* restore the default read command opcode to use */
-		op_read = OP_READ_ARRAY;/* i.e. switch back to 3-byte addresses */
-		printf("warning: SPI FSM controller does not support 32-bit addresses!\n");
-	}
-#endif	/* CONFIG_STM_FSM_SPI && !CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
-
 	/*
 	 * With only 24-bit addresses, we can only access the first 16MiB!
 	 */

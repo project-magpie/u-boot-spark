@@ -248,10 +248,18 @@ static struct fsm_seq seq_write_dyb = {
 
 static struct fsm_seq seq_read_data = {
 	.seq_opc[0] = SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_READ_ARRAY),
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
 	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(24),
+#else
+	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(16)
+		  | ADR_CFG_PADS_1_ADD2 | ADR_CFG_CYCLES_ADD2(8),
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 	.seq = {
 		FSM_INST_CMD1,
 		FSM_INST_ADD1,
+#if !defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
+		FSM_INST_ADD2,
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 		FSM_INST_DATA_READ,
 		FSM_INST_STOP,
 	},
@@ -262,7 +270,12 @@ static struct fsm_seq seq_read_data = {
 };
 
 static struct fsm_seq seq_write_data = {
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
 	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(24),
+#else
+	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(16)
+		  | ADR_CFG_PADS_1_ADD2 | ADR_CFG_CYCLES_ADD2(8),
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 	.seq_opc = {
 		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_WREN) | SEQ_OPC_CSDEASSERT),
 		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_PP)),
@@ -271,6 +284,9 @@ static struct fsm_seq seq_write_data = {
 		FSM_INST_CMD1,
 		FSM_INST_CMD2,
 		FSM_INST_ADD1,
+#if !defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
+		FSM_INST_ADD2,
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 		FSM_INST_DATA_WRITE,
 		FSM_INST_WAIT,
 		FSM_INST_STOP,
@@ -281,7 +297,13 @@ static struct fsm_seq seq_write_data = {
 };
 
 static struct fsm_seq seq_erase_sector = {
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
 	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(24) | ADR_CFG_CSDEASSERT_ADD1,
+#else
+	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(16)
+		  | ADR_CFG_PADS_1_ADD2 | ADR_CFG_CYCLES_ADD2(8)
+		  | ADR_CFG_CSDEASSERT_ADD2,
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 	.seq_opc = {
 		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_WREN) | SEQ_OPC_CSDEASSERT),
 		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_SE)),
@@ -290,6 +312,9 @@ static struct fsm_seq seq_erase_sector = {
 		FSM_INST_CMD1,
 		FSM_INST_CMD2,
 		FSM_INST_ADD1,
+#if !defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
+		FSM_INST_ADD2,
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 		FSM_INST_WAIT,
 		FSM_INST_STOP,
 	},
@@ -532,7 +557,12 @@ extern int fsm_erase_sector(const uint32_t offset)
 		__FUNCTION__, offset);
 
 	/* First, we customise the FSM sequence */
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
 	seq->addr1 = offset;
+#else
+	seq->addr1 = (offset >> 16) & 0xffffu;
+	seq->addr2 = (offset >>  0) & 0xffffu;
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 
 	/* Now load + execute the FSM sequence */
 	fsm_load_seq(seq);
@@ -597,7 +627,12 @@ extern int fsm_read(uint8_t * buf, const uint32_t bufsize, uint32_t offset)
 		size_mop = size & 0x3;
 
 		seq->data_size = TRANSFER_SIZE(size_ub);	/* in bits! */
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
 		seq->addr1 = offset;
+#else
+		seq->addr1 = (offset >> 16) & 0xffffu;
+		seq->addr2 = (offset >>  0) & 0xffffu;
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 
 		fsm_load_seq(seq);
 
@@ -664,7 +699,12 @@ extern int fsm_write(const uint8_t * const buf, const uint32_t bufsize, uint32_t
 		size_mop = size & 0x3;
 
 		seq->data_size = TRANSFER_SIZE(size_ub);	/* in bits! */
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
 		seq->addr1 = offset;
+#else
+		seq->addr1 = (offset >> 16) & 0xffffu;
+		seq->addr2 = (offset >>  0) & 0xffffu;
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 
 		/* prepare to write the data to the FIFO in the FSM */
 		/* ensure at least SPI_FAST_SEQ_CFG[0,5,7] are all zero */
@@ -745,25 +785,31 @@ extern void fsm_init_4byte_mode(
 	const unsigned char op_write,
 	const unsigned char op_erase)
 {
-	const uint32_t addr_xor =
-		(ADR_CFG_CYCLES_ADD1(24) ^ ADR_CFG_CYCLES_ADD1(32))
-		| ADR_CFG_ADDR1_32_BIT;
-
-	DEBUG("debug: in %s( op_read=0x%02x, op_write=0x%02x, op_erase=0x%02x )\n",
-		__FUNCTION__, op_read, op_write, op_erase);
-
 	/*
 	 * Note: the use of the bit-field ADR_CFG_ADDRx_32_BIT is supported
 	 * only on some SoCs (such as Lille/Liege), but not on others (such
 	 * as the STx7105, and STx7108). To support 32-bit addresses on
-	 * all SoCs, one would need to use 2 address commands with 16+16
-	 * cycles, or use 8+16 cycles for 24-bit addresses.
-	 * QQQ - Provide a more "robust" implementation for *ALL* SoCs!
-	 * For time being, we BUG() if it is not known to be supported.
+	 * all SoCs with the FSM, one should use 2 separate address commands
+	 * with 16+16 bits; or use 16+8 bits for 24-bit addresses.
+	 *
+	 * If CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES is defined, then
+	 * we will always use a single ADDR1 FSM instruction, with 24 or
+	 * 32 bits, as required.
+	 *
+	 * If CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES is NOT defined,
+	 * then we will always use a pair of ADDR1+ADDR2 FSM instructions,
+	 * with 16+8, or 16+16 bits, as required.
 	 */
-#if !defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
-	BUG();
+	const uint32_t addr_xor =
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
+		(ADR_CFG_CYCLES_ADD1(24) ^ ADR_CFG_CYCLES_ADD1(32))
+		| ADR_CFG_ADDR1_32_BIT;
+#else
+		(ADR_CFG_CYCLES_ADD2(8) ^ ADR_CFG_CYCLES_ADD2(16));
 #endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
+
+	DEBUG("debug: in %s( op_read=0x%02x, op_write=0x%02x, op_erase=0x%02x )\n",
+		__FUNCTION__, op_read, op_write, op_erase);
 
 	/* over-write the default op-codes for read/write/erase - this is dirty! */
 	*(volatile uint8_t*)&seq_read_data.seq_opc[0]    = op_read;
