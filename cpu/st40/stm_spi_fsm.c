@@ -109,7 +109,7 @@ static uint8_t	page_buf[FLASH_PAGESIZE] __attribute__((aligned(4)));
 struct fsm_seq {
 	      uint32_t data_size;
 	      uint32_t addr1;
-	const uint32_t addr2;
+	      uint32_t addr2;
 	      uint32_t addr_cfg;
 	const uint32_t seq_opc[5];
 	const uint32_t mode;
@@ -194,10 +194,18 @@ static struct fsm_seq seq_enter_4byte_mode = {
 static struct fsm_seq seq_read_dyb = {
 	.data_size = TRANSFER_SIZE(4),
 	.seq_opc[0] = SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_DYB_READ),
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
 	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(32) | ADR_CFG_ADDR1_32_BIT,
+#else
+	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(16)
+		  | ADR_CFG_PADS_1_ADD2 | ADR_CFG_CYCLES_ADD2(16),
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 	.seq = {
 		FSM_INST_CMD1,
 		FSM_INST_ADD1,
+#if !defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
+		FSM_INST_ADD2,
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 		FSM_INST_DATA_READ,
 		FSM_INST_STOP,
 	},
@@ -214,12 +222,20 @@ static struct fsm_seq seq_write_dyb = {
 		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_WREN) | SEQ_OPC_CSDEASSERT),
 		(SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_DYB_WRITE)),
 	},
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
 	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(32) | ADR_CFG_ADDR1_32_BIT,
+#else
+	.addr_cfg = ADR_CFG_PADS_1_ADD1 | ADR_CFG_CYCLES_ADD1(16)
+		  | ADR_CFG_PADS_1_ADD2 | ADR_CFG_CYCLES_ADD2(16),
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 	.status = STA_PADS_1 | STA_CSDEASSERT /* | STA_DATA_BYTE1(dyb) */,
 	.seq = {
 		FSM_INST_CMD1,
 		FSM_INST_CMD2,
 		FSM_INST_ADD1,
+#if !defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
+		FSM_INST_ADD2,
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 		FSM_INST_STA_WR1,
 		FSM_INST_STOP,
 	},
@@ -784,7 +800,12 @@ extern unsigned int fsm_read_dyb_access(
 #endif
 
 	/* First, we customise the FSM sequence */
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
 	seq->addr1 = offset;
+#else
+	seq->addr1 = (offset >> 16) & 0xffffu;
+	seq->addr2 = (offset >>  0) & 0xffffu;
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 
 	/* Now load + execute the FSM sequence */
 	fsm_load_seq(seq);
@@ -824,7 +845,12 @@ extern void fsm_write_dyb_access(
 #endif
 
 	/* First, we customise the FSM sequence */
+#if defined(CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES)
 	seq->addr1  = offset;
+#else
+	seq->addr1  = (offset >> 16) & 0xffffu;
+	seq->addr2  = (offset >>  0) & 0xffffu;
+#endif	/* CONFIG_STM_FSM_SUPPORTS_32_BIT_ADDRESSES */
 	seq->status = STA_DATA_BYTE1(dyb) | STA_PADS_1 | STA_CSDEASSERT;
 
 	/* Now load + execute the FSM sequence */
