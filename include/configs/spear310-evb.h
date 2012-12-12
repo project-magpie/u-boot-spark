@@ -128,8 +128,8 @@
 	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock11 "
 
 	#define CONFIG_BOOTCOMMAND		"" \
-		"nand read.jffs2 0x800000 0x180000 0x020000; " \
-		"nand read.jffs2 0x900000 0x1c0000 0x4C0000; " \
+		"nand read.jffs2 0x800000 0x200000 0x020000; " \
+		"nand read.jffs2 0x900000 0x240000 0x4C0000; " \
 		"bootm 0x900000 - 0x800000"
 #endif
 
