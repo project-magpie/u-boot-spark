@@ -31,95 +31,23 @@
 #define FALSE				0
 #define TRUE				(!FALSE)
 
-static void sel_1v8(void)
+int get_socrev(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	u32 ddr1v8, ddr2v5;
+	u32 soc_id = readl(&misc_p->soc_core_id);
+	u32 pri_socid = (soc_id >> MISC_PRISOCID_SHFT) & 0xFF;
+	u32 sec_socid = (soc_id >> MISC_SECSOCID_SHFT) & 0xFF;
 
-	ddr2v5 = readl(&misc_p->ddr_2v5_compensation);
-	ddr2v5 &= 0x8080ffc0;
-	ddr2v5 |= 0x78000003;
-	writel(ddr2v5, &misc_p->ddr_2v5_compensation);
-
-	ddr1v8 = readl(&misc_p->ddr_1v8_compensation);
-	ddr1v8 &= 0x8080ffc0;
-	ddr1v8 |= 0x78000010;
-	writel(ddr1v8, &misc_p->ddr_1v8_compensation);
-
-	while (!(readl(&misc_p->ddr_1v8_compensation) & DDR_COMP_ACCURATE))
-		;
-}
-
-static void sel_2v5(void)
-{
-	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	u32 ddr1v8, ddr2v5;
-
-	ddr1v8 = readl(&misc_p->ddr_1v8_compensation);
-	ddr1v8 &= 0x8080ffc0;
-	ddr1v8 |= 0x78000003;
-	writel(ddr1v8, &misc_p->ddr_1v8_compensation);
-
-	ddr2v5 = readl(&misc_p->ddr_2v5_compensation);
-	ddr2v5 &= 0x8080ffc0;
-	ddr2v5 |= 0x78000010;
-	writel(ddr2v5, &misc_p->ddr_2v5_compensation);
-
-	while (!(readl(&misc_p->ddr_2v5_compensation) & DDR_COMP_ACCURATE))
-		;
-}
-
-/*
- * plat_ddr_init:
- */
-void plat_ddr_init(void)
-{
-	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	u32 ddrpad;
-	u32 core3v3, ddr1v8, ddr2v5;
-
-	/* DDR pad register configurations */
-	ddrpad = readl(&misc_p->ddr_pad);
-	ddrpad &= ~DDR_PAD_CNF_MSK;
-
-#if defined(CONFIG_SPEAR_DDR_HCLK)
-	ddrpad |= 0xEAAB;
-#elif defined(CONFIG_SPEAR_DDR_2HCLK)
-	ddrpad |= 0xEAAD;
-#elif defined(CONFIG_SPEAR_DDR_PLL2)
-	ddrpad |= 0xEAAD;
-#endif
-	writel(ddrpad, &misc_p->ddr_pad);
-
-	/* Compensation register configurations */
-	core3v3 = readl(&misc_p->core_3v3_compensation);
-	core3v3 &= 0x8080ffe0;
-	core3v3 |= 0x78000002;
-	writel(core3v3, &misc_p->core_3v3_compensation);
-
-	ddr1v8 = readl(&misc_p->ddr_1v8_compensation);
-	ddr1v8 &= 0x8080ffc0;
-	ddr1v8 |= 0x78000004;
-	writel(ddr1v8, &misc_p->ddr_1v8_compensation);
-
-	ddr2v5 = readl(&misc_p->ddr_2v5_compensation);
-	ddr2v5 &= 0x8080ffc0;
-	ddr2v5 |= 0x78000004;
-	writel(ddr2v5, &misc_p->ddr_2v5_compensation);
-
-	if ((readl(&misc_p->ddr_pad) & DDR_PAD_SW_CONF) == DDR_PAD_SW_CONF) {
-		/* Software memory configuration */
-		if (readl(&misc_p->ddr_pad) & DDR_PAD_SSTL_SEL)
-			sel_1v8();
-		else
-			sel_2v5();
-	} else {
-		/* Hardware memory configuration */
-		if (readl(&misc_p->ddr_pad) & DDR_PAD_DRAM_TYPE)
-			sel_1v8();
-		else
-			sel_2v5();
-	}
+	if ((pri_socid == 'B') && (sec_socid == 'B'))
+		return SOC_SPEAR600_BB;
+	else if ((pri_socid == 'B') && (sec_socid == 'C'))
+		return SOC_SPEAR600_BC;
+	else if ((pri_socid == 'B') && (sec_socid == 'D'))
+		return SOC_SPEAR600_BD;
+	else if (soc_id == 0)
+		return SOC_SPEAR600_BA;
+	else
+		return SOC_SPEAR_NA;
 }
 
 /*
@@ -130,103 +58,41 @@ void soc_init(void)
 	/* Nothing to be done for SPEAr600 */
 }
 
-/*
- * xxx_boot_selected:
- *
- * return TRUE if the particular booting option is selected
- * return FALSE otherwise
- */
-static u32 read_bootstrap(void)
+u32 getboottype(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-
-	return readl(&misc_p->auto_cfg_reg) & MISC_BOOTSTRAPMASK;
-}
-
-int snor_boot_selected(void)
-{
-	u32 bootstrap = read_bootstrap();
+	u32 bootstrap = readl(&misc_p->auto_cfg_reg) & MISC_BOOTSTRAPMASK;
+	u32 bootmask = 0;
 
 	if (SNOR_BOOT_SUPPORTED) {
 		/* Check whether SNOR boot is selected */
 		if ((bootstrap & MISC_ONLYSNORBOOT) == MISC_ONLYSNORBOOT)
-			return TRUE;
+			bootmask |= BOOT_TYPE_SMI;
 
 		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND8BOOT)
-			return TRUE;
+			bootmask |= BOOT_TYPE_SMI;
 
 		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND16BOOT)
-			return TRUE;
+			bootmask |= BOOT_TYPE_SMI;
 	}
-
-	return FALSE;
-}
-
-int nand_boot_selected(void)
-{
-	u32 bootstrap = read_bootstrap();
 
 	if (NAND_BOOT_SUPPORTED) {
 		/* Check whether NAND boot is selected */
 		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND8BOOT)
-			return TRUE;
+			bootmask |= BOOT_TYPE_NAND;
 
 		if ((bootstrap & MISC_NORNANDBOOT) == MISC_NORNAND16BOOT)
-			return TRUE;
+			bootmask |= BOOT_TYPE_NAND;
 	}
 
-	return FALSE;
-}
-
-int pnor_boot_selected(void)
-{
-	/* Parallel NOR boot is not selected in any SPEAr600 revision */
-	return FALSE;
-}
-
-int usb_boot_selected(void)
-{
-	u32 bootstrap = read_bootstrap();
-
-	if (USB_BOOT_SUPPORTED) {
+	if (USBD_BOOT_SUPPORTED) {
 		/* Check whether USB boot is selected */
 		if (!(bootstrap & MISC_USBBOOT))
-			return TRUE;
+			bootmask |= BOOT_TYPE_USBD;
 	}
 
-	return FALSE;
-}
+	if (!bootmask)
+		bootmask |= BOOT_TYPE_UNSUPPORTED;
 
-int tftp_boot_selected(void)
-{
-	/* TFTP boot is not selected in any SPEAr600 revision */
-	return FALSE;
-}
-
-int uart_boot_selected(void)
-{
-	/* UART boot is not selected in any SPEAr600 revision */
-	return FALSE;
-}
-
-int spi_boot_selected(void)
-{
-	/* SPI boot is not selected in any SPEAr600 revision */
-	return FALSE;
-}
-
-int i2c_boot_selected(void)
-{
-	/* I2C boot is not selected in any SPEAr600 revision */
-	return FALSE;
-}
-
-int mmc_boot_selected(void)
-{
-	return FALSE;
-}
-
-void plat_late_init(void)
-{
-	spear_late_init();
+	return bootmask;
 }

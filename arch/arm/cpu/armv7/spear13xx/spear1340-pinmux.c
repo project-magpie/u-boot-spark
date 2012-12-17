@@ -350,3 +350,90 @@ void spear1340_enable_pins(u32 ip, u32 mode)
 	else if (PMX_SSP0 == ip)
 		enable_ssp0_pins(mode);
 }
+
+static void configure_gpio(u32 plgpio)
+{
+	if (plgpio > SPEAR1340_MAX_PLGPIOS)
+		return;
+
+	/* Set the pin to GPIO IN mode */
+	pinmux_set_bit(plgpio, SPEAR1340_PLGPIO_EN0);
+
+	/* Put the pin in gpio state */
+	if (plgpio < 127)
+		pinmux_clear_bit(plgpio + 1, SPEAR1340_PAD_FUNCTION_EN_1);
+	else
+		pinmux_clear_bit(plgpio + 1, SPEAR1340_PAD_FUNCTION_EN_5);
+}
+
+static void configure_pullup(u32 plgpio)
+{
+	if (plgpio > SPEAR1340_MAX_PLGPIOS)
+		return;
+
+	/* Deactivate pull down */
+	pinmux_set_bit(plgpio, SPEAR1340_PAD_PD_CFG_1);
+
+	/* Activate pull up */
+	pinmux_clear_bit(plgpio, SPEAR1340_PAD_PU_CFG_1);
+}
+
+static void configure_pulldown(u32 plgpio)
+{
+	if (plgpio > SPEAR1340_MAX_PLGPIOS)
+		return;
+
+	/* Deactivate pull up */
+	pinmux_set_bit(plgpio, SPEAR1340_PAD_PU_CFG_1);
+
+	/* Activate pull down */
+	pinmux_clear_bit(plgpio, SPEAR1340_PAD_PD_CFG_1);
+}
+
+/**
+ * spear1340_configure_pin - Configure pin on spear1340 devices
+ * @plgpio:	Pin Number (plgpio number)
+ * @mode:	Pull UP, Pull DOWN, plgpio IN, plgpio OUT etc
+ */
+void spear1340_configure_pin(u32 plgpio, u32 mode)
+{
+	if (PMX_GPIO == mode)
+		configure_gpio(plgpio);
+	else if (PMX_PULLUP == mode)
+		configure_pullup(plgpio);
+	else if (PMX_PULLDOWN == mode)
+		configure_pulldown(plgpio);
+}
+
+/**
+ * spear1340_plgpio_get - Get the gpio input
+ * @plgpio:	Pin Number (plgpio number)
+ */
+int spear1340_plgpio_get(u32 plgpio)
+{
+	if (plgpio > SPEAR1340_MAX_PLGPIOS)
+		return -1;
+
+	/* Set the pin to GPIO IN mode */
+	pinmux_set_bit(plgpio, SPEAR1340_PLGPIO_EN0);
+
+	return pinmux_test_bit(plgpio, SPEAR1340_PLGPIO_IN0);
+}
+
+/**
+ * spear1340_plgpio_set - Set the gpio value
+ * @plgpio:	Pin Number (plgpio number)
+ */
+void spear1340_plgpio_set(u32 plgpio, u32 val)
+{
+	if (plgpio > SPEAR1340_MAX_PLGPIOS)
+		return;
+
+	if (val & 0x1)
+		pinmux_set_bit(plgpio, SPEAR1340_PLGPIO_OUT0);
+	else
+		pinmux_clear_bit(plgpio, SPEAR1340_PLGPIO_OUT0);
+
+	/* Set the pin to GPIO OUT mode */
+	pinmux_clear_bit(plgpio, SPEAR1340_PLGPIO_EN0);
+}

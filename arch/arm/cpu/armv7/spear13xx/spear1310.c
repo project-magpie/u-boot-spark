@@ -46,7 +46,7 @@ int arch_cpu_init(void)
 	/* select USB PLL 48 MHz as the src clock */
 	perip_clk_cfg = readl(&misc_p->perip_clk_cfg);
 	perip_clk_cfg &= ~SPEAR1310_UARTCLKMSK;
-	perip_clk_cfg |= SPEAR1310_UART48M_CLK;
+	perip_clk_cfg |= SPEAR1310_UART48M;
 	writel(perip_clk_cfg, &misc_p->perip_clk_cfg);
 
 	perip1_clk_enb |= SPEAR1310_UART_CLKEN;
@@ -83,7 +83,7 @@ int arch_cpu_init(void)
 	writel(perip_cfg, &misc_p->perip_cfg);
 
 	writel(SPEAR1310_SYNT_X_2 | SPEAR1310_SYNT_Y_21 |
-		SPEAR1310_SYNT_CLK_ENB, &misc_p->mcif_sd_clk_synt);
+		SPEAR1310_SYNT_CLKENB, &misc_p->mcif_sd_clk_synt);
 
 	perip1_clk_enb |= SPEAR1310_SD_CLKEN;
 #endif
@@ -162,7 +162,7 @@ void udc_phy_init(void)
 	writel(temp, &misc_regs_p->usbphy_gen_cfg);
 
 	/* wait for pll lock */
-	while (!(readl(&misc_regs_p->usbphy_gen_cfg) & USB_PLL_LOCK))
+	while (!(readl(&misc_regs_p->usbphy_gen_cfg) & SPEAR1310_USB_PLL_LOCK))
 		;
 
 	udelay(1);

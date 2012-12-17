@@ -559,6 +559,12 @@ static void enable_eth2_pins(u32 mode)
 	case PMX_ETH_MII:
 		enable_mii2_pins();
 		break;
+	}
+}
+
+static void enable_eth1_eth2_pins(u32 mode)
+{
+	switch (mode) {
 	case PMX_ETH_SMII:
 		enable_smii2_pins();
 		break;
@@ -745,4 +751,110 @@ void spear320_enable_pins(u32 ip, u32 mode)
 		enable_ssp2_pins(mode);
 	else if (PMX_ETH2 == ip)
 		enable_eth2_pins(mode);
+	else if (PMX_ETH1_ETH2 == ip)
+		enable_eth1_eth2_pins(mode);
+	else if ((PMX_I2C0 == ip) || (PMX_SSP0 == ip) || \
+			(PMX_ETH0 == ip) || (PMX_UART0 == ip))
+		spear3xx_enable_pins(ip, mode);
+}
+
+static void configure_gpio(u32 plgpio)
+{
+	if (plgpio > SPEAR3XX_MAX_PLGPIOS)
+		return;
+
+	/* Set the pin to GPIO IN mode */
+	pinmux_set_bit(plgpio, SPEAR320_GPIO_EN0);
+
+	/* Select GPIO mode */
+	pinmux_set_bit(plgpio, SPEAR320_GPIO_SELECT0);
+
+	/* Select RAS from Fixed Part / RAS */
+	if (plgpio < 2) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_FIRDA_MASK, 0);
+	} else if (plgpio < 4) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_UART0_MASK, 0);
+	} else if (plgpio < 6) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_I2C_MASK, 0);
+	} else if (plgpio < 10) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_SSP_MASK, 0);
+	} else if (plgpio < 28) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_MII_MASK, 0);
+	} else if (plgpio < 29) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_GPIO_PIN0_MASK, 0);
+	} else if (plgpio < 30) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_GPIO_PIN1_MASK, 0);
+	} else if (plgpio < 31) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_GPIO_PIN2_MASK, 0);
+	} else if (plgpio < 32) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_GPIO_PIN3_MASK, 0);
+	} else if (plgpio < 33) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_GPIO_PIN4_MASK, 0);
+	} else if (plgpio < 34) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_GPIO_PIN5_MASK, 0);
+	} else if (plgpio < 37) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_SSP_CS_MASK, 0);
+	} else if (plgpio < 43) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_UART0_MODEM_MASK, 0);
+	} else if (plgpio < 51) {
+		pinmux_maskval(SPEAR3XX_FUNC_ENB_REG,
+				PMX_TIMER_0_1_MASK | PMX_TIMER_2_3_MASK, 0);
+	}
+}
+
+/**
+ * spear320_configure_pin - Configure pin on spear320 devices
+ * @plgpio:	Pin Number (plgpio number)
+ * @mode:	Pull UP, Pull DOWN, plgpio IN, plgpio OUT etc
+ */
+void spear320_configure_pin(u32 plgpio, u32 mode)
+{
+	if (PMX_GPIO == mode)
+		configure_gpio(plgpio);
+}
+
+/**
+ * spear320_plgpio_get - Get the gpio input
+ * @plgpio:	Pin Number (plgpio number)
+ */
+int spear320_plgpio_get(u32 plgpio)
+{
+	if (plgpio > SPEAR3XX_MAX_PLGPIOS)
+		return -1;
+
+	/* Set the pin to GPIO IN mode */
+	pinmux_set_bit(plgpio, SPEAR320_GPIO_EN0);
+
+	return pinmux_test_bit(plgpio, SPEAR320_GPIO_IN0);
+}
+
+/**
+ * spear320_plgpio_set - Set the gpio value
+ * @plgpio:	Pin Number (plgpio number)
+ */
+void spear320_plgpio_set(u32 plgpio, u32 val)
+{
+	if (plgpio > SPEAR3XX_MAX_PLGPIOS)
+		return;
+
+	if (val & 0x1)
+		pinmux_set_bit(plgpio, SPEAR320_GPIO_OUT0);
+	else
+		pinmux_clear_bit(plgpio, SPEAR320_GPIO_OUT0);
+
+	/* Set the pin to GPIO OUT mode */
+	pinmux_clear_bit(plgpio, SPEAR320_GPIO_EN0);
 }

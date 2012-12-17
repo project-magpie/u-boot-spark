@@ -115,6 +115,10 @@ static inline unsigned int generic_hweight8(unsigned int w)
 # define __set_bit generic_set_bit
 #endif
 
+#ifndef PLATFORM__TEST_BIT
+# define __test_bit generic_test_bit
+#endif
+
 #ifndef PLATFORM__CLEAR_BIT
 # define __clear_bit generic_clear_bit
 #endif
@@ -142,6 +146,14 @@ static inline void generic_set_bit(int nr, volatile unsigned long *addr)
 	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
 
 	*p  |= mask;
+}
+
+static inline int generic_test_bit(int nr, volatile unsigned long *addr)
+{
+	unsigned long mask = BIT_MASK(nr);
+	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
+
+	return !!(*p & mask);
 }
 
 static inline void generic_clear_bit(int nr, volatile unsigned long *addr)

@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _ASM_ARCH_HARDWARE_H
-#define _ASM_ARCH_HARDWARE_H
+#ifndef _ASM_ARCH_SPEAR_HARDWARE_H
+#define _ASM_ARCH_SPEAR_HARDWARE_H
 
 #if   defined(CONFIG_SOC_SPEAR600)
 #include <asm/arch/spear600.h>

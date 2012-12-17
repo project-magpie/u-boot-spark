@@ -33,6 +33,12 @@ COBJS-y	+= cpu.o
 COBJS-y	+= syslib.o
 COBJS-$(CONFIG_ARMV7_CA9LTIMER) += ca9_ltimer.o
 
+ifdef	CONFIG_SPL_BUILD
+ifdef	CONFIG_SPL_NO_CPU_SUPPORT_CODE
+START	:=
+endif
+endif
+
 COBJS	:= $(sort $(COBJS-y))
 SOBJS	:= $(sort $(SOBJS-y))
 SRCS	:= $(START:.o=.S) $(COBJS:.o=.c)

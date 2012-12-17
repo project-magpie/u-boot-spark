@@ -31,6 +31,7 @@
 #define CONFIG_SYS_NAND_CLE			(1 << 16)
 #define CONFIG_SYS_NAND_ALE			(1 << 17)
 
+#define CONFIG_SYS_MMC_BASE			0x70000000
 #define CONFIG_SYS_MACB0_BASE			0xAA000000
 #define CONFIG_SYS_MACB1_BASE			0xAB000000
 #define CONFIG_SPEAR_RASBASE			0xB3000000
@@ -43,6 +44,21 @@
 #define SPEAR320_EXTENDED_MODE		(1 << 4)
 
 /* SPEAr320 RAS misc space registers and bitmasks */
+#define SPEAR320_BOOT_REG		(CONFIG_SPEAR_RASBASE + 0x0)
+	#define SPEAR320_BOOTSHFT		0x0
+	#define SPEAR320_BOOTMASK		0xF
+	#define SPEAR320_USBBOOT		0x0
+	#define SPEAR320_TFTPI2CBOOT		0x1
+	#define SPEAR320_TFTPSPIBOOT		0x2
+	#define SPEAR320_SNORBOOT		0x3
+	#define SPEAR320_PNOR8BOOT		0x4
+	#define SPEAR320_PNOR16BOOT		0x5
+	#define SPEAR320_NAND8BOOT		0x6
+	#define SPEAR320_NAND16BOOT		0x7
+	#define SPEAR320_UARTBOOT		0xA
+	#define SPEAR320_PNOR8NOACKBOOT		0xC
+	#define SPEAR320_PNOR16NOACKBOOT	0xD
+
 #define SPEAR320_RASSELECT_REG		(CONFIG_SPEAR_RASBASE + 0x000C)
 
 #define SPEAR320_CONTROL_REG		(CONFIG_SPEAR_RASBASE + 0x0010)
@@ -62,6 +78,11 @@
 	#define MAC_MODE_MASK			0x3
 	#define MAC1_MODE_SHIFT			16
 	#define MAC2_MODE_SHIFT			18
+
+#define SPEAR320_GPIO_SELECT0		(CONFIG_SPEAR_RASBASE + 0x0024)
+#define SPEAR320_GPIO_OUT0		(CONFIG_SPEAR_RASBASE + 0x0034)
+#define SPEAR320_GPIO_EN0		(CONFIG_SPEAR_RASBASE + 0x0044)
+#define SPEAR320_GPIO_IN0		(CONFIG_SPEAR_RASBASE + 0x0054)
 
 #define SPEAR320_IP_SEL_PAD_0_9_REG	(CONFIG_SPEAR_RASBASE + 0x00A4)
 	#define PMX_PL_0_1_MASK			(0x3F << 0)
@@ -446,11 +467,24 @@
 	#define PMX_SDHCI_CD_PORT_12_VAL	0
 	#define PMX_SDHCI_CD_PORT_51_VAL	(0x1 << 29)
 
+#define SNOR_BOOT_SUPPORTED			1
+#define NAND_BOOT_SUPPORTED			1
+#define PNOR_BOOT_SUPPORTED			1
+#define USBD_BOOT_SUPPORTED			1
+#define TFTP_BOOT_SUPPORTED			1
+#define UART_BOOT_SUPPORTED			1
+#define MMC_BOOT_SUPPORTED			0
+#define SPI_BOOT_SUPPORTED			0
+#define I2C_BOOT_SUPPORTED			0
+
 #define SPEAR3XX_FUNC_ENB_REG		SPEAR320_RASSELECT_REG
 
 /* externs related to pinmux */
 extern void spear320_pins_default(void);
 extern void spear320_select_mode(u32 mode);
 extern void spear320_enable_pins(u32 ip, u32 mode);
+extern void spear320_configure_pin(u32 plgpio, u32 mode);
+extern void spear320_plgpio_set(u32 plgpio, u32 val);
+extern int  spear320_plgpio_get(u32 plgpio);
 
 #endif

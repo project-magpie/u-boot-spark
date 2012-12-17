@@ -34,11 +34,25 @@
 /* Timer, HZ specific defines */
 #define CONFIG_SYS_HZ				1000
 
+
+#if defined(CONFIG_NAND_FSMC) || \
+	defined(CONFIG_ST_SMI) || \
+	defined(CONFIG_FLASH_CFI_DRIVER)
+
+	#define CONFIG_MTD_DEVICE
+	#define CONFIG_MTD_PARTITIONS
+
+	#define CONFIG_CMD_JFFS2
+	#define CONFIG_CMD_MTDPARTS
+	#ifdef CONFIG_NAND_FSMC
+		#define CONFIG_JFFS2_NAND
+	#endif
+#endif
+
 /* Generic configuration for Designware Ethernet */
 #if defined(CONFIG_DESIGNWARE_ETH) || defined(CONFIG_MACB)
 	#define CONFIG_MII
 	#define CONFIG_NET_MULTI
-	#define CONFIG_PHY_GIGE
 
 	#define CONFIG_CMD_NET
 	#define CONFIG_CMD_MII
@@ -146,8 +160,6 @@
 /* Generic configuration for FSMC NAND driver */
 #if defined(CONFIG_NAND_FSMC)
 	#define CONFIG_SYS_NAND_SELF_INIT
-	#define CONFIG_MTD_DEVICE
-	#define CONFIG_MTD_PARTITIONS
 	#define CONFIG_SYS_MAX_NAND_DEVICE	1
 	#define CONFIG_SYS_NAND_ONFI_DETECTION
 	#define CONFIG_SYS_NAND_QUIET_TEST
@@ -188,15 +200,32 @@
 	CONFIG_BOOTCOMMAND
 
 /* Miscellaneous configurable options */
+#define CONFIG_SPL_IMAGENAME			Xloader
 #define CONFIG_ARCH_CPU_INIT
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 #define CONFIG_SYS_EXCEPTION_VECTORS_HIGH
-#define CONFIG_SYS_DCACHE_OFF
+
+#ifndef CONFIG_SYS_PNOR_BOOT_BASE
+	#define CONFIG_SYS_PNOR_BOOT_BASE	0x0
+#endif
+
+/*
+ * There are 2 builds supported by u-boot source. DCACHE support is kept enabled
+ * for SPL, so that the generic routines can be used for invalidating the
+ * caches. This is a mandatory requirement from kernel at bootup
+ */
+#define CONFIG_POST				CONFIG_SYS_POST_MEMORY
+#define CONFIG_SYS_POST_WORD_ADDR		0x0
+
+#if !defined(CONFIG_SPL_BUILD)
+	#define CONFIG_SYS_DCACHE_OFF
+#endif
 
 #define CONFIG_OF_LIBFDT
 #define CONFIG_CMDLINE_TAG
+#define CONFIG_SETUP_MEMORY_TAGS
 
 #define CONFIG_ZERO_BOOTDELAY_CHECK
 #define CONFIG_AUTOBOOT_KEYED

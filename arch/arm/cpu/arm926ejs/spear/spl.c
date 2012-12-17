@@ -43,27 +43,27 @@ static void ddr_clock_init(void)
 	u32 clkenb, ddrpll;
 
 	clkenb = readl(&misc_p->periph1_clken);
-	clkenb &= ~PERIPH_MPMCMSK;
-	clkenb |= PERIPH_MPMC_WE;
+	clkenb &= ~MISC_MPMCMSK;
+	clkenb |= MISC_MPMCWE;
 
 	/* Intentionally done twice */
 	writel(clkenb, &misc_p->periph1_clken);
 	writel(clkenb, &misc_p->periph1_clken);
 
 	ddrpll = readl(&misc_p->pll_ctr_reg);
-	ddrpll &= ~MEM_CLK_SEL_MSK;
+	ddrpll &= ~MISC_DDRCLK_MSK;
 #if defined(CONFIG_SPEAR_DDR_HCLK)
-	ddrpll |= MEM_CLK_HCLK;
+	ddrpll |= MISC_DDRCLK_HCLK;
 #elif defined(CONFIG_SPEAR_DDR_2HCLK)
-	ddrpll |= MEM_CLK_2HCLK;
+	ddrpll |= MISC_DDRCLK_2HCLK;
 #elif defined(CONFIG_SPEAR_DDR_PLL2)
-	ddrpll |= MEM_CLK_PLL2;
+	ddrpll |= MISC_DDRCLK_PLL2;
 #else
 #error "please define one of CONFIG_SPEAR_DDR_(HCLK|2HCLK|PLL2)"
 #endif
 	writel(ddrpll, &misc_p->pll_ctr_reg);
 
-	writel(readl(&misc_p->periph1_clken) | PERIPH_MPMC_EN,
+	writel(readl(&misc_p->periph1_clken) | MISC_MPMCENB,
 			&misc_p->periph1_clken);
 }
 
@@ -88,16 +88,13 @@ static void mpmc_init_values(void)
 		;
 }
 
-static void mpmc_init(void)
+static void ddr_init(void)
 {
 	/* Clock related settings for DDR */
 	ddr_clock_init();
 
-	/*
-	 * DDR pad register bits are different for different SoCs
-	 * Compensation values are also handled separately
-	 */
-	plat_ddr_init();
+	/* Borad related low level initializations */
+	board_ddr_init();
 
 	/* Initialize mpmc register values */
 	mpmc_init_values();
@@ -108,13 +105,13 @@ static void pll_init(void)
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 
 	/* Initialize PLLs */
-	writel(FREQ_332, &misc_p->pll1_frq);
+	writel(MISC_FREQ_332, &misc_p->pll1_frq);
 	writel(0x1C0A, &misc_p->pll1_cntl);
 	writel(0x1C0E, &misc_p->pll1_cntl);
 	writel(0x1C06, &misc_p->pll1_cntl);
 	writel(0x1C0E, &misc_p->pll1_cntl);
 
-	writel(FREQ_332, &misc_p->pll2_frq);
+	writel(MISC_FREQ_332, &misc_p->pll2_frq);
 	writel(0x1C0A, &misc_p->pll2_cntl);
 	writel(0x1C0E, &misc_p->pll2_cntl);
 	writel(0x1C06, &misc_p->pll2_cntl);
@@ -127,41 +124,6 @@ static void pll_init(void)
 		;
 }
 
-static void mac_init(void)
-{
-	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-
-	writel(readl(&misc_p->periph1_clken) & (~PERIPH_GMAC),
-			&misc_p->periph1_clken);
-
-	writel(SYNTH23, &misc_p->gmac_synth_clk);
-
-	switch (get_socrev()) {
-	case SOC_SPEAR600_AA:
-	case SOC_SPEAR600_AB:
-	case SOC_SPEAR600_BA:
-	case SOC_SPEAR600_BB:
-	case SOC_SPEAR600_BC:
-	case SOC_SPEAR600_BD:
-		writel(0x0, &misc_p->gmac_ctr_reg);
-		break;
-
-	case SOC_SPEAR300:
-	case SOC_SPEAR310:
-	case SOC_SPEAR320:
-		writel(0x4, &misc_p->gmac_ctr_reg);
-		break;
-	}
-
-	writel(readl(&misc_p->periph1_clken) | PERIPH_GMAC,
-			&misc_p->periph1_clken);
-
-	writel(readl(&misc_p->periph1_rst) | PERIPH_GMAC,
-			&misc_p->periph1_rst);
-	writel(readl(&misc_p->periph1_rst) & (~PERIPH_GMAC),
-			&misc_p->periph1_rst);
-}
-
 static void sys_init(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
@@ -169,86 +131,24 @@ static void sys_init(void)
 		(struct syscntl_regs *)CONFIG_SPEAR_SYSCNTLBASE;
 
 	/* Set system state to SLOW */
-	writel(SLOW, &syscntl_p->scctrl);
-	writel(PLL_TIM << 3, &syscntl_p->scpllctrl);
+	writel(SYSCNTL_REQ_SLOW, &syscntl_p->scctrl);
+	writel(SYSCNTL_PLL_TIM << 3, &syscntl_p->scpllctrl);
 
 	/* Initialize PLLs */
 	pll_init();
 
-	/*
-	 * Ethernet configuration
-	 * To be done only if the tftp boot is not selected already
-	 * Boot code ensures the correct configuration in tftp booting
-	 */
-	if (!tftp_boot_selected())
-		mac_init();
-
-	writel(RTC_DISABLE | PLLTIMEEN, &misc_p->periph_clk_cfg);
+	writel(MISC_RTC_DISABLE | MISC_PLLTIMEEN, &misc_p->periph_clk_cfg);
 	writel(0x555, &misc_p->amba_clk_cfg);
 
-	writel(NORMAL, &syscntl_p->scctrl);
+	writel(SYSCNTL_REQ_NORMAL, &syscntl_p->scctrl);
 
 	/* Wait for system to switch to normal mode */
-	while (((readl(&syscntl_p->scctrl) >> MODE_SHIFT) & MODE_MASK)
-		!= NORMAL)
+	while ((readl(&syscntl_p->scctrl) & SYSCNTL_STATE_MASK) !=
+			SYSCNTL_STATE_NORMAL)
 		;
 }
 
-/*
- * get_socrev
- *
- * Get SoC Revision.
- * @return SOC_SPEARXXX
- */
-int get_socrev(void)
-{
-#if defined(CONFIG_SOC_SPEAR600)
-	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	u32 soc_id = readl(&misc_p->soc_core_id);
-	u32 pri_socid = (soc_id >> SOC_PRI_SHFT) & 0xFF;
-	u32 sec_socid = (soc_id >> SOC_SEC_SHFT) & 0xFF;
-
-	if ((pri_socid == 'B') && (sec_socid == 'B'))
-		return SOC_SPEAR600_BB;
-	else if ((pri_socid == 'B') && (sec_socid == 'C'))
-		return SOC_SPEAR600_BC;
-	else if ((pri_socid == 'B') && (sec_socid == 'D'))
-		return SOC_SPEAR600_BD;
-	else if (soc_id == 0)
-		return SOC_SPEAR600_BA;
-	else
-		return SOC_SPEAR_NA;
-#elif defined(CONFIG_SOC_SPEAR300)
-	return SOC_SPEAR300;
-#elif defined(CONFIG_SOC_SPEAR310)
-	return SOC_SPEAR310;
-#elif defined(CONFIG_SOC_SPEAR320)
-	return SOC_SPEAR320;
-#endif
-}
-
-void lowlevel_init(void)
-{
-	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-	/* Initialize PLLs */
-	sys_init();
-
-#if defined(CONFIG_OS_BOOT)
-	writel(readl(&misc_p->periph1_clken) | PERIPH_UART1,
-			&misc_p->periph1_clken);
-#endif
-
-	/* Enable IPs (release reset) */
-	writel(PERIPH_RST_ALL, &misc_p->periph1_rst);
-
-	/* Initialize MPMC */
-	mpmc_init();
-
-	/* SoC specific initialization */
-	soc_init();
-}
-
-void spear_late_init(void)
+static void spear_icm_init(void)
 {
 	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
 
@@ -261,4 +161,21 @@ void spear_late_init(void)
 	writel(0x80000007, &misc_p->arb_icm_ml7);
 	writel(0x80000007, &misc_p->arb_icm_ml8);
 	writel(0x80000007, &misc_p->arb_icm_ml9);
+}
+
+void lowlevel_init(void)
+{
+	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+
+	/* Initialize PLLs */
+	sys_init();
+
+	/* Enable IPs (release reset) */
+	writel(MISC_PERIPH_RST_ALL, &misc_p->periph1_rst);
+
+	/* Initialize MPMC */
+	ddr_init();
+
+	/* Initialize Interconnect Matrix */
+	spear_icm_init();
 }

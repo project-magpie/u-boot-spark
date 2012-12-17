@@ -24,6 +24,7 @@
 #include <common.h>
 #include <linux/mtd/st_smi.h>
 #include <asm/io.h>
+#include <asm/arch/generic.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/misc.h>
 
@@ -70,6 +71,11 @@ int arch_cpu_init(void)
 
 	writel(periph1_clken, &misc_p->periph1_clken);
 
+#if defined(CONFIG_SOC_SPEAR310) || defined(CONFIG_SOC_SPEAR320)
+	writel(readl(&misc_p->amem_cfg_ctrl) | MISC_AMEM_CLKENB,
+			&misc_p->amem_cfg_ctrl);
+#endif
+
 	/* Early driver initializations */
 #if defined(CONFIG_ST_SMI)
 	smi_init();
@@ -96,5 +102,35 @@ int print_cpuinfo(void)
 #error CPU not supported in spear platform
 #endif
 	return 0;
+}
+#endif
+
+#ifdef CONFIG_POST
+int arch_memory_test_prepare(u32 *vstart, u32 *size, phys_addr_t *phys_offset)
+{
+	/*
+	 * Run the POST test on 64 MB memory starting from CONFIG_SYS_LOAD_ADDR
+	 * The assumption here is that the DDR present on board is >= 128MB.
+	 *
+	 * The test runs before relocation (after the code copy has taken
+	 * place), so it can not touch either before or after relocation areas
+	 * of U-boot
+	 *
+	 * DDR usage
+	 * <--------->|<---------------- / --------------->|<---------->
+	 *   U-boot		Area to be used for		U-boot
+	 *   before		POST test			after
+	 *   relocation						relocation
+	 */
+
+	*vstart = CONFIG_SYS_LOAD_ADDR;
+	*size = 64 << 20;
+
+	return 0;
+}
+
+void arch_memory_failure_handle(void)
+{
+	hang();
 }
 #endif

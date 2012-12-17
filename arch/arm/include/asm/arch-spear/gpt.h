@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _SPR_GPT_H
-#define _SPR_GPT_H
+#ifndef ASM_ARCH_SPEAR_GPT_H
+#define ASM_ARCH_SPEAR_GPT_H
 
 struct gpt_regs {
 	u8 reserved[0x80];

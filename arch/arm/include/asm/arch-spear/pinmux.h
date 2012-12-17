@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef _ASM_ARCH_PINMUX_H
-#define _ASM_ARCH_PINMUX_H
+#ifndef _ASM_ARCH_SPEAR_PINMUX_H
+#define _ASM_ARCH_SPEAR_PINMUX_H
 
 #include <common.h>
 #include <asm/io.h>
@@ -34,6 +34,21 @@ static inline void pinmux_maskval(ulong reg, u32 mask, u32 val)
 	temp &= ~mask;
 	temp |= val & mask;
 	writel(temp, (u32 *)reg);
+}
+
+static inline void pinmux_set_bit(int nr, unsigned long addr)
+{
+	__set_bit(nr, (volatile unsigned long *)addr);
+}
+
+static inline void pinmux_clear_bit(int nr, unsigned long addr)
+{
+	__clear_bit(nr, (volatile unsigned long *)addr);
+}
+
+static inline int pinmux_test_bit(int nr, unsigned long addr)
+{
+	return __test_bit(nr, (volatile unsigned long *)addr);
 }
 
 enum pinmux_ip {
@@ -52,6 +67,7 @@ enum pinmux_ip {
 	PMX_ETH0,
 	PMX_ETH1,
 	PMX_ETH2,
+	PMX_ETH1_ETH2,
 	PMX_FSMCNAND,
 	PMX_FSMCPNOR,
 	PMX_SDMMC,
@@ -108,5 +124,10 @@ enum pinmux_ip {
 #define PMX_SDMMC_CD51		3
 #define PMX_SDMMC_4BIT		4
 #define PMX_SDMMC_8BIT		5
+
+/* PLGPIO modes */
+#define PMX_GPIO		1
+#define PMX_PULLUP		2
+#define PMX_PULLDOWN		3
 
 #endif

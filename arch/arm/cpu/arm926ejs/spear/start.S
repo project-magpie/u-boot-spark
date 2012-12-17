@@ -31,30 +31,12 @@
  */
 
 
+#include <asm-offsets.h>
 #include <config.h>
+#include <asm/system.h>
+#include <linux/linkage.h>
 
-.globl _start
-_start:
-	b	reset
-	ldr	pc, _undefined_instruction
-	ldr	pc, _software_interrupt
-	ldr	pc, _prefetch_abort
-	ldr	pc, _data_abort
-	ldr	pc, _not_used
-	ldr	pc, _irq
-	ldr	pc, _fiq
-
-_undefined_instruction:
-_software_interrupt:
-_prefetch_abort:
-_data_abort:
-_not_used:
-_irq:
-_fiq:
-	.word infinite_loop
-
-infinite_loop:
-	b	infinite_loop
+.syntax	unified
 
 /*
  *************************************************************************
@@ -69,17 +51,28 @@ infinite_loop:
  *************************************************************************
  */
 
-/*
- * the actual reset code
- */
-
-reset:
+.globl _start
+_start:
 /*
  * Xloader has to return back to BootROM in a few cases.
  * eg. Ethernet boot, UART boot, USB boot
  * Saving registers for returning back
  */
-	stmdb	sp!, {r0-r12,r14}
+	push	{r0-r12, r14}
+
+	/* Relocate data if needed and Clear BSS */
+	ldr	r0, =__bss_start
+	ldr	r1, =__bss_end
+	mov	r2, #0x00000000		/* clear			    */
+
+clbss_l:
+	cmp	r0, r1			/* clear loop... */
+	bhs	clbss_e			/* if reached end of bss, exit */
+	str	r2, [r0]
+	add	r0, r0, #4
+	b	clbss_l
+clbss_e:
+
 	bl	cpu_init_crit
 /*
  * Clearing bss area is not done in Xloader.
@@ -87,7 +80,7 @@ reset:
  * bss is assumed to be uninitialized.
  */
 	bl	spl_boot
-	ldmia	sp!, {r0-r12,pc}
+	pop	{r0-r12, pc}
 
 /*
  *************************************************************************
@@ -99,7 +92,7 @@ reset:
  *
  *************************************************************************
  */
-cpu_init_crit:
+ENTRY(cpu_init_crit)
 	/*
 	 * flush v4 I/D caches
 	 */
@@ -117,6 +110,7 @@ cpu_init_crit:
 	/*
 	 * Go setup Memory and board specific bits prior to relocation.
 	 */
-	stmdb	sp!, {lr}
+	push	{lr}
 	bl	lowlevel_init	/* go setup pll,mux,memory */
-	ldmia	sp!, {pc}
+	pop	{pc}
+ENDPROC(cpu_init_crit)

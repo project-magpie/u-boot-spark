@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __SPEAR_EMI_H__
-#define __SPEAR_EMI_H__
+#ifndef ASM_ARCH_SPEAR_EMI_H
+#define ASM_ARCH_SPEAR_EMI_H
 
 struct emi_bank_regs {
 	u32 tap;

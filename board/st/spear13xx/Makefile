@@ -28,10 +28,15 @@ LIB	= $(obj)lib$(BOARD).o
 SOBJS-y	:=
 COBJS-y	:=
 
+ifdef CONFIG_SPL_BUILD
+COBJS-$(CONFIG_MACH_SPEAR1310EVB) += spl-spear1310evb.o
+COBJS-$(CONFIG_MACH_SPEAR1340EVB) += spl-spear1340evb.o
+else
 COBJS-y	+= spear13xx_common.o
 COBJS-$(CONFIG_MACH_SPEAR1310EVB) += spear1310evb.o
 COBJS-$(CONFIG_MACH_SPEAR1340EVB) += spear1340evb.o
 COBJS-$(CONFIG_MACH_SPEAR1340LCAD) += spear1340lcad.o
+endif
 
 COBJS	:= $(sort $(COBJS-y))
 SOBJS	:= $(sort $(SOBJS-y))

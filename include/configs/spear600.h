@@ -56,11 +56,13 @@
 
 /* SPL configurations */
 #if defined(CONFIG_SPL)
-#define CONFIG_SPL_NO_CPU_SUPPORT_CODE
-#define CONFIG_SPL_LIBCOMMON_SUPPORT
-#define CONFIG_SPL_LIBGENERIC_SUPPORT
-#define CONFIG_SPL_START_S_PATH	"arch/arm/cpu/arm926ejs/spear"
-#define CONFIG_SPL_LDSCRIPT	"arch/arm/cpu/arm926ejs/spear/u-boot-spl.lds"
+	#define CONFIG_SPL_NO_CPU_SUPPORT_CODE
+	#define CONFIG_SPL_LIBCOMMON_SUPPORT
+	#define CONFIG_SPL_LIBGENERIC_SUPPORT
+	#define CONFIG_SPL_START_S_PATH		\
+		"arch/arm/cpu/arm926ejs/spear"
+	#define CONFIG_SPL_LDSCRIPT		\
+		"arch/arm/cpu/arm926ejs/spear/u-boot-spl.lds"
 #endif
 
 #include <configs/spear.h>

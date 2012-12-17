@@ -156,4 +156,7 @@ void spear310_enable_pins(u32 ip, u32 mode)
 		enable_uart4_pins();
 	else if (PMX_UART5 == ip)
 		enable_uart5_pins();
+	else if ((PMX_I2C0 == ip) || (PMX_SSP0 == ip) || \
+			(PMX_ETH0 == ip) || (PMX_UART0 == ip))
+		spear3xx_enable_pins(ip, mode);
 }

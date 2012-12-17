@@ -87,9 +87,93 @@ int board_eth_init(bd_t *bis)
 }
 #endif
 
-#if defined(CONFIG_MISC_INIT_R)
-int misc_init_r(void)
+#if defined(CONFIG_SPL_BUILD)
+static void sel_1v8(void)
 {
-	return misc_usbtty_init();
+	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+	u32 ddr1v8, ddr2v5;
+
+	ddr2v5 = readl(&misc_p->ddr_2v5_compensation);
+	ddr2v5 &= 0x8080ffc0;
+	ddr2v5 |= 0x78000003;
+	writel(ddr2v5, &misc_p->ddr_2v5_compensation);
+
+	ddr1v8 = readl(&misc_p->ddr_1v8_compensation);
+	ddr1v8 &= 0x8080ffc0;
+	ddr1v8 |= 0x78000010;
+	writel(ddr1v8, &misc_p->ddr_1v8_compensation);
+
+	while (!(readl(&misc_p->ddr_1v8_compensation) & MISC_DDR_COMP_ACCURATE))
+		;
+}
+
+static void sel_2v5(void)
+{
+	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+	u32 ddr1v8, ddr2v5;
+
+	ddr1v8 = readl(&misc_p->ddr_1v8_compensation);
+	ddr1v8 &= 0x8080ffc0;
+	ddr1v8 |= 0x78000003;
+	writel(ddr1v8, &misc_p->ddr_1v8_compensation);
+
+	ddr2v5 = readl(&misc_p->ddr_2v5_compensation);
+	ddr2v5 &= 0x8080ffc0;
+	ddr2v5 |= 0x78000010;
+	writel(ddr2v5, &misc_p->ddr_2v5_compensation);
+
+	while (!(readl(&misc_p->ddr_2v5_compensation) & MISC_DDR_COMP_ACCURATE))
+		;
+}
+
+void board_ddr_init(void)
+{
+	struct misc_regs *misc_p = (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+	u32 ddrpad;
+	u32 core3v3, ddr1v8, ddr2v5;
+
+	/* DDR pad register configurations */
+	ddrpad = readl(&misc_p->ddr_pad);
+	ddrpad &= ~MISC_DDR_PAD_CNF_MSK;
+
+#if defined(CONFIG_SPEAR_DDR_HCLK)
+	ddrpad |= 0xEAAB;
+#elif defined(CONFIG_SPEAR_DDR_2HCLK)
+	ddrpad |= 0xEAAD;
+#elif defined(CONFIG_SPEAR_DDR_PLL2)
+	ddrpad |= 0xEAAD;
+#endif
+	writel(ddrpad, &misc_p->ddr_pad);
+
+	/* Compensation register configurations */
+	core3v3 = readl(&misc_p->core_3v3_compensation);
+	core3v3 &= 0x8080ffe0;
+	core3v3 |= 0x78000002;
+	writel(core3v3, &misc_p->core_3v3_compensation);
+
+	ddr1v8 = readl(&misc_p->ddr_1v8_compensation);
+	ddr1v8 &= 0x8080ffc0;
+	ddr1v8 |= 0x78000004;
+	writel(ddr1v8, &misc_p->ddr_1v8_compensation);
+
+	ddr2v5 = readl(&misc_p->ddr_2v5_compensation);
+	ddr2v5 &= 0x8080ffc0;
+	ddr2v5 |= 0x78000004;
+	writel(ddr2v5, &misc_p->ddr_2v5_compensation);
+
+	if ((readl(&misc_p->ddr_pad) & MISC_DDR_PAD_SW_CONF) ==
+			MISC_DDR_PAD_SW_CONF) {
+		/* Software memory configuration */
+		if (readl(&misc_p->ddr_pad) & MISC_DDR_PAD_SSTL_SEL)
+			sel_1v8();
+		else
+			sel_2v5();
+	} else {
+		/* Hardware memory configuration */
+		if (readl(&misc_p->ddr_pad) & MISC_DDR_PAD_DRAM_TYPE)
+			sel_1v8();
+		else
+			sel_2v5();
+	}
 }
 #endif

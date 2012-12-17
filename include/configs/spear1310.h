@@ -26,5 +26,10 @@
 
 #define CONFIG_SOC_SPEAR1310
 
+#if defined(CONFIG_DDR_ECC_ENABLE)
+	#define CONFIG_C3
+	#define CONFIG_SPL_MISC_SUPPORT
+#endif
+
 #include <configs/spear13xx.h>
 #endif /* __CONFIG_SPEAR1310_H */

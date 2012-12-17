@@ -24,7 +24,7 @@
 VERSION = 2012
 PATCHLEVEL = 07
 SUBLEVEL =
-EXTRAVERSION =-lsp-3.3.0
+EXTRAVERSION =-lsp-3.3.1-rc4
 ifneq "$(SUBLEVEL)" ""
 U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 else
@@ -458,7 +458,9 @@ $(obj)u-boot.sb:       $(obj)u-boot.bin $(obj)spl/u-boot-spl.bin
 
 $(obj)spl/u-boot-spl.img:	$(obj)spl/u-boot-spl.bin
 		$(obj)tools/mkimage -A $(ARCH) -T firmware -C none \
-		-a $(CONFIG_SPL_TEXT_BASE) -e $(CONFIG_SPL_TEXT_BASE) -n XLOADER \
+		-a $(CONFIG_SPL_TEXT_BASE) -e $(CONFIG_SPL_TEXT_BASE) \
+		-n $(shell sed -n -e 's/.*U_BOOT_SPL_VERSION//p' $(VERSION_FILE) | \
+			sed -e 's/"[	 ]*$$/ for $(BOARD) board"/') \
 		-d $(obj)spl/u-boot-spl.bin $(obj)spl/u-boot-spl.img
 
 # On x600 (SPEAr600) U-Boot is appended to U-Boot SPL.
@@ -651,6 +653,9 @@ $(VERSION_FILE):
 		   printf '#define PLAIN_VERSION "%s%s"\n' \
 			"$(U_BOOT_VERSION)" "$${localvers}" ; \
 		   printf '#define U_BOOT_VERSION "U-Boot %s%s"\n' \
+			"$(U_BOOT_VERSION)" "$${localvers}" ; \
+		   printf '#define U_BOOT_SPL_VERSION "%s %s%s"\n' \
+			$(if $(CONFIG_SPL_IMAGENAME),$(CONFIG_SPL_IMAGENAME),"U-Boot SPL") \
 			"$(U_BOOT_VERSION)" "$${localvers}" ; \
 		) > $@.tmp
 		@( printf '#define CC_VERSION_STRING "%s"\n' \

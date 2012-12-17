@@ -139,7 +139,21 @@
 	/* Write 0 to enable I2S, SSP0_CS2, CEC0, 1, SPDIF out, CLCD */
 	#define MIPHY_DBG_MASK				(1 << 13)
 
+/* Pull DOWN and Pull UP */
+#define SPEAR1340_PAD_PU_CFG_1		(CONFIG_SYS_MISC_BASE + 0x600)
+#define SPEAR1340_PAD_PD_CFG_1		(CONFIG_SYS_MISC_BASE + 0x620)
+
+/* Macro's to configure plgpios as Pull UP, Pull Down */
+#define CONFIG_SYS_PLGPIO_BASE		0xE2800000
+	#define SPEAR1340_PLGPIO_EN0		(CONFIG_SYS_PLGPIO_BASE + 0x00)
+	#define SPEAR1340_PLGPIO_IN0		(CONFIG_SYS_PLGPIO_BASE + 0x20)
+	#define SPEAR1340_PLGPIO_OUT0		(CONFIG_SYS_PLGPIO_BASE + 0x40)
+	#define SPEAR1340_MAX_PLGPIOS		249
+
 extern void spear1340_pins_default(void);
 extern void spear1340_enable_pins(u32 ip, u32 mode);
+extern void spear1340_configure_pin(u32 plgpio, u32 mode);
+extern void spear1340_plgpio_set(u32 plgpio, u32 val);
+extern int  spear1340_plgpio_get(u32 plgpio);
 
 #endif

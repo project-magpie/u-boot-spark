@@ -46,5 +46,20 @@
 #define CONFIG_SYS_INIT_SP_ADDR			(0xD2800000 + 0x2000 - \
 						GENERATED_GBL_DATA_SIZE)
 
+/* SPL configurations */
+#if defined(CONFIG_SPL)
+	#define CONFIG_SPL_TEXT_BASE			0xD2800B00
+	#define CONFIG_SYS_SNOR_BOOT_BASE		0xF8010000
+	#define CONFIG_SYS_NAND_BOOT_BLK		4
+
+	#define CONFIG_SPL_NO_CPU_SUPPORT_CODE
+	#define CONFIG_SPL_LIBCOMMON_SUPPORT
+	#define CONFIG_SPL_LIBGENERIC_SUPPORT
+	#define CONFIG_SPL_MTD_SUPPORT
+	#define CONFIG_SPL_START_S_PATH	"arch/arm/cpu/arm926ejs/spear"
+	#define CONFIG_SPL_LDSCRIPT	\
+		"arch/arm/cpu/arm926ejs/spear/u-boot-spl.lds"
+#endif
+
 #include <configs/spear.h>
 #endif /* __CONFIG_SPEAR3XX_H */

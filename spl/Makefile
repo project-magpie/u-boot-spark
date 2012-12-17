@@ -40,12 +40,14 @@ ifdef SOC
 LIBS-y += $(CPUDIR)/$(SOC)/lib$(SOC).o
 endif
 LIBS-y += board/$(BOARDDIR)/lib$(BOARD).o
+
 LIBS-$(HAVE_VENDOR_COMMON_LIB) += board/$(VENDOR)/common/lib$(VENDOR).o
 
 LIBS-$(CONFIG_SPL_LIBCOMMON_SUPPORT) += common/libcommon.o
 LIBS-$(CONFIG_SPL_LIBDISK_SUPPORT) += disk/libdisk.o
 LIBS-$(CONFIG_SPL_I2C_SUPPORT) += drivers/i2c/libi2c.o
 LIBS-$(CONFIG_SPL_GPIO_SUPPORT) += drivers/gpio/libgpio.o
+LIBS-$(CONFIG_SPL_MISC_SUPPORT) += drivers/misc/c3.o
 LIBS-$(CONFIG_SPL_MMC_SUPPORT) += drivers/mmc/libmmc.o
 LIBS-$(CONFIG_SPL_SERIAL_SUPPORT) += drivers/serial/libserial.o
 LIBS-$(CONFIG_SPL_SPI_FLASH_SUPPORT) += drivers/mtd/spi/libspi_flash.o
@@ -53,10 +55,18 @@ LIBS-$(CONFIG_SPL_SPI_SUPPORT) += drivers/spi/libspi.o
 LIBS-$(CONFIG_SPL_FAT_SUPPORT) += fs/fat/libfat.o
 LIBS-$(CONFIG_SPL_LIBGENERIC_SUPPORT) += lib/libgeneric.o
 LIBS-$(CONFIG_SPL_POWER_SUPPORT) += drivers/power/libpower.o
+LIBS-$(CONFIG_SPL_MTD_SUPPORT) += drivers/mtd/libmtd.o
 LIBS-$(CONFIG_SPL_NAND_SUPPORT) += drivers/mtd/nand/libnand.o
 LIBS-$(CONFIG_SPL_ONENAND_SUPPORT) += drivers/mtd/onenand/libonenand.o
 LIBS-$(CONFIG_SPL_DMA_SUPPORT) += drivers/dma/libdma.o
 LIBS-$(CONFIG_SPL_POST_MEM_SUPPORT) += post/drivers/memory.o
+
+ifeq ($(BOARD),spear)
+LIBS-y += board/$(BOARDDIR)/ddr/lib$(BOARD)ddr.o
+endif
+ifeq ($(BOARD),spear13xx)
+LIBS-y += board/$(BOARDDIR)/ddr/lib$(BOARD)ddr.o
+endif
 
 ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
 LIBS-y += $(CPUDIR)/omap-common/libomap-common.o

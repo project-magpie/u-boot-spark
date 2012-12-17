@@ -31,14 +31,8 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
 #include <asm/arch/misc.h>
+#include <asm/arch/mmc.h>
 #include <asm/arch/pinmux.h>
-
-#define PLGPIO_SEL_36	0xb3000028
-#define PLGPIO_IO_36	0xb3000038
-#define PLGPIO_SEL_76	0xb300002C
-#define PLGPIO_IO_76	0xb300003C
-#define PLGPIO_36	(0x1 << 4)
-#define PLGPIO_76	(0x1 << 12)
 
 #if defined(CONFIG_CMD_NAND)
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
@@ -46,19 +40,20 @@ static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
 
 static void spear_phy_reset(void)
 {
-	/* PLGPIO36 is used to enable oscillator */
-	writel(readl(PLGPIO_IO_36) | PLGPIO_36, PLGPIO_IO_36);
-	writel(readl(PLGPIO_SEL_36) | PLGPIO_36, PLGPIO_SEL_36);
+	/* GPIO36 is used to enable oscillator */
+	spear320_configure_pin(36, PMX_GPIO);
+	spear320_plgpio_set(36, 1);
 
-	/* PLGPIO76 is used to reset phy */
-	writel(readl(PLGPIO_IO_76) & ~PLGPIO_76, PLGPIO_IO_76);
-	writel(readl(PLGPIO_SEL_76) | PLGPIO_76, PLGPIO_SEL_76);
-	writel(readl(PLGPIO_IO_76) | PLGPIO_76, PLGPIO_IO_76);
+	/* GPIO76 is used to reset phy */
+	spear320_configure_pin(76, PMX_GPIO);
+	spear320_plgpio_set(76, 0);
+	spear320_plgpio_set(76, 1);
 }
 
 int board_init(void)
 {
 	spear_phy_reset();
+
 	return 0;
 }
 
@@ -68,13 +63,17 @@ int board_early_init_f(void)
 	spear320_select_mode(SPEAR320_EXTENDED_MODE);
 
 	spear320_pins_default();
-	spear3xx_enable_pins(PMX_I2C0, 0);
-	spear3xx_enable_pins(PMX_ETH0, 0);
-	spear3xx_enable_pins(PMX_SSP0, 0);
-	spear3xx_enable_pins(PMX_UART0, 0);
 
-	spear320_enable_pins(PMX_ETH2, PMX_ETH_RMII);
+	spear320_enable_pins(PMX_I2C0, 0);
+	spear320_enable_pins(PMX_ETH0, 0);
+	spear320_enable_pins(PMX_SSP0, 0);
+	spear320_enable_pins(PMX_UART0, PMX_UART_SIMPLE);
+	spear320_enable_pins(PMX_ETH2, PMX_ETH_MII);
 	spear320_enable_pins(PMX_SDMMC, PMX_SDMMC_CD51);
+
+	/* GPIO61 is used for card power on */
+	spear320_configure_pin(61, PMX_GPIO);
+	spear320_plgpio_set(61, 0);
 
 	return 0;
 }
@@ -117,10 +116,29 @@ int board_eth_init(bd_t *bis)
 		ret++;
 #endif
 #if defined(CONFIG_MACB)
-	if (macb_eth_initialize(0, (void *)CONFIG_SYS_MACB0_BASE,
-				CONFIG_MACB0_PHY) >= 0)
+	if (macb_eth_initialize(1, (void *)CONFIG_SYS_MACB1_BASE,
+				CONFIG_MACB1_PHY) >= 0)
 		ret++;
 #endif
 	return ret;
+}
+#endif
+
+#if defined(CONFIG_CMD_MMC)
+int board_mmc_init(bd_t *bis)
+{
+	int ret = 0;
+#if defined(CONFIG_SPEAR_SDHCI)
+	if (spear_sdhci_init(CONFIG_SYS_MMC_BASE, 24000000, 6000000, 0) >= 0)
+		ret++;
+#endif
+	return ret;
+}
+#endif
+
+#if defined(CONFIG_SPL_BUILD)
+void board_ddr_init(void)
+{
+	spear3xx_ddr_comp_init();
 }
 #endif

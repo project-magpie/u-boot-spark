@@ -28,10 +28,6 @@
 	#define CONFIG_SPEAR_USBTTY
 #endif
 
-#if defined(CONFIG_pnor)
-	#define CONFIG_FLASH_PNOR
-#endif
-
 #if defined(CONFIG_nand)
 	#define CONFIG_ENV_IS_IN_NAND
 #else
@@ -40,6 +36,11 @@
 
 #define CONFIG_MACH_SPEAR320HMI
 #define CONFIG_MACH_TYPE			MACH_TYPE_SPEAR320
+
+/* ARASAN SD MMC configuration */
+#if !defined(CONFIG_SPEAR_USBTTY)
+	#define CONFIG_SPEAR_SDHCI
+#endif
 
 /* MACB configurations */
 #if !defined(CONFIG_SPEAR_USBTTY)
@@ -78,42 +79,29 @@
 #define CONFIG_SYS_FSMC_NAND_8BIT
 
 /* Flash configurations */
-#if defined(CONFIG_FLASH_PNOR)
-	#define CONFIG_ST_EMI
-#else
-	#define CONFIG_ST_SMI
-#endif
+#define CONFIG_ST_SMI
 
-/* CFI Driver configurations */
-#if defined(CONFIG_FLASH_PNOR)
-	#define CONFIG_FLASH_CFI_DRIVER
-	#define CONFIG_SYS_MAX_FLASH_SECT	(127 + 8)
-#endif
+/* SPL support */
+#define CONFIG_SPL
+#define CONFIG_SPEAR_DDR_2HCLK
+#define CONFIG_DDR_MT47H64M16
 
 /* Environment Variable configs */
 #if defined(CONFIG_ENV_IS_IN_FLASH)
-	#if defined(CONFIG_FLASH_PNOR)
-		/* Environment is in parallel NOR flash */
-		#define CONFIG_ENV_ADDR			0xF8040000
-		#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock3 "
-		#define CONFIG_BOOTCOMMAND		"bootm 0xF8050000"
-
-	#else
-		/* Environment is in serial NOR flash */
-		#define CONFIG_ENV_ADDR			0xF8060000
-		#define CONFIG_ENV_SECT_SIZE		0x00010000
-		#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock5 "
-		#define CONFIG_BOOTCOMMAND		"" \
-			"bootm 0xf8080000 - 0xf8070000"
-	#endif
+	/* Environment is in serial NOR flash */
+	#define CONFIG_ENV_ADDR			0xF8060000
+	#define CONFIG_ENV_SECT_SIZE		0x00010000
+	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock5 "
+	#define CONFIG_BOOTCOMMAND		"" \
+		"bootm 0xf8080000 - 0xf8070000"
 #elif defined(CONFIG_ENV_IS_IN_NAND)
 	/* Environment is in NAND */
 	#define CONFIG_ENV_OFFSET		0x00140000
 	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock11 "
 
 	#define CONFIG_BOOTCOMMAND		"" \
-		"nand read.jffs2 0x800000 0x180000 0x020000; " \
-		"nand read.jffs2 0x900000 0x1c0000 0x4C0000; " \
+		"nand read.jffs2 0x800000 0x200000 0x020000; " \
+		"nand read.jffs2 0x900000 0x240000 0x4C0000; " \
 		"bootm 0x900000 - 0x800000"
 #endif
 
@@ -123,7 +111,11 @@
 
 #define CONFIG_BOARD_EXTRA_ENV			""			\
 	"loados=tftpboot 0x900000 $(rootpath)/spear3xx_uImage\0"	\
-	"loaddtb=tftpboot 0x800000 $(rootpath)/spear320-hmi.dtb\0"
+	"loaddtb=tftpboot 0x800000 $(rootpath)/spear320-hmi.dtb\0"	\
+	"mtdids=nor0=m25p64,nand0=nand08gw3b3cnb\0"			\
+	"mtdparts=mtdparts=m25p64:64k(xloader)ro,320k(u-boot)ro,64k(environment)ro,64k(dtb)ro,3136k(kernel)ro,-(rootfs);"	\
+		"nand08gw3b3cnb:512k(xloader)ro,1280k(u-boot)ro,256k(environment)ro,256k(dtb)ro,12M(kernel)ro,-(rootfs)\0"	\
+	"partition=nor0,5\0"
 
 #include <configs/spear320.h>
 #endif /* __CONFIG_H */

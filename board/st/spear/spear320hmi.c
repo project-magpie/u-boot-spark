@@ -30,10 +30,8 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/generic.h>
 #include <asm/arch/misc.h>
+#include <asm/arch/mmc.h>
 #include <asm/arch/pinmux.h>
-
-#define PLGPIO_SEL_36	0xb3000028
-#define PLGPIO_IO_36	0xb3000038
 
 #if defined(CONFIG_CMD_NAND)
 static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
@@ -45,13 +43,17 @@ int board_early_init_f(void)
 	spear320_select_mode(SPEAR320_EXTENDED_MODE);
 
 	spear320_pins_default();
-	spear3xx_enable_pins(PMX_I2C0, 0);
-	spear3xx_enable_pins(PMX_SSP0, 0);
-	spear3xx_enable_pins(PMX_UART0, 0);
 
+	spear320_enable_pins(PMX_I2C0, 0);
+	spear320_enable_pins(PMX_SSP0, 0);
+	spear320_enable_pins(PMX_UART0, PMX_UART_SIMPLE);
 	spear320_enable_pins(PMX_FSMCNAND, PMX_NAND_8BIT);
-	spear320_enable_pins(PMX_ETH0, PMX_ETH_RMII);
+	spear320_enable_pins(PMX_ETH1_ETH2, PMX_ETH_RMII);
 	spear320_enable_pins(PMX_SDMMC, PMX_SDMMC_CD12);
+
+	/* GPIO50 is used for card power on */
+	spear320_configure_pin(50, PMX_GPIO);
+	spear320_plgpio_set(50, 0);
 
 	return 0;
 }
@@ -102,5 +104,24 @@ int board_eth_init(bd_t *bis)
 		ret++;
 #endif
 	return ret;
+}
+#endif
+
+#if defined(CONFIG_CMD_MMC)
+int board_mmc_init(bd_t *bis)
+{
+	int ret = 0;
+#if defined(CONFIG_SPEAR_SDHCI)
+	if (spear_sdhci_init(CONFIG_SYS_MMC_BASE, 24000000, 6000000, 0) >= 0)
+		ret++;
+#endif
+	return ret;
+}
+#endif
+
+#if defined(CONFIG_SPL_BUILD)
+void board_ddr_init(void)
+{
+	spear3xx_ddr_comp_init();
 }
 #endif

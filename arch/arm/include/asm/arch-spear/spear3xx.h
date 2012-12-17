@@ -33,6 +33,8 @@
 #define CONFIG_SYS_UHC0_EHCI_BASE		0xE1800000
 #define CONFIG_SYS_SMI_BASE			0xFC000000
 #define CONFIG_SPEAR_MPMCBASE			0xFC600000
+#define CONFIG_SPEAR_MPMCREGS			109
+
 #define CONFIG_SPEAR_TIMERBASE			0xFC800000
 #define CONFIG_SPEAR_SYSCNTLBASE		0xFCA00000
 #define CONFIG_SPEAR_MISCBASE			0xFCA80000
@@ -53,6 +55,8 @@
 #define PMX_UART0_MASK			(1 << 2)
 #define PMX_TIMER_2_3_MASK		(1 << 1)
 #define PMX_TIMER_0_1_MASK		(1 << 0)
+
+#define SPEAR3XX_MAX_PLGPIOS			101
 
 /* externs related to pinmux */
 extern void spear3xx_enable_pins(u32 ip, u32 mode);

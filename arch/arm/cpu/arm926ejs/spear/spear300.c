@@ -102,7 +102,7 @@ static void enable_sdmmc_pins(u32 mode)
  */
 void spear300_select_mode(u32 mode)
 {
-	pinmux_maskval(SPEAR300_RAS_REG1,
+	pinmux_maskval(SPEAR300_RAS_REG2,
 			SPEAR300_MODE_MSK,
 			mode);
 }
@@ -134,4 +134,7 @@ void spear300_enable_pins(u32 ip, u32 mode)
 		enable_nand_pins(mode);
 	else if (PMX_SDMMC == ip)
 		enable_sdmmc_pins(mode);
+	else if ((PMX_I2C0 == ip) || (PMX_SSP0 == ip) || \
+			(PMX_ETH0 == ip) || (PMX_UART0 == ip))
+		spear3xx_enable_pins(ip, mode);
 }

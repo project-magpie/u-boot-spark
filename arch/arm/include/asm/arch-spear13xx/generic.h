@@ -30,4 +30,12 @@ extern void spear1310_usbh_stop(void);
 extern void spear1340_usbh_stop(void);
 #endif
 
+#if defined(CONFIG_SPL_BUILD)
+extern void cpu2_wake(void);
+extern void soc_init(void);
+extern void board_pre_ddrinit(void);
+extern void ddr_init(void);
+extern void board_post_ddrinit(void);
+#endif
+
 #endif

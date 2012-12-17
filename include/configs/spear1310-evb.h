@@ -41,12 +41,6 @@
 #define CONFIG_ARMV7_CA9LTIMER
 #define CONFIG_ARMV7_LTMR_CLK			250000000
 
-/* AMBA PL022 SSP-SPI configurations */
-#if !defined(CONFIG_SPEAR_USBTTY)
-	#define CONFIG_PL022_SPI
-	#define CONFIG_SPI_FLASH
-#endif
-
 /* ARASAN SD MMC configuration */
 #if !defined(CONFIG_SPEAR_USBTTY)
 	#define CONFIG_SPEAR_SDHCI
@@ -56,6 +50,7 @@
 #if !defined(CONFIG_SPEAR_USBTTY)
 	#define CONFIG_DESIGNWARE_ETH
 	#define CONFIG_DW_SEARCH_PHY
+	#define CONFIG_PHY_GIGE
 	#define CONFIG_DW0_PHY			5
 	#define CONFIG_PHY_RESET_DELAY		10000		/* in usec */
 	#define CONFIG_DW_AUTONEG
@@ -86,6 +81,11 @@
 #define CONFIG_NAND_FSMC
 #define CONFIG_SYS_FSMC_NAND_8BIT
 
+/* SPL support */
+#define CONFIG_SPL
+#define CONFIG_DDR_MT41J256M8
+#define CONFIG_SPEAR_DDRFREQ533
+
 /* Environment Variable configs */
 #if defined(CONFIG_ENV_IS_IN_FLASH)
 	/* Environment is in serial NOR flash */
@@ -101,8 +101,8 @@
 	#define CONFIG_SPEAR_ROOTFSBLK		"/dev/mtdblock11 "
 
 	#define CONFIG_BOOTCOMMAND		"" \
-		"nand read.jffs2 0x800000 0x180000 0x020000; " \
-		"nand read.jffs2 0x900000 0x1c0000 0x4C0000; " \
+		"nand read.jffs2 0x800000 0x200000 0x020000; " \
+		"nand read.jffs2 0x900000 0x240000 0x4C0000; " \
 		"bootm 0x900000 - 0x800000"
 #endif
 
@@ -112,7 +112,11 @@
 
 #define CONFIG_BOARD_EXTRA_ENV			""			\
 	"loados=tftpboot 0x900000 $(rootpath)/spear13xx_uImage\0"	\
-	"loaddtb=tftpboot 0x800000 $(rootpath)/spear1310-evb.dtb\0"
+	"loaddtb=tftpboot 0x800000 $(rootpath)/spear1310-evb.dtb\0"	\
+	"mtdids=nor0=m25p64,nand0=nand02gw3b2dza6\0"			\
+	"mtdparts=mtdparts=m25p64:64k(xloader)ro,320k(u-boot)ro,64k(environment)ro,64k(dtb)ro,3136k(kernel)ro,-(rootfs);"	\
+		"nand02gw3b2dza6:512k(xloader)ro,1280k(u-boot)ro,256k(environment)ro,256k(dtb)ro,12M(kernel)ro,-(rootfs)\0"	\
+	"partition=nor0,5\0"
 
 #include <configs/spear1310.h>
 #endif
