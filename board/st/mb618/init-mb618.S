@@ -14,7 +14,7 @@
  * generate contemporary poke tables. The latest generation
  * targetpacks may be incompatible with the old interpreter.
  */
-#define CONFIG_ST40_OLD_POKE_LOOP_PARADIGM	/* QQQ - DELETE */
+#undef CONFIG_ST40_OLD_POKE_LOOP_PARADIGM
 
 
 #include "asm/stx7111reg.h"
@@ -341,8 +341,8 @@ __memory_setup_table:
 	 * their 32-bit SE mode locations as defined in the datasheet and change the
 	 * 'upper bound addresses' (in row attribute registers) for the LMIs.
 	 */
-	UPDATE_LONG(STX7111_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
-	UPDATE_LONG(STX7111_SYSCONF_SYS_CFG39, 0xFFFFFF00, 0x00000080)
+	UPDATE32(STX7111_SYSCONF_SYS_CFG38, 0xFFFFFF00, 0x00000040)
+	UPDATE32(STX7111_SYSCONF_SYS_CFG39, 0xFFFFFF00, 0x00000080)
 	/* Change LMI upper bound addresses
 	 * Upper LMI addr=0x40000000 + 128Mbytes=0x48000000, 13x10
 	 */
