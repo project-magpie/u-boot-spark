@@ -36,7 +36,7 @@ __memory_setup_table:
 	 * only in 29-bit mode - even though U-Boot will be built for 32-bit mode.
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
-#include "fli7540.romgen"
+#include "fudb-fli7540.romgen"
 
 	END_MARKER
 

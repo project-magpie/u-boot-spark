@@ -47,7 +47,7 @@ __memory_setup_table:
 	 * only in 29-bit mode - even if U-Boot will be built for 32-bit mode.
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
-#include "pdk7105.romgen"
+#include "pdk7105-stx7105.romgen"
 
 #ifdef CONFIG_ST40_SE_MODE
 	/*
