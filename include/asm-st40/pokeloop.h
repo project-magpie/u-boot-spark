@@ -3,7 +3,7 @@
  * Synopsis : Header containing macro definitions needed for poke tables and the
  *            poke loop code which uses them.
  *
- * Copyright (c) 2004-2011 STMicroelectronics Limited.  All rights reserved.
+ * Copyright (c) 2004-2013 STMicroelectronics Limited.  All rights reserved.
  */
 
 #ifndef __ASM_ST40_POKE_LOOP_H
@@ -67,29 +67,6 @@
    never used.
  */
 #define END_MARKER					.long OP_END_POKES, 0, 0
-
-/* 
- * For compatibility with old poke tables we define some of the old names.
- * Normally we warn about using the old names, but the warnings can be turned
- * off by defining the macro POKETABLE_NO_WARNINGS.
- */
-#ifdef POKETABLE_NO_WARNINGS
-	#define POKE_CHAR(A, VAL)	POKE8(A, VAL)
-	#define POKE_SHORT(A, VAL)	POKE16(A, VAL)
-	#define POKE_LONG(A, VAL)	POKE32(A, VAL)
-	#define OR_LONG(A, VAL)		OR32(A, VAL)
-	#define UPDATE_LONG(A, AND, OR)	UPDATE32(A, AND, OR)
-	#define POKE_UPDATE_LONG(A1, A2, AND, SHIFT, OR) POKE_UPDATE32(A1, A2, AND, SHIFT, OR)
-	#define WHILE_NE(A, AND, VAL)	WHILE_NE32(A, AND, VAL)
-#else
-	#define POKE_CHAR(A, VAL)	POKE8(A, VAL); ASM_WARNING("POKE_CHAR() is deprecated; use POKE8()")
-	#define POKE_SHORT(A, VAL)	POKE16(A, VAL); ASM_WARNING("POKE_SHORT() is deprecated; use POKE16()")
-	#define POKE_LONG(A, VAL)	POKE32(A, VAL); ASM_WARNING("POKE_LONG() is deprecated; use POKE32()")
-	#define OR_LONG(A, VAL)		OR32(A, VAL); ASM_WARNING("OR_LONG() is deprecated; use OR32()")
-	#define UPDATE_LONG(A, AND, OR)	UPDATE32(A, AND, OR); ASM_WARNING("UPDATE_LONG() is deprecated; use UPDATE32()")
-	#define POKE_UPDATE_LONG(A1, A2, AND, SHIFT, OR) POKE_UPDATE32(A1, A2, AND, SHIFT, OR); ASM_WARNING("POKE_UPDATE_LONG() is deprecated; use POKE_UPDATE32()")
-	#define WHILE_NE(A, AND, VAL)	WHILE_NE32(A, AND, VAL); ASM_WARNING("WHILE_NE() is deprecated; use WHILE_NE32()")
-#endif /* !POKETABLE_NO_WARNINGS */
 
 #endif /* __ASSEMBLER__ */
 

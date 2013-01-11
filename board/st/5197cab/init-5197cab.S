@@ -7,16 +7,6 @@
  */
 
 
-/*
- * Only define the following if you want to use the "old"
- * poke loop table interpreter. This should *not* be
- * defined if you are now using the "romgen" tool to
- * generate contemporary poke tables. The latest generation
- * targetpacks may be incompatible with the old interpreter.
- */
-#undef CONFIG_ST40_OLD_POKE_LOOP_PARADIGM
-
-
 #include "asm/stx5197reg.h"
 #include "../../../cpu/st40/init_ram.S"
 

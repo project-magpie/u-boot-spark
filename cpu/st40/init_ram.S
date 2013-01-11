@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2012 STMicroelectronics.
+ * (C) Copyright 2004-2013 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Start Menefy <stuart.menefy@st.com>
@@ -94,11 +94,7 @@ ENTRY(init_ram)
 	sts	pr, r14
 
 	/* read the DEVICE_ID, and stash in a register */
-#if defined(CONFIG_ST40_OLD_POKE_LOOP_PARADIGM)
-	GETDEVID r7	/* use R7 for the OLD interpreter */
-#else
 	GETDEVID r5	/* use R5 for the NEW interpreter */
-#endif	/* CONFIG_ST40_OLD_POKE_LOOP_PARADIGM */
 
 	/*
 	 * We need to get the poke loop & associated data
@@ -150,9 +146,7 @@ ENTRY(init_ram)
 	 * executing from cache should this happen.
 	 */
 do_pokes:
-#if !defined(CONFIG_ST40_OLD_POKE_LOOP_PARADIGM)
 	mov	r1, r4		/* __memory_setup_table */
-#endif	/* CONFIG_ST40_OLD_POKE_LOOP_PARADIGM */
 	jsr	@r6		/* R6 still points poke_loop() */
 	  nop
 
@@ -179,21 +173,10 @@ p2_to_p1_mask:		.long ~0x20000000
 
 
 /*
- * Only define the following if you want to use the "old"
- * poke loop table interpreter. This should *not* be
- * defined if you are now using the "romgen" tool to
- * generate contemporary poke tables. The latest generation
- * targetpacks may be incompatible with the old interpreter.
- *
- *	#define CONFIG_ST40_OLD_POKE_LOOP_PARADIGM
+ * Pull in the "poke interpreter". This interpreter should be fully
+ * compatible with the poke-table produced by the "romgen" utility.
  */
-
-#if defined(CONFIG_ST40_OLD_POKE_LOOP_PARADIGM)
-#	include "asm/old-pokeloop.h"
-#	include "old-pokeloop.S"
-#else
-#	include "asm/pokeloop.h"
-#	include "pokeloop.S"
-#endif	/* CONFIG_ST40_OLD_POKE_LOOP_PARADIGM */
+#include "asm/pokeloop.h"
+#include "pokeloop.S"
 
 
