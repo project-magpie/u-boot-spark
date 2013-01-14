@@ -25,7 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(BOARD).a
 
-SOBJS-y	= init-$(BOARD).o
+SOBJS-y	= init-$(TARGET).o
 
 COBJS-y	+= $(BOARD).o
 COBJS-$(CONFIG_CMD_NAND) += nand.o
