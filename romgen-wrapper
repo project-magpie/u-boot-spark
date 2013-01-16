@@ -1,0 +1,242 @@
+#!/bin/bash
+
+#
+# (C) Copyright 2013 STMicroelectronics.
+# Sean McGoogan STMicroelectronics, <Sean.McGoogan@st.com>
+#
+# See file CREDITS for list of people who contributed to this
+# project.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+# MA 02111-1307 USA
+#
+
+
+#
+# Wrapper script to run the "romgen" utility, as used by STMicroelectronics.
+#
+# This should be invoked when the user runs "make romgen", and requires
+# the romgen utility to be run, to generate a new ".romgen" file.
+#
+# The environment variables for this (by default), were defined
+# when the $(MKROMGEN) was executed, as part of "running "make *_config".
+# Additionally, the environment variables can be over-ridden by the
+# user on the command line.
+#
+#
+# The environment variables used are:
+#
+#	ROMGEN_STMC2_NAME		DNS name of STMC2 to use, or the special string
+#					"no-such-ip", if no *physical* board is to be used.
+#					It is generally recommended to use "no-such-ip".
+#
+#	ROMGEN_TARGETPACK_NAME		The name of the TargetPack to use.
+#
+#	ROMGEN_CORE_NAME		The name of the specific core to use.
+#
+#	ROMGEN_DEFAULT_PARAMETERS	A comma-separated list of the DEFAULT
+#					parameters to be passed to romgen.
+#
+#	ROMGEN_EXTRA_PARAMETERS		A comma-separated list of the ADDITIONAL
+#					parameters to be passed to romgen.
+#
+#	ROMGEN_EXTRA_OPTIONS		A space-separated list of the ADDITIONAL
+#					command-line options to be passed to romgen.
+#
+#	Note: the first 3 environment variables above are mandatory, and must
+#	be defined. The script will fail if this assertion violated.
+#
+#
+#	The romgen command is (roughly) constructed as follows:
+#
+#	host% romgen
+#		--output="${romgenfile}"
+#		--show-comment
+#		--warn-peek OR --target-connect
+#		${ROMGEN_EXTRA_OPTIONS}
+#		--
+#		${ROMGEN_STMC2_NAME}:${ROMGEN_TARGETPACK_NAME}:${ROMGEN_CORE_NAME},${ROMGEN_DEFAULT_PARAMETERS},${ROMGEN_EXTRA_PARAMETERS}
+#
+#
+# Usage:
+#	host% romgen-wrapper <board-name> <romgen-file-name>
+#
+#
+
+
+#---------------------------------------------------------------------------
+
+
+
+	# $1	common name of the board
+	# $2	name of the ".romgen" file to be generated.
+	# $3	DNS name of STMC2 to use, or special string "no-such-ip".
+	# $4	name of the TargetPack to use
+	# $5	name of the specific core to use
+	# $6	comma-separated list of parameters to be passed to romgen
+	# $7	space-separated list of addition cli options to pass to romgen
+function run-romgen()
+{
+	local -r romgenfile="${2}"
+	local -r logfile="/tmp/romgen-wrapper-${USER}-${1}-$$.log"
+	local status
+
+	echo ""
+	echo info: romgen			\
+		--output="${romgenfile}"	\
+		--show-comment			\
+		${7}				\
+		${3}:${4}:${5},${6}
+
+#	return 0	# return here if we just want to see the romgen command line.
+
+	# delete the old ".romgen" file (and any old log file!)
+	rm --force ${logfile} ${romgenfile}
+
+	# ensure the user had permission to delete the old ".romgen" file!
+	if [[ -a ${romgenfile} ]]	# ".romgen" file still there ?
+	then
+		echo 'Error: old ".romgen" file was not deleted!'
+		return 1		# failure!
+	fi
+
+	# now to the heart of the beast - we run romgen!
+	romgen					\
+		--output="${romgenfile}"	\
+		--show-comment			\
+		${7}				\
+		${3}:${4}:${5},${6}		\
+		|& tee ${logfile}
+
+	status=$?	# logical status of romgen | tee
+
+	#
+	# we now want to ensure: it ran successfully; it generated
+	# a new .romgen file; and there were no "peeks" required.
+	# Otherwise, we delete any files, and exit with non-zero.
+	# Note: we effectively treat any "peek" as a fatal error!
+	# Note: fail if the PMB is configured (user should append ",se=0")
+	#
+	if [[ ${status} != 0 ]]		# romgen failed ?
+	then
+		echo "Error: romgen failed with exit code ${status}."
+		rm --force ${logfile} ${romgenfile}
+		return 1		# failure!
+	elif [[ ! -f ${romgenfile} ]]	# no ".romgen" file ?
+	then
+		echo 'Error: romgen failed to generate a ".romgen" file.'
+		rm --force ${logfile} ${romgenfile}
+		return 1		# failure!
+	else
+		# Did we perform any pokes/reads ?
+		egrep --silent "Warning: (peek\(.*\) ignored)|(this operation will perform .* bit read)" ${logfile}
+		status=$?	# status of egrep
+		if [[ ${status} == 0 ]]	# "peeks" were done ?
+		then
+			echo 'Error: romgen performed "peeks" without a real board.'
+			rm --force ${logfile} ${romgenfile}
+			return 1	# failure!
+		fi
+		# are we configuring the PMB for Space Enhancement (SE) mode ?
+		egrep --color "PMB_(ADDR|DATA)_ARRAY_ENTRY" ${romgenfile}
+		status=$?	# status of egrep
+		if [[ ${status} == 0 ]]	# PMB configuration ?
+		then
+			echo 'Error: romgen file seems to configure the PMB!'
+			rm --force ${logfile} ${romgenfile}
+			return 1	# failure!
+		fi
+	fi
+
+	# If we get here, then romgen ran successfully, and no "peeks" were performed.
+	rm --force ${logfile}
+	echo "info: romgen for the ${1} ran successfully".
+	ls -la ${romgenfile}
+	return 0			# success!
+}
+
+
+#---------------------------------------------------------------------------
+
+
+	# ensure we can detect non-zero exit states in pipelines (i.e. romgen | tee)
+	set -o pipefail
+
+
+	# make sure we got both a board-name, and a file-name from the user.
+	if [[ -z ${1} || -z ${2} ]]
+	then
+		echo "Error: you must specify two options for $0".
+		exit 1
+	fi
+
+	# make sure the environment variable ROMGEN_STMC2_NAME is defined
+	if [[ -z ${ROMGEN_STMC2_NAME} ]]
+	then
+		echo "Error: ROMGEN_STMC2_NAME is undefined in $0".
+		exit 1
+	fi
+
+	# make sure the environment variable ROMGEN_TARGETPACK_NAME is defined
+	if [[ -z ${ROMGEN_TARGETPACK_NAME} ]]
+	then
+		echo "Error: ROMGEN_TARGETPACK_NAME is undefined in $0".
+		exit 1
+	fi
+
+	# make sure the environment variable ROMGEN_CORE_NAME is defined
+	if [[ -z ${ROMGEN_CORE_NAME} ]]
+	then
+		echo "Error: ROMGEN_CORE_NAME is undefined in $0".
+		exit 1
+	fi
+
+
+	#
+	# Are we connecting to a real target board via a STMC2?
+	# We really should *not* be doing that!
+	# However, if users want to, then ... caveat emptor!
+	#
+	if [[ ${ROMGEN_STMC2_NAME} == "no-such-ip" ]]		# do NOT connect ?
+	then
+		options="--warn-peek"				# warn of ALL peeks!
+	else
+		options="--target-connect"			# connect to a REAL board.
+	fi
+
+
+	# $1	common name of the board
+	# $2	name of the ".romgen" file to be generated.
+	# $3	DNS name of STMC2 to use, or special string "no-such-ip".
+	# $4	name of the TargetPack to use
+	# $5	name of the specific core to use
+	# $6	comma-separated list of parameters to be passed to romgen
+	# $7	space-separated list of addition cli options to pass to romgen
+	run-romgen								\
+		"${1}"								\
+		"${2}"								\
+		"${ROMGEN_STMC2_NAME}"						\
+		"${ROMGEN_TARGETPACK_NAME}"					\
+		"${ROMGEN_CORE_NAME}"						\
+		"${ROMGEN_DEFAULT_PARAMETERS},${ROMGEN_EXTRA_PARAMETERS}"	\
+		"${options} ${ROMGEN_EXTRA_OPTIONS}"
+
+	# all done.
+	exit
+
+
+#---------------------------------------------------------------------------
+
+

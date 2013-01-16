@@ -1,0 +1,63 @@
+#!/bin/sh -e
+
+#
+# (C) Copyright 2013 STMicroelectronics.
+# Sean McGoogan STMicroelectronics, <Sean.McGoogan@st.com>
+#
+# See file CREDITS for list of people who contributed to this
+# project.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+# MA 02111-1307 USA
+#
+
+
+#
+# Script to append additional "make" configuration information
+# specifically for the "romgen" utility, as used by STMicroelectronics.
+#
+# This should be invoked when running "make *_config", to configure
+# the romgen configuration at the same time. This script should be
+# run *after* $(MKCONFIG) as been run, as it appends its variables
+# to the *same* configuration file as created by $(MKCONFIG).
+# The script will fail to run, if the config.mk file is missing.
+#
+# Usage:
+#	host% mkromgen <stmc2_name> <targetpack_name> <core_name> <default_parameters>
+#
+# Where, any/all arguments may be missing.
+#
+
+
+# first, make sure we are in the correct directory.
+cd ${OBJTREE}/include
+
+# make sure the make configuration file already exists!
+if [ ! -f ./config.mk ]
+then
+	echo "Error: unable to find 'config.mk' in ${PWD}"
+	exit 1
+fi
+
+# now, we append the romgen configuration variables
+echo "ROMGEN_STMC2_NAME         = ${1}" >> config.mk
+echo "ROMGEN_TARGETPACK_NAME    = ${2}" >> config.mk
+echo "ROMGEN_CORE_NAME          = ${3}" >> config.mk
+echo "ROMGEN_DEFAULT_PARAMETERS = ${4}" >> config.mk
+
+# all done.
+exit 0
+
+

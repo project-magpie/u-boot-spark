@@ -109,6 +109,8 @@ LNDIR		:= $(OBJTREE)
 export	TOPDIR SRCTREE OBJTREE
 
 MKCONFIG	:= $(SRCTREE)/mkconfig
+MKROMGEN	:= $(SRCTREE)/mkromgen
+ROMGEN		:= $(SRCTREE)/romgen-wrapper
 export MKCONFIG
 
 ifneq ($(OBJTREE),$(SRCTREE))
@@ -155,8 +157,10 @@ sinclude $(obj)include/autoconf.mk.dep
 sinclude $(obj)include/autoconf.mk
 
 # load TARGET, ARCH, BOARD, and CPU configuration
+# ... as well as the STMicroelectronics specific ROMGEN_* ones
 include $(obj)include/config.mk
 export	TARGET ARCH CPU BOARD VENDOR SOC
+export	ROMGEN_STMC2_NAME ROMGEN_TARGETPACK_NAME ROMGEN_CORE_NAME ROMGEN_DEFAULT_PARAMETERS
 
 # set default to nothing for native builds
 ifeq ($(HOSTARCH),$(ARCH))
@@ -3614,6 +3618,15 @@ mimc200_config		:	unconfig
 ## STMicroelectronics ST40 (SuperH SH4)
 #########################################################################
 
+
+# The following rule will call a "wrapper" script to run "romgen" for us,
+# and perform a few extra sanity checks. If it succeeds, the script
+# will return an exit status of zero, otherwise a non-zero exit status
+# will be returned, and the ".romgen" file should have been deleted.
+romgen:
+	$(ROMGEN) "$(TARGET)" "board/${BOARDDIR}/${TARGET}-${SOC}.romgen"
+
+
 mb618_config \
 mb618se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/mb618
@@ -3635,6 +3648,7 @@ hdk7111se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7111/config.tmp)
 	@$(MKCONFIG) -a -n $@ hdk7111 st40 st40 hdk7111 st stx7111
+	@$(MKROMGEN) no-such-ip hdk7111 st40
 
 mb628_config \
 mb628se_config :		unconfig
@@ -3646,6 +3660,7 @@ mb628se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x83700000" >$(obj)board/st/mb628/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb628 st40 st40 mb628 st stx7141
+	@$(MKROMGEN) no-such-ip mb628 estb
 
 eud7141_config \
 eud7141se_config :		unconfig
@@ -3679,6 +3694,7 @@ mb671se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb671/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb671 st40 st40 mb671 st stx7200
+	@$(MKROMGEN) no-such-ip mb671 st40
 
 mb680_config \
 mb680se_config :		unconfig
@@ -3690,6 +3706,7 @@ mb680se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb680/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb680 st40 st40 mb680 st stx7105
+	@$(MKROMGEN) no-such-ip mb680 st40
 
 hdk7106_config \
 hdk7106se_config :		unconfig
@@ -3712,6 +3729,7 @@ pdk7105se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/pdk7105/config.tmp)
 	@$(MKCONFIG) -a -n $@ pdk7105 st40 st40 pdk7105 st stx7105
+	@$(MKROMGEN) no-such-ip hdk7105 st40
 
 ipidtv7105_config \
 ipidtv7105se_config :		unconfig
@@ -3733,6 +3751,7 @@ mb837se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb837/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb837 st40 st40 mb837 st stx7108
+	@$(MKROMGEN) no-such-ip mb837stx7108 host se=0
 
 hdk7108se_512_config	\
 hdk7108se_256_config	\
@@ -3750,6 +3769,7 @@ hdk7108se_config :		unconfig
 	esac; \
 	echo "TEXT_BASE = $${TEXT_BASE}" >$(obj)board/st/hdk7108/config.tmp
 	@$(MKCONFIG) -a -n $@ hdk7108 st40 st40 hdk7108 st stx7108
+	@$(MKROMGEN) no-such-ip hdk7108stx7108 host boardrev=3,se=0,spi_4x=1,lmi_contig=1
 
 mb903se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/mb903
@@ -3760,6 +3780,7 @@ mb903se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb903/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb903 st40 st40 mb903 st stx7108
+	@$(MKROMGEN) no-such-ip mb903stx7108 host boot_companions=0,se=0
 
 b2037se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/b2037
@@ -3770,6 +3791,7 @@ b2037se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2037/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2037 st40 st40 b2037 st stx7108
+	@$(MKROMGEN) no-such-ip b2037stxh205 host spi_4x=1,se=0
 
 mb704_config \
 mb704se_config :		unconfig
@@ -3799,6 +3821,7 @@ fldbse_config :		unconfig
 	@echo "#define CONFIG_ST40_FLDB      1" >>$(obj)include/config.h
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h
 	@$(MKCONFIG) -a -n $@ fldb st40 st40 fldb st fli7510
+	@$(MKROMGEN) no-such-ip fldb_gpd201 st40host boot_companions=0
 
 fudbse_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/fudb
@@ -3806,6 +3829,7 @@ fudbse_config :		unconfig
 	@echo "#define CONFIG_ST40_FUDB      1" >>$(obj)include/config.h
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h
 	@$(MKCONFIG) -a -n $@ fudb st40 st40 fudb st fli7540
+	@$(MKROMGEN) no-such-ip fudb_gpd201 st40host boot_companions=0
 
 # QQQ following should have "TEXT_BASE = 0x8FF00000" for SE mode.
 # QQQ However, the current TargetPacks only define the PMB
@@ -3821,6 +3845,7 @@ mb796se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb796/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb796 st40 st40 mb796 st stx5206
+	@$(MKROMGEN) no-such-ip mb796stx5206 st40 boot_companions=0
 
 
 hdk5289_config \
@@ -3843,6 +3868,7 @@ b2057se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2057 st40 st40 b2057 st stxh205
+	@$(MKROMGEN) no-such-ip b2057stxh205 st40 boot_companions=0,se=0
 
 b2064se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/b2057
@@ -3853,6 +3879,7 @@ b2064se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2064 st40 st40 b2057 st stxh205
+	@$(MKROMGEN) no-such-ip b2064stxh205 st40 boot_companions=0,se=0,lmi_16bits=1
 
 b2067se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/b2057
@@ -3863,6 +3890,7 @@ b2067se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2067 st40 st40 b2057 st stxh205
+	@$(MKROMGEN) no-such-ip b2067stxh205 st40 boot_companions=0,se=0,lmi_freq=266,lmi_16bits=1
 
 b2075se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/b2057
@@ -3873,6 +3901,7 @@ b2075se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2075 st40 st40 b2057 st stxh205
+	@$(MKROMGEN) no-such-ip b2075stxh205 st40 boot_companions=0,se=0
 
 b2000se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/b2000
@@ -3883,6 +3912,7 @@ b2000se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2000/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2000 st40 st40 b2000 st stxh415
+	@$(MKROMGEN) no-such-ip b2000stxh415 st40 se=0
 
 
 #########################################################################
