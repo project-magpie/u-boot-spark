@@ -35,18 +35,13 @@ __memory_setup_table:
 	 * using 4 data wires), then you should also post-pend the "romgen"
 	 * command with the "spi_4x=1" option. e.g.
 	 *
-	 * host% romgen --show-comment dummy:b2037stxh205:host,spi_4x=1
+	 * host% romgen --show-comment dummy:b2037stxh205:host,spi_4x=1,se=0
 	 *
-	 * At the time of writing this (June 2011) the output from "romgen"
-	 * needs to be edited slightly.  The edit is just two add two lines
-	 * to comment out all the PMB + 32-bit mode configuration. The lines
-	 * to comment out start with the pokes that setup the PMB arrays,
-	 * and end with pokes that configure the CCN registers.
-	 * That is, the following two lines should be added:
-	 *		#if 0
-	 *		#endif
-	 * See the supplied version of the ".romgen" file, to see where
-	 * these have been added, if there is any doubt.
+	 * It should be noted that the above command explicitly includes
+	 * the option "se=0", which disables SE (or 32-bit) mode. This is
+	 * correct, even though you may be using 32-bit mode at run-time.
+	 * The "GDB pokes" are presently always executed in a 29-bit context,
+	 * hence the need to disable 32-bit mode when running "romgen".
 	 */
 #include "b2037-stx7108.romgen"
 

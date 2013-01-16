@@ -25,22 +25,17 @@ __memory_setup_table:
 	 * command (redirecting the output), *without* needing any
 	 * access to either a MicroConnect or a target board:
 	 *
-	 * host% romgen --show-comment dummy:mb837stx7108:host
+	 * host% romgen --show-comment dummy:mb837stx7108:host,se=0
 	 *
 	 * Where "dummy" need not correspond to any real IP address on
 	 * your network.  In addition, note that "mb837stx7108" should
 	 * substituted if you have a custom target-pack connect command.
 	 *
-	 * At the time of writing this (April 2010) the output from "romgen"
-	 * needs to be edited slightly.  The edit is just two add two lines
-	 * to comment out all the PMB + 32-bit mode configuration. The lines
-	 * to comment out start with the pokes that setup the PMB arrays,
-	 * and end with pokes that configure the CCN registers.
-	 * That is, the following two lines should be added:
-	 *		#if 0
-	 *		#endif
-	 * See the supplied version of the ".romgen" file, to see where
-	 * these have been added, if there is any doubt.
+	 * It should be noted that the above command explicitly includes
+	 * the option "se=0", which disables SE (or 32-bit) mode. This is
+	 * correct, even though you may be using 32-bit mode at run-time.
+	 * The "GDB pokes" are presently always executed in a 29-bit context,
+	 * hence the need to disable 32-bit mode when running "romgen".
 	 */
 #include "mb837-stx7108.romgen"
 
