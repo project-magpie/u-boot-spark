@@ -78,7 +78,7 @@
 	 *	7) If an "empty" poke-table is required, then the empty
 	 *	   poke-table referenced, should be at least a 12-byte region of
 	 *	   all zeros. Please see the definition of the macro "END_MARKER"
-	 *	   for a suitable definition (in "include/asm-st40/pokeloop.h").
+	 *	   for a suitable definition (in "include/poketable.h").
 	 */
 #if defined(CONFIG_SYS_ABSOLUTE_POKE_TABLE_BEGIN) && !defined(CONFIG_SYS_ABSOLUTE_POKE_TABLE_END)
 #error It is dangerous to define only *one* of CONFIG_SYS_ABSOLUTE_POKE_TABLE_BEGIN and CONFIG_SYS_ABSOLUTE_POKE_TABLE_END
@@ -176,7 +176,8 @@ p2_to_p1_mask:		.long ~0x20000000
  * Pull in the "poke interpreter". This interpreter should be fully
  * compatible with the poke-table produced by the "romgen" utility.
  */
-#include "asm/pokeloop.h"
+#define POKELOOP_FUNC_NAME_ASM	poke_loop
+#define POKELOOPSECTION		.text.init
 #include "pokeloop.S"
 
 

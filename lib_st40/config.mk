@@ -27,7 +27,7 @@
 # for actual build number, in the following identifier.
 # Regular Expression for string is:
 # 	"stm[2-9][0-9]-[2-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]"
-ST40_IDENT_STRING="\"stm24-2013-01-16\""
+ST40_IDENT_STRING="\"stm24-2013-01-21\""
 
 CROSS_COMPILE ?= sh4-linux-
 
