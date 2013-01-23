@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2006-2012 STMicroelectronics Limited
+ *  Copyright (c) 2006-2013 STMicroelectronics Limited
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -205,6 +205,12 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define PHY_ADDR_MSK		0x180	/* PHY Address Mask */
 #define PHY_ADDR_SHIFT		7	/* PHY Address Mask */
 
+#elif defined(CONFIG_STMAC_GENERIC)	/* a "generic" PHY */
+
+/* This will match *any* (real) PHY ID (i.e. not all-ones) */
+#define GENERIC_PHY_ID		0xffffffffu
+#define GENERIC_PHY_ID_MASK	0xffffffffu
+
 #else
 #error Need to define which PHY to use
 #endif
@@ -385,6 +391,11 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "REALTEK RTL8201E(L) found\n");
 			return phyaddr;
 		}
+#elif defined(CONFIG_STMAC_GENERIC)
+		if ((id & GENERIC_PHY_ID_MASK) != GENERIC_PHY_ID) {
+			printf (STMAC "Generic PHY found (ID=0x%08x)\n",id);
+			return phyaddr;
+		}
 #else
 #error Need to define which PHY to use
 #endif	/* CONFIG_STMAC_STE10XP */
@@ -444,6 +455,10 @@ static int stmac_phy_init (void)
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #elif defined(CONFIG_STMAC_78Q2123)
 	/* The TERIDIAN 78Q2123 does not appear to support
+	 * reading the H/W PHY address from any register.  */
+#	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
+#elif defined(CONFIG_STMAC_GENERIC)
+	/* For the GENERIC PHY, we assume it does not support
 	 * reading the H/W PHY address from any register.  */
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #else
