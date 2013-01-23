@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2012 STMicroelectronics Limited
+ * Copyright (C) 2007-2013 STMicroelectronics Limited
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -77,6 +77,14 @@ extern int usb_cpu_init(void)
 	stxh205_usb_init(0);
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE	/* USB #1 */
 	stxh205_usb_init(1);
+#endif
+#elif defined(CONFIG_ST40_STXH415)
+#if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB0_BASE		/* USB #0 */
+	stxh415_usb_init(0);
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE	/* USB #1 */
+	stxh415_usb_init(1);
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB2_BASE	/* USB #2 */
+	stxh415_usb_init(2);
 #endif
 #else
 #error Missing Device Definitions!

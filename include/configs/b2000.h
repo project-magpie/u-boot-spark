@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -86,7 +86,11 @@
 #endif /* CONFIG_SYS_BOOT_FROM_SPI && CONFIG_SYS_BOOT_FROM_NAND */
 
 #ifdef CONFIG_ST40_SE_MODE
+#if defined(CONFIG_ST40_CONTIG_MODE)
+#define CONFIG_SYS_SE_PHYSICAL_BASE	0x60000000	/* LMI Physical Address */
+#else
 #define CONFIG_SYS_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
+#endif	/* CONFIG_ST40_CONTIG_MODE */
 #define CONFIG_SYS_SDRAM_BASE		0x80000000	/* LMI Cached addr via PMB */
 #else
 #error This SoC is not supported in 29-bit mode, please enable SE-mode!
@@ -179,7 +183,8 @@
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #	define CONFIG_SYS_STM_STMAC0_BASE	0xfe810000ul	/* GMAC #0 */
 #	define CONFIG_SYS_STM_STMAC1_BASE	0xfef08000ul	/* GMAC #1 */
-#	if 0	/* TRUE == GMAC #0, or FALSE == GMAC #1 */
+	/* On B2000, default to GMAC #0, to avoid conflict with HDMI with PIO2[5] */
+#	if 1	/* TRUE == GMAC #0, or FALSE == GMAC #1 */
 #		define CONFIG_SYS_STM_STMAC_BASE	CONFIG_SYS_STM_STMAC0_BASE
 #	else
 #		define CONFIG_SYS_STM_STMAC_BASE	CONFIG_SYS_STM_STMAC1_BASE
@@ -203,17 +208,16 @@
 
 /* Choose if we want USB Mass-Storage Support */
 #define CONFIG_ST40_STM_USB
-#undef	CONFIG_ST40_STM_USB	/* QQQ - TO TEST USB */
 
 #ifdef CONFIG_ST40_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_STORAGE
-#	define CONFIG_SYS_USB0_BASE			0xfe000000	/* #0 is rear, next to E-SATA */
-#	define CONFIG_SYS_USB1_BASE			0xfe100000	/* #1 is rear, next to HDMI */
-#	define CONFIG_SYS_USB2_BASE			0xfe200000	/* #2 is front port */
-#	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB2_BASE
-#	if 1	/* use OHCI (USB 1.x) ? */
+#	define CONFIG_SYS_USB0_BASE			0xfe100000	/* #0 is rear, next to E-SATA */
+#	define CONFIG_SYS_USB1_BASE			0xfe200000	/* #1 is rear, next to HDMI */
+#	define CONFIG_SYS_USB2_BASE			0xfe300000	/* #2 is front port */
+#	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
+#	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
 #		define CONFIG_SYS_USB_OHCI_CPU_INIT
 #		define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)

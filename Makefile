@@ -3905,12 +3905,12 @@ b2075se_config :		unconfig
 
 b2000se_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/b2000
-	@echo "#define CONFIG_ST40_STXH415   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_ST40_B2000     1" >>$(obj)include/config.h
+	@echo "#define CONFIG_ST40_STXH415     1" >>$(obj)include/config.h
+	@echo "#define CONFIG_ST40_B2000       1" >>$(obj)include/config.h
+	@echo "#define CONFIG_ST40_CONTIG_MODE 1" >>$(obj)include/config.h
 	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2000/config.tmp)
+	@echo "#define CONFIG_ST40_SE_MODE     1" >>$(obj)include/config.h; \
+	 echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2000/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2000 st40 st40 b2000 st stxh415
 	@$(MKROMGEN) no-such-ip b2000stxh415 st40 se=0
 

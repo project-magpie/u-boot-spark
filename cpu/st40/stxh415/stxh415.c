@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -142,7 +142,7 @@ extern void stxh415_pioalt_select(const int port, const int pin, const int alt)
 
 /* Pad configuration */
 
-void stxh415_pioalt_pad(int port, const int pin,
+extern void stxh415_pioalt_pad(int port, const int pin,
 		const enum stm_pad_gpio_direction direction)
 {
 	int bit;
@@ -244,7 +244,7 @@ void stxh415_pioalt_pad(int port, const int pin,
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 
-static void stxh415_pioalt_retime(const int port, const int pin,
+extern void stxh415_pioalt_retime(const int port, const int pin,
 		const struct stm_pio_control_retime_config * const cfg)
 {
 	unsigned long sysconf, *sysconfReg;
@@ -345,6 +345,20 @@ static void stxh415_pioalt_retime(const int port, const int pin,
 	}
 
 #define DATA_OUT(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = stm_pad_direction_output, \
+		.retime    = _retiming, \
+	}
+
+#define MDIO(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = stm_pad_direction_output, \
+		.retime    = _retiming, \
+	}
+
+#define MDC(_port, _pin, _func, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _func, }, \
 		.direction = stm_pad_direction_output, \
@@ -547,28 +561,26 @@ static struct stm_pad_sysconf stxh415_ethernet_gmii_pad_sysconfs[] = {
 #endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 #endif	/* 0 */
 
-#if 0
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
 			PHY_CLOCK(13, 5, 2, RET_NICLK(1)),/* GTXCLK */
-			DATA_IN(13, 6, 2, RET_BYPASS(0)), /* MDINT */
 			DATA_OUT(13, 7, 2, RET_DE_IO(0, 0)),/* TXEN */
-			DATA_OUT(14, 0, 2, RET_DE_IO(0, 0)),/* TXD[0] */
-			DATA_OUT(14, 1, 2, RET_DE_IO(0, 0)),/* TXD[1] */
-			DATA_OUT(14, 2, 2, RET_DE_IO(0, 0)),/* TXD[2] */
-			DATA_OUT(14, 3, 2, RET_DE_IO(0, 0)),/* TXD[3] */
+			DATA_IN(13, 6, 2, RET_BYPASS(0)), /* MDINT */
+			DATA_OUT(14, 0, 2, RET_DE_IO(1, 0)),/* TXD[0] */
+			DATA_OUT(14, 1, 2, RET_DE_IO(1, 0)),/* TXD[1] */
+			DATA_OUT(14, 2, 2, RET_DE_IO(1, 1)),/* TXD[2] */
+			DATA_OUT(14, 3, 2, RET_DE_IO(1, 1)),/* TXD[3] */
 			/* TX Clock inversion is not set for 1000Mbps */
 			CLOCK_IN(15, 0, 2, RET_ICLK(-1)),/* TXCLK */
-			DATA_IN(15, 2, 2, RET_BYPASS(0)), /* CRS */
-			DATA_IN(15, 3, 2, RET_BYPASS(0)),/* COL */
-			DATA_OUT_PU(15, 4, 2, RET_BYPASS(3)),/* MDIO */
-			CLOCK_OUT(15, 5, 2, RET_NICLK(0)),/* MDC */
-			DATA_IN(15, 6, 2, RET_DE_IO(0, 0)),/* RXDV */
-			DATA_IN(16, 0, 2, RET_DE_IO(0, 0)),/* RXD[0] */
-			DATA_IN(16, 1, 2, RET_DE_IO(0, 0)),/* RXD[1] */
-			DATA_IN(16, 2, 2, RET_DE_IO(0, 0)),/* RXD[2] */
-			DATA_IN(16, 3, 2, RET_DE_IO(0, 0)),/* RXD[3] */
+			MDIO(15, 4, 2, RET_BYPASS(3)),/* MDIO */
+			MDC(15, 5, 2, RET_NICLK(1)),/* MDC */
+			DATA_IN(15, 6, 2, RET_DE_IO(1, 0)),/* RXDV */
+			DATA_IN(16, 0, 2, RET_DE_IO(1, 0)),/* RXD[0] */
+			DATA_IN(16, 1, 2, RET_DE_IO(1, 0)),/* RXD[1] */
+			DATA_IN(16, 2, 2, RET_DE_IO(1, 0)),/* RXD[2] */
+			DATA_IN(16, 3, 2, RET_DE_IO(1, 0)),/* RXD[3] */
 			CLOCK_IN(17, 0, 2, RET_NICLK(-1)),/* RXCLK */
+			CLOCK_IN(17, 6, 1, RET_NICLK(0)),/* 125MHZ i/p clk */
 };
 static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
 			/* EN_GMAC0 */
@@ -581,25 +593,22 @@ static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
 static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
-			DATA_OUT(0, 0, 1, RET_DE_IO(0, 1)),/* TXD[0] */
-			DATA_OUT(0, 1, 1, RET_DE_IO(0, 1)),/* TXD[1] */
-			DATA_OUT(0, 2, 1, RET_DE_IO(0, 1)),/* TXD[2] */
-			DATA_OUT(0, 3, 1, RET_DE_IO(0, 1)),/* TXD[3] */
-			DATA_OUT(0, 5, 1, RET_DE_IO(0, 1)),/* TXEN */
-			/* TX Clock inversion is not set for 1000Mbps */
-			CLOCK_IN(0, 6, 1, RET_ICLK(-1)),/* TXCLK */
-			DATA_IN(0, 7, 1, RET_BYPASS(0)),/* COL */
-			DATA_OUT_PU(1, 0, 1, RET_BYPASS(2)),/* MDIO */
-			CLOCK_OUT(1, 1, 1, RET_NICLK(1)),/* MDC */
-			DATA_IN(1, 2, 1, RET_BYPASS(0)),/* CRS */
-			DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
-			DATA_IN(2, 0, 1, RET_DE_IO(0, 1)),/* RXDV */
-			CLOCK_IN(2, 2, 1, RET_NICLK(-1)),/* RXCLK */
-			PHY_CLOCK(2, 3, 1, RET_NICLK(1)), /* GTXCLK*/
-			DATA_IN(3, 0, 1, RET_DE_IO(0, 1)),/* RXD[0] */
-			DATA_IN(3, 1, 1, RET_DE_IO(0, 1)),/* RXD[1] */
-			DATA_IN(3, 2, 1, RET_DE_IO(0, 1)),/* RXD[2] */
-			DATA_IN(3, 3, 1, RET_DE_IO(0, 1)),/* RXD[3] */
+			DATA_OUT(0, 0, 1, RET_DE_IO(1, 0)),/* TXD[0] */
+			DATA_OUT(0, 1, 1, RET_DE_IO(1, 0)),/* TXD[1] */
+			DATA_OUT(0, 2, 1, RET_DE_IO(1, 0)),/* TXD[2] */
+			DATA_OUT(0, 3, 1, RET_DE_IO(1, 0)),/* TXD[3] */
+			DATA_OUT(0, 5, 1, RET_DE_IO(0, 0)),/* TXEN */
+			CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK */
+			MDIO(1, 0, 1, RET_BYPASS(0)),/* MDIO */
+			MDC(1, 1, 1, RET_NICLK(0)),/* MDC */
+			DATA_IN(1, 4, 1, RET_DE_IO(0, 0)),/* RXD[0] */
+			DATA_IN(1, 5, 1, RET_DE_IO(0, 0)),/* RXD[1] */
+			DATA_IN(1, 6, 1, RET_DE_IO(0, 0)),/* RXD[2] */
+			DATA_IN(1, 7, 1, RET_DE_IO(0, 0)),/* RXD[3] */
+			DATA_IN(2, 0, 1, RET_DE_IO(1, 0)),/* RXDV */
+			CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
+			PHY_CLOCK(2, 3, 4, RET_NICLK(1)), /* GTXCLK */
+			CLOCK_IN(3, 7, 4, RET_NICLK(0)),/* 125MHZ input clock */
 };
 static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
 			/* EN_GMAC1 */
@@ -608,10 +617,10 @@ static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
 			STM_PAD_SYSCONF(SYSCONF(29), 2, 4, 1),
 			/* ENMIIx */
 			STM_PAD_SYSCONF(SYSCONF(29), 5, 5, 1),
-			/* Extra retime config base on speed */
+			/* TXCLK_NOT_CLK125 */
+			STM_PAD_SYSCONF(SYSCONF(29), 6, 8, 0),
 };
 #endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
-#endif	/* 0 */
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stxh415_ethernet_rmii_pad_configs[] = {
@@ -751,8 +760,6 @@ static struct stm_pad_sysconf stxh415_ethernet_reverse_mii_pad_sysconfs[] = {
 /*--------------------------------------------------------------------------------------*/
 
 
-#define MAC_SPEED_SEL		1	/* [1:1] */
-
 extern int stmac_default_pbl(void)
 {
 	return 32;
@@ -767,25 +774,6 @@ static void stxh415_ethernet_bus_setup(void)
 	 *	1.0	|	0x00264207
 	 */
 	writel(0x00264207, CONFIG_SYS_STM_STMAC_BASE + GMAC_AHB_CONFIG);
-}
-
-extern void stmac_set_mac_speed(int speed)
-{
-#if 0	/* QQQ - TO IMPLEMENT */
-#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0 */
-	unsigned long * const sysconfReg = (void*)STX7108_MII_SYSGFG(27);
-#elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1 */
-	unsigned long * const sysconfReg = (void*)STX7108_MII_SYSGFG(23);
-#else
-#error Unknown base address for the STM GMAC
-#endif
-	unsigned long sysconf = *sysconfReg;
-
-	/* MIIx_MAC_SPEED_SEL = 0|1 */
-	SET_SYSCONF_BIT(sysconf, (speed==100), MAC_SPEED_SEL);
-
-	*sysconfReg = sysconf;
-#endif	/* QQQ - TO IMPLEMENT */
 }
 
 /* ETH MAC pad configuration */
@@ -839,6 +827,21 @@ extern void stxh415_configure_ethernet(
 		phy_clock = stm_gmac_find_phy_clock(pad_config, num_pads);
 		stm_pad_set_pio_out(phy_clock, 2 - port);
 	} break;
+
+	case stxh415_ethernet_mode_rgmii:
+		/* This mode is similar to GMII (GTX) except the data
+		 * buses are reduced down to 4 bits and the 2 error
+		 * signals are removed. The data rate is maintained by
+		 * using both edges of the clock. This also explains
+		 * the different retiming configuration for this mode.
+		 */
+		pad_config = stxh415_ethernet_rgmii_pad_configs;
+		num_pads = ARRAY_SIZE(stxh415_ethernet_rgmii_pad_configs);
+		sys_configs = stxh415_ethernet_rgmii_pad_sysconfs;
+		num_sys = ARRAY_SIZE(stxh415_ethernet_rgmii_pad_sysconfs);
+		phy_clock = stm_gmac_find_phy_clock(pad_config, num_pads);
+		stm_pad_set_pio_out(phy_clock, 4);
+		break;
 
 	case stxh415_ethernet_mode_reverse_mii:
 		BUG();		/* assume not required in U-Boot */
@@ -921,7 +924,6 @@ extern int soc_init(void)
 #if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
 extern int stxh415_usb_init(const int port)
 {
-#if 0	/* QQQ - TO IMPLEMENT */
 	static int initialized = 0;
 	unsigned int flags;
 	const struct {
@@ -929,17 +931,26 @@ extern int stxh415_usb_init(const int port)
 			unsigned char port, pin, alt;
 		} oc, pwr;
 	} usb_pins[] = {
-		{ .oc = { 23, 6, 1 }, .pwr = { 23, 7, 1 } },
-		{ .oc = { 24, 0, 1 }, .pwr = { 24, 1, 1 } },
-		{ .oc = { 24, 2, 1 }, .pwr = { 24, 3, 1 } },
+		{ .oc = {  9, 4, 1 }, .pwr = {  9, 5, 1 } },
+		{ .oc = { 18, 0, 1 }, .pwr = { 18, 1, 1 } },
+		{ .oc = { 18, 2, 1 }, .pwr = { 18, 3, 1 } },
 	};
 
 	if (port < 0 || port >= 3)	/* invalid port number ? */
 		return -1;		/* failed to initialize! */
 
+		/* Set the USB clock to 48MHz */
+		/* QQQ - this probably should be done in the TargetPacks! */
+	*STXH415_CKGB_LOCK        = 0x0000C0DE;
+	*STXH415_CKGB_FS0_MD0     = 0x00000013;
+	*STXH415_CKGB_FS0_PE0     = 0x00000000;
+	*STXH415_CKGB_FS0_EN_PRG0 = 0x00000000;
+	*STXH415_CKGB_FS0_SDIV0   = 0x00000002;
+	*STXH415_CKGB_LOCK        = 0x00000000;
+
 	if (!initialized)		/* first time ? */
 	{	/* set USB2TRIPPHY_OSCIOK = 1 */
-		unsigned long * const sysconfReg = (unsigned long*)STX7108_BANK4_SYSCFG(44);
+		unsigned long * const sysconfReg = (unsigned long*)STXH415_SYSCFG(332);
 		unsigned long sysconf = readl(sysconfReg);
 		SET_SYSCONF_BIT(sysconf, TRUE, 6);
 		writel(sysconf, sysconfReg);
@@ -948,14 +959,23 @@ extern int stxh415_usb_init(const int port)
 
 	/* Power up the USB port, i.e. set USB_x_POWERDOWN_REQ = 0 */
 	{
-		unsigned long * const sysconfReg = (unsigned long*)STX7108_BANK4_SYSCFG(46);
+		unsigned long * const sysconfReg = (unsigned long*)STXH415_SYSCFG(336);
 		unsigned long sysconf = readl(sysconfReg);
 		SET_SYSCONF_BIT(sysconf, FALSE, port);
 		writel(sysconf, sysconfReg);
 	}
 	/* wait until USBx_PWR_DWN_GRANT == 0 */
-	while (*STX7108_BANK4_SYSSTS(2) & (1u<<port))
+	while (*STXH415_SYSCFG(384) & (1u<<port))
 		;	/* just wait ... */
+
+	/* Configure USB: in DC shift, and in edge control */
+	{
+		unsigned long * const sysconfReg = (unsigned long*)STXH415_SYSCFG(332);
+		unsigned long sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, FALSE, port);  /* in DC shift */
+		SET_SYSCONF_BIT(sysconf, TRUE, port+3); /* in edge control */
+		writel(sysconf, sysconfReg);
+	}
 
 	/* route the USB power enable (output) signal */
 	stxh415_pioalt_select(usb_pins[port].pwr.port,
@@ -976,7 +996,6 @@ extern int stxh415_usb_init(const int port)
 	ST40_start_host_control(flags);
 
 	return 0;
-#endif	/* QQQ - TO IMPLEMENT */
 }
 #endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 

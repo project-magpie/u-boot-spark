@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -60,6 +60,10 @@ extern void stxh415_pioalt_select(
 	const int port,
 	const int pin,
 	const int alt);
+extern void stxh415_pioalt_retime(
+	const int port,
+	const int pin,
+	const struct stm_pio_control_retime_config * const cfg);
 #define STXH415_PIOALT_SELECT(PAIR, ALT) stxh415_pioalt_select(PAIR, (ALT))
 
 
@@ -115,6 +119,7 @@ struct stxh415_ethernet_config {
 		stxh415_ethernet_mode_gmii,
 		stxh415_ethernet_mode_gmii_gtx,
 		stxh415_ethernet_mode_rmii,
+		stxh415_ethernet_mode_rgmii,
 		stxh415_ethernet_mode_rgmii_gtx,
 		stxh415_ethernet_mode_reverse_mii
 	} mode;
@@ -203,6 +208,7 @@ extern void stx7200_usb_init(void);
 extern void fli7510_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode);
 extern void fli7540_usb_init(const int port, const enum fli7540_usb_ovrcur_mode ovrcur_mode);
 extern int  stxh205_usb_init(const int port);
+extern int  stxh415_usb_init(const int port);
 
 
 /*

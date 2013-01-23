@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -53,12 +53,17 @@ do							\
 
 /*
  *	MII0: PIO106[2] = GMII0_notRESET
+ *	MII0: PIO13[4]  = PIO6_CLKSEL (DVO_CK)
+ *
  *	MII1: PIO4[7]   = GMII1_notRESET	(needs J39 fitted)
+ *	MII1: PIO2[5]   = PIO6_CLKSEL (PIO_HDMI_TX_HPD)
  */
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0, on CN22 */
-#	define GMII_PHY_NOT_RESET	106, 2
+#	define GMII_PHY_NOT_RESET		106, 2
+#	define GMII_PHY_CLKOUT_NOT_TXCLK_SEL	13, 4
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1, on CN23 */
-#	define GMII_PHY_NOT_RESET	4, 7
+#	define GMII_PHY_NOT_RESET		4, 7
+#	define GMII_PHY_CLKOUT_NOT_TXCLK_SEL	2, 5
 #endif
 
 
@@ -99,6 +104,14 @@ static void configPIO(void)
 	 * Configure the Ethernet PHY Reset signal
 	 */
 	SET_PIO_PIN2(GMII_PHY_NOT_RESET, STPIO_OUT);
+
+	/*
+	 * Configure the Ethernet PHY Mux PIO clock signal,
+	 * as an output, which controls the speed of the MAC.
+	 */
+	SET_PIO_PIN2(GMII_PHY_CLKOUT_NOT_TXCLK_SEL, STPIO_OUT);
+	STPIO_SET_PIN2(GMII_PHY_CLKOUT_NOT_TXCLK_SEL, 1);
+
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 }
 
@@ -113,6 +126,16 @@ extern void stmac_phy_reset(void)
 	udelay(10000);				/* 10 ms */
 	STPIO_SET_PIN2(GMII_PHY_NOT_RESET, 1);
 	udelay(10000);				/* 10 ms */
+}
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+
+
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+extern void stmac_set_mac_speed(int speed)
+{
+	/* Manage the MAC speed */
+	STPIO_SET_PIN2(GMII_PHY_CLKOUT_NOT_TXCLK_SEL,
+		(speed==1000)?1:0);
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
