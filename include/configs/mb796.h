@@ -275,9 +275,6 @@
 #define CONFIG_SYS_LONGHELP		1			/* undef to save memory		*/
 #define CONFIG_SYS_PROMPT		"MB796> "		/* Monitor Command Prompt	*/
 #define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#define CONFIG_SYS_CBSIZE		1024
-#define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16) /* Print Buffer Size	*/
-#define CONFIG_SYS_MAXARGS		16			/* max number of command args	*/
 #define CONFIG_SYS_HZ			1000			/* HZ for timer ticks	*/
 #define CONFIG_SYS_LOAD_ADDR		CONFIG_SYS_SDRAM_BASE	/* default load address		*/
 #define CONFIG_BOOTDELAY		10			/* default delay before executing bootcmd */

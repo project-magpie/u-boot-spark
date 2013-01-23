@@ -1,6 +1,6 @@
 /*
  * Copyright 2009 Freescale Semiconductor, Inc.
- * Copyright 2012 STMicroelectronics Ltd.
+ * Copyright 2012-2013 STMicroelectronics Ltd.
  *	Sean McGoogan <Sean.McGoogan@st.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -41,5 +41,26 @@
 #	define CONFIG_MD5		/* needed by CONFIG_CMD_MD5SUM */
 #	define CONFIG_SHA1		/* needed by CONFIG_CMD_SHA1 */
 #endif
+
+
+	/*
+	 * Increase some macros which control the maximum sizes
+	 * of buffers/arrays for processing U-Boot commands.
+	 * Building up linux command lines (e.g. bootargs)
+	 * often needs these limits raised, as the linux
+	 * command lines tend to grow (and grow)!
+	 */
+#if !defined(CONFIG_SYS_CBSIZE)		/* (input) Console Buffer size */
+#	define CONFIG_SYS_CBSIZE	(2*1024)	/* 2KiB */
+#endif
+
+#if !defined(CONFIG_SYS_PBSIZE)		/* (output) Print Buffer size */
+#	define CONFIG_SYS_PBSIZE	(CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16)
+#endif
+
+#if !defined(CONFIG_SYS_MAXARGS)	/* max number of command arguments */
+#	define CONFIG_SYS_MAXARGS	32
+#endif
+
 
 #endif /* _ASM_CONFIG_H_ */
