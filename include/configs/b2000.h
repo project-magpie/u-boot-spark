@@ -52,6 +52,14 @@
 
 
 /*-----------------------------------------------------------------------
+ * Do we allow the (primary) ST40 core to boot ARM images on the (secondary) ARM core ?
+ * If so, then define the "CONFIG_SYS_BOOT_ARM_IMAGE" macro,
+ * otherwise (ST40-only booting), do not define it.
+ */
+#define CONFIG_SYS_BOOT_ARM_IMAGE		/* define to allow ARM-bootable image */
+
+
+/*-----------------------------------------------------------------------
  * Are we booting directly from a NAND Flash device ?
  * If so, then define the "CONFIG_SYS_BOOT_FROM_NAND" macro,
  * otherwise (e.g. SPI Flash booting), do not define it.

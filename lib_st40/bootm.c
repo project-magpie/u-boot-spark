@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2012 STMicroelectronics.
+ * (C) Copyright 2004-2013 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -31,6 +31,7 @@
 #include <asm/addrspace.h>
 #include <asm/pmb.h>
 #include <asm/soc.h>
+#include "bootm_for_arm.h"
 
 #ifdef CONFIG_SHOW_BOOT_PROGRESS
 # include <status_led.h>
@@ -87,6 +88,17 @@ extern int do_bootm_linux (int flag, int argc, char *argv[], bootm_headers_t *im
 #ifdef CONFIG_ST40_SE_MODE
 	size_t i;
 #endif	/* CONFIG_ST40_SE_MODE */
+
+#if defined(CONFIG_SYS_BOOT_ARM_IMAGE)
+	/*
+	 * Are we trying to boot an ARM image, from a ST40 core ?
+	 */
+	if (image_check_arch(&images->legacy_hdr_os_copy, IH_ARCH_ARM)) {
+		/* then use the specific ARM linux loader function */
+		return do_bootm_armlinux(flag, argc, argv, images);
+	}
+	/* else, we assume it is a native image we are booting ... */
+#endif	/* CONFIG_SYS_BOOT_ARM_IMAGE */
 
 	if ((flag != 0) && (flag != BOOTM_STATE_OS_GO))
 		return 1;

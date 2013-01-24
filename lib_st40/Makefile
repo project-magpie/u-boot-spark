@@ -25,12 +25,16 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(ARCH).a
 
-SOBJS	= memchr.o memcpy.o memmove.o memset.o strlen.o cacheops.o div64.o
+SOBJS-y = memchr.o memcpy.o memmove.o memset.o strlen.o cacheops.o div64.o
 
 COBJS-y = board.o bootm.o time.o io_generic.o udivdi3.o sconsole.o
 
-SRCS 	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
-OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
+# Object files to use when CONFIG_SYS_BOOT_ARM_IMAGE is defined.
+SOBJS-$(CONFIG_SYS_BOOT_ARM_IMAGE) += armlinuxprep.o
+COBJS-$(CONFIG_SYS_BOOT_ARM_IMAGE) += bootm_for_arm.o stxp70armboothelper.o
+
+SRCS 	:= $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
+OBJS	:= $(addprefix $(obj),$(SOBJS-y) $(COBJS-y))
 
 $(LIB):	$(obj).depend $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)

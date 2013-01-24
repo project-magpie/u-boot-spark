@@ -268,6 +268,19 @@
 
 /*----------------------------------------------------------------------------*/
 
+
+/*
+ * STxP70 registers to configure the ARM boot zone (ABAP through xP70)
+ */
+#define STXH415_LPM_STXP70_BASE			STXH415_SBC_LPM_BASE
+#define STXH415_LPM_STXP70_IMEM_BASE		SH4_DWORD_REG(STXH415_LPM_STXP70_BASE + 0x00018000)
+#define STXH415_LPM_STXP70_DMEM_BASE		SH4_DWORD_REG(STXH415_LPM_STXP70_BASE + 0x00010000)
+#define STXH415_LPM_STXP70_DMEM_04		SH4_DWORD_REG((unsigned int)(STXH415_LPM_STXP70_DMEM_BASE) + 0x04)
+#define STXH415_LPM_STXP70_CONFIG_REGS_BASE	SH4_DWORD_REG(STXH415_LPM_STXP70_BASE + 0x000b5100)
+
+
+/*----------------------------------------------------------------------------*/
+
 /*
  * Device ID register & bitfields
  */
