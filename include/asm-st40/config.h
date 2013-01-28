@@ -62,5 +62,18 @@
 #	define CONFIG_SYS_MAXARGS	32
 #endif
 
+	/*
+	 * In the include/configs/<board>.h files, we may want to use
+	 * the roundup() macro, to ensure that various configuration #defines
+	 * are appropriately "rounded" up. This is especially true for
+	 * dealing with very-large page NAND devices, and the definitions
+	 * of both CONFIG_ENV_SIZE, and CONFIG_SYS_NAND_ENV_OFFSET, which
+	 * typically will be multiples of NAND erase-size blocks.
+	 * We include this macro here, to avoid its definition being replicated.
+	 */
+#if !defined(roundup)
+#	define roundup(x, y)		((((x) + ((y) - 1)) / (y)) * (y))
+#endif
+
 
 #endif /* _ASM_CONFIG_H_ */
