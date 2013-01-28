@@ -526,7 +526,8 @@ void reset_cmd_timeout(void)
 
 #define CTL_CH(c)		((c) - 'a' + 1)
 
-#define MAX_CMDBUF_SIZE		256
+/* Increase command buffer (from 256), so we can define larger "bootargs" */
+#define MAX_CMDBUF_SIZE		2048
 
 #define CTL_BACKSPACE		('\b')
 #define DEL			((char)255)
