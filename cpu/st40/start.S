@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2012 STMicroelectronics.
+ * (C) Copyright 2004-2013 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -416,7 +416,8 @@ set_pmb:
 #elif defined(CONFIG_ST40_FLI7540) && defined(CONFIG_ST40_FUDB)
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa8,0x00, 64		/* NOR/NAND FLASH CACHED */
-#elif defined(CONFIG_ST40_STXH415) && defined(CONFIG_ST40_B2000)
+#elif defined(CONFIG_ST40_STXH415) &&	\
+	( defined(CONFIG_ST40_B2000) || defined(CONFIG_ST40_B2020) )
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
 	SH4_SET_PMB 5,0xb0,0x00, 16		/* NAND/SPI FLASH CACHED */
 	SH4_SET_PMB 6,0xa1,0x01, 16,0,0,1	/* NAND/SPI FLASH UN-cached */

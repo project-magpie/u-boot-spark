@@ -1,7 +1,6 @@
 #
-# (C) Copyright 2004-2013
-# Andy Sturges, STMicroelectronics, andy.sturges@st.com
-# Sean McGoogan STMicroelectronics, <Sean.McGoogan@st.com>
+# (C) Copyright 2008-2013 STMicroelectronics.
+# Sean McGoogan <Sean.McGoogan@st.com>
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -22,17 +21,22 @@
 # MA 02111-1307 USA
 #
 
-# Update this for each release.
-# The SPEC file will automatically substitute the date
-# for actual build number, in the following identifier.
-# Regular Expression for string is:
-# 	"stm[2-9][0-9]-[2-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]"
-ST40_IDENT_STRING="\"stm24-2013-01-28\""
+#
+# B2020 board:
+#
+#	Valid values for TEXT_BASE are:
+#
+#	0x8FF00000	32-bit mode (Space-Enhancement Mode)
+#
+# Note:	Alternative definitions of TEXT_BASE are put into
+#	'config.tmp' from the top-level 'Makefile'.
+#
 
-CROSS_COMPILE ?= sh4-linux-
+sinclude $(OBJTREE)/board/$(BOARDDIR)/config.tmp
 
-sinclude $(OBJTREE)/include/autoconf.mk
-STANDALONE_LOAD_ADDR = $(CONFIG_SYS_SDRAM_BASE)
+ifndef TEXT_BASE
+# Installs at LMI0 BASE + 255MB in P1 (cachable)
+TEXT_BASE = 0x8FF00000
+endif
 
-PLATFORM_CPPFLAGS += -DCONFIG_ST40 -D__SH4__ -DCONFIG_IDENT_STRING=$(ST40_IDENT_STRING)
-PLATFORM_LDFLAGS  += -n
+PLATFORM_LDFLAGS +=

@@ -182,6 +182,10 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define IP1001_PHY_ID		0x02430d90u
 #define IP1001_PHY_ID_MASK	0xfffffff0u
 
+#define IP1001_SPEC_CTRL_STATUS	16	/* PHY Specific Control & Status Register #1 */
+#define IP1001_RXPHASE_SEL	(1u<<0)	/* RXPHASE_SEL = bit 16[0] */
+#define IP1001_TXPHASE_SEL	(1u<<1)	/* TXPHASE_SEL = bit 16[1] */
+
 #elif defined(CONFIG_STMAC_IP101A) || defined(CONFIG_STMAC_IP101G)	/* IC+ IP101A or IP101G */
 
 /* IC+ IP101A and IP101G phy identifier values are the *same*! */
@@ -510,6 +514,17 @@ static int stmac_phy_init (void)
 	value &= ~(GBCR_1000HALF|GBCR_1000FULL);
 	stmac_mii_write (eth_phy_addr, MII_GBCR, value);
 #endif
+
+	/*
+	 * On the B2020 board, in RGMII mode, with the IC+ IP1001 PHY, an additional
+	 * delay of ~2ns should be added to Rx and Tx, to adjust the RX/TX clock phases.
+	 * QQQ: This code-hackery should really be in a board-specific file!
+	 */
+#if defined(CONFIG_STMAC_IP1001) && defined(CONFIG_ST40_B2020)
+	value = stmac_mii_read(eth_phy_addr, IP1001_SPEC_CTRL_STATUS);
+	value |= (IP1001_RXPHASE_SEL | IP1001_TXPHASE_SEL);
+	stmac_mii_write(eth_phy_addr, IP1001_SPEC_CTRL_STATUS, value);
+#endif	/* CONFIG_STMAC_IP1001 && CONFIG_ST40_B2020 */
 
 #ifdef CONFIG_PHY_LOOPBACK
 

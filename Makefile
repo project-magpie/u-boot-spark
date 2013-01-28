@@ -3914,6 +3914,22 @@ b2000se_config :		unconfig
 	@$(MKCONFIG) -a -n $@ b2000 st40 st40 b2000 st stxh415
 	@$(MKROMGEN) no-such-ip b2000stxh415 st40 se=0
 
+b2020se_config		\
+b2020se_spi_config	\
+b2020se_nand_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/b2020
+	@echo "#define CONFIG_ST40_STXH415       1" >>$(obj)include/config.h
+	@echo "#define CONFIG_ST40_B2020         1" >>$(obj)include/config.h
+	@echo "#define CONFIG_ST40_CONTIG_MODE   1" >>$(obj)include/config.h
+	$(if $(findstring se,$@), \
+	@echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
+	 echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2020/config.tmp)
+	$(if $(findstring _nand_,$@), \
+	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
+	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
+	@$(MKCONFIG) -a -n $@ b2020 st40 st40 b2020 st stxh415
+	@$(MKROMGEN) no-such-ip b2020stxh415 st40 se=0
+
 
 #########################################################################
 ## sh2 (Renesas SuperH)
