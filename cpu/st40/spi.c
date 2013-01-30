@@ -151,8 +151,10 @@ static unsigned deviceSize;	/* Size of the device in Bytes */
 static const char * deviceName;	/* Name of the device */
 
 #if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND) || defined(CONFIG_SPI_FLASH_SPANSION)
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) || defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_SPANSION)
 static unsigned char op_write = OP_PP;		/* default write command opcode to use */
 static unsigned char op_erase = OP_SE;		/* default erase command opcode to use */
+#endif	/* CONFIG_SOFT_SPI || CONFIG_STM_SSC_SPI || CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_SPANSION */
 #endif
 static unsigned char op_read  = OP_READ_ARRAY;	/* default read command opcode to use */
 
