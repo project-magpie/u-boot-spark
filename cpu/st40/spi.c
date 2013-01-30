@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007,2009-2012 STMicroelectronics.
+ * (C) Copyright 2007,2009-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -938,33 +938,47 @@ static int spi_probe_serial_flash(
 #elif defined(CONFIG_SPI_FLASH_MXIC)
 
 	if (
-		(devid[1] != 0xc2u)	||	/* Manufacturer ID */
-		(devid[2] != 0x26u)	||	/* Memory Type */
+		(devid[1] == 0xc2u)	&&	/* Manufacturer ID */
+		(devid[2] == 0x26u)	&&	/* Memory Type */
 		(				/* Memory Capacity */
-			(devid[3] != 0x15u) &&	/* MX25L1655D */
-			(devid[3] != 0x17u) &&	/* MX25L6455E */
-			(devid[3] != 0x18u)	/* MX25L12855E */
+			(devid[3] == 0x15u) ||	/* MX25L1655D */
+			(devid[3] == 0x17u) ||	/* MX25L6455E */
+			(devid[3] == 0x18u)	/* MX25L12855E */
 		)
 	   )
+	{
+		pageSize   = 256u;
+		eraseSize  = 4u<<10;			/* 4 KiB, 16 pages/sector */
+		deviceSize = 1u<<devid[3];		/* Memory Capacity */
+		if (devid[3] == 0x15u)
+		{
+			deviceName = "MXIC MX25L1655D";	/* 16 Mbit == 2 MiB */
+		}
+		else if (devid[3] == 0x17u)
+		{
+			deviceName = "MXIC MX25L6455E";	/* 64 Mbit == 8 MiB */
+		}
+		else if (devid[3] == 0x18u)
+		{
+			deviceName = "MXIC MX25L12855E";/* 128 Mbit == 16 MiB */
+		}
+	}
+	else if (
+		(devid[1] == 0xc2u)	&&	/* Manufacturer ID */
+		(devid[2] == 0x20u)	&&	/* Memory Type */
+		(devid[3] == 0x16u)		/* MX25L3206E */
+	   )
+	{
+		pageSize   = 256u;
+		eraseSize  = 4u<<10;			/* 4 KiB, 16 pages/sector */
+		deviceSize = 1u<<devid[3];		/* Memory Capacity */
+		deviceName = "MXIC MX25L3206E";		/* 32 Mbit == 4 MiB */
+	}
+	else
 	{
 		printf("ERROR: Unknown SPI Device detected, devid = 0x%02x, 0x%02x, 0x%02x\n",
 			devid[1], devid[2], devid[3]);
 		return -1;
-	}
-	pageSize   = 256u;
-	eraseSize  = 4u<<10;			/* 4 KiB, 16 pages/sector */
-	deviceSize = 1u<<devid[3];		/* Memory Capacity */
-	if (devid[3] == 0x15u)
-	{
-		deviceName = "MXIC MX25L1655D";	/* 16 Mbit == 2 MiB */
-	}
-	else if (devid[3] == 0x17u)
-	{
-		deviceName = "MXIC MX25L6455E";	/* 64 Mbit == 8 MiB */
-	}
-	else if (devid[3] == 0x18u)
-	{
-		deviceName = "MXIC MX25L12855E";/* 128 Mbit == 16 MiB */
 	}
 
 #elif defined(CONFIG_SPI_FLASH_WINBOND)
