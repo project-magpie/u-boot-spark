@@ -209,6 +209,12 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define PHY_ADDR_MSK		0x180	/* PHY Address Mask */
 #define PHY_ADDR_SHIFT		7	/* PHY Address Mask */
 
+#elif defined(CONFIG_STMAC_MARVELL)	/* MARVELL 88EC060 */
+
+/* MARVELL 88EC060 phy identifier values */
+#define MARVELL_PHY_ID		0x01410DD1u
+#define MARVELL_PHY_ID_MASK	0xffffffffu
+
 #elif defined(CONFIG_STMAC_GENERIC)	/* a "generic" PHY */
 
 /* This will match *any* (real) PHY ID (i.e. not all-ones) */
@@ -395,6 +401,11 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "REALTEK RTL8201E(L) found\n");
 			return phyaddr;
 		}
+#elif defined(CONFIG_STMAC_MARVELL)
+		if ((id & MARVELL_PHY_ID_MASK) == MARVELL_PHY_ID) {
+			printf (STMAC "MARVELL 88EC060 found\n");
+			return phyaddr;
+		}
 #elif defined(CONFIG_STMAC_GENERIC)
 		if ((id & GENERIC_PHY_ID_MASK) != GENERIC_PHY_ID) {
 			printf (STMAC "Generic PHY found (ID=0x%08x)\n",id);
@@ -461,6 +472,10 @@ static int stmac_phy_init (void)
 	/* The TERIDIAN 78Q2123 does not appear to support
 	 * reading the H/W PHY address from any register.  */
 #	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
+#elif defined(CONFIG_STMAC_MARVELL)
+	/* The MARVEL 88EC060 does not appear to support
+	 * reading the H/W PHY address from any register.  */
+#	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #elif defined(CONFIG_STMAC_GENERIC)
 	/* For the GENERIC PHY, we assume it does not support
 	 * reading the H/W PHY address from any register.  */
@@ -509,7 +524,7 @@ static int stmac_phy_init (void)
 	 * ability to auto-negotiate at 1000BASE-T (Gigabit).
 	 * Once ST's SoCs are capable of Gigabit, then we will review!
 	 */
-#if defined(CONFIG_STMAC_IP1001)
+#if defined(CONFIG_STMAC_IP1001) || defined(CONFIG_STMAC_MARVELL)
 	value = stmac_mii_read (eth_phy_addr, MII_GBCR);
 	value &= ~(GBCR_1000HALF|GBCR_1000FULL);
 	stmac_mii_write (eth_phy_addr, MII_GBCR, value);
