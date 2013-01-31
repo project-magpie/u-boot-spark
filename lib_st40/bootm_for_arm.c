@@ -246,6 +246,7 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
 
      /* Wait for LPM STxP70 to be out of reset */
      int timeout = 0x100000;
+#if defined(CONFIG_ST40_STXH415)
      while ((*STXH415_SYSSTS(36) & (1 << 6)) != (1 << 6) && timeout-- > 0) { }
 
      /* Put ARM boot address in STxP70 DMEM base */
@@ -300,6 +301,65 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
      udelay(1000);
      /* Reset ST40 as not used anymore */
      *STXH415_SYSCFG(644)=0xB;
+#elif defined(CONFIG_ST40_STXH416)
+     while ((*STXH416_SYSSTS(36) & (1 << 6)) != (1 << 6) && timeout-- > 0) { }
+
+     /* Put ARM boot address in STxP70 DMEM base */
+     *STXH416_LPM_STXP70_DMEM_BASE = (uint32_t)virt_to_phys(&armLinuxPrep);
+     /* Clear marker location used to check whether STxP70 did its job */
+     *STXH416_LPM_STXP70_DMEM_04 = 0;
+
+     /* Load STxP70 code */
+     memcpy((void*)STXH416_LPM_STXP70_IMEM_BASE, &stxp70ARMBootHelperCode_bin, stxp70ARMBootHelperCode_bin_len);
+
+     /* Start STxP70 */
+     *STXH416_LPM_STXP70_CONFIG_REGS_BASE |= 1;
+     *STXH416_SYSCFG(15) |= (1 << 1);
+
+     /* Wait and see if STxP70 completes its task */
+     timeout = 0x100000;
+     while (*STXH416_LPM_STXP70_DMEM_04 != 0xb007b007 && timeout-- > 0) { }
+     if (timeout <= 0)
+     {
+        printf("Warning: LPM STxP70 did not complete ABAP initialisation\n");
+     }
+
+     /* Clean-up hardware */
+#if defined(CONFIG_DRIVER_NET_STM_GMAC)
+#if defined(CONFIG_ST40_B2000)
+#if (CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE)
+     /* /!\ Without this little hack, resetting PIO15.5 (MDC signal), the phy is not detected anymore on B2000 platform after kernel boot /!\ */
+     {
+      stxh416_pioalt_select(15,5,0);
+      stxh416_pioalt_pad(15,5,stm_pad_direction_input);
+      stxh416_pioalt_retime(15,5,(&(struct stm_pio_control_retime_config) { .retime      = 0,
+                                                                            .clk1notclk0 = 0,
+                                                                            .clknotdata  = 0,
+                                                                            .double_edge = 0,
+                                                                            .invertclk   = 0,
+                                                                            .delay_input = 0 }));
+      stmac_phy_reset();
+     }
+#endif
+#endif
+#endif
+
+     /* Boot A9 from ABAP CONFIG647 */
+     *STXH416_SYSCFG(647)|=1;
+     /* Hold A9 reset */
+     *STXH416_SYSCFG(644)=0xE;
+     /* Wait 1ms */
+     udelay(1000);
+     /* Release reset A9 */
+     *STXH416_SYSCFG(644)=0xF;
+     /* Wait 1ms */
+     udelay(1000);
+     /* Reset ST40 as not used anymore */
+     *STXH416_SYSCFG(644)=0xB;
+#else
+#error ARM booting is only currently available on the STxH415 or STxH416!
+#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+
      /* Does not return, Cpu should die as we just reset it */
      while(1);
     }

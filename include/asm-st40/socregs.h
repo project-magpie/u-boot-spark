@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2004-2011
+ * Copyright (C) STMicroelectronics Ltd. 2004-2013
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -49,6 +49,8 @@
 #	include <asm/stxh205reg.h>
 #elif defined(CONFIG_ST40_STXH415)
 #	include <asm/stxh415reg.h>
+#elif defined(CONFIG_ST40_STXH416)
+#	include <asm/stxh416reg.h>
 #else
 #	error Missing Device Definitions!
 #endif

@@ -1,45 +1,50 @@
 /*
-This file was automatically generated on Thu 13 Dec 12 at 10:40:49 by user marco, host macfly using romgen R2012.1.1 with the ST TargetPack b2000stxh415
+This file was automatically generated on Fri 14 Dec 12 at 15:00:22 by user marco, host macfly using romgen R2012.1.1 with the ST TargetPack b2020stxh416
 
 TargetPack files used:
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/b2000.py
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/b2000_leds_dbg.pyc
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/b2000stxh415.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/b2000stxh415_design.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/clk_common2.pyc
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41.pyc
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41_clockgena_regs.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41_ddr3_dbg.pyc
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41_ddr3_swdtu.pyc
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41_design.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41_left_syscfg.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41_mali_regs.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41_right_syscfg.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41_system_syscfg.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41_tango_regs.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/mpe41_vip_regs.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/sasg1.pyc
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/sasg1.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/sasg1_clockgena_regs.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/sasg1_design.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/sasg1_front_syscfg.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/sasg1_lpm.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/sasg1_rear_syscfg.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/sasg1_spi_regs.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/stac_regs.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/stxh415.pyc
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/stxh415.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/stxh415_debug_design.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/stxh415_design.xml
-/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2000stxh415_targetpack-v15/stxh415_interco_init.pyc
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/b2020stxh416.py
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/b2020stxh416.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/b2020stxh416_design.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/clk_common2.py
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/ddr3phy_regs.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42.py
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_clockgena_regs.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_compo_sysconf_regs.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_cpu_sysconf_regs.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_ddr3_dbg.py
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_ddr3_swdtu.py
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_design.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_fvdpfe_sysconf_regs.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_fvdplite_sysconf_regs.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_mali_regs.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_tango2tp.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_transport_sysconf_regs.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/mpe42_vip.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/sasg2.py
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/sasg2.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/sasg2_clockgena_regs.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/sasg2_design.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/sasg2_front_syscfg.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/sasg2_lpm.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/sasg2_rear_syscfg.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/sasg2_spi_regs.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/stxh416.py
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/stxh416.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/stxh416_debug_design.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/stxh416_design.xml
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/stxh416_interco_init.py
+/home/marco/Zeus/Code/Orly-Uboot/targetpacks/b2020stxh416_targetpack-v3/stxh416_stac_regs.xml
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/arm_a9.pyc
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/arm_cortex_core.xml
+/home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/core_utils.pyc
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/coresight_cti.xml
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/coresight_debug.xml
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/coresight_memap.xml
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/dbu.xml
+/home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/st231_jtag_core.pyc
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/st231_jtag_core.xml
+/home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/st40_300.pyc
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/st40_300.xml
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/st40_300_design.xml
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/st40_ccn_regs.xml
@@ -49,7 +54,6 @@ TargetPack files used:
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/cores/xp70_core.xml
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/debug/jtagmux.xml
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/platform/b2076/ddr3mixer_regs.xml
-/home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/platform/b2076/ddr3phy_regs.xml
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/socs/peripherals/a9ss_l2cache.xml
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/socs/peripherals/convertor.pyc
 /home/marco/Zeus/Code/Orly-Uboot/toolchain/host/stmc/targetpack/socs/peripherals/cti.pyc
@@ -65,7 +69,7 @@ TargetPack files used:
 */
 /*
 ***
-*** 'b2000stxh415' targetpack v15 starting
+*** 'b2020stxh416' targetpack v3 starting
 ***
 
  */
@@ -73,42 +77,38 @@ TargetPack files used:
  */
 /* TCK frequency set to 0 Hz
  */
-IF_EQ32(1, 0xfd6da090, 0x00000080, 0x00000080)
-  IF_EQ32(2, 0xfd6da0c0, 0x00000001, 0x00000001)
-
-
-/*
-sysconf_regs.CORE_SOFT_RESET
-*/
-    POKE32(0xfdde00b0, 0x00000008)
-  ENDIF(2)
-ENDIF(1)
-/* B2000 connect() initialization start ...
+/* Main TMC devid 0x00000000
+ */
+/* Complete TMC chain devid 0x0
+ */
+/* autodetect_chain() td_from: 000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111100
+ */
+/* B2020 connect() initialization start ...
  */
 /*
  */
 
 
 /*
-sysconf_regs.SYSTEM_STATUS398
+sysconf_regs.SYSTEM_STATUS2598
 */
-IF_EQ32(1, 0xfe830188, 0x0000001f, 0x0000001a)
-  POKE32(0xfe90210c, 0x000000c6)
-  POKE32(0xfe902110, 0x00010806)
-  POKE32(0xfe902114, 0x00000881)
-  POKE32(0xfe902118, 0x000008eb)
-  POKE32(0xfe90211c, 0x00000861)
+IF_EQ32(1, 0xfe830958, 0x0000001f, 0x0000001a)
+  POKE32(0xfe90210c, 0x0000004c)
+  POKE32(0xfe902110, 0x000008bb)
+  POKE32(0xfe902114, 0x00000000)
+  POKE32(0xfe902118, 0x00000000)
+  POKE32(0xfe90211c, 0x00000000)
   POKE32(0xfe902120, 0x00000000)
-  POKE32(0xfe902148, 0x41132111)
-  POKE32(0xfe90214c, 0x00001823)
-  POKE32(0xfe902150, 0x05041231)
-  POKE32(0xfe902154, 0x00000f26)
-  POKE32(0xfe902124, 0x00c20010)
-  POKE32(0xfe902128, 0x00c60000)
-  POKE32(0xfe90212c, 0x0010cb8b)
-  POKE32(0xfe902164, 0x00002710)
-  POKE32(0xfe902140, 0x000300c1)
-/* Configuring SPI in 4x IO FSM mode (div4) ...
+  POKE32(0xfe902148, 0x00000018)
+  POKE32(0xfe90214c, 0x00000000)
+  POKE32(0xfe902150, 0x26051211)
+  POKE32(0xfe902154, 0x0000000f)
+  POKE32(0xfe902124, 0x00000000)
+  POKE32(0xfe902128, 0x00440000)
+  POKE32(0xfe90212c, 0x00000000)
+  POKE32(0xfe902164, 0x00000000)
+  POKE32(0xfe902140, 0x000100c1)
+/* Configuring SPI in 2x IO FSM mode (div4) ...
  */
 
 
@@ -140,20 +140,20 @@ ENDIF(1)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
 POKE32(0xfde1201c, 0x00000000)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
 POKE32(0xfde12020, 0x00000000)
 OR32(0xfde12008, 0x00000800)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 OR32(0xfde12018, 0x00000001)
 UPDATE32(0xfde12000, 0xffffff00, 0x00000014)
@@ -162,18 +162,16 @@ POKE32(0xfde12054, 0x00410410)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfde12018, 0xfffffffe, 0x00000000)
 WHILE_NE32(0xfde12004, 0x80000000, 0x80000000)
 UPDATE32(0xfde12008, 0xfffff7ff, 0x00000000)
-UPDATE32(0xfde12004, 0x80000007, 0x000807d0)
-UPDATE32(0xfde12008, 0xffffffc3, 0x00000034)
 OR32(0xfde12014, 0x00000800)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 OR32(0xfde12018, 0x00000002)
 UPDATE32(0xfde1200c, 0xffffff00, 0x00000032)
@@ -182,17 +180,17 @@ POKE32(0xfde12058, 0x00410410)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfde12018, 0xfffffffd, 0x00000000)
 WHILE_NE32(0xfde12010, 0x80000000, 0x80000000)
 UPDATE32(0xfde12014, 0xfffff7ff, 0x00000000)
-UPDATE32(0xfde12010, 0x80000007, 0x004f0298)
-UPDATE32(0xfde12014, 0xffffffc3, 0x00000034)
-POKE32(0xfde12a60, 0x00000013)
+POKE32(0xfde12908, 0x00000002)
 POKE32(0xfde12a70, 0x00000004)
 POKE32(0xfde12a74, 0x00000004)
-POKE32(0xfde12a78, 0x00000003)
+POKE32(0xfde12918, 0x00000001)
+POKE32(0xfde12a7c, 0x00000001)
+POKE32(0xfde12a80, 0x00000001)
 POKE32(0xfde12828, 0x00000000)
 POKE32(0xfde12a8c, 0x00000001)
 POKE32(0xfde12a90, 0x00000001)
@@ -200,41 +198,45 @@ POKE32(0xfde12a94, 0x00000001)
 POKE32(0xfde12998, 0x00000001)
 POKE32(0xfde1299c, 0x00000001)
 POKE32(0xfde12a20, 0x00000001)
-POKE32(0xfde12a24, 0x00000001)
-POKE32(0xfde12b18, 0x00000004)
-POKE32(0xfde12b1c, 0x00000003)
-POKE32(0xfde12b20, 0x00000003)
+POKE32(0xfde12b14, 0x00000001)
+POKE32(0xfde12a28, 0x00000003)
+POKE32(0xfde12b1c, 0x00000002)
+POKE32(0xfde12b20, 0x00000002)
+POKE32(0xfde12b24, 0x00000002)
+POKE32(0xfde12b28, 0x00000002)
+POKE32(0xfde12b2c, 0x00000002)
+POKE32(0xfde12b40, 0x00000002)
 POKE32(0xfde12b48, 0x00000004)
 POKE32(0xfde12b4c, 0x00000004)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-POKE32(0xfde1201c, 0x5a8feafe)
+POKE32(0xfde1201c, 0x5a8e9adf)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
-POKE32(0xfde12020, 0xa00002a5)
+POKE32(0xfde12020, 0xaeffaa99)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
 POKE32(0xfd6db01c, 0x00000000)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
 POKE32(0xfd6db020, 0x00000000)
 OR32(0xfd6db008, 0x00000800)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 OR32(0xfd6db018, 0x00000001)
 UPDATE32(0xfd6db000, 0xffffff00, 0x0000000f)
@@ -243,96 +245,92 @@ POKE32(0xfd6db054, 0x00410410)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfd6db018, 0xfffffffe, 0x00000000)
 WHILE_NE32(0xfd6db004, 0x80000000, 0x80000000)
 UPDATE32(0xfd6db008, 0xfffff7ff, 0x00000000)
-UPDATE32(0xfd6db004, 0x80000007, 0x000807d0)
-UPDATE32(0xfd6db008, 0xffffffc3, 0x00000034)
 OR32(0xfd6db014, 0x00000800)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 OR32(0xfd6db018, 0x00000002)
-UPDATE32(0xfd6db00c, 0xffffff00, 0x00000032)
+UPDATE32(0xfd6db00c, 0xffffff00, 0x00000028)
 UPDATE32(0xfd6db010, 0xfffffff8, 0x00000003)
 POKE32(0xfd6db058, 0x00410410)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfd6db018, 0xfffffffd, 0x00000000)
 WHILE_NE32(0xfd6db010, 0x80000000, 0x80000000)
 UPDATE32(0xfd6db014, 0xfffff7ff, 0x00000000)
-UPDATE32(0xfd6db010, 0x80000007, 0x004f0298)
-UPDATE32(0xfd6db014, 0xffffffc3, 0x00000034)
-POKE32(0xfd6db900, 0x00000001)
 POKE32(0xfd6db904, 0x00000001)
 POKE32(0xfd6db908, 0x00000001)
-POKE32(0xfd6db90c, 0x00000001)
-POKE32(0xfd6db910, 0x00000003)
-POKE32(0xfd6dba74, 0x00000002)
-POKE32(0xfd6dba78, 0x00000002)
-POKE32(0xfd6dba7c, 0x00000002)
-POKE32(0xfd6dba80, 0x00000003)
-POKE32(0xfd6dba84, 0x00000003)
-POKE32(0xfd6dba88, 0x00000002)
-POKE32(0xfd6dba8c, 0x00000013)
-POKE32(0xfd6dba90, 0x00000004)
-POKE32(0xfd6dba94, 0x00000009)
+POKE32(0xfd6dba6c, 0x00000001)
+POKE32(0xfd6db910, 0x00000001)
+POKE32(0xfd6dba74, 0x00000001)
+POKE32(0xfd6db918, 0x00000001)
+POKE32(0xfd6db91c, 0x00000001)
+POKE32(0xfd6db980, 0x00000001)
+POKE32(0xfd6db984, 0x00000001)
+POKE32(0xfd6dba8c, 0x0000000f)
+POKE32(0xfd6dba90, 0x00000003)
+POKE32(0xfd6dba94, 0x00000003)
+POKE32(0xfd6db99c, 0x00000001)
+POKE32(0xfd6dbb14, 0x00000003)
+POKE32(0xfd6dba28, 0x00000001)
+POKE32(0xfd6dba2c, 0x00000001)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-POKE32(0xfd6db01c, 0xfaaaa955)
+POKE32(0xfd6db01c, 0x7ab55997)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
-POKE32(0xfd6db020, 0xfffffffc)
+POKE32(0xfd6db020, 0xffffff58)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
 POKE32(0xfd34501c, 0x00000000)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
 POKE32(0xfd345020, 0x00000000)
 OR32(0xfd345008, 0x00000800)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 OR32(0xfd345018, 0x00000001)
-UPDATE32(0xfd345000, 0xffffff00, 0x0000007c)
-UPDATE32(0xfd345004, 0xfffffff8, 0x00000005)
+UPDATE32(0xfd345000, 0xffffff00, 0x0000000f)
+UPDATE32(0xfd345004, 0xfffffff8, 0x00000001)
 POKE32(0xfd345054, 0x00410410)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfd345018, 0xfffffffe, 0x00000000)
 WHILE_NE32(0xfd345004, 0x80000000, 0x80000000)
 UPDATE32(0xfd345008, 0xfffff7ff, 0x00000000)
-UPDATE32(0xfd345004, 0x80000007, 0x00f40190)
-UPDATE32(0xfd345008, 0xffffffc3, 0x00000034)
 OR32(0xfd345014, 0x00000800)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 OR32(0xfd345018, 0x00000002)
 UPDATE32(0xfd34500c, 0xffffff00, 0x00000050)
@@ -341,206 +339,200 @@ POKE32(0xfd345058, 0x00410410)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_POWER_CFG
+mpe42_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfd345018, 0xfffffffd, 0x00000000)
 WHILE_NE32(0xfd345010, 0x80000000, 0x80000000)
 UPDATE32(0xfd345014, 0xfffff7ff, 0x00000000)
-UPDATE32(0xfd345010, 0x80000007, 0x003f0298)
-UPDATE32(0xfd345014, 0xffffffc3, 0x00000034)
-POKE32(0xfd345900, 0x00000001)
-POKE32(0xfd345904, 0x00000005)
-POKE32(0xfd345a68, 0x00000001)
+POKE32(0xfd345900, 0x00000000)
+POKE32(0xfd345904, 0x00000003)
+POKE32(0xfd345908, 0x00000000)
 POKE32(0xfd345a6c, 0x00000003)
 POKE32(0xfd345a88, 0x00000003)
 POKE32(0xfd345a8c, 0x00000007)
-POKE32(0xfd345a90, 0x00000004)
-POKE32(0xfd345a94, 0x00000004)
-POKE32(0xfd345a98, 0x00000007)
-POKE32(0xfd345a9c, 0x00000007)
-POKE32(0xfd345b18, 0x00000005)
-POKE32(0xfd345b20, 0x00000007)
-POKE32(0xfd345b24, 0x00000007)
+POKE32(0xfd345a90, 0x00000003)
+POKE32(0xfd345a94, 0x00000003)
+POKE32(0xfd345a98, 0x00000004)
+POKE32(0xfd345a9c, 0x00000004)
+POKE32(0xfd345b10, 0x00000004)
+POKE32(0xfd345b18, 0x00000007)
+POKE32(0xfd345b1c, 0x00000005)
+POKE32(0xfd345b20, 0x00000004)
+POKE32(0xfd345858, 0x00000000)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-POKE32(0xfd34501c, 0xaaafffa5)
+POKE32(0xfd34501c, 0xaaafff95)
 
 
 /*
-mpe41_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
+mpe42_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
-POKE32(0xfd345020, 0xffffcaef)
+POKE32(0xfd345020, 0xffffceae)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG601
+sysconf_regs.SYSTEM_CONFIG7502
 */
-OR32(0xfdde0004, 0x00000001)
+OR32(0xfdde07d8, 0x00000001)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG603
+sysconf_regs.SYSTEM_CONFIG7504
 */
-UPDATE32(0xfdde000c, 0xffffff00, 0x00000028)
+UPDATE32(0xfdde07e0, 0xffffff00, 0x00000028)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG601
+sysconf_regs.SYSTEM_CONFIG7502
 */
-UPDATE32(0xfdde0004, 0xf1ffffc1, 0x0600000c)
+UPDATE32(0xfdde07d8, 0xf1ffffc1, 0x0600000c)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG603
+sysconf_regs.SYSTEM_CONFIG7504
 */
-UPDATE32(0xfdde000c, 0xfff000ff, 0x00008200)
+UPDATE32(0xfdde07e0, 0xfff000ff, 0x00008200)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG601
+sysconf_regs.SYSTEM_CONFIG7502
 */
-UPDATE32(0xfdde0004, 0xfffffffe, 0x00000000)
+UPDATE32(0xfdde07d8, 0xfffffffe, 0x00000000)
 
 
 /*
-sysconf_regs.SYSTEM_STATUS665
+sysconf_regs.SYSTEM_STATUS7588
 */
-WHILE_NE32(0xfdde0104, 0x00000001, 0x00000001)
+WHILE_NE32(0xfdde0930, 0x00000001, 0x00000001)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG654
+sysconf_regs.SYSTEM_CONFIG7555
 */
-OR32(0xfdde00d8, 0x00000004)
+OR32(0xfdde08ac, 0x00000002)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG654
+sysconf_regs.SYSTEM_CONFIG7556
 */
-OR32(0xfdde00d8, 0x00000001)
+OR32(0xfdde08b0, 0x00000001)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG654
+sysconf_regs.SYSTEM_CONFIG7556
 */
-UPDATE32(0xfdde00d8, 0xfe000007, 0x00ce6408)
+UPDATE32(0xfdde08b0, 0xf1ffffc1, 0x0600000e)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG654
+sysconf_regs.SYSTEM_CONFIG7558
 */
-UPDATE32(0xfdde00d8, 0xfffffffe, 0x00000000)
+UPDATE32(0xfdde08b8, 0xffffc000, 0x00000132)
 
 
 /*
-sysconf_regs.SYSTEM_STATUS681
+sysconf_regs.SYSTEM_CONFIG7556
 */
-WHILE_NE32(0xfdde0144, 0x00000001, 0x00000001)
+UPDATE32(0xfdde08b0, 0xfffffffe, 0x00000000)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG654
+sysconf_regs.SYSTEM_STATUS7583
 */
-UPDATE32(0xfdde00d8, 0xfffffffb, 0x00000000)
+WHILE_NE32(0xfdde091c, 0x00000001, 0x00000001)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG417
+sysconf_regs.SYSTEM_CONFIG7555
 */
-POKE32(0xfd690044, 0x00000001)
-
-
-/*
-sysconf_regs.SYSTEM_CONFIG417
-*/
-POKE32(0xfd690044, 0x0000000d)
+UPDATE32(0xfdde08ac, 0xfffffffd, 0x00000000)
 /* Configuring SAS clocks ...
  */
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
+sasg2_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
 POKE32(0xfee62014, 0x00000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
+sasg2_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
 POKE32(0xfee62024, 0x00000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL0_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
 OR32(0xfee62000, 0x00100000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_POWER_CFG
+sasg2_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 OR32(0xfee62010, 0x00000001)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL0_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
 UPDATE32(0xfee62000, 0xfff80000, 0x00003203)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_POWER_CFG
+sasg2_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfee62010, 0xfffffffe, 0x00000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL0_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
 WHILE_NE32(0xfee62000, 0x80000000, 0x80000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL0_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
 UPDATE32(0xfee62000, 0xffefffff, 0x00000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL1_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
 OR32(0xfee62004, 0x00100000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_POWER_CFG
+sasg2_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 OR32(0xfee62010, 0x00000002)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL1_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
 UPDATE32(0xfee62004, 0xfff80000, 0x00002803)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_POWER_CFG
+sasg2_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfee62010, 0xfffffffd, 0x00000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL1_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
 WHILE_NE32(0xfee62004, 0x80000000, 0x80000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL1_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
 UPDATE32(0xfee62004, 0xffefffff, 0x00000000)
 POKE32(0xfee62b00, 0x00000001)
@@ -554,101 +546,101 @@ POKE32(0xfee62b24, 0x0000001f)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
+sasg2_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
 POKE32(0xfee62014, 0xfffaaafa)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
+sasg2_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
 POKE32(0xfee62024, 0x0000000f)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
+sasg2_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
 POKE32(0xfee81014, 0x00000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
+sasg2_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
 POKE32(0xfee81024, 0x00000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL0_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
 OR32(0xfee81000, 0x00100000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_POWER_CFG
+sasg2_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 OR32(0xfee81010, 0x00000001)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL0_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
 UPDATE32(0xfee81000, 0xfff80000, 0x00001e01)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_POWER_CFG
+sasg2_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfee81010, 0xfffffffe, 0x00000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL0_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
 WHILE_NE32(0xfee81000, 0x80000000, 0x80000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL0_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL0_CFG
 */
 UPDATE32(0xfee81000, 0xffefffff, 0x00000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL1_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
 OR32(0xfee81004, 0x00100000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_POWER_CFG
+sasg2_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 OR32(0xfee81010, 0x00000002)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL1_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
 UPDATE32(0xfee81004, 0xfff80000, 0x00002803)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_POWER_CFG
+sasg2_clockgena_regs.CLOCKGENA_POWER_CFG
 */
 UPDATE32(0xfee81010, 0xfffffffd, 0x00000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL1_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
 WHILE_NE32(0xfee81004, 0x80000000, 0x80000000)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_PLL1_CFG
+sasg2_clockgena_regs.CLOCKGENA_PLL1_CFG
 */
 UPDATE32(0xfee81004, 0xffefffff, 0x00000000)
 POKE32(0xfee81908, 0x00000001)
-POKE32(0xfee81b0c, 0x00000001)
+POKE32(0xfee8190c, 0x00000001)
 POKE32(0xfee81b10, 0x00000003)
 POKE32(0xfee81b14, 0x0000000f)
 POKE32(0xfee81b18, 0x00000003)
@@ -656,16 +648,18 @@ POKE32(0xfee81b1c, 0x0000000f)
 POKE32(0xfee81b20, 0x00000003)
 POKE32(0xfee81a24, 0x0000001d)
 POKE32(0xfee81b28, 0x0000001f)
+POKE32(0xfee81b2c, 0x00000001)
+POKE32(0xfee81b30, 0x0000000f)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
+sasg2_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG
 */
-POKE32(0xfee81014, 0xffe6aa9f)
+POKE32(0xfee81014, 0xfea6aa5f)
 
 
 /*
-sasg1_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
+sasg2_clockgena_regs.CLOCKGENA_CLKOPSRC_SWITCH_CFG2
 */
 POKE32(0xfee81024, 0x0000000f)
 /*
@@ -810,20 +804,17 @@ POKE32(0xfe9001d8, 0x00000000)
 emi_regs.EMI_GENCFG
 */
 POKE32(0xfe900028, 0x00000010)
-POKE32(0xfee1005c, 0x0000fe00)
-POKE32(0xfee10064, 0x00000700)
-POKE32(0xfee1006c, 0x00004000)
 /*
  */
 /* DDR-SS configuration infos
  */
-/*   LMI 0      : enabled, 512MB, 32bits
+/*   LMI 0      : enabled, 1024MB, 32bits
  */
-/*   LMI 1      : enabled, 512MB, 32bits
+/*   LMI 1      : enabled, 1024MB, 32bits
  */
 /*   Mem. map   : contiguous memory mapping mode
  */
-/*   LMI0 start : 0x60000000
+/*   LMI0 start : 0x40000000
  */
 /*
  */
@@ -837,34 +828,22 @@ POKE32(0xfe614004, 0x00000010)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG659
+sysconf_regs.SYSTEM_CONFIG7563
 */
-UPDATE32(0xfdde00ec, 0xfffffffd, 0x00000000)
+UPDATE32(0xfdde08cc, 0xfffffffd, 0x00000000)
 DELAY(100000)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG659
+sysconf_regs.SYSTEM_CONFIG7563
 */
-OR32(0xfdde00ec, 0x00000002)
-
-
-/*
-sysconf_regs.SYSTEM_CONFIG608
-*/
-OR32(0xfdde0020, 0x00000001)
-
-
-/*
-sysconf_regs.SYSTEM_CONFIG613
-*/
-OR32(0xfdde0034, 0x00000001)
+OR32(0xfdde08cc, 0x00000002)
 
 
 /*
 ddr3mixer_regs.DDR3MIXER_DDR_BASE_ADDR
 */
-POKE32(0xfdd72030, 0x00800060)
+POKE32(0xfdd72030, 0x00800040)
 
 
 /*
@@ -1243,28 +1222,15 @@ WHILE_NE32(0xfdd70484, 0x00010000, 0x00010000)
 
 
 /*
-sysconf_regs.SYSTEM_STATUS427
+ddr3phy_regs.DDR3PHY_ZQnCR1
 */
-IF_EQ32(1, 0xfd69006c, 0xf0000000, 0x00000000)
+POKE32(0xfdd70544, 0x0000007d)
 
 
 /*
-ddr3phy_regs.DDR3PHY_ZQnCR
+ddr3phy_regs.DDR3PHY_ZQnCR0
 */
-  POKE32(0xfdd705a0, 0x33d31929)
-
-
-/*
-sysconf_regs.SYSTEM_STATUS427
-*/
-ELSE(1)
-
-
-/*
-ddr3phy_regs.DDR3PHY_ZQnCR
-*/
-  POKE32(0xfdd705a0, 0x43d31929)
-ENDIF(1)
+POKE32(0xfdd70540, 0x42851c38)
 
 
 /*
@@ -1318,7 +1284,7 @@ POKE32(0xfdd700bc, 0x06060200)
 /*
 ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-POKE32(0xfdd70484, 0xbec80012)
+POKE32(0xfdd70484, 0xa4480012)
 
 
 /*
@@ -1760,150 +1726,6 @@ OR32(0xfdd7031c, 0x00000004)
 
 
 /*
-ddr3phy_regs.DDR3PHY_DX0LCDLR1
-*/
-POKE32(0xfdd705e4, 0x001a1a0f)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1LCDLR1
-*/
-POKE32(0xfdd70624, 0x00191910)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2LCDLR1
-*/
-POKE32(0xfdd70664, 0x001a1a10)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3LCDLR1
-*/
-POKE32(0xfdd706a4, 0x00191910)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX0BDLR0
-*/
-POKE32(0xfdd705cc, 0x040c00c2)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX0BDLR1
-*/
-POKE32(0xfdd705d0, 0x00005083)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX0BDLR2
-*/
-POKE32(0xfdd705d4, 0x00000000)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX0BDLR3
-*/
-POKE32(0xfdd705d8, 0x01080080)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX0BDLR4
-*/
-POKE32(0xfdd705dc, 0x00002002)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1BDLR0
-*/
-POKE32(0xfdd7060c, 0x070c1005)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1BDLR1
-*/
-POKE32(0xfdd70610, 0x000040c3)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1BDLR2
-*/
-POKE32(0xfdd70614, 0x00000000)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1BDLR3
-*/
-POKE32(0xfdd70618, 0x03040003)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1BDLR4
-*/
-POKE32(0xfdd7061c, 0x00002042)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2BDLR0
-*/
-POKE32(0xfdd7064c, 0x020410c2)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2BDLR1
-*/
-POKE32(0xfdd70650, 0x00002040)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2BDLR2
-*/
-POKE32(0xfdd70654, 0x00000000)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2BDLR3
-*/
-POKE32(0xfdd70658, 0x020030c2)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2BDLR4
-*/
-POKE32(0xfdd7065c, 0x00003040)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3BDLR0
-*/
-POKE32(0xfdd7068c, 0x05081082)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3BDLR1
-*/
-POKE32(0xfdd70690, 0x00003042)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3BDLR2
-*/
-POKE32(0xfdd70694, 0x00000000)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3BDLR3
-*/
-POKE32(0xfdd70698, 0x03000002)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3BDLR4
-*/
-POKE32(0xfdd7069c, 0x00003001)
-
-
-/*
 ddr3pctl_regs.DDR3PCTL_SCTL
 */
 POKE32(0xfdd70004, 0x00000002)
@@ -1916,34 +1738,22 @@ WHILE_NE32(0xfdd70008, 0x00000007, 0x00000003)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG660
+sysconf_regs.SYSTEM_CONFIG7564
 */
-UPDATE32(0xfdde00f0, 0xfffdffff, 0x00000000)
+UPDATE32(0xfdde08d0, 0xfffdffff, 0x00000000)
 DELAY(100000)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG660
+sysconf_regs.SYSTEM_CONFIG7564
 */
-OR32(0xfdde00f0, 0x00020000)
-
-
-/*
-sysconf_regs.SYSTEM_CONFIG608
-*/
-OR32(0xfdde0020, 0x00000001)
-
-
-/*
-sysconf_regs.SYSTEM_CONFIG613
-*/
-OR32(0xfdde0034, 0x00000001)
+OR32(0xfdde08d0, 0x00020000)
 
 
 /*
 ddr3mixer_regs.DDR3MIXER_DDR_BASE_ADDR
 */
-POKE32(0xfdd92030, 0x00a00080)
+POKE32(0xfdd92030, 0x00c00080)
 
 
 /*
@@ -2322,28 +2132,15 @@ WHILE_NE32(0xfdd91484, 0x00010000, 0x00010000)
 
 
 /*
-sysconf_regs.SYSTEM_STATUS427
+ddr3phy_regs.DDR3PHY_ZQnCR1
 */
-IF_EQ32(1, 0xfd69006c, 0xf0000000, 0x00000000)
+POKE32(0xfdd91544, 0x0000007d)
 
 
 /*
-ddr3phy_regs.DDR3PHY_ZQnCR
+ddr3phy_regs.DDR3PHY_ZQnCR0
 */
-  POKE32(0xfdd915a0, 0x33d31929)
-
-
-/*
-sysconf_regs.SYSTEM_STATUS427
-*/
-ELSE(1)
-
-
-/*
-ddr3phy_regs.DDR3PHY_ZQnCR
-*/
-  POKE32(0xfdd915a0, 0x43d31929)
-ENDIF(1)
+POKE32(0xfdd91540, 0x42851c38)
 
 
 /*
@@ -2397,7 +2194,7 @@ POKE32(0xfdd910bc, 0x06060200)
 /*
 ddr3phy_regs.DDR3PHY_PUB_SMCTL
 */
-POKE32(0xfdd91484, 0xbec80012)
+POKE32(0xfdd91484, 0xa4480012)
 
 
 /*
@@ -2839,150 +2636,6 @@ OR32(0xfdd9131c, 0x00000004)
 
 
 /*
-ddr3phy_regs.DDR3PHY_DX0LCDLR1
-*/
-POKE32(0xfdd915e4, 0x0017170f)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1LCDLR1
-*/
-POKE32(0xfdd91624, 0x001b1b10)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2LCDLR1
-*/
-POKE32(0xfdd91664, 0x001b1b0e)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3LCDLR1
-*/
-POKE32(0xfdd916a4, 0x00191910)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX0BDLR0
-*/
-POKE32(0xfdd915cc, 0x01001042)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX0BDLR1
-*/
-POKE32(0xfdd915d0, 0x00000000)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX0BDLR2
-*/
-POKE32(0xfdd915d4, 0x00000000)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX0BDLR3
-*/
-POKE32(0xfdd915d8, 0x01041080)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX0BDLR4
-*/
-POKE32(0xfdd915dc, 0x00000040)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1BDLR0
-*/
-POKE32(0xfdd9160c, 0x08004043)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1BDLR1
-*/
-POKE32(0xfdd91610, 0x00002081)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1BDLR2
-*/
-POKE32(0xfdd91614, 0x00000000)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1BDLR3
-*/
-POKE32(0xfdd91618, 0x09046088)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX1BDLR4
-*/
-POKE32(0xfdd9161c, 0x00005144)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2BDLR0
-*/
-POKE32(0xfdd9164c, 0x000c20c3)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2BDLR1
-*/
-POKE32(0xfdd91650, 0x00003040)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2BDLR2
-*/
-POKE32(0xfdd91654, 0x00000000)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2BDLR3
-*/
-POKE32(0xfdd91658, 0x01102144)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX2BDLR4
-*/
-POKE32(0xfdd9165c, 0x00005042)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3BDLR0
-*/
-POKE32(0xfdd9168c, 0x04002003)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3BDLR1
-*/
-POKE32(0xfdd91690, 0x00002041)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3BDLR2
-*/
-POKE32(0xfdd91694, 0x00000000)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3BDLR3
-*/
-POKE32(0xfdd91698, 0x05002044)
-
-
-/*
-ddr3phy_regs.DDR3PHY_DX3BDLR4
-*/
-POKE32(0xfdd9169c, 0x00003081)
-
-
-/*
 ddr3pctl_regs.DDR3PCTL_SCTL
 */
 POKE32(0xfdd91004, 0x00000002)
@@ -3005,242 +2658,101 @@ POKE32(0xfd348c64, 0x00186000)
 /*
 stac_regs.WIRES_SAM_RATE
 */
-POKE32(0xfee82064, 0x00186000)
+POKE32(0xfd348c64, 0x00186000)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG156
+sysconf_regs.SYSTEM_CONFIG1526
 */
-UPDATE32(0xfee100e0, 0xffffc07b, 0x00000204)
+UPDATE32(0xfee10838, 0xffffc07b, 0x00000204)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG156
+sysconf_regs.SYSTEM_CONFIG1526
 */
-IF_EQ32(1, 0xfee100e0, 0x00000008, 0x00000000)
+IF_EQ32(1, 0xfee10838, 0x00000008, 0x00000000)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG156
+sysconf_regs.SYSTEM_CONFIG1526
 */
-  UPDATE32(0xfee100e0, 0xffffffef, 0x00000000)
+  UPDATE32(0xfee10838, 0xffffffef, 0x00000000)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG156
+sysconf_regs.SYSTEM_CONFIG1526
 */
-  OR32(0xfee100e0, 0x00000010)
+  OR32(0xfee10838, 0x00000010)
 ENDIF(1)
 
 
 /*
-stac_regs.STAC_PHY_FREQ_RATIO
+sysconf_regs.SYSTEM_CONFIG8517
 */
-POKE32(0xfd348c68, 0x00000001)
+UPDATE32(0xfd320814, 0xffffc07b, 0x00000204)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG533
+sysconf_regs.SYSTEM_CONFIG8517
 */
-UPDATE32(0xfd320084, 0xffffc07b, 0x00000204)
+IF_EQ32(1, 0xfd320814, 0x00000008, 0x00000000)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG533
+sysconf_regs.SYSTEM_CONFIG8517
 */
-IF_EQ32(1, 0xfd320084, 0x00000008, 0x00000000)
+  UPDATE32(0xfd320814, 0xffffffef, 0x00000000)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG533
+sysconf_regs.SYSTEM_CONFIG8517
 */
-  UPDATE32(0xfd320084, 0xffffffef, 0x00000000)
-
-
-/*
-sysconf_regs.SYSTEM_CONFIG533
-*/
-  OR32(0xfd320084, 0x00000010)
+  OR32(0xfd320814, 0x00000010)
 ENDIF(1)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG156
+sysconf_regs.SYSTEM_CONFIG1526
 */
-IF_EQ32(1, 0xfee100e0, 0x00000008, 0x00000000)
+IF_EQ32(1, 0xfee10838, 0x00000008, 0x00000000)
 
 
 /*
-sysconf_regs.SYSTEM_STATUS188
+sysconf_regs.SYSTEM_STATUS1579
 */
-  WHILE_NE32(0xfee10160, 0x00040000, 0x00040000)
+  WHILE_NE32(0xfee1090c, 0x00040000, 0x00040000)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG156
+sysconf_regs.SYSTEM_CONFIG1526
 */
-  OR32(0xfee100e0, 0x00000008)
+  OR32(0xfee10838, 0x00000008)
 ENDIF(1)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG533
+sysconf_regs.SYSTEM_CONFIG8517
 */
-IF_EQ32(1, 0xfd320084, 0x00000008, 0x00000000)
+IF_EQ32(1, 0xfd320814, 0x00000008, 0x00000000)
 
 
 /*
-sysconf_regs.SYSTEM_STATUS577
+sysconf_regs.SYSTEM_STATUS8584
 */
-  WHILE_NE32(0xfd320134, 0x00040000, 0x00040000)
+  WHILE_NE32(0xfd320920, 0x00040000, 0x00040000)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG533
+sysconf_regs.SYSTEM_CONFIG8517
 */
-  OR32(0xfd320084, 0x00000008)
+  OR32(0xfd320814, 0x00000008)
 ENDIF(1)
 /* Setting INTERCO recommended values ...
  */
-UPDATE32(0xfdde00f0, 0x00000000, 0xffffffff)
-UPDATE32(0xfd040008, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd04002c, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd040058, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd040084, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0400b0, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0400dc, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd040104, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd040124, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd040148, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd040168, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd040188, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0401ac, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0401d4, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0401f8, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd05000c, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd050038, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd050064, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd050090, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0500bc, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0500e8, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd050114, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd050140, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd05016c, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd050198, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0501c4, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0501f0, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd05021c, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd050248, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd050274, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd05029c, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0502c0, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd07800c, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd078038, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd078064, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd07808c, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0780b0, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0780d4, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0780f8, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd078124, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd078150, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd078178, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd07819c, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0781c0, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd0781e4, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd078210, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd07823c, 0xffff0000, 0x000005e2)
-UPDATE32(0xfd04000c, 0xffff0000, 0x00000000)
-UPDATE32(0xfd040030, 0xffff0000, 0x00000000)
-UPDATE32(0xfd04005c, 0xffff0000, 0x00000000)
-UPDATE32(0xfd040088, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0400b4, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0400e0, 0xffff0000, 0x00000000)
-UPDATE32(0xfd040108, 0xffff0000, 0x00000000)
-UPDATE32(0xfd040128, 0xffff0000, 0x00000000)
-UPDATE32(0xfd04014c, 0xffff0000, 0x00000000)
-UPDATE32(0xfd04016c, 0xffff0000, 0x00000000)
-UPDATE32(0xfd04018c, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0401b0, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0401d8, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0401fc, 0xffff0000, 0x00000000)
-UPDATE32(0xfd050010, 0xffff0000, 0x00000000)
-UPDATE32(0xfd05003c, 0xffff0000, 0x00000000)
-UPDATE32(0xfd050068, 0xffff0000, 0x00000000)
-UPDATE32(0xfd050094, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0500c0, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0500ec, 0xffff0000, 0x00000000)
-UPDATE32(0xfd050118, 0xffff0000, 0x00000000)
-UPDATE32(0xfd050144, 0xffff0000, 0x00000000)
-UPDATE32(0xfd050170, 0xffff0000, 0x00000000)
-UPDATE32(0xfd05019c, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0501c8, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0501f4, 0xffff0000, 0x00000000)
-UPDATE32(0xfd050220, 0xffff0000, 0x00000000)
-UPDATE32(0xfd05024c, 0xffff0000, 0x00000000)
-UPDATE32(0xfd050278, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0502a0, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0502c4, 0xffff0000, 0x00000000)
-UPDATE32(0xfd078010, 0xffff0000, 0x00000000)
-UPDATE32(0xfd07803c, 0xffff0000, 0x00000000)
-UPDATE32(0xfd078068, 0xffff0000, 0x00000000)
-UPDATE32(0xfd078090, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0780b4, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0780d8, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0780fc, 0xffff0000, 0x00000000)
-UPDATE32(0xfd078128, 0xffff0000, 0x00000000)
-UPDATE32(0xfd078154, 0xffff0000, 0x00000000)
-UPDATE32(0xfd07817c, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0781a0, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0781c4, 0xffff0000, 0x00000000)
-UPDATE32(0xfd0781e8, 0xffff0000, 0x00000000)
-UPDATE32(0xfd078214, 0xffff0000, 0x00000000)
-UPDATE32(0xfd078240, 0xffff0000, 0x00000000)
-UPDATE32(0xfd00005c, 0xfc00ff00, 0x000000a3)
-UPDATE32(0xfd00405c, 0xfc00ff00, 0x000000a3)
-UPDATE32(0xfd3406ec, 0xfffffff0, 0x00000002)
-UPDATE32(0xfd3406f0, 0xfffffff8, 0x00000006)
-UPDATE32(0xfd3406f4, 0xfffffff8, 0x00000003)
-UPDATE32(0xfd3406f8, 0xfffffff8, 0x00000001)
-UPDATE32(0xfd3406fc, 0xfffffff8, 0x00000000)
-UPDATE32(0xfd3401ec, 0xfffffff0, 0x00000002)
-UPDATE32(0xfd3401f0, 0xfffffff8, 0x00000006)
-UPDATE32(0xfd3401f4, 0xfffffff8, 0x00000003)
-UPDATE32(0xfd3401f8, 0xfffffff8, 0x00000001)
-UPDATE32(0xfd3401fc, 0xfffffff8, 0x00000000)
-UPDATE32(0xfd3402ec, 0xfffffff0, 0x00000002)
-UPDATE32(0xfd3402f0, 0xfffffff8, 0x00000006)
-UPDATE32(0xfd3402f4, 0xfffffff8, 0x00000003)
-UPDATE32(0xfd3402f8, 0xfffffff8, 0x00000001)
-UPDATE32(0xfd3402fc, 0xfffffff8, 0x00000000)
-UPDATE32(0xfd340efc, 0xfffffff8, 0x00000005)
-UPDATE32(0xfd3471ec, 0xfffffff0, 0x00000002)
-UPDATE32(0xfd3471f0, 0xfffffff8, 0x00000006)
-UPDATE32(0xfd3471f4, 0xfffffff8, 0x00000003)
-UPDATE32(0xfd3471f8, 0xfffffff8, 0x00000001)
-UPDATE32(0xfd3471fc, 0xfffffff8, 0x00000000)
-UPDATE32(0xfd3472ec, 0xfffffff0, 0x00000002)
-UPDATE32(0xfd3472f0, 0xfffffff8, 0x00000006)
-UPDATE32(0xfd3472f4, 0xfffffff8, 0x00000003)
-UPDATE32(0xfd3472f8, 0xfffffff8, 0x00000001)
-UPDATE32(0xfd3472fc, 0xfffffff8, 0x00000000)
-UPDATE32(0xfdda0030, 0xfffffff8, 0x00000006)
-UPDATE32(0xfdda0034, 0xfffffff8, 0x00000001)
-UPDATE32(0xfdda0038, 0xfffffff8, 0x00000000)
-UPDATE32(0xfdda004c, 0xfffffc00, 0x00000000)
-UPDATE32(0xfdda0050, 0xfffffc00, 0x00000000)
-UPDATE32(0xfdda0108, 0x1fffffff, 0xa0000000)
-UPDATE32(0xfdda010c, 0xc0c0f8c0, 0x36360636)
-UPDATE32(0xfdda0110, 0xccc0f820, 0x11080189)
-UPDATE32(0xfdda0114, 0xffc0f8f8, 0x00000000)
-UPDATE32(0xfddc0030, 0xfffffff8, 0x00000006)
-UPDATE32(0xfddc0034, 0xfffffff8, 0x00000001)
-UPDATE32(0xfddc0038, 0xfffffff8, 0x00000000)
-UPDATE32(0xfddc004c, 0xfffffc00, 0x00000000)
-UPDATE32(0xfddc0050, 0xfffffc00, 0x00000000)
-UPDATE32(0xfddc0108, 0x1fffffff, 0xa0000000)
-UPDATE32(0xfddc010c, 0xc0c0f8c0, 0x36360636)
-UPDATE32(0xfddc0110, 0xccc0f820, 0x11080189)
-UPDATE32(0xfddc0114, 0xffc0f8f8, 0x00000000)
+UPDATE32(0xfd340eec, 0x00000000, 0x00000001)
+UPDATE32(0xfd340ef0, 0x00000000, 0x00000006)
+UPDATE32(0xfd340ef8, 0x00000000, 0x00000002)
+UPDATE32(0xfd340efc, 0x00000000, 0x00000000)
 UPDATE32(0xfd341b04, 0xfffffff8, 0x00000006)
 UPDATE32(0xfd341b08, 0xfffffff8, 0x00000001)
 UPDATE32(0xfd341b0c, 0x0000fff8, 0x00000000)
@@ -3273,176 +2785,23 @@ UPDATE32(0xfd342b84, 0xfffffff8, 0x00000006)
 UPDATE32(0xfd342b88, 0xfffffff8, 0x00000001)
 UPDATE32(0xfd342b8c, 0x0000fff8, 0x00000000)
 UPDATE32(0xfd342b90, 0xfffffff0, 0x00000002)
-IF_EQ32(1, 0xfe830090, 0x00000001, 0x00000000)
-  UPDATE32(0xfe103f04, 0xffc00000, 0x00264208)
-ENDIF(1)
-IF_EQ32(1, 0xfe830090, 0x00000002, 0x00000000)
-  UPDATE32(0xfe203f04, 0xffc00000, 0x00264208)
-ENDIF(1)
-IF_EQ32(1, 0xfe830090, 0x00000004, 0x00000000)
-  UPDATE32(0xfe303f04, 0xffc00000, 0x00264208)
-ENDIF(1)
-IF_EQ32(1, 0xfe830148, 0x00000001, 0x00000001)
-  UPDATE32(0xfda8a000, 0xffd00000, 0x0026c209)
-  UPDATE32(0xfda89000, 0xfbfec0ff, 0x04002000)
-ENDIF(1)
-IF_EQ32(1, 0xfe600074, 0x00000001, 0x00000001)
-  UPDATE32(0xfe732000, 0xffd00000, 0x0026c209)
-  UPDATE32(0xfe731000, 0xfbfec0ff, 0x04002000)
-ENDIF(1)
-UPDATE32(0xfd52a000, 0xfffffff0, 0x00000002)
-UPDATE32(0xfd52a008, 0xfffffff8, 0x00000003)
-UPDATE32(0xfd52a004, 0xfffffff8, 0x00000006)
-UPDATE32(0xfd52a00c, 0xfffffff8, 0x00000001)
-UPDATE32(0xfd52a010, 0xfffffff8, 0x00000000)
-UPDATE32(0xfd528000, 0xfffffff0, 0x00000002)
-UPDATE32(0xfd528008, 0xfffffff8, 0x00000003)
-UPDATE32(0xfd528004, 0xfffffff8, 0x00000006)
-UPDATE32(0xfd52800c, 0xfffffff8, 0x00000001)
-UPDATE32(0xfd528010, 0xfffffff8, 0x00000000)
-UPDATE32(0xfd5aa000, 0xfffffff0, 0x00000002)
-UPDATE32(0xfd5aa008, 0xfffffff8, 0x00000003)
-UPDATE32(0xfd5aa004, 0xfffffff8, 0x00000006)
-UPDATE32(0xfd5aa00c, 0xfffffff8, 0x00000001)
-UPDATE32(0xfd5aa010, 0xfffffff8, 0x00000000)
-UPDATE32(0xfd5a8000, 0xfffffff0, 0x00000002)
-UPDATE32(0xfd5a8008, 0xfffffff8, 0x00000003)
-UPDATE32(0xfd5a8004, 0xfffffff8, 0x00000006)
-UPDATE32(0xfd5a800c, 0xfffffff8, 0x00000001)
-UPDATE32(0xfd5a8010, 0xfffffff8, 0x00000000)
-UPDATE32(0xfec00c18, 0xfffffff0, 0x00000002)
-UPDATE32(0xfec00c18, 0xfffffff0, 0x00000002)
-IF_EQ32(1, 0xfe830090, 0x00000008, 0x00000000)
-  UPDATE32(0xfe818004, 0xffd00000, 0x0026c208)
-ENDIF(1)
-IF_EQ32(1, 0xfe830090, 0x00000010, 0x00000000)
-  UPDATE32(0xfe819004, 0xffd00000, 0x0026c208)
-ENDIF(1)
-IF_EQ32(1, 0xfe830084, 0x00000002, 0x00000000)
-  UPDATE32(0xfe808004, 0xffd00000, 0x0026c208)
-ENDIF(1)
-UPDATE32(0xfde26108, 0xe000e000, 0x04460806)
-UPDATE32(0xfe81e104, 0xffd00000, 0x0025c206)
-UPDATE32(0xfd34a00c, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a010, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a014, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34a20c, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a210, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a214, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34a80c, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a810, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a814, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34aa0c, 0xffffff00, 0x0000003f)
-UPDATE32(0xfd34aa10, 0xffffff00, 0x0000003f)
-UPDATE32(0xfd34aa14, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34ce0c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34ce10, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34ce14, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a60c, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a610, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a614, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd6e160c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd6e1610, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd6e1614, 0xffffff00, 0x0000001f)
-UPDATE32(0xfde2460c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfde24610, 0xffffff00, 0x0000001f)
-UPDATE32(0xfde24614, 0xffffff00, 0x0000001f)
-UPDATE32(0xfde24a0c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfde24a10, 0xffffff00, 0x0000001f)
-UPDATE32(0xfde24a14, 0xffffff00, 0x0000001f)
-UPDATE32(0xfde2480c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfde24810, 0xffffff00, 0x0000003f)
-UPDATE32(0xfde24814, 0xffffff00, 0x0000003f)
-UPDATE32(0xfde24c0c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfde24c10, 0xffffff00, 0x0000003f)
-UPDATE32(0xfde24c14, 0xffffff00, 0x0000003f)
-UPDATE32(0xfd6e100c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd6e1010, 0xfffcff00, 0x0001000f)
-UPDATE32(0xfd6e1014, 0xfffcff00, 0x0001000f)
-UPDATE32(0xfd6e120c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd6e1210, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd6e1214, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34d00c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34d010, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34d014, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34d20c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34d210, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34d214, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34cc0c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34cc10, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34cc14, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34da0c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34da10, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34da14, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34d60c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34d610, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34d614, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34d80c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34d810, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34d814, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd6e140c, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd6e1410, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd6e1414, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a40c, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a410, 0xffffff00, 0x0000001f)
-UPDATE32(0xfd34a414, 0xffffff00, 0x0000000f)
-UPDATE32(0xfd34a800, 0x00000000, 0x00000001)
-UPDATE32(0xfd34a804, 0x00000000, 0x01000001)
-UPDATE32(0xfd34aa00, 0x00000000, 0x00000000)
-UPDATE32(0xfd34aa04, 0x00000000, 0x01000000)
-UPDATE32(0xfd34a000, 0x00000000, 0x00000003)
-UPDATE32(0xfd34a200, 0x00000000, 0x00000003)
-UPDATE32(0xfd34a004, 0x00000000, 0x00000001)
-UPDATE32(0xfd34a204, 0x00000000, 0x00000001)
-UPDATE32(0xfd34a008, 0x00000000, 0x01000003)
-UPDATE32(0xfd34a208, 0x00000000, 0x01000003)
-UPDATE32(0xfd34a600, 0x00000000, 0x00000000)
-UPDATE32(0xfd34a604, 0x00000000, 0x00000002)
-UPDATE32(0xfd34a400, 0x00000000, 0x00000000)
-UPDATE32(0xfd34a404, 0x00000000, 0x00000002)
-UPDATE32(0xfd690034, 0x00000000, 0x94ff00a4)
-UPDATE32(0xfd690038, 0xfffffffc, 0x00000002)
-UPDATE32(0xfdde0078, 0x00000000, 0x00040040)
-UPDATE32(0xfd320054, 0x00000000, 0x00010105)
-UPDATE32(0xfdde007c, 0x00000000, 0x00050606)
-UPDATE32(0xfd34a018, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34a218, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34a818, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34aa18, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34ce18, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34a618, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd6e1618, 0xfffffffe, 0x00000001)
-UPDATE32(0xfde24618, 0xfffffffe, 0x00000001)
-UPDATE32(0xfde24a18, 0xfffffffe, 0x00000001)
-UPDATE32(0xfde24818, 0xfffffffe, 0x00000001)
-UPDATE32(0xfde24c18, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd6e1018, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd6e1218, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34d018, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34d218, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34cc18, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34da18, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34d618, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34d818, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd6e1418, 0xfffffffe, 0x00000001)
-UPDATE32(0xfd34a418, 0xfffffffe, 0x00000001)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG629
+sysconf_regs.SYSTEM_CONFIG7530
 */
-OR32(0xfdde0074, 0x00000018)
+OR32(0xfdde0848, 0x00000010)
 
 
 /*
-sysconf_regs.SYSTEM_CONFIG629
+sysconf_regs.SYSTEM_CONFIG7530
 */
-OR32(0xfdde0074, 0x00000020)
+OR32(0xfdde0848, 0x00000020)
 /* autodetect_chain() td_from: 000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111100
  */
 /*
 ***
-*** 'b2000stxh415' targetpack v15 completed
+*** 'b2020stxh416' targetpack v3 completed
 ***
 
  */

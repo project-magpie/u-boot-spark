@@ -155,6 +155,7 @@
 #endif
 
 /* choose which ST ASC UART to use */
+#if defined(CONFIG_ST40_STXH415)
 #if 0
 #	define CONFIG_SYS_STM_ASC_BASE	STXH415_ASC2_BASE	/* UART2 on CN14 (COM0) */
 #elif 1
@@ -162,6 +163,15 @@
 #else
 #	define CONFIG_SYS_STM_ASC_BASE	STXH415_SBC_ASC0_BASE	/* SBC_UART0 on CN19 */
 #endif
+#elif defined(CONFIG_ST40_STXH416)
+#if 0
+#	define CONFIG_SYS_STM_ASC_BASE	STXH416_ASC2_BASE	/* UART2 on CN14 (COM0) */
+#elif 1
+#	define CONFIG_SYS_STM_ASC_BASE	STXH416_SBC_ASC1_BASE	/* SBC_UART1 on CN28 (COM1) */
+#else
+#	define CONFIG_SYS_STM_ASC_BASE	STXH416_SBC_ASC0_BASE	/* SBC_UART0 on CN19 */
+#endif
+#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
 
 /*---------------------------------------------------------------
  * Ethernet driver config
@@ -207,6 +217,7 @@
 #	define CONFIG_SYS_USB0_BASE			0xfe100000	/* #0 is rear, next to E-SATA */
 #	define CONFIG_SYS_USB1_BASE			0xfe200000	/* #1 is rear, next to HDMI */
 #	define CONFIG_SYS_USB2_BASE			0xfe300000	/* #2 is front port */
+#	define CONFIG_SYS_USB3_BASE			0xfe340000	/* #3 is another usb - QQQ to check! */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
 #	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
@@ -450,10 +461,16 @@
 #else
 	/* Use S/W "bit-banging", (not H/W FSM, nor H/W SSC) */
 #	define CONFIG_SOFT_SPI			/* Use "bit-banging" PIO */
+#if defined(CONFIG_ST40_STXH415)
 #	define SPI_SCL(val)	do { stxh415_spi_scl((val)); } while (0)
 #	define SPI_SDA(val)	do { stxh415_spi_sda((val)); } while (0)
-#	define SPI_DELAY	do { udelay(1); } while (0)	/* Note: only 500 kHz! */
 #	define SPI_READ		stxh415_spi_read()
+#elif defined(CONFIG_ST40_STXH416)
+#	define SPI_SCL(val)	do { stxh416_spi_scl((val)); } while (0)
+#	define SPI_SDA(val)	do { stxh416_spi_sda((val)); } while (0)
+#	define SPI_READ		stxh416_spi_read()
+#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#	define SPI_DELAY	do { udelay(1); } while (0)	/* Note: only 500 kHz! */
 #endif
 #endif	/* CONFIG_SPI_FLASH */
 
@@ -514,9 +531,15 @@
 #	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
 #	define I2C_ACTIVE			/* open-drain, nothing to do */
 #	define I2C_TRISTATE			/* open-drain, nothing to do */
+#if defined(CONFIG_ST40_STXH415)
 #	define I2C_SCL(val)		do { stxh415_i2c_scl((val)); } while (0)
 #	define I2C_SDA(val)		do { stxh415_i2c_sda((val)); } while (0)
 #	define I2C_READ			stxh415_i2c_read()
+#elif defined(CONFIG_ST40_STXH416)
+#	define I2C_SCL(val)		do { stxh416_i2c_scl((val)); } while (0)
+#	define I2C_SDA(val)		do { stxh416_i2c_sda((val)); } while (0)
+#	define I2C_READ			stxh416_i2c_read()
+#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
 
 	/*
 	 * The "BOGOS" for NDELAY() may be calibrated using the
@@ -532,7 +555,7 @@
 	 *		I2C_SCL(0); NDELAY(5000);
 	 *	}
 	 */
-#	define NDELAY_BOGOS		20	/* Empirical measurement for 1ns on B2000 */
+#	define NDELAY_BOGOS		20	/* Empirical measurement for 1ns on B2020 */
 #	define NDELAY(ns)						\
 		do {							\
 			const unsigned n_bogo = NDELAY_BOGOS;		\

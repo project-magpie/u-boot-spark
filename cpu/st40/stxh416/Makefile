@@ -1,7 +1,6 @@
 #
-# (C) Copyright 2004-2013
-# Andy Sturges, STMicroelectronics, andy.sturges@st.com
-# Sean McGoogan STMicroelectronics, <Sean.McGoogan@st.com>
+# (C) Copyright 2008,2010-2011 STMicroelectronics.
+# Sean McGoogan <Sean.McGoogan@st.com>
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -22,17 +21,27 @@
 # MA 02111-1307 USA
 #
 
-# Update this for each release.
-# The SPEC file will automatically substitute the date
-# for actual build number, in the following identifier.
-# Regular Expression for string is:
-# 	"stm[2-9][0-9]-[2-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]"
-ST40_IDENT_STRING="\"stm24-2013-01-31\""
+include $(TOPDIR)/config.mk
 
-CROSS_COMPILE ?= sh4-linux-
+LIB	= $(obj)lib$(SOC).a
 
-sinclude $(OBJTREE)/include/autoconf.mk
-STANDALONE_LOAD_ADDR = $(CONFIG_SYS_SDRAM_BASE)
+COBJS	= stxh416.o
+SOBJS	=
 
-PLATFORM_CPPFLAGS += -DCONFIG_ST40 -D__SH4__ -DCONFIG_IDENT_STRING=$(ST40_IDENT_STRING)
-PLATFORM_LDFLAGS  += -n
+SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)
+OBJS	:= $(addprefix $(obj),$(COBJS) $(SOBJS))
+START	:= $(addprefix $(obj),$(START))
+
+all:	$(obj).depend $(LIB)
+
+$(LIB):	$(OBJS)
+	$(AR) $(ARFLAGS) $@ $(OBJS)
+
+#########################################################################
+
+# defines $(obj).depend target
+include $(SRCTREE)/rules.mk
+
+sinclude $(obj).depend
+
+#########################################################################

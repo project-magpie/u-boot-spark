@@ -63,17 +63,18 @@
  * Are we booting directly from a NAND Flash device ?
  * If so, then define the "CONFIG_SYS_BOOT_FROM_NAND" macro,
  * otherwise (e.g. SPI Flash booting), do not define it.
+ * Note: this will be implicitly defined if "make b2000se_nand_config" is run.
  */
-#undef	CONFIG_SYS_BOOT_FROM_NAND		/* define to build a NAND-bootable image */
+//#define CONFIG_SYS_BOOT_FROM_NAND		/* define to build a NAND-bootable image */
 
 
 /*-----------------------------------------------------------------------
  * Are we booting directly from a SPI Serial Flash device ?
  * If so, then define the "CONFIG_SYS_BOOT_FROM_SPI" macro,
  * otherwise (e.g. for NAND Flash booting), do not define it.
+ * Note: this will be implicitly defined if "make b2000se_spi_config" is run.
  */
-#undef	CONFIG_SYS_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
-#define	CONFIG_SYS_BOOT_FROM_SPI		/* assume we ARE booting from SPI */
+//#define CONFIG_SYS_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
 
 
 /*-----------------------------------------------------------------------
@@ -106,8 +107,8 @@
 
 #define CONFIG_SYS_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
 
-#define CONFIG_SYS_MONITOR_LEN		0x00040000	/* Reserve 256 KiB for Monitor */
-#define CONFIG_SYS_MALLOC_LEN		(1 << 20)	/* Reserve 1 MiB for malloc */
+#define CONFIG_SYS_MONITOR_LEN		0x00080000	/* Reserve 512 KiB for Monitor */
+#define CONFIG_SYS_MALLOC_LEN		(4 << 20)	/* Reserve 4 MiB for malloc */
 #define CONFIG_SYS_GBL_DATA_SIZE	1024		/* Global data structures */
 
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
@@ -154,6 +155,7 @@
 #endif
 
 /* choose which ST ASC UART to use */
+#if defined(CONFIG_ST40_STXH415)
 #if 1
 #	define CONFIG_SYS_STM_ASC_BASE	STXH415_ASC2_BASE	/* UART2 on CN14 (COM0) */
 #elif 1
@@ -161,6 +163,15 @@
 #else
 #	define CONFIG_SYS_STM_ASC_BASE	STXH415_SBC_ASC0_BASE	/* SBC_UART0 on CN19 */
 #endif
+#elif defined(CONFIG_ST40_STXH416)
+#if 1
+#	define CONFIG_SYS_STM_ASC_BASE	STXH416_ASC2_BASE	/* UART2 on CN14 (COM0) */
+#elif 1
+#	define CONFIG_SYS_STM_ASC_BASE	STXH416_SBC_ASC1_BASE	/* SBC_UART1 on CN28 (COM1) */
+#else
+#	define CONFIG_SYS_STM_ASC_BASE	STXH416_SBC_ASC0_BASE	/* SBC_UART0 on CN19 */
+#endif
+#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
 
 /*---------------------------------------------------------------
  * Ethernet driver config
@@ -224,6 +235,7 @@
 #	define CONFIG_SYS_USB0_BASE			0xfe100000	/* #0 is rear, next to E-SATA */
 #	define CONFIG_SYS_USB1_BASE			0xfe200000	/* #1 is rear, next to HDMI */
 #	define CONFIG_SYS_USB2_BASE			0xfe300000	/* #2 is front port */
+#	define CONFIG_SYS_USB3_BASE			0xfe340000	/* #3 is another usb - QQQ to check! */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
 #	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
@@ -311,39 +323,84 @@
 #	define CONFIG_SYS_MAX_NAND_DEVICE	1
 #	define CONFIG_SYS_NAND0_BASE		CONFIG_SYS_EMI_NAND_BASE
 #	define CONFIG_SYS_NAND_BASE_LIST	{ CONFIG_SYS_NAND0_BASE }
+
+#if defined(CONFIG_SYS_BOOT_FROM_NAND)	/* booting from NAND ? */
 #	define MTDPARTS_NAND						\
 	"gen_nand.1:"		/* First NAND flash device */		\
-		"128k(env-nand0)"	/* first partition */		\
-		",4M(kernel-nand0)"					\
-		",32M(root-nand0)"					\
-		",-(RestOfNand0)"	/* last partition */
+	"1M(uboot)"		/* reserve some space for uboot */	\
+	",8M(kernel)"		/* kernel space */			\
+	",-(rootfs)"		/* rootfs */
+#else
+#	define MTDPARTS_NAND						\
+	"gen_nand.1:"		/* First NAND flash device */		\
+	"8M(kernel)"		/* kernel space */			\
+	",-(rootfs)"		/* rootfs */
+#endif
+
 #	define MTDIDS_NAND						\
 	"nand0=gen_nand.1"	/* First NAND flash device */
 
 	/*
-	 * Currently, there are 2 main modes to read/write from/to
+	 * Enable this, if support for probing of ONFI complaint NAND
+	 * devices is also required (typically recommended).
+	 */
+#	define CONFIG_SYS_NAND_ONFI_DETECTION	/* define for probing ONFI devices */
+
+	/*
+	 * With modern large NAND devices, we need to ensure that (if the
+	 * environment is stored in NAND) that it is in its own dedicated "block".
+	 * Hence, we need to define the erase size of the NAND device being used,
+	 * so that the environment section always starts on an erase-block boundary,
+	 * AND is a multiple of erase blocks.
+	 * In practice for a NAND device with an erase size of >= 256KiB,
+	 * a single dedicated block should always be sufficient!
+	 */
+#	define CONFIG_SYS_NAND_ERASE_SIZE	(512 << 10)	/* NAND erase block size is 512 KiB */
+
+	/*
+	 * Currently, there are 3 main modes to read/write from/to
 	 * NAND devices on STM SoCs:
 	 *	1) using a S/W "bit-banging" driver
 	 *	   (can NOT be used with boot-from-NAND)
 	 *	2) using the H/W Hamming controller (flex-mode) driver
-	 *	   (only supported means for boot-from-NAND)
-	 * Either CONFIG_SYS_ST40_NAND_USE_BIT_BANGING or CONFIG_SYS_ST40_NAND_USE_HAMMING
-	 * should be defined, to select a single NAND driver.
-	 * If we are using FLEX-mode, we still need to #define the
+	 *	   (also supports boot-from-NAND capability)
+	 *	3) using the H/W BCH controller (multi-bit ECC) driver
+	 *	   (also supports boot-from-NAND capability)
+	 * Either CONFIG_SYS_ST40_NAND_USE_BIT_BANGING, or CONFIG_SYS_ST40_NAND_USE_HAMMING,
+	 * or CONFIG_SYS_ST40_NAND_USE_BCH should be defined, to select a single NAND driver.
+	 * If we are using FLEX or BCH, we still need to #define the
 	 * address CONFIG_SYS_EMI_NAND_BASE, although the value is ignored!
 	 */
-//#	define CONFIG_SYS_ST40_NAND_USE_BIT_BANGING	/* use S/W "bit-banging" driver */
-#	define CONFIG_SYS_ST40_NAND_USE_HAMMING		/* use H/W Hamming ("flex") driver */
-#	define CONFIG_SYS_EMI_NAND_BASE	0xDEADBEEF	/* for FLEX-mode, we do not care! */
+//#	define CONFIG_SYS_ST40_NAND_USE_BIT_BANGING		/* use S/W "bit-banging" driver */
+//#	define CONFIG_SYS_ST40_NAND_USE_HAMMING			/* use H/W Hamming ("flex") driver */
+#	define CONFIG_SYS_ST40_NAND_USE_BCH			/* use H/W BCH ("multi-bit") driver */
+#	define CONFIG_SYS_EMI_NAND_BASE		0xDEADBEEF	/* for FLEX/BCH, we do not care! */
+
+	/*
+	 * If using BCH, then we also need choose the "potency" of the ECC
+	 * scheme to use. The BCH controller can correct up to a maximum of
+	 * either 18-bits, or 30-bits, (both per 1024 byte sector).
+	 * 18-bits of correction requires 32 bytes of OOB per 1KiB of data.
+	 * 30-bits of correction requires 54 bytes of OOB per 1KiB of data.
+	 * For BCH, please choose *only* ONE of the following ECC schemes.
+	 */
+//#	define CONFIG_SYS_ST40_NAND_USE_BCH_NO_ECC		/* use BCH with-OUT ECC -- not recommended! */
+//#	define CONFIG_SYS_ST40_NAND_USE_BCH_18_BIT_ECC		/* use BCH with 18-bit/1KiB sector ECC */
+#	define CONFIG_SYS_ST40_NAND_USE_BCH_30_BIT_ECC		/* use BCH with 30-bit/1KiB sector ECC */
 
 	/*
 	 * Do we want to read/write NAND Flash compatible with the ST40's
-	 * NAND Controller H/W IP block for "boot-mode"? If we want
+	 * NAND Hamming H/W IP block for "boot-mode"? If we want
 	 * to read/write NAND flash that is meant to support booting
 	 * from NAND, then we need to use 3 bytes of ECC per 128 byte
 	 * record.  If so, then define the "CONFIG_SYS_NAND_ECC_HW3_128" macro.
+	 * Note: do *not* define this if CONFIG_SYS_ST40_NAND_USE_BCH is defined,
+	 * as the Hamming boot-mode ECC is different to that of the BCH.
 	 */
 #	define CONFIG_SYS_NAND_ECC_HW3_128	/* define for "boot-from-NAND" compatibility */
+#	if defined(CONFIG_SYS_ST40_NAND_USE_BCH)
+#	undef CONFIG_SYS_NAND_ECC_HW3_128	/* explicitly un-define if using BCH */
+#	endif /* CONFIG_SYS_NAND_ECC_HW3_128 */
 
 	/*
 	 * Do we want to use STMicroelectronics' proprietary AFM4 (4+3/512)
@@ -375,7 +432,7 @@
 	 * However, that *may* be a bad block. Define the following
 	 * to place the environment in an appropriate good block.
 	 */
-#	define CONFIG_SYS_NAND_ENV_OFFSET (CONFIG_SYS_MONITOR_LEN + 0x0)	/* immediately after u-boot.bin */
+#	define CONFIG_SYS_NAND_ENV_OFFSET	roundup(CONFIG_SYS_MONITOR_LEN, CONFIG_SYS_NAND_ERASE_SIZE)
 #endif	/* CONFIG_CMD_NAND */
 
 #if 0 && defined(CONFIG_SYS_BOOT_FROM_NAND)		/* we are booting from NAND */
@@ -426,10 +483,16 @@
 #else
 	/* Use S/W "bit-banging", (not H/W FSM, nor H/W SSC) */
 #	define CONFIG_SOFT_SPI			/* Use "bit-banging" PIO */
+#if defined(CONFIG_ST40_STXH415)
 #	define SPI_SCL(val)	do { stxh415_spi_scl((val)); } while (0)
 #	define SPI_SDA(val)	do { stxh415_spi_sda((val)); } while (0)
-#	define SPI_DELAY	do { udelay(1); } while (0)	/* Note: only 500 kHz! */
 #	define SPI_READ		stxh415_spi_read()
+#elif defined(CONFIG_ST40_STXH416)
+#	define SPI_SCL(val)	do { stxh416_spi_scl((val)); } while (0)
+#	define SPI_SDA(val)	do { stxh416_spi_sda((val)); } while (0)
+#	define SPI_READ		stxh416_spi_read()
+#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#	define SPI_DELAY	do { udelay(1); } while (0)	/* Note: only 500 kHz! */
 #endif
 #endif	/* CONFIG_SPI_FLASH */
 
@@ -437,19 +500,17 @@
  * Address, size, & location of U-boot's Environment Sector
  */
 
-#define CONFIG_ENV_SIZE			0x4000	/* 16 KiB of environment data */
+#define CONFIG_ENV_SIZE_REQUIRED	0x4000	/* 16 KiB of environment data required */
 
 #if 1 && defined(CONFIG_SYS_BOOT_FROM_NAND) &&	/* booting from NAND ? */ \
 	defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
 #	define CONFIG_ENV_IS_IN_NAND		/* environment in NAND flash */
 #	define CONFIG_ENV_OFFSET	CONFIG_SYS_NAND_ENV_OFFSET
-#	if CONFIG_ENV_SIZE < 0x20000		/* needs to be a multiple of block-size */
-#		undef CONFIG_ENV_SIZE		/* give it just one large-page block */
-#		define CONFIG_ENV_SIZE	0x20000	/* 128 KiB of environment data */
-#	endif /* if CONFIG_ENV_SIZE < 0x20000 */
+#	define CONFIG_ENV_SIZE		roundup(CONFIG_ENV_SIZE_REQUIRED,CONFIG_SYS_NAND_ERASE_SIZE)
 #elif 1 && defined(CONFIG_SPI_FLASH)		/* SPI serial flash present ? */
 #	define CONFIG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
 #	define CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN	/* immediately after u-boot.bin */
+#	define CONFIG_ENV_SIZE		CONFIG_ENV_SIZE_REQUIRED
 #else
 #	define CONFIG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #	undef  CONFIG_CMD_SAVEENV		/* no need for "saveenv" */
@@ -461,16 +522,19 @@
 
 #if 0 && defined(CONFIG_CMD_NAND)
 #	define CONFIG_CMD_JFFS2			/* enable JFFS2 support */
+#	define CONFIG_CMD_UBI
+#	define CONFIG_RBTREE
+#	define CONFIG_MTD_PARTITIONS
 #endif
 
 #if defined(CONFIG_CMD_JFFS2)
 #	define CONFIG_CMD_MTDPARTS		/* mtdparts command line support */
 #	define CONFIG_MTD_DEVICE		/* needed for mtdparts commands */
 #	define CONFIG_JFFS2_NAND		/* JFFS2 support on NAND Flash */
-#	if defined(CONFIG_CMD_NAND)		/* NAND flash devices */
+#	if defined(CONFIG_CMD_NAND)		/* Only NAND flash devices */
 #		define MTDPARTS_DEFAULT	"mtdparts=" MTDPARTS_NAND
 #		define MTDIDS_DEFAULT	MTDIDS_NAND
-#	endif
+#	endif	/* defined(CONFIG_CMD_NAND) */
 #endif	/* CONFIG_CMD_JFFS2 */
 
 
@@ -489,9 +553,15 @@
 #	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
 #	define I2C_ACTIVE			/* open-drain, nothing to do */
 #	define I2C_TRISTATE			/* open-drain, nothing to do */
+#if defined(CONFIG_ST40_STXH415)
 #	define I2C_SCL(val)		do { stxh415_i2c_scl((val)); } while (0)
 #	define I2C_SDA(val)		do { stxh415_i2c_sda((val)); } while (0)
 #	define I2C_READ			stxh415_i2c_read()
+#elif defined(CONFIG_ST40_STXH416)
+#	define I2C_SCL(val)		do { stxh416_i2c_scl((val)); } while (0)
+#	define I2C_SDA(val)		do { stxh416_i2c_sda((val)); } while (0)
+#	define I2C_READ			stxh416_i2c_read()
+#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
 
 	/*
 	 * The "BOGOS" for NDELAY() may be calibrated using the

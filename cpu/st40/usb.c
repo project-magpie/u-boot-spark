@@ -86,6 +86,14 @@ extern int usb_cpu_init(void)
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB2_BASE	/* USB #2 */
 	stxh415_usb_init(2);
 #endif
+#elif defined(CONFIG_ST40_STXH416)
+#if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB0_BASE		/* USB #0 */
+	stxh416_usb_init(0);
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE	/* USB #1 */
+	stxh416_usb_init(1);
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB2_BASE	/* USB #2 */
+	stxh416_usb_init(2);
+#endif
 #else
 #error Missing Device Definitions!
 #endif

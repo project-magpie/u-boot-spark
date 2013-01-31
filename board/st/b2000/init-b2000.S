@@ -7,7 +7,8 @@
  */
 
 
-#include "asm/stxh415reg.h"
+#include <config.h>
+#include "asm/socregs.h"
 #include "../../../cpu/st40/init_ram.S"
 
 
@@ -26,9 +27,11 @@ __memory_setup_table:
 	 * access to either a MicroConnect or a target board:
 	 *
 	 * host% romgen --show-comment dummy:b2000stxh415:st40,se=0
+	 * or
+	 * host% romgen --show-comment dummy:b2000stxh416:st40,se=0
 	 *
 	 * Where "dummy" need not correspond to any real IP address on
-	 * your network.  In addition, note that "b2000stxh415" should
+	 * your network.  In addition, note that "b2000stxh41x" should
 	 * substituted if you have a custom target-pack connect command.
 	 *
 	 * It should be noted that the above command explicitly includes
@@ -37,7 +40,11 @@ __memory_setup_table:
 	 * The "GDB pokes" are presently always executed in a 29-bit context,
 	 * hence the need to disable 32-bit mode when running "romgen".
 	 */
-#include "b2000-stxh415.romgen"
+#if defined(CONFIG_ST40_STXH415)
+#	include "b2000-stxh415.romgen"
+#elif defined(CONFIG_ST40_STXH416)
+#	include "b2000-stxh416.romgen"
+#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
 
 	END_MARKER
 

@@ -66,6 +66,20 @@ extern void stxh415_pioalt_retime(
 	const struct stm_pio_control_retime_config * const cfg);
 #define STXH415_PIOALT_SELECT(PAIR, ALT) stxh415_pioalt_select(PAIR, (ALT))
 
+extern void stxh416_pioalt_pad(
+	int port,
+	const int pin,
+	const enum stm_pad_gpio_direction direction);
+extern void stxh416_pioalt_select(
+	const int port,
+	const int pin,
+	const int alt);
+extern void stxh416_pioalt_retime(
+	const int port,
+	const int pin,
+	const struct stm_pio_control_retime_config * const cfg);
+#define STXH416_PIOALT_SELECT(PAIR, ALT) stxh416_pioalt_select(PAIR, (ALT))
+
 
 /*
  * STMAC data types
@@ -126,6 +140,19 @@ struct stxh415_ethernet_config {
 	int ext_clk : 1;	/* boolean */
 	int phy_bus : 5;	/* 0x00 .. 0x1f */
 };
+struct stxh416_ethernet_config {
+	enum {
+		stxh416_ethernet_mode_mii,
+		stxh416_ethernet_mode_gmii,
+		stxh416_ethernet_mode_gmii_gtx,
+		stxh416_ethernet_mode_rmii,
+		stxh416_ethernet_mode_rgmii,
+		stxh416_ethernet_mode_rgmii_gtx,
+		stxh416_ethernet_mode_reverse_mii
+	} mode;
+	int ext_clk : 1;	/* boolean */
+	int phy_bus : 5;	/* 0x00 .. 0x1f */
+};
 
 /*
  * common call-back functions for STMAC.
@@ -166,6 +193,9 @@ extern void stxh205_configure_ethernet(
 extern void stxh415_configure_ethernet(
 	const int port,
 	const struct stxh415_ethernet_config * const config);
+extern void stxh416_configure_ethernet(
+	const int port,
+	const struct stxh416_ethernet_config * const config);
 
 
 /*
@@ -209,6 +239,7 @@ extern void fli7510_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode);
 extern void fli7540_usb_init(const int port, const enum fli7540_usb_ovrcur_mode ovrcur_mode);
 extern int  stxh205_usb_init(const int port);
 extern int  stxh415_usb_init(const int port);
+extern int  stxh416_usb_init(const int port);
 
 
 /*
@@ -216,6 +247,7 @@ extern int  stxh415_usb_init(const int port);
  */
 extern void		stxh205_configure_spi(void);
 extern void		stxh415_configure_spi(void);
+extern void		stxh416_configure_spi(void);
 extern void		stx7108_configure_spi(void);
 
 
@@ -254,6 +286,9 @@ extern void		stxh415_spi_scl(const int val);
 extern void		stxh415_spi_sda(const int val);
 extern unsigned char	stxh415_spi_read(void);
 
+extern void		stxh416_spi_scl(const int val);
+extern void		stxh416_spi_sda(const int val);
+extern unsigned char	stxh416_spi_read(void);
 
 /*
  * I2C initialization functions.
@@ -261,6 +296,7 @@ extern unsigned char	stxh415_spi_read(void);
 extern void		stx7108_configure_i2c(void);
 extern void		stxh205_configure_i2c(void);
 extern void		stxh415_configure_i2c(void);
+extern void		stxh416_configure_i2c(void);
 
 
 /*
@@ -289,6 +325,10 @@ extern int		stxh205_i2c_read(void);
 extern void		stxh415_i2c_scl(const int val);
 extern void		stxh415_i2c_sda(const int val);
 extern int		stxh415_i2c_read(void);
+
+extern void		stxh416_i2c_scl(const int val);
+extern void		stxh416_i2c_sda(const int val);
+extern int		stxh416_i2c_read(void);
 
 #endif	/* __ASM_ST40_SOC_H */
 

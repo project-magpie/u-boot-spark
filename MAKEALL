@@ -956,10 +956,24 @@ LIST_st40="		\
 	b2075se		\
 	hdk7106		\
 	hdk7106se	\
-	b2000se		\
-	b2020se		\
-	b2020se_spi	\
-	b2020se_nand	\
+	b2000se			\
+	b2000se_spi		\
+	b2000se_nand		\
+	b2000stxh415se		\
+	b2000stxh415se_spi	\
+	b2000stxh415se_nand	\
+	b2000stxh416se		\
+	b2000stxh416se_spi	\
+	b2000stxh416se_nand	\
+	b2020se			\
+	b2020se_spi		\
+	b2020se_nand		\
+	b2020stxh415se		\
+	b2020stxh415se_spi	\
+	b2020stxh415se_nand	\
+	b2020stxh416se		\
+	b2020stxh416se_spi	\
+	b2020stxh416se_nand	\
 "
 
 #########################################################################
