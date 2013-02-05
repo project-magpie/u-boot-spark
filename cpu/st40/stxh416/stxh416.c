@@ -265,65 +265,65 @@ extern void stxh416_pioalt_retime(const int port, const int pin,
 	{
 	case 0 ... 4:		/* in "SBC Bank" */
 		sysconfReg = (unsigned long*)STXH416_SYSCFG(100);
-		sysconfReg += (port-0) * 2;
+		sysconfReg += (port-0) * 8;
 		break;
 	case 5 ... 12:		/* in "FRONT Bank" */
 		sysconfReg = (unsigned long*)STXH416_SYSCFG(1100);
-		sysconfReg += (port-5) * 2;
+		sysconfReg += (port-5) * 8;
 		break;
 	case 13 ... 18:		/* in "REAR Bank" */
 		sysconfReg = (unsigned long*)STXH416_SYSCFG(2100);
-		sysconfReg += (port-13) * 2;
+		sysconfReg += (port-13) * 8;
 		break;
 	default:
 		BUG();
 		return;
 	}
 
-	sysconfReg += 0;	/* use retime configuration register #0 */
+	sysconfReg += pin;
 
 	if (cfg->clk1notclk0 >= 0)
 	{
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->clk1notclk0, 0 + pin);
+		SET_SYSCONF_BIT(sysconf, cfg->clk1notclk0, 0);
 		writel(sysconf, sysconfReg);
 	}
 
 	if (cfg->delay_input >= 0)
 	{			/* map value to 2 adjacent bitfields */
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 0) & 0x1, 16 + pin);
-		SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 1) & 0x1, 24 + pin);
+		SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 0) & 0x1, 3);
+		SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 1) & 0x1, 4);
+		//SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 2) & 0x1, 5);
+		//SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 3) & 0x1, 6);
 		writel(sysconf, sysconfReg);
 	}
-
-	sysconfReg += 1;	/* use retime configuration register #1 */
 
 	if (cfg->invertclk >= 0)
 	{
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->invertclk, 0 + pin);
+		SET_SYSCONF_BIT(sysconf, cfg->invertclk, 9);
 		writel(sysconf, sysconfReg);
 	}
 
 	if (cfg->retime >= 0)
 	{
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->retime, 8 + pin);
+		SET_SYSCONF_BIT(sysconf, cfg->retime, 10);
 		writel(sysconf, sysconfReg);
 	}
 
 	if (cfg->clknotdata >= 0)
 	{
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->clknotdata, 16 + pin);
+		SET_SYSCONF_BIT(sysconf, cfg->clknotdata, 2);
 		writel(sysconf, sysconfReg);
 	}
 
 	if (cfg->double_edge >= 0)
 	{
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->double_edge, 24 + pin);
+		SET_SYSCONF_BIT(sysconf, cfg->double_edge, 8);
 		writel(sysconf, sysconfReg);
 	}
 }
