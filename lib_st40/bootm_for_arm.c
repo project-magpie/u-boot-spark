@@ -302,7 +302,7 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
      /* Reset ST40 as not used anymore */
      *STXH415_SYSCFG(644)=0xB;
 #elif defined(CONFIG_ST40_STXH416)
-     while ((*STXH416_SYSSTS(36) & (1 << 6)) != (1 << 6) && timeout-- > 0) { }
+     while ((*STXH416_SYSSTS(515) & (1 << 6)) != (1 << 6) && timeout-- > 0) { }
 
      /* Put ARM boot address in STxP70 DMEM base */
      *STXH416_LPM_STXP70_DMEM_BASE = (uint32_t)virt_to_phys(&armLinuxPrep);
@@ -314,7 +314,7 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
 
      /* Start STxP70 */
      *STXH416_LPM_STXP70_CONFIG_REGS_BASE |= 1;
-     *STXH416_SYSCFG(15) |= (1 << 1);
+     *STXH416_SYSCFG(504) |= (1 << 1);
 
      /* Wait and see if STxP70 completes its task */
      timeout = 0x100000;
@@ -344,18 +344,18 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
 #endif
 #endif
 
-     /* Boot A9 from ABAP CONFIG647 */
-     *STXH416_SYSCFG(647)|=1;
+     /* Boot A9 from ABAP CONFIG7548 */
+     *STXH416_SYSCFG(7548)|=1;
      /* Hold A9 reset */
-     *STXH416_SYSCFG(644)=0xE;
+     *STXH416_SYSCFG(7545)=0xE;
      /* Wait 1ms */
      udelay(1000);
      /* Release reset A9 */
-     *STXH416_SYSCFG(644)=0xF;
+     *STXH416_SYSCFG(7545)=0xF;
      /* Wait 1ms */
      udelay(1000);
      /* Reset ST40 as not used anymore */
-     *STXH416_SYSCFG(644)=0xB;
+     *STXH416_SYSCFG(7545)=0xB;
 #else
 #error ARM booting is only currently available on the STxH415 or STxH416!
 #endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
