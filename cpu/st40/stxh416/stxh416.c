@@ -942,13 +942,11 @@ extern int stxh416_usb_init(const int port)
 
 		/* Set the USB clock to 48MHz */
 		/* QQQ - this probably should be done in the TargetPacks! */
-	//*((unsigned volatile long *)0xFE81C010)=0x0000C0DE; /* CKGB_LOCK */
 	*STXH416_SYSCFG(1557) = (1<<10)|(1<<14)|(1<<18);/* CKGB_FS0_FSYN_CFG */
 	*STXH416_SYSCFG(1558) = 0x00000013;		/* CKGB_FS0_MD0 */
 	*STXH416_SYSCFG(1559) = 0x00000000;		/* CKGB_FS0_PE0 */
 	*STXH416_SYSCFG(1561) = 0x00000000;		/* CKGB_FS0_EN_PRG0 */
 	*STXH416_SYSCFG(1560) = 0x00000002;		/* CKGB_FS0_SDIV0 */
-	//*((unsigned volatile long *)0xFE81C010)=0x00000000; /* CKGB_LOCK */
 
 	if (!initialized)		/* first time ? */
 	{	/* set USB2TRIPPHY_OSCIOK = 1 */
