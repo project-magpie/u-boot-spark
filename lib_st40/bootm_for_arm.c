@@ -244,9 +244,9 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
      /* Invalidate both instruction and data caches */
      sh_cache_set_op(SH4_CCR_OCI|SH4_CCR_ICI);
 
+#if defined(CONFIG_ST40_STXH415)
      /* Wait for LPM STxP70 to be out of reset */
      int timeout = 0x100000;
-#if defined(CONFIG_ST40_STXH415)
      while ((*STXH415_SYSSTS(36) & (1 << 6)) != (1 << 6) && timeout-- > 0) { }
 
      /* Put ARM boot address in STxP70 DMEM base */
@@ -302,28 +302,8 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
      /* Reset ST40 as not used anymore */
      *STXH415_SYSCFG(644)=0xB;
 #elif defined(CONFIG_ST40_STXH416)
-     while ((*STXH416_SYSSTS(515) & (1 << 6)) != (1 << 6) && timeout-- > 0) { }
-
-     /* Put ARM boot address in STxP70 DMEM base */
-     *STXH416_LPM_STXP70_DMEM_BASE = (uint32_t)virt_to_phys(&armLinuxPrep);
-     /* Clear marker location used to check whether STxP70 did its job */
-     *STXH416_LPM_STXP70_DMEM_04 = 0;
-
-     /* Load STxP70 code */
-     memcpy((void*)STXH416_LPM_STXP70_IMEM_BASE, &stxp70ARMBootHelperCode_bin, stxp70ARMBootHelperCode_bin_len);
-
-     /* Start STxP70 */
-     *STXH416_LPM_STXP70_CONFIG_REGS_BASE |= 1;
-     *STXH416_SYSCFG(504) |= (1 << 1);
-
-     /* Wait and see if STxP70 completes its task */
-     timeout = 0x100000;
-     while (*STXH416_LPM_STXP70_DMEM_04 != 0xb007b007 && timeout-- > 0) { }
-     if (timeout <= 0)
-     {
-        printf("Warning: LPM STxP70 did not complete ABAP initialisation\n");
-     }
-
+     /* Put ARM boot address in the (mirrored) reset vector  */
+     *STXH416_A9_RESET_VECTOR_MIRROR_BOOTADDR = (uint32_t)virt_to_phys(&armLinuxPrep);
      /* Clean-up hardware */
 #if defined(CONFIG_DRIVER_NET_STM_GMAC)
 #if defined(CONFIG_ST40_B2000)

@@ -249,6 +249,17 @@
 
 /*----------------------------------------------------------------------------*/
 
+
+/*
+ * ARM reset vectors mirrored in the ST40 address map
+ */
+
+#define STXH416_A9_RESET_VECTOR_MIRROR_BASE	SH4_DWORD_REG(0xFD4BF000)
+#define STXH416_A9_RESET_VECTOR_MIRROR_BOOTADDR	SH4_DWORD_REG(STXH416_A9_RESET_VECTOR_MIRROR_BASE+0x20)
+
+
+/*----------------------------------------------------------------------------*/
+
 /*
  * Device ID register & bitfields
  */
