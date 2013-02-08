@@ -11,7 +11,7 @@
  *
  *  Copyright (C) 2000 Steven J. Hill (sjhill@realitydiluted.com)
  *		  2002-2006 Thomas Gleixner (tglx@linutronix.de)
- *  Copyright (C) 2009-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ *  Copyright (C) 2009-2013 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  *  Credits:
  *	David Woodhouse for adding multichip support
@@ -2642,8 +2642,11 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd,
 		}
 	}
 
-	if (i == 3)
+	/* did we fail to find at least one valid page (from the 3 copies) ? */
+	if (i == 3) {
+		printk(KERN_INFO "No valid ONFI param page found (bad CRC)\n");
 		return 0;
+	}
 
 	/* check version */
 	val = le16_to_cpu(p->revision);
