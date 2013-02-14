@@ -214,7 +214,7 @@
 #	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
 #		define CONFIG_SYS_USB_OHCI_CPU_INIT
-#		define CONFIG_SYS_USB_OHCI_REGS_BASE		(CONFIG_SYS_USB_BASE+0xffc00)
+#		define CONFIG_SYS_USB_OHCI_REGS_BASE		AHB2STBUS_OHCI_BASE
 #		define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
 #		define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
 #	else	/* else, use EHCI (USB 2.0) */

@@ -96,6 +96,15 @@
 #	define PHYSICAL_ADDR(addr)	(addr)
 #endif	/* __SH4__ */
 
+/*
+ * For STMicroelectronics, we might define the OHCI base address macro
+ * CONFIG_SYS_USB_OHCI_REGS_BASE, in terms of AHB2STBUS_OHCI_BASE,
+ * which is defined in the file "stbus.h" - so we include it here.
+ */
+#if defined(CONFIG_ST40)
+#	include <asm/stbus.h>
+#endif
+
 /* WARNING! WARNING! WARNING! WARNING!
  * Uncommenting the following line will remove some delays in the USB
  * sub-system. However, it is possible that some of these removed delays
