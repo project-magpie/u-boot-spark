@@ -3917,7 +3917,7 @@ b2000stxh416se_nand_config :	unconfig
 	@echo "#define CONFIG_ST40_CONTIG_MODE   1" >>$(obj)include/config.h
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
-	 echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2000/config.tmp)
+	 echo "TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2000/config.tmp)
 	$(if $(findstring _nand_,$@), \
 	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
 	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)

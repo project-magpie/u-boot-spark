@@ -105,7 +105,7 @@
 #error This SoC is not supported in 29-bit mode, please enable SE-mode!
 #endif
 
-#define CONFIG_SYS_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
+#define CONFIG_SYS_SDRAM_SIZE		0x20000000	/* 512 MiB of LMI SDRAM */
 
 #define CONFIG_SYS_MONITOR_LEN		0x00080000	/* Reserve 512 KiB for Monitor */
 #define CONFIG_SYS_MALLOC_LEN		(4 << 20)	/* Reserve 4 MiB for malloc */

@@ -26,7 +26,7 @@
 #
 #	Valid values for TEXT_BASE are:
 #
-#	0x8FF00000	32-bit mode (Space-Enhancement Mode)
+#	0x9FF00000	32-bit mode (Space-Enhancement Mode)
 #
 # Note:	Alternative definitions of TEXT_BASE are put into
 #	'config.tmp' from the top-level 'Makefile'.
@@ -35,8 +35,8 @@
 sinclude $(OBJTREE)/board/$(BOARDDIR)/config.tmp
 
 ifndef TEXT_BASE
-# Installs at LMI0 BASE + 255MB in P1 (cachable)
-TEXT_BASE = 0x8FF00000
+# Installs at LMI0 BASE + 511MB in P1 (cachable)
+TEXT_BASE = 0x9FF00000
 endif
 
 PLATFORM_LDFLAGS +=
