@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2008 STMicroelectronics Limited
+ * Copyright (C) 2007-2008,2013 STMicroelectronics Limited
  * David McKay <David.McKay@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -34,10 +34,19 @@
 
 
 /* Defines for the USB controller register offsets. */
-#define AHB2STBUS_WRAPPER_GLUE_BASE	(CONFIG_SYS_USB_BASE + 0x00000000)
-#define AHB2STBUS_OHCI_BASE		(CONFIG_SYS_USB_BASE + 0x000ffc00)
-#define AHB2STBUS_EHCI_BASE		(CONFIG_SYS_USB_BASE + 0x000ffe00)
-#define AHB2STBUS_PROTOCOL_BASE		(CONFIG_SYS_USB_BASE + 0x000fff00)
+#if defined(CONFIG_ST40_STXH416)
+	/* use the "newer", smaller (more compact) address-space */
+#	define AHB2STBUS_WRAPPER_GLUE_BASE	(CONFIG_SYS_USB_BASE + 0x00000000)
+#	define AHB2STBUS_OHCI_BASE		(CONFIG_SYS_USB_BASE + 0x00003c00)
+#	define AHB2STBUS_EHCI_BASE		(CONFIG_SYS_USB_BASE + 0x00003e00)
+#	define AHB2STBUS_PROTOCOL_BASE		(CONFIG_SYS_USB_BASE + 0x00003f00)
+#else
+	/* use the "traditional", larger (less compact) address-space */
+#	define AHB2STBUS_WRAPPER_GLUE_BASE	(CONFIG_SYS_USB_BASE + 0x00000000)
+#	define AHB2STBUS_OHCI_BASE		(CONFIG_SYS_USB_BASE + 0x000ffc00)
+#	define AHB2STBUS_EHCI_BASE		(CONFIG_SYS_USB_BASE + 0x000ffe00)
+#	define AHB2STBUS_PROTOCOL_BASE		(CONFIG_SYS_USB_BASE + 0x000fff00)
+#endif
 
 
 /* Protocol converter registers (separate registers) */
