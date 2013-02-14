@@ -278,11 +278,11 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
       stxh415_pioalt_select(15,5,0);
       stxh415_pioalt_pad(15,5,stm_pad_direction_input);
       stxh415_pioalt_retime(15,5,(&(struct stm_pio_control_retime_config) { .retime      = 0,
-                                                                            .clk1notclk0 = 0,
+                                                                            .clk         = 0,
                                                                             .clknotdata  = 0,
                                                                             .double_edge = 0,
                                                                             .invertclk   = 0,
-                                                                            .delay_input = 0 }));
+                                                                            .delay       = 0 }));
       stmac_phy_reset();
      }
 #endif
@@ -313,11 +313,11 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
       stxh416_pioalt_select(15,5,0);
       stxh416_pioalt_pad(15,5,stm_pad_direction_input);
       stxh416_pioalt_retime(15,5,(&(struct stm_pio_control_retime_config) { .retime      = 0,
-                                                                            .clk1notclk0 = 0,
+                                                                            .clk         = 0,
                                                                             .clknotdata  = 0,
                                                                             .double_edge = 0,
                                                                             .invertclk   = 0,
-                                                                            .delay_input = 0 }));
+                                                                            .delay       = 0 }));
       stmac_phy_reset();
      }
 #endif

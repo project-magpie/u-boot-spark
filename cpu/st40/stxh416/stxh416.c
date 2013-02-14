@@ -282,20 +282,17 @@ extern void stxh416_pioalt_retime(const int port, const int pin,
 
 	sysconfReg += pin;
 
-	if (cfg->clk1notclk0 >= 0)
-	{
+	if (cfg->clk >= 0)
+	{			/* map value to 2 adjacent bits */
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->clk1notclk0, 0);
+		SET_SYSCONF_BITS(sysconf, TRUE, 0,1, cfg->clk,cfg->clk);
 		writel(sysconf, sysconfReg);
 	}
 
-	if (cfg->delay_input >= 0)
-	{			/* map value to 2 adjacent bitfields */
+	if (cfg->delay >= 0)
+	{			/* map value to 4 adjacent bits */
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 0) & 0x1, 3);
-		SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 1) & 0x1, 4);
-		//SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 2) & 0x1, 5);
-		//SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 3) & 0x1, 6);
+		SET_SYSCONF_BITS(sysconf, TRUE, 3,6, cfg->delay,cfg->delay);
 		writel(sysconf, sysconfReg);
 	}
 

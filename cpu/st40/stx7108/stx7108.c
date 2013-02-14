@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -228,10 +228,10 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 
 	sysconfReg += 0;	/* use retime configuration register #0 */
 
-	if (cfg->clk1notclk0 >= 0)
+	if (cfg->clk >= 0)
 	{
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->clk1notclk0, 0 + pin);
+		SET_SYSCONF_BIT(sysconf, cfg->clk, 0 + pin);
 		writel(sysconf, sysconfReg);
 	}
 
@@ -242,10 +242,10 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 		writel(sysconf, sysconfReg);
 	}
 
-	if (cfg->delay_input >= 0)
+	if (cfg->delay >= 0)
 	{
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->delay_input, 16 + pin);
+		SET_SYSCONF_BIT(sysconf, cfg->delay, 16 + pin);
 		writel(sysconf, sysconfReg);
 	}
 

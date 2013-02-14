@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -286,18 +286,18 @@ static void stxh205_pioalt_retime(const int port, const int pin,
 	onEntry[1] = sysconfReg[1];
 #endif
 
-	if (cfg->clk1notclk0 >= 0)
+	if (cfg->clk >= 0)
 	{
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->clk1notclk0, 0 + pin);
+		SET_SYSCONF_BIT(sysconf, cfg->clk, 0 + pin);
 		writel(sysconf, sysconfReg);
 	}
 
-	if (cfg->delay_input >= 0)
+	if (cfg->delay >= 0)
 	{			/* map value to 2 adjacent bitfields */
 		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 0) & 0x1, 16 + pin);
-		SET_SYSCONF_BIT(sysconf, (cfg->delay_input >> 1) & 0x1, 24 + pin);
+		SET_SYSCONF_BIT(sysconf, (cfg->delay >> 0) & 0x1, 16 + pin);
+		SET_SYSCONF_BIT(sysconf, (cfg->delay >> 1) & 0x1, 24 + pin);
 		writel(sysconf, sysconfReg);
 	}
 
