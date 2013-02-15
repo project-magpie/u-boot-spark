@@ -129,14 +129,14 @@ extern void stxh416_pioalt_select(const int port, const int pin, const int alt)
 
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("ante: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 	sysconf = readl(sysconfReg);
 	SET_SYSCONF_BITS(sysconf, TRUE, pin*4,(pin*4)+3, alt,alt);
 	writel(sysconf, sysconfReg);
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("post: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 }
 
@@ -199,14 +199,14 @@ extern void stxh416_pioalt_pad(int port, const int pin,
 		/* set the "Output Enable" pad control */
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("ante: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 	sysconf = readl(sysconfReg);
 	SET_SYSCONF_BIT(sysconf, oe, bit);
 	writel(sysconf, sysconfReg);
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("post: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 
 	sysconfReg += 10;	/* skip to next set of syscfg registers */
@@ -214,14 +214,14 @@ extern void stxh416_pioalt_pad(int port, const int pin,
 		/* set the "Pull Up" pad control */
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("ante: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 	sysconf = readl(sysconfReg);
 	SET_SYSCONF_BIT(sysconf, pu, bit);
 	writel(sysconf, sysconfReg);
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("post: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 
 	sysconfReg += 10;	/* skip to next set of syscfg registers */
@@ -229,14 +229,14 @@ extern void stxh416_pioalt_pad(int port, const int pin,
 		/* set the "Open Drain Enable" pad control */
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("ante: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 	sysconf = readl(sysconfReg);
 	SET_SYSCONF_BIT(sysconf, od, bit);
 	writel(sysconf, sysconfReg);
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("post: *%p = 0x%08x\n", sysconfReg, *sysconfReg);
+		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 }
 
