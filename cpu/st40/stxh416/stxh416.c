@@ -568,7 +568,7 @@ static struct stm_gmac_pin stxh416_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(14, 2, 2, RET_DE_IO(1, 1)),/* TXD[2] */
 			DATA_OUT(14, 3, 2, RET_DE_IO(1, 1)),/* TXD[3] */
 			/* TX Clock inversion is not set for 1000Mbps */
-			CLOCK_IN(15, 0, 2, RET_ICLK(-1)),/* TXCLK */
+			CLOCK_IN(15, 0, 2, RET_ICLK(0)),/* TXCLK */
 			MDIO(15, 4, 2, RET_BYPASS(3)),/* MDIO */
 			MDC(15, 5, 2, RET_NICLK(1)),/* MDC */
 			DATA_IN(15, 6, 2, RET_DE_IO(1, 0)),/* RXDV */
@@ -576,7 +576,7 @@ static struct stm_gmac_pin stxh416_ethernet_rgmii_pad_configs[] = {
 			DATA_IN(16, 1, 2, RET_DE_IO(1, 0)),/* RXD[1] */
 			DATA_IN(16, 2, 2, RET_DE_IO(1, 0)),/* RXD[2] */
 			DATA_IN(16, 3, 2, RET_DE_IO(1, 0)),/* RXD[3] */
-			CLOCK_IN(17, 0, 2, RET_NICLK(-1)),/* RXCLK */
+			CLOCK_IN(17, 0, 2, RET_NICLK(0)),/* RXCLK */
 			CLOCK_IN(17, 6, 1, RET_NICLK(0)),/* 125MHZ i/p clk */
 };
 static struct stm_pad_sysconf stxh416_ethernet_rgmii_pad_sysconfs[] = {
@@ -685,7 +685,7 @@ static struct stm_gmac_pin stxh416_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(14, 3, 2, RET_BYPASS(0)),/* TXD[3] */
 			DATA_OUT(15, 1, 2, RET_SE_NICLK_IO(0, 0)),/* TXER */
 			DATA_OUT(13, 7, 2, RET_SE_NICLK_IO(0, 0)),/* TXEN */
-			CLOCK_IN(15, 0, 2, RET_NICLK(-1)),/* TXCLK */
+			CLOCK_IN(15, 0, 2, RET_NICLK(0)),/* TXCLK */
 			DATA_OUT(15, 3, 3, RET_BYPASS(0)),/* COL */
 			DATA_OUT_PU(15, 4, 2, RET_BYPASS(2)),/* MDIO*/
 			CLOCK_IN(15, 5, 3, RET_NICLK(0)),/* MDC */
@@ -697,7 +697,7 @@ static struct stm_gmac_pin stxh416_ethernet_reverse_mii_pad_configs[] = {
 			DATA_IN(16, 3, 2, RET_SE_NICLK_IO(2, 0)),/* RXD[3] */
 			DATA_IN(15, 6, 2, RET_SE_NICLK_IO(2, 0)),/* RXDV */
 			DATA_IN(15, 7, 2, RET_SE_NICLK_IO(2, 0)),/* RX_ER */
-			CLOCK_IN(17, 0, 2, RET_NICLK(-1)),/* RXCLK */
+			CLOCK_IN(17, 0, 2, RET_NICLK(0)),/* RXCLK */
 			PHY_CLOCK(13, 5, 2, RET_NICLK(0)),/* PHYCLK */
 };
 static struct stm_pad_sysconf stxh416_ethernet_reverse_mii_pad_sysconfs[] = {
@@ -720,11 +720,11 @@ static struct stm_gmac_pin stxh416_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(0, 3, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[3] */
 			DATA_OUT(0, 4, 1, RET_SE_NICLK_IO(0, 1)),/* TXER */
 			DATA_OUT(0, 5, 1, RET_SE_NICLK_IO(0, 1)),/* TXEN */
-			CLOCK_IN(0, 6, 1, RET_NICLK(-1)),/* TXCLK */
+			CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK */
 			DATA_OUT(0, 7, 2, RET_BYPASS(0)),/* COL */
 			DATA_IN(2, 0, 1, RET_SE_NICLK_IO(2, 1)),/* RXDV */
 			DATA_IN(2, 1, 1, RET_SE_NICLK_IO(2, 1)),/* RX_ER */
-			CLOCK_IN(2, 2, 1, RET_NICLK(-1)),/* RXCLK */
+			CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
 			PHY_CLOCK(2, 3, 1, RET_NICLK(0)),/* PHYCLK */
 			DATA_OUT_PU(1, 0, 1, RET_BYPASS(2)),/* MDIO */
 			CLOCK_IN(1, 1, 2, RET_NICLK(1)),/* MDC */

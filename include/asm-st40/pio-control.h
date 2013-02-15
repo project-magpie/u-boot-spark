@@ -30,10 +30,10 @@ struct stm_pio_control_retime_config {
  * Bypass retime with optional delay */
 #define	RET_BYPASS(_delay) (&(struct stm_pio_control_retime_config){ \
 		.retime = 0, \
-		.clk = -1, \
+		.clk = 0, \
 		.clknotdata = 0, \
-		.double_edge = -1, \
-		.invertclk = -1, \
+		.double_edge = 0, \
+		.invertclk = 0, \
 		.delay = _delay, \
 		})
 /*
@@ -66,7 +66,7 @@ struct stm_pio_control_retime_config {
 		.clk = _clk, \
 		.clknotdata = 0, \
 		.double_edge = 1, \
-		.invertclk = -1, \
+		.invertclk = 0, \
 		.delay = _delay, \
 		})
 
@@ -76,7 +76,7 @@ struct stm_pio_control_retime_config {
 		.retime = 1, \
 		.clk = _clk, \
 		.clknotdata = 1, \
-		.double_edge = -1, \
+		.double_edge = 0, \
 		.invertclk = 1, \
 		.delay = 0, \
 		})
@@ -87,7 +87,7 @@ struct stm_pio_control_retime_config {
 		.retime = 1, \
 		.clk = _clk, \
 		.clknotdata = 1, \
-		.double_edge = -1, \
+		.double_edge = 0, \
 		.invertclk = 0, \
 		.delay = 0, \
 		})
