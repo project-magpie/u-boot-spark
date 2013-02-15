@@ -49,6 +49,16 @@ DECLARE_GLOBAL_DATA_PTR;
 #define TRUE			1
 #define FALSE			0
 
+	/*
+	 * Define the following only if we need to debug the PIO
+	 * configurations, including alternate function usage, and re-timings.
+	 * Then set 'debug_pad_configs' to TRUE as appropriate.
+	 * NOTE: do *not* enable this before the "console" is up and running!
+	 */
+//#define DEBUG_PAD_CONFIGS
+#ifdef DEBUG_PAD_CONFIGS
+volatile int debug_pad_configs = 0;
+#endif
 
 	/*
 	 * The STx7108 is only supported in 32-bit (SE) mode,
@@ -84,8 +94,9 @@ extern void stx7108_pioalt_select(const int port, const int pin, const int alt)
 	int num;
 	unsigned long sysconf, *sysconfReg;
 
-#if 0
-	printf("%s(port=%d, pin=%d, alt=%d)\n", __func__, port, pin, alt);
+#ifdef DEBUG_PAD_CONFIGS
+	if (debug_pad_configs)
+		printf("%s(port=%d, pin=%d, alt=%d)\n", __func__, port, pin, alt);
 	BUG_ON(pin < 0 || pin > 7);
 	BUG_ON(alt < 0 || alt > 5);
 #endif
@@ -137,8 +148,9 @@ void stx7108_pioalt_pad(int port, const int pin,
 		break;
 	}
 
-#if 0
-	printf("%s(port=%d, pin=%d, oe=%d, pu=%d, od=%d)\n", __func__, port, pin, oe, pu, od);
+#ifdef DEBUG_PAD_CONFIGS
+	if (debug_pad_configs)
+		printf("%s(port=%d, pin=%d, oe=%d, pu=%d, od=%d)\n", __func__, port, pin, oe, pu, od);
 	BUG_ON(pin < 0 || pin > 7);
 #endif
 
@@ -190,13 +202,14 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 	int num;
 	unsigned long sysconf, *sysconfReg;
 
-#if 0
-	printf("%s(port=%d, pin=%d, retime=%d, clk1notclk0=%d, "
-			"clknotdata=%d, double_edge=%d, invertclk=%d, "
-			"delay_input=%d)\n", __func__, port, pin,
-			cfg->retime, cfg->clk1notclk0, cfg->clknotdata,
-			cfg->double_edge, cfg->invertclk, cfg->delay_input
-			);
+#ifdef DEBUG_PAD_CONFIGS
+	if (debug_pad_configs)
+		printf("%s(port=%d, pin=%d, retime=%d, clk=%d, "
+				"clknotdata=%d, double_edge=%d, invertclk=%d, "
+				"delay=%d)\n", __func__, port, pin,
+				cfg->retime, cfg->clk, cfg->clknotdata,
+				cfg->double_edge, cfg->invertclk, cfg->delay
+				);
 	BUG_ON(pin < 0 || pin > 7);
 #endif
 

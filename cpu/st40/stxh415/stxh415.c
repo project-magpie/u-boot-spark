@@ -56,7 +56,7 @@ DECLARE_GLOBAL_DATA_PTR;
 	 * Then set 'debug_pad_configs' to TRUE as appropriate.
 	 * NOTE: do *not* enable this before the "console" is up and running!
 	 */
-#undef DEBUG_PAD_CONFIGS
+//#define DEBUG_PAD_CONFIGS
 #ifdef DEBUG_PAD_CONFIGS
 volatile int debug_pad_configs = 0;
 #endif
@@ -251,11 +251,11 @@ extern void stxh415_pioalt_retime(const int port, const int pin,
 
 #ifdef DEBUG_PAD_CONFIGS
 	if (debug_pad_configs)
-		printf("%s(port=%d, pin=%d, retime=%d, clk1notclk0=%d, "
+		printf("%s(port=%d, pin=%d, retime=%d, clk=%d, "
 				"clknotdata=%d, double_edge=%d, invertclk=%d, "
-				"delay_input=%d)\n", __func__, port, pin,
-				cfg->retime, cfg->clk1notclk0, cfg->clknotdata,
-				cfg->double_edge, cfg->invertclk, cfg->delay_input
+				"delay=%d)\n", __func__, port, pin,
+				cfg->retime, cfg->clk, cfg->clknotdata,
+				cfg->double_edge, cfg->invertclk, cfg->delay
 				);
 	BUG_ON(pin < 0 || pin > 7);
 	BUG_ON(!cfg);
