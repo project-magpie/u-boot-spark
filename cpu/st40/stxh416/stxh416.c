@@ -245,18 +245,26 @@ extern void stxh416_pioalt_pad(int port, const int pin,
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 
 extern void stxh416_pioalt_retime(const int port, const int pin,
-		const struct stm_pio_control_retime_config * const cfg)
+		const struct stm_pio_control_retime_config * const cfg,
+		const enum stm_pad_gpio_direction direction)
 {
 	unsigned long sysconf, *sysconfReg;
+	unsigned innotout = 0;
 
 #ifdef DEBUG_PAD_CONFIGS
 	BUG_ON(!cfg);
 	if (debug_pad_configs)
 		printf("%s(port=%d, pin=%d, retime=%d, clk=%d, "
 				"clknotdata=%d, double_edge=%d, invertclk=%d, "
-				"delay=%d)\n", __func__, port, pin,
+				"delay=%d, direction=%s)\n", __func__, port, pin,
 				cfg->retime, cfg->clk, cfg->clknotdata,
-				cfg->double_edge, cfg->invertclk, cfg->delay
+				cfg->double_edge, cfg->invertclk, cfg->delay,
+				(direction==stm_pad_direction_input) ? "in" :
+					(direction==stm_pad_direction_input_with_pullup) ? "in+pu" :
+					(direction==stm_pad_direction_output) ? "out" :
+					(direction==stm_pad_direction_bidir_no_pullup) ? "bidir" :
+					(direction==stm_pad_direction_ignored) ? "ignore" :
+					"BAD-BAD"
 				);
 	BUG_ON(pin < 0 || pin > 7);
 	BUG_ON(cfg->retime < 0);	/* the "don't care" semantic is deprecated */
@@ -266,6 +274,21 @@ extern void stxh416_pioalt_retime(const int port, const int pin,
 	BUG_ON(cfg->invertclk < 0);	/* the "don't care" semantic is deprecated */
 	BUG_ON(cfg->delay < 0);		/* the "don't care" semantic is deprecated */
 #endif
+
+	switch (direction)
+	{
+	case stm_pad_direction_input:
+	case stm_pad_direction_input_with_pullup:
+		innotout = 1;
+		break;
+	case stm_pad_direction_output:
+	case stm_pad_direction_bidir_no_pullup:
+		innotout = 0;
+		break;
+	default:
+		BUG();
+		break;
+	}
 
 	switch (port)
 	{
@@ -301,6 +324,10 @@ extern void stxh416_pioalt_retime(const int port, const int pin,
 		SET_SYSCONF_BITS(sysconf, TRUE, 3,6, cfg->delay,cfg->delay);
 		writel(sysconf, sysconfReg);
 	}
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, innotout, 7);
+	writel(sysconf, sysconfReg);
 
 	if (cfg->invertclk >= 0)
 	{
@@ -896,7 +923,7 @@ extern void stxh416_configure_ethernet(
 
 		stxh416_pioalt_select(portno, pinno, pad->pio.alt);
 		stxh416_pioalt_pad(portno, pinno, pad->direction);
-		stxh416_pioalt_retime(portno, pinno, pad->retime);
+		stxh416_pioalt_retime(portno, pinno, pad->retime, pad->direction);
 	}
 
 		/* now configure the relevant SYS_CONFIGs */

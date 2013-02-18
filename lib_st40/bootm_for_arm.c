@@ -307,7 +307,7 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
      {
       stxh416_pioalt_select(15,5,0);
       stxh416_pioalt_pad(15,5,stm_pad_direction_input);
-      stxh416_pioalt_retime(15,5,RET_BYPASS(0));
+      stxh416_pioalt_retime(15,5,RET_BYPASS(0),stm_pad_direction_input);
       stmac_phy_reset();
      }
 #endif

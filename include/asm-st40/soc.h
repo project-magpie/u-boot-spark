@@ -77,7 +77,8 @@ extern void stxh416_pioalt_select(
 extern void stxh416_pioalt_retime(
 	const int port,
 	const int pin,
-	const struct stm_pio_control_retime_config * const cfg);
+	const struct stm_pio_control_retime_config * const cfg,
+	const enum stm_pad_gpio_direction direction);
 #define STXH416_PIOALT_SELECT(PAIR, ALT) stxh416_pioalt_select(PAIR, (ALT))
 
 
