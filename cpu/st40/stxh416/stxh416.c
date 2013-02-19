@@ -311,51 +311,43 @@ extern void stxh416_pioalt_retime(const int port, const int pin,
 
 	sysconfReg += pin;
 
+	/* read the "old" value from the system configuration register */
+	sysconf = readl(sysconfReg);
+
 	if (cfg->clk >= 0)
 	{			/* map value to 2 adjacent bits */
-		sysconf = readl(sysconfReg);
 		SET_SYSCONF_BITS(sysconf, TRUE, 0,1, cfg->clk,cfg->clk);
-		writel(sysconf, sysconfReg);
-	}
-
-	if (cfg->delay >= 0)
-	{			/* map value to 4 adjacent bits */
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BITS(sysconf, TRUE, 3,6, cfg->delay,cfg->delay);
-		writel(sysconf, sysconfReg);
-	}
-
-	sysconf = readl(sysconfReg);
-	SET_SYSCONF_BIT(sysconf, innotout, 7);
-	writel(sysconf, sysconfReg);
-
-	if (cfg->invertclk >= 0)
-	{
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->invertclk, 9);
-		writel(sysconf, sysconfReg);
-	}
-
-	if (cfg->retime >= 0)
-	{
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->retime, 10);
-		writel(sysconf, sysconfReg);
 	}
 
 	if (cfg->clknotdata >= 0)
 	{
-		sysconf = readl(sysconfReg);
 		SET_SYSCONF_BIT(sysconf, cfg->clknotdata, 2);
-		writel(sysconf, sysconfReg);
 	}
+
+	if (cfg->delay >= 0)
+	{			/* map value to 4 adjacent bits */
+		SET_SYSCONF_BITS(sysconf, TRUE, 3,6, cfg->delay,cfg->delay);
+	}
+
+	SET_SYSCONF_BIT(sysconf, innotout, 7);
 
 	if (cfg->double_edge >= 0)
 	{
-		sysconf = readl(sysconfReg);
 		SET_SYSCONF_BIT(sysconf, cfg->double_edge, 8);
-		writel(sysconf, sysconfReg);
 	}
+
+	if (cfg->invertclk >= 0)
+	{
+		SET_SYSCONF_BIT(sysconf, cfg->invertclk, 9);
+	}
+
+	if (cfg->retime >= 0)
+	{
+		SET_SYSCONF_BIT(sysconf, cfg->retime, 10);
+	}
+
+	/* write the "new" value to the system configuration register */
+	writel(sysconf, sysconfReg);
 }
 
 
