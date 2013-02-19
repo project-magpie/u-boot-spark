@@ -97,7 +97,7 @@ static void stxh416_clocks(void)
 /*
  * PIO alternative Function selector
  */
-extern void stxh416_pioalt_select(const int port, const int pin, const int alt)
+extern void stxh416_pioalt_select(int port, const int pin, const int alt)
 {
 	unsigned long sysconf, *sysconfReg;
 
@@ -110,6 +110,8 @@ extern void stxh416_pioalt_select(const int port, const int pin, const int alt)
 
 	switch (port)
 	{
+	case 40:		/* in the "SBC Bank", port #40 is logically port #5 */
+		port = 5;	/* fallthru */
 	case 0 ... 4:		/* in "SBC Bank" */
 		sysconfReg = (unsigned long*)STXH416_SYSCFG(0);
 		sysconfReg += port;
@@ -175,6 +177,8 @@ extern void stxh416_pioalt_pad(int port, const int pin,
 
 	switch (port)
 	{
+	case 40:		/* in the "SBC Bank", port #40 is logically port #5 */
+		port = 5;	/* fallthru */
 	case 0 ... 4:		/* in "SBC Bank" */
 		sysconfReg = (unsigned long*)STXH416_SYSCFG(40);
 		sysconfReg += port / 4;
@@ -244,7 +248,7 @@ extern void stxh416_pioalt_pad(int port, const int pin,
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 
-extern void stxh416_pioalt_retime(const int port, const int pin,
+extern void stxh416_pioalt_retime(int port, const int pin,
 		const struct stm_pio_control_retime_config * const cfg,
 		const enum stm_pad_gpio_direction direction)
 {
@@ -292,6 +296,8 @@ extern void stxh416_pioalt_retime(const int port, const int pin,
 
 	switch (port)
 	{
+	case 40:		/* in the "SBC Bank", port #40 is logically port #5 */
+		port = 5;	/* fallthru */
 	case 0 ... 4:		/* in "SBC Bank" */
 		sysconfReg = (unsigned long*)STXH416_SYSCFG(100);
 		sysconfReg += (port-0) * 8;
@@ -957,9 +963,10 @@ extern int stxh416_usb_init(const int port)
 		{ .oc = {  9, 4, 1 }, .pwr = {  9, 5, 1 } },
 		{ .oc = { 18, 0, 1 }, .pwr = { 18, 1, 1 } },
 		{ .oc = { 18, 2, 1 }, .pwr = { 18, 3, 1 } },
+		{ .oc = { 40, 0, 1 }, .pwr = { 40, 1, 1 } },
 	};
 
-	if (port < 0 || port >= 3)	/* invalid port number ? */
+	if (port < 0 || port >= 4)	/* invalid port number ? */
 		return -1;		/* failed to initialize! */
 
 		/* Set the USB clock to 48MHz */
@@ -983,19 +990,26 @@ extern int stxh416_usb_init(const int port)
 	{
 		unsigned long * const sysconfReg = (unsigned long*)STXH416_SYSCFG(2525);
 		unsigned long sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, FALSE, port);
+		unsigned int const req = (port==3) ? 6 : port;
+		SET_SYSCONF_BIT(sysconf, FALSE, req);
 		writel(sysconf, sysconfReg);
 	}
-	/* wait until USBx_PWR_DWN_GRANT == 0 */
-	while (*STXH416_SYSCFG(384) & (1u<<port))
-		;	/* just wait ... */
+
+	/* wait until USB[x]_POWERDOWN_ACK == 0 */
+	{
+		unsigned int const ack = (port==3) ? 5 : port;
+		while (*STXH416_SYSCFG(2583) & (1u<<ack))
+			;	/* just wait ... */
+	}
 
 	/* Configure USB: in DC shift, and in edge control */
 	{
 		unsigned long * const sysconfReg = (unsigned long*)STXH416_SYSCFG(2520);
 		unsigned long sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, FALSE, port);  /* in DC shift */
-		SET_SYSCONF_BIT(sysconf, TRUE, port+3); /* in edge control */
+		unsigned int const dc = (port==3) ? 8 : port;
+		unsigned int const ec = (port==3) ? 9 : port + 3;
+		SET_SYSCONF_BIT(sysconf, FALSE, dc);	/* in DC shift */
+		SET_SYSCONF_BIT(sysconf, TRUE,  ec);	/* in edge control */
 		writel(sysconf, sysconfReg);
 	}
 

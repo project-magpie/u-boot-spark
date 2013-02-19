@@ -93,6 +93,8 @@ extern int usb_cpu_init(void)
 	stxh416_usb_init(1);
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB2_BASE	/* USB #2 */
 	stxh416_usb_init(2);
+#elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB3_BASE	/* USB #3 */
+	stxh416_usb_init(3);
 #endif
 #else
 #error Missing Device Definitions!
