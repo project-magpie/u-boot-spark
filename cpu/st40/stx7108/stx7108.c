@@ -203,6 +203,7 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 	unsigned long sysconf, *sysconfReg;
 
 #ifdef DEBUG_PAD_CONFIGS
+	BUG_ON(!cfg);
 	if (debug_pad_configs)
 		printf("%s(port=%d, pin=%d, retime=%d, clk=%d, "
 				"clknotdata=%d, double_edge=%d, invertclk=%d, "
@@ -211,6 +212,12 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 				cfg->double_edge, cfg->invertclk, cfg->delay
 				);
 	BUG_ON(pin < 0 || pin > 7);
+	BUG_ON(cfg->retime < 0);	/* the "don't care" semantic is deprecated */
+	BUG_ON(cfg->clk < 0);		/* the "don't care" semantic is deprecated */
+	BUG_ON(cfg->clknotdata < 0);	/* the "don't care" semantic is deprecated */
+	BUG_ON(cfg->double_edge < 0);	/* the "don't care" semantic is deprecated */
+	BUG_ON(cfg->invertclk < 0);	/* the "don't care" semantic is deprecated */
+	BUG_ON(cfg->delay < 0);		/* the "don't care" semantic is deprecated */
 #endif
 
 	switch (port)
