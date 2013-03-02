@@ -48,6 +48,29 @@
 #define CONFIG_CMDLINE_TAG
 
 
+#if defined(CONFIG_STM_DUMP_ATAGS)
+	/*
+	 * Note, this just simply dumps the ATAGS as raw 32-bit words.
+	 * We may want to decode this properly in the future!
+	 */
+static void DumpTags(const uint32_t start, const uint32_t bytes)
+{
+	const uint32_t * const array = (uint32_t*)start;
+	const uint32_t words = (bytes >> 2) + 1;
+	uint32_t i;
+
+	printf("\nATAGS:\n");
+	for(i=0; i<words; i+=4)
+	{
+		printf("%08x:  %8x %8x %8x %8x\n",
+			(unsigned int)&array[i],
+			array[i+0], array[i+1], array[i+2], array[i+3]);
+	}
+	printf("\n");
+}
+#endif /* CONFIG_STM_DUMP_ATAGS */
+
+
 /****************************************************************************************************************/
 /************************************** virt_to_phys() api implementation ***************************************/
 /****************************************************************************************************************/
@@ -237,6 +260,11 @@ extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *
                                     = (uint32_t)(theKernel - KERNEL_BASE_OFFSET + SECONDARY_CPU_MEMORY_OFFSET);
      armKernelSecondaryEntryAddrPtr = (uint32_t)virt_to_phys((void*)(&armSecondaryStartPtr));
      atagsAddrPtr                   = (uint32_t)(theKernel - KERNEL_BASE_OFFSET + ATAGS_MEMORY_OFFSET);
+
+#if defined(CONFIG_STM_DUMP_ATAGS)
+     /* Dump out the newly constructed ATAGS, if required for debug. */
+     DumpTags(atagsAddrPtr, (uint32_t)params-atagsAddrPtr);
+#endif /* CONFIG_STM_DUMP_ATAGS */
 
      /* Purge cache */
      sh_flush_cache_all();
