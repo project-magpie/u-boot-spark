@@ -393,7 +393,7 @@ static void setup_memory_tags (bd_t *bd)
     params->hdr.size = tag_size (tag_mem32);
 
     params->u.mem.start = (u32)virt_to_phys((void *)CONFIG_SYS_SDRAM_BASE);
-    params->u.mem.size  = 2*CONFIG_SYS_SDRAM_SIZE;
+    params->u.mem.size  = CONFIG_SYS_SDRAM_SIZE;
 
     params = tag_next (params);
 }
