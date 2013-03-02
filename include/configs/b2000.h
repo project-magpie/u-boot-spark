@@ -35,19 +35,35 @@
 
 
 /*-----------------------------------------------------------------------
- *	Switch settings to select between the SoC's main boot-modes:
- *		1) boot from 8-bit NAND, 2KiB page, long address, Hamming controller
- *		2) boot from SPI serial flash
+ *	Jumper settings to select between the SoC's main boot-modes:
+ *		*) boot from 8-bit NAND (with the Hamming or BCH controller)
+ *		*) boot from SPI serial flash (NOR)
  *
- *	Jumper	NAND	SPI
- *	------	----	---
- *	n/a	10100	11010		MODE[6:2]
- *	n/a	0x14	0x1A		MODE[6:2]
- *	J13	2-3	2-3		MODE[6]
- *	J22	1-2	2-3		MODE[5]
- *	J16	2-3	1-2		MODE[4]
- *	J32	1-2	2-3		MODE[3]
- *	J37	1-2	1-2		MODE[2]
+ *	In the following, NAND is always assumed to be 8-bits wide.
+ *	The following table only covers *some* of the more likely
+ *	configurations. Please consult the full boot-device selection
+ *	encoding table, for the other options for MODE[6-2].
+ *
+ *	There are 5 jumpers for the boot device (J13,J22,J16,J32,J37):
+ *
+ *					MODE	J13 J22 J16 J32 J37
+ *	Flash Boot Configuration	[6-2]	[6] [5] [4] [3] [2]
+ *	------------------------	------	--- --- --- --- ---
+ *	NAND  2k, 5 cycles, 18-bit BCH	00101	1-2 1-2 2-3 1-2 2-3
+ *	NAND  2k, 5 cycles, 30-bit BCH	00110	1-2 1-2 2-3 2-3 1-2
+ *	NAND  4k, 5 cycles, 18-bit BCH	01001	1-2 2-3 1-2 1-2 2-3
+ *	NAND  4k, 5 cycles, 30-bit BCH	01010	1-2 2-3 1-2 2-3 1-2
+ *	NAND 512, 4 cycles, Hamming	10010	2-3 1-2 1-2 2-3 1-2
+ *	NAND  2k, 5 cycles, Hamming	10100	2-3 1-2 2-3 1-2 1-2
+ *	SPI (NOR)			11010	2-3 2-3 1-2 2-3 1-2
+ *
+ *
+ *	In addition, please select the boot-master core (J46):
+ *
+ *	Boot-Master	MODE[1]		J46
+ *	-----------	-------		---
+ *	Coretex-A9	0		1-2
+ *	SH40		1		2-3
  */
 
 
@@ -189,7 +205,7 @@
  *	daughter board.
  *
  *	The default configuration assumes a B2032 daughter
- *	board (IP1001) is connected to CN23 (GMAC #1).
+ *	board (IP1001) is connected to CN22 (GMAC #0).
  */
 
 /* are we using the internal ST GMAC device ? */
@@ -232,10 +248,10 @@
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_STORAGE
-#	define CONFIG_SYS_USB0_BASE			0xfe100000	/* #0 is rear, next to E-SATA */
-#	define CONFIG_SYS_USB1_BASE			0xfe200000	/* #1 is rear, next to HDMI */
-#	define CONFIG_SYS_USB2_BASE			0xfe300000	/* #2 is front port */
-#	define CONFIG_SYS_USB3_BASE			0xfe340000	/* #3 is another usb - QQQ to check! */
+#	define CONFIG_SYS_USB0_BASE			0xfe100000	/* #0 is CN3-upper next to E-SATA */
+#	define CONFIG_SYS_USB1_BASE			0xfe200000	/* #1 is CN3-lower next to E-SATA */
+#	define CONFIG_SYS_USB2_BASE			0xfe300000	/* #2 is CN4-upper next to HDMI */
+#	define CONFIG_SYS_USB3_BASE			0xfe340000	/* #3 is CN4-lower next to HDMI */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
 #	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
@@ -319,6 +335,14 @@
  * NAND FLASH organization
  */
 
+/*
+ * This board has no NAND device directly soldered on to it.
+ * To use NAND, a "daughter-board" must be installed into CN43
+ * (such as a B2006 board).  The following configurations may
+ * need to be changed, depending on the specific NAND installed.
+ * In particular CONFIG_SYS_NAND_ERASE_SIZE should be checked,
+ * as well as the potency CONFIG_SYS_ST40_NAND_USE_BCH_xx_BIT_ECC.
+ */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CONFIG_SYS_MAX_NAND_DEVICE	1
 #	define CONFIG_SYS_NAND0_BASE		CONFIG_SYS_EMI_NAND_BASE
@@ -546,6 +570,7 @@
 
 #if defined(CONFIG_CMD_I2C)
 	/* Note: I2C Bus #1 "probes" devices when a suitable HDMI device is plugged in to CN5. */
+	/* It should be further noted that the I2C bus was run at 100kHz (and not 400kHz) */
 #	define CONFIG_I2C_BUS		1	/* Use I2C Bus associated with SSC #1 */
 #	define CONFIG_I2C_CMD_TREE		/* use a "i2c" root command */
 #	define CONFIG_SYS_I2C_SLAVE	0x7F	/* I2C slave address - Bogus: master-only in U-Boot */
@@ -577,7 +602,7 @@
 	 *		I2C_SCL(0); NDELAY(5000);
 	 *	}
 	 */
-#	define NDELAY_BOGOS		20	/* Empirical measurement for 1ns on B2000 */
+#	define NDELAY_BOGOS		20	/* Empirical measurement for 1ns on B2000+STxH416 */
 #	define NDELAY(ns)						\
 		do {							\
 			const unsigned n_bogo = NDELAY_BOGOS;		\
