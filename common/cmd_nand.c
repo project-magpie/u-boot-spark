@@ -7,7 +7,7 @@
  * Added 16-bit nand support
  * (C) 2004 Texas Instruments
  *
- * Copyright (C) 2010-2012 STMicroelectronics. (Sean McGoogan <Sean.McGoogan@st.com>)
+ * Copyright (C) 2010-2013 STMicroelectronics. (Sean McGoogan <Sean.McGoogan@st.com>)
  */
 
 #include <common.h>
@@ -67,9 +67,13 @@ static void stm_remap_bch_buffers(
 		memcpy(&oobbuf[sector*ecc_size], &datbuf[sector_size+sector*(sector_size+ecc_size)], ecc_size);
 	}
 
-	/* abut data i.e. remove ECC bytes from interleaved DATA+ECC stripes */
-	for(sector=0; sector<sectors_per_page; sector++) {
-		memcpy(&datbuf[sector*sector_size], &datbuf[sector*(sector_size+ecc_size)], sector_size);
+	/*
+	 * abut data i.e. remove ECC bytes from interleaved DATA+ECC stripes.
+	 * Note: use memmove(), as the regions are likely to overlap!
+	 * No need to "move" the 0-th sector, so we start with sector #1.
+	 */
+	for(sector=1; sector<sectors_per_page; sector++) {
+		memmove(&datbuf[sector*sector_size], &datbuf[sector*(sector_size+ecc_size)], sector_size);
 	}
 
 	/* copy *only* the ECC bytes, to the OOB region (after pure DATA) */
