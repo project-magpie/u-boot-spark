@@ -251,7 +251,9 @@
 #	define CONFIG_SYS_USB0_BASE			0xfe100000	/* #0 is CN3-upper next to E-SATA */
 #	define CONFIG_SYS_USB1_BASE			0xfe200000	/* #1 is CN3-lower next to E-SATA */
 #	define CONFIG_SYS_USB2_BASE			0xfe300000	/* #2 is CN4-upper next to HDMI */
+#if defined(CONFIG_ST40_STXH416)					/* Only the STxH416 has a 4th USB controller */
 #	define CONFIG_SYS_USB3_BASE			0xfe340000	/* #3 is CN4-lower next to HDMI */
+#endif /* CONFIG_ST40_STXH416 */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
 #	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
