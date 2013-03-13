@@ -447,7 +447,7 @@ static int usb_stor_BBB_reset(struct us_data *us)
 static int usb_stor_CB_reset(struct us_data *us)
 {
 	unsigned char cmd[12];
-	int __attribute__((unused)) result;
+	int result;
 
 	USB_STOR_PRINTF("CB_reset\n");
 	memset(cmd, 0xff, sizeof(cmd));
