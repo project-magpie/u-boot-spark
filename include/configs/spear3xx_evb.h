@@ -35,11 +35,60 @@
 #define CONFIG_SPEAR3XX				1
 #define CONFIG_SPEAR310				1
 #elif defined(CONFIG_MK_spear320)
-#define CONFIG_SPEAR3XX				1
-#define CONFIG_SPEAR320				1
+	#if defined(CONFIG_MK_hmi)
+	#define CONFIG_SPEAR3XX			1
+	#define CONFIG_SPEAR320_HMI		1
+	#else
+	#define CONFIG_SPEAR3XX			1
+	#define CONFIG_SPEAR320			1
+	#endif
+#endif
+
+#if defined(CONFIG_MK_nand)
+#define CONFIG_ENV_IS_IN_NAND			1
+#else
+#define CONFIG_ENV_IS_IN_FLASH			1
+#endif
+
+#if defined(CONFIG_MK_usbtty)
+#define CONFIG_SPEAR_USBTTY			1
+
+#undef CONFIG_ENV_IS_IN_NAND
+#undef CONFIG_ENV_IS_IN_FLASH
+#define CONFIG_ENV_IS_NOWHERE			1
+/*
+ * To support saveenv command
+ */
 #endif
 
 #include <configs/spear-common.h>
+
+#if !defined(CONFIG_SPEAR_USBTTY)
+/* Ethernet driver configuration */
+#define CONFIG_DW_ALTDESCRIPTOR			1
+
+#if defined(CONFIG_SPEAR310)
+#define CONFIG_ETH_MDIO_HOOK			1
+#define CONFIG_MACB				1
+#define CONFIG_MACB0_PHY			0x01
+#define CONFIG_MACB1_PHY			0x03
+#define CONFIG_MACB2_PHY			0x05
+#define CONFIG_MACB3_PHY			0x07
+
+#elif defined(CONFIG_SPEAR320)
+#define CONFIG_ETH_MDIO_HOOK			1
+#define CONFIG_MACB				1
+#define CONFIG_MACB0_PHY			0x01
+#define CONFIG_MACB1_PHY			0x02
+
+#elif defined(CONFIG_SPEAR320_HMI)
+#define CONFIG_ETH_MDIO_HOOK			1
+#define CONFIG_MACB				1
+#define CONFIG_MACB0_PHY			0x1
+#define CONFIG_MACB1_PHY			0x0
+
+#endif
+#endif
 
 /* Serial Configuration (PL011) */
 #define CONFIG_SYS_SERIAL0			0xD0000000
@@ -65,7 +114,7 @@
 						(void *)CONFIG_SYS_SERIAL3, \
 						(void *)CONFIG_SYS_SERIAL4, \
 						(void *)CONFIG_SYS_SERIAL5 }
-#elif defined(CONFIG_SPEAR320)
+#elif defined(CONFIG_SPEAR320) || defined(CONFIG_SPEAR320_HMI)
 
 #if (CONFIG_CONS_INDEX)
 #undef  CONFIG_PL011_CLOCK
@@ -85,6 +134,7 @@
 #define CONFIG_FLASH_CFI_DRIVER
 
 #if defined(CONFIG_SPEAR310)
+#define CONFIG_SYS_FLASH_PROTECTION		1
 #define CONFIG_SYS_FLASH_BASE			0x50000000
 #define CONFIG_SYS_CS1_FLASH_BASE		0x60000000
 #define CONFIG_SYS_CS2_FLASH_BASE		0x70000000
@@ -99,7 +149,8 @@
 						CONFIG_SYS_CS5_FLASH_BASE }
 #define CONFIG_SYS_MAX_FLASH_BANKS		6
 
-#elif defined(CONFIG_SPEAR320)
+#elif defined(CONFIG_SPEAR320) || defined(CONFIG_SPEAR320_HMI)
+#define CONFIG_SYS_FLASH_PROTECTION		1
 #define CONFIG_SYS_FLASH_BASE			0x44000000
 #define CONFIG_SYS_CS1_FLASH_BASE		0x45000000
 #define CONFIG_SYS_CS2_FLASH_BASE		0x46000000
@@ -117,13 +168,16 @@
 
 #endif
 
+/* NAND flash configuration */
+#define CONFIG_SYS_FSMC_NAND_8BIT		1
+
 #if defined(CONFIG_SPEAR300)
 #define CONFIG_SYS_NAND_BASE			(0x80000000)
 
 #elif defined(CONFIG_SPEAR310)
 #define CONFIG_SYS_NAND_BASE			(0x40000000)
 
-#elif defined(CONFIG_SPEAR320)
+#elif defined(CONFIG_SPEAR320) || defined(CONFIG_SPEAR320_HMI)
 #define CONFIG_SYS_NAND_BASE			(0x50000000)
 
 #endif

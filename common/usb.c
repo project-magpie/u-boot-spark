@@ -1402,14 +1402,29 @@ int usb_hub_configure(struct usb_device *dev)
 	for (i = 0; i < dev->maxchild; i++) {
 		struct usb_port_status portsts;
 		unsigned short portstatus, portchange;
+		int ret;
+		ulong start = get_timer(0);
 
-		if (usb_get_port_status(dev, i + 1, &portsts) < 0) {
-			USB_HUB_PRINTF("get_port_status failed\n");
+		do {
+			ret = usb_get_port_status(dev, i + 1, &portsts);
+			if (ret < 0) {
+				USB_HUB_PRINTF("get_port_status failed\n");
+				break;
+			}
+
+			portstatus = le16_to_cpu(portsts.wPortStatus);
+			portchange = le16_to_cpu(portsts.wPortChange);
+
+			if ((portchange & USB_PORT_STAT_C_CONNECTION) &&
+				(portstatus & USB_PORT_STAT_CONNECTION))
+				break;
+
+			wait_ms(100);
+		} while (get_timer(start) < CONFIG_SYS_HZ * 10);
+
+		if (ret < 0)
 			continue;
-		}
 
-		portstatus = le16_to_cpu(portsts.wPortStatus);
-		portchange = le16_to_cpu(portsts.wPortChange);
 		USB_HUB_PRINTF("Port %d Status %X Change %X\n",
 				i + 1, portstatus, portchange);
 

@@ -38,6 +38,7 @@ COBJS-$(CONFIG_DRIVER_NAND_BFIN) += bfin_nand.o
 COBJS-$(CONFIG_NAND_DAVINCI) += davinci_nand.o
 COBJS-$(CONFIG_NAND_FSL_ELBC) += fsl_elbc_nand.o
 COBJS-$(CONFIG_NAND_FSL_UPM) += fsl_upm.o
+COBJS-$(CONFIG_NAND_FSMC) += fsmc_nand.o
 COBJS-$(CONFIG_NAND_KB9202) += kb9202_nand.o
 COBJS-$(CONFIG_NAND_KIRKWOOD) += kirkwood_nand.o
 COBJS-$(CONFIG_NAND_KMETER1) += kmeter1_nand.o
@@ -47,7 +48,6 @@ COBJS-$(CONFIG_NAND_NDFC) += ndfc.o
 COBJS-$(CONFIG_NAND_NOMADIK) += nomadik.o
 COBJS-$(CONFIG_NAND_S3C2410) += s3c2410_nand.o
 COBJS-$(CONFIG_NAND_S3C64XX) += s3c64xx.o
-COBJS-$(CONFIG_NAND_SPEAR) += spr_nand.o
 COBJS-$(CONFIG_NAND_OMAP_GPMC) += omap_gpmc.o
 COBJS-$(CONFIG_NAND_PLAT) += nand_plat.o
 endif

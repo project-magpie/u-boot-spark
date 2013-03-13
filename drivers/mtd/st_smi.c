@@ -24,10 +24,10 @@
 #include <common.h>
 #include <flash.h>
 #include <linux/err.h>
+#include <linux/mtd/st_smi.h>
 
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/spr_smi.h>
 
 #if !defined(CONFIG_SYS_NO_FLASH)
 
@@ -37,19 +37,62 @@ static ulong bank_base[CONFIG_SYS_MAX_FLASH_BANKS] =
     CONFIG_SYS_FLASH_ADDR_BASE;
 flash_info_t flash_info[CONFIG_SYS_MAX_FLASH_BANKS];
 
-#define ST_M25Pxx_ID		0x00002020
+/* data structure to maintain flash ids from different vendors */
+struct flash_device {
+	char *name;
+	u8 erase_cmd;
+	u32 device_id;
+	u32 pagesize;
+	unsigned long sectorsize;
+	unsigned long size_in_bytes;
+};
 
-static struct flash_dev flash_ids[] = {
-	{0x10, 0x10000, 2},	/* 64K Byte */
-	{0x11, 0x20000, 4},	/* 128K Byte */
-	{0x12, 0x40000, 4},	/* 256K Byte */
-	{0x13, 0x80000, 8},	/* 512K Byte */
-	{0x14, 0x100000, 16},	/* 1M Byte */
-	{0x15, 0x200000, 32},	/* 2M Byte */
-	{0x16, 0x400000, 64},	/* 4M Byte */
-	{0x17, 0x800000, 128},	/* 8M Byte */
-	{0x18, 0x1000000, 64},	/* 16M Byte */
-	{0x00,}
+#define FLASH_ID(n, es, id, psize, ssize, size)	\
+{				\
+	.name = n,		\
+	.erase_cmd = es,	\
+	.device_id = id,	\
+	.pagesize = psize,	\
+	.sectorsize = ssize,	\
+	.size_in_bytes = size	\
+}
+
+/*
+ * List of supported flash devices.
+ * Currently the erase_cmd field is not used in this driver.
+ */
+static struct flash_device flash_devices[] = {
+	FLASH_ID("st m25p16"     , 0xd8, 0x00152020, 0x100, 0x10000, 0x200000),
+	FLASH_ID("st m25p32"     , 0xd8, 0x00162020, 0x100, 0x10000, 0x400000),
+	FLASH_ID("st m25p64"     , 0xd8, 0x00172020, 0x100, 0x10000, 0x800000),
+	FLASH_ID("st m25p128"    , 0xd8, 0x00182020, 0x100, 0x40000, 0x1000000),
+	FLASH_ID("st m25p05"     , 0xd8, 0x00102020, 0x80 , 0x8000 , 0x10000),
+	FLASH_ID("st m25p10"     , 0xd8, 0x00112020, 0x80 , 0x8000 , 0x20000),
+	FLASH_ID("st m25p20"     , 0xd8, 0x00122020, 0x100, 0x10000, 0x40000),
+	FLASH_ID("st m25p40"     , 0xd8, 0x00132020, 0x100, 0x10000, 0x80000),
+	FLASH_ID("st m25p80"     , 0xd8, 0x00142020, 0x100, 0x10000, 0x100000),
+	FLASH_ID("st m45pe10"    , 0xd8, 0x00114020, 0x100, 0x10000, 0x20000),
+	FLASH_ID("st m45pe20"    , 0xd8, 0x00124020, 0x100, 0x10000, 0x40000),
+	FLASH_ID("st m45pe40"    , 0xd8, 0x00134020, 0x100, 0x10000, 0x80000),
+	FLASH_ID("st m45pe80"    , 0xd8, 0x00144020, 0x100, 0x10000, 0x100000),
+	FLASH_ID("mcr n25q128"   , 0xd8, 0x0018BA20, 0x100, 0x10000, 0x1000000),
+	FLASH_ID("sp s25fl004"   , 0xd8, 0x00120201, 0x100, 0x10000, 0x80000),
+	FLASH_ID("sp s25fl008"   , 0xd8, 0x00130201, 0x100, 0x10000, 0x100000),
+	FLASH_ID("sp s25fl016"   , 0xd8, 0x00140201, 0x100, 0x10000, 0x200000),
+	FLASH_ID("sp s25fl032"   , 0xd8, 0x00150201, 0x100, 0x10000, 0x400000),
+	FLASH_ID("sp s25fl064"   , 0xd8, 0x00160201, 0x100, 0x10000, 0x800000),
+	FLASH_ID("mac 25l512"    , 0xd8, 0x001020C2, 0x010, 0x10000, 0x10000),
+	FLASH_ID("mac 25l1005"   , 0xd8, 0x001120C2, 0x010, 0x10000, 0x20000),
+	FLASH_ID("mac 25l2005"   , 0xd8, 0x001220C2, 0x010, 0x10000, 0x40000),
+	FLASH_ID("mac 25l4005"   , 0xd8, 0x001320C2, 0x010, 0x10000, 0x80000),
+	FLASH_ID("mac 25l4005a"  , 0xd8, 0x001320C2, 0x010, 0x10000, 0x80000),
+	FLASH_ID("mac 25l8005"   , 0xd8, 0x001420C2, 0x010, 0x10000, 0x100000),
+	FLASH_ID("mac 25l1605"   , 0xd8, 0x001520C2, 0x100, 0x10000, 0x200000),
+	FLASH_ID("mac 25l1605a"  , 0xd8, 0x001520C2, 0x010, 0x10000, 0x200000),
+	FLASH_ID("mac 25l3205"   , 0xd8, 0x001620C2, 0x100, 0x10000, 0x400000),
+	FLASH_ID("mac 25l3205a"  , 0xd8, 0x001620C2, 0x100, 0x10000, 0x400000),
+	FLASH_ID("mac 25l6405"   , 0xd8, 0x001720C2, 0x100, 0x10000, 0x800000),
+	FLASH_ID("wbd w25q128" , 0xd8, 0x001840EF, 0x100, 0x10000, 0x1000000),
 };
 
 /*
@@ -58,13 +101,15 @@ static struct flash_dev flash_ids[] = {
  *
  * Wait until TFF is set in status register
  */
-static void smi_wait_xfer_finish(int timeout)
+static int smi_wait_xfer_finish(int timeout)
 {
-	while (timeout--) {
+	do {
 		if (readl(&smicntl->smi_sr) & TFF)
-			break;
+			return 0;
 		udelay(1000);
-	}
+	} while (timeout--);
+
+	return -1;
 }
 
 /*
@@ -82,7 +127,9 @@ static unsigned int smi_read_id(flash_info_t *info, int banknum)
 	writel(READ_ID, &smicntl->smi_tr);
 	writel((banknum << BANKSEL_SHIFT) | SEND | TX_LEN_1 | RX_LEN_3,
 	       &smicntl->smi_cr2);
-	smi_wait_xfer_finish(XFER_FINISH_TOUT);
+
+	if (smi_wait_xfer_finish(XFER_FINISH_TOUT))
+		return -EIO;
 
 	value = (readl(&smicntl->smi_rr) & 0x00FFFFFF);
 
@@ -103,30 +150,30 @@ static unsigned int smi_read_id(flash_info_t *info, int banknum)
 static ulong flash_get_size(ulong base, int banknum)
 {
 	flash_info_t *info = &flash_info[banknum];
-	struct flash_dev *dev;
-	unsigned int value;
-	unsigned int density;
+	int value;
 	int i;
 
 	value = smi_read_id(info, banknum);
-	density = (value >> 16) & 0xff;
 
-	for (i = 0, dev = &flash_ids[0]; dev->density != 0x0;
-	     i++, dev = &flash_ids[i]) {
-		if (dev->density == density) {
-			info->size = dev->size;
-			info->sector_count = dev->sector_count;
-			break;
+	if (value < 0) {
+		printf("Flash id could not be read\n");
+		return 0;
+	}
+
+	/* Matches chip-id to entire list of 'serial-nor flash' ids */
+	for (i = 0; i < ARRAY_SIZE(flash_devices); i++) {
+		if (flash_devices[i].device_id == value) {
+			info->size = flash_devices[i].size_in_bytes;
+			info->flash_id = value;
+			info->start[0] = base;
+			info->sector_count =
+					info->size/flash_devices[i].sectorsize;
+
+			return info->size;
 		}
 	}
 
-	if (dev->density == 0x0)
-		return 0;
-
-	info->flash_id = value & 0xffff;
-	info->start[0] = base;
-
-	return info->size;
+	return 0;
 }
 
 /*
@@ -136,9 +183,9 @@ static ulong flash_get_size(ulong base, int banknum)
  * This routine will get the status register of the flash chip present at the
  * given bank
  */
-static unsigned int smi_read_sr(int bank)
+static int smi_read_sr(int bank)
 {
-	u32 ctrlreg1;
+	u32 ctrlreg1, val;
 
 	/* store the CTRL REG1 state */
 	ctrlreg1 = readl(&smicntl->smi_cr1);
@@ -150,12 +197,15 @@ static unsigned int smi_read_sr(int bank)
 	/* Performing a RSR instruction in HW mode */
 	writel((bank << BANKSEL_SHIFT) | RD_STATUS_REG, &smicntl->smi_cr2);
 
-	smi_wait_xfer_finish(XFER_FINISH_TOUT);
+	if (smi_wait_xfer_finish(XFER_FINISH_TOUT))
+		return -1;
+
+	val = readl(&smicntl->smi_sr);
 
 	/* Restore the CTRL REG1 state */
 	writel(ctrlreg1, &smicntl->smi_cr1);
 
-	return readl(&smicntl->smi_sr);
+	return val;
 }
 
 /*
@@ -169,22 +219,19 @@ static unsigned int smi_read_sr(int bank)
  */
 static int smi_wait_till_ready(int bank, int timeout)
 {
-	int count;
-	unsigned int sr;
+	int sr;
 
 	/* One chip guarantees max 5 msec wait here after page writes,
 	   but potentially three seconds (!) after page erase. */
-	for (count = 0; count < timeout; count++) {
-
+	do {
 		sr = smi_read_sr(bank);
-		if (sr < 0)
-			break;
-		else if (!(sr & WIP_BIT))
+		if ((sr >= 0) && (!(sr & WIP_BIT)))
 			return 0;
 
 		/* Try again after 1m-sec */
 		udelay(1000);
-	}
+	} while (timeout--);
+
 	printf("SMI controller is still in wait, timeout=%d\n", timeout);
 	return -EIO;
 }
@@ -200,6 +247,7 @@ static int smi_write_enable(int bank)
 {
 	u32 ctrlreg1;
 	int timeout = WMODE_TOUT;
+	int sr;
 
 	/* Store the CTRL REG1 state */
 	ctrlreg1 = readl(&smicntl->smi_cr1);
@@ -210,19 +258,20 @@ static int smi_write_enable(int bank)
 	/* Give the Flash, Write Enable command */
 	writel((bank << BANKSEL_SHIFT) | WE, &smicntl->smi_cr2);
 
-	smi_wait_xfer_finish(XFER_FINISH_TOUT);
+	if (smi_wait_xfer_finish(XFER_FINISH_TOUT))
+		return -1;
 
 	/* Restore the CTRL REG1 state */
 	writel(ctrlreg1, &smicntl->smi_cr1);
 
-	while (timeout--) {
-		if (smi_read_sr(bank) & (1 << (bank + WM_SHIFT)))
-			break;
-		udelay(1000);
-	}
+	do {
+		sr = smi_read_sr(bank);
+		if ((sr >= 0) && (sr & (1 << (bank + WM_SHIFT))))
+			return 0;
 
-	if (timeout)
-		return 0;
+		/* Try again after 1m-sec */
+		udelay(1000);
+	} while (timeout--);
 
 	return -1;
 }
@@ -232,7 +281,7 @@ static int smi_write_enable(int bank)
  *
  * SMI initialization routine. Sets SMI control register1.
  */
-static void smi_init(void)
+void smi_init(void)
 {
 	/* Setting the fast mode values. SMI working at 166/4 = 41.5 MHz */
 	writel(HOLD1 | FAST_MODE | BANK_EN | DSEL_TIME | PRESCAL4,
@@ -275,38 +324,32 @@ static int smi_sector_erase(flash_info_t *info, unsigned int sector)
 
 	writel(readl(&smicntl->smi_sr) & ~(ERF1 | ERF2), &smicntl->smi_sr);
 
-	if (info->flash_id == ST_M25Pxx_ID) {
-		/* Wait until finished previous write command. */
-		if (smi_wait_till_ready(bank, CONFIG_SYS_FLASH_ERASE_TOUT))
-			return -EBUSY;
+	/* Wait until finished previous write command. */
+	if (smi_wait_till_ready(bank, CONFIG_SYS_FLASH_ERASE_TOUT))
+		return -EBUSY;
 
-		/* Send write enable, before erase commands. */
-		if (smi_write_enable(bank))
-			return -EIO;
+	/* Send write enable, before erase commands. */
+	if (smi_write_enable(bank))
+		return -EIO;
 
-		/* Put SMI in SW mode */
-		writel(readl(&smicntl->smi_cr1) | SW_MODE, &smicntl->smi_cr1);
+	/* Put SMI in SW mode */
+	writel(readl(&smicntl->smi_cr1) | SW_MODE, &smicntl->smi_cr1);
 
-		/* Send Sector Erase command in SW Mode */
-		writel(instruction, &smicntl->smi_tr);
-		writel((bank << BANKSEL_SHIFT) | SEND | TX_LEN_4,
+	/* Send Sector Erase command in SW Mode */
+	writel(instruction, &smicntl->smi_tr);
+	writel((bank << BANKSEL_SHIFT) | SEND | TX_LEN_4,
 		       &smicntl->smi_cr2);
-		smi_wait_xfer_finish(XFER_FINISH_TOUT);
+	if (smi_wait_xfer_finish(XFER_FINISH_TOUT))
+		return -EIO;
 
-		if (smi_wait_till_ready(bank, CONFIG_SYS_FLASH_ERASE_TOUT))
-			return -EBUSY;
+	if (smi_wait_till_ready(bank, CONFIG_SYS_FLASH_ERASE_TOUT))
+		return -EBUSY;
 
-		/* Put SMI in HW mode */
-		writel(readl(&smicntl->smi_cr1) & ~SW_MODE,
+	/* Put SMI in HW mode */
+	writel(readl(&smicntl->smi_cr1) & ~SW_MODE,
 		       &smicntl->smi_cr1);
 
-		return 0;
-	} else {
-		/* Put SMI in HW mode */
-		writel(readl(&smicntl->smi_cr1) & ~SW_MODE,
-		       &smicntl->smi_cr1);
-		return -EINVAL;
-	}
+	return 0;
 }
 
 /*
@@ -322,28 +365,25 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 		     unsigned int length, ulong bank_addr)
 {
 	int banknum;
-	unsigned int WM;
 
 	switch (bank_addr) {
 	case SMIBANK0_BASE:
 		banknum = BANK0;
-		WM = WM0;
 		break;
 	case SMIBANK1_BASE:
 		banknum = BANK1;
-		WM = WM1;
 		break;
 	case SMIBANK2_BASE:
 		banknum = BANK2;
-		WM = WM2;
 		break;
 	case SMIBANK3_BASE:
 		banknum = BANK3;
-		WM = WM3;
 		break;
 	default:
 		return -1;
 	}
+
+	writel(readl(&smicntl->smi_sr) & ~(ERF1 | ERF2), &smicntl->smi_sr);
 
 	if (smi_wait_till_ready(banknum, CONFIG_SYS_FLASH_WRITE_TOUT))
 		return -EBUSY;
@@ -355,7 +395,9 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 		return -EIO;
 
 	/* Perform the write command */
-	while (length--) {
+	while (length) {
+		int i;
+
 		if (((ulong) (dst_addr) % SFLASH_PAGE_SIZE) == 0) {
 			if (smi_wait_till_ready(banknum,
 						CONFIG_SYS_FLASH_WRITE_TOUT))
@@ -365,7 +407,10 @@ static int smi_write(unsigned int *src_addr, unsigned int *dst_addr,
 				return -EIO;
 		}
 
-		*dst_addr++ = *src_addr++;
+		for (i = 0; i < min(SFLASH_PAGE_SIZE_WORDS, length); i++)
+			*dst_addr++ = *src_addr++;
+
+		length -= min(SFLASH_PAGE_SIZE_WORDS, length);
 
 		if ((readl(&smicntl->smi_sr) & (ERF1 | ERF2)))
 			return -EIO;
@@ -434,8 +479,13 @@ void flash_print_info(flash_info_t *info)
 		puts("missing or unknown FLASH type\n");
 		return;
 	}
-	printf("  Size: %ld MB in %d Sectors\n",
-	       info->size >> 20, info->sector_count);
+
+	if (info->size >= 0x100000)
+		printf("  Size: %ld MB in %d Sectors\n",
+		       info->size >> 20, info->sector_count);
+	else
+		printf("  Size: %ld KB in %d Sectors\n",
+		       info->size >> 10, info->sector_count);
 
 	puts("  Sector Start Addresses:");
 	for (i = 0; i < info->sector_count; ++i) {
@@ -487,11 +537,6 @@ int flash_erase(flash_info_t *info, int s_first, int s_last)
 	int rcode = 0;
 	int prot = 0;
 	flash_sect_t sect;
-
-	if (info->flash_id != ST_M25Pxx_ID) {
-		puts("Can't erase unknown flash type - aborted\n");
-		return 1;
-	}
 
 	if ((s_first < 0) || (s_first > s_last)) {
 		puts("- no sectors to erase\n");

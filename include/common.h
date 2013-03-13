@@ -280,6 +280,14 @@ int env_complete(char *var, int maxv, char *cmdv[], int maxsz, char *buf);
 #endif
 int get_env_id (void);
 
+void enable_pad_mux(void);
+void enable_serial_pad(void);
+void enable_smi_pad(void);
+void enable_fsmc_pad(int);
+void enable_mmc_pad(void);
+void enable_gmi_pad(void);
+void enable_usbd_pad(void);
+void enable_i2c_pad(void);
 void	pci_init      (void);
 void	pci_init_board(void);
 void	pciinfo	      (int, int);

@@ -29,8 +29,20 @@ endif
 
 LIB	= $(obj)lib$(VENDOR).a
 
-COBJS	:= spr_misc.o
-SOBJS	:= spr_lowlevel_init.o
+COBJS-$(CONFIG_SPEAR3XX) += padmux.o spear3xx.o
+COBJS-$(CONFIG_SPEAR310) += spear310.o
+COBJS-$(CONFIG_SPEAR320) += spear320.o
+COBJS-$(CONFIG_SPEAR320_HMI) += spear320.o
+COBJS-$(CONFIG_SPEAR3XX) += spr_misc.o
+COBJS-$(CONFIG_SPEAR600) += spr_misc.o
+COBJS-$(CONFIG_SPEAR13XX) += spr13xx_misc.o
+
+SOBJS-$(CONFIG_SPEAR3XX) += spr_lowlevel_init.o
+SOBJS-$(CONFIG_SPEAR600) += spr_lowlevel_init.o
+SOBJS-$(CONFIG_SPEAR13XX) += spr13xx_lowlevel_init.o
+
+COBJS	:= $(COBJS-y)
+SOBJS	:= $(SOBJS-y)
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))

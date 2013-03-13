@@ -27,19 +27,34 @@
  * Common configurations used for both spear3xx as well as spear6xx
  */
 
+#if !defined(CONFIG_SPEAR_USBTTY)
+/* Ethernet driver configuration */
+#define CONFIG_MII
+#define CONFIG_DESIGNWARE_ETH
+#define CONFIG_DW_SEARCH_PHY
+#define CONFIG_DW0_PHY				1
+#define CONFIG_NET_MULTI
+#define CONFIG_PHY_RESET_DELAY			(10000)		/* in usec */
+#define CONFIG_DW_AUTONEG			1
+#endif
+
 /* USBD driver configuration */
-#define CONFIG_SPEARUDC
+#if defined(CONFIG_SPEAR_USBTTY)
+#define CONFIG_DW_UDC
 #define CONFIG_USB_DEVICE
+#define CONFIG_USBD_HS
 #define CONFIG_USB_TTY
 
 #define CONFIG_USBD_PRODUCT_NAME		"SPEAr SoC"
 #define CONFIG_USBD_MANUFACTURER		"ST Microelectronics"
 
+#endif
+
 #define CONFIG_EXTRA_ENV_USBTTY			"usbtty=cdc_acm\0"
 
 /* I2C driver configuration */
 #define CONFIG_HARD_I2C
-#define CONFIG_SPEAR_I2C
+#define CONFIG_DW_I2C
 #define CONFIG_SYS_I2C_SPEED			400000
 #define CONFIG_SYS_I2C_SLAVE			0x02
 
@@ -47,16 +62,15 @@
 
 /* Timer, HZ specific defines */
 #define CONFIG_SYS_HZ				(1000)
-#define CONFIG_SYS_HZ_CLOCK			(8300000)
 
 /* Flash configuration */
 #if defined(CONFIG_FLASH_PNOR)
 #define CONFIG_SPEAR_EMI			1
 #else
-#define CONFIG_SPEARSMI				1
+#define CONFIG_ST_SMI				1
 #endif
 
-#if defined(CONFIG_SPEARSMI)
+#if defined(CONFIG_ST_SMI)
 
 #define CONFIG_SYS_MAX_FLASH_BANKS		2
 #define CONFIG_SYS_FLASH_BASE			(0xF8000000)
@@ -66,7 +80,6 @@
 						CONFIG_SYS_CS1_FLASH_BASE}
 #define CONFIG_SYS_MAX_FLASH_SECT		128
 
-#define CONFIG_SYS_FLASH_EMPTY_INFO		1
 #define CONFIG_SYS_FLASH_ERASE_TOUT		(3 * CONFIG_SYS_HZ)
 #define CONFIG_SYS_FLASH_WRITE_TOUT		(3 * CONFIG_SYS_HZ)
 
@@ -85,10 +98,28 @@
 
 #define CONFIG_SYS_LOADS_BAUD_CHANGE
 
+/*
+ * USB/EHCI
+ */
+#if !defined(CONFIG_SPEAR_USBTTY)
+#define CONFIG_USB_EHCI				/* Enable EHCI USB support */
+#define CONFIG_USB_EHCI_SPEAR
+#define CONFIG_USB_STORAGE
+#define CONFIG_CMD_USB				/* Enable USB Commands */
+#endif
+
+#if defined(CONFIG_USB_STORAGE)
+#define CONFIG_CMD_FAT
+#define CONFIG_DOS_PARTITION
+#define CONFIG_ISO_PARTITION
+#endif
+
 /* NAND FLASH Configuration */
-#define CONFIG_NAND_SPEAR			1
+#define CONFIG_NAND_FSMC			1
 #define CONFIG_SYS_MAX_NAND_DEVICE		1
 #define CONFIG_MTD_NAND_VERIFY_WRITE		1
+#define CONFIG_SYS_NAND_ONFI_DETECTION		1
+#define CONFIG_SYS_NAND_QUIET_TEST		1
 
 /*
  * Command support defines
@@ -100,10 +131,22 @@
 #define CONFIG_CMD_RUN
 #define CONFIG_CMD_SAVES
 
+#if !defined(CONFIG_SPEAR_USBTTY)
+#define CONFIG_CMD_NET
+#define CONFIG_CMD_MII
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_DHCP
+#endif
+
 /* This must be included AFTER the definition of CONFIG_COMMANDS (if any) */
 #include <config_cmd_default.h>
+
+#if defined(CONFIG_SPEAR_USBTTY)
 #undef CONFIG_CMD_NET
+#endif
 #undef CONFIG_CMD_NFS
+#undef CONFIG_CMD_XIMG
+#undef CONFIG_CMD_LOADS
 
 /*
  * Default Environment Varible definitions
@@ -120,13 +163,13 @@
  * U-Boot Environment placing definitions.
  */
 #if defined(CONFIG_ENV_IS_IN_FLASH)
-#ifdef CONFIG_SPEARSMI
+#ifdef CONFIG_ST_SMI
 /*
  * Environment is in serial NOR flash
  */
 #define CONFIG_SYS_MONITOR_LEN			0x00040000
 #define CONFIG_ENV_SECT_SIZE			0x00010000
-#define CONFIG_FSMTDBLK				"/dev/mtdblock8 "
+#define CONFIG_FSMTDBLK				"/dev/mtdblock3 "
 
 #define CONFIG_BOOTCOMMAND			"bootm 0xf8050000"
 
@@ -142,8 +185,7 @@
 						"0x4C0000; bootm 0x1600000"
 #endif
 
-#define CONFIG_SYS_MONITOR_BASE			CONFIG_SYS_FLASH_BASE
-#define CONFIG_ENV_ADDR				(CONFIG_SYS_MONITOR_BASE + \
+#define CONFIG_ENV_ADDR				(CONFIG_SYS_FLASH_BASE + \
 						CONFIG_SYS_MONITOR_LEN)
 #elif defined(CONFIG_ENV_IS_IN_NAND)
 /*
@@ -152,22 +194,76 @@
 
 #define CONFIG_ENV_OFFSET			0x60000
 #define CONFIG_ENV_RANGE			0x10000
-#define CONFIG_FSMTDBLK				"/dev/mtdblock12 "
+#define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
 
-#define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
-						"0x80000 0x4C0000; " \
-						"bootm 0x1600000"
+#if defined(CONFIG_SPEAR310) || defined(CONFIG_SPEAR320_HMI)
+#define CONFIG_OSBOOTOFF			"0x200000 "
+
+#else
+#define CONFIG_OSBOOTOFF			"0x80000 "
 #endif
 
-#define CONFIG_BOOTARGS_NFS			"root=/dev/nfs ip=dhcp " \
-						"console=ttyS0 init=/bin/sh"
-#define CONFIG_BOOTARGS				"console=ttyS0 mem=128M "  \
-						"root="CONFIG_FSMTDBLK \
+#define CONFIG_BOOTCOMMAND			"nand read.jffs2 0x1600000 " \
+						CONFIG_OSBOOTOFF "0x4C0000; " \
+						"bootm 0x1600000"
+
+#elif defined(CONFIG_ENV_IS_NOWHERE)
+/*
+ * Environment is in NAND/FLASH, saveenv command supported
+ */
+
+#define CONFIG_ENV_RANGE			0x10000
+#if defined(CONFIG_SPEAR_EMI)
+#define CONFIG_ENV_SECT_SIZE			0x20000
+#else
+#define CONFIG_ENV_SECT_SIZE			0x10000
+#endif
+#endif
+
+#ifdef CONFIG_SPEAR310
+#undef CONFIG_FSMTDBLK
+
+#if defined(CONFIG_ENV_IS_IN_FLASH)
+#define CONFIG_FSMTDBLK				"/dev/mtdblock7 "
+
+#elif defined(CONFIG_ENV_IS_IN_NAND)
+#define CONFIG_FSMTDBLK				"/dev/mtdblock11 "
+#endif
+
+#endif /* CONFIG_SPEAR310 */
+
+#ifdef CONFIG_FSMTDBLK
+#define ROOT_FSMTD				"root="CONFIG_FSMTDBLK \
 						"rootfstype=jffs2"
+#else
+#define ROOT_FSMTD				""
+#endif
+
+#define CONFIG_BOOTARGS				"console=ttyAMA0,115200 " \
+						"mem=128M "  \
+						ROOT_FSMTD
+
+#define CONFIG_NFSBOOTCOMMAND						\
+	"bootp; "							\
+	"setenv bootargs root=/dev/nfs rw "				\
+	"nfsroot=$(serverip):$(rootpath) "				\
+	"ip=$(ipaddr):$(serverip):$(gatewayip):"			\
+			"$(netmask):$(hostname):$(netdev):off "		\
+			"console=ttyAMA0,115200 $(othbootargs);"	\
+	"bootm; "
+
+#define CONFIG_RAMBOOTCOMMAND						\
+	"setenv bootargs root=/dev/ram rw "				\
+		"console=ttyAMA0,115200 $(othbootargs);"		\
+	"bootm; "
 
 #define CONFIG_ENV_SIZE				0x02000
+#define CONFIG_SYS_MONITOR_BASE			TEXT_BASE
+#define CONFIG_MONITOR_IS_IN_RAM		1
 
 /* Miscellaneous configurable options */
+#define CONFIG_ARCH_CPU_INIT			1
+#define CONFIG_DISPLAY_CPUINFO			1
 #define CONFIG_BOOT_PARAMS_ADDR			0x00000100
 #define CONFIG_CMDLINE_TAG			1
 #define CONFIG_SETUP_MEMORY_TAGS		1
@@ -195,7 +291,10 @@
 #define CONFIG_SYS_CONSOLE_INFO_QUIET		1
 #define CONFIG_SYS_64BIT_VSPRINTF		1
 
-#define CONFIG_EXTRA_ENV_SETTINGS		CONFIG_EXTRA_ENV_USBTTY
+#define CONFIG_SYS_FLASH_EMPTY_INFO		1
+#define CONFIG_EXTRA_ENV_UNLOCK			"unlock=yes\0"
+#define CONFIG_EXTRA_ENV_SETTINGS		CONFIG_EXTRA_ENV_USBTTY	\
+						CONFIG_EXTRA_ENV_UNLOCK
 
 /* Stack sizes */
 #define CONFIG_STACKSIZE			(128*1024)
@@ -208,6 +307,6 @@
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS			1
 #define PHYS_SDRAM_1				0x00000000
-#define PHYS_SDRAM_1_MAXSIZE			0x40000000
+#define PHYS_SDRAM_1_MAXSIZE			0x08000000
 
 #endif

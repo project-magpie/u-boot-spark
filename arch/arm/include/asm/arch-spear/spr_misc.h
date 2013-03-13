@@ -37,7 +37,7 @@ struct misc_regs {
 	u32 amba_clk_cfg;	/* 0x24 */
 	u32 periph_clk_cfg;	/* 0x28 */
 	u32 periph1_clken;	/* 0x2C */
-	u32 periph2_clken;	/* 0x30 */
+	u32 soc_core_id;	/* 0x30 */
 	u32 ras_clken;		/* 0x34 */
 	u32 periph1_rst;	/* 0x38 */
 	u32 periph2_rst;	/* 0x3C */
@@ -110,6 +110,8 @@ struct misc_regs {
 /* PERIPH_CLK_CFG value */
 #define MISC_GPT3SYNTH			0x00000400
 #define MISC_GPT4SYNTH			0x00000800
+#define CONFIG_SPEAR_UART48M		0
+#define CONFIG_SPEAR_UARTCLKMSK		(0x1 << 4)
 
 /* PRSC_CLK_CFG value */
 /*
@@ -125,6 +127,14 @@ struct misc_regs {
 #define MISC_PRSC_CFG			(MISC_PRSC_N_1 | MISC_PRSC_M_9)
 
 /* PERIPH1_CLKEN, PERIPH1_RST value */
+#define MISC_USBHENB			0x02000000
 #define MISC_USBDENB			0x01000000
+#define MISC_ETHENB			0x00800000
+#define MISC_SMIENB			0x00200000
+#define MISC_GPT3ENB			0x00010000
+#define MISC_GPT2ENB			0x00000800
+#define MISC_FSMCENB			0x00000200
+#define MISC_I2CENB			0x00000080
+#define MISC_UART0ENB			0x00000008
 
 #endif
