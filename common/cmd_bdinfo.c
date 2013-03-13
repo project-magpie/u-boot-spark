@@ -38,7 +38,7 @@ static void print_num(const char *, ulong);
 static void print_mhz(const char *name, ulong value);
 #endif
 
-#if (!defined(CONFIG_ARM) && !defined(CONFIG_ST40)) || defined(CONFIG_CMD_NET)
+#if !(defined(CONFIG_ARM) || defined(CONFIG_M68K) || defined(CONFIG_ST40)) || defined(CONFIG_CMD_NET)
 static void print_eth(int idx);
 #endif
 
@@ -498,7 +498,7 @@ static void print_mhz(const char *name, ulong value)
 }
 #endif	/* CONFIG_ST40 */
 
-#if (!defined(CONFIG_ARM) && !defined(CONFIG_ST40)) || defined(CONFIG_CMD_NET)
+#if !(defined(CONFIG_ARM) || defined(CONFIG_M68K) || defined(CONFIG_ST40)) || defined(CONFIG_CMD_NET)
 static void print_eth(int idx)
 {
 	char name[10], *val;

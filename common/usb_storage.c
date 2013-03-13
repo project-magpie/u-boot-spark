@@ -186,7 +186,7 @@ block_dev_desc_t *usb_stor_get_dev(int index)
 		printf("USB not running ... try 'usb start'!\n");
 		return NULL;
 	}
-	return (index < USB_MAX_STOR_DEV) ? &usb_dev_desc[index] : NULL;
+	return (index < usb_max_devs) ? &usb_dev_desc[index] : NULL;
 }
 
 
@@ -255,7 +255,7 @@ int usb_stor_scan(int mode)
 			 * get info and fill it in
 			 */
 			if (usb_stor_get_info(dev, &usb_stor[usb_max_devs],
-						&usb_dev_desc[usb_max_devs]))
+						&usb_dev_desc[usb_max_devs]) == 1)
 				usb_max_devs++;
 		}
 		/* if storage device */
@@ -901,7 +901,7 @@ static int usb_inquiry(ccb *srb, struct us_data *ss)
 		USB_STOR_PRINTF("inquiry returns %d\n", i);
 		if (i == 0)
 			break;
-	} while (retry--);
+	} while (--retry);
 
 	if (!retry) {
 		printf("error in inquiry\n");
