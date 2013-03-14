@@ -9,7 +9,7 @@
 
 #include <config.h>
 #include "asm/socregs.h"
-#include "../../../cpu/st40/init_ram.S"
+#include "../../../arch/st40/cpu/init_ram.S"
 
 
 	.section .data.init, "a"

@@ -410,7 +410,7 @@
 	 * In addition, we also need to tell U-boot the block size,
 	 * and provide it a local abridged copy of the master Bad Block
 	 * Table (BBT), which must also be stored in physical block #0
-	 * - see "cpu/sh/start.S" for details.
+	 * - see "arch/st40/cpu/start.S" for details.
 	 * Also, CONFIG_SYS_NAND_SKIP_BLOCK_COUNT defines the number of blocks
 	 * stored in the abridged copy of the master BBT.
 	 */

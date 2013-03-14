@@ -200,12 +200,14 @@ Directory Hierarchy:
       /sh2		Files specific to sh2 CPUs
       /sh3		Files specific to sh3 CPUs
       /sh4		Files specific to sh4 CPUs
-      /st40		Files specific to STMicroelectronics' ST40 CPUs
     /lib		Architecture specific library files
   /sparc		Files generic to SPARC architecture
     /cpu		CPU specific files
       /leon2		Files specific to Gaisler LEON2 SPARC CPU
       /leon3		Files specific to Gaisler LEON3 SPARC CPU
+    /lib		Architecture specific library files
+  /st40			Files specific to STMicroelectronics' ST40 CPUs
+    /cpu		CPU specific files
     /lib		Architecture specific library files
 /api			Machine/arch independent API for external apps
 /board			Board dependent files
