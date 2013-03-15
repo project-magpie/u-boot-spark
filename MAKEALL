@@ -393,6 +393,7 @@ LIST_85xx="		\
 	MPC8536DS_NAND	\
 	MPC8536DS_SDCARD	\
 	MPC8536DS_SPIFLASH	\
+	MPC8536DS_36BIT	\
 	MPC8540ADS	\
 	MPC8540EVAL	\
 	MPC8541CDS	\
@@ -453,6 +454,7 @@ LIST_85xx="		\
 
 LIST_86xx="		\
 	MPC8610HPCD	\
+	MPC8641HPCN_36BIT \
 	MPC8641HPCN	\
 	sbc8641d	\
 	XPEDITE5170	\
@@ -561,6 +563,7 @@ LIST_ARM9="			\
 	cp946es			\
 	cp966			\
 	da830evm		\
+	da850evm		\
 	edb9301			\
 	edb9302			\
 	edb9302a		\
@@ -569,6 +572,7 @@ LIST_ARM9="			\
 	edb9312			\
 	edb9315			\
 	edb9315a		\
+	edminiv2		\
 	guruplug		\
 	imx27lite		\
 	lpd7a400		\
@@ -636,12 +640,14 @@ LIST_ARM11="			\
 	mx31pdk_nand		\
 	qong			\
 	smdk6400		\
+	tnetv107x_evm		\
 "
 
 #########################################################################
 ## ARM Cortex-A8 Systems
 #########################################################################
 LIST_ARM_CORTEX_A8="		\
+	am3517_evm		\
 	devkit8000		\
 	mx51evk			\
 	omap3_beagle		\
@@ -651,6 +657,7 @@ LIST_ARM_CORTEX_A8="		\
 	omap3_sdp3430		\
 	omap3_zoom1		\
 	omap3_zoom2		\
+	s5p_goni		\
 	smdkc100		\
 	spear1300		\
 	spear1310_reva		\
@@ -688,6 +695,7 @@ LIST_at91="			\
 	otc570			\
 	pm9261			\
 	pm9263			\
+	pm9g45			\
 	SBC35_A9G20		\
 	TNY_A9260		\
 	TNY_A9G20		\
@@ -814,21 +822,6 @@ LIST_I486="		\
 
 LIST_x86="		\
 	${LIST_I486}	\
-"
-
-#########################################################################
-## NIOS Systems
-#########################################################################
-
-LIST_nios="			\
-	ADNPESC1		\
-	ADNPESC1_base_32	\
-	ADNPESC1_DNPEVA2_base_32\
-	DK1C20			\
-	DK1C20_standard_32	\
-	DK1S10			\
-	DK1S10_standard_32	\
-	DK1S10_mtx_ldk_20	\
 "
 
 #########################################################################
@@ -1089,7 +1082,7 @@ do
 	|coldfire \
 	|microblaze \
 	|mips|mips_el \
-	|nios|nios2 \
+	|nios2 \
 	|ppc|powerpc|5xx|5xxx|512x|8xx|8220|824x|8260|83xx|85xx|86xx|4xx|7xx|74xx|TSEC \
 	|sh|sh2|sh3|sh4 \
 	|sparc \

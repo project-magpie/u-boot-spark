@@ -22,7 +22,7 @@
 #
 
 VERSION = 2010
-PATCHLEVEL = 03
+PATCHLEVEL = 06
 SUBLEVEL =
 EXTRAVERSION =
 ifneq "$(SUBLEVEL)" ""
@@ -389,8 +389,8 @@ $(VERSION_FILE):
 		@cmp -s $@ $@.tmp && rm -f $@.tmp || mv -f $@.tmp $@
 
 $(TIMESTAMP_FILE):
-		@date +'#define U_BOOT_DATE "%b %d %C%y"' > $@
-		@date +'#define U_BOOT_TIME "%T"' >> $@
+		@LC_ALL=C date +'#define U_BOOT_DATE "%b %d %C%y"' > $@
+		@LC_ALL=C date +'#define U_BOOT_TIME "%T"' >> $@
 
 gdbtools:
 		$(MAKE) -C tools/gdb all || exit 1
@@ -2877,6 +2877,10 @@ otc570_config	:	unconfig
 pm9263_config	:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs pm9263 ronetix at91
 
+pm9g45_config	:	unconfig
+	@mkdir -p $(obj)include
+	@$(MKCONFIG) -a pm9g45 arm arm926ejs pm9g45 ronetix at91
+
 SBC35_A9G20_NANDFLASH_config \
 SBC35_A9G20_EEPROM_config \
 SBC35_A9G20_config	:	unconfig
@@ -2920,8 +2924,9 @@ cp922_XA10_config	\
 cp1026_config: unconfig
 	@board/armltd/integrator/split_by_variant.sh cp $@
 
-da830evm_config:	unconfig
-	@$(MKCONFIG) $(@:_config=) arm arm926ejs da830evm davinci davinci
+da830evm_config		\
+da850evm_config:	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm926ejs da8xxevm davinci davinci
 
 davinci_dvevm_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs dvevm davinci davinci
@@ -2946,6 +2951,9 @@ davinci_dm365evm_config :	unconfig
 
 davinci_dm6467evm_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs dm6467evm davinci davinci
+
+edminiv2_config: unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm926ejs $(@:_config=) LaCie orion5x
 
 guruplug_config: unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs $(@:_config=) Marvell kirkwood
@@ -3235,6 +3243,9 @@ SMN42_config	:	unconfig
 ## ARM CORTEX Systems
 #########################################################################
 
+am3517_evm_config :	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 am3517evm logicpd omap3
+
 devkit8000_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 devkit8000 timll omap3
 
@@ -3258,6 +3269,9 @@ omap3_zoom1_config :	unconfig
 
 omap3_zoom2_config :	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 zoom2 logicpd omap3
+
+s5p_goni_config:	unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 goni samsung s5pc1xx
 
 smdkc100_config:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm_cortexa8 smdkc100 samsung s5pc1xx
@@ -3404,6 +3418,9 @@ smdk6400_config	:	unconfig
 	fi
 	@echo "CONFIG_NAND_U_BOOT = y" >> $(obj)include/config.mk
 
+tnetv107x_evm_config: unconfig
+	@$(MKCONFIG) $(@:_config=) arm arm1176 tnetv107xevm ti tnetv107x
+
 #========================================================================
 # i386
 #========================================================================
@@ -3542,68 +3559,6 @@ purple_config :		unconfig
 #========================================================================
 # Nios
 #========================================================================
-#########################################################################
-## Nios32
-#########################################################################
-
-ADNPESC1_DNPEVA2_base_32_config	\
-ADNPESC1_base_32_config		\
-ADNPESC1_config: unconfig
-	@mkdir -p $(obj)include
-	@[ -z "$(findstring _DNPEVA2,$@)" ] || \
-		{ echo "#define CONFIG_DNPEVA2 1" >>$(obj)include/config.h ; \
-		  $(XECHO) "... DNP/EVA2 configuration" ; \
-		}
-	@[ -z "$(findstring _base_32,$@)" ] || \
-		{ echo "#define CONFIG_NIOS_BASE_32 1" >>$(obj)include/config.h ; \
-		  $(XECHO) "... NIOS 'base_32' configuration" ; \
-		}
-	@[ -z "$(findstring ADNPESC1_config,$@)" ] || \
-		{ echo "#define CONFIG_NIOS_BASE_32 1" >>$(obj)include/config.h ; \
-		  $(XECHO) "... NIOS 'base_32' configuration (DEFAULT)" ; \
-		}
-	@$(MKCONFIG) -a ADNPESC1 nios nios adnpesc1 ssv
-
-DK1C20_safe_32_config		\
-DK1C20_standard_32_config	\
-DK1C20_config:	unconfig
-	@mkdir -p $(obj)include
-	@[ -z "$(findstring _safe_32,$@)" ] || \
-		{ echo "#define CONFIG_NIOS_SAFE_32 1" >>$(obj)include/config.h ; \
-		  $(XECHO) "... NIOS 'safe_32' configuration" ; \
-		}
-	@[ -z "$(findstring _standard_32,$@)" ] || \
-		{ echo "#define CONFIG_NIOS_STANDARD_32 1" >>$(obj)include/config.h ; \
-		  $(XECHO) "... NIOS 'standard_32' configuration" ; \
-		}
-	@[ -z "$(findstring DK1C20_config,$@)" ] || \
-		{ echo "#define CONFIG_NIOS_STANDARD_32 1" >>$(obj)include/config.h ; \
-		  $(XECHO) "... NIOS 'standard_32' configuration (DEFAULT)" ; \
-		}
-	@$(MKCONFIG) -a DK1C20 nios nios dk1c20 altera
-
-DK1S10_safe_32_config		\
-DK1S10_standard_32_config	\
-DK1S10_mtx_ldk_20_config	\
-DK1S10_config:	unconfig
-	@mkdir -p $(obj)include
-	@[ -z "$(findstring _safe_32,$@)" ] || \
-		{ echo "#define CONFIG_NIOS_SAFE_32 1" >>$(obj)include/config.h ; \
-		  $(XECHO) "... NIOS 'safe_32' configuration" ; \
-		}
-	@[ -z "$(findstring _standard_32,$@)" ] || \
-		{ echo "#define CONFIG_NIOS_STANDARD_32 1" >>$(obj)include/config.h ; \
-		  $(XECHO) "... NIOS 'standard_32' configuration" ; \
-		}
-	@[ -z "$(findstring _mtx_ldk_20,$@)" ] || \
-		{ echo "#define CONFIG_NIOS_MTX_LDK_20 1" >>$(obj)include/config.h ; \
-		  $(XECHO) "... NIOS 'mtx_ldk_20' configuration" ; \
-		}
-	@[ -z "$(findstring DK1S10_config,$@)" ] || \
-		{ echo "#define CONFIG_NIOS_STANDARD_32 1" >>$(obj)include/config.h ; \
-		  $(XECHO) "... NIOS 'standard_32' configuration (DEFAULT)" ; \
-		}
-	@$(MKCONFIG) -a DK1S10 nios nios dk1s10 altera
 
 #########################################################################
 ## Nios-II
@@ -4217,6 +4172,6 @@ endif
 
 backup:
 	F=`basename $(TOPDIR)` ; cd .. ; \
-	gtar --force-local -zcvf `date "+$$F-%Y-%m-%d-%T.tar.gz"` $$F
+	gtar --force-local -zcvf `LC_ALL=C date "+$$F-%Y-%m-%d-%T.tar.gz"` $$F
 
 #########################################################################
