@@ -118,7 +118,6 @@ LIST_8xx="		\
 	GEN860T		\
 	GEN860T_SC	\
 	GENIETV		\
-	GTH		\
 	hermes		\
 	IAD210		\
 	ICU862_100MHz	\
@@ -262,6 +261,7 @@ LIST_4xx="		\
 	sc3		\
 	sequoia		\
 	sequoia_nand	\
+	t3corp		\
 	taihu		\
 	taishan		\
 	v5fx30teval	\
@@ -359,6 +359,7 @@ LIST_8260="		\
 LIST_83xx="		\
 	caddy2		\
 	kmeter1		\
+	MPC8308RDB	\
 	MPC8313ERDB_33	\
 	MPC8313ERDB_NAND_66	\
 	MPC8315ERDB	\
@@ -379,6 +380,7 @@ LIST_83xx="		\
 	sbc8349		\
 	SIMPC8313_LP	\
 	TQM834x		\
+	ve8313		\
 	vme8349		\
 "
 
@@ -407,6 +409,7 @@ LIST_85xx="		\
 	MPC8569MDS_NAND \
 	MPC8572DS	\
 	MPC8572DS_36BIT	\
+	P1022DS		\
 	P2020DS		\
 	P2020DS_36BIT	\
 	P1011RDB	\
@@ -425,6 +428,7 @@ LIST_85xx="		\
 	P2020RDB_NAND	\
 	P2020RDB_SDCARD	\
 	P2020RDB_SPIFLASH	\
+	P4080DS		\
 	PM854		\
 	PM856		\
 	sbc8540		\
@@ -575,6 +579,7 @@ LIST_ARM9="			\
 	edminiv2		\
 	guruplug		\
 	imx27lite		\
+	jadecpu			\
 	lpd7a400		\
 	magnesium		\
 	mv88f6281gtw_ge		\
@@ -644,9 +649,9 @@ LIST_ARM11="			\
 "
 
 #########################################################################
-## ARM Cortex-A8 Systems
+## ARMV7 Systems
 #########################################################################
-LIST_ARM_CORTEX_A8="		\
+LIST_ARMV7="		\
 	am3517_evm		\
 	devkit8000		\
 	mx51evk			\
@@ -657,6 +662,8 @@ LIST_ARM_CORTEX_A8="		\
 	omap3_sdp3430		\
 	omap3_zoom1		\
 	omap3_zoom2		\
+	omap4_panda		\
+	omap4_sdp4430		\
 	s5p_goni		\
 	smdkc100		\
 	spear1300		\
@@ -707,6 +714,7 @@ LIST_at91="			\
 
 LIST_pxa="		\
 	cerf250		\
+	colibri_pxa270	\
 	cradle		\
 	csb226		\
 	delta		\
@@ -716,10 +724,13 @@ LIST_pxa="		\
 	polaris		\
 	pxa255_idp	\
 	trizepsiv	\
+	vpac270_nor	\
+	vpac270_onenand	\
 	wepep250	\
 	xaeniax		\
 	xm250		\
 	xsengine	\
+	zipitz2		\
 	zylonite	\
 "
 
@@ -744,7 +755,7 @@ LIST_arm="			\
 	${LIST_ARM9}		\
 	${LIST_ARM10}		\
 	${LIST_ARM11}		\
-	${LIST_ARM_CORTEX_A8}	\
+	${LIST_ARMV7}	\
 	${LIST_at91}		\
 	${LIST_pxa}		\
 	${LIST_ixp}		\
@@ -814,10 +825,7 @@ LIST_mips_el="			\
 #########################################################################
 
 LIST_I486="		\
-	sc520_cdp	\
 	sc520_eNET	\
-	sc520_spunk	\
-	sc520_spunk_rel	\
 "
 
 LIST_x86="		\
@@ -829,9 +837,6 @@ LIST_x86="		\
 #########################################################################
 
 LIST_nios2="		\
-	EP1C20		\
-	EP1S10		\
-	EP1S40		\
 	PCI5441		\
 	PK1C20		\
 	nios2-generic	\
@@ -897,6 +902,7 @@ LIST_avr32="		\
 LIST_blackfin="		\
 	bf518f-ezbrd	\
 	bf526-ezbrd	\
+	bf527-ad7160-eval	\
 	bf527-ezkit	\
 	bf527-ezkit-v2	\
 	bf533-ezkit	\
@@ -1076,7 +1082,7 @@ print_stats() {
 for arg in $@
 do
 	case "$arg" in
-	arm|SA|ARM7|ARM9|ARM10|ARM11|ARM_CORTEX_A8|at91|ixp|pxa \
+	arm|SA|ARM7|ARM9|ARM10|ARM11|ARMV7|at91|ixp|pxa \
 	|avr32 \
 	|blackfin \
 	|coldfire \

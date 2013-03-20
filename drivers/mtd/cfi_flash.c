@@ -1126,8 +1126,30 @@ int flash_erase (flash_info_t * info, int s_first, int s_last)
 	return rcode;
 }
 
-/*-----------------------------------------------------------------------
- */
+#ifdef CONFIG_SYS_FLASH_EMPTY_INFO
+static int sector_erased(flash_info_t *info, int i)
+{
+	int k;
+	int size;
+	volatile unsigned long *flash;
+
+	/*
+	 * Check if whole sector is erased
+	 */
+	size = flash_sector_size(info, i);
+	flash = (volatile unsigned long *) info->start[i];
+	/* divide by 4 for longword access */
+	size = size >> 2;
+
+	for (k = 0; k < size; k++) {
+		if (*flash++ != 0xffffffff)
+			return 0;	/* not erased */
+	}
+
+	return 1;			/* erased */
+}
+#endif /* CONFIG_SYS_FLASH_EMPTY_INFO */
+
 void flash_print_info (flash_info_t * info)
 {
 	int i;
@@ -1192,35 +1214,15 @@ void flash_print_info (flash_info_t * info)
 
 	puts ("\n  Sector Start Addresses:");
 	for (i = 0; i < info->sector_count; ++i) {
+		if (ctrlc())
+			break;
 		if ((i % 5) == 0)
-			printf ("\n");
+			putc('\n');
 #ifdef CONFIG_SYS_FLASH_EMPTY_INFO
-		int k;
-		int size;
-		int erased;
-		volatile unsigned long *flash;
-
-		/* make sure the sector is in read mode first */
-		flash_write_cmd (info, i, 0, info->cmd_reset);
-
-		/*
-		 * Check if whole sector is erased
-		 */
-		size = flash_sector_size(info, i);
-		erased = 1;
-		flash = (volatile unsigned long *) info->start[i];
-		size = size >> 2;	/* divide by 4 for longword access */
-		for (k = 0; k < size; k++) {
-			if (*flash++ != 0xffffffff) {
-				erased = 0;
-				break;
-			}
-		}
-
 		/* print empty and read-only info */
 		printf ("  %08lX %c %s ",
 			info->start[i],
-			erased ? 'E' : ' ',
+			sector_erased(info, i) ? 'E' : ' ',
 			info->protect[i] ? "RO" : "  ");
 #else	/* ! CONFIG_SYS_FLASH_EMPTY_INFO */
 		printf ("  %08lX   %s ",
@@ -1384,15 +1386,32 @@ int flash_real_protect (flash_info_t * info, long sector, int prot)
 		case CFI_CMDSET_INTEL_PROG_REGIONS:
 		case CFI_CMDSET_INTEL_STANDARD:
 		case CFI_CMDSET_INTEL_EXTENDED:
-			flash_write_cmd (info, sector, 0,
-					 FLASH_CMD_CLEAR_STATUS);
-			flash_write_cmd (info, sector, 0, FLASH_CMD_PROTECT);
-			if (prot)
+			/*
+			 * see errata called
+			 * "Numonyx Axcell P33/P30 Specification Update" :)
+			 */
+			flash_write_cmd (info, sector, 0, FLASH_CMD_READ_ID);
+			if (!flash_isequal (info, sector, FLASH_OFFSET_PROTECT,
+					    prot)) {
+				/*
+				 * cmd must come before FLASH_CMD_PROTECT + 20us
+				 * Disable interrupts which might cause a timeout here.
+				 */
+				int flag = disable_interrupts ();
+				unsigned short cmd;
+
+				if (prot)
+					cmd = FLASH_CMD_PROTECT_SET;
+				else
+					cmd = FLASH_CMD_PROTECT_CLEAR;
+
 				flash_write_cmd (info, sector, 0,
-					FLASH_CMD_PROTECT_SET);
-			else
-				flash_write_cmd (info, sector, 0,
-					FLASH_CMD_PROTECT_CLEAR);
+						  FLASH_CMD_PROTECT);
+				flash_write_cmd (info, sector, 0, cmd);
+				/* re-enable interrupts if necessary */
+				if (flag)
+					enable_interrupts ();
+			}
 			break;
 		case CFI_CMDSET_AMD_EXTENDED:
 		case CFI_CMDSET_AMD_STANDARD:
@@ -2088,7 +2107,7 @@ unsigned long flash_init (void)
 #ifdef CONFIG_SYS_FLASH_PROTECTION
 	/* read environment from EEPROM */
 	char s[64];
-	getenv_r ("unlock", s, sizeof(s));
+	getenv_f("unlock", s, sizeof(s));
 #endif
 
 #define BANK_BASE(i)	(((phys_addr_t [CFI_MAX_FLASH_BANKS])CONFIG_SYS_FLASH_BANKS_LIST)[i])
