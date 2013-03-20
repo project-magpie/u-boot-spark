@@ -2,7 +2,7 @@
  * (C) Copyright 2010
  * Vipin Kumar, ST Micoelectronics, vipin.kumar@st.com.
  *
- * Based on arch/arm/cpu/arm_cortexa8/s5pc1xx/cache.S
+ * Based on arch/arm/cpu/armv7/s5pc1xx/cache.S
  *
  * See file CREDITS for list of people who contributed to this
  * project.
