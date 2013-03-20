@@ -65,7 +65,7 @@ static volatile stmac_dma_des *dma_tx;
 static volatile stmac_dma_des *dma_rx;
 static int cur_rx;
 static int eth_phy_addr;
-static char miidevice[] = "stmacphy";
+static const char miidevice[] = "stmacphy";
 
 #define MAX_ETH_FRAME_SIZE	1536
 #define MAX_PAUSE_TIME (MAC_FLOW_CONTROL_PT_MASK>>MAC_FLOW_CONTROL_PT_SHIFT)
@@ -672,7 +672,7 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 }
 
 /* define external interface to mii, through miiphy_register() */
-static int stmac_miiphy_read (char *devname, unsigned char addr, unsigned char reg, unsigned short *value)
+static int stmac_miiphy_read(const char *devname, unsigned char addr, unsigned char reg, unsigned short *value)
 {
 	*value = stmac_mii_read (addr, reg);
 #if 0
@@ -681,7 +681,7 @@ static int stmac_miiphy_read (char *devname, unsigned char addr, unsigned char r
 	return 0;
 }
 
-static int stmac_miiphy_write (char *devname, unsigned char addr, unsigned char reg, unsigned short value)
+static int stmac_miiphy_write(const char *devname, unsigned char addr, unsigned char reg, unsigned short value)
 {
 #if 0
 	printf("QQQ: %s(addr=%u, reg=%u, value=0x%04x)\n", __FUNCTION__, addr, reg, value);

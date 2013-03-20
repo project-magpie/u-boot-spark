@@ -184,7 +184,7 @@ static int saveenv_flash(int address)
 	return rcode;
 }
 
-static int do_saveenv(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+static int do_saveenv(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	if (argc != 3) {
 		cmd_usage(cmdtp);

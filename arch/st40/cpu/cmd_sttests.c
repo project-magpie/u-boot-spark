@@ -21,16 +21,14 @@
 #include <common.h>
 #include <command.h>
 
-extern int do_st_memory_test(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
+extern int do_st_memory_test(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]);
 
-int do_st_mtest(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_st_mtest(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	ulong i, count;
 
-	if (argc !=4) {
-		cmd_usage(cmdtp);
-		return 1;
-	}
+	if (argc !=4)
+		return cmd_usage(cmdtp);	/* bad command usage */
 
 	count = simple_strtoul(argv[3], NULL, 10);
 

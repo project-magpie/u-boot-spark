@@ -66,7 +66,7 @@ int board_eth_init(bd_t *bis)
 {
 	int ret = 0;
 #if defined(CONFIG_DESIGNWARE_ETH)
-	char *devname;
+	const char *devname;
 	u16 phyid1, phyid2;
 	u32 interface = PHY_INTERFACE_MODE_MII;
 #if defined(CONFIG_DW_AUTONEG)

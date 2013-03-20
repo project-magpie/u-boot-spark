@@ -209,7 +209,7 @@ static void display_flash_config (ulong size)
 static int init_baudrate (void)
 {
 	char tmp[64];		/* long enough for environment variables */
-	int i = getenv_r ("baudrate", tmp, sizeof (tmp));
+	int i = getenv_f("baudrate", tmp, sizeof(tmp));
 
 	gd->baudrate = (i > 0)
 		? (int) simple_strtoul (tmp, NULL, 10)
@@ -425,7 +425,7 @@ static void sh_reset (void)
 }
 
 
-extern int do_reset (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
+extern int do_reset(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	sh_reset();
 	/*NOTREACHED*/ return (0);

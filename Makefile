@@ -2111,85 +2111,85 @@ spear300_config \
 spear300_nand_config \
 spear300_usbtty_config \
 spear300_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs spear300 spear spear
+	@$(MKCONFIG) -n $@ -t $@ spear3xx_evb arm arm926ejs spear300 spear spear
 
 spear310_config \
 spear310_nand_config \
 spear310_usbtty_config \
 spear310_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs spear310 spear spear
+	@$(MKCONFIG) -n $@ -t $@ spear3xx_evb arm arm926ejs spear310 spear spear
 
 spear320_config \
 spear320_nand_config \
 spear320_usbtty_config \
 spear320_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs spear320 spear spear
+	@$(MKCONFIG) -n $@ -t $@ spear3xx_evb arm arm926ejs spear320 spear spear
 
 spear320_hmi_config \
 spear320_hmi_nand_config \
 spear320_hmi_usbtty_config \
 spear320_hmi_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear3xx_evb arm arm926ejs spear320_hmi spear spear
+	@$(MKCONFIG) -n $@ -t $@ spear3xx_evb arm arm926ejs spear320_hmi spear spear
 
 spear600_config \
 spear600_nand_config \
 spear600_usbtty_config \
 spear600_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear6xx_evb arm arm926ejs spear600 spear spear
+	@$(MKCONFIG) -n $@ -t $@ spear6xx_evb arm arm926ejs spear600 spear spear
 
 spear1300_config \
 spear1300_nand_config \
 spear1300_usbtty_config \
 spear1300_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1300 spear spear13xx
+	@$(MKCONFIG) -n $@ -t $@ spear13xx_evb arm armv7 spear1300 spear spear13xx
 
 spear1310_reva_config \
 spear1310_reva_nand_config \
 spear1310_reva_usbtty_config \
 spear1310_reva_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1310_reva spear spear13xx
+	@$(MKCONFIG) -n $@ -t $@ spear13xx_evb arm armv7 spear1310_reva spear spear13xx
 
 spear1310_config \
 spear1310_nand_config \
 spear1310_usbtty_config \
 spear1310_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1310 spear spear13xx
+	@$(MKCONFIG) -n $@ -t $@ spear13xx_evb arm armv7 spear1310 spear spear13xx
 
 spear1340_config \
 spear1340_nand_config \
 spear1340_usbtty_config \
 spear1340_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear1340 spear spear13xx
+	@$(MKCONFIG) -n $@ -t $@ spear13xx_evb arm armv7 spear1340 spear spear13xx
 
 spear1340_hurricane_config \
 spear1340_hurricane_nand_config \
 spear1340_hurricane_usbtty_config \
 spear1340_hurricane_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) hurricane arm arm_cortexa8 hurricane spear spear13xx
+	@$(MKCONFIG) -n $@ -t $@ hurricane arm armv7 hurricane spear spear13xx
 
 spear1340_lcad_config \
 spear1340_lcad_nand_config \
 spear1340_lcad_usbtty_config \
 spear1340_lcad_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear1340_lcad arm arm_cortexa8 spear1340_lcad spear spear13xx
+	@$(MKCONFIG) -n $@ -t $@ spear1340_lcad arm armv7 spear1340_lcad spear spear13xx
 
 spear900_config \
 spear900_nand_config \
 spear900_usbtty_config \
 spear900_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear13xx_evb arm arm_cortexa8 spear900 spear spear13xx
+	@$(MKCONFIG) -n $@ -t $@ spear13xx_evb arm armv7 spear900 spear spear13xx
 
 spear900_lcad_config \
 spear900_lcad_nand_config \
 spear900_lcad_usbtty_config \
 spear900_lcad_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spear900_lcad arm arm_cortexa8 spear900_lcad spear spear13xx
+	@$(MKCONFIG) -n $@ -t $@ spear900_lcad arm armv7 spear900_lcad spear spear13xx
 
 spearR1801e_config \
 spearR1801e_nand_config \
 spearR1801e_usbtty_config \
 spearR1801e_usbtty_nand_config :	unconfig
-	@$(MKCONFIG) -n $@ -t $(@:_config=) spearR1801e_evb arm arm_cortexa8 spearR1801e spear spear13xx
+	@$(MKCONFIG) -n $@ -t $@ spearR1801e_evb arm armv7 spearR1801e spear spear13xx
 
 suen3_config:	unconfig
 	@$(MKCONFIG) $(@:_config=) arm arm926ejs km_arm keymile kirkwood

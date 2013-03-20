@@ -79,7 +79,7 @@ extern void arch_lmb_reserve(struct lmb * const lmb)
 	lmb_reserve(lmb, sp, (CONFIG_SYS_SDRAM_BASE + CONFIG_SYS_SDRAM_SIZE - sp));
 }
 
-extern int do_bootm_linux (int flag, int argc, char *argv[], bootm_headers_t *images)
+extern int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *images)
 {
 	ulong param;
 	void (*theKernel) (void);

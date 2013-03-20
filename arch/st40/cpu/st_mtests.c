@@ -25,7 +25,7 @@
 
 int memory_test(unsigned long *block_start, unsigned long block_length);
 
-int do_st_memory_test(cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+int do_st_memory_test(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	unsigned long *start;
 	unsigned long length;

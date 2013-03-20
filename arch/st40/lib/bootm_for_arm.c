@@ -176,7 +176,7 @@ static struct tag *params;
 #endif /* CONFIG_SETUP_MEMORY_TAGS || CONFIG_CMDLINE_TAG || CONFIG_INITRD_TAG */
 
 
-extern int do_bootm_armlinux(int flag, int argc, char *argv[], bootm_headers_t *images)
+extern int do_bootm_armlinux(int flag, int argc, char * const argv[], bootm_headers_t *images)
 {
     bd_t    *bd = gd->bd;
     char    *s;

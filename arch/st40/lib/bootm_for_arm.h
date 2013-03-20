@@ -32,7 +32,7 @@
  * Function to boot ARM linux, from a ST40 core.
  */
 extern int do_bootm_armlinux
-	(int flag, int argc, char *argv[], bootm_headers_t *images);
+	(int flag, int argc, char * const argv[], bootm_headers_t *images);
 
 
 /*

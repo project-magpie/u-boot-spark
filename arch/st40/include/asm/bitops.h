@@ -49,6 +49,7 @@ static __inline__ void __set_bit (int nr, volatile void *addr)
 	mask = 1 << (nr & 0x1f);
 	*a |= mask;
 }
+#define PLATFORM__SET_BIT
 
 /*
  * clear_bit() doesn't provide any barrier for the compiler.
@@ -77,6 +78,7 @@ static __inline__ void __clear_bit (int nr, volatile void *addr)
 	mask = 1 << (nr & 0x1f);
 	*a &= ~mask;
 }
+#define PLATFORM__CLEAR_BIT
 
 static __inline__ void change_bit (int nr, volatile void *addr)
 {

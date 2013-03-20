@@ -175,7 +175,7 @@ static void display_pmb (void)
 #endif	/* DEBUG */
 }
 
-extern int do_pmb (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+extern int do_pmb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	display_pmb ();
 	return (0);

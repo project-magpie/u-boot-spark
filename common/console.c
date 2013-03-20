@@ -204,6 +204,7 @@ static inline void console_doenv(int file, struct stdio_dev *dev)
 int serial_printf(const char *fmt, ...)
 {
 	va_list args;
+	uint i;
 	char printbuffer[CONFIG_SYS_PBSIZE];
 
 	va_start(args, fmt);
@@ -211,7 +212,7 @@ int serial_printf(const char *fmt, ...)
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	(void)vsprintf(printbuffer, fmt, args);
+	i = vsprintf(printbuffer, fmt, args);
 	va_end(args);
 
 	serial_puts(printbuffer);
@@ -272,6 +273,7 @@ void fputs(int file, const char *s)
 int fprintf(int file, const char *fmt, ...)
 {
 	va_list args;
+	uint i;
 	char printbuffer[CONFIG_SYS_PBSIZE];
 
 	va_start(args, fmt);
@@ -279,7 +281,7 @@ int fprintf(int file, const char *fmt, ...)
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	(void)vsprintf(printbuffer, fmt, args);
+	i = vsprintf(printbuffer, fmt, args);
 	va_end(args);
 
 	/* Send to desired file */
@@ -366,6 +368,7 @@ void puts(const char *s)
 int printf(const char *fmt, ...)
 {
 	va_list args;
+	uint i;
 	char printbuffer[CONFIG_SYS_PBSIZE];
 
 	va_start(args, fmt);
@@ -373,7 +376,7 @@ int printf(const char *fmt, ...)
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	(void)vsprintf(printbuffer, fmt, args);
+	i = vsprintf(printbuffer, fmt, args);
 	va_end(args);
 
 	/* Print the string */
@@ -383,12 +386,13 @@ int printf(const char *fmt, ...)
 
 int vprintf(const char *fmt, va_list args)
 {
+	uint i;
 	char printbuffer[CONFIG_SYS_PBSIZE];
 
 	/* For this to work, printbuffer must be larger than
 	 * anything we ever want to print.
 	 */
-	(void)vsprintf(printbuffer, fmt, args);
+	i = vsprintf(printbuffer, fmt, args);
 
 	/* Print the string */
 	puts(printbuffer);

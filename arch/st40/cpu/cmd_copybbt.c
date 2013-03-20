@@ -220,7 +220,7 @@ static int do_copy(const ulong addr)
 }
 
 
-extern int do_copybbt (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+extern int do_copybbt(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	if ( (argc==3) && (strcmp (argv[1], "info")==0))
 	{
@@ -233,10 +233,7 @@ extern int do_copybbt (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		return do_copy(addr);
 	}
 	else
-	{
-		cmd_usage(cmdtp);
-		return (1);		/* bad command usage */
-	}
+		return cmd_usage(cmdtp);	/* bad command usage */
 
 	return (0);
 }
