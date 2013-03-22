@@ -34,15 +34,15 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static void print_num(const char *, ulong);
 
-#if defined(CONFIG_ST40)
+#if defined(CONFIG_STM)
 static void print_mhz(const char *name, ulong value);
 #endif
 
-#if !(defined(CONFIG_ARM) || defined(CONFIG_M68K) || defined(CONFIG_ST40)) || defined(CONFIG_CMD_NET)
+#if !(defined(CONFIG_ARM) || defined(CONFIG_M68K) || defined(CONFIG_STM)) || defined(CONFIG_CMD_NET)
 static void print_eth(int idx);
 #endif
 
-#if (!defined(CONFIG_ARM) && !defined(CONFIG_X86))
+#if (!defined(CONFIG_ARM) && !defined(CONFIG_X86)) || defined(CONFIG_STM)
 static void print_lnum(const char *, u64);
 #endif
 
@@ -289,7 +289,7 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	return 0;
 }
 
-#elif defined(CONFIG_ST40)
+#elif defined(CONFIG_STM)
 
 #include "asm/socregs.h"
 #include <asm/clk.h>
@@ -372,10 +372,14 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	else
 		printf ("\nUnknown device! (id=0x%08lx)", bd->bi_devid);
 
-#ifdef CONFIG_ST40_SE_MODE
+#if defined(CONFIG_ST40) && defined(CONFIG_ST40_SE_MODE)
 	printf ("  [32-bit mode]\n");
-#else
+#elif defined(CONFIG_ST40)
 	printf ("  [29-bit mode]\n");
+#elif defined(CONFIG_ARM)
+	printf ("  [ARM]\n");
+#else
+#error Unknown ARCH for STMicroelectronics.
 #endif
 
 	print_mhz("UART", stm_get_uart_clk_rate()/1000000ul);
@@ -556,14 +560,14 @@ static void print_num(const char *name, ulong value)
 	printf ("%-12s= 0x%08lX\n", name, value);
 }
 
-#if defined(CONFIG_ST40)
+#if defined(CONFIG_STM)
 static void print_mhz(const char *name, ulong value)
 {
 	printf ("%-12s= %3lu MHz\n", name, value);
 }
-#endif	/* CONFIG_ST40 */
+#endif	/* CONFIG_STM */
 
-#if !(defined(CONFIG_ARM) || defined(CONFIG_M68K) || defined(CONFIG_ST40)) || defined(CONFIG_CMD_NET)
+#if !(defined(CONFIG_ARM) || defined(CONFIG_M68K) || defined(CONFIG_STM)) || defined(CONFIG_CMD_NET)
 static void print_eth(int idx)
 {
 	char name[10], *val;
@@ -578,7 +582,7 @@ static void print_eth(int idx)
 }
 #endif
 
-#if (!defined(CONFIG_ARM) && !defined(CONFIG_X86))
+#if (!defined(CONFIG_ARM) && !defined(CONFIG_X86)) || defined(CONFIG_STM)
 static void print_lnum(const char *name, u64 value)
 {
 	printf ("%-12s= 0x%.8llX\t(", name, value);

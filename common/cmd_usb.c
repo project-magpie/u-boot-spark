@@ -522,9 +522,9 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	if ((strncmp(argv[1], "reset", 5) == 0) ||
 		 (strncmp(argv[1], "start", 5) == 0)) {
-#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_ST40)
 		sh_disable_data_caches();
-#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW && CONFIG_ST40 */
 		usb_stop();
 		printf("(Re)start USB...\n");
 		i = usb_init();
@@ -533,9 +533,9 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		if (i >= 0)
 			usb_stor_curr_dev = usb_stor_scan(1);
 #endif
-#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_ST40)
 		sh_enable_data_caches();
-#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW && CONFIG_ST40 */
 		return 0;
 	}
 	if (strncmp(argv[1], "stop", 4) == 0) {
@@ -567,9 +567,9 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 	if (strncmp(argv[1], "inf", 3) == 0) {
 		int d;
-#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_ST40)
 		sh_disable_data_caches();
-#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW && CONFIG_ST40 */
 		if (argc == 2) {
 			for (d = 0; d < USB_MAX_DEVICE; d++) {
 				dev = usb_get_dev_index(d);
@@ -578,9 +578,9 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				usb_display_desc(dev);
 				usb_display_config(dev);
 			}
-#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_ST40)
 			sh_enable_data_caches();
-#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW && CONFIG_ST40 */
 			return 0;
 		} else {
 			int d;
@@ -596,18 +596,18 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			}
 			if (dev == NULL) {
 				printf("*** NO Device avaiable ***\n");
-#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_ST40)
 				sh_enable_data_caches();
-#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW && CONFIG_ST40 */
 				return 0;
 			} else {
 				usb_display_desc(dev);
 				usb_display_config(dev);
 			}
 		}
-#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_ST40)
 		sh_enable_data_caches();
-#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW && CONFIG_ST40 */
 		return 0;
 	}
 #ifdef CONFIG_USB_STORAGE
@@ -616,9 +616,9 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	if (strncmp(argv[1], "part", 4) == 0) {
 		int devno, ok = 0;
-#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_ST40)
 		sh_disable_data_caches();
-#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW && CONFIG_ST40 */
 		if (argc == 2) {
 			for (devno = 0; ; ++devno) {
 				stor_dev = usb_stor_get_dev(devno);
@@ -642,9 +642,9 @@ int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				print_part(stor_dev);
 			}
 		}
-#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_ST40)
 		sh_enable_data_caches();
-#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
+#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW && CONFIG_ST40 */
 		if (!ok) {
 			printf("\nno USB devices available\n");
 			return 1;

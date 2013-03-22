@@ -27,7 +27,7 @@
 #include <common.h>
 #include <spi.h>
 
-#if !defined(CONFIG_ST40)
+#if !defined(CONFIG_STM)
 
 #include <malloc.h>
 
@@ -194,5 +194,5 @@ int  spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 	return(0);
 }
 
-#endif	/* CONFIG_ST40 */
+#endif	/* CONFIG_STM */
 

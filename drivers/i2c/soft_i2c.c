@@ -46,12 +46,12 @@
 #ifdef CONFIG_LPC2292
 #include <asm/arch/hardware.h>
 #endif
-#ifdef CONFIG_ST40
+#if defined(CONFIG_STM)
 #include <asm/io.h>
 #include <asm/pio.h>
 #include <asm/socregs.h>
 #include <asm/soc.h>
-#endif
+#endif	/* CONFIG_STM */
 #if defined(CONFIG_MPC852T) || defined(CONFIG_MPC866)
 #include <asm/io.h>
 #endif

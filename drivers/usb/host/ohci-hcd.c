@@ -101,7 +101,7 @@
  * CONFIG_SYS_USB_OHCI_REGS_BASE, in terms of AHB2STBUS_OHCI_BASE,
  * which is defined in the file "stbus.h" - so we include it here.
  */
-#if defined(CONFIG_ST40)
+#if defined(CONFIG_STM)
 #	include <asm/stbus.h>
 #endif
 

@@ -25,7 +25,7 @@
 #include <common.h>
 #include <nand.h>
 
-#if defined(CONFIG_ST40)
+#if defined(CONFIG_STM)
 #include <asm/stm-nand.h>
 #endif
 
@@ -45,7 +45,7 @@ static const char default_nand_name[] = "nand";
 static __attribute__((unused)) char dev_name[CONFIG_SYS_MAX_NAND_DEVICE][8];
 
 
-#if defined(CONFIG_ST40)
+#if defined(CONFIG_STM)
 /**
  * nand_scan - [NAND Interface] Scan for the NAND device
  * @mtd:	MTD device structure
@@ -72,7 +72,7 @@ static int stm_nand_scan(struct mtd_info *mtd, int maxchips)
 
 	/*
 	 * Now that we have probed the physical NAND device, and we now know
-	 * the *actual* device ID, we can complete any other ST40-specific
+	 * the *actual* device ID, we can complete any other STM-specific
 	 * structure fields properly (e.g. nand->ecc.layout).
 	 */
 	stm_nand_scan_post_ident(mtd);
@@ -93,7 +93,7 @@ static int stm_nand_scan(struct mtd_info *mtd, int maxchips)
 	return ret;
 }
 #define nand_scan stm_nand_scan		/* kludge: map nand_scan() to stm_nand_scan() */
-#endif	/* CONFIG_ST40 */
+#endif	/* CONFIG_STM */
 
 
 static void nand_init_chip(struct mtd_info *mtd, struct nand_chip *nand,

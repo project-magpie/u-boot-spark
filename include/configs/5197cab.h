@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009-2012 STMicroelectronics.
+ * (C) Copyright 2009-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -30,6 +30,7 @@
  * (easy to change)
  */
 
+#define CONFIG_STM	1		/* The SoC is from STMicroelectronics */
 #define CONFIG_ST40	1		/* This is an SH4 CPU		*/
 #define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
 

@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_CONFIG_H_
-#define __ARCH_ST40_INCLUDE_ASM_CONFIG_H_
+#ifndef __ARCH_ST40_INCLUDE_ASM_CONFIG_H
+#define __ARCH_ST40_INCLUDE_ASM_CONFIG_H
 
 /* Relocation to SDRAM works on all ST40 boards */
 #define CONFIG_RELOC_FIXUP_WORKS
@@ -76,4 +76,4 @@
 #endif
 
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_CONFIG_H_ */
+#endif /* __ARCH_ST40_INCLUDE_ASM_CONFIG_H */

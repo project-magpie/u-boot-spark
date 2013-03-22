@@ -59,10 +59,10 @@
 
 #include <asm/errno.h>
 
-#if defined(CONFIG_ST40)
+#if defined(CONFIG_STM)
 #include <asm/ecc.h>
 #include <asm/stm-nand.h>
-#endif	/* CONFIG_ST40 */
+#endif	/* CONFIG_STM */
 
 /* XXX U-BOOT XXX */
 #if 0
@@ -121,7 +121,7 @@ static int check_pattern(uint8_t *buf, int len, int paglen, struct nand_bbt_desc
 	return 0;
 
 check_failed:
-#if defined(CONFIG_ST40)
+#if defined(CONFIG_STM)
 	if (td->options & NAND_BBT_SCANSTMBOOTECC)	/* is it "Boot-Mode+B" (3+1/128) ? */
 	{	/* Check for STM "Boot-Mode+B" ECC... */
 		int e = 0;
@@ -156,7 +156,7 @@ check_failed:
 			return 0;	/* treat as a "good" match */
 		}
 	}
-#endif	/* CONFIG_ST40 */
+#endif	/* CONFIG_STM */
 	return -1;	/* patterns failed to match! */
 }
 
