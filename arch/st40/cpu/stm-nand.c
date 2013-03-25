@@ -39,14 +39,14 @@
 	 * Ensure we have *exactly* ONE NAND driver configured.
 	 * Not less than one, and not more than one!
 	 */
-#if defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING) && defined(CONFIG_SYS_ST40_NAND_USE_HAMMING)
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING) && defined(CONFIG_SYS_STM_NAND_USE_HAMMING)
 #	error You can only enable *one* NAND driver!
-#elif defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING) && defined(CONFIG_SYS_ST40_NAND_USE_BCH)
+#elif defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING) && defined(CONFIG_SYS_STM_NAND_USE_BCH)
 #	error You can only enable *one* NAND driver!
-#elif defined(CONFIG_SYS_ST40_NAND_USE_BCH) && defined(CONFIG_SYS_ST40_NAND_USE_HAMMING)
+#elif defined(CONFIG_SYS_STM_NAND_USE_BCH) && defined(CONFIG_SYS_STM_NAND_USE_HAMMING)
 #	error You can only enable *one* NAND driver!
 #endif
-#if !defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING) && !defined(CONFIG_SYS_ST40_NAND_USE_HAMMING) && !defined(CONFIG_SYS_ST40_NAND_USE_BCH)
+#if !defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING) && !defined(CONFIG_SYS_STM_NAND_USE_HAMMING) && !defined(CONFIG_SYS_STM_NAND_USE_BCH)
 #	error You must enable one NAND driver if CONFIG_CMD_NAND is defined!
 #endif
 
@@ -62,10 +62,10 @@
 	 * schemes that the Hamming controller used, so we complain
 	 * if we are configured for such an invalid combination.
 	 */
-#if defined(CONFIG_SYS_ST40_NAND_USE_BCH) && defined(CONFIG_SYS_NAND_ECC_HW3_128)
+#if defined(CONFIG_SYS_STM_NAND_USE_BCH) && defined(CONFIG_SYS_NAND_ECC_HW3_128)
 #	error boot-mode ECC (3/128) is not supportable with the BCH controller
 #endif
-#if defined(CONFIG_SYS_ST40_NAND_USE_BCH) && defined(CONFIG_SYS_NAND_ECC_AFM4)
+#if defined(CONFIG_SYS_STM_NAND_USE_BCH) && defined(CONFIG_SYS_NAND_ECC_AFM4)
 #	error AFM4 ECC (4+3/512) is not supportable with the BCH controller
 #endif
 
@@ -78,18 +78,18 @@
 	 *
 	 * Ensure we do not define more than (or less than) one such scheme!
 	 */
-#if defined(CONFIG_SYS_ST40_NAND_USE_BCH)
-#if defined(CONFIG_SYS_ST40_NAND_USE_BCH_18_BIT_ECC) && defined(CONFIG_SYS_ST40_NAND_USE_BCH_30_BIT_ECC)
+#if defined(CONFIG_SYS_STM_NAND_USE_BCH)
+#if defined(CONFIG_SYS_STM_NAND_USE_BCH_18_BIT_ECC) && defined(CONFIG_SYS_STM_NAND_USE_BCH_30_BIT_ECC)
 #	error You can only enable *one* BCH ECC scheme!
-#elif defined(CONFIG_SYS_ST40_NAND_USE_BCH_18_BIT_ECC) && defined(CONFIG_SYS_ST40_NAND_USE_BCH_NO_ECC)
+#elif defined(CONFIG_SYS_STM_NAND_USE_BCH_18_BIT_ECC) && defined(CONFIG_SYS_STM_NAND_USE_BCH_NO_ECC)
 #	error You can only enable *one* BCH ECC scheme!
-#elif defined(CONFIG_SYS_ST40_NAND_USE_BCH_NO_ECC) && defined(CONFIG_SYS_ST40_NAND_USE_BCH_30_BIT_ECC)
+#elif defined(CONFIG_SYS_STM_NAND_USE_BCH_NO_ECC) && defined(CONFIG_SYS_STM_NAND_USE_BCH_30_BIT_ECC)
 #	error You can only enable *one* BCH ECC scheme!
 #endif
-#if !defined(CONFIG_SYS_ST40_NAND_USE_BCH_18_BIT_ECC) && !defined(CONFIG_SYS_ST40_NAND_USE_BCH_30_BIT_ECC) && !defined(CONFIG_SYS_ST40_NAND_USE_BCH_NO_ECC)
-#	error You must select only one BCH ECC scheme if CONFIG_SYS_ST40_NAND_USE_BCH is defined!
+#if !defined(CONFIG_SYS_STM_NAND_USE_BCH_18_BIT_ECC) && !defined(CONFIG_SYS_STM_NAND_USE_BCH_30_BIT_ECC) && !defined(CONFIG_SYS_STM_NAND_USE_BCH_NO_ECC)
+#	error You must select only one BCH ECC scheme if CONFIG_SYS_STM_NAND_USE_BCH is defined!
 #endif
-#endif /* CONFIG_SYS_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_STM_NAND_USE_BCH */
 
 
 #define isprint(x)	( ((x)>=0x20u) && ((x)<0x7fu) )
@@ -776,7 +776,7 @@ static struct nand_ecclayout stm_afm4_ecclayout_64 = {
  *****************************************************************************************/
 
 
-#if defined(CONFIG_SYS_ST40_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
 
 
 	/* for LARGE-page devices */
@@ -791,7 +791,7 @@ static struct nand_ecclayout stm_bch_ecclayout_64 = {
 };
 
 
-#endif /* CONFIG_SYS_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_STM_NAND_USE_BCH */
 
 
 /*****************************************************************************************
@@ -844,7 +844,7 @@ extern void stm_default_board_nand_init(
 	void (*cmd_ctrl)(struct mtd_info *mtdinfo, int dat, unsigned int ctrl),
 	int (*dev_ready)(struct mtd_info *mtd))
 {
-#if defined(CONFIG_SYS_ST40_NAND_USE_HAMMING) || defined(CONFIG_SYS_ST40_NAND_USE_BCH)
+#if defined(CONFIG_SYS_STM_NAND_USE_HAMMING) || defined(CONFIG_SYS_STM_NAND_USE_BCH)
 	struct mtd_info * const mtd = (struct mtd_info *)(nand->priv);
 #endif
 
@@ -858,14 +858,14 @@ extern void stm_default_board_nand_init(
 	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
 	nand->scan_bbt      = stm_nand_default_bbt;
 
-#if defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
 	nand->cmd_ctrl      = cmd_ctrl;
 	nand->dev_ready     = dev_ready;
-#elif defined(CONFIG_SYS_ST40_NAND_USE_HAMMING)		/* for H/W Hamming ("flex") driver */
+#elif defined(CONFIG_SYS_STM_NAND_USE_HAMMING)		/* for H/W Hamming ("flex") driver */
 	stm_flex_init_nand(mtd, nand);
-#elif defined(CONFIG_SYS_ST40_NAND_USE_BCH)		/* for H/W BCH ("multi-bit ECC") driver */
+#elif defined(CONFIG_SYS_STM_NAND_USE_BCH)		/* for H/W BCH ("multi-bit ECC") driver */
 	stm_bch_init_nand(mtd, nand);
-#endif /* CONFIG_SYS_ST40_NAND_USE_BIT_BANGING */
+#endif /* CONFIG_SYS_STM_NAND_USE_BIT_BANGING */
 
 #if defined(CONFIG_SYS_NAND_ECC_AFM4)			/* for STM AFM4 ECC compatibility */
 	nand->ecc.hwctl     = stm_nand_hwctl;
@@ -893,7 +893,7 @@ extern void stm_nand_scan_post_ident(
 {
 	struct nand_chip * const nand = mtd->priv;
 
-#if defined(CONFIG_SYS_NAND_ECC_AFM4) || defined(CONFIG_SYS_ST40_NAND_USE_BCH)
+#if defined(CONFIG_SYS_NAND_ECC_AFM4) || defined(CONFIG_SYS_STM_NAND_USE_BCH)
 #if defined(CONFIG_SYS_NAND_ECC_AFM4)	/* for STM AFM4 (4+3/512) ECC compatibility */
 	if (mtd->oobsize == 64)				/* large page device ? */
 		nand->ecc.layout = &stm_afm4_ecclayout_64;
@@ -914,7 +914,7 @@ extern void stm_nand_scan_post_ident(
 		printf("Error: unexpected OOB size of %u bytes\n", mtd->oobsize);
 		BUG();
 	}
-#endif /* CONFIG_SYS_NAND_ECC_AFM4 || CONFIG_SYS_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_NAND_ECC_AFM4 || CONFIG_SYS_STM_NAND_USE_BCH */
 
 		/*
 		 * Ensure sizeof(OOB) is not too big!
@@ -937,18 +937,18 @@ extern void stm_nand_scan_post_ident(
 	nand->ecc.mode      = NAND_ECC_HW;	/* compatible with AFM4 (4+3/512) ECC */
 	nand->ecc.size      = 512;
 	nand->ecc.bytes     = 7;
-#elif defined(CONFIG_SYS_ST40_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
+#elif defined(CONFIG_SYS_STM_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
 	nand->ecc.mode      = NAND_ECC_HW;	/* use ST's (off-die) on-SoC H/W ECC engine */
 	nand->ecc.size      = 1024;		/* BCH ECC only processes 1KiB sectors at a time */
-#	if defined(CONFIG_SYS_ST40_NAND_USE_BCH_18_BIT_ECC)
+#	if defined(CONFIG_SYS_STM_NAND_USE_BCH_18_BIT_ECC)
 	nand->ecc.bytes     = 32;		/* 18-bits of BCH ECC needs 32-Bytes/1KiB sector */
-#	elif defined(CONFIG_SYS_ST40_NAND_USE_BCH_30_BIT_ECC)
+#	elif defined(CONFIG_SYS_STM_NAND_USE_BCH_30_BIT_ECC)
 	nand->ecc.bytes     = 54;		/* 30-bits of BCH ECC needs 54-Bytes/1KiB sector */
-#	elif defined(CONFIG_SYS_ST40_NAND_USE_BCH_NO_ECC)
+#	elif defined(CONFIG_SYS_STM_NAND_USE_BCH_NO_ECC)
 	nand->ecc.bytes     = 0;		/* No ECC -- not recommended! */
 #	else
-#	error Please specific the BCH ECC scheme to use (CONFIG_SYS_ST40_NAND_USE_BCH_xxx_ECC)
-#	endif /* CONFIG_SYS_ST40_NAND_USE_BCH_xxx_ECC */
+#	error Please specific the BCH ECC scheme to use (CONFIG_SYS_STM_NAND_USE_BCH_xxx_ECC)
+#	endif /* CONFIG_SYS_STM_NAND_USE_BCH_xxx_ECC */
 #else
 	nand->ecc.mode      = NAND_ECC_SOFT;	/* default is S/W 3/256 ECC */
 #endif /* CONFIG_SYS_NAND_ECC_AFM4 */
@@ -993,7 +993,7 @@ extern void stm_nand_scan_post_tail(
 	 * Let the user know if this assumption is false.
 	 * QQQ - remove this restriction (later), *if* needed!
 	 */
-#if defined(CONFIG_SYS_ST40_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
 	const int blocks_per_device = mtd->size >> nand->phys_erase_shift;
 	if (blocks_per_device/4 > mtd->writesize)
 	{
@@ -1002,7 +1002,7 @@ extern void stm_nand_scan_post_tail(
 			mtd->writesize);
 		BUG();
 	}
-#endif /* CONFIG_SYS_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_STM_NAND_USE_BCH */
 }
 
 

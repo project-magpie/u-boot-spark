@@ -35,7 +35,7 @@
  *	AL -> Emi_Addr(18)
  *	nCE is handled by EMI (not s/w controllable)
  */
-#if defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
 static void b2000_cmd_ctrl (
 	struct mtd_info * const mtd,
 	const int byte,
@@ -93,7 +93,7 @@ static int b2000_device_ready(struct mtd_info *mtd)
 	/* extract bit 1: status of RBn pin on boot bank */
 	return ((*ST40_EMI_NAND_HAM_RBN_STA) & (1ul<<1)) ? 1 : 0;
 }
-#endif /* CONFIG_SYS_ST40_NAND_USE_BIT_BANGING */
+#endif /* CONFIG_SYS_STM_NAND_USE_BIT_BANGING */
 
 
 /*
@@ -103,11 +103,11 @@ static int b2000_device_ready(struct mtd_info *mtd)
  */
 extern int board_nand_init(struct nand_chip * const nand)
 {
-#if defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
 	stm_default_board_nand_init(nand, b2000_cmd_ctrl, b2000_device_ready);
 #else						/* else, use a H/W driver */
 	stm_default_board_nand_init(nand, NULL, NULL);
-#endif /* CONFIG_SYS_ST40_NAND_USE_BIT_BANGING */
+#endif /* CONFIG_SYS_STM_NAND_USE_BIT_BANGING */
 
 	/*
 	 * Only enable the following to use a (volatile) RAM-based

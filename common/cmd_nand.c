@@ -33,7 +33,7 @@ int find_dev_and_part(const char *id, struct mtd_device **dev,
 #endif
 
 
-#if defined(CONFIG_SYS_ST40_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
 	/*
 	 * The BCH controller stores the DATA and ECC in "stripes". Hence
 	 * the in-band includes both DATA and ECC, and the same is true
@@ -83,7 +83,7 @@ static void stm_remap_bch_buffers(
 	/* copy *only* the ECC bytes, to the OOB region (after pure DATA) */
 	memcpy(&datbuf[sector_size*sectors_per_page], oobbuf, ecc_size*sectors_per_page);
 }
-#endif /* CONFIG_SYS_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_STM_NAND_USE_BCH */
 
 
 static int nand_dump(nand_info_t *nand, ulong off, int only_oob)
@@ -114,9 +114,9 @@ static int nand_dump(nand_info_t *nand, ulong off, int only_oob)
 		return 1;
 	}
 
-#if defined(CONFIG_SYS_ST40_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
 	stm_remap_bch_buffers(nand, datbuf, oobbuf);	/* optionally move ECC to OOB */
-#endif /* CONFIG_SYS_ST40_NAND_USE_BCH */
+#endif /* CONFIG_SYS_STM_NAND_USE_BCH */
 
 	printf("Page %08lx dump:\n", off);
 	i = nand->writesize >> 4;

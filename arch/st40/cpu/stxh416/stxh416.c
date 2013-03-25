@@ -1036,7 +1036,7 @@ extern int stxh416_usb_init(const int port)
 #endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
-#if defined(CONFIG_ST40_STM_SATA)
+#if defined(CONFIG_STM_SATA)
 extern void stxh416_configure_sata(void)
 {
 #if 0	/* QQQ - TO IMPLEMENT */
@@ -1065,7 +1065,7 @@ extern void stxh416_configure_sata(void)
 	}
 #endif	/* QQQ - TO IMPLEMENT */
 }
-#endif	/* CONFIG_ST40_STM_SATA */
+#endif	/* CONFIG_STM_SATA */
 
 
 #if defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C)

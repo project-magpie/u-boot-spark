@@ -112,11 +112,11 @@
 #endif /* CONFIG_SYS_BOOT_FROM_SPI && CONFIG_SYS_BOOT_FROM_NAND */
 
 #ifdef CONFIG_ST40_SE_MODE
-#if defined(CONFIG_ST40_CONTIG_MODE)
+#if defined(CONFIG_STM_CONTIG_MODE)
 #define CONFIG_SYS_SE_PHYSICAL_BASE	0x60000000	/* LMI Physical Address */
 #else
 #define CONFIG_SYS_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
-#endif	/* CONFIG_ST40_CONTIG_MODE */
+#endif	/* CONFIG_STM_CONTIG_MODE */
 #define CONFIG_SYS_SDRAM_BASE		0x80000000	/* LMI Cached addr via PMB */
 #else
 #error This SoC is not supported in 29-bit mode, please enable SE-mode!
@@ -172,7 +172,7 @@
 #endif
 
 /* choose which ST ASC UART to use */
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 #if 1
 #	define CONFIG_SYS_STM_ASC_BASE	STXH415_ASC2_BASE	/* UART2 on CN14 (COM0) */
 #elif 1
@@ -180,7 +180,7 @@
 #else
 #	define CONFIG_SYS_STM_ASC_BASE	STXH415_SBC_ASC0_BASE	/* SBC_UART0 on CN19 */
 #endif
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 #if 1
 #	define CONFIG_SYS_STM_ASC_BASE	STXH416_ASC2_BASE	/* UART2 on CN14 (COM0) */
 #elif 1
@@ -188,7 +188,7 @@
 #else
 #	define CONFIG_SYS_STM_ASC_BASE	STXH416_SBC_ASC0_BASE	/* SBC_UART0 on CN19 */
 #endif
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 
 /*---------------------------------------------------------------
  * Ethernet driver config
@@ -243,18 +243,18 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_ST40_STM_USB
+#define CONFIG_STM_USB
 
-#ifdef CONFIG_ST40_STM_USB
+#ifdef CONFIG_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_STORAGE
 #	define CONFIG_SYS_USB0_BASE			0xfe100000	/* #0 is CN3-upper next to E-SATA */
 #	define CONFIG_SYS_USB1_BASE			0xfe200000	/* #1 is CN3-lower next to E-SATA */
 #	define CONFIG_SYS_USB2_BASE			0xfe300000	/* #2 is CN4-upper next to HDMI */
-#if defined(CONFIG_ST40_STXH416)					/* Only the STxH416 has a 4th USB controller */
+#if defined(CONFIG_STM_STXH416)					/* Only the STxH416 has a 4th USB controller */
 #	define CONFIG_SYS_USB3_BASE			0xfe340000	/* #3 is CN4-lower next to HDMI */
-#endif /* CONFIG_ST40_STXH416 */
+#endif /* CONFIG_STM_STXH416 */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
 #	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
@@ -266,7 +266,7 @@
 #		define CONFIG_USB_EHCI					/* enable USB 2.0, via EHCI */
 #		define CONFIG_USB_EHCI_STM				/* use EHCI for STMicroelectronics */
 #	endif	/* use OHCI/EHCI */
-#endif	/* ifdef CONFIG_ST40_STM_USB */
+#endif	/* ifdef CONFIG_STM_USB */
 
 /*---------------------------------------------------------------
  * SATA driver config
@@ -274,9 +274,9 @@
 
 /* SATA works on cut 3.x of the STx7105 (just one port) */
 /* Choose if we want to use a SATA HDD */
-//#define CONFIG_ST40_STM_SATA	/* QQQ - TO TEST SATA */
+//#define CONFIG_STM_SATA	/* QQQ - TO TEST SATA */
 
-#ifdef CONFIG_ST40_STM_SATA
+#ifdef CONFIG_STM_SATA
 #	define CONFIG_CMD_IDE					/* enable "ide" command set */
 #	define CONFIG_SYS_ATA_BASE_ADDR		0xfe209000	/* E-SATA panel connector */
 #	define CONFIG_SYS_ATA_IDE0_OFFSET	0x800		/* Host Controller */
@@ -285,10 +285,10 @@
 #	define CONFIG_SYS_ATA_STRIDE		0x4
 #	define CONFIG_SYS_IDE_MAXBUS		1
 #	define CONFIG_SYS_IDE_MAXDEVICE		1
-#endif	/* CONFIG_ST40_STM_SATA */
+#endif	/* CONFIG_STM_SATA */
 
-#if defined(CONFIG_ST40_STM_SATA) ||	\
-    defined(CONFIG_ST40_STM_USB)
+#if defined(CONFIG_STM_SATA) ||	\
+    defined(CONFIG_STM_USB)
 #	define CONFIG_SYS_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION
@@ -344,7 +344,7 @@
  * (such as a B2006 board).  The following configurations may
  * need to be changed, depending on the specific NAND installed.
  * In particular CONFIG_SYS_NAND_ERASE_SIZE should be checked,
- * as well as the potency CONFIG_SYS_ST40_NAND_USE_BCH_xx_BIT_ECC.
+ * as well as the potency CONFIG_SYS_STM_NAND_USE_BCH_xxx_ECC.
  */
 #ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
 #	define CONFIG_SYS_MAX_NAND_DEVICE	1
@@ -393,14 +393,14 @@
 	 *	   (also supports boot-from-NAND capability)
 	 *	3) using the H/W BCH controller (multi-bit ECC) driver
 	 *	   (also supports boot-from-NAND capability)
-	 * Either CONFIG_SYS_ST40_NAND_USE_BIT_BANGING, or CONFIG_SYS_ST40_NAND_USE_HAMMING,
-	 * or CONFIG_SYS_ST40_NAND_USE_BCH should be defined, to select a single NAND driver.
+	 * Either CONFIG_SYS_STM_NAND_USE_BIT_BANGING, or CONFIG_SYS_STM_NAND_USE_HAMMING,
+	 * or CONFIG_SYS_STM_NAND_USE_BCH should be defined, to select a single NAND driver.
 	 * If we are using FLEX or BCH, we still need to #define the
 	 * address CONFIG_SYS_EMI_NAND_BASE, although the value is ignored!
 	 */
-//#	define CONFIG_SYS_ST40_NAND_USE_BIT_BANGING		/* use S/W "bit-banging" driver */
-//#	define CONFIG_SYS_ST40_NAND_USE_HAMMING			/* use H/W Hamming ("flex") driver */
-#	define CONFIG_SYS_ST40_NAND_USE_BCH			/* use H/W BCH ("multi-bit") driver */
+//#	define CONFIG_SYS_STM_NAND_USE_BIT_BANGING		/* use S/W "bit-banging" driver */
+//#	define CONFIG_SYS_STM_NAND_USE_HAMMING			/* use H/W Hamming ("flex") driver */
+#	define CONFIG_SYS_STM_NAND_USE_BCH			/* use H/W BCH ("multi-bit") driver */
 #	define CONFIG_SYS_EMI_NAND_BASE		0xDEADBEEF	/* for FLEX/BCH, we do not care! */
 
 	/*
@@ -411,9 +411,9 @@
 	 * 30-bits of correction requires 54 bytes of OOB per 1KiB of data.
 	 * For BCH, please choose *only* ONE of the following ECC schemes.
 	 */
-//#	define CONFIG_SYS_ST40_NAND_USE_BCH_NO_ECC		/* use BCH with-OUT ECC -- not recommended! */
-//#	define CONFIG_SYS_ST40_NAND_USE_BCH_18_BIT_ECC		/* use BCH with 18-bit/1KiB sector ECC */
-#	define CONFIG_SYS_ST40_NAND_USE_BCH_30_BIT_ECC		/* use BCH with 30-bit/1KiB sector ECC */
+//#	define CONFIG_SYS_STM_NAND_USE_BCH_NO_ECC		/* use BCH with-OUT ECC -- not recommended! */
+//#	define CONFIG_SYS_STM_NAND_USE_BCH_18_BIT_ECC		/* use BCH with 18-bit/1KiB sector ECC */
+#	define CONFIG_SYS_STM_NAND_USE_BCH_30_BIT_ECC		/* use BCH with 30-bit/1KiB sector ECC */
 
 	/*
 	 * Do we want to read/write NAND Flash compatible with the ST40's
@@ -421,11 +421,11 @@
 	 * to read/write NAND flash that is meant to support booting
 	 * from NAND, then we need to use 3 bytes of ECC per 128 byte
 	 * record.  If so, then define the "CONFIG_SYS_NAND_ECC_HW3_128" macro.
-	 * Note: do *not* define this if CONFIG_SYS_ST40_NAND_USE_BCH is defined,
+	 * Note: do *not* define this if CONFIG_SYS_STM_NAND_USE_BCH is defined,
 	 * as the Hamming boot-mode ECC is different to that of the BCH.
 	 */
 #	define CONFIG_SYS_NAND_ECC_HW3_128	/* define for "boot-from-NAND" compatibility */
-#	if defined(CONFIG_SYS_ST40_NAND_USE_BCH)
+#	if defined(CONFIG_SYS_STM_NAND_USE_BCH)
 #	undef CONFIG_SYS_NAND_ECC_HW3_128	/* explicitly un-define if using BCH */
 #	endif /* CONFIG_SYS_NAND_ECC_HW3_128 */
 
@@ -510,15 +510,15 @@
 #else
 	/* Use S/W "bit-banging", (not H/W FSM, nor H/W SSC) */
 #	define CONFIG_SOFT_SPI			/* Use "bit-banging" PIO */
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 #	define SPI_SCL(val)	do { stxh415_spi_scl((val)); } while (0)
 #	define SPI_SDA(val)	do { stxh415_spi_sda((val)); } while (0)
 #	define SPI_READ		stxh415_spi_read()
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 #	define SPI_SCL(val)	do { stxh416_spi_scl((val)); } while (0)
 #	define SPI_SDA(val)	do { stxh416_spi_sda((val)); } while (0)
 #	define SPI_READ		stxh416_spi_read()
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 #	define SPI_DELAY	do { udelay(1); } while (0)	/* Note: only 500 kHz! */
 #endif
 #endif	/* CONFIG_SPI_FLASH */
@@ -581,15 +581,15 @@
 #	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
 #	define I2C_ACTIVE			/* open-drain, nothing to do */
 #	define I2C_TRISTATE			/* open-drain, nothing to do */
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 #	define I2C_SCL(val)		do { stxh415_i2c_scl((val)); } while (0)
 #	define I2C_SDA(val)		do { stxh415_i2c_sda((val)); } while (0)
 #	define I2C_READ			stxh415_i2c_read()
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 #	define I2C_SCL(val)		do { stxh416_i2c_scl((val)); } while (0)
 #	define I2C_SDA(val)		do { stxh416_i2c_sda((val)); } while (0)
 #	define I2C_READ			stxh416_i2c_read()
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 
 	/*
 	 * The "BOGOS" for NDELAY() may be calibrated using the

@@ -99,9 +99,9 @@ extern int board_init(void)
 	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
-#if defined(CONFIG_ST40_STM_SATA)
+#if defined(CONFIG_STM_SATA)
 	stx7141_configure_sata ();
-#endif	/* CONFIG_ST40_STM_SATA */
+#endif	/* CONFIG_STM_SATA */
 
 	return 0;
 }

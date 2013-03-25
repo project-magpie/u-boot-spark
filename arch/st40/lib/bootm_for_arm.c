@@ -261,7 +261,7 @@ extern int do_bootm_armlinux(int flag, int argc, char * const argv[], bootm_head
      /* Invalidate both instruction and data caches */
      sh_cache_set_op(SH4_CCR_OCI|SH4_CCR_ICI);
 
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
      /* Wait for LPM STxP70 to be out of reset */
      int timeout = 0x100000;
      while ((*STXH415_SYSSTS(36) & (1 << 6)) != (1 << 6) && timeout-- > 0) { }
@@ -288,7 +288,7 @@ extern int do_bootm_armlinux(int flag, int argc, char * const argv[], bootm_head
 
      /* Clean-up hardware */
 #if defined(CONFIG_DRIVER_NET_STM_GMAC)
-#if defined(CONFIG_ST40_B2000)
+#if defined(CONFIG_STM_B2000)
 #if (CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE)
      /* /!\ Without this little hack, resetting PIO15.5 (MDC signal), the phy is not detected anymore on B2000 platform after kernel boot /!\ */
      {
@@ -313,12 +313,12 @@ extern int do_bootm_armlinux(int flag, int argc, char * const argv[], bootm_head
      udelay(1000);
      /* Reset ST40 as not used anymore */
      *STXH415_SYSCFG(644)=0xB;
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
      /* Put ARM boot address in the (mirrored) reset vector  */
      *STXH416_A9_RESET_VECTOR_MIRROR_BOOTADDR = (uint32_t)virt_to_phys(&armLinuxPrep);
      /* Clean-up hardware */
 #if defined(CONFIG_DRIVER_NET_STM_GMAC)
-#if defined(CONFIG_ST40_B2000)
+#if defined(CONFIG_STM_B2000)
 #if (CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE)
      /* /!\ Without this little hack, resetting PIO15.5 (MDC signal), the phy is not detected anymore on B2000 platform after kernel boot /!\ */
      {
@@ -345,7 +345,7 @@ extern int do_bootm_armlinux(int flag, int argc, char * const argv[], bootm_head
      *STXH416_SYSCFG(7545)=0xB;
 #else
 #error ARM booting is only currently available on the STxH415 or STxH416!
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 
      /* Does not return, Cpu should die as we just reset it */
      while(1);

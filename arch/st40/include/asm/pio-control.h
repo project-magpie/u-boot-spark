@@ -30,7 +30,7 @@ struct stm_pio_control_retime_config {
 #define STM_RETIME_VALUE_CLK_0			(0)
 #define STM_RETIME_VALUE_CLK_1			(1)
 	/* if the H/W bitfield is 2-bits wide ? */
-#if defined(CONFIG_ST40_STXH416)
+#if defined(CONFIG_STM_STXH416)
 //#define STM_RETIME_VALUE_CLK_2		(2)
 //#define STM_RETIME_VALUE_CLK_3		(3)
 #endif	/* H/W bitfield is 2-bits wide */
@@ -43,7 +43,7 @@ struct stm_pio_control_retime_config {
 #define STM_RETIME_VALUE_DELAY_2		(2)
 #define STM_RETIME_VALUE_DELAY_3		(3)
 	/* if the H/W bitfield is 4-bits wide ? */
-#if defined(CONFIG_ST40_STXH416)
+#if defined(CONFIG_STM_STXH416)
 //#define STM_RETIME_VALUE_DELAY_4		(4)
 //#define STM_RETIME_VALUE_DELAY_5		(5)
 //#define STM_RETIME_VALUE_DELAY_6		(6)

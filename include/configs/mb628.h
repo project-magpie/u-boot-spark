@@ -169,9 +169,9 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_ST40_STM_USB
+#define CONFIG_STM_USB
 
-#ifdef CONFIG_ST40_STM_USB
+#ifdef CONFIG_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_STORAGE
@@ -190,7 +190,7 @@
 #		define CONFIG_USB_EHCI					/* enable USB 2.0, via EHCI */
 #		define CONFIG_USB_EHCI_STM				/* use EHCI for STMicroelectronics */
 #	endif	/* use OHCI/EHCI */
-#endif	/* ifdef CONFIG_ST40_STM_USB */
+#endif	/* ifdef CONFIG_STM_USB */
 
 /*---------------------------------------------------------------
  * SATA driver config
@@ -198,9 +198,9 @@
 
 /* SATA works on cut 2.x of the STx7141 (just one port) */
 /* Choose if we want to use a SATA HDD */
-//#define CONFIG_ST40_STM_SATA
+//#define CONFIG_STM_SATA
 
-#ifdef CONFIG_ST40_STM_SATA
+#ifdef CONFIG_STM_SATA
 #	define CONFIG_CMD_IDE					/* enable "ide" command set */
 #	define CONFIG_SYS_ATA_BASE_ADDR		0xfe209000	/* E-SATA panel connector */
 #	define CONFIG_SYS_ATA_IDE0_OFFSET	0x800		/* Host Controller */
@@ -209,10 +209,10 @@
 #	define CONFIG_SYS_ATA_STRIDE		0x4
 #	define CONFIG_SYS_IDE_MAXBUS		1
 #	define CONFIG_SYS_IDE_MAXDEVICE		1
-#endif	/* CONFIG_ST40_STM_SATA */
+#endif	/* CONFIG_STM_SATA */
 
-#if defined(CONFIG_ST40_STM_SATA) ||	\
-    defined(CONFIG_ST40_STM_USB)
+#if defined(CONFIG_STM_SATA) ||	\
+    defined(CONFIG_STM_USB)
 #	define CONFIG_SYS_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION

@@ -142,7 +142,7 @@ config_spiboot_controller:
 
 	/* Slow (divide) the SPI clock down to improve reliability. */
 	/* Note: for some (?) FSM SPI controllers, diving by 4 fails to boot! */
-#if defined(CONFIG_ST40_FLI7510) || defined(CONFIG_ST40_FLI7540) || defined(CONFIG_ST40_STX5206) || defined(CONFIG_ST40_STX7108)
+#if defined(CONFIG_STM_FLI7510) || defined(CONFIG_STM_FLI7540) || defined(CONFIG_STM_STX5206) || defined(CONFIG_STM_STX7108)
 	mov	#6, r0			/* *ST40_EMI_SPI_CLOCKDIV = 6 */
 #else
 	mov	#4, r0			/* *ST40_EMI_SPI_CLOCKDIV = 4 */
@@ -197,13 +197,13 @@ which_location:
 #ifdef CONFIG_ST40_SE_MODE
 	and	r4, r9			/* make sure its P0 (cached) */
 #endif	/* CONFIG_ST40_SE_MODE */
-#if defined(CONFIG_SYS_ST40_BART_BASE)
+#if defined(CONFIG_SYS_STM_BART_BASE)
 	/* OR, are we already running from RAM, mapped via the BART ? */
-	MOV_CONST32_R0 (CONFIG_SYS_ST40_BART_BASE + (TEXT_BASE & ((64<<20)-1)))
+	MOV_CONST32_R0 (CONFIG_SYS_STM_BART_BASE + (TEXT_BASE & ((64<<20)-1)))
 	cmp/eq	r9, r0			/* is the PC in the BART region ? */
 	movt	r0
 	or	r0, r8			/* r8 |= (PC==BART); */
-#endif	/* CONFIG_SYS_ST40_BART_BASE */
+#endif	/* CONFIG_SYS_STM_BART_BASE */
 
 	/* set up the PMB entries we want to use */
 #ifdef CONFIG_ST40_SE_MODE
@@ -276,11 +276,11 @@ set_pmb:
 #undef  UBPPN
 #undef  SIZE
 
-#if defined(CONFIG_ST40_STX5197) && defined(CONFIG_ST40_MB704)
+#if defined(CONFIG_STM_STX5197) && defined(CONFIG_STM_MB704)
 	SH4_SET_PMB 4,0xa0,0x00,128,0,0,1	/* SPI Flash (in SPIBOOT mode) UN-cached */
-#elif defined(CONFIG_ST40_STX5197) && defined(CONFIG_ST40_5197CAB)
+#elif defined(CONFIG_STM_STX5197) && defined(CONFIG_STM_5197CAB)
 	SH4_SET_PMB 4,0xa0,0x00,128,0,0,1	/* SPI Flash (in SPIBOOT mode) UN-cached */
-#elif defined(CONFIG_ST40_STX5206) && defined(CONFIG_ST40_MB796)
+#elif defined(CONFIG_STM_STX5206) && defined(CONFIG_STM_MB796)
 	#if defined(CONFIG_SYS_BOOT_FROM_NAND) || defined(CONFIG_SYS_BOOT_FROM_SPI)
 		/* booting from NAND or SPI, so CSA and CSB swapped in EPLD */
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND FLASH UN-cached */
@@ -295,7 +295,7 @@ set_pmb:
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
 	#endif	/* CONFIG_SYS_BOOT_FROM_NAND */
-#elif defined(CONFIG_ST40_STX5206) && defined(CONFIG_ST40_HDK5289)
+#elif defined(CONFIG_STM_STX5206) && defined(CONFIG_STM_HDK5289)
 	#if defined(CONFIG_SYS_BOOT_FROM_NAND) || defined(CONFIG_SYS_BOOT_FROM_SPI)
 		/* booting from NAND or SPI, so CSA and CSB are swapped */
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND FLASH UN-cached */
@@ -310,7 +310,7 @@ set_pmb:
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
 	#endif	/* CONFIG_SYS_BOOT_FROM_NAND */
-#elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_MB680)
+#elif defined(CONFIG_STM_STX7105) && defined(CONFIG_STM_MB680)
 	#ifdef CONFIG_SYS_BOOT_FROM_NAND /* booting from NAND, so CSA and CSB swapped in EPLD */
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa4,0x04, 16,0,0,1	/* NOR FLASH UN-cached */
@@ -324,7 +324,7 @@ set_pmb:
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
 	#endif	/* CONFIG_SYS_BOOT_FROM_NAND */
-#elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_HDK7106)
+#elif defined(CONFIG_STM_STX7105) && defined(CONFIG_STM_HDK7106)
 	SH4_SET_PMB  4,0xa0,0x00, 64,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB  5,0xa4,0x04, 16,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB  6,0xa5,0x05, 16,0,0,1	/* NOR FLASH UN-cached */
@@ -335,7 +335,7 @@ set_pmb:
 	SH4_SET_PMB 11,0xad,0x05, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 12,0xae,0x06, 16		/* NAND + CI CACHED */
 	SH4_SET_PMB 13,0xaf,0x07, 16		/* PCI CACHED */
-#elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_PDK7105)
+#elif defined(CONFIG_STM_STX7105) && defined(CONFIG_STM_PDK7105)
 	SH4_SET_PMB  4,0xa0,0x00, 64,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB  5,0xa4,0x04, 16,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB  6,0xa5,0x05, 16,0,0,1	/* NOR FLASH UN-cached */
@@ -346,9 +346,9 @@ set_pmb:
 	SH4_SET_PMB 11,0xad,0x05, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 12,0xae,0x06, 16		/* NAND + CI CACHED */
 	SH4_SET_PMB 13,0xaf,0x07, 16		/* PCI CACHED */
-#elif defined(CONFIG_ST40_STX7105) && defined(CONFIG_ST40_IPIDTV7105)
+#elif defined(CONFIG_STM_STX7105) && defined(CONFIG_STM_IPIDTV7105)
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* FLASH UN-cached */
-#elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_MB837)
+#elif defined(CONFIG_STM_STX7108) && defined(CONFIG_STM_MB837)
 	#ifdef CONFIG_SYS_BOOT_FROM_NAND /* booting from NAND, so CSA and CSB swapped in EPLD */
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa4,0x04, 16,0,0,1	/* NOR FLASH UN-cached */
@@ -362,73 +362,73 @@ set_pmb:
 	SH4_SET_PMB 7,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xa9,0x01, 16		/* NOR FLASH CACHED */
 	#endif	/* CONFIG_SYS_BOOT_FROM_NAND */
-#elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_MB903)
+#elif defined(CONFIG_STM_STX7108) && defined(CONFIG_STM_MB903)
 	SH4_SET_PMB 4,0xa0,0x00, 128,0,0,1	/* NOR FLASH UN-cached (lower 64MiB) */
 	SH4_SET_PMB 5,0xb0,0x00, 128		/* NOR FLASH CACHED */
-#elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_HDK7108)
+#elif defined(CONFIG_STM_STX7108) && defined(CONFIG_STM_HDK7108)
 	SH4_SET_PMB 4,0xa0,0x00, 128,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5,0xb0,0x00, 128		/* NOR FLASH CACHED */
 	SH4_SET_PMB 6,0xa8,0x08, 128,0,0,1	/* NAND FLASH UN-cached */
-#elif defined(CONFIG_ST40_STX7108) && defined(CONFIG_ST40_B2037)
+#elif defined(CONFIG_STM_STX7108) && defined(CONFIG_STM_B2037)
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* SPI FLASH UN-cached */
 	SH4_SET_PMB 5,0xb0,0x00, 16		/* SPI FLASH CACHED */
 	SH4_SET_PMB 6,0xa8,0x08, 16,0,0,1	/* NAND FLASH UN-cached */
 	SH4_SET_PMB 7,0xab,0x0b, 16,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 8,0xbb,0x0b, 16		/* NOR FLASH CACHED */
-#elif defined(CONFIG_ST40_STX7111) && defined(CONFIG_ST40_MB618)
+#elif defined(CONFIG_STM_STX7111) && defined(CONFIG_STM_MB618)
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa1,0x01, 16,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 6,0xa8,0x00, 16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 7,0xa9,0x01, 16		/* NOR/NAND FLASH CACHED */
-#ifndef CONFIG_ST40_NO_EPLD
+#ifndef CONFIG_STM_NO_EPLD
 	SH4_SET_PMB 8,0xb6,0x06, 16,0,0,1	/* EPLD UN-cached */
-#endif	/* CONFIG_ST40_NO_EPLD */
-#elif defined(CONFIG_ST40_STX7111) && defined(CONFIG_ST40_HDK7111)
+#endif	/* CONFIG_STM_NO_EPLD */
+#elif defined(CONFIG_STM_STX7111) && defined(CONFIG_STM_HDK7111)
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR/NAND/SPI FLASH UN-cached */
 	SH4_SET_PMB 5,0xa8,0x00, 64		/* NOR/NAND/SPI FLASH CACHED */
 	SH4_SET_PMB 6,0xa4,0x04, 16,0,0,1	/* NOR/NAND     FLASH UN-cached */
 	SH4_SET_PMB 7,0xa5,0x05, 16,0,0,1	/* NOR/NAND     FLASH UN-cached */
 	SH4_SET_PMB 8,0xac,0x04, 16		/* NOR/NAND     FLASH CACHED */
 	SH4_SET_PMB 9,0xad,0x05, 16		/* NOR/NAND     FLASH CACHED */
-#elif defined(CONFIG_ST40_STX7141) && defined(CONFIG_ST40_MB628)
+#elif defined(CONFIG_STM_STX7141) && defined(CONFIG_STM_MB628)
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa1,0x01, 16,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 6,0xa8,0x00, 16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 7,0xa9,0x01, 16		/* NOR/NAND FLASH CACHED */
 	SH4_SET_PMB 8,0xb5,0x05, 16,0,0,1	/* EPLD UN-cached */
-#elif defined(CONFIG_ST40_STX7141) && defined(CONFIG_ST40_EUD7141)
+#elif defined(CONFIG_STM_STX7141) && defined(CONFIG_STM_EUD7141)
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5,0xa8,0x00, 64		/* NOR FLASH CACHED */
 	SH4_SET_PMB 6,0xa4,0x04, 16,0,0,1	/* NAND FLASH UN-cached */
-#elif defined(CONFIG_ST40_STX7141) && defined(CONFIG_ST40_B2042)
+#elif defined(CONFIG_STM_STX7141) && defined(CONFIG_STM_B2042)
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5,0xa8,0x00, 64		/* NOR FLASH CACHED */
 	SH4_SET_PMB 6,0xa4,0x04, 16,0,0,1	/* NAND FLASH UN-cached */
-#elif defined(CONFIG_ST40_STX7200) && defined(CONFIG_ST40_MB671)
+#elif defined(CONFIG_STM_STX7200) && defined(CONFIG_STM_MB671)
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 5,0xa1,0x01, 16,0,0,1	/* NOR FLASH UN-cached */
 	SH4_SET_PMB 6,0xa8,0x00, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 7,0xa9,0x01, 16		/* NOR FLASH CACHED */
 	SH4_SET_PMB 8,0xb5,0x05, 16,0,0,1	/* EPLD UN-cached */
-#elif defined(CONFIG_ST40_FLI7510) && defined(CONFIG_ST40_FLDB)
+#elif defined(CONFIG_STM_FLI7510) && defined(CONFIG_STM_FLDB)
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa8,0x00, 64		/* NOR/NAND FLASH CACHED */
-#elif defined(CONFIG_ST40_FLI7540) && defined(CONFIG_ST40_FUDB)
+#elif defined(CONFIG_STM_FLI7540) && defined(CONFIG_STM_FUDB)
 	SH4_SET_PMB 4,0xa0,0x00, 64,0,0,1	/* NOR/NAND FLASH UN-cached */
 	SH4_SET_PMB 5,0xa8,0x00, 64		/* NOR/NAND FLASH CACHED */
-#elif ( defined(CONFIG_ST40_STXH415) || defined(CONFIG_ST40_STXH416) ) &&	\
-	( defined(CONFIG_ST40_B2000) || defined(CONFIG_ST40_B2020) )
+#elif ( defined(CONFIG_STM_STXH415) || defined(CONFIG_STM_STXH416) ) &&	\
+	( defined(CONFIG_STM_B2000) || defined(CONFIG_STM_B2020) )
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
 	SH4_SET_PMB 5,0xb0,0x00, 16		/* NAND/SPI FLASH CACHED */
 	SH4_SET_PMB 6,0xa1,0x01, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
-#elif defined(CONFIG_ST40_STXH205) &&	\
-	( defined(CONFIG_ST40_B2057) || defined(CONFIG_ST40_B2064) || defined(CONFIG_ST40_B2067) || defined(CONFIG_ST40_B2075) )
+#elif defined(CONFIG_STM_STXH205) &&	\
+	( defined(CONFIG_STM_B2057) || defined(CONFIG_STM_B2064) || defined(CONFIG_STM_B2067) || defined(CONFIG_STM_B2075) )
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
 	SH4_SET_PMB 5,0xb0,0x00, 16		/* NAND/SPI FLASH CACHED */
 	SH4_SET_PMB 6,0xa1,0x01, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
 #else
 	#error Do not know which board/chip we are using for PMB setup.
-#endif	/* defined(CONFIG_ST40_STX....) */
+#endif	/* defined(CONFIG_STM_STX....) */
 
 	/*
 	 * Invalidate the ITLB, in case GDB put a 512 MiB page in slot #0.

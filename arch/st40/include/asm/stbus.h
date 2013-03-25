@@ -34,7 +34,7 @@
 
 
 /* Defines for the USB controller register offsets. */
-#if defined(CONFIG_ST40_STXH416)
+#if defined(CONFIG_STM_STXH416)
 	/* use the "newer", smaller (more compact) address-space */
 #	define AHB2STBUS_WRAPPER_GLUE_BASE	(CONFIG_SYS_USB_BASE + 0x00000000)
 #	define AHB2STBUS_OHCI_BASE		(CONFIG_SYS_USB_BASE + 0x00003c00)

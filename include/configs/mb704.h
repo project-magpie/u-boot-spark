@@ -155,9 +155,9 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_ST40_STM_USB
+#define CONFIG_STM_USB
 
-#ifdef CONFIG_ST40_STM_USB
+#ifdef CONFIG_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_STORAGE
@@ -173,13 +173,13 @@
 #		define CONFIG_USB_EHCI					/* enable USB 2.0, via EHCI */
 #		define CONFIG_USB_EHCI_STM				/* use EHCI for STMicroelectronics */
 #	endif	/* use OHCI/EHCI */
-#endif	/* ifdef CONFIG_ST40_STM_USB */
+#endif	/* ifdef CONFIG_STM_USB */
 
 /*---------------------------------------------------------------
  * IDE driver config
  */
 
-#if defined(CONFIG_ST40_STM_USB)
+#if defined(CONFIG_STM_USB)
 #	define CONFIG_SYS_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION

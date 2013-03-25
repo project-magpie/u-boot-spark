@@ -170,18 +170,18 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#define CONFIG_ST40_STM_USB
+#define CONFIG_STM_USB
 
-#ifdef CONFIG_ST40_STM_USB
+#ifdef CONFIG_STM_USB
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_STORAGE
 #	define CONFIG_SYS_USB0_BASE			0xfe100000	/* CN10 upper slot */
 #	define CONFIG_SYS_USB1_BASE			0xfea00000	/* CN10 lower slot */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
-#	define CONFIG_ST40_STX_STX7105_USB_PORT0			/* enable Port #0 */
-#	define CONFIG_ST40_STX_STX7105_USB_OC		1		/* use overcurrent */
-#	define CONFIG_ST40_STX_STX7105_USB_PW		1		/* use power control */
+#	define CONFIG_STM_STX7105_USB_PORT0			/* enable Port #0 */
+#	define CONFIG_STM_STX7105_USB_OC		1		/* use overcurrent */
+#	define CONFIG_STM_STX7105_USB_PW		1		/* use power control */
 #	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
 #		define CONFIG_SYS_USB_OHCI_CPU_INIT
@@ -192,7 +192,7 @@
 #		define CONFIG_USB_EHCI					/* enable USB 2.0, via EHCI */
 #		define CONFIG_USB_EHCI_STM				/* use EHCI for STMicroelectronics */
 #	endif	/* use OHCI/EHCI */
-#endif	/* ifdef CONFIG_ST40_STM_USB */
+#endif	/* ifdef CONFIG_STM_USB */
 
 /*---------------------------------------------------------------
  * SATA driver config
@@ -200,9 +200,9 @@
 
 /* SATA works on cut 3.x of the STx7105 (just one port) */
 /* Choose if we want to use a SATA HDD */
-//#define CONFIG_ST40_STM_SATA
+//#define CONFIG_STM_SATA
 
-#ifdef CONFIG_ST40_STM_SATA
+#ifdef CONFIG_STM_SATA
 #	define CONFIG_CMD_IDE					/* enable "ide" command set */
 #	define CONFIG_SYS_ATA_BASE_ADDR		0xfe209000	/* E-SATA connector */
 #	define CONFIG_SYS_ATA_IDE0_OFFSET	0x800		/* Host Controller */
@@ -211,10 +211,10 @@
 #	define CONFIG_SYS_ATA_STRIDE		0x4
 #	define CONFIG_SYS_IDE_MAXBUS		1
 #	define CONFIG_SYS_IDE_MAXDEVICE		1
-#endif	/* CONFIG_ST40_STM_SATA */
+#endif	/* CONFIG_STM_SATA */
 
-#if defined(CONFIG_ST40_STM_SATA) ||	\
-    defined(CONFIG_ST40_STM_USB)
+#if defined(CONFIG_STM_SATA) ||	\
+    defined(CONFIG_STM_USB)
 #	define CONFIG_SYS_64BIT_LBA
 #	define CONFIG_LBA48
 #	define CONFIG_DOS_PARTITION
@@ -278,13 +278,13 @@
 	 *	   (can NOT be used with boot-from-NAND)
 	 *	2) using the H/W Hamming controller (flex-mode) driver
 	 *	   (only supported means for boot-from-NAND)
-	 * Either CONFIG_SYS_ST40_NAND_USE_BIT_BANGING or CONFIG_SYS_ST40_NAND_USE_HAMMING
+	 * Either CONFIG_SYS_STM_NAND_USE_BIT_BANGING or CONFIG_SYS_STM_NAND_USE_HAMMING
 	 * should be defined, to select a single NAND driver.
 	 * If we are using FLEX-mode, we still need to #define the
 	 * address CONFIG_SYS_EMI_NAND_BASE, although the value is ignored!
 	 */
-//#	define CONFIG_SYS_ST40_NAND_USE_BIT_BANGING	/* use S/W "bit-banging" driver */
-#	define CONFIG_SYS_ST40_NAND_USE_HAMMING		/* use H/W Hamming ("flex") driver */
+//#	define CONFIG_SYS_STM_NAND_USE_BIT_BANGING	/* use S/W "bit-banging" driver */
+#	define CONFIG_SYS_STM_NAND_USE_HAMMING		/* use H/W Hamming ("flex") driver */
 
 	/*
 	 * Do we want to read/write NAND Flash compatible with the ST40's

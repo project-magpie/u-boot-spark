@@ -35,22 +35,22 @@
 #if (defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT)) || defined(CONFIG_USB_EHCI)
 extern int usb_cpu_init(void)
 {
-#if defined(CONFIG_ST40_STX5197)
+#if defined(CONFIG_STM_STX5197)
 	stx5197_usb_init();
-#elif defined(CONFIG_ST40_STX5206)
+#elif defined(CONFIG_STM_STX5206)
 	stx5206_usb_init();
-#elif defined(CONFIG_ST40_STX7105)
-#ifdef CONFIG_ST40_STX_STX7105_USB_PORT0
+#elif defined(CONFIG_STM_STX7105)
+#ifdef CONFIG_STM_STX7105_USB_PORT0
 	stx7105_usb_init(0,
-			 CONFIG_ST40_STX_STX7105_USB_OC,
-			 CONFIG_ST40_STX_STX7105_USB_PW);
+			 CONFIG_STM_STX7105_USB_OC,
+			 CONFIG_STM_STX7105_USB_PW);
 #endif
-#ifdef CONFIG_ST40_STX_STX7105_USB_PORT1
+#ifdef CONFIG_STM_STX7105_USB_PORT1
 	stx7105_usb_init(1,
-			 CONFIG_ST40_STX_STX7105_USB_OC,
-			 CONFIG_ST40_STX_STX7105_USB_PW);
+			 CONFIG_STM_STX7105_USB_OC,
+			 CONFIG_STM_STX7105_USB_PW);
 #endif
-#elif defined(CONFIG_ST40_STX7108)
+#elif defined(CONFIG_STM_STX7108)
 #if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB0_BASE		/* USB #0 */
 	stx7108_usb_init(0);
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE	/* USB #1 */
@@ -58,27 +58,27 @@ extern int usb_cpu_init(void)
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB2_BASE	/* USB #2 */
 	stx7108_usb_init(2);
 #endif
-#elif defined(CONFIG_ST40_STX7111)
+#elif defined(CONFIG_STM_STX7111)
 	stx7111_usb_init();
-#elif defined(CONFIG_ST40_STX7141)
+#elif defined(CONFIG_STM_STX7141)
 	stx7141_usb_init();
-#elif defined(CONFIG_ST40_STX7200)
+#elif defined(CONFIG_STM_STX7200)
 	stx7200_usb_init();
-#elif defined(CONFIG_ST40_FLI7510)
+#elif defined(CONFIG_STM_FLI7510)
 	fli7510_usb_init (fli7510_usb_ovrcur_active_low);
-#elif defined(CONFIG_ST40_FLI7540)
+#elif defined(CONFIG_STM_FLI7540)
 #if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB_A_BASE	/* USB #1 */
 	fli7540_usb_init (0, fli7540_usb_ovrcur_active_low);
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB_C_BASE	/* USB #2 */
 	fli7540_usb_init (1, fli7540_usb_ovrcur_active_low);
 #endif	/* CONFIG_SYS_USB_BASE ... */
-#elif defined(CONFIG_ST40_STXH205)
+#elif defined(CONFIG_STM_STXH205)
 #if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB0_BASE		/* USB #0 */
 	stxh205_usb_init(0);
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE	/* USB #1 */
 	stxh205_usb_init(1);
 #endif
-#elif defined(CONFIG_ST40_STXH415)
+#elif defined(CONFIG_STM_STXH415)
 #if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB0_BASE		/* USB #0 */
 	stxh415_usb_init(0);
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE	/* USB #1 */
@@ -86,7 +86,7 @@ extern int usb_cpu_init(void)
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB2_BASE	/* USB #2 */
 	stxh415_usb_init(2);
 #endif
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 #if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB0_BASE		/* USB #0 */
 	stxh416_usb_init(0);
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE	/* USB #1 */

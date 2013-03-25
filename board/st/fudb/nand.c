@@ -34,7 +34,7 @@
  * We use a "generic" STM function stm_default_board_nand_init() to do it.
  * However, we can easily override anything locally, if required.
  */
-#if defined(CONFIG_SYS_ST40_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
 #error It is not possible to use bit-banging with NAND on the Freeman Ultra Development Board.
 #else						/* else, use a H/W driver */
 extern int board_nand_init(struct nand_chip * const nand)
@@ -52,4 +52,4 @@ extern int board_nand_init(struct nand_chip * const nand)
 
 	return 0;
 }
-#endif /* CONFIG_SYS_ST40_NAND_USE_BIT_BANGING */
+#endif /* CONFIG_SYS_STM_NAND_USE_BIT_BANGING */

@@ -325,8 +325,8 @@ static unsigned int stmac_phy_get_addr (void)
 		id  = (id1 << 16) | (id2);
 
 #if	0							&& \
-	defined(CONFIG_ST40_STXH415)				&& \
-	defined(CONFIG_ST40_B2000)				&& \
+	defined(CONFIG_STM_STXH415)				&& \
+	defined(CONFIG_STM_B2000)				&& \
 	defined(CONFIG_STMAC_IP1001)				&& \
 	(CONFIG_SYS_STM_STMAC_BASE==CONFIG_SYS_STM_STMAC0_BASE)
 		/*
@@ -347,7 +347,7 @@ static unsigned int stmac_phy_get_addr (void)
 				id &= fixMask;		/* clear the two bits coming from bit #15 */
 			}
 		}
-#endif	/* CONFIG_ST40_STXH415 && CONFIG_ST40_B2000 && ... */
+#endif	/* CONFIG_STM_STXH415 && CONFIG_STM_B2000 && ... */
 
 		/* Make sure it is a valid (known) identifier */
 #if defined(CONFIG_STMAC_STE10XP)
@@ -535,11 +535,11 @@ static int stmac_phy_init (void)
 	 * delay of ~2ns should be added to Rx and Tx, to adjust the RX/TX clock phases.
 	 * QQQ: This code-hackery should really be in a board-specific file!
 	 */
-#if defined(CONFIG_STMAC_IP1001) && defined(CONFIG_ST40_B2020)
+#if defined(CONFIG_STMAC_IP1001) && defined(CONFIG_STM_B2020)
 	value = stmac_mii_read(eth_phy_addr, IP1001_SPEC_CTRL_STATUS);
 	value |= (IP1001_RXPHASE_SEL | IP1001_TXPHASE_SEL);
 	stmac_mii_write(eth_phy_addr, IP1001_SPEC_CTRL_STATUS, value);
-#endif	/* CONFIG_STMAC_IP1001 && CONFIG_ST40_B2020 */
+#endif	/* CONFIG_STMAC_IP1001 && CONFIG_STM_B2020 */
 
 #ifdef CONFIG_PHY_LOOPBACK
 
@@ -634,8 +634,8 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 	/* Return read value */
 	val = STMAC_READ (MAC_MII_DATA);
 
-#if	defined(CONFIG_ST40_STXH415)					&& \
-	defined(CONFIG_ST40_B2000)					&& \
+#if	defined(CONFIG_STM_STXH415)					&& \
+	defined(CONFIG_STM_B2000)					&& \
 	(defined(CONFIG_STMAC_IP1001)||defined(CONFIG_STMAC_IP101A))	&& \
 	(CONFIG_SYS_STM_STMAC_BASE==CONFIG_SYS_STM_STMAC0_BASE)
 		/*
@@ -663,7 +663,7 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 			phy_addr, reg);
 		val &= ~(1u<<15);		/* clear bit #15 */
 	}
-#endif	/* CONFIG_ST40_STXH415 && CONFIG_ST40_B2000 && ... */
+#endif	/* CONFIG_STM_STXH415 && CONFIG_STM_B2000 && ... */
 
 #if 0
 	printf("QQQ: %s(addr=%u, reg=%u) --> value=0x%04x)\n", __FUNCTION__, phy_addr, reg, val);

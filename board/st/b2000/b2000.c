@@ -43,21 +43,21 @@ void flashWriteDisable(void)
 }
 
 
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 #define PIOALT(port, pin, alt, dir)			\
 do							\
 {							\
 	stxh415_pioalt_select((port), (pin), (alt));	\
 	stxh415_pioalt_pad((port), (pin), (dir));	\
 } while(0)
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 #define PIOALT(port, pin, alt, dir)			\
 do							\
 {							\
 	stxh416_pioalt_select((port), (pin), (alt));	\
 	stxh416_pioalt_pad((port), (pin), (dir));	\
 } while(0)
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 
 
 /*
@@ -80,7 +80,7 @@ static void configPIO(void)
 {
 	/* Setup PIOs for ASC device */
 
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 #if CONFIG_SYS_STM_ASC_BASE == STXH415_ASC2_BASE
 
 	/* Route UART2 via PIO17 for TX, RX, CTS & RTS (Alternative #1) */
@@ -109,7 +109,7 @@ static void configPIO(void)
 #error Unknown ASC port selected!
 #endif	/* CONFIG_SYS_STM_ASC_BASE == STXH415_ASCx_REGS_BASE */
 
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 #if CONFIG_SYS_STM_ASC_BASE == STXH416_ASC2_BASE
 
 	/* Route UART2 via PIO17 for TX, RX, CTS & RTS (Alternative #1) */
@@ -137,7 +137,7 @@ static void configPIO(void)
 #else
 #error Unknown ASC port selected!
 #endif	/* CONFIG_SYS_STM_ASC_BASE == STXH416_ASCx_REGS_BASE */
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
@@ -185,9 +185,9 @@ extern int board_init(void)
 	configPIO();
 
 #if 0	/* QQQ - TO IMPLEMENT */
-#if defined(CONFIG_ST40_STM_SATA)
+#if defined(CONFIG_STM_SATA)
 	stx7105_configure_sata ();
-#endif	/* CONFIG_ST40_STM_SATA */
+#endif	/* CONFIG_STM_SATA */
 #endif	/* QQQ - TO IMPLEMENT */
 
 /*
@@ -213,57 +213,57 @@ extern int board_init(void)
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MII0, on CN22 */
 #	if defined(CONFIG_STMAC_IP1001)		/* IC+ IP1001 (B2032) */
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 	stxh415_configure_ethernet(0, &(struct stxh415_ethernet_config) {
 			.mode = stxh415_ethernet_mode_mii,
 			.ext_clk = 1,
 			.phy_bus = 0, });
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 	stxh416_configure_ethernet(0, &(struct stxh416_ethernet_config) {
 			.mode = stxh416_ethernet_mode_mii,
 			.ext_clk = 1,
 			.phy_bus = 0, });
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 #	elif defined(CONFIG_STMAC_IP101A)	/* IC+ IP101A (B2035) */
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 	stxh415_configure_ethernet(0, &(struct stxh415_ethernet_config) {
 			.mode = stxh415_ethernet_mode_rmii,
 			.ext_clk = 0,
 			.phy_bus = 0, });
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 	stxh416_configure_ethernet(0, &(struct stxh416_ethernet_config) {
 			.mode = stxh416_ethernet_mode_rmii,
 			.ext_clk = 0,
 			.phy_bus = 0, });
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 #	else
 #	error Unknown PHY type associated with STM GMAC #0
 #	endif	/* CONFIG_STMAC_IP1001 || CONFIG_STMAC_IP101A */
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1, on CN23 */
 #	if defined(CONFIG_STMAC_IP1001)		/* IC+ IP1001 (B2032) */
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 	stxh415_configure_ethernet(1, &(struct stxh415_ethernet_config) {
 			.mode = stxh415_ethernet_mode_mii,
 			.ext_clk = 1,
 			.phy_bus = 1, });
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 	stxh416_configure_ethernet(1, &(struct stxh416_ethernet_config) {
 			.mode = stxh416_ethernet_mode_mii,
 			.ext_clk = 1,
 			.phy_bus = 1, });
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 #	elif defined(CONFIG_STMAC_IP101A)	/* IC+ IP101A (B2035) */
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 	stxh415_configure_ethernet(1, &(struct stxh415_ethernet_config) {
 			.mode = stxh415_ethernet_mode_rmii,
 			.ext_clk = 0,
 			.phy_bus = 1, });
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 	stxh416_configure_ethernet(1, &(struct stxh416_ethernet_config) {
 			.mode = stxh416_ethernet_mode_rmii,
 			.ext_clk = 0,
 			.phy_bus = 1, });
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 #	else
 #	error Unknown PHY type associated with STM GMAC #1
 #	endif	/* CONFIG_STMAC_IP1001 || CONFIG_STMAC_IP101A */
@@ -275,11 +275,11 @@ extern int board_init(void)
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 #if defined(CONFIG_CMD_I2C)
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 	stxh415_configure_i2c();
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 	stxh416_configure_i2c();
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 #endif	/* CONFIG_CMD_I2C */
 
 	return 0;
@@ -289,9 +289,9 @@ extern int board_init(void)
 int checkboard (void)
 {
 	printf ("\n\nBoard: B2000"
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 		"-STxH415"
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 		"-STxH416"
 #endif
 #ifdef CONFIG_ST40_SE_MODE
@@ -308,11 +308,11 @@ int checkboard (void)
 	 * needs to be done after env_init(), hence it is done
 	 * here, and not in board_init().
 	 */
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 	stxh415_configure_spi();
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 	stxh416_configure_spi();
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 #endif	/* CONFIG_SPI */
 
 	return 0;

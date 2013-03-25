@@ -111,9 +111,9 @@ extern int board_init(void)
 	configPIO();
 
 #ifdef QQQ	/* QQQ - DELETE */
-#if defined(CONFIG_ST40_STM_SATA)
+#if defined(CONFIG_STM_SATA)
 	stx7105_configure_sata ();
-#endif	/* CONFIG_ST40_STM_SATA */
+#endif	/* CONFIG_STM_SATA */
 #endif		/* QQQ - DELETE */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC

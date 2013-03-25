@@ -26,7 +26,7 @@
 #include <malloc.h>
 #include <linux/ctype.h>
 
-#if defined(CONFIG_CMD_NAND) && defined(CONFIG_SYS_ST40_NAND_USE_BCH)
+#if defined(CONFIG_CMD_NAND) && defined(CONFIG_SYS_STM_NAND_USE_BCH)
 
 #include <nand.h>
 #include <asm/stm-nand.h>
@@ -1180,6 +1180,6 @@ extern void stm_bch_init_nand(
 
 }
 
-#endif	/* CONFIG_CMD_NAND && CONFIG_SYS_ST40_NAND_USE_BCH */
+#endif	/* CONFIG_CMD_NAND && CONFIG_SYS_STM_NAND_USE_BCH */
 
 

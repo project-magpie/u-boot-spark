@@ -40,11 +40,11 @@ __memory_setup_table:
 	 * The "GDB pokes" are presently always executed in a 29-bit context,
 	 * hence the need to disable 32-bit mode when running "romgen".
 	 */
-#if defined(CONFIG_ST40_STXH415)
+#if defined(CONFIG_STM_STXH415)
 #	include "b2020-stxh415.romgen"
-#elif defined(CONFIG_ST40_STXH416)
+#elif defined(CONFIG_STM_STXH416)
 #	include "b2020-stxh416.romgen"
-#endif	/* CONFIG_ST40_STXH415/CONFIG_ST40_STXH416 */
+#endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 
 	END_MARKER
 

@@ -41,13 +41,13 @@ extern void sh_cache_clear_op(unsigned long);
 
 extern void sh_flush_cache_all(void);
 
-#if defined(CONFIG_ST40_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
+#if defined(CONFIG_STM_USB) && defined(CONFIG_USB_OHCI_NEW)
 extern void sh_disable_data_caches(void);
 extern void sh_enable_data_caches(void);
 
 /* following stores if the data caches currently on */
 extern int sh_data_caches_on;
-#endif	/* CONFIG_ST40_STM_USB && CONFIG_USB_OHCI_NEW */
+#endif	/* CONFIG_STM_USB && CONFIG_USB_OHCI_NEW */
 
 #endif	/* __ASSEMBLER__ */
 

@@ -31,11 +31,11 @@
 
 
 #define TX_ER_FXSD		0, 4	/* PIO0[4] == TX_ER_FXSD (or MII_TXER or ISOL) */
-#if defined(CONFIG_ST40_B2075)		/* B2075 ? */
+#if defined(CONFIG_STM_B2075)		/* B2075 ? */
 #define POWER_ON_ETH		3, 3	/* PIO3[3] == POWER_ON_ETH (a.k.a. ETH_RESET) */
 #else
 #define POWER_ON_ETH		2, 5	/* PIO2[5] == POWER_ON_ETH (a.k.a. ETH_RESET) */
-#endif	/* CONFIG_ST40_B2075 */
+#endif	/* CONFIG_STM_B2075 */
 #define FLASH_notWP		6, 2	/* PIO6[2] == FLASH_WP# (or FLASH_notWP) */
 
 
@@ -176,17 +176,17 @@ extern int board_init(void)
 int checkboard (void)
 {
 	printf ("\n\nBoard: "
-#if defined(CONFIG_ST40_B2057)			/* B2057 ? */
+#if defined(CONFIG_STM_B2057)			/* B2057 ? */
 		"STiH207-HDK (B2057)"
-#elif defined(CONFIG_ST40_B2064)		/* B2064 ? */
+#elif defined(CONFIG_STM_B2064)		/* B2064 ? */
 		"STiH239-HDK (B2064)"
-#elif defined(CONFIG_ST40_B2067)		/* B2067 ? */
+#elif defined(CONFIG_STM_B2067)		/* B2067 ? */
 		"STiH238-HDK (B2067)"
-#elif defined(CONFIG_ST40_B2075)		/* B2075 ? */
+#elif defined(CONFIG_STM_B2075)		/* B2075 ? */
 		"STiH205-HDK (B2075)"
 #else
 #	error Unknown BOARD Variant for B2057!
-#endif	/* CONFIG_ST40_B2057 */
+#endif	/* CONFIG_STM_B2057 */
 #ifdef CONFIG_ST40_SE_MODE
 		"  [32-bit mode]"
 #else
