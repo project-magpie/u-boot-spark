@@ -24,9 +24,6 @@
 #ifndef ST40_LMIGP_VERSION
 #define ST40_LMIGP_VERSION 1
 #endif
-#ifndef ST40_NAND_CONTROLLER_VERSION
-#define ST40_NAND_CONTROLLER_VERSION 1
-#endif
 
 /*----------------------------------------------------------------------------*/
 
@@ -43,47 +40,9 @@
 #ifndef ST40_CPG_REGS_BASE
 #define ST40_CPG_REGS_BASE 0xffc00000
 #endif
-#ifndef ST40_INTC_REGS_BASE
-#define ST40_INTC_REGS_BASE 0xffd00000
-#endif
 
 #ifndef STX7141_COMMS_BASE
 #define STX7141_COMMS_BASE 0xfd000000
-#endif
-
-/* This is the COMMS ILC */
-#ifndef ST40_ILC_REGS_BASE
-#define ST40_ILC_REGS_BASE STX7141_COMMS_BASE
-#endif
-
-/*
- * The STx7141 has two further ILC3's which we access in a similar way, but
- * specify the ILC index first.
- */
-#define STX7141_ILC_INPUT_INTERRUPT(n, m)	SH4_DWORD_REG(STX7141_ILC##n##_REGS_BASE + (0x0080 + ((m) * 4)))
-#define STX7141_ILC_STATUS(n, m)		SH4_DWORD_REG(STX7141_ILC##n##_REGS_BASE + (0x0200 + ((m) * 4)))
-#define STX7141_ILC_CLEAR_STATUS(n, m)		SH4_DWORD_REG(STX7141_ILC##n##_REGS_BASE + (0x0280 + ((m) * 4)))
-#define STX7141_ILC_ENABLE(n, m)		SH4_DWORD_REG(STX7141_ILC##n##_REGS_BASE + (0x0400 + ((m) * 4)))
-#define STX7141_ILC_CLEAR_ENABLE(n, m)		SH4_DWORD_REG(STX7141_ILC##n##_REGS_BASE + (0x0480 + ((m) * 4)))
-#define STX7141_ILC_SET_ENABLE(n, m)		SH4_DWORD_REG(STX7141_ILC##n##_REGS_BASE + (0x0500 + ((m) * 4)))
-#define STX7141_ILC_WAKEUP_ENABLE(n, m)		SH4_DWORD_REG(STX7141_ILC##n##_REGS_BASE + (0x0600 + ((m) * 4)))
-#define STX7141_ILC_WAKEUP_ACTIVE_LEVEL(n, m)	SH4_DWORD_REG(STX7141_ILC##n##_REGS_BASE + (0x0680 + ((m) * 4)))
-
-/* eSTB ST40 ILC */
-#ifndef STX7141_ILC0_REGS_BASE
-#define STX7141_ILC0_REGS_BASE 0xfd120000
-#endif
-
-/* eCM ST40 ILC */
-#ifndef STX7141_ILC1_REGS_BASE
-#define STX7141_ILC1_REGS_BASE 0xfd122000
-#endif
-
-#ifdef __STX7141_ECM__
-/* The eCM has an INTC2 */
-#ifndef ST40_INTC2_REGS_BASE
-#define ST40_INTC2_REGS_BASE 0xfd124000
-#endif
 #endif
 
 /* STx7141 control registers */
@@ -201,18 +160,6 @@
 #endif
 #ifndef ST40_SSC6_REGS_BASE
 #define ST40_SSC6_REGS_BASE (STX7141_COMMS_BASE + 0x00046000)
-#endif
-#ifndef ST40_MAILBOX0_REGS_BASE
-#define ST40_MAILBOX0_REGS_BASE 0xfe211000
-#endif
-#ifndef ST40_MAILBOX1_REGS_BASE
-#define ST40_MAILBOX1_REGS_BASE (ST40_MAILBOX0_REGS_BASE + 0x1000)
-#endif
-#ifndef ST40_MAILBOX2_REGS_BASE
-#define ST40_MAILBOX2_REGS_BASE (ST40_MAILBOX0_REGS_BASE + 0x0800)
-#endif
-#ifndef ST40_MAILBOX3_REGS_BASE
-#define ST40_MAILBOX3_REGS_BASE (ST40_MAILBOX0_REGS_BASE + 0x1800)
 #endif
 
 /*----------------------------------------------------------------------------*/

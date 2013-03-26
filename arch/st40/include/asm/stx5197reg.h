@@ -24,9 +24,6 @@
 #ifndef ST40_LMI_VERSION
 #define ST40_LMI_VERSION 4
 #endif
-#ifndef ST40_NAND_CONTROLLER_VERSION
-#define ST40_NAND_CONTROLLER_VERSION 2
-#endif
 
 /*----------------------------------------------------------------------------*/
 
@@ -43,17 +40,11 @@
 #ifndef ST40_CPG_REGS_BASE
 #define ST40_CPG_REGS_BASE 0xffc00000
 #endif
-#ifndef ST40_INTC_REGS_BASE
-#define ST40_INTC_REGS_BASE 0xffd00000
-#endif
 
 #ifndef STX5197_COMMS_BASE
 #define STX5197_COMMS_BASE 0xfd100000
 #endif
 
-#ifndef ST40_ILC_REGS_BASE
-#define ST40_ILC_REGS_BASE STX5197_COMMS_BASE
-#endif
 
 /* STi5197 control registers */
 #ifndef STX5197_SYSSERV_REGS_BASE

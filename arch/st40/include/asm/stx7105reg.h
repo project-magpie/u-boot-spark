@@ -24,9 +24,6 @@
 #ifndef ST40_LMIGP_VERSION
 #define ST40_LMIGP_VERSION 1
 #endif
-#ifndef ST40_NAND_CONTROLLER_VERSION
-#define ST40_NAND_CONTROLLER_VERSION 1
-#endif
 
 /*----------------------------------------------------------------------------*/
 
@@ -43,17 +40,11 @@
 #ifndef ST40_CPG_REGS_BASE
 #define ST40_CPG_REGS_BASE 0xffc00000
 #endif
-#ifndef ST40_INTC_REGS_BASE
-#define ST40_INTC_REGS_BASE 0xffd00000
-#endif
 
 #ifndef STX7105_COMMS_BASE
 #define STX7105_COMMS_BASE 0xfd000000
 #endif
 
-#ifndef ST40_ILC_REGS_BASE
-#define ST40_ILC_REGS_BASE STX7105_COMMS_BASE
-#endif
 
 /* STx7105 control registers */
 #ifndef STX7105_SYSCONF_REGS_BASE
@@ -121,12 +112,6 @@
 #endif
 #ifndef ST40_SSC3_REGS_BASE
 #define ST40_SSC3_REGS_BASE (STX7105_COMMS_BASE + 0x00043000)
-#endif
-#ifndef ST40_MAILBOX0_REGS_BASE
-#define ST40_MAILBOX0_REGS_BASE 0xfe211000
-#endif
-#ifndef ST40_MAILBOX1_REGS_BASE
-#define ST40_MAILBOX1_REGS_BASE (ST40_MAILBOX0_REGS_BASE + 0x1000)
 #endif
 
 #ifndef ST40_PIO7_REGS_BASE

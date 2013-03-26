@@ -43,13 +43,7 @@
 #ifndef ST40_CPG_REGS_BASE
 #define ST40_CPG_REGS_BASE 0xffc00000
 #endif
-#ifndef ST40_INTC_REGS_BASE
-#define ST40_INTC_REGS_BASE 0xffd00000
-#endif
 
-#ifndef ST40_ILC_REGS_BASE
-#define ST40_ILC_REGS_BASE 0xfd804000
-#endif
 
 /* STx7200 control registers */
 #ifndef STX7200_SYSCONF_REGS_BASE
@@ -171,18 +165,6 @@
 #endif
 #ifndef ST40_SSC4_REGS_BASE
 #define ST40_SSC4_REGS_BASE (STX7200_COMMS_BASE + 0x00044000)
-#endif
-#ifndef ST40_MAILBOX0_REGS_BASE
-#define ST40_MAILBOX0_REGS_BASE 0xfd800000
-#endif
-#ifndef ST40_MAILBOX1_REGS_BASE
-#define ST40_MAILBOX1_REGS_BASE (ST40_MAILBOX0_REGS_BASE + 0x1000)
-#endif
-#ifndef ST40_MAILBOX2_REGS_BASE
-#define ST40_MAILBOX2_REGS_BASE (ST40_MAILBOX0_REGS_BASE + 0x2000)
-#endif
-#ifndef ST40_MAILBOX3_REGS_BASE
-#define ST40_MAILBOX3_REGS_BASE (ST40_MAILBOX0_REGS_BASE + 0x3000)
 #endif
 
 /*----------------------------------------------------------------------------*/

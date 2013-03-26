@@ -24,9 +24,6 @@
 #ifndef ST40_LMIGP_VERSION
 #define ST40_LMIGP_VERSION 1
 #endif
-#ifndef ST40_NAND_CONTROLLER_VERSION
-#define ST40_NAND_CONTROLLER_VERSION 1
-#endif
 
 /*----------------------------------------------------------------------------*/
 
@@ -43,17 +40,11 @@
 #ifndef ST40_CPG_REGS_BASE
 #define ST40_CPG_REGS_BASE 0xffc00000
 #endif
-#ifndef ST40_INTC_REGS_BASE
-#define ST40_INTC_REGS_BASE 0xffd00000
-#endif
 
 #ifndef STX5206_COMMS_BASE
 #define STX5206_COMMS_BASE 0xfd000000
 #endif
 
-#ifndef ST40_ILC_REGS_BASE
-#define ST40_ILC_REGS_BASE STX5206_COMMS_BASE
-#endif
 
 /* STx5206 control registers */
 #ifndef STX5206_SYSCONF_REGS_BASE
