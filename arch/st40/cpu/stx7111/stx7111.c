@@ -37,7 +37,7 @@
 DECLARE_GLOBAL_DATA_PTR;
 
 
-#define PIO_BASE  ST40_PIO0_REGS_BASE
+#define PIO_BASE  STM_PIO0_REGS_BASE
 
 static void stx7111_clocks(void)
 {

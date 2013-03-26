@@ -48,7 +48,7 @@
 
 #define STPIO_NO_PIN		0xff	/* No pin specified */
 
-#define PIO_PORT(n)		( ST40_PIO ## n ## _REGS_BASE )
+#define PIO_PORT(n)		( STM_PIO ## n ## _REGS_BASE )
 
 #define PIN_CX(PIN, DIR, X)	(((PIN)==STPIO_NO_PIN) ? 0 : (((DIR) & (X))!=0) << (PIN))
 #define PIN_C0(PIN, DIR)	PIN_CX((PIN), (DIR), 0x01)
@@ -93,9 +93,9 @@ do {								\
 #define STPIO_SET_PIN2(PAIR, V)		STPIO_SET_PIN3(PAIR, (V))
 #define STPIO_GET_PIN2(PAIR)		STPIO_GET_PIN3(PAIR)
 	/* also, we need a set to map 'PIO' -> 'PIO_ADDR' */
-#define SET_PIO_PIN3(PIO, PIN, DIR)	SET_PIO_PIN(ST40_PIO_BASE(PIO), (PIN), (DIR))
-#define STPIO_SET_PIN3(PIO, PIN, V)	STPIO_SET_PIN(ST40_PIO_BASE(PIO), (PIN), (V))
-#define STPIO_GET_PIN3(PIO, PIN)	STPIO_GET_PIN(ST40_PIO_BASE(PIO), (PIN))
+#define SET_PIO_PIN3(PIO, PIN, DIR)	SET_PIO_PIN(STM_PIO_BASE(PIO), (PIN), (DIR))
+#define STPIO_SET_PIN3(PIO, PIN, V)	STPIO_SET_PIN(STM_PIO_BASE(PIO), (PIN), (V))
+#define STPIO_GET_PIN3(PIO, PIN)	STPIO_GET_PIN(STM_PIO_BASE(PIO), (PIN))
 
 #define SET_PIO_ASC_OUTDIR(PIO_ADDR, TX, RX, CTS, RTS, OUTDIR)	\
 do {								\

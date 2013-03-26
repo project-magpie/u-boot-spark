@@ -250,7 +250,7 @@
 #undef  CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
 
 #if defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
-#	define CONFIG_SYS_STM_SPI_SSC_BASE	ST40_SSC0_REGS_BASE	/* SPI is on SSC #0 */
+#	define CONFIG_SYS_STM_SPI_SSC_BASE	STM_SSC0_REGS_BASE	/* SPI is on SSC #0 */
 #endif	/* defined(CONFIG_STM_SSC_SPI) */
 
 /*

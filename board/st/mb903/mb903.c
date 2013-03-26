@@ -54,7 +54,7 @@ static void configPIO(void)
 {
 	/* Setup PIOs for ASC device */
 
-#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC3_REGS_BASE
+#if CONFIG_SYS_STM_ASC_BASE == STM_ASC3_REGS_BASE
 
 	/*
 	 * Route UART3 via PIO24/25 for TX, RX, RTS & CTS (Alternative #1).
@@ -69,7 +69,7 @@ static void configPIO(void)
 
 #else
 #error Unknown ASC port selected!
-#endif	/* CONFIG_SYS_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASCx_REGS_BASE */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
@@ -77,7 +77,7 @@ static void configPIO(void)
 	 *	PIO20[0] == GMII0_notRESET
 	 *	PIO15[4] == GMII1_notRESET
 	 */
-	SET_PIO_PIN(ST40_PIO_BASE(15), 4, STPIO_OUT);
+	SET_PIO_PIN(STM_PIO_BASE(15), 4, STPIO_OUT);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 }
 
@@ -89,9 +89,9 @@ extern void stmac_phy_reset(void)
 	 *	PIO20[0] == GMII0_notRESET
 	 *	PIO15[4] == GMII1_notRESET
 	 */
-	STPIO_SET_PIN(ST40_PIO_BASE(15), 4, 0);
+	STPIO_SET_PIN(STM_PIO_BASE(15), 4, 0);
 	udelay(10000);				/* 10 ms */
-	STPIO_SET_PIN(ST40_PIO_BASE(15), 4, 1);
+	STPIO_SET_PIN(STM_PIO_BASE(15), 4, 1);
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
@@ -105,9 +105,9 @@ extern int board_init(void)
 		 * set CSA (Bank #0) to be 64MiB (0x00000000 to 0x03ffffff)
 		 * set CSB (Bank #1) to be 64MiB (0x04000000 to 0x07ffffff)
 		 */
-	*ST40_EMI_BASEADDRESS(0) =       (0) >> 22;	/* start of EMI Bank #0 */
-	*ST40_EMI_BASEADDRESS(1) = ( 64<<20) >> 22;	/* start of EMI Bank #1 */
-	*ST40_EMI_BASEADDRESS(2) = (128<<20) >> 22;	/* start of EMI Bank #2 */
+	*STM_EMI_BASEADDRESS(0) =       (0) >> 22;	/* start of EMI Bank #0 */
+	*STM_EMI_BASEADDRESS(1) = ( 64<<20) >> 22;	/* start of EMI Bank #1 */
+	*STM_EMI_BASEADDRESS(2) = (128<<20) >> 22;	/* start of EMI Bank #2 */
 
 #ifdef QQQ	/* QQQ - DELETE */
 #if defined(CONFIG_STM_SATA)

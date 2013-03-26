@@ -37,16 +37,16 @@
 #endif
 
 /* System Architecture Volume 2: Bus Interfaces */
-#ifndef ST40_EMI_REGS_BASE
-#define ST40_EMI_REGS_BASE			0xfe900000
+#ifndef STM_EMI_REGS_BASE
+#define STM_EMI_REGS_BASE			0xfe900000
 #endif
 
-#ifndef ST40_EMI_SIZE				/* total addressable size of EMI */
-#define ST40_EMI_SIZE				(256 << 20)	/* 256 MiB */
+#ifndef STM_EMI_SIZE				/* total addressable size of EMI */
+#define STM_EMI_SIZE				(256 << 20)	/* 256 MiB */
 #endif
 
 /* EMISS (aka EMIPCISS) Register Configuration Space */
-#define ST40_EMISS_REGS_BASE			0xfef00000
+#define STM_EMISS_REGS_BASE			0xfef00000
 
 /* Low-Power Block */
 #define STXH415_SBC_LPM_BASE			0xfe400000
@@ -136,7 +136,7 @@
 #ifndef STXH415_PIO_MPE_LEFT_BASE
 #define STXH415_PIO_MPE_LEFT_BASE		0xfd330000 /* 103-107 */
 #endif
-#define ST40_PIO_BASE(x)						\
+#define STM_PIO_BASE(x)						\
 	(								\
 		((x) < 5)						\
 		? (STXH415_PIO_SAS_SBC_BASE +(0x1000*((x)-0)))		\

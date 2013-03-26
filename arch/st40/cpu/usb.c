@@ -121,7 +121,7 @@ extern int usb_cpu_init_fail(void)
 
 
 #if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
-extern int ST40_start_host_control(unsigned int flags)
+extern int STM_start_host_control(unsigned int flags)
 {
 	static int initialized = 0;
 	unsigned long reg, req_reg;

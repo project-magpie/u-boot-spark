@@ -198,9 +198,9 @@
 
 /* choose which ST ASC UART to use */
 #if 1
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC2_REGS_BASE	/* UART2 = COM0 */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC2_REGS_BASE	/* UART2 = COM0 */
 #else
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC3_REGS_BASE	/* UART3 = COM1 */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC3_REGS_BASE	/* UART3 = COM1 */
 #endif
 
 /*---------------------------------------------------------------

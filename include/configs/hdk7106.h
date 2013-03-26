@@ -170,10 +170,10 @@
 /* choose which ST ASC UART to use */
 #if 1
 	/* 9-pin D-type connector on STi7105-SDK-SB daughter board */
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC2_REGS_BASE	/* UART #2 */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC2_REGS_BASE	/* UART #2 */
 #else
 	/* JN5, 6-way connector - QQQ NOT TESTED */
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC3_REGS_BASE	/* UART #3 */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC3_REGS_BASE	/* UART #3 */
 #endif
 
 /*---------------------------------------------------------------
@@ -427,7 +427,7 @@
 #	define SPI_DELAY	do { udelay(1); } while (0)	/* QQQ: only 500 kHz ??? */
 #	define SPI_READ		stx7105_spi_read()
 #elif defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
-#	define CONFIG_SYS_STM_SPI_SSC_BASE	ST40_SSC1_REGS_BASE	/* SSC #1 */
+#	define CONFIG_SYS_STM_SPI_SSC_BASE	STM_SSC1_REGS_BASE	/* SSC #1 */
 #	define CONFIG_SYS_STM_SPI_FREQUENCY	(5*1000*1000)		/* 5 MHz */
 #endif	/* CONFIG_SOFT_SPI */
 

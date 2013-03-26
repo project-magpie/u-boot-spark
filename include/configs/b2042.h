@@ -437,7 +437,7 @@
 #	define SPI_DELAY	do { udelay(1); } while (0)	/* QQQ: only 500 kHz ??? */
 #	define SPI_READ		stx7141_spi_read()
 #elif defined(CONFIG_STM_SSC_SPI)			/* Use the H/W SSC for SPI */
-#	define CONFIG_SYS_STM_SPI_SSC_BASE	ST40_SSC0_REGS_BASE	/* SSC #0 */
+#	define CONFIG_SYS_STM_SPI_SSC_BASE	STM_SSC0_REGS_BASE	/* SSC #0 */
 #	define CONFIG_SYS_STM_SPI_FREQUENCY	(5*1000*1000)		/* 5 MHz */
 #endif	/* CONFIG_SOFT_SPI */
 

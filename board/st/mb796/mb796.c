@@ -151,7 +151,7 @@ static void configPIO(void)
 	sysconf |= 1ul << 13;
 	*STX5206_SYSCONF_SYS_CFG10 = sysconf;
 
-#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC2_REGS_BASE	/* UART2 = AS0 */
+#if CONFIG_SYS_STM_ASC_BASE == STM_ASC2_REGS_BASE	/* UART2 = AS0 */
 
 	/* Setup PIO of ASC device */
 	SET_PIO_ASC(PIO_PORT(1), 2, 1, 4, 3);  /* UART2 - AS0 */
@@ -166,7 +166,7 @@ static void configPIO(void)
 	sysconf |=  (0x0000ul<<1);	/* 0,0,0,0 */
 	*STX5206_SYSCONF_SYS_CFG16 = sysconf;
 
-#elif CONFIG_SYS_STM_ASC_BASE == ST40_ASC3_REGS_BASE	/* UART3 = AS1 */
+#elif CONFIG_SYS_STM_ASC_BASE == STM_ASC3_REGS_BASE	/* UART3 = AS1 */
 
 	/* Setup PIO of ASC device */
 	SET_PIO_ASC(PIO_PORT(2), 4, 3, 5, 6);  /* UART3 - AS1 */

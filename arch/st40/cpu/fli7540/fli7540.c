@@ -257,7 +257,7 @@ extern void fli7540_configure_ethernet(
 	/* set all the PIOs correctly */
 	for (i = 0; i < pins_num; i++)
 	{
-		SET_PIO_PIN(ST40_PIO_BASE(pins[i].port), pins[i].pin, pins[i].dir);
+		SET_PIO_PIN(STM_PIO_BASE(pins[i].port), pins[i].pin, pins[i].dir);
 	}
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
@@ -292,11 +292,11 @@ extern void fli7540_usb_init(
 		ovrcur = 13;
 		polarity = 11;
 #if defined(CONFIG_STM_FLI7510)
-		SET_PIO_PIN(ST40_PIO_BASE(27), 1, STPIO_IN);		/* USB_A_OVRCUR */
-		SET_PIO_PIN(ST40_PIO_BASE(27), 2, STPIO_ALT_OUT);	/* USB_A_PWREN */
+		SET_PIO_PIN(STM_PIO_BASE(27), 1, STPIO_IN);		/* USB_A_OVRCUR */
+		SET_PIO_PIN(STM_PIO_BASE(27), 2, STPIO_ALT_OUT);	/* USB_A_PWREN */
 #else
-		SET_PIO_PIN(ST40_PIO_BASE(26), 3, STPIO_IN);		/* USB_A_OVRCUR */
-		SET_PIO_PIN(ST40_PIO_BASE(26), 4, STPIO_ALT_OUT);	/* USB_A_PWREN */
+		SET_PIO_PIN(STM_PIO_BASE(26), 3, STPIO_IN);		/* USB_A_OVRCUR */
+		SET_PIO_PIN(STM_PIO_BASE(26), 4, STPIO_ALT_OUT);	/* USB_A_PWREN */
 #endif	/* CONFIG_STM_FLI7510 */
 
 		break;
@@ -306,8 +306,8 @@ extern void fli7540_usb_init(
 		override = 15;
 		ovrcur = 16;
 		polarity = 14;
-		SET_PIO_PIN(ST40_PIO_BASE(26), 5, STPIO_IN);		/* USB_C_OVRCUR */
-		SET_PIO_PIN(ST40_PIO_BASE(26), 6, STPIO_ALT_OUT);	/* USB_C_PWREN */
+		SET_PIO_PIN(STM_PIO_BASE(26), 5, STPIO_IN);		/* USB_C_OVRCUR */
+		SET_PIO_PIN(STM_PIO_BASE(26), 6, STPIO_ALT_OUT);	/* USB_C_PWREN */
 		break;
 	default:
 		BUG();
@@ -361,7 +361,7 @@ switch (ovrcur_mode) {
 	}
 
 	/* start the USB Wrapper Host Controller */
-	ST40_start_host_control(
+	STM_start_host_control(
 		USB_FLAGS_STRAP_8BIT		|
 		USB_FLAGS_STRAP_PLL		|
 		USB_FLAGS_STBUS_CONFIG_THRESHOLD128);

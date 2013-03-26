@@ -357,7 +357,7 @@ extern void stx7141_configure_ethernet(
 				    pins[i].pio[port].pin,
 				    pins[i].pio[port].alt);
 		SET_PIO_PIN(
-			ST40_PIO_BASE(pins[i].pio[port].port),
+			STM_PIO_BASE(pins[i].pio[port].port),
 			pins[i].pio[port].pin,
 			pins[i].dir);
 	}
@@ -461,7 +461,7 @@ extern void stx7141_usb_init(void)
 	STPIO_SET_PIN(PIO_PORT(5), 1, 1);
 
        /* start the USB Wrapper Host Controller */
-       ST40_start_host_control(
+       STM_start_host_control(
                 USB_FLAGS_STRAP_16BIT |
                 USB_FLAGS_STRAP_PLL |
                 USB_FLAGS_STBUS_CONFIG_THRESHOLD256 |

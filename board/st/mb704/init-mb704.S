@@ -51,8 +51,8 @@ __memory_setup_table:
 	 * Change LMI upper bound addresses
 	 * Upper LMI addr = 0x40000000 + 64MiB = 0x44000000
 	 */
-	UPDATE32(ST40_LMI_SDRA0_0(), 0x001fffff, 0x44000000)
-	UPDATE32(ST40_LMI_SDRA1_0(), 0x001fffff, 0x44000000)
+	UPDATE32(STM_LMI_SDRA0_0(), 0x001fffff, 0x44000000)
+	UPDATE32(STM_LMI_SDRA1_0(), 0x001fffff, 0x44000000)
 #endif	/* CONFIG_ST40_SE_MODE */
 
 	END_MARKER

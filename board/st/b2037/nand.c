@@ -91,7 +91,7 @@ static void b2037_cmd_ctrl (
 static int b2037_device_ready(struct mtd_info *mtd)
 {
 	/* extract bit 1: status of RBn pin on boot bank */
-	return ((*ST40_EMI_NAND_HAM_RBN_STA) & (1ul<<1)) ? 1 : 0;
+	return ((*STM_EMI_NAND_HAM_RBN_STA) & (1ul<<1)) ? 1 : 0;
 }
 #endif /* CONFIG_SYS_STM_NAND_USE_BIT_BANGING */
 

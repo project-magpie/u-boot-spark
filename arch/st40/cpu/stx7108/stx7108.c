@@ -925,7 +925,7 @@ extern int stx7108_usb_init(const int port)
 
 	/* start the USB Wrapper Host Controller */
 	flags = USB_FLAGS_STRAP_8BIT | USB_FLAGS_STBUS_CONFIG_THRESHOLD128;
-	ST40_start_host_control(flags);
+	STM_start_host_control(flags);
 
 	return 0;
 }
@@ -1037,8 +1037,8 @@ extern void stx7108_configure_i2c(void)
 
 	if (CONFIG_I2C_BUS >= ARRAY_SIZE(ssc_pios)) BUG();
 
-	SET_PIO_PIN(ST40_PIO_BASE(scl_port), scl_pin, STPIO_BIDIR);	/* I2C_SCL */
-	SET_PIO_PIN(ST40_PIO_BASE(sda_port), sda_pin, STPIO_BIDIR);	/* I2C_SDA */
+	SET_PIO_PIN(STM_PIO_BASE(scl_port), scl_pin, STPIO_BIDIR);	/* I2C_SCL */
+	SET_PIO_PIN(STM_PIO_BASE(sda_port), sda_pin, STPIO_BIDIR);	/* I2C_SDA */
 }
 
 extern void stx7108_i2c_scl(const int val)
@@ -1046,7 +1046,7 @@ extern void stx7108_i2c_scl(const int val)
 	/* SSC's SCLK == I2C's SCL */
 	const int port = ssc_pios[CONFIG_I2C_BUS].pio[0].port;
 	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[0].pin;
-	STPIO_SET_PIN(ST40_PIO_BASE(port), pin, (val) ? 1 : 0);
+	STPIO_SET_PIN(STM_PIO_BASE(port), pin, (val) ? 1 : 0);
 }
 
 extern void stx7108_i2c_sda(const int val)
@@ -1054,7 +1054,7 @@ extern void stx7108_i2c_sda(const int val)
 	/* SSC's MTSR == I2C's SDA */
 	const int port = ssc_pios[CONFIG_I2C_BUS].pio[1].port;
 	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
-	STPIO_SET_PIN(ST40_PIO_BASE(port), pin, (val) ? 1 : 0);
+	STPIO_SET_PIN(STM_PIO_BASE(port), pin, (val) ? 1 : 0);
 }
 
 extern int stx7108_i2c_read(void)
@@ -1062,7 +1062,7 @@ extern int stx7108_i2c_read(void)
 	/* SSC's MTSR == I2C's SDA */
 	const int port = ssc_pios[CONFIG_I2C_BUS].pio[1].port;
 	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
-	return STPIO_GET_PIN(ST40_PIO_BASE(port), pin);
+	return STPIO_GET_PIN(STM_PIO_BASE(port), pin);
 }
 #endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C) */
 
@@ -1095,33 +1095,33 @@ extern void stx7108_configure_spi(void)
 	stx7108_pioalt_select(1, 6, 0);			/* SPI_CLK */
 
 	/* set PIO directionality */
-	SET_PIO_PIN(ST40_PIO_BASE(2), 1, STPIO_IN);	/* SPI_MISO */
-	SET_PIO_PIN(ST40_PIO_BASE(2), 0, STPIO_OUT);	/* SPI_MOSI */
-	SET_PIO_PIN(ST40_PIO_BASE(1), 7, STPIO_OUT);	/* SPI_notCS */
-	SET_PIO_PIN(ST40_PIO_BASE(1), 6, STPIO_OUT);	/* SPI_CLK */
+	SET_PIO_PIN(STM_PIO_BASE(2), 1, STPIO_IN);	/* SPI_MISO */
+	SET_PIO_PIN(STM_PIO_BASE(2), 0, STPIO_OUT);	/* SPI_MOSI */
+	SET_PIO_PIN(STM_PIO_BASE(1), 7, STPIO_OUT);	/* SPI_notCS */
+	SET_PIO_PIN(STM_PIO_BASE(1), 6, STPIO_OUT);	/* SPI_CLK */
 
 	/* drive outputs with sensible initial values */
-	STPIO_SET_PIN(ST40_PIO_BASE(2), 0, 0);		/* deassert SPI_MOSI */
-	STPIO_SET_PIN(ST40_PIO_BASE(1), 7, 1);		/* deassert SPI_notCS */
-	STPIO_SET_PIN(ST40_PIO_BASE(1), 6, 1);		/* assert SPI_CLK */
+	STPIO_SET_PIN(STM_PIO_BASE(2), 0, 0);		/* deassert SPI_MOSI */
+	STPIO_SET_PIN(STM_PIO_BASE(1), 7, 1);		/* deassert SPI_notCS */
+	STPIO_SET_PIN(STM_PIO_BASE(1), 6, 1);		/* assert SPI_CLK */
 }
 
 extern void stx7108_spi_scl(const int val)
 {
 	const int pin = 6;	/* PIO1[6] = SPI_CLK */
-	STPIO_SET_PIN(ST40_PIO_BASE(1), pin, val ? 1 : 0);
+	STPIO_SET_PIN(STM_PIO_BASE(1), pin, val ? 1 : 0);
 }
 
 extern void stx7108_spi_sda(const int val)
 {
 	const int pin = 0;	/* PIO2[0] = SPI_MOSI */
-	STPIO_SET_PIN(ST40_PIO_BASE(2), pin, val ? 1 : 0);
+	STPIO_SET_PIN(STM_PIO_BASE(2), pin, val ? 1 : 0);
 }
 
 extern unsigned char stx7108_spi_read(void)
 {
 	const int pin = 1;	/* PIO2[1] = SPI_MISO */
-	return STPIO_GET_PIN(ST40_PIO_BASE(2), pin);
+	return STPIO_GET_PIN(STM_PIO_BASE(2), pin);
 }
 
 #if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
@@ -1140,7 +1140,7 @@ extern void spi_cs_activate(struct spi_slave * const slave)
 	const int pin = 7;	/* PIO1[7] = SPI_NOTCS */
 
 	/* assert SPI CSn */
-	STPIO_SET_PIN(ST40_PIO_BASE(1), pin, 0);
+	STPIO_SET_PIN(STM_PIO_BASE(1), pin, 0);
 
 	/* wait 1us for CSn assert to propagate  */
 	udelay(1);
@@ -1150,7 +1150,7 @@ extern void spi_cs_deactivate(struct spi_slave * const slave)
 	const int pin = 7;	/* PIO1[7] = SPI_NOTCS */
 
 	/* DE-assert SPI CSn */
-	STPIO_SET_PIN(ST40_PIO_BASE(1), pin, 1);
+	STPIO_SET_PIN(STM_PIO_BASE(1), pin, 1);
 }
 #endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 

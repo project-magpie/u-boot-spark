@@ -173,9 +173,9 @@
 
 /* choose which ST ASC UART to use (on MB705 Peripheral Board) */
 #if 1
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC2_REGS_BASE	/* COM0 lower connector */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC2_REGS_BASE	/* COM0 lower connector */
 #else
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC3_REGS_BASE	/* COM1 upper connector */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC3_REGS_BASE	/* COM1 upper connector */
 #endif
 
 /*---------------------------------------------------------------

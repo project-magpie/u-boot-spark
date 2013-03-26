@@ -131,7 +131,7 @@ static struct spi_slave * MyDefaultSlave = NULL;	/* QQQ - TO DO SOMETHING HERE ?
 
 /* SPI Controller's Base Address */
 #if !defined(CONFIG_SYS_STM_SPI_SSC_BASE)
-#error Please define CONFIG_SYS_STM_SPI_SSC_BASE (e.g. ST40_SSC0_REGS_BASE)
+#error Please define CONFIG_SYS_STM_SPI_SSC_BASE (e.g. STM_SSC0_REGS_BASE)
 #endif
 static const unsigned long ssc = CONFIG_SYS_STM_SPI_SSC_BASE;	/* SSC base */
 

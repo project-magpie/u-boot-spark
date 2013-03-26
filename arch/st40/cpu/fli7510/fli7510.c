@@ -258,7 +258,7 @@ extern void fli7510_configure_ethernet(
 	/* set all the PIOs correctly */
 	for (i = 0; i < pins_num; i++)
 	{
-		SET_PIO_PIN(ST40_PIO_BASE(pins[i].port), pins[i].pin, pins[i].dir);
+		SET_PIO_PIN(STM_PIO_BASE(pins[i].port), pins[i].pin, pins[i].dir);
 	}
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
@@ -307,11 +307,11 @@ extern void fli7510_usb_init(const enum fli7510_usb_ovrcur_mode ovrcur_mode)
 	}
 
 	/* now route the PIOs corectly */
-	SET_PIO_PIN(ST40_PIO_BASE(27), 1, STPIO_IN);		/* USB_A_OVRCUR */
-	SET_PIO_PIN(ST40_PIO_BASE(27), 2, STPIO_ALT_OUT);	/* USB_A_PWREN */
+	SET_PIO_PIN(STM_PIO_BASE(27), 1, STPIO_IN);		/* USB_A_OVRCUR */
+	SET_PIO_PIN(STM_PIO_BASE(27), 2, STPIO_ALT_OUT);	/* USB_A_PWREN */
 
 	/* start the USB Wrapper Host Controller */
-	ST40_start_host_control(
+	STM_start_host_control(
 		USB_FLAGS_STRAP_16BIT		|
 		USB_FLAGS_STRAP_PLL		|
 		USB_FLAGS_STBUS_CONFIG_THRESHOLD256);

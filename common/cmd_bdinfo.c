@@ -301,9 +301,9 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 #if CONFIG_CMD_BDI_DUMP_EMI_BANKS
-	#if !defined(ST40_EMI_SIZE)
-	#define ST40_EMI_SIZE	(128 << 20)	/* EMI is usually 128 MiB */
-	#endif	/* ST40_EMI_SIZE */
+	#if !defined(STM_EMI_SIZE)
+	#define STM_EMI_SIZE	(128 << 20)	/* EMI is usually 128 MiB */
+	#endif	/* STM_EMI_SIZE */
 	#define MAX_EMI_BANKS	6	/* Maximum of 6 EMI Banks */
 	const u32 emi_base = 0xa0000000u;
 	u32 base[MAX_EMI_BANKS+1];	/* Base address for each bank */
@@ -387,7 +387,7 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	print_mhz("SSC",  stm_get_ssc_clk_rate()/1000000ul);
 
 #if CONFIG_CMD_BDI_DUMP_EMI_BANKS
-	enabled = *ST40_EMI_BANK_ENABLE;
+	enabled = *STM_EMI_BANK_ENABLE;
 	printf("#EMI Banks  = %u\n", enabled);
 	if (enabled > MAX_EMI_BANKS)
 	{
@@ -402,11 +402,11 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	 */
 	for(i=0; i<enabled; i++)
 	{
-		const u32 start = *ST40_EMI_BASEADDRESS(i) & 0x3fu;
+		const u32 start = *STM_EMI_BASEADDRESS(i) & 0x3fu;
 		base[i] = emi_base + (start << (22));
 	}
 	/* last valid bank occupies all remaining space */
-	base[i] = emi_base + ST40_EMI_SIZE;	/* total size of EMI is usually 128MiB */
+	base[i] = emi_base + STM_EMI_SIZE;	/* total size of EMI is usually 128MiB */
 
 	/*
 	 * Print out the ranges of each bank.

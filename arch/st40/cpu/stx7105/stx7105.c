@@ -263,7 +263,7 @@ extern int stx7105_usb_init(int port, int over_current, int power_ctrl)
 	}
 
 	/* start the USB Wrapper Host Controller */
-	ST40_start_host_control(
+	STM_start_host_control(
 		USB_FLAGS_STRAP_8BIT |
 		USB_FLAGS_STBUS_CONFIG_THRESHOLD128);
 

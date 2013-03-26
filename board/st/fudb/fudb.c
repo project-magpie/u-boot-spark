@@ -47,10 +47,10 @@ extern void flashWriteDisable (void)
 #ifdef CONFIG_STM_ASC_SERIAL
 static void configSerial (void)
 {
-#if (CONFIG_SYS_STM_ASC_BASE == ST40_ASC0_REGS_BASE)	/* UART #1 */
+#if (CONFIG_SYS_STM_ASC_BASE == STM_ASC0_REGS_BASE)	/* UART #1 */
 	/* Route UART #1 via PIO9 for TX, RX, CTS & RTS */
 	SET_PIO_ASC(PIO_PORT(9), 3, 2, STPIO_NO_PIN, STPIO_NO_PIN);
-#elif (CONFIG_SYS_STM_ASC_BASE == ST40_ASC1_REGS_BASE)	/* UART #2 */
+#elif (CONFIG_SYS_STM_ASC_BASE == STM_ASC1_REGS_BASE)	/* UART #2 */
 	/* Route UART #2 via PIO25 for TX, RX, CTS & RTS */
 	SET_PIO_ASC(PIO_PORT(25), 5, 4, 3, 2);
 #else

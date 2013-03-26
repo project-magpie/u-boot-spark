@@ -128,10 +128,10 @@
 /* choose which ST ASC UART to use */
 #if 1
 	/* 9-pin D-type connector on debug board - CN8 (next to RJ-45) */
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC0_REGS_BASE	/* UART #0 */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC0_REGS_BASE	/* UART #0 */
 #else
 	/* 9-pin D-type connector on debug board - CN7 */
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC3_REGS_BASE	/* UART #3 */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC3_REGS_BASE	/* UART #3 */
 #endif
 
 /*---------------------------------------------------------------

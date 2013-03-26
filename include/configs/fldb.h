@@ -169,13 +169,13 @@
 /* choose which ST ASC UART to use */
 #if 0
 	/* 9-pin D-type connector - On Extension Connector */
-#	define CONFIG_SYS_STM_ASC_BASE		ST40_ASC0_REGS_BASE	/* UART #1 */
+#	define CONFIG_SYS_STM_ASC_BASE		STM_ASC0_REGS_BASE	/* UART #1 */
 #elif 1
 	/* 9-pin D-type connector - CNB1 (next to RJ-45) */
-#	define CONFIG_SYS_STM_ASC_BASE		ST40_ASC1_REGS_BASE	/* UART #2 */
+#	define CONFIG_SYS_STM_ASC_BASE		STM_ASC1_REGS_BASE	/* UART #2 */
 #else
 	/* 9-pin D-type connector - CNB4 (nearer to FLI7510) */
-#	define CONFIG_SYS_STM_ASC_BASE		ST40_ASC2_REGS_BASE	/* UART #3 */
+#	define CONFIG_SYS_STM_ASC_BASE		STM_ASC2_REGS_BASE	/* UART #3 */
 #endif
 
 /*---------------------------------------------------------------

@@ -158,7 +158,7 @@ static void configPIO(void)
 {
 	/* Setup PIOs for ASC device */
 
-#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC2_REGS_BASE
+#if CONFIG_SYS_STM_ASC_BASE == STM_ASC2_REGS_BASE
 
 	/* Route UART2 via PIO14 for TX, RX, CTS & RTS (Alternative #1) */
 	PIOALT(14, 4, 1, stm_pad_direction_output);	/* UART2-TX */
@@ -166,7 +166,7 @@ static void configPIO(void)
 	PIOALT(14, 6, 1, stm_pad_direction_output);	/* UART2-RTS */
 	PIOALT(14, 7, 1, stm_pad_direction_input);	/* UART2-CTS */
 
-#elif CONFIG_SYS_STM_ASC_BASE == ST40_ASC3_REGS_BASE
+#elif CONFIG_SYS_STM_ASC_BASE == STM_ASC3_REGS_BASE
 
 	/* Route UART3 via PIO21 for TX, RX, CTS & RTS (Alternative #2) */
 	PIOALT(21, 0, 2, stm_pad_direction_output);	/* UART3-TX */
@@ -176,7 +176,7 @@ static void configPIO(void)
 
 #else
 #error Unknown ASC port selected!
-#endif	/* CONFIG_SYS_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASCx_REGS_BASE */
 }
 
 extern int board_init(void)
@@ -230,8 +230,8 @@ extern int board_init(void)
 	 *	J5B: 1-2	(default is 2-3)
 	 */
 #if 1
-	*ST40_EMI_BANK2_EMICONFIGDATA2 &= ~(0xfu << 16);
-	*ST40_EMI_BANK2_EMICONFIGDATA2 |=  (0x1u << 16);
+	*STM_EMI_BANK2_EMICONFIGDATA2 &= ~(0xfu << 16);
+	*STM_EMI_BANK2_EMICONFIGDATA2 |=  (0x1u << 16);
 #endif
 
 	return 0;

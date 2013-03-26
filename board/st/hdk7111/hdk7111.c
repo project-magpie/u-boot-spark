@@ -78,11 +78,11 @@ static void configSpi(void)
 static void configPIO(void)
 {
 	/* Setup PIO of ASC device */
-#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC2_REGS_BASE	/* UART #2 */
+#if CONFIG_SYS_STM_ASC_BASE == STM_ASC2_REGS_BASE	/* UART #2 */
 	SET_PIO_ASC(PIO_PORT(4), 3, 2, 4, 5);		/* UART2 - AS0 */
 #else
 #error Unsure which UART to configure!
-#endif	/* CONFIG_SYS_STM_ASC_BASE == ST40_ASC2_REGS_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASC2_REGS_BASE */
 
 	/* Hard Reset the PHY -- do after we have configured the MAC */
 	configEthernet();

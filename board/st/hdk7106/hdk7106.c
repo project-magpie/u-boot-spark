@@ -282,18 +282,18 @@ static void configPIO(void)
 	unsigned long sysconf;
 
 	/* Setup PIO of ASC device */
-#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC0_REGS_BASE	/* UART #0 */
+#if CONFIG_SYS_STM_ASC_BASE == STM_ASC0_REGS_BASE	/* UART #0 */
 	SET_PIO_ASC(PIO_PORT(0), 0, 1, 4, 3);  /* UART0 */
-#elif CONFIG_SYS_STM_ASC_BASE == ST40_ASC2_REGS_BASE	/* UART #2 */
+#elif CONFIG_SYS_STM_ASC_BASE == STM_ASC2_REGS_BASE	/* UART #2 */
 	//SET_PIO_ASC(PIO_PORT(4), 0, 1, 2, 3);  /* UART2 */
 	SET_PIO_ASC(PIO_PORT(4), 0, 1, STPIO_NO_PIN, STPIO_NO_PIN);  /* UART2 */
-#elif CONFIG_SYS_STM_ASC_BASE == ST40_ASC3_REGS_BASE	/* UART #3 */
+#elif CONFIG_SYS_STM_ASC_BASE == STM_ASC3_REGS_BASE	/* UART #3 */
 	SET_PIO_ASC(PIO_PORT(5), 0, 1, 3, 2);  /* UART3 */
 #else
 #error Unsure which UART to configure!
-#endif	/* CONFIG_SYS_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASCx_REGS_BASE */
 
-#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC0_REGS_BASE	/* UART #0 */
+#if CONFIG_SYS_STM_ASC_BASE == STM_ASC0_REGS_BASE	/* UART #0 */
 	/* Route UART0 via PIO0 for TX, RX, CTS & RTS */
 	sysconf = *STX7105_SYSCONF_SYS_CFG19;
 	/* PIO0[0] CFG19[16,8,0]   AltFunction = 4 */
@@ -303,7 +303,7 @@ static void configPIO(void)
 	sysconf &= ~0x1b1b1bul;	/* 7,7,0,7,7 */
 	sysconf |=  0x001b1bul;	/* 3,3,0,3,3 */
 	*STX7105_SYSCONF_SYS_CFG19 = sysconf;
-#elif CONFIG_SYS_STM_ASC_BASE == ST40_ASC2_REGS_BASE	/* UART #2 */
+#elif CONFIG_SYS_STM_ASC_BASE == STM_ASC2_REGS_BASE	/* UART #2 */
 	/* Select UART2 via PIO4 */
 	sysconf = *STX7105_SYSCONF_SYS_CFG07;
 	/* CFG07[1] = UART2_RXD_SRC_SELECT = 0 */
@@ -319,7 +319,7 @@ static void configPIO(void)
 	sysconf &= ~0x0f0ful;	/* 3,3,3,3 */
 	sysconf |=  0x0f00ul;	/* 2,2,2,2 */
 	*STX7105_SYSCONF_SYS_CFG34 = sysconf;
-#elif CONFIG_SYS_STM_ASC_BASE == ST40_ASC3_REGS_BASE	/* UART #3 */
+#elif CONFIG_SYS_STM_ASC_BASE == STM_ASC3_REGS_BASE	/* UART #3 */
 	/* Route UART3 via PIO5 for TX, RX, CTS & RTS */
 	sysconf = *STX7105_SYSCONF_SYS_CFG35;
 	/* PIO5[0] CFG35[8,0]   AltFunction = 3 */
@@ -331,7 +331,7 @@ static void configPIO(void)
 	*STX7105_SYSCONF_SYS_CFG35 = sysconf;
 #else
 #error Unsure which UART to configure!
-#endif	/* CONFIG_SYS_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASCx_REGS_BASE */
 
 	/* Configure & Reset the Ethernet PHY */
 	configEthernet();

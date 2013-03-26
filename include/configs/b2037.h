@@ -133,9 +133,9 @@
 
 /* choose which ST ASC UART to use: on-board, or off-board */
 #if 1
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC3_REGS_BASE	/* JM5, on-board DB9 */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC3_REGS_BASE	/* JM5, on-board DB9 */
 #else
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC1_REGS_BASE	/* JK1/JB1/JB4, off-board */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC1_REGS_BASE	/* JK1/JB1/JB4, off-board */
 #endif
 
 /*---------------------------------------------------------------

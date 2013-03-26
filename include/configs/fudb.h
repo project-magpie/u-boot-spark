@@ -140,10 +140,10 @@
 /* choose which ST ASC UART to use */
 #if 0
 	/* 9-pin D-type connector - CNB4 (next to JTAG) */
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC0_REGS_BASE	/* UART #3 */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC0_REGS_BASE	/* UART #3 */
 #else
 	/* 9-pin D-type connector - CNB1 (next to RJ-45) */
-#	define CONFIG_SYS_STM_ASC_BASE	ST40_ASC1_REGS_BASE	/* UART #2 */
+#	define CONFIG_SYS_STM_ASC_BASE	STM_ASC1_REGS_BASE	/* UART #2 */
 #endif
 
 /*---------------------------------------------------------------

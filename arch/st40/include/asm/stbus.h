@@ -117,7 +117,7 @@
 
 
 /* function to start the USB Host Controller Wrapper */
-extern int ST40_start_host_control(unsigned int flags);
+extern int STM_start_host_control(unsigned int flags);
 extern int usb_cpu_init(void);
 
 #endif	/* __ARCH_ST40_INCLUDE_ASM_STBUS_H */

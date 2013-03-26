@@ -118,7 +118,7 @@ extern void stx5197_usb_init(void)
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_M = sysconf;
 
 	/* start the USB Wrapper Host Controller */
-	ST40_start_host_control(
+	STM_start_host_control(
 		USB_FLAGS_STRAP_16BIT		|
 		USB_FLAGS_STRAP_PLL		|
 		USB_FLAGS_STBUS_CONFIG_THRESHOLD256);

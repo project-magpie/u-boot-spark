@@ -133,19 +133,19 @@ static void emiss_nandi_select(const enum nandi_controllers controller)
 {
 	unsigned v;
 
-	v = readl(ST40_EMISS_CONFIG);
+	v = readl(STM_EMISS_CONFIG);
 
 	if (controller == STM_NANDI_HAMMING) {
-		if (v & ST40_EMISS_NAND_HAMMING_NOT_BCH)
+		if (v & STM_EMISS_NAND_HAMMING_NOT_BCH)
 			return;		/* already selected Hamming */
-		v |= ST40_EMISS_NAND_HAMMING_NOT_BCH;
+		v |= STM_EMISS_NAND_HAMMING_NOT_BCH;
 	} else {
-		if (!(v & ST40_EMISS_NAND_HAMMING_NOT_BCH))
+		if (!(v & STM_EMISS_NAND_HAMMING_NOT_BCH))
 			return;		/* already selected BCH */
-		v &= ~ST40_EMISS_NAND_HAMMING_NOT_BCH;
+		v &= ~STM_EMISS_NAND_HAMMING_NOT_BCH;
 	}
 
-	writel(v, ST40_EMISS_CONFIG);	/* select the chosen controller */
+	writel(v, STM_EMISS_CONFIG);	/* select the chosen controller */
 
 	/*
 	 * Ensure the writel() has completed before we attempt to make
@@ -154,7 +154,7 @@ static void emiss_nandi_select(const enum nandi_controllers controller)
 	 * This was empirically required by Linux on the Freeman Ultra.
 	 * We will do this on all ST40 systems -- best to be safe!
 	 */
-	readl(ST40_EMISS_CONFIG);
+	readl(STM_EMISS_CONFIG);
 }
 
 
@@ -164,29 +164,29 @@ static void nandi_init_hamming(const int emi_bank)
 	emiss_nandi_select(STM_NANDI_HAMMING);
 
 	/* Reset and disable boot-mode controller */
-	writel(BOOT_CFG_RESET, ST40_EMI_NAND_HAM_BOOTBANK_CFG);
+	writel(BOOT_CFG_RESET, STM_EMI_NAND_HAM_BOOTBANK_CFG);
 	udelay(1);
-	writel(0x00000000, ST40_EMI_NAND_HAM_BOOTBANK_CFG);
+	writel(0x00000000, STM_EMI_NAND_HAM_BOOTBANK_CFG);
 
 	/* Reset controller */
-	writel(CONFIG_SYS_RESET, ST40_EMI_NAND_HAM_FLEXMODE_CFG);
+	writel(CONFIG_SYS_RESET, STM_EMI_NAND_HAM_FLEXMODE_CFG);
 	udelay(1);
-	writel(0x00000000, ST40_EMI_NAND_HAM_FLEXMODE_CFG);
+	writel(0x00000000, STM_EMI_NAND_HAM_FLEXMODE_CFG);
 
 	/* Disable all interrupts in FLEX mode */
-	writel(0, ST40_EMI_NAND_HAM_INT_EN);
+	writel(0, STM_EMI_NAND_HAM_INT_EN);
 
 	/* Set EMI Bank */
-	writel(0x1 << emi_bank, ST40_EMI_NAND_HAM_FLEX_MUXCTRL);
+	writel(0x1 << emi_bank, STM_EMI_NAND_HAM_FLEX_MUXCTRL);
 
 	/* Enable FLEX mode */
-	writel(CONFIG_SYS_ENABLE_FLEX, ST40_EMI_NAND_HAM_FLEXMODE_CFG);
+	writel(CONFIG_SYS_ENABLE_FLEX, STM_EMI_NAND_HAM_FLEXMODE_CFG);
 
 	/* Configure pervading FLEX_DATA_READ/WRITE as 1-byte accesses */
 	writel(STM_NAND_FLEX_BEAT_COUNT_1 | STM_NAND_FLEX_1_BYTE_PER_BEAT | STM_NAND_FLEX_CSn_STATUS,
-	       ST40_EMI_NAND_HAM_FLEX_DATA_RD_CFG);
+	       STM_EMI_NAND_HAM_FLEX_DATA_RD_CFG);
 	writel(STM_NAND_FLEX_BEAT_COUNT_1 | STM_NAND_FLEX_1_BYTE_PER_BEAT | STM_NAND_FLEX_CSn_STATUS,
-	       ST40_EMI_NAND_HAM_FLEX_DATAWRT_CFG);
+	       STM_EMI_NAND_HAM_FLEX_DATAWRT_CFG);
 }
 
 
@@ -196,51 +196,51 @@ static void nandi_init_bch(const int emi_bank)
 	emiss_nandi_select(STM_NANDI_BCH);
 
 	/* Reset and disable boot-mode controller */
-	writel(BOOT_CFG_RESET, ST40_EMI_NAND_BCH_BOOTBANK_CFG);
+	writel(BOOT_CFG_RESET, STM_EMI_NAND_BCH_BOOTBANK_CFG);
 	udelay(1);
-	writel(0x00000000, ST40_EMI_NAND_BCH_BOOTBANK_CFG);
+	writel(0x00000000, STM_EMI_NAND_BCH_BOOTBANK_CFG);
 
 	/* Reset AFM controller */
-	writel(CONFIG_SYS_RESET, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
+	writel(CONFIG_SYS_RESET, STM_EMI_NAND_BCH_CONTROLLER_CFG);
 	udelay(1);
-	writel(0x00000000, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
+	writel(0x00000000, STM_EMI_NAND_BCH_CONTROLLER_CFG);
 
 	/* Set EMI Bank */
-	writel(0x1 << emi_bank, ST40_EMI_NAND_BCH_FLEX_MUXCTRL);
+	writel(0x1 << emi_bank, STM_EMI_NAND_BCH_FLEX_MUXCTRL);
 
 	/* Reset ECC stats */
-	writel(0x7f0, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
+	writel(0x7f0, STM_EMI_NAND_BCH_CONTROLLER_CFG);
 	udelay(1);
 
 	/* Enable AFM */
-	writel(CONFIG_SYS_ENABLE_AFM, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
+	writel(CONFIG_SYS_ENABLE_AFM, STM_EMI_NAND_BCH_CONTROLLER_CFG);
 
 	/* Timing parameters */
 	/* Values from validation found not to work on some parts.  Awaiting
 	 * clarification.  Use reset values for the time being.
 	 *
-	 * writel(0x14000205, ST40_EMI_NAND_BCH_CTL_TIMING);
-	 * writel(0x00020304, ST40_EMI_NAND_BCH_WEN_TIMING);
-	 * writel(0x060b0304, ST40_EMI_NAND_BCH_REN_TIMING);
+	 * writel(0x14000205, STM_EMI_NAND_BCH_CTL_TIMING);
+	 * writel(0x00020304, STM_EMI_NAND_BCH_WEN_TIMING);
+	 * writel(0x060b0304, STM_EMI_NAND_BCH_REN_TIMING);
 	 */
 
 	/* Configure Read DMA Plugs (values supplied by Validation)*/
-	writel(0x00000005, ST40_EMISS_NAND_RD_DMA_PAGE_SIZE);
-	writel(0x00000005, ST40_EMISS_NAND_RD_DMA_MAX_OPCODE_SIZE);
-	writel(0x00000002, ST40_EMISS_NAND_RD_DMA_MIN_OPCODE_SIZE);
-	writel(0x00000001, ST40_EMISS_NAND_RD_DMA_MAX_CHUNK_SIZE);
-	writel(0x00000000, ST40_EMISS_NAND_RD_DMA_MAX_MESSAGE_SIZE);
+	writel(0x00000005, STM_EMISS_NAND_RD_DMA_PAGE_SIZE);
+	writel(0x00000005, STM_EMISS_NAND_RD_DMA_MAX_OPCODE_SIZE);
+	writel(0x00000002, STM_EMISS_NAND_RD_DMA_MIN_OPCODE_SIZE);
+	writel(0x00000001, STM_EMISS_NAND_RD_DMA_MAX_CHUNK_SIZE);
+	writel(0x00000000, STM_EMISS_NAND_RD_DMA_MAX_MESSAGE_SIZE);
 
 	/* Configure Write DMA Plugs (values supplied by Validation) */
-	writel(0x00000005, ST40_EMISS_NAND_WR_DMA_PAGE_SIZE);
-	writel(0x00000005, ST40_EMISS_NAND_WR_DMA_MAX_OPCODE_SIZE);
-	writel(0x00000002, ST40_EMISS_NAND_WR_DMA_MIN_OPCODE_SIZE);
-	writel(0x00000001, ST40_EMISS_NAND_WR_DMA_MAX_CHUNK_SIZE);
-	writel(0x00000000, ST40_EMISS_NAND_WR_DMA_MAX_MESSAGE_SIZE);
+	writel(0x00000005, STM_EMISS_NAND_WR_DMA_PAGE_SIZE);
+	writel(0x00000005, STM_EMISS_NAND_WR_DMA_MAX_OPCODE_SIZE);
+	writel(0x00000002, STM_EMISS_NAND_WR_DMA_MIN_OPCODE_SIZE);
+	writel(0x00000001, STM_EMISS_NAND_WR_DMA_MAX_CHUNK_SIZE);
+	writel(0x00000000, STM_EMISS_NAND_WR_DMA_MAX_MESSAGE_SIZE);
 
 	/* Enable the SEQ_NODES_OVER interrupt for the BCH (we will poll on it!) */
 	writel(NAND_INT_ENABLE | NANDBCH_INT_SEQNODESOVER,
-		ST40_EMI_NAND_BCH_INT_EN);
+		STM_EMI_NAND_BCH_INT_EN);
 }
 
 
@@ -259,7 +259,7 @@ static int stm_flex_device_ready(struct mtd_info * const mtd)
 	ndelay(500);
 
 	/* extract bit 2: status of RBn pin on the FLEX bank */
-	return ((*ST40_EMI_NAND_HAM_RBN_STA) & (1ul<<2)) ? 1 : 0;
+	return ((*STM_EMI_NAND_HAM_RBN_STA) & (1ul<<2)) ? 1 : 0;
 }
 
 
@@ -275,7 +275,7 @@ static int flex_wait_rbn(struct mtd_info * const mtd)
 static void flex_cmd(const uint8_t cmd)
 {
 	const uint32_t val = (STM_NAND_FLEX_CSn_STATUS | STM_NAND_FLEX_BEAT_COUNT_1 | cmd);
-	writel(val, ST40_EMI_NAND_HAM_FLEX_CMD);
+	writel(val, STM_EMI_NAND_HAM_FLEX_CMD);
 }
 
 
@@ -289,7 +289,7 @@ static void flex_addr(uint32_t addr, const int cycles)
 	addr |= (STM_NAND_FLEX_CSn_STATUS | STM_NAND_FLEX_ADDR_ADD8_VALID);
 	addr |= (cycles & 0x3) << 28;
 
-	writel(addr, ST40_EMI_NAND_HAM_FLEX_ADD_REG);
+	writel(addr, STM_EMI_NAND_HAM_FLEX_ADD_REG);
 }
 
 
@@ -379,7 +379,7 @@ static uint8_t flex_read_byte(struct mtd_info * const mtd)
 {
 	emiss_nandi_select(STM_NANDI_HAMMING);
 
-	return (uint8_t)(readl(ST40_EMI_NAND_HAM_FLEX_DATA) & 0xff);
+	return (uint8_t)(readl(STM_EMI_NAND_HAM_FLEX_DATA) & 0xff);
 }
 
 
@@ -393,7 +393,7 @@ static int flex_wait_func(
 
 	flex_cmd(NAND_CMD_STATUS);
 
-	return (int)(readl(ST40_EMI_NAND_HAM_FLEX_DATA) & 0xff);
+	return (int)(readl(STM_EMI_NAND_HAM_FLEX_DATA) & 0xff);
 }
 
 
@@ -415,7 +415,7 @@ static void flex_read_buf(
 
 	/* Read bytes until buf is 4-byte aligned */
 	while (len && ((unsigned int)buf & 0x3)) {
-		*buf++ = (uint8_t)(readl(ST40_EMI_NAND_HAM_FLEX_DATA) & 0xff);
+		*buf++ = (uint8_t)(readl(STM_EMI_NAND_HAM_FLEX_DATA) & 0xff);
 		len--;
 	}
 
@@ -424,20 +424,20 @@ static void flex_read_buf(
 		const unsigned int aligned = len & ~0x3;
 
 		writel(STM_NAND_FLEX_BEAT_COUNT_4 | STM_NAND_FLEX_1_BYTE_PER_BEAT | STM_NAND_FLEX_CSn_STATUS,
-		       ST40_EMI_NAND_HAM_FLEX_DATA_RD_CFG);
+		       STM_EMI_NAND_HAM_FLEX_DATA_RD_CFG);
 
-		readsl(ST40_EMI_NAND_HAM_FLEX_DATA, buf, aligned >> 2);
+		readsl(STM_EMI_NAND_HAM_FLEX_DATA, buf, aligned >> 2);
 
 		buf += aligned;
 		len -= aligned;
 			/* restore pervading configuration */
 		writel(STM_NAND_FLEX_BEAT_COUNT_1 | STM_NAND_FLEX_1_BYTE_PER_BEAT | STM_NAND_FLEX_CSn_STATUS,
-		       ST40_EMI_NAND_HAM_FLEX_DATA_RD_CFG);
+		       STM_EMI_NAND_HAM_FLEX_DATA_RD_CFG);
 	}
 
 	/* Mop up remaining bytes */
 	while (len--) {
-		*buf++ = (uint8_t)(readl(ST40_EMI_NAND_HAM_FLEX_DATA) & 0xff);
+		*buf++ = (uint8_t)(readl(STM_EMI_NAND_HAM_FLEX_DATA) & 0xff);
 	}
 }
 
@@ -451,7 +451,7 @@ static void flex_write_buf(
 
 	/* Write bytes until buf is 4-byte aligned */
 	while (len && ((unsigned int)buf & 0x3)) {
-		writel(*buf++, ST40_EMI_NAND_HAM_FLEX_DATA);
+		writel(*buf++, STM_EMI_NAND_HAM_FLEX_DATA);
 		len--;
 	};
 
@@ -460,20 +460,20 @@ static void flex_write_buf(
 		const unsigned int aligned = len & ~0x3;
 
 		writel(STM_NAND_FLEX_BEAT_COUNT_4 | STM_NAND_FLEX_1_BYTE_PER_BEAT | STM_NAND_FLEX_CSn_STATUS,
-		       ST40_EMI_NAND_HAM_FLEX_DATAWRT_CFG);
+		       STM_EMI_NAND_HAM_FLEX_DATAWRT_CFG);
 
-		writesl(ST40_EMI_NAND_HAM_FLEX_DATA, buf, aligned >> 2);
+		writesl(STM_EMI_NAND_HAM_FLEX_DATA, buf, aligned >> 2);
 
 		buf += aligned;
 		len -= aligned;
 			/* restore pervading configuration */
 		writel(STM_NAND_FLEX_BEAT_COUNT_1 | STM_NAND_FLEX_1_BYTE_PER_BEAT | STM_NAND_FLEX_CSn_STATUS,
-		       ST40_EMI_NAND_HAM_FLEX_DATAWRT_CFG);
+		       STM_EMI_NAND_HAM_FLEX_DATAWRT_CFG);
 	}
 
 	/* Mop up remaining bytes */
 	while (len--) {
-		writel(*buf++, ST40_EMI_NAND_HAM_FLEX_DATA);
+		writel(*buf++, STM_EMI_NAND_HAM_FLEX_DATA);
 	}
 }
 
@@ -657,7 +657,7 @@ static void bch_configure_progs(struct mtd_info * const mtd)
 /* BCH operations */
 static inline void bch_load_prog_cpu(const struct bch_prog * const prog)
 {
-	uint32_t       * to   = (uint32_t *)ST40_EMI_NAND_BCH_ADDRESS_REG_1;
+	uint32_t       * to   = (uint32_t *)STM_EMI_NAND_BCH_ADDRESS_REG_1;
 	const uint32_t * from = (const uint32_t *)prog;
 	int i = sizeof(struct bch_prog) / sizeof(uint32_t);
 
@@ -676,11 +676,11 @@ static inline void bch_wait_till_completion(void)
 	 * reads complete *after* the BCH engine has actually finished!
 	 * We simply wait for SEQ_NODES_OVER to be asserted, and clear it afterwards.
 	 */
-	while ((readl(ST40_EMI_NAND_BCH_INT_STA) & NANDBCH_INT_SEQNODESOVER) == 0)
+	while ((readl(STM_EMI_NAND_BCH_INT_STA) & NANDBCH_INT_SEQNODESOVER) == 0)
 		;	/* do nothing */
 
 	/* finally, clear the SEQ_NODES_OVER interrupt status bit, for next time */
-	writel(NANDBCH_INT_CLR_SEQNODESOVER, ST40_EMI_NAND_BCH_INT_CLR);
+	writel(NANDBCH_INT_CLR_SEQNODESOVER, STM_EMI_NAND_BCH_INT_CLR);
 }
 
 
@@ -748,7 +748,7 @@ static void bch_init_dma_buffers(struct mtd_info * const mtd)
 		memset(dma_buffer_list, 0x00, NANDI_BCH_BUF_LIST_SIZE);
 
 		/* write physical address of "buffer list" to BCH DMA controller */
-		writel(PHYSADDR(dma_buffer_list), ST40_EMI_NAND_BCH_BUFFER_LIST_PTR);
+		writel(PHYSADDR(dma_buffer_list), STM_EMI_NAND_BCH_BUFFER_LIST_PTR);
 	}
 
 #if defined(DEBUG_BCH)
@@ -802,8 +802,8 @@ static int bch_ecc_read_page (
 	dma_buffer_list[0] = PHYSADDR(buffer) | (sectors_per_page - 1);
 
 	/* Reset ECC stats */
-	writel(CONFIG_SYS_RESET_ECC_ALL | CONFIG_SYS_ENABLE_AFM, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
-	writel(CONFIG_SYS_ENABLE_AFM, ST40_EMI_NAND_BCH_CONTROLLER_CFG);
+	writel(CONFIG_SYS_RESET_ECC_ALL | CONFIG_SYS_ENABLE_AFM, STM_EMI_NAND_BCH_CONTROLLER_CFG);
+	writel(CONFIG_SYS_ENABLE_AFM, STM_EMI_NAND_BCH_CONTROLLER_CFG);
 
 	/* Make sure buffer (and buffer list) agrees with real memory */
 	flush_cache((ulong)buffer, page_size);
@@ -824,7 +824,7 @@ static int bch_ecc_read_page (
 		memcpy(buf, buffer, page_size);
 
 	/* Use the maximum per-sector ECC count! */
-	ecc_err = readl(ST40_EMI_NAND_BCH_ECC_SCORE_REG_A) & 0xffu;
+	ecc_err = readl(STM_EMI_NAND_BCH_ECC_SCORE_REG_A) & 0xffu;
 	if (ecc_err == 0xff)
 	{
 		/* Do we have a genuine uncorrectable ECC error, or is it just

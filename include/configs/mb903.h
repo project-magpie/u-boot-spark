@@ -152,7 +152,7 @@
 #endif
 
 /* choose which ST ASC UART to use */
-#define CONFIG_SYS_STM_ASC_BASE	ST40_ASC3_REGS_BASE	/* UART #3, on CN1 */
+#define CONFIG_SYS_STM_ASC_BASE	STM_ASC3_REGS_BASE	/* UART #3, on CN1 */
 
 /*---------------------------------------------------------------
  * Ethernet driver config

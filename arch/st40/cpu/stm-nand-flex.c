@@ -64,23 +64,23 @@ static struct stm_nand_flex_controller {
 
 /*
  * In FLEX-mode, we can either read from the Flex-mode data
- * register (ST40_EMI_NAND_HAM_FLEX_DATA), over the STBus with either
+ * register (STM_EMI_NAND_HAM_FLEX_DATA), over the STBus with either
  * a 4-byte read (LD4) or a 32-byte read (LD32) bus opcode.
  * Using the LD32 bus opcode amortises the cost of the bus
  * latency over 32-bytes, instead of only 4 bytes, so one can
  * achieve a higher throughput, using the LD32 bus opcode.
  *
  * However, in order to realize this potential improvement, one
- * needs to access the ST40_EMI_NAND_HAM_FLEX_DATA via the CPU's operand
+ * needs to access the STM_EMI_NAND_HAM_FLEX_DATA via the CPU's operand
  * (data) caches. This in turn requires a TLB (or PMB) address
  * translation to be configured and enabled.
  *
  * The following macros are used to configure the TLB to map
- * the ST40_EMI_NAND_HAM_FLEX_DATA into a P3 (cachable + translatable)
+ * the STM_EMI_NAND_HAM_FLEX_DATA into a P3 (cachable + translatable)
  * virtual address, so we can utilize the LD32 opcode.
  *
  * The implementation will create a single (read-only) 1KiB TLB
- * mapping, including ST40_EMI_NAND_HAM_FLEX_DATA to 0xC0000000.
+ * mapping, including STM_EMI_NAND_HAM_FLEX_DATA to 0xC0000000.
  */
 #if defined(CONFIG_STM_NAND_USES_CACHED_READS) && defined(CONFIG_ST40)
 #define ST40_MMU_PTEH	0xFF000000	/* Page Table Entry High register */
@@ -111,7 +111,7 @@ static struct stm_nand_flex_controller {
 static volatile u32 * const mmucr_p = (u32*)ST40_MMU_MMUCR;
 
 static volatile u32 * const cache =
-	(u32*)(0xC0000000ul | ((u32)ST40_EMI_NAND_HAM_FLEX_DATA & ~PAGE_MASK));
+	(u32*)(0xC0000000ul | ((u32)STM_EMI_NAND_HAM_FLEX_DATA & ~PAGE_MASK));
 #endif	/* CONFIG_STM_NAND_USES_CACHED_READS && CONFIG_ST40 */
 
 
@@ -145,7 +145,7 @@ static void flex_set_timings(struct nand_timing_data * const tm)
 #if DEBUG_FLEX
 	printf("info: CONTROL_TIMING = 0x%08x\n", reg);
 #endif
-	*ST40_EMI_NAND_HAM_CTL_TIMING = reg;
+	*STM_EMI_NAND_HAM_CTL_TIMING = reg;
 
 	/* WEN_TIMING */
 	n = (tm->wr_on + emi_t_ns - 1u)/emi_t_ns;
@@ -157,7 +157,7 @@ static void flex_set_timings(struct nand_timing_data * const tm)
 #if DEBUG_FLEX
 	printf("info: WEN_TIMING = 0x%08x\n", reg);
 #endif
-	*ST40_EMI_NAND_HAM_WEN_TIMING = reg;
+	*STM_EMI_NAND_HAM_WEN_TIMING = reg;
 
 	/* REN_TIMING */
 	n = (tm->rd_on + emi_t_ns - 1u)/emi_t_ns;
@@ -169,7 +169,7 @@ static void flex_set_timings(struct nand_timing_data * const tm)
 #if DEBUG_FLEX
 	printf("info: REN_TIMING = 0x%08x\n", reg);
 #endif
-	*ST40_EMI_NAND_HAM_REN_TIMING = reg;
+	*STM_EMI_NAND_HAM_REN_TIMING = reg;
 }
 #endif
 
@@ -185,7 +185,7 @@ static int stm_flex_device_ready(struct mtd_info * const mtd)
 	ndelay(500);	/* QQQ: do we really need this ??? */
 #endif
 	/* extract bit 2: status of RBn pin on the FLEX bank */
-	return ((*ST40_EMI_NAND_HAM_RBN_STA) & (1ul<<2)) ? 1 : 0;
+	return ((*STM_EMI_NAND_HAM_RBN_STA) & (1ul<<2)) ? 1 : 0;
 }
 
 
@@ -209,25 +209,25 @@ static void init_flex_mode(void)
 	 * attempting to use FLEX-mode accesses to talk to the Hamming
 	 * controller, when the BCH is enabled must be avoided!
 	 */
-#if defined(ST40_EMISS_REGS_BASE)
+#if defined(STM_EMISS_REGS_BASE)
 	/* enable the Hamming controller (and disable BCH) */
-	*ST40_EMISS_CONFIG |= ST40_EMISS_NAND_HAMMING_NOT_BCH;
+	*STM_EMISS_CONFIG |= STM_EMISS_NAND_HAMMING_NOT_BCH;
 #endif
 
 	/* Disable the BOOT-mode controller */
-	*ST40_EMI_NAND_HAM_BOOTBANK_CFG = 0;
+	*STM_EMI_NAND_HAM_BOOTBANK_CFG = 0;
 
 	/* Perform a S/W reset the FLEX-mode controller */
 	/* need to assert it for at least one (EMI) clock cycle. */
-	*ST40_EMI_NAND_HAM_FLEXMODE_CFG = STM_NAND_FLEX_CFG_SW_RESET;
+	*STM_EMI_NAND_HAM_FLEXMODE_CFG = STM_NAND_FLEX_CFG_SW_RESET;
 	udelay(1);	/* QQQ: can we do something shorter ??? */
-	*ST40_EMI_NAND_HAM_FLEXMODE_CFG = 0;
+	*STM_EMI_NAND_HAM_FLEXMODE_CFG = 0;
 
 	/* Disable all interrupts in FLEX mode */
-	*ST40_EMI_NAND_HAM_INT_EN = 0;
+	*STM_EMI_NAND_HAM_INT_EN = 0;
 
 	/* Set FLEX-mode controller to enable FLEX-mode */
-	*ST40_EMI_NAND_HAM_FLEXMODE_CFG = STM_NAND_FLEX_CFG_ENABLE_FLEX_MODE;
+	*STM_EMI_NAND_HAM_FLEXMODE_CFG = STM_NAND_FLEX_CFG_ENABLE_FLEX_MODE;
 
 	/*
 	 * Configure (pervading) FLEX_DATA to write 4-bytes at a time.
@@ -243,7 +243,7 @@ static void init_flex_mode(void)
 #if 0
 	reg |= STM_NAND_FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
 #endif
-	*ST40_EMI_NAND_HAM_FLEX_DATAWRT_CFG = reg;
+	*STM_EMI_NAND_HAM_FLEX_DATAWRT_CFG = reg;
 }
 
 
@@ -276,7 +276,7 @@ static void stm_flex_select_chip(
 
 		/* Set correct EMI Chip Select (CSn) on FLEX controller */
 		flex.current_csn = data->csn;
-		*ST40_EMI_NAND_HAM_FLEX_MUXCTRL = 1ul << data->csn;
+		*STM_EMI_NAND_HAM_FLEX_MUXCTRL = 1ul << data->csn;
 
 	} else {
 		printf("ERROR: In %s() attempted to select chipnr = %d\n",
@@ -302,7 +302,7 @@ static void stm_flex_cmd_ctrl (
 #endif
 		reg = (byte & 0xFFu) | STM_NAND_FLEX_BEAT_COUNT_1;
 		reg |= STM_NAND_FLEX_CSn_STATUS;	/* deassert CSn after each flex command write */
-		*ST40_EMI_NAND_HAM_FLEX_CMD = reg;
+		*STM_EMI_NAND_HAM_FLEX_CMD = reg;
 	}
 	else if ( ctrl & NAND_ALE )		/* an ADDRESS Cycle ? */
 	{
@@ -313,7 +313,7 @@ static void stm_flex_cmd_ctrl (
 #endif
 		reg = (byte & 0xFFu) | STM_NAND_FLEX_BEAT_COUNT_1;
 		reg |= STM_NAND_FLEX_CSn_STATUS;	/* deassert CSn after each flex address write */
-		*ST40_EMI_NAND_HAM_FLEX_ADD_REG = reg;
+		*STM_EMI_NAND_HAM_FLEX_ADD_REG = reg;
 	}
 	else if (ctrl & NAND_CTRL_CHANGE)	/* only update the "control" lines ? */
 	{
@@ -354,10 +354,10 @@ static u_char stm_flex_read_byte(
 #if 0
 	reg |= STM_NAND_FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
 #endif
-	*ST40_EMI_NAND_HAM_FLEX_DATA_RD_CFG = reg;
+	*STM_EMI_NAND_HAM_FLEX_DATA_RD_CFG = reg;
 
 	/* read it */
-	byte = (u_char)*ST40_EMI_NAND_HAM_FLEX_DATA;
+	byte = (u_char)*STM_EMI_NAND_HAM_FLEX_DATA;
 
 #if DEBUG_FLEX
 	printf("\t\t\t\t\t\t\t\t\t READ = 0x%02x\n", byte);
@@ -398,7 +398,7 @@ static void stm_flex_read_buf(
 #if 0
 	reg |= STM_NAND_FLEX_WAIT_RBn;		/* QQQ: do we want this ??? */
 #endif
-	*ST40_EMI_NAND_HAM_FLEX_DATA_RD_CFG = reg;
+	*STM_EMI_NAND_HAM_FLEX_DATA_RD_CFG = reg;
 
 #if defined(CONFIG_STM_NAND_USES_CACHED_READS) && defined(CONFIG_ST40)
 	/*
@@ -504,14 +504,14 @@ static void stm_flex_read_buf(
 		/* copy the data (from NAND) as 4-byte words ... */
 		for(i=0; i<len/4; i++)
 		{
-			p[i] = *ST40_EMI_NAND_HAM_FLEX_DATA;
+			p[i] = *STM_EMI_NAND_HAM_FLEX_DATA;
 		}
 	}
 #else	/* CONFIG_STM_NAND_USES_CACHED_READS && CONFIG_ST40 */
 	/* copy the data (from NAND) as 4-byte words ... */
 	for(i=0; i<len/4; i++)
 	{
-		p[i] = *ST40_EMI_NAND_HAM_FLEX_DATA;
+		p[i] = *STM_EMI_NAND_HAM_FLEX_DATA;
 	}
 #endif	/* CONFIG_STM_NAND_USES_CACHED_READS && CONFIG_ST40 */
 
@@ -564,7 +564,7 @@ static void stm_flex_write_buf(
 	/* copy the data (to NAND) as 32-bit words ... */
 	for(i=0; i<len/4; i++)
 	{
-		*ST40_EMI_NAND_HAM_FLEX_DATA = p[i];
+		*STM_EMI_NAND_HAM_FLEX_DATA = p[i];
 	}
 }
 
@@ -589,7 +589,7 @@ extern void stm_flex_init_nand(
 		((u32)cache & PAGE_MASK)			|
 		(PTEH_ASID & ASID_MASK);
 	const u32 ptel =
-		((u32)ST40_EMI_NAND_HAM_FLEX_DATA & PAGE_MASK)	|
+		((u32)STM_EMI_NAND_HAM_FLEX_DATA & PAGE_MASK)	|
 		PTEL_V						|
 #if 0
 		PTEL_PR_WRITE | PTEL_D	/* if we use OCBI */	|

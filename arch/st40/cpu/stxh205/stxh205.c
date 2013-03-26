@@ -757,7 +757,7 @@ extern int stxh205_usb_init(const int port)
 
 	/* start the USB Wrapper Host Controller */
 	flags = USB_FLAGS_STRAP_8BIT | USB_FLAGS_STBUS_CONFIG_THRESHOLD128;
-	ST40_start_host_control(flags);
+	STM_start_host_control(flags);
 
 	return 0;
 }

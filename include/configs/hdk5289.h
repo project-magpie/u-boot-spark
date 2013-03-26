@@ -184,7 +184,7 @@
 #endif
 
 /* UART #2, on JI3 to daughter board */
-#define CONFIG_SYS_STM_ASC_BASE	ST40_ASC2_REGS_BASE	/* UART2 = JI3 */
+#define CONFIG_SYS_STM_ASC_BASE	STM_ASC2_REGS_BASE	/* UART2 = JI3 */
 
 /*---------------------------------------------------------------
  * Ethernet driver config

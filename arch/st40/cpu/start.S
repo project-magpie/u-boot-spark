@@ -126,28 +126,28 @@ skipped_signature:
 	 */
 #if defined(CONFIG_SYS_BOOT_FROM_SPI)
 config_spiboot_controller:
-	MOV_CONST32_R0 ST40_EMI_SPI_REGS_BASE
+	MOV_CONST32_R0 STM_EMI_SPI_REGS_BASE
 	mov	r0, r1
 
-	MOV_CONST32_R0 0x00020011	/* *ST40_EMI_SPI_CONFIGDATA = 0x00020010|ST */
-	mov.l	r0, @(ST40_EMI_SPI_CONFIGDATA-ST40_EMI_SPI_REGS_BASE,r1)
+	MOV_CONST32_R0 0x00020011	/* *STM_EMI_SPI_CONFIGDATA = 0x00020010|ST */
+	mov.l	r0, @(STM_EMI_SPI_CONFIGDATA-STM_EMI_SPI_REGS_BASE,r1)
 
 #if 1
 	/* For serial flash we use FAST_READ */
-	mov	#2, r0			/* *ST40_EMI_SPI_MODESELECT = FAST_READ */
+	mov	#2, r0			/* *STM_EMI_SPI_MODESELECT = FAST_READ */
 #else
-	mov	#3, r0			/* *ST40_EMI_SPI_MODESELECT = CONTIG_MODE|FAST_READ */
+	mov	#3, r0			/* *STM_EMI_SPI_MODESELECT = CONTIG_MODE|FAST_READ */
 #endif
-	mov.l	r0, @(ST40_EMI_SPI_MODESELECT-ST40_EMI_SPI_REGS_BASE,r1)
+	mov.l	r0, @(STM_EMI_SPI_MODESELECT-STM_EMI_SPI_REGS_BASE,r1)
 
 	/* Slow (divide) the SPI clock down to improve reliability. */
 	/* Note: for some (?) FSM SPI controllers, diving by 4 fails to boot! */
 #if defined(CONFIG_STM_FLI7510) || defined(CONFIG_STM_FLI7540) || defined(CONFIG_STM_STX5206) || defined(CONFIG_STM_STX7108)
-	mov	#6, r0			/* *ST40_EMI_SPI_CLOCKDIV = 6 */
+	mov	#6, r0			/* *STM_EMI_SPI_CLOCKDIV = 6 */
 #else
-	mov	#4, r0			/* *ST40_EMI_SPI_CLOCKDIV = 4 */
+	mov	#4, r0			/* *STM_EMI_SPI_CLOCKDIV = 4 */
 #endif
-	mov.l	r0, @(ST40_EMI_SPI_CLOCKDIV-ST40_EMI_SPI_REGS_BASE,r1)
+	mov.l	r0, @(STM_EMI_SPI_CLOCKDIV-STM_EMI_SPI_REGS_BASE,r1)
 
 	/*
 	 * Note: we need to ensure that there has been at least one

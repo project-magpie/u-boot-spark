@@ -54,7 +54,7 @@ static void configPIO(void)
 {
 	/* Setup PIOs for ASC device */
 
-#if CONFIG_SYS_STM_ASC_BASE == ST40_ASC1_REGS_BASE
+#if CONFIG_SYS_STM_ASC_BASE == STM_ASC1_REGS_BASE
 
 	/* Route UART1 via PIO5 for TX, RX, CTS & RTS (Alternative #1) */
 	PIOALT(5, 1, 1, stm_pad_direction_output);	/* UART1-TX */
@@ -62,7 +62,7 @@ static void configPIO(void)
 	PIOALT(5, 4, 1, stm_pad_direction_output);	/* UART1-RTS */
 	PIOALT(5, 3, 1, stm_pad_direction_input);	/* UART1-CTS */
 
-#elif CONFIG_SYS_STM_ASC_BASE == ST40_ASC3_REGS_BASE
+#elif CONFIG_SYS_STM_ASC_BASE == STM_ASC3_REGS_BASE
 
 	/* Route UART3 via PIO24/25 for TX, RX (Alternative #1) */
 	PIOALT(24, 4, 1, stm_pad_direction_output);	/* UART3-TX */
@@ -72,14 +72,14 @@ static void configPIO(void)
 
 #else
 #error Unknown ASC port selected!
-#endif	/* CONFIG_SYS_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
+#endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASCx_REGS_BASE */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
 	 * Configure the Ethernet PHY Reset signal
 	 *	PIO3[6] == POWER_ON_ETH (a.k.a. ETH_RESET)
 	 */
-	SET_PIO_PIN(ST40_PIO_BASE(3), 6, STPIO_OUT);
+	SET_PIO_PIN(STM_PIO_BASE(3), 6, STPIO_OUT);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 }
 
@@ -91,9 +91,9 @@ extern void stmac_phy_reset(void)
 	 *
 	 *	PIO3[6] = POWER_ON_ETH (a.k.a. ETH_RESET)
 	 */
-	STPIO_SET_PIN(ST40_PIO_BASE(3), 6, 0);
+	STPIO_SET_PIN(STM_PIO_BASE(3), 6, 0);
 	udelay(10000);				/* 10 ms */
-	STPIO_SET_PIN(ST40_PIO_BASE(3), 6, 1);
+	STPIO_SET_PIN(STM_PIO_BASE(3), 6, 1);
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
@@ -125,8 +125,8 @@ extern int board_init(void)
 	 *
 	 * SYS_CONFIG == PIO6[3] -> PIO12[7] == 0
 	 */
-	SET_PIO_PIN(ST40_PIO_BASE(12), 7, STPIO_OUT);
-	STPIO_SET_PIN(ST40_PIO_BASE(12), 7, 0);
+	SET_PIO_PIN(STM_PIO_BASE(12), 7, STPIO_OUT);
+	STPIO_SET_PIN(STM_PIO_BASE(12), 7, 0);
 #endif /* CONFIG_CMD_FLASH */
 
 	return 0;

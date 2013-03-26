@@ -159,7 +159,7 @@
 #endif
 
 /* choose which ST ASC UART to use (UART2 == JD1) */
-#define CONFIG_SYS_STM_ASC_BASE	ST40_ASC2_REGS_BASE	/* UART2 */
+#define CONFIG_SYS_STM_ASC_BASE	STM_ASC2_REGS_BASE	/* UART2 */
 
 /*---------------------------------------------------------------
  * Ethernet driver config

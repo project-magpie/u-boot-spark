@@ -999,7 +999,7 @@ extern int stxh415_usb_init(const int port)
 
 	/* start the USB Wrapper Host Controller */
 	flags = USB_FLAGS_STRAP_8BIT | USB_FLAGS_STBUS_CONFIG_THRESHOLD128;
-	ST40_start_host_control(flags);
+	STM_start_host_control(flags);
 
 	return 0;
 }
@@ -1122,8 +1122,8 @@ extern void stxh415_configure_i2c(void)
 	stxh415_pioalt_select(sda_port, sda_pin, 0);			/* I2C_SDA */
 
 	/* set up directionality appropriately */
-	SET_PIO_PIN(ST40_PIO_BASE(scl_port), scl_pin, STPIO_BIDIR);	/* I2C_SCL */
-	SET_PIO_PIN(ST40_PIO_BASE(sda_port), sda_pin, STPIO_BIDIR);	/* I2C_SDA */
+	SET_PIO_PIN(STM_PIO_BASE(scl_port), scl_pin, STPIO_BIDIR);	/* I2C_SCL */
+	SET_PIO_PIN(STM_PIO_BASE(sda_port), sda_pin, STPIO_BIDIR);	/* I2C_SDA */
 }
 
 extern void stxh415_i2c_scl(const int val)
@@ -1131,7 +1131,7 @@ extern void stxh415_i2c_scl(const int val)
 	/* SSC's SCLK == I2C's SCL */
 	const int port = ssc_pios[CONFIG_I2C_BUS].pio[0].port;
 	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[0].pin;
-	STPIO_SET_PIN(ST40_PIO_BASE(port), pin, (val) ? 1 : 0);
+	STPIO_SET_PIN(STM_PIO_BASE(port), pin, (val) ? 1 : 0);
 }
 
 extern void stxh415_i2c_sda(const int val)
@@ -1139,7 +1139,7 @@ extern void stxh415_i2c_sda(const int val)
 	/* SSC's MTSR == I2C's SDA */
 	const int port = ssc_pios[CONFIG_I2C_BUS].pio[1].port;
 	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
-	STPIO_SET_PIN(ST40_PIO_BASE(port), pin, (val) ? 1 : 0);
+	STPIO_SET_PIN(STM_PIO_BASE(port), pin, (val) ? 1 : 0);
 }
 
 extern int stxh415_i2c_read(void)
@@ -1147,7 +1147,7 @@ extern int stxh415_i2c_read(void)
 	/* SSC's MTSR == I2C's SDA */
 	const int port = ssc_pios[CONFIG_I2C_BUS].pio[1].port;
 	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
-	return STPIO_GET_PIN(ST40_PIO_BASE(port), pin);
+	return STPIO_GET_PIN(STM_PIO_BASE(port), pin);
 }
 #endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C) */
 

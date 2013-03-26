@@ -43,7 +43,7 @@ extern int ehci_hcd_init(void)
 	/*
 	 * First, we call the board- and CPU-specific initialization functions,
 	 * which will enable the controller, and configure all the USB PIOs.
-	 * We will also call the function ST40_start_host_control(),
+	 * We will also call the function STM_start_host_control(),
 	 * which configures the AMBA interface for the IP block.
 	 */
 	usb_cpu_init();
