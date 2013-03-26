@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2008-2012
+ * Copyright (C) STMicroelectronics Ltd. 2008-2013
  *
  * All rights reserved.
  */
@@ -14,16 +14,6 @@
 #define __ARCH_ST40_INCLUDE_ASM_STX5206REG_H
 
 #include "sh4regtype.h"
-
-/*----------------------------------------------------------------------------*/
-
-/*
- * Peripheral versions
- */
-
-#ifndef ST40_LMIGP_VERSION
-#define ST40_LMIGP_VERSION 1
-#endif
 
 /*----------------------------------------------------------------------------*/
 
