@@ -1,7 +1,7 @@
 /*
  * Synopsis : Error Correction Codes (ECC) Algorithms.
  *
- * Copyright (c) 2008-2011 STMicroelectronics Limited.  All right reserved.
+ * Copyright (c) 2008-2013 STMicroelectronics Limited.  All right reserved.
  *
  * See ecc.h for a description of this module.
  *
@@ -25,9 +25,6 @@
  */
 
 #include <common.h>
-
-#if defined(CONFIG_CMD_NAND)
-
 #include <asm/ecc.h>
 
 
@@ -485,4 +482,3 @@ int main()
 }
 #endif	/* TESTING */
 #endif	/* CONFIG_SYS_NAND_ECC_HW3_128 || CONFIG_SYS_NAND_ECC_AFM4 */
-#endif	/* CONFIG_CMD_NAND */

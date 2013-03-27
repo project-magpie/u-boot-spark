@@ -14,11 +14,6 @@
  */
 
 #include <common.h>
-
-
-#if defined(CONFIG_STM_SATA)
-
-
 #include <asm/errno.h>
 #include <asm/st40reg.h>
 #include <asm/io.h>
@@ -179,8 +174,3 @@ extern int stm_sata_probe(void)
 
 	return 0;			/* Okay */
 }
-
-
-#endif	/* CONFIG_STM_SATA */
-
-

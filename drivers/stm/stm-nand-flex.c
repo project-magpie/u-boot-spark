@@ -22,9 +22,6 @@
 
 #include <common.h>
 #include <malloc.h>
-
-#if defined(CONFIG_CMD_NAND) && defined(CONFIG_SYS_STM_NAND_USE_HAMMING)
-
 #include <nand.h>
 #include <asm/stm-nand.h>
 #include <asm/ecc.h>
@@ -649,6 +646,3 @@ extern void stm_flex_init_nand(
 	nand->read_buf    = stm_flex_read_buf;
 	nand->write_buf   = stm_flex_write_buf;
 }
-
-
-#endif	/* CONFIG_CMD_NAND && CONFIG_SYS_STM_NAND_USE_HAMMING */

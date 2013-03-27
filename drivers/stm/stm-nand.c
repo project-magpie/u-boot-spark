@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2013 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -22,10 +22,6 @@
 
 #include <common.h>
 #include <malloc.h>
-
-
-#if defined(CONFIG_CMD_NAND)
-
 #include <nand.h>
 #include <asm/stm-nand.h>
 #include <asm/ecc.h>
@@ -1004,6 +1000,3 @@ extern void stm_nand_scan_post_tail(
 	}
 #endif /* CONFIG_SYS_STM_NAND_USE_BCH */
 }
-
-
-#endif	/* CONFIG_CMD_NAND */

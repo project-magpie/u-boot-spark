@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2012 STMicroelectronics.
+ * (C) Copyright 2010-2013 STMicroelectronics.
  *
  * Angus Clark   <Angus.Clark@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -31,12 +31,6 @@
 #include <asm/clk.h>
 #include <asm/spi-commands.h>
 #include "stm_spi_fsm.h"
-
-
-/**********************************************************************/
-
-
-#if defined(CONFIG_STM_FSM_SPI)
 
 
 /**********************************************************************/
@@ -911,11 +905,3 @@ extern void fsm_write_dyb_access(
 	return;
 }
 #endif	/* CONFIG_SPI_FLASH_SPANSION */
-
-
-/**********************************************************************/
-
-
-#endif	/* defined(CONFIG_STM_FSM_SPI) */
-
-

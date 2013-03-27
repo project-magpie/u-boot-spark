@@ -27,7 +27,7 @@
 #include <common.h>
 #include <command.h>
 #include <asm/soc.h>
-#include <asm/stxh415reg.h>
+#include <asm/stxh416reg.h>
 #include <asm/io.h>
 #include <asm/pio.h>
 #include <asm/stbus.h>
@@ -62,16 +62,16 @@ volatile int debug_pad_configs = 0;
 #endif
 
 	/*
-	 * The STxH415 is only supported in 32-bit (SE) mode,
+	 * The ST40 in the STxH416 is only supported in 32-bit (SE) mode,
 	 * and is not supported in 29-bit (legacy) mode.
 	 * We refuse to build, if this assertion is invalid.
 	 */
-#if !defined(CONFIG_ST40_SE_MODE)
+#if defined(CONFIG_ST40) && !defined(CONFIG_ST40_SE_MODE)
 #error This SoC is not supported in 29-bit mode, please enable SE-mode!
-#endif	/* !CONFIG_ST40_SE_MODE */
+#endif	/* CONFIG_ST40 && !CONFIG_ST40_SE_MODE */
 
 
-static void stxh415_clocks(void)
+static void stxh416_clocks(void)
 {
 	bd_t * const bd = gd->bd;
 
@@ -84,7 +84,7 @@ static void stxh415_clocks(void)
 	 * Note: for the ASC in the SBC, we expect this will always be 30MHz,
 	 *       otherwise we expect the ASC to be 100MHz.
 	 */
-#if (CONFIG_SYS_STM_ASC_BASE==STXH415_SBC_ASC0_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH415_SBC_ASC1_BASE)
+#if (CONFIG_SYS_STM_ASC_BASE==STXH416_SBC_ASC0_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH416_SBC_ASC1_BASE)
 	bd->bi_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
 #else
 	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
@@ -97,7 +97,7 @@ static void stxh415_clocks(void)
 /*
  * PIO alternative Function selector
  */
-extern void stxh415_pioalt_select(const int port, const int pin, const int alt)
+extern void stxh416_pioalt_select(int port, const int pin, const int alt)
 {
 	unsigned long sysconf, *sysconfReg;
 
@@ -110,16 +110,18 @@ extern void stxh415_pioalt_select(const int port, const int pin, const int alt)
 
 	switch (port)
 	{
+	case 40:		/* in the "SBC Bank", port #40 is logically port #5 */
+		port = 5;	/* fallthru */
 	case 0 ... 4:		/* in "SBC Bank" */
-		sysconfReg = (unsigned long*)STXH415_SYSCFG(0);
+		sysconfReg = (unsigned long*)STXH416_SYSCFG(0);
 		sysconfReg += port;
 		break;
 	case 5 ... 12:		/* in "FRONT Bank" */
-		sysconfReg = (unsigned long*)STXH415_SYSCFG(100);
+		sysconfReg = (unsigned long*)STXH416_SYSCFG(1000);
 		sysconfReg += port - 5;
 		break;
 	case 13 ... 18:		/* in "REAR Bank" */
-		sysconfReg = (unsigned long*)STXH415_SYSCFG(300);
+		sysconfReg = (unsigned long*)STXH416_SYSCFG(2000);
 		sysconfReg += port - 13;
 		break;
 	default:
@@ -142,7 +144,7 @@ extern void stxh415_pioalt_select(const int port, const int pin, const int alt)
 
 /* Pad configuration */
 
-extern void stxh415_pioalt_pad(int port, const int pin,
+extern void stxh416_pioalt_pad(int port, const int pin,
 		const enum stm_pad_gpio_direction direction)
 {
 	int bit;
@@ -175,18 +177,20 @@ extern void stxh415_pioalt_pad(int port, const int pin,
 
 	switch (port)
 	{
+	case 40:		/* in the "SBC Bank", port #40 is logically port #5 */
+		port = 5;	/* fallthru */
 	case 0 ... 4:		/* in "SBC Bank" */
-		sysconfReg = (unsigned long*)STXH415_SYSCFG(5);
+		sysconfReg = (unsigned long*)STXH416_SYSCFG(40);
 		sysconfReg += port / 4;
 		break;
 	case 5 ... 12:		/* in "FRONT Bank" */
 		port -= 5;
-		sysconfReg = (unsigned long*)STXH415_SYSCFG(108);
+		sysconfReg = (unsigned long*)STXH416_SYSCFG(1040);
 		sysconfReg += port / 4;
 		break;
 	case 13 ... 18:		/* in "REAR Bank" */
 		port -= 13;
-		sysconfReg = (unsigned long*)STXH415_SYSCFG(306);
+		sysconfReg = (unsigned long*)STXH416_SYSCFG(2040);
 		sysconfReg += port / 4;
 		break;
 	default:
@@ -209,7 +213,7 @@ extern void stxh415_pioalt_pad(int port, const int pin,
 		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 
-	sysconfReg += 2;	/* skip to next set of syscfg registers */
+	sysconfReg += 10;	/* skip to next set of syscfg registers */
 
 		/* set the "Pull Up" pad control */
 #ifdef DEBUG_PAD_CONFIGS
@@ -224,7 +228,7 @@ extern void stxh415_pioalt_pad(int port, const int pin,
 		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 
-	sysconfReg += 2;	/* skip to next set of syscfg registers */
+	sysconfReg += 10;	/* skip to next set of syscfg registers */
 
 		/* set the "Open Drain Enable" pad control */
 #ifdef DEBUG_PAD_CONFIGS
@@ -244,19 +248,27 @@ extern void stxh415_pioalt_pad(int port, const int pin,
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 
-extern void stxh415_pioalt_retime(const int port, const int pin,
-		const struct stm_pio_control_retime_config * const cfg)
+extern void stxh416_pioalt_retime(int port, const int pin,
+		const struct stm_pio_control_retime_config * const cfg,
+		const enum stm_pad_gpio_direction direction)
 {
 	unsigned long sysconf, *sysconfReg;
+	unsigned innotout = 0;
 
 #ifdef DEBUG_PAD_CONFIGS
 	BUG_ON(!cfg);
 	if (debug_pad_configs)
 		printf("%s(port=%d, pin=%d, retime=%d, clk=%d, "
 				"clknotdata=%d, double_edge=%d, invertclk=%d, "
-				"delay=%d)\n", __func__, port, pin,
+				"delay=%d, direction=%s)\n", __func__, port, pin,
 				cfg->retime, cfg->clk, cfg->clknotdata,
-				cfg->double_edge, cfg->invertclk, cfg->delay
+				cfg->double_edge, cfg->invertclk, cfg->delay,
+				(direction==stm_pad_direction_input) ? "in" :
+					(direction==stm_pad_direction_input_with_pullup) ? "in+pu" :
+					(direction==stm_pad_direction_output) ? "out" :
+					(direction==stm_pad_direction_bidir_no_pullup) ? "bidir" :
+					(direction==stm_pad_direction_ignored) ? "ignore" :
+					"BAD-BAD"
 				);
 	BUG_ON(pin < 0 || pin > 7);
 	BUG_ON(cfg->retime < 0);	/* the "don't care" semantic is deprecated */
@@ -267,71 +279,81 @@ extern void stxh415_pioalt_retime(const int port, const int pin,
 	BUG_ON(cfg->delay < 0);		/* the "don't care" semantic is deprecated */
 #endif
 
+	switch (direction)
+	{
+	case stm_pad_direction_input:
+	case stm_pad_direction_input_with_pullup:
+		innotout = 1;
+		break;
+	case stm_pad_direction_output:
+	case stm_pad_direction_bidir_no_pullup:
+		innotout = 0;
+		break;
+	default:
+		BUG();
+		break;
+	}
+
 	switch (port)
 	{
+	case 40:		/* in the "SBC Bank", port #40 is logically port #5 */
+		port = 5;	/* fallthru */
 	case 0 ... 4:		/* in "SBC Bank" */
-		sysconfReg = (unsigned long*)STXH415_SYSCFG(16);
-		sysconfReg += (port-0) * 2;
+		sysconfReg = (unsigned long*)STXH416_SYSCFG(100);
+		sysconfReg += (port-0) * 8;
 		break;
 	case 5 ... 12:		/* in "FRONT Bank" */
-		sysconfReg = (unsigned long*)STXH415_SYSCFG(116);
-		sysconfReg += (port-5) * 2;
+		sysconfReg = (unsigned long*)STXH416_SYSCFG(1100);
+		sysconfReg += (port-5) * 8;
 		break;
 	case 13 ... 18:		/* in "REAR Bank" */
-		sysconfReg = (unsigned long*)STXH415_SYSCFG(338);
-		sysconfReg += (port-13) * 2;
+		sysconfReg = (unsigned long*)STXH416_SYSCFG(2100);
+		sysconfReg += (port-13) * 8;
 		break;
 	default:
 		BUG();
 		return;
 	}
 
-	sysconfReg += 0;	/* use retime configuration register #0 */
+	sysconfReg += pin;
+
+	/* read the "old" value from the system configuration register */
+	sysconf = readl(sysconfReg);
 
 	if (cfg->clk >= 0)
-	{
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->clk, 0 + pin);
-		writel(sysconf, sysconfReg);
-	}
-
-	if (cfg->delay >= 0)
-	{			/* map value to 2 adjacent bitfields */
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, (cfg->delay >> 0) & 0x1, 16 + pin);
-		SET_SYSCONF_BIT(sysconf, (cfg->delay >> 1) & 0x1, 24 + pin);
-		writel(sysconf, sysconfReg);
-	}
-
-	sysconfReg += 1;	/* use retime configuration register #1 */
-
-	if (cfg->invertclk >= 0)
-	{
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->invertclk, 0 + pin);
-		writel(sysconf, sysconfReg);
-	}
-
-	if (cfg->retime >= 0)
-	{
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->retime, 8 + pin);
-		writel(sysconf, sysconfReg);
+	{			/* map value to 2 adjacent bits */
+		SET_SYSCONF_BITS(sysconf, TRUE, 0,1, cfg->clk,cfg->clk);
 	}
 
 	if (cfg->clknotdata >= 0)
 	{
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->clknotdata, 16 + pin);
-		writel(sysconf, sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->clknotdata, 2);
 	}
+
+	if (cfg->delay >= 0)
+	{			/* map value to 4 adjacent bits */
+		SET_SYSCONF_BITS(sysconf, TRUE, 3,6, cfg->delay,cfg->delay);
+	}
+
+	SET_SYSCONF_BIT(sysconf, innotout, 7);
 
 	if (cfg->double_edge >= 0)
 	{
-		sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, cfg->double_edge, 24 + pin);
-		writel(sysconf, sysconfReg);
+		SET_SYSCONF_BIT(sysconf, cfg->double_edge, 8);
 	}
+
+	if (cfg->invertclk >= 0)
+	{
+		SET_SYSCONF_BIT(sysconf, cfg->invertclk, 9);
+	}
+
+	if (cfg->retime >= 0)
+	{
+		SET_SYSCONF_BIT(sysconf, cfg->retime, 10);
+	}
+
+	/* write the "new" value to the system configuration register */
+	writel(sysconf, sysconfReg);
 }
 
 
@@ -340,7 +362,7 @@ extern void stxh415_pioalt_retime(const int port, const int pin,
  * --------------------------------------------------------------------*/
 
 
-#define SYSCONF(_reg)	((unsigned long*)STXH415_SYSCFG(_reg))
+#define SYSCONF(_reg)	((unsigned long*)STXH416_SYSCFG(_reg))
 
 
 #define DATA_IN(_port, _pin, _func, _retiming) \
@@ -404,7 +426,7 @@ extern void stxh415_pioalt_retime(const int port, const int pin,
 
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stxh415_ethernet_mii_pad_configs[] = {
+static struct stm_gmac_pin stxh416_ethernet_mii_pad_configs[] = {
 			DATA_OUT(14, 0, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(14, 1, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(14, 2, 2, RET_SE_NICLK_IO(0, 1)),/* TXD[2] */
@@ -426,20 +448,20 @@ static struct stm_gmac_pin stxh415_ethernet_mii_pad_configs[] = {
 			CLOCK_IN(17, 0, 2, RET_NICLK(0)),/* RXCLK */
 			PHY_CLOCK(13, 5, 2, RET_NICLK(1)),/* PHYCLK */
 };
-static struct stm_pad_sysconf stxh415_ethernet_mii_pad_sysconfs[] = {
+static struct stm_pad_sysconf stxh416_ethernet_mii_pad_sysconfs[] = {
 			/* ETH0_GMAC_EN */
-			STM_PAD_SYSCONF(SYSCONF(166), 0, 0, 1),
+			STM_PAD_SYSCONF(SYSCONF(1539), 0, 0, 1),
 			/* MIIx_PHY_SEL */
-			STM_PAD_SYSCONF(SYSCONF(382), 2, 4, 0),
+			STM_PAD_SYSCONF(SYSCONF(2559), 2, 4, 0),
 			/* ENMIIx */
-			STM_PAD_SYSCONF(SYSCONF(382), 5, 5, 1),
+			STM_PAD_SYSCONF(SYSCONF(2559), 5, 5, 1),
 			/* TXCLK_NOT_CLK125 */
-			STM_PAD_SYSCONF(SYSCONF(382), 6, 6, 1),
+			STM_PAD_SYSCONF(SYSCONF(2559), 6, 6, 1),
 			/* TX_RETIMING_CLK */
-			STM_PAD_SYSCONF(SYSCONF(382), 8, 8, 0),
+			STM_PAD_SYSCONF(SYSCONF(2559), 8, 8, 0),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stxh415_ethernet_mii_pad_configs[] = {
+static struct stm_gmac_pin stxh416_ethernet_mii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[2] */
@@ -461,23 +483,23 @@ static struct stm_gmac_pin stxh415_ethernet_mii_pad_configs[] = {
 			CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
 			PHY_CLOCK(2, 3, 1, RET_NICLK(1)),/* PHYCLK */
 };
-static struct stm_pad_sysconf stxh415_ethernet_mii_pad_sysconfs[] = {
+static struct stm_pad_sysconf stxh416_ethernet_mii_pad_sysconfs[] = {
 			/* EN_GMAC1 */
-			STM_PAD_SYSCONF(SYSCONF(31), 0, 0, 1),
+			STM_PAD_SYSCONF(SYSCONF(510), 0, 0, 1),
 			/* MIIx_PHY_SEL */
-			STM_PAD_SYSCONF(SYSCONF(29), 2, 4, 0),
+			STM_PAD_SYSCONF(SYSCONF(508), 2, 4, 0),
 			/* ENMIIx */
-			STM_PAD_SYSCONF(SYSCONF(29), 5, 5, 1),
+			STM_PAD_SYSCONF(SYSCONF(508), 5, 5, 1),
 			/* TXCLK_NOT_CLK125 */
-			STM_PAD_SYSCONF(SYSCONF(29), 6, 6, 1),
+			STM_PAD_SYSCONF(SYSCONF(508), 6, 6, 1),
 			/* TX_RETIMING_CLK */
-			STM_PAD_SYSCONF(SYSCONF(29), 8, 8, 0),
+			STM_PAD_SYSCONF(SYSCONF(508), 8, 8, 0),
 };
 #endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 
 #if 0
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
+static struct stm_gmac_pin stxh416_ethernet_gmii_pad_configs[] = {
 			PHY_CLOCK(13, 5, 4, RET_NICLK(1)),/* GTXCLK */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(13, 7, 2, RET_SE_NICLK_IO(3, 0)),/* TXEN */
@@ -508,20 +530,20 @@ static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
 			CLOCK_IN(17, 0, 2, RET_NICLK(0)),/* RXCLK */
 			CLOCK_IN(17, 6, 1, RET_NICLK(0)),/* 125MHZ i/p clk */
 };
-static struct stm_pad_sysconf stxh415_ethernet_gmii_pad_sysconfs[] = {
+static struct stm_pad_sysconf stxh416_ethernet_gmii_pad_sysconfs[] = {
 			/* EN_GMAC0 */
-			STM_PAD_SYSCONF(SYSCONF(166), 0, 0, 1),
+			STM_PAD_SYSCONF(SYSCONF(1539), 0, 0, 1),
 			/* MIIx_PHY_SEL */
-			STM_PAD_SYSCONF(SYSCONF(382), 2, 4, 0),
+			STM_PAD_SYSCONF(SYSCONF(2559), 2, 4, 0),
 			/* ENMIIx */
-			STM_PAD_SYSCONF(SYSCONF(382), 5, 5, 1),
+			STM_PAD_SYSCONF(SYSCONF(2559), 5, 5, 1),
 			/* TXCLK_NOT_CLK125 */
-			STM_PAD_SYSCONF(SYSCONF(382), 6, 6, 0),
+			STM_PAD_SYSCONF(SYSCONF(2559), 6, 6, 0),
 			/* TX_RETIMING_CLK */
-			STM_PAD_SYSCONF(SYSCONF(382), 8, 8, 0),
+			STM_PAD_SYSCONF(SYSCONF(2559), 8, 8, 0),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
+static struct stm_gmac_pin stxh416_ethernet_gmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[2] */
@@ -552,23 +574,23 @@ static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
 			DATA_OUT(4, 1, 4, RET_SE_NICLK_IO(3, 1)),/* TXD[6] */
 			DATA_OUT(4, 2, 4, RET_SE_NICLK_IO(3, 1)),/* TXD[7] */
 };
-static struct stm_pad_sysconf stxh415_ethernet_gmii_pad_sysconfs[] = {
+static struct stm_pad_sysconf stxh416_ethernet_gmii_pad_sysconfs[] = {
 			/* EN_GMAC1 */
-			STM_PAD_SYSCONF(SYSCONF(31), 0, 0, 1),
+			STM_PAD_SYSCONF(SYSCONF(510), 0, 0, 1),
 			/* MIIx_PHY_SEL */
-			STM_PAD_SYSCONF(SYSCONF(29), 2, 4, 0),
+			STM_PAD_SYSCONF(SYSCONF(508), 2, 4, 0),
 			/* ENMIIx */
-			STM_PAD_SYSCONF(SYSCONF(29), 5, 5, 1),
+			STM_PAD_SYSCONF(SYSCONF(508), 5, 5, 1),
 			/* TXCLK_NOT_CLK125 */
-			STM_PAD_SYSCONF(SYSCONF(29), 6, 6, 0),
+			STM_PAD_SYSCONF(SYSCONF(508), 6, 6, 0),
 			/* TX_RETIMING_CLK */
-			STM_PAD_SYSCONF(SYSCONF(29), 8, 8, 0),
+			STM_PAD_SYSCONF(SYSCONF(508), 8, 8, 0),
 };
 #endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 #endif	/* 0 */
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
+static struct stm_gmac_pin stxh416_ethernet_rgmii_pad_configs[] = {
 			PHY_CLOCK(13, 5, 2, RET_NICLK(1)),/* GTXCLK */
 			DATA_OUT(13, 7, 2, RET_DE_IO(0, 0)),/* TXEN */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)), /* MDINT */
@@ -588,17 +610,17 @@ static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
 			CLOCK_IN(17, 0, 2, RET_NICLK(0)),/* RXCLK */
 			CLOCK_IN(17, 6, 1, RET_NICLK(0)),/* 125MHZ i/p clk */
 };
-static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
+static struct stm_pad_sysconf stxh416_ethernet_rgmii_pad_sysconfs[] = {
 			/* EN_GMAC0 */
-			STM_PAD_SYSCONF(SYSCONF(166), 0, 0, 1),
+			STM_PAD_SYSCONF(SYSCONF(1539), 0, 0, 1),
 			/* MIIx_PHY_SEL */
-			STM_PAD_SYSCONF(SYSCONF(382), 2, 4, 1),
+			STM_PAD_SYSCONF(SYSCONF(2559), 2, 4, 1),
 			/* ENMIIx */
-			STM_PAD_SYSCONF(SYSCONF(382), 5, 5, 1),
+			STM_PAD_SYSCONF(SYSCONF(2559), 5, 5, 1),
 			/* Extra retime config base on speed */
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
+static struct stm_gmac_pin stxh416_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_DE_IO(1, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_DE_IO(1, 0)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_DE_IO(1, 0)),/* TXD[2] */
@@ -616,20 +638,20 @@ static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
 			PHY_CLOCK(2, 3, 4, RET_NICLK(1)), /* GTXCLK */
 			CLOCK_IN(3, 7, 4, RET_NICLK(0)),/* 125MHZ input clock */
 };
-static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
+static struct stm_pad_sysconf stxh416_ethernet_rgmii_pad_sysconfs[] = {
 			/* EN_GMAC1 */
-			STM_PAD_SYSCONF(SYSCONF(31), 0, 0, 1),
+			STM_PAD_SYSCONF(SYSCONF(510), 0, 0, 1),
 			/* MIIx_PHY_SEL */
-			STM_PAD_SYSCONF(SYSCONF(29), 2, 4, 1),
+			STM_PAD_SYSCONF(SYSCONF(508), 2, 4, 1),
 			/* ENMIIx */
-			STM_PAD_SYSCONF(SYSCONF(29), 5, 5, 1),
+			STM_PAD_SYSCONF(SYSCONF(508), 5, 5, 1),
 			/* TXCLK_NOT_CLK125 */
-			STM_PAD_SYSCONF(SYSCONF(29), 6, 8, 0),
+			STM_PAD_SYSCONF(SYSCONF(508), 6, 8, 0),
 };
 #endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stxh415_ethernet_rmii_pad_configs[] = {
+static struct stm_gmac_pin stxh416_ethernet_rmii_pad_configs[] = {
 			PHY_CLOCK(13, 5, 2, RET_NICLK(1)),/* PHYCLK */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(13, 7, 2, RET_SE_NICLK_IO(0, 0)),/* TXEN */
@@ -645,20 +667,20 @@ static struct stm_gmac_pin stxh415_ethernet_rmii_pad_configs[] = {
 			DATA_IN(16, 0, 2, RET_SE_NICLK_IO(0, 1)),/* RXD.0 */
 			DATA_IN(16, 1, 2, RET_SE_NICLK_IO(0, 1)),/* RXD.1 */
 };
-static struct stm_pad_sysconf stxh415_ethernet_rmii_pad_sysconfs[] = {
+static struct stm_pad_sysconf stxh416_ethernet_rmii_pad_sysconfs[] = {
 			/* EN_GMAC0 */
-			STM_PAD_SYSCONF(SYSCONF(166), 0, 0, 1),
+			STM_PAD_SYSCONF(SYSCONF(1539), 0, 0, 1),
 			/* MIIx_PHY_SEL */
-			STM_PAD_SYSCONF(SYSCONF(382), 2, 4, 4),
+			STM_PAD_SYSCONF(SYSCONF(2559), 2, 4, 4),
 			/* ENMIIx */
-			STM_PAD_SYSCONF(SYSCONF(382), 5, 5, 1),
+			STM_PAD_SYSCONF(SYSCONF(2559), 5, 5, 1),
 			/* ETH0_SEL_INTERNAL_NOT_EXT_PHYCLK */
-			STM_PAD_SYSCONF(SYSCONF(382), 7, 7, 1),
+			STM_PAD_SYSCONF(SYSCONF(2559), 7, 7, 1),
 			/* TX_RETIMING_CLK */
-			STM_PAD_SYSCONF(SYSCONF(382), 8, 8, 1),
+			STM_PAD_SYSCONF(SYSCONF(2559), 8, 8, 1),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stxh415_ethernet_rmii_pad_configs[] = {
+static struct stm_gmac_pin stxh416_ethernet_rmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 5, 1, RET_SE_NICLK_IO(0, 0)),/* TXEN */
@@ -671,23 +693,23 @@ static struct stm_gmac_pin stxh415_ethernet_rmii_pad_configs[] = {
 			DATA_IN(2, 1, 1, RET_SE_NICLK_IO(2, 0)),/* RX_ER */
 			PHY_CLOCK(2, 3, 1, RET_NICLK(1)),/* PHYCLK */
 };
-static struct stm_pad_sysconf stxh415_ethernet_rmii_pad_sysconfs[] = {
+static struct stm_pad_sysconf stxh416_ethernet_rmii_pad_sysconfs[] = {
 			/* EN_GMAC1 */
-			STM_PAD_SYSCONF(SYSCONF(31), 0, 0, 1),
+			STM_PAD_SYSCONF(SYSCONF(510), 0, 0, 1),
 			/* MIIx_PHY_SEL */
-			STM_PAD_SYSCONF(SYSCONF(29), 2, 4, 4),
+			STM_PAD_SYSCONF(SYSCONF(508), 2, 4, 4),
 			/* ENMIIx */
-			STM_PAD_SYSCONF(SYSCONF(29), 5, 5, 1),
+			STM_PAD_SYSCONF(SYSCONF(508), 5, 5, 1),
 			/* ETH1_SEL_INTERNAL_NOT_EXT_PHYCLK */
-			STM_PAD_SYSCONF(SYSCONF(29), 7, 7, 1),
+			STM_PAD_SYSCONF(SYSCONF(508), 7, 7, 1),
 			/* TX_RETIMING_CLK */
-			STM_PAD_SYSCONF(SYSCONF(29), 8, 8, 1),
+			STM_PAD_SYSCONF(SYSCONF(508), 8, 8, 1),
 };
 #endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 
 #if 0
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stxh415_ethernet_reverse_mii_pad_configs[] = {
+static struct stm_gmac_pin stxh416_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(14, 0, 2, RET_BYPASS(0)),/* TXD[0] */
 			DATA_OUT(14, 1, 2, RET_BYPASS(0)),/* TXD[1] */
 			DATA_OUT(14, 2, 2, RET_BYPASS(0)),/* TXD[2] */
@@ -709,20 +731,20 @@ static struct stm_gmac_pin stxh415_ethernet_reverse_mii_pad_configs[] = {
 			CLOCK_IN(17, 0, 2, RET_NICLK(0)),/* RXCLK */
 			PHY_CLOCK(13, 5, 2, RET_NICLK(0)),/* PHYCLK */
 };
-static struct stm_pad_sysconf stxh415_ethernet_reverse_mii_pad_sysconfs[] = {
+static struct stm_pad_sysconf stxh416_ethernet_reverse_mii_pad_sysconfs[] = {
 			/* EN_GMAC0 */
-			STM_PAD_SYSCONF(SYSCONF(166), 0, 0, 1),
+			STM_PAD_SYSCONF(SYSCONF(1539), 0, 0, 1),
 			/* MIIx_PHY_SEL */
-			STM_PAD_SYSCONF(SYSCONF(382), 2, 4, 0),
+			STM_PAD_SYSCONF(SYSCONF(2559), 2, 4, 0),
 			/* ENMIIx */
-			STM_PAD_SYSCONF(SYSCONF(382), 5, 5, 0),
+			STM_PAD_SYSCONF(SYSCONF(2559), 5, 5, 0),
 			/* TXCLK_NOT_CLK125 */
-			STM_PAD_SYSCONF(SYSCONF(382), 6, 6, 1),
+			STM_PAD_SYSCONF(SYSCONF(2559), 6, 6, 1),
 			/* TX_RETIMING_CLK */
-			STM_PAD_SYSCONF(SYSCONF(382), 8, 8, 0),
+			STM_PAD_SYSCONF(SYSCONF(2559), 8, 8, 0),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stxh415_ethernet_reverse_mii_pad_configs[] = {
+static struct stm_gmac_pin stxh416_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[2] */
@@ -744,17 +766,17 @@ static struct stm_gmac_pin stxh415_ethernet_reverse_mii_pad_configs[] = {
 			DATA_IN(1, 6, 1, RET_SE_NICLK_IO(2, 1)),/* RXD[2] */
 			DATA_IN(1, 7, 1, RET_SE_NICLK_IO(2, 1)),/* RXD[3] */
 };
-static struct stm_pad_sysconf stxh415_ethernet_reverse_mii_pad_sysconfs[] = {
+static struct stm_pad_sysconf stxh416_ethernet_reverse_mii_pad_sysconfs[] = {
 			/* EN_GMAC1 */
-			STM_PAD_SYSCONF(SYSCONF(31), 0, 0, 1),
+			STM_PAD_SYSCONF(SYSCONF(510), 0, 0, 1),
 			/* MIIx_PHY_SEL */
-			STM_PAD_SYSCONF(SYSCONF(29), 2, 4, 0),
+			STM_PAD_SYSCONF(SYSCONF(508), 2, 4, 0),
 			/* ENMIIx */
-			STM_PAD_SYSCONF(SYSCONF(29), 5, 5, 1),
+			STM_PAD_SYSCONF(SYSCONF(508), 5, 5, 1),
 			/* TXCLK_NOT_CLK125 */
-			STM_PAD_SYSCONF(SYSCONF(29), 6, 6, 1),
+			STM_PAD_SYSCONF(SYSCONF(508), 6, 6, 1),
 			/* TX_RETIMING_CLK */
-			STM_PAD_SYSCONF(SYSCONF(29), 8, 8, 0),
+			STM_PAD_SYSCONF(SYSCONF(508), 8, 8, 0),
 };
 #endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 #endif	/* 0 */
@@ -772,7 +794,7 @@ extern int stmac_default_pbl(void)
 }
 
 #define GMAC_AHB_CONFIG		0x2000
-static void stxh415_ethernet_bus_setup(void)
+static void stxh416_ethernet_bus_setup(void)
 {
 	/* Configure the bridge to generate more efficient STBus traffic.
 	 *
@@ -782,10 +804,11 @@ static void stxh415_ethernet_bus_setup(void)
 	writel(0x00264207, CONFIG_SYS_STM_STMAC_BASE + GMAC_AHB_CONFIG);
 }
 
+
 /* ETH MAC pad configuration */
-extern void stxh415_configure_ethernet(
+extern void stxh416_configure_ethernet(
 	const int port,
-	const struct stxh415_ethernet_config * const config)
+	const struct stxh416_ethernet_config * const config)
 {
 	struct stm_gmac_pin * pad_config;
 	struct stm_gmac_pin * phy_clock;
@@ -803,11 +826,11 @@ extern void stxh415_configure_ethernet(
 
 	switch (config->mode) {
 
-	case stxh415_ethernet_mode_mii:
-		pad_config = stxh415_ethernet_mii_pad_configs;
-		num_pads = ARRAY_SIZE(stxh415_ethernet_mii_pad_configs);
-		sys_configs = stxh415_ethernet_mii_pad_sysconfs;
-		num_sys = ARRAY_SIZE(stxh415_ethernet_mii_pad_sysconfs);
+	case stxh416_ethernet_mode_mii:
+		pad_config = stxh416_ethernet_mii_pad_configs;
+		num_pads = ARRAY_SIZE(stxh416_ethernet_mii_pad_configs);
+		sys_configs = stxh416_ethernet_mii_pad_sysconfs;
+		num_sys = ARRAY_SIZE(stxh416_ethernet_mii_pad_sysconfs);
 		phy_clock = stm_gmac_find_phy_clock(pad_config, num_pads);
 		if (config->ext_clk)
 			stm_pad_set_pio_ignored(phy_clock);
@@ -815,11 +838,11 @@ extern void stxh415_configure_ethernet(
 			stm_pad_set_pio_out(phy_clock, 2 - port);
 		break;
 
-	case stxh415_ethernet_mode_rmii:  {
-		pad_config = stxh415_ethernet_rmii_pad_configs;
-		num_pads = ARRAY_SIZE(stxh415_ethernet_rmii_pad_configs);
-		sys_configs = stxh415_ethernet_rmii_pad_sysconfs;
-		num_sys = ARRAY_SIZE(stxh415_ethernet_rmii_pad_sysconfs);
+	case stxh416_ethernet_mode_rmii:  {
+		pad_config = stxh416_ethernet_rmii_pad_configs;
+		num_pads = ARRAY_SIZE(stxh416_ethernet_rmii_pad_configs);
+		sys_configs = stxh416_ethernet_rmii_pad_sysconfs;
+		num_sys = ARRAY_SIZE(stxh416_ethernet_rmii_pad_sysconfs);
 
 		/* we assume we *always* use the internal clock for RMII! */
 		BUG_ON(config->ext_clk!= 0);
@@ -834,34 +857,34 @@ extern void stxh415_configure_ethernet(
 		stm_pad_set_pio_out(phy_clock, 2 - port);
 	} break;
 
-	case stxh415_ethernet_mode_rgmii:
+	case stxh416_ethernet_mode_rgmii:
 		/* This mode is similar to GMII (GTX) except the data
 		 * buses are reduced down to 4 bits and the 2 error
 		 * signals are removed. The data rate is maintained by
 		 * using both edges of the clock. This also explains
 		 * the different retiming configuration for this mode.
 		 */
-		pad_config = stxh415_ethernet_rgmii_pad_configs;
-		num_pads = ARRAY_SIZE(stxh415_ethernet_rgmii_pad_configs);
-		sys_configs = stxh415_ethernet_rgmii_pad_sysconfs;
-		num_sys = ARRAY_SIZE(stxh415_ethernet_rgmii_pad_sysconfs);
+		pad_config = stxh416_ethernet_rgmii_pad_configs;
+		num_pads = ARRAY_SIZE(stxh416_ethernet_rgmii_pad_configs);
+		sys_configs = stxh416_ethernet_rgmii_pad_sysconfs;
+		num_sys = ARRAY_SIZE(stxh416_ethernet_rgmii_pad_sysconfs);
 		phy_clock = stm_gmac_find_phy_clock(pad_config, num_pads);
 		stm_pad_set_pio_out(phy_clock, 4);
 		break;
 
-	case stxh415_ethernet_mode_reverse_mii:
+	case stxh416_ethernet_mode_reverse_mii:
 		BUG();		/* assume not required in U-Boot */
 		return;
 
-	case stxh415_ethernet_mode_gmii:
+	case stxh416_ethernet_mode_gmii:
 		BUG();		/* assume not required in U-Boot */
 		return;
 
-	case stxh415_ethernet_mode_gmii_gtx:
+	case stxh416_ethernet_mode_gmii_gtx:
 		BUG();		/* assume not required in U-Boot */
 		return;
 
-	case stxh415_ethernet_mode_rgmii_gtx:
+	case stxh416_ethernet_mode_rgmii_gtx:
 		BUG();		/* assume not required in U-Boot */
 		return;
 
@@ -896,16 +919,16 @@ extern void stxh415_configure_ethernet(
 		if (pad->direction == stm_pad_direction_ignored)
 			continue;	/* skip all "ignored" pads */
 
-		stxh415_pioalt_select(portno, pinno, pad->pio.alt);
-		stxh415_pioalt_pad(portno, pinno, pad->direction);
-		stxh415_pioalt_retime(portno, pinno, pad->retime);
+		stxh416_pioalt_select(portno, pinno, pad->pio.alt);
+		stxh416_pioalt_pad(portno, pinno, pad->direction);
+		stxh416_pioalt_retime(portno, pinno, pad->retime, pad->direction);
 	}
 
 		/* now configure the relevant SYS_CONFIGs */
 	stm_configure_sysconfs(sys_configs, num_sys);
 
 		/* need to do this *after* the SYSCONF initialization! */
-	stxh415_ethernet_bus_setup();
+	stxh416_ethernet_bus_setup();
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
@@ -914,9 +937,9 @@ extern int soc_init(void)
 {
 	bd_t * const bd = gd->bd;
 
-	stxh415_clocks();
+	stxh416_clocks();
 
-	bd->bi_devid = *STXH415_SYSCONF_DEVICEID;
+	bd->bi_devid = *STXH416_SYSCONF_DEVICEID;
 
 #if 0	/* QQQ - TO IMPLEMENT */
 	/* Make sure reset period is shorter than WDT time-out */
@@ -928,7 +951,7 @@ extern int soc_init(void)
 
 
 #if defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI)
-extern int stxh415_usb_init(const int port)
+extern int stxh416_usb_init(const int port)
 {
 	static int initialized = 0;
 	unsigned int flags;
@@ -940,23 +963,23 @@ extern int stxh415_usb_init(const int port)
 		{ .oc = {  9, 4, 1 }, .pwr = {  9, 5, 1 } },
 		{ .oc = { 18, 0, 1 }, .pwr = { 18, 1, 1 } },
 		{ .oc = { 18, 2, 1 }, .pwr = { 18, 3, 1 } },
+		{ .oc = { 40, 0, 1 }, .pwr = { 40, 1, 1 } },
 	};
 
-	if (port < 0 || port >= 3)	/* invalid port number ? */
+	if (port < 0 || port >= 4)	/* invalid port number ? */
 		return -1;		/* failed to initialize! */
 
 		/* Set the USB clock to 48MHz */
 		/* QQQ - this probably should be done in the TargetPacks! */
-	*STXH415_CKGB_LOCK        = 0x0000C0DE;
-	*STXH415_CKGB_FS0_MD0     = 0x00000013;
-	*STXH415_CKGB_FS0_PE0     = 0x00000000;
-	*STXH415_CKGB_FS0_EN_PRG0 = 0x00000000;
-	*STXH415_CKGB_FS0_SDIV0   = 0x00000002;
-	*STXH415_CKGB_LOCK        = 0x00000000;
+	*STXH416_SYSCFG(1557) = (1<<10)|(1<<14)|(1<<18);/* CKGB_FS0_FSYN_CFG */
+	*STXH416_SYSCFG(1558) = 0x00000013;		/* CKGB_FS0_MD0 */
+	*STXH416_SYSCFG(1559) = 0x00000000;		/* CKGB_FS0_PE0 */
+	*STXH416_SYSCFG(1561) = 0x00000000;		/* CKGB_FS0_EN_PRG0 */
+	*STXH416_SYSCFG(1560) = 0x00000002;		/* CKGB_FS0_SDIV0 */
 
 	if (!initialized)		/* first time ? */
 	{	/* set USB2TRIPPHY_OSCIOK = 1 */
-		unsigned long * const sysconfReg = (unsigned long*)STXH415_SYSCFG(332);
+		unsigned long * const sysconfReg = (unsigned long*)STXH416_SYSCFG(2520);
 		unsigned long sysconf = readl(sysconfReg);
 		SET_SYSCONF_BIT(sysconf, TRUE, 6);
 		writel(sysconf, sysconfReg);
@@ -965,36 +988,43 @@ extern int stxh415_usb_init(const int port)
 
 	/* Power up the USB port, i.e. set USB_x_POWERDOWN_REQ = 0 */
 	{
-		unsigned long * const sysconfReg = (unsigned long*)STXH415_SYSCFG(336);
+		unsigned long * const sysconfReg = (unsigned long*)STXH416_SYSCFG(2525);
 		unsigned long sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, FALSE, port);
+		unsigned int const req = (port==3) ? 6 : port;
+		SET_SYSCONF_BIT(sysconf, FALSE, req);
 		writel(sysconf, sysconfReg);
 	}
-	/* wait until USBx_PWR_DWN_GRANT == 0 */
-	while (*STXH415_SYSCFG(384) & (1u<<port))
-		;	/* just wait ... */
+
+	/* wait until USB[x]_POWERDOWN_ACK == 0 */
+	{
+		unsigned int const ack = (port==3) ? 5 : port;
+		while (*STXH416_SYSCFG(2583) & (1u<<ack))
+			;	/* just wait ... */
+	}
 
 	/* Configure USB: in DC shift, and in edge control */
 	{
-		unsigned long * const sysconfReg = (unsigned long*)STXH415_SYSCFG(332);
+		unsigned long * const sysconfReg = (unsigned long*)STXH416_SYSCFG(2520);
 		unsigned long sysconf = readl(sysconfReg);
-		SET_SYSCONF_BIT(sysconf, FALSE, port);  /* in DC shift */
-		SET_SYSCONF_BIT(sysconf, TRUE, port+3); /* in edge control */
+		unsigned int const dc = (port==3) ? 8 : port;
+		unsigned int const ec = (port==3) ? 9 : port + 3;
+		SET_SYSCONF_BIT(sysconf, FALSE, dc);	/* in DC shift */
+		SET_SYSCONF_BIT(sysconf, TRUE,  ec);	/* in edge control */
 		writel(sysconf, sysconfReg);
 	}
 
 	/* route the USB power enable (output) signal */
-	stxh415_pioalt_select(usb_pins[port].pwr.port,
+	stxh416_pioalt_select(usb_pins[port].pwr.port,
 			    usb_pins[port].pwr.pin,
 			    usb_pins[port].pwr.alt);
-	stxh415_pioalt_pad(usb_pins[port].pwr.port,
+	stxh416_pioalt_pad(usb_pins[port].pwr.port,
 			  usb_pins[port].pwr.pin, stm_pad_direction_output);
 
 	/* route the USB over-current (input) signal */
-	stxh415_pioalt_select(usb_pins[port].oc.port,
+	stxh416_pioalt_select(usb_pins[port].oc.port,
 			    usb_pins[port].oc.pin,
 			    usb_pins[port].oc.alt);
-	stxh415_pioalt_pad(usb_pins[port].oc.port,
+	stxh416_pioalt_pad(usb_pins[port].oc.port,
 			  usb_pins[port].oc.pin, stm_pad_direction_input);
 
 	/* start the USB Wrapper Host Controller */
@@ -1007,7 +1037,7 @@ extern int stxh415_usb_init(const int port)
 
 
 #if defined(CONFIG_STM_SATA)
-extern void stxh415_configure_sata(void)
+extern void stxh416_configure_sata(void)
 {
 #if 0	/* QQQ - TO IMPLEMENT */
 	static int initialised_phy = 0;
@@ -1092,7 +1122,7 @@ static const struct ssc_pios ssc_pios[7+3] =
 	} },
 };
 
-extern void stxh415_configure_i2c(void)
+extern void stxh416_configure_i2c(void)
 {
 	/*
 	 * The I2C buses are routed as follows:
@@ -1118,15 +1148,15 @@ extern void stxh415_configure_i2c(void)
 	if (CONFIG_I2C_BUS >= ARRAY_SIZE(ssc_pios)) BUG();
 
 	/* route PIO (explicitly alternate #0) */
-	stxh415_pioalt_select(scl_port, scl_pin, 0);			/* I2C_SCL */
-	stxh415_pioalt_select(sda_port, sda_pin, 0);			/* I2C_SDA */
+	stxh416_pioalt_select(scl_port, scl_pin, 0);			/* I2C_SCL */
+	stxh416_pioalt_select(sda_port, sda_pin, 0);			/* I2C_SDA */
 
 	/* set up directionality appropriately */
 	SET_PIO_PIN(STM_PIO_BASE(scl_port), scl_pin, STPIO_BIDIR);	/* I2C_SCL */
 	SET_PIO_PIN(STM_PIO_BASE(sda_port), sda_pin, STPIO_BIDIR);	/* I2C_SDA */
 }
 
-extern void stxh415_i2c_scl(const int val)
+extern void stxh416_i2c_scl(const int val)
 {
 	/* SSC's SCLK == I2C's SCL */
 	const int port = ssc_pios[CONFIG_I2C_BUS].pio[0].port;
@@ -1134,7 +1164,7 @@ extern void stxh415_i2c_scl(const int val)
 	STPIO_SET_PIN(STM_PIO_BASE(port), pin, (val) ? 1 : 0);
 }
 
-extern void stxh415_i2c_sda(const int val)
+extern void stxh416_i2c_sda(const int val)
 {
 	/* SSC's MTSR == I2C's SDA */
 	const int port = ssc_pios[CONFIG_I2C_BUS].pio[1].port;
@@ -1142,7 +1172,7 @@ extern void stxh415_i2c_sda(const int val)
 	STPIO_SET_PIN(STM_PIO_BASE(port), pin, (val) ? 1 : 0);
 }
 
-extern int stxh415_i2c_read(void)
+extern int stxh416_i2c_read(void)
 {
 	/* SSC's MTSR == I2C's SDA */
 	const int port = ssc_pios[CONFIG_I2C_BUS].pio[1].port;
@@ -1173,17 +1203,17 @@ extern int i2c_set_bus_speed(unsigned int speed)
 #define	SPI_MISO	12, 4		/* Data: Master In, Slave Out */
 #define	SPI_MOSI	12, 5		/* Data: Master Out, Slave In */
 
-extern void stxh415_configure_spi(void)
+extern void stxh416_configure_spi(void)
 {
 	/*
 	 *	We set up the PIO pins correctly for SPI
 	 */
 
 	/* route PIO (alternate #0) */
-	STXH415_PIOALT_SELECT(SPI_MISO, 0);	/* SPI_MISO */
-	STXH415_PIOALT_SELECT(SPI_MOSI, 0);	/* SPI_MOSI */
-	STXH415_PIOALT_SELECT(SPI_nCS,  0);	/* SPI_nCS */
-	STXH415_PIOALT_SELECT(SPI_CLK,  0);	/* SPI_CLK */
+	STXH416_PIOALT_SELECT(SPI_MISO, 0);	/* SPI_MISO */
+	STXH416_PIOALT_SELECT(SPI_MOSI, 0);	/* SPI_MOSI */
+	STXH416_PIOALT_SELECT(SPI_nCS,  0);	/* SPI_nCS */
+	STXH416_PIOALT_SELECT(SPI_CLK,  0);	/* SPI_CLK */
 
 	/* set PIO directionality */
 	SET_PIO_PIN2(SPI_MISO, STPIO_IN);	/* SPI_MISO */
@@ -1197,17 +1227,17 @@ extern void stxh415_configure_spi(void)
 	STPIO_SET_PIN2(SPI_CLK,  1);		/* assert SPI_CLK */
 }
 
-extern void stxh415_spi_scl(const int val)
+extern void stxh416_spi_scl(const int val)
 {
 	STPIO_SET_PIN2(SPI_CLK, val ? 1 : 0);
 }
 
-extern void stxh415_spi_sda(const int val)
+extern void stxh416_spi_sda(const int val)
 {
 	STPIO_SET_PIN2(SPI_MOSI, val ? 1 : 0);
 }
 
-extern unsigned char stxh415_spi_read(void)
+extern unsigned char stxh416_spi_read(void)
 {
 	return STPIO_GET_PIN2(SPI_MISO);
 }

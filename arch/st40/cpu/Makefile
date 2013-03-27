@@ -26,13 +26,7 @@ include $(TOPDIR)/config.mk
 LIB	= $(obj)lib$(CPU).a
 
 START	= start.o
-COBJS-y	= cpu.o interrupts.o usb.o cmd_pmb.o
-COBJS-y	+= stm-sysconf.o
-COBJS-y	+= ecc.o stm-nand.o cmd_copybbt.o	# NAND
-COBJS-y	+= stm-nand-flex.o stm-nand-bch.o	# NAND
-COBJS-y	+= sata-init.o sata-probe.o		# SATA
-COBJS-y	+= spi.o stm_spi_fsm.o env_eeprom.o	# SPI
-COBJS-$(CONFIG_CMD_STTESTS) += cmd_sttests.o st_mtests.o
+COBJS-y	= cpu.o interrupts.o cmd_pmb.o
 SOBJS	=
 
 SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
@@ -40,9 +34,6 @@ OBJS	:= $(addprefix $(obj),$(COBJS-y) $(SOBJS))
 START	:= $(addprefix $(obj),$(START))
 
 all:	$(obj).depend $(START) $(LIB)
-
-$(obj)stm-nand-flex.o: stm-nand-flex.c
-	$(CC) $(CFLAGS) -m4 -c -o $@ $<
 
 $(LIB):	$(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)

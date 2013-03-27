@@ -36,12 +36,6 @@
 /**********************************************************************/
 
 
-#if defined(CONFIG_SPI)
-
-
-/**********************************************************************/
-
-
 /*
  * Ensure that of the following 3 macros *exactly* one is defined:
  *	CONFIG_SOFT_SPI		- S/W Bit-Banging
@@ -1648,11 +1642,3 @@ extern ssize_t spi_write (
 
 	return len;
 }
-
-
-/**********************************************************************/
-
-
-#endif	/* defined(CONFIG_SPI) */
-
-

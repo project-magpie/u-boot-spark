@@ -24,11 +24,6 @@
 
 #include <common.h>
 #include <command.h>
-
-
-#if defined(CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING) && defined(CONFIG_CMD_NAND)
-
-
 #include <nand.h>
 
 
@@ -246,8 +241,3 @@ U_BOOT_CMD(
 	"copybbt copy [addr] - copies BBT into RAM copy of u-boot.bin\n"
 	"\t\t      this may be done prior to burning to NAND"
 );
-
-
-#endif /* CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING */
-
-

@@ -27,13 +27,12 @@
  * MA 02111-1307 USA
  */
 
-#include <common.h>
 
 /*
- * NOTE: For the ST40 series of SoCs, we use the "eeprom" set of
- * commands to access SPI serial flash memory devices.
+ * NOTE: For STMicroelectronics' series of SoCs, we use the "eeprom"
+ * set of commands to access SPI serial flash memory devices.
  *
- * Hence we need to define CONFIG_ENV_IS_IN_EEPROM is we want the
+ * Hence we need to define CONFIG_ENV_IS_IN_EEPROM if we want the
  * environment stored in SPI serial flash.
  *
  * This file allows us to store U-boot's environment in SPI
@@ -61,8 +60,7 @@
  * stored in SPI, unless CONFIG_SYS_BOOT_FROM_SPI is also defined.
  */
 
-#if defined(CONFIG_ENV_IS_IN_EEPROM)
-
+#include <common.h>
 #include <command.h>
 #include <environment.h>
 #include <linux/stddef.h>
@@ -257,8 +255,3 @@ extern int saveenv(void)
 			     (uchar *)env_ptr,
 			     CONFIG_ENV_SIZE);
 }
-
-
-#endif	/* CONFIG_ENV_IS_IN_EEPROM */
-
-

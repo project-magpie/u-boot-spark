@@ -14,11 +14,6 @@
  */
 
 #include <common.h>
-
-
-#if defined(CONFIG_STM_SATA)
-
-
 #include <asm/errno.h>
 #include <asm/st40reg.h>
 #include <asm/io.h>
@@ -369,7 +364,3 @@ extern void stm_sata_miphy_deassert_des_reset(void)
 	/* Deassert deserializer reset */
 	SATA_JTAG_DR_Write_MIPHY(sc, 0x00, 0x00);
 }
-
-#endif	/* CONFIG_STM_SATA */
-
-

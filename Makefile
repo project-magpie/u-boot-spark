@@ -191,7 +191,8 @@ LIBS += $(shell if [ -f board/$(VENDOR)/common/Makefile ]; then echo \
 	"board/$(VENDOR)/common/lib$(VENDOR).a"; fi)
 LIBS += $(CPUDIR)/lib$(CPU).a
 ifdef SOC
-LIBS += $(CPUDIR)/$(SOC)/lib$(SOC).a
+LIBS += $(shell if [ -f $(CPUDIR)/$(SOC)/Makefile ]; then echo \
+	"$(CPUDIR)/$(SOC)/lib$(SOC).a"; fi)
 endif
 ifeq ($(CPU),ixp)
 LIBS += arch/arm/cpu/ixp/npe/libnpe.a
@@ -262,6 +263,11 @@ LIBS += $(CPUDIR)/s5p-common/libs5p-common.a
 endif
 ifeq ($(SOC),s5pc2xx)
 LIBS += $(CPUDIR)/s5p-common/libs5p-common.a
+endif
+
+# Add STMicroelectronics-specific "drivers" (nominally ARCH-agnostic).
+ifeq ($(CONFIG_STM),y)
+LIBS += drivers/stm/libstm.a
 endif
 
 LIBS := $(addprefix $(obj),$(LIBS))

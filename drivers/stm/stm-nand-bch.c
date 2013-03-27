@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011-2012 STMicroelectronics Limited
+ *  Copyright (c) 2011-2013 STMicroelectronics Limited
  *  Authors: Angus Clark <Angus.Clark@st.com>
  *           Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -25,9 +25,6 @@
 #include <common.h>
 #include <malloc.h>
 #include <linux/ctype.h>
-
-#if defined(CONFIG_CMD_NAND) && defined(CONFIG_SYS_STM_NAND_USE_BCH)
-
 #include <nand.h>
 #include <asm/stm-nand.h>
 #include <asm/ecc.h>
@@ -152,7 +149,7 @@ static void emiss_nandi_select(const enum nandi_controllers controller)
 	 * any further accesses to the newly selected NAND controller,
 	 * by simply reading it back again.
 	 * This was empirically required by Linux on the Freeman Ultra.
-	 * We will do this on all ST40 systems -- best to be safe!
+	 * We will do this on all STMicroelectronics systems -- best to be safe!
 	 */
 	readl(STM_EMISS_CONFIG);
 }
@@ -1179,7 +1176,3 @@ extern void stm_bch_init_nand(
 	nandi_set_mtd_defaults(mtd, chip);
 
 }
-
-#endif	/* CONFIG_CMD_NAND && CONFIG_SYS_STM_NAND_USE_BCH */
-
-
