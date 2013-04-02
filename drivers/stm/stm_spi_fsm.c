@@ -24,12 +24,12 @@
  */
 
 #include <common.h>
-#include <asm/soc.h>
-#include <asm/socregs.h>
+#include <stm/soc.h>
+#include <stm/socregs.h>
 #include <asm/io.h>
 #include <spi.h>
-#include <asm/clk.h>
-#include <asm/spi-commands.h>
+#include <stm/clk.h>
+#include <stm/spi-commands.h>
 #include "stm_spi_fsm.h"
 
 

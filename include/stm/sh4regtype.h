@@ -22,8 +22,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_SH4REGTYPE_H
-#define __ARCH_ST40_INCLUDE_ASM_SH4REGTYPE_H
+#ifndef __INCLUDE_STM_SH4REGTYPE_H
+#define __INCLUDE_STM_SH4REGTYPE_H
 
 
 #ifndef __ASSEMBLY__
@@ -48,4 +48,4 @@ typedef volatile unsigned long long *const	sh4_gword_reg_t;
 #endif	/* __ASSEMBLY__ */
 
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_SH4REGTYPE_H */
+#endif /* __INCLUDE_STM_SH4REGTYPE_H */

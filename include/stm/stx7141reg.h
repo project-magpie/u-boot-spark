@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_STX7141REG_H
-#define __ARCH_ST40_INCLUDE_ASM_STX7141REG_H
+#ifndef __INCLUDE_STM_STX7141REG_H
+#define __INCLUDE_STM_STX7141REG_H
 
 #include "sh4regtype.h"
 
@@ -154,7 +154,7 @@
 
 /*----------------------------------------------------------------------------*/
 
-#include "st40reg.h"
+#include <stm/stxxxxxreg.h>
 
 /*
  * STx7141 control registers
@@ -335,4 +335,4 @@
 #define STX7141_DEVICEID_7141(ID) ((((ID) >> STX7141_DEVID_ID_SHIFT) & STX7141_DEVID_ID_MASK) == STX7141_DEVID_7141_VAL)
 #define STX7141_DEVICEID_CUT(ID)  ((((ID) >> STX7141_DEVID_CUT_SHIFT) & STX7141_DEVID_CUT_MASK) + 1)
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_STX7141REG_H */
+#endif /* __INCLUDE_STM_STX7141REG_H */

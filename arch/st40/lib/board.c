@@ -37,8 +37,8 @@
 #if defined(CONFIG_SPI)
 #include <spi.h>
 #endif
-#include <asm/socregs.h>
-#include <asm/st40reg.h>
+#include <stm/socregs.h>
+#include <stm/stxxxxxreg.h>
 #include <asm/addrspace.h>
 
 

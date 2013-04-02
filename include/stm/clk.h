@@ -21,8 +21,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-#ifndef __ARCH_ST40_INCLUDE_ASM_CLK_H
-#define __ARCH_ST40_INCLUDE_ASM_CLK_H
+#ifndef __INCLUDE_STM_CLK_H
+#define __INCLUDE_STM_CLK_H
 
 /*
  * The clocking infrastructure on the ST40 has now got very
@@ -97,4 +97,4 @@ static inline unsigned long stm_get_ssc_clk_rate(void)
 	return bd->bi_ssc_frq;
 }
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_CLK_H */
+#endif /* __INCLUDE_STM_CLK_H */

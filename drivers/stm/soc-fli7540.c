@@ -25,12 +25,12 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/soc.h>
-#include <asm/fli7540reg.h>
+#include <stm/soc.h>
+#include <stm/fli7540reg.h>
 #include <asm/io.h>
-#include <asm/pio.h>
-#include <asm/stbus.h>
-#include <asm/sysconf.h>
+#include <stm/pio.h>
+#include <stm/stbus.h>
+#include <stm/sysconf.h>
 #include <ata.h>
 #include <spi.h>
 

@@ -1,29 +1,24 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2009.
+ * Copyright (C) STMicroelectronics Ltd. 2009-2010
  *
  * All rights reserved.
  */
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_FLI7510REG_H
-#define __ARCH_ST40_INCLUDE_ASM_FLI7510REG_H
+#ifndef __INCLUDE_STM_FLI7540REG_H
+#define __INCLUDE_STM_FLI7540REG_H
 
 #include "sh4regtype.h"
 
 /*----------------------------------------------------------------------------*/
 
 	/*
-	 *	PIO_BK_0 ... PIO_BK_27
+	 *	PIO_BK_5 ... PIO_BK_29
 	 */
-#define STM_PIO0_REGS_BASE	0xfd5c0000
-#define STM_PIO1_REGS_BASE	0xfd5c4000
-#define STM_PIO2_REGS_BASE	0xfd5c8000
-#define STM_PIO3_REGS_BASE	0xfd5cc000
-#define STM_PIO4_REGS_BASE	0xfd5d0000
-#define STM_PIO5_REGS_BASE	0xfd5d4000
-#define STM_PIO6_REGS_BASE	0xfd5d8000
-#define STM_PIO7_REGS_BASE	0xfd5dc000
-#define STM_PIO8_REGS_BASE	0xfd5e0000
-#define STM_PIO9_REGS_BASE	0xfd5e4000
+#define STM_PIO5_REGS_BASE	0xfd5c0000
+#define STM_PIO6_REGS_BASE	0xfd5c4000
+#define STM_PIO7_REGS_BASE	0xfd5c8000
+#define STM_PIO8_REGS_BASE	0xfd5cc000
+#define STM_PIO9_REGS_BASE	0xfd5d0000
 #define STM_PIO10_REGS_BASE	0xfd984000
 #define STM_PIO11_REGS_BASE	0xfd988000
 #define STM_PIO12_REGS_BASE	0xfd98c000
@@ -42,10 +37,12 @@
 #define STM_PIO25_REGS_BASE	0xfd9c0000
 #define STM_PIO26_REGS_BASE	0xfd9c4000
 #define STM_PIO27_REGS_BASE	0xfd9c8000
+#define STM_PIO28_REGS_BASE	0xfd9cc000
+#define STM_PIO29_REGS_BASE	0xfd9d0000
 
 #define STM_PIO_BASE(x)					\
 	(((x) < 10)						\
-		? (STM_PIO0_REGS_BASE +(0x4000*(x)))		\
+		? (STM_PIO5_REGS_BASE +(0x4000*(x-5)))		\
 		: (STM_PIO10_REGS_BASE+(0x4000*((x)-10))))
 
 /*----------------------------------------------------------------------------*/
@@ -54,18 +51,18 @@
 	/*
 	 * Comms block
 	 */
-#ifndef FLI7510_COMMS_BASE
-#define FLI7510_COMMS_BASE	0xfdb00000
+#ifndef FLI7540_COMMS_BASE
+#define FLI7540_COMMS_BASE	0xfdb00000
 #endif
 
 #ifndef STM_ASC0_REGS_BASE	/* UART #1 */
-#define STM_ASC0_REGS_BASE	(FLI7510_COMMS_BASE + 0x00030000)
+#define STM_ASC0_REGS_BASE	(FLI7540_COMMS_BASE + 0x00030000)
 #endif
 #ifndef STM_ASC1_REGS_BASE	/* UART #2 */
-#define STM_ASC1_REGS_BASE	(FLI7510_COMMS_BASE + 0x00031000)
+#define STM_ASC1_REGS_BASE	(FLI7540_COMMS_BASE + 0x00031000)
 #endif
 #ifndef STM_ASC2_REGS_BASE	/* UART #3 */
-#define STM_ASC2_REGS_BASE	(FLI7510_COMMS_BASE + 0x00032000)
+#define STM_ASC2_REGS_BASE	(FLI7540_COMMS_BASE + 0x00032000)
 #endif
 
 
@@ -159,19 +156,19 @@
 #endif
 
 
-#include "st40reg.h"
+#include <stm/stxxxxxreg.h>
 
 
 /*----------------------------------------------------------------------------*/
 
 /* Device ID values, masks & predicates */
-#define FLI7510_DEVID_7510_VAL		0x23c	/* for cut 0.x */
-#define FLI7510_DEVID_ID_SHIFT		12
-#define FLI7510_DEVID_ID_MASK		0x3ff
-#define FLI7510_DEVID_CUT_SHIFT		28
-#define FLI7510_DEVID_CUT_MASK		0xf
+#define FLI7540_DEVID_7540_VAL		0x23c	/* for cut 0.x */
+#define FLI7540_DEVID_ID_SHIFT		12
+#define FLI7540_DEVID_ID_MASK		0x3ff
+#define FLI7540_DEVID_CUT_SHIFT		28
+#define FLI7540_DEVID_CUT_MASK		0xf
 
-#define FLI7510_DEVICEID_7510(ID) ((((ID) >> FLI7510_DEVID_ID_SHIFT) & FLI7510_DEVID_ID_MASK) == FLI7510_DEVID_7510_VAL)
-#define FLI7510_DEVICEID_CUT(ID)  ((((ID) >> FLI7510_DEVID_CUT_SHIFT) & FLI7510_DEVID_CUT_MASK) + 0)
+#define FLI7540_DEVICEID_7540(ID) ((((ID) >> FLI7540_DEVID_ID_SHIFT) & FLI7540_DEVID_ID_MASK) == FLI7540_DEVID_7540_VAL)
+#define FLI7540_DEVICEID_CUT(ID)  ((((ID) >> FLI7540_DEVID_CUT_SHIFT) & FLI7540_DEVID_CUT_MASK) + 0)
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_FLI7510REG_H */
+#endif /* __INCLUDE_STM_FLI7540REG_H */

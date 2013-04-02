@@ -21,8 +21,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_STM_NAND_H
-#define __ARCH_ST40_INCLUDE_ASM_STM_NAND_H
+#ifndef __INCLUDE_STM_STM_NAND_H
+#define __INCLUDE_STM_STM_NAND_H
 
 
 struct nand_chip;	/* defined elsewhere */
@@ -54,4 +54,4 @@ extern int stm_bch_scan_read_raw(
 	loff_t offs,
 	size_t len);
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_STM_NAND_H */
+#endif /* __INCLUDE_STM_STM_NAND_H */

@@ -26,7 +26,7 @@
 #include <usb.h>
 #include "ehci.h"
 #include "ehci-core.h"
-#include <asm/stbus.h>
+#include <stm/stbus.h>
 
 
 #define unlikely(x)		__builtin_expect(!!(x), 0)

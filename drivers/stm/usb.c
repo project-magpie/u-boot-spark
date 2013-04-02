@@ -24,9 +24,9 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/stbus.h>
+#include <stm/stbus.h>
 #include <asm/io.h>
-#include <asm/soc.h>
+#include <stm/soc.h>
 
 
 #define mdelay(n) ({unsigned long msec=(n); while (msec--) udelay(1000);})

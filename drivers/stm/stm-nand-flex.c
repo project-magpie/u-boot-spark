@@ -23,12 +23,12 @@
 #include <common.h>
 #include <malloc.h>
 #include <nand.h>
-#include <asm/stm-nand.h>
-#include <asm/ecc.h>
+#include <stm/stm-nand.h>
+#include <stm/ecc.h>
 #include <asm/errno.h>
-#include <asm/st40reg.h>
+#include <stm/stxxxxxreg.h>
 #include <asm/io.h>
-#include <asm/socregs.h>
+#include <stm/socregs.h>
 #include <asm/cache.h>
 
 

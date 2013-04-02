@@ -291,8 +291,8 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 #elif defined(CONFIG_STM)
 
-#include "asm/socregs.h"
-#include <asm/clk.h>
+#include <stm/socregs.h>
+#include <stm/clk.h>
 
 #if !defined(CONFIG_CMD_BDI_DUMP_EMI_BANKS)
 #define CONFIG_CMD_BDI_DUMP_EMI_BANKS 1

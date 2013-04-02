@@ -22,8 +22,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_STBUS_H
-#define __ARCH_ST40_INCLUDE_ASM_STBUS_H
+#ifndef __INCLUDE_STM_STBUS_H
+#define __INCLUDE_STM_STBUS_H
 
 /*
  * This file attempts to support all the various flavours of USB wrappers,
@@ -120,4 +120,4 @@
 extern int STM_start_host_control(unsigned int flags);
 extern int usb_cpu_init(void);
 
-#endif	/* __ARCH_ST40_INCLUDE_ASM_STBUS_H */
+#endif	/* __INCLUDE_STM_STBUS_H */

@@ -102,7 +102,7 @@
  * which is defined in the file "stbus.h" - so we include it here.
  */
 #if defined(CONFIG_STM)
-#	include <asm/stbus.h>
+#	include <stm/stbus.h>
 #endif
 
 /* WARNING! WARNING! WARNING! WARNING!

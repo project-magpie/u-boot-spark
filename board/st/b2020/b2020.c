@@ -24,11 +24,11 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/soc.h>
-#include <asm/socregs.h>
+#include <stm/soc.h>
+#include <stm/socregs.h>
 #include <asm/io.h>
-#include <asm/pio.h>
-#include <asm/sysconf.h>
+#include <stm/pio.h>
+#include <stm/sysconf.h>
 
 
 void flashWriteEnable(void)

@@ -7,7 +7,7 @@
  */
 
 
-#include "asm/stx7105reg.h"
+#include <stm/stx7105reg.h>
 #include "../../../arch/st40/cpu/init_ram.S"
 
 

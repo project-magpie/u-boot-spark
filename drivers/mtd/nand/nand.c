@@ -26,7 +26,7 @@
 #include <nand.h>
 
 #if defined(CONFIG_STM)
-#include <asm/stm-nand.h>
+#include <stm/stm-nand.h>
 #endif
 
 #ifndef CONFIG_SYS_NAND_BASE_LIST

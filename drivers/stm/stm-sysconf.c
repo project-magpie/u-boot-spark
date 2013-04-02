@@ -24,9 +24,9 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/soc.h>
+#include <stm/soc.h>
 #include <asm/io.h>
-#include <asm/sysconf.h>
+#include <stm/sysconf.h>
 
 
 #define TRUE			1

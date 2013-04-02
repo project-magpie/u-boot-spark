@@ -8,7 +8,7 @@
 
 
 #include <config.h>
-#include "asm/socregs.h"
+#include <stm/socregs.h>
 #include "../../../arch/st40/cpu/init_ram.S"
 
 

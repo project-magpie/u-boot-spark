@@ -7,7 +7,7 @@
  */
 
 
-#include "asm/stx5197reg.h"
+#include <stm/stx5197reg.h>
 #include "../../../arch/st40/cpu/init_ram.S"
 
 

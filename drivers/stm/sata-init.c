@@ -15,10 +15,10 @@
 
 #include <common.h>
 #include <asm/errno.h>
-#include <asm/st40reg.h>
+#include <stm/stxxxxxreg.h>
 #include <asm/io.h>
-#include <asm/soc.h>
-#include <asm/socregs.h>
+#include <stm/soc.h>
+#include <stm/socregs.h>
 
 
 #if defined(CONFIG_STM_STX7105)		/* Cut 3.x (or later) */

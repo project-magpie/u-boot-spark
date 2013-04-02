@@ -32,10 +32,10 @@
  */
 
 #include <common.h>
-#include <asm/socregs.h>
+#include <stm/socregs.h>
 #include <div64.h>
 #include <asm/processor.h>
-#include <asm/clk.h>
+#include <stm/clk.h>
 #include <asm/io.h>
 
 #define TMU_MAX_COUNTER (~0UL)

@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_STX7105REG_H
-#define __ARCH_ST40_INCLUDE_ASM_STX7105REG_H
+#ifndef __INCLUDE_STM_STX7105REG_H
+#define __INCLUDE_STM_STX7105REG_H
 
 #include "sh4regtype.h"
 
@@ -142,7 +142,7 @@
 
 /*----------------------------------------------------------------------------*/
 
-#include "st40reg.h"
+#include <stm/stxxxxxreg.h>
 
 /*
  * STx7105 control registers
@@ -350,4 +350,4 @@
 #define STX7105_DEVICEID_7106(ID) ((((ID) >> STX7105_DEVID_ID_SHIFT) & STX7105_DEVID_ID_MASK) == STX7105_DEVID_7106_VAL)
 #define STX7105_DEVICEID_CUT(ID)  ((((ID) >> STX7105_DEVID_CUT_SHIFT) & STX7105_DEVID_CUT_MASK) + 1)
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_STX7105REG_H */
+#endif /* __INCLUDE_STM_STX7105REG_H */

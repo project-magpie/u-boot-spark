@@ -11,8 +11,8 @@
 
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_PIO_CONTROL_H
-#define __ARCH_ST40_INCLUDE_ASM_PIO_CONTROL_H
+#ifndef __INCLUDE_STM_PIO_CONTROL_H
+#define __INCLUDE_STM_PIO_CONTROL_H
 
 struct stm_pio_control_retime_config {
 	int retime:2;
@@ -128,5 +128,5 @@ struct stm_pio_control_retime_config {
 		.delay = STM_RETIME_VALUE_DELAY_0, \
 		})
 
-#endif	/* __ARCH_ST40_INCLUDE_ASM_PIO_CONTROL_H */
+#endif	/* __INCLUDE_STM_PIO_CONTROL_H */
 

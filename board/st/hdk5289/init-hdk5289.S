@@ -7,7 +7,7 @@
  */
 
 
-#include "asm/stx5206reg.h"
+#include <stm/stx5206reg.h>
 #include "../../../arch/st40/cpu/init_ram.S"
 
 

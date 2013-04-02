@@ -27,11 +27,11 @@
 #include <asm/byteorder.h>
 #include <../arch/arm/include/asm/setup.h>
 #include <asm/sh4reg.h>
-#include <asm/socregs.h>
-#include <asm/pio-control.h>
+#include <stm/socregs.h>
+#include <stm/pio-control.h>
 #include <asm/cache.h>
 #include <asm/addrspace.h>
-#include <asm/soc.h>
+#include <stm/soc.h>
 #include "bootm_for_arm.h"
 
 

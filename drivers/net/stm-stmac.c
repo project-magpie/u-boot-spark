@@ -25,7 +25,7 @@
 #if defined(CONFIG_DRIVER_NETSTMAC) || defined(CONFIG_DRIVER_NET_STM_GMAC)
 
 #include <command.h>
-#include <asm/soc.h>
+#include <stm/soc.h>
 #include <asm/addrspace.h>
 #include <asm/io.h>
 #include <net.h>

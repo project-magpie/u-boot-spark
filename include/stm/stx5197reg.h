@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_STX5197REG_H
-#define __ARCH_ST40_INCLUDE_ASM_STX5197REG_H
+#ifndef __INCLUDE_STM_STX5197REG_H
+#define __INCLUDE_STM_STX5197REG_H
 
 #include "sh4regtype.h"
 
@@ -92,7 +92,7 @@
 
 /*----------------------------------------------------------------------------*/
 
-#include "st40reg.h"
+#include <stm/stxxxxxreg.h>
 
 /*
  * STi5197 control registers
@@ -144,4 +144,4 @@
 	((((ID)>>STX5197_DEVID_ID_SHIFT)&STX5197_DEVID_ID_MASK)==STX5197_DEVID_5197c2_VAL)     )
 #define STX5197_DEVICEID_CUT(ID)  ((((ID) >> STX5197_DEVID_CUT_SHIFT) & STX5197_DEVID_CUT_MASK) + 1)
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_STX5197REG_H */
+#endif /* __INCLUDE_STM_STX5197REG_H */

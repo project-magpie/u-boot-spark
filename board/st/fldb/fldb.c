@@ -24,10 +24,10 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/fli7510reg.h>
+#include <stm/fli7510reg.h>
 #include <asm/io.h>
-#include <asm/pio.h>
-#include <asm/soc.h>
+#include <stm/pio.h>
+#include <stm/soc.h>
 #include <i2c.h>
 
 

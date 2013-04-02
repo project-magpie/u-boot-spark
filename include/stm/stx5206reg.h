@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_STX5206REG_H
-#define __ARCH_ST40_INCLUDE_ASM_STX5206REG_H
+#ifndef __INCLUDE_STM_STX5206REG_H
+#define __INCLUDE_STM_STX5206REG_H
 
 #include "sh4regtype.h"
 
@@ -101,7 +101,7 @@
 
 /*----------------------------------------------------------------------------*/
 
-#include "st40reg.h"
+#include <stm/stxxxxxreg.h>
 
 /*
  * STx5206 control registers
@@ -197,4 +197,4 @@
 #define STX5206_DEVICEID_5206(ID) ((((ID) >> STX5206_DEVID_ID_SHIFT) & STX5206_DEVID_ID_MASK) == STX5206_DEVID_5206_VAL)
 #define STX5206_DEVICEID_CUT(ID)  ((((ID) >> STX5206_DEVID_CUT_SHIFT) & STX5206_DEVID_CUT_MASK) + 1)
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_STX5206REG_H */
+#endif /* __INCLUDE_STM_STX5206REG_H */

@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_STX7108REG_H
-#define __ARCH_ST40_INCLUDE_ASM_STX7108REG_H
+#ifndef __INCLUDE_STM_STX7108REG_H
+#define __INCLUDE_STM_STX7108REG_H
 
 #include "sh4regtype.h"
 
@@ -223,7 +223,7 @@
 
 /*----------------------------------------------------------------------------*/
 
-#include "st40reg.h"
+#include <stm/stxxxxxreg.h>
 
 /*----------------------------------------------------------------------------*/
 
@@ -243,4 +243,4 @@
 #define STX7108_DEVICEID_7108(ID) ((((ID) >> STX7108_DEVID_ID_SHIFT) & STX7108_DEVID_ID_MASK) == STX7108_DEVID_7108_VAL)
 #define STX7108_DEVICEID_CUT(ID)  ((((ID) >> STX7108_DEVID_CUT_SHIFT) & STX7108_DEVID_CUT_MASK) + 1)
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_STX7108REG_H */
+#endif /* __INCLUDE_STM_STX7108REG_H */

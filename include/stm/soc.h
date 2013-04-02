@@ -23,11 +23,11 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_SOC_H
-#define	__ARCH_ST40_INCLUDE_ASM_SOC_H
+#ifndef __INCLUDE_STM_SOC_H
+#define __INCLUDE_STM_SOC_H
 
 
-#include <asm/pad.h>
+#include <stm/pad.h>
 
 
 /*
@@ -331,5 +331,5 @@ extern void		stxh416_i2c_scl(const int val);
 extern void		stxh416_i2c_sda(const int val);
 extern int		stxh416_i2c_read(void);
 
-#endif	/* __ARCH_ST40_INCLUDE_ASM_SOC_H */
+#endif	/* __INCLUDE_STM_SOC_H */
 

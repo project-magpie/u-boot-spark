@@ -30,7 +30,7 @@
 #include <asm/sh4reg.h>
 #include <asm/addrspace.h>
 #include <asm/pmb.h>
-#include <asm/soc.h>
+#include <stm/soc.h>
 #include "bootm_for_arm.h"
 
 #ifdef CONFIG_SHOW_BOOT_PROGRESS

@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_STXH205REG_H
-#define __ARCH_ST40_INCLUDE_ASM_STXH205REG_H
+#ifndef __INCLUDE_STM_STXH205REG_H
+#define __INCLUDE_STM_STXH205REG_H
 
 #include "sh4regtype.h"
 
@@ -181,7 +181,7 @@
 
 /*----------------------------------------------------------------------------*/
 
-#include "st40reg.h"
+#include <stm/stxxxxxreg.h>
 
 /*----------------------------------------------------------------------------*/
 
@@ -201,4 +201,4 @@
 #define STXH205_DEVICEID_H205(ID) ((((ID) >> STXH205_DEVID_ID_SHIFT) & STXH205_DEVID_ID_MASK) == STXH205_DEVID_H205_VAL)
 #define STXH205_DEVICEID_CUT(ID)  ((((ID) >> STXH205_DEVID_CUT_SHIFT) & STXH205_DEVID_CUT_MASK) + 1)
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_STXH205REG_H */
+#endif /* __INCLUDE_STM_STXH205REG_H */

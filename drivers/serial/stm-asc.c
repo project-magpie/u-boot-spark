@@ -15,9 +15,9 @@
 
 #include "common.h"
 #include "asm/io.h"
-#include "asm/pio.h"
-#include "asm/socregs.h"
-#include "asm/clk.h"
+#include <stm/pio.h>
+#include <stm/socregs.h>
+#include <stm/clk.h>
 
 #define CS7		0000040
 #define CS8		0000060

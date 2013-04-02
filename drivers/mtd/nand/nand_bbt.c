@@ -60,8 +60,8 @@
 #include <asm/errno.h>
 
 #if defined(CONFIG_STM)
-#include <asm/ecc.h>
-#include <asm/stm-nand.h>
+#include <stm/ecc.h>
+#include <stm/stm-nand.h>
 #endif	/* CONFIG_STM */
 
 /* XXX U-BOOT XXX */

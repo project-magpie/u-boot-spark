@@ -29,7 +29,7 @@
 #include "asm/sh4reg.h"
 #include "asm/asmdefs.h"
 #include "asm/pmb.h"
-#include "asm/socregs.h"
+#include <stm/socregs.h>
 
 
 	.section .text.init, "ax"

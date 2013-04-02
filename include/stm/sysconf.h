@@ -23,8 +23,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_SYSCONF_H
-#define __ARCH_ST40_INCLUDE_ASM_SYSCONF_H
+#ifndef __INCLUDE_STM_SYSCONF_H
+#define __INCLUDE_STM_SYSCONF_H
 
 	/*
 	 * if ('flag')
@@ -97,6 +97,6 @@ extern void stm_configure_sysconfs(
 	const size_t num_sys);
 
 
-#endif	/* __ARCH_ST40_INCLUDE_ASM_SYSCONF_H */
+#endif	/* __INCLUDE_STM_SYSCONF_H */
 
 

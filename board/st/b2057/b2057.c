@@ -24,10 +24,10 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/soc.h>
-#include <asm/stxh205reg.h>
+#include <stm/soc.h>
+#include <stm/stxh205reg.h>
 #include <asm/io.h>
-#include <asm/pio.h>
+#include <stm/pio.h>
 
 
 #define TX_ER_FXSD		0, 4	/* PIO0[4] == TX_ER_FXSD (or MII_TXER or ISOL) */

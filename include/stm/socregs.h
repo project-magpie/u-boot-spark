@@ -23,37 +23,37 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_SOC_REG_H
-#define __ARCH_ST40_INCLUDE_ASM_SOC_REG_H
+#ifndef __INCLUDE_STM_SOC_REG_H
+#define __INCLUDE_STM_SOC_REG_H
 
 
 #if defined(CONFIG_STM_STX5197)
-#	include <asm/stx5197reg.h>
+#	include <stm/stx5197reg.h>
 #elif defined(CONFIG_STM_STX5206)
-#	include <asm/stx5206reg.h>
+#	include <stm/stx5206reg.h>
 #elif defined(CONFIG_STM_STX7105)
-#	include <asm/stx7105reg.h>
+#	include <stm/stx7105reg.h>
 #elif defined(CONFIG_STM_STX7108)
-#	include <asm/stx7108reg.h>
+#	include <stm/stx7108reg.h>
 #elif defined(CONFIG_STM_STX7111)
-#	include <asm/stx7111reg.h>
+#	include <stm/stx7111reg.h>
 #elif defined(CONFIG_STM_STX7141)
-#	include <asm/stx7141reg.h>
+#	include <stm/stx7141reg.h>
 #elif defined(CONFIG_STM_STX7200)
-#	include <asm/stx7200reg.h>
+#	include <stm/stx7200reg.h>
 #elif defined(CONFIG_STM_FLI7510)
-#	include <asm/fli7510reg.h>
+#	include <stm/fli7510reg.h>
 #elif defined(CONFIG_STM_FLI7540)
-#	include <asm/fli7540reg.h>
+#	include <stm/fli7540reg.h>
 #elif defined(CONFIG_STM_STXH205)
-#	include <asm/stxh205reg.h>
+#	include <stm/stxh205reg.h>
 #elif defined(CONFIG_STM_STXH415)
-#	include <asm/stxh415reg.h>
+#	include <stm/stxh415reg.h>
 #elif defined(CONFIG_STM_STXH416)
-#	include <asm/stxh416reg.h>
+#	include <stm/stxh416reg.h>
 #else
 #	error Missing Device Definitions!
 #endif
 
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_SOC_REG_H */
+#endif /* __INCLUDE_STM_SOC_REG_H */

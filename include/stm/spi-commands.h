@@ -23,8 +23,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_SPI_COMMANDS_H
-#define __ARCH_ST40_INCLUDE_ASM_SPI_COMMANDS_H
+#ifndef __INCLUDE_STM_SPI_COMMANDS_H
+#define __INCLUDE_STM_SPI_COMMANDS_H
 
 
 #if defined(CONFIG_SPI)
@@ -170,5 +170,5 @@
 
 #endif	/* defined(CONFIG_SPI) */
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_SPI_COMMANDS_H */
+#endif /* __INCLUDE_STM_SPI_COMMANDS_H */
 

@@ -22,8 +22,8 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_PIO_H
-#define __ARCH_ST40_INCLUDE_ASM_PIO_H
+#ifndef __INCLUDE_STM_PIO_H
+#define __INCLUDE_STM_PIO_H
 
 #define STPIO_NONPIO		0	/* Non-PIO function (ST40 defn) */
 #define STPIO_BIDIR_Z1		0	/* Input weak pull-up (arch defn) */
@@ -124,4 +124,4 @@ do {								\
 	SET_PIO_ASC_OUTDIR((PIO_ADDR), (TX), (RX), (CTS), (RTS), STPIO_ALT_OUT)
 #endif	/* CONFIG_STM_STX7141 */
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_PIO_H */
+#endif /* __INCLUDE_STM_PIO_H */

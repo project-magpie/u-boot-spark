@@ -24,10 +24,10 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/soc.h>
-#include <asm/stx5206reg.h>
+#include <stm/soc.h>
+#include <stm/stx5206reg.h>
 #include <asm/io.h>
-#include <asm/pio.h>
+#include <stm/pio.h>
 
 
 void flashWriteEnable(void)

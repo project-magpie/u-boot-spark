@@ -27,7 +27,7 @@
 #ifndef __ARCH_ST40_INCLUDE_ASM_SH4REG_H
 #define __ARCH_ST40_INCLUDE_ASM_SH4REG_H
 
-#include "asm/sh4regtype.h"
+#include <stm/sh4regtype.h>
 
 
 /*----------------------------------------------------------------------------*/

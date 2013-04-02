@@ -25,10 +25,10 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/soc.h>
-#include <asm/stx7200reg.h>
+#include <stm/soc.h>
+#include <stm/stx7200reg.h>
 #include <asm/io.h>
-#include <asm/pio.h>
+#include <stm/pio.h>
 
 #ifdef CONFIG_ST40_SE_MODE
 #define EPLD_BASE		0xb5000000	/* Phys 0x05000000 */

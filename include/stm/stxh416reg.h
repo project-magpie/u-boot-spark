@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_STXH416REG_H
-#define __ARCH_ST40_INCLUDE_ASM_STXH416REG_H
+#ifndef __INCLUDE_STM_STXH416REG_H
+#define __INCLUDE_STM_STXH416REG_H
 
 #include "sh4regtype.h"
 
@@ -232,7 +232,7 @@
 
 /*----------------------------------------------------------------------------*/
 
-#include "st40reg.h"
+#include <stm/stxxxxxreg.h>
 
 /*----------------------------------------------------------------------------*/
 
@@ -276,4 +276,4 @@
 #define STXH416_DEVICEID_416(ID)	((((ID) >> STXH416_DEVID_ID_SHIFT) & STXH416_DEVID_ID_MASK) == STXH416_DEVID_VAL)
 #define STXH416_DEVICEID_CUT(ID)	((((ID) >> STXH416_DEVID_CUT_SHIFT) & STXH416_DEVID_CUT_MASK) + 1)
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_STXH416REG_H */
+#endif /* __INCLUDE_STM_STXH416REG_H */

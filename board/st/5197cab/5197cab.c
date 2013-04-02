@@ -24,9 +24,9 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/stx5197reg.h>
+#include <stm/stx5197reg.h>
 #include <asm/io.h>
-#include <asm/pio.h>
+#include <stm/pio.h>
 
 
 #define PIO_BASE  0xfd120000	/* Base of PIO block in COMMs block */

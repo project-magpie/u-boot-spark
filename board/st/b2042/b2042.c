@@ -24,10 +24,10 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/soc.h>
-#include <asm/stx7141reg.h>
+#include <stm/soc.h>
+#include <stm/stx7141reg.h>
 #include <asm/io.h>
-#include <asm/pio.h>
+#include <stm/pio.h>
 #include <spi.h>
 
 

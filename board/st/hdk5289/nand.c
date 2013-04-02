@@ -24,9 +24,9 @@
 #include <common.h>
 #include <nand.h>
 #include <asm/io.h>
-#include <asm/pio.h>
-#include <asm/socregs.h>
-#include <asm/stm-nand.h>
+#include <stm/pio.h>
+#include <stm/socregs.h>
+#include <stm/stm-nand.h>
 
 
 /*

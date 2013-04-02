@@ -26,14 +26,14 @@
 
 #include <common.h>
 #include <command.h>
-#include <asm/soc.h>
-#include <asm/stxh416reg.h>
+#include <stm/soc.h>
+#include <stm/stxh416reg.h>
 #include <asm/io.h>
-#include <asm/pio.h>
-#include <asm/stbus.h>
-#include <asm/sysconf.h>
-#include <asm/pad.h>
-#include <asm/pio-control.h>
+#include <stm/pio.h>
+#include <stm/stbus.h>
+#include <stm/sysconf.h>
+#include <stm/pad.h>
+#include <stm/pio-control.h>
 #include <ata.h>
 #include <spi.h>
 

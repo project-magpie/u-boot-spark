@@ -10,8 +10,8 @@
  */
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_STX7200REG_H
-#define __ARCH_ST40_INCLUDE_ASM_STX7200REG_H
+#ifndef __INCLUDE_STM_STX7200REG_H
+#define __INCLUDE_STM_STX7200REG_H
 
 #include "sh4regtype.h"
 
@@ -159,7 +159,7 @@
 
 /*----------------------------------------------------------------------------*/
 
-#include "st40reg.h"
+#include <stm/stxxxxxreg.h>
 
 /*
  * STx7200 control registers
@@ -297,4 +297,4 @@
 	((((ID)>>STX7200_DEVID_ID_SHIFT)&STX7200_DEVID_ID_MASK)==STX7200_DEVID_7200c2_VAL)     )
 #define STX7200_DEVICEID_CUT(ID)  ((((ID) >> STX7200_DEVID_CUT_SHIFT) & STX7200_DEVID_CUT_MASK) + 1)
 
-#endif /* __ARCH_ST40_INCLUDE_ASM_STX7200REG_H */
+#endif /* __INCLUDE_STM_STX7200REG_H */

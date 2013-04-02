@@ -24,8 +24,8 @@
 
 
 
-#ifndef __ARCH_ST40_INCLUDE_ASM_PAD_H
-#define __ARCH_ST40_INCLUDE_ASM_PAD_H
+#ifndef __INCLUDE_STM_PAD_H
+#define __INCLUDE_STM_PAD_H
 
 
 enum stm_pad_gpio_direction {
@@ -131,6 +131,6 @@ static inline struct stm_gmac_pin * stm_gmac_find_tx_clock(
 	return NULL;				/* not found! */
 }
 
-#endif	/* __ARCH_ST40_INCLUDE_ASM_PIO_PAD_H */
+#endif	/* __INCLUDE_STM_PIO_PAD_H */
 
 

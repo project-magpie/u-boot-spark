@@ -25,7 +25,7 @@
  */
 
 #include <common.h>
-#include <asm/ecc.h>
+#include <stm/ecc.h>
 
 
 const unsigned char  ecc_bit_count_table[256] =   /* Parity look up table */

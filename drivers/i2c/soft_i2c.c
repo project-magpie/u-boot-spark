@@ -48,9 +48,9 @@
 #endif
 #if defined(CONFIG_STM)
 #include <asm/io.h>
-#include <asm/pio.h>
-#include <asm/socregs.h>
-#include <asm/soc.h>
+#include <stm/pio.h>
+#include <stm/socregs.h>
+#include <stm/soc.h>
 #endif	/* CONFIG_STM */
 #if defined(CONFIG_MPC852T) || defined(CONFIG_MPC866)
 #include <asm/io.h>
