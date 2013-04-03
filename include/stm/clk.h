@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
- * Copyright (C) 2010-2012 STMicroelectronics.
+ * Copyright (C) 2010-2013 STMicroelectronics.
  *	Sean McGoogan STMicroelectronics, <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -83,12 +83,14 @@ static inline unsigned long stm_get_uart_clk_rate(void)
 	return bd->bi_uart_frq;
 }
 
+#if defined(CONFIG_ST40)
 	/* Return the TMU's Clock Frequency (in Hz) */
 static inline unsigned long stm_get_tmu_clk_rate(void)
 {
 	const bd_t * const bd = gd->bd;
 	return bd->bi_tmu_frq;
 }
+#endif /* CONFIG_ST40 */
 
 	/* Return the SSC's Clock Frequency (in Hz) */
 static inline unsigned long stm_get_ssc_clk_rate(void)

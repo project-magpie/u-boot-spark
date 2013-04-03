@@ -383,7 +383,9 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #endif
 
 	print_mhz("UART", stm_get_uart_clk_rate()/1000000ul);
+#if defined(CONFIG_ST40)
 	print_mhz("TMU",  stm_get_tmu_clk_rate()/1000000ul);
+#endif
 	print_mhz("SSC",  stm_get_ssc_clk_rate()/1000000ul);
 
 #if CONFIG_CMD_BDI_DUMP_EMI_BANKS

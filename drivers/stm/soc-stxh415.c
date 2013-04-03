@@ -89,8 +89,10 @@ static void stxh415_clocks(void)
 #else
 	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
 #endif
-	bd->bi_tmu_frq  = 100ul * 1000000ul;	/* 100 MHz */
-	bd->bi_ssc_frq  = bd->bi_tmu_frq;
+	bd->bi_ssc_frq  = 100ul * 1000000ul;	/* 100 MHz */
+#if defined(CONFIG_ST40)
+	bd->bi_tmu_frq  = bd->bi_ssc_frq;
+#endif /* CONFIG_ST40 */
 }
 
 
