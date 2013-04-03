@@ -80,8 +80,8 @@ static void DumpTags(const uint32_t start, const uint32_t bytes)
 #define MB                          (1024*1024)
 #define SH4_PMB_DATA_ARRAY          0xf7100000
 #define SH4_PMB_ADDR_ARRAY          0xf6100000
-#define SH4_PMB_DATA_ARRAY_ENTRY(n) SH4_DWORD_REG(SH4_PMB_DATA_ARRAY+(n << 8))
-#define SH4_PMB_ADDR_ARRAY_ENTRY(n) SH4_DWORD_REG(SH4_PMB_ADDR_ARRAY+(n << 8))
+#define SH4_PMB_DATA_ARRAY_ENTRY(n) STM_U32_REG(SH4_PMB_DATA_ARRAY+(n << 8))
+#define SH4_PMB_ADDR_ARRAY_ENTRY(n) STM_U32_REG(SH4_PMB_ADDR_ARRAY+(n << 8))
 #define ADDR_IN_PMB_RANGE(x)        (((unsigned int)x)>=0x80000000 && ((unsigned int)x)<0xc0000000)
 #define ADDR_IN_P4(x)               (((uint32_t)x) > 0xf0000000)
 #define PMB_VALID(x)                (x & (1 << 8))

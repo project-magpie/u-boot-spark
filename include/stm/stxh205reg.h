@@ -13,7 +13,7 @@
 #ifndef __INCLUDE_STM_STXH205REG_H
 #define __INCLUDE_STM_STXH205REG_H
 
-#include "sh4regtype.h"
+#include <stm/regtype.h>
 
 /*----------------------------------------------------------------------------*/
 
@@ -153,15 +153,15 @@
 #define STXH205_SYSCFG(x)							\
 	(									\
 		((x) < 100)							\
-		? SH4_DWORD_REG(STXH205_SYSCONF_BANK0_BASE + ((x)-0)*0x4)	\
+		? STM_U32_REG(STXH205_SYSCONF_BANK0_BASE + ((x)-0)*0x4)		\
 		:								\
 		((x) < 200)							\
-		? SH4_DWORD_REG(STXH205_SYSCONF_BANK1_BASE + ((x)-100)*0x4)	\
+		? STM_U32_REG(STXH205_SYSCONF_BANK1_BASE + ((x)-100)*0x4)	\
 		:								\
 		((x) < 400)							\
-		? SH4_DWORD_REG(STXH205_SYSCONF_BANK2_BASE + ((x)-200)*0x4)	\
+		? STM_U32_REG(STXH205_SYSCONF_BANK2_BASE + ((x)-200)*0x4)	\
 		:								\
-		SH4_DWORD_REG(STXH205_SYSCONF_BANK3_BASE + ((x)-400)*0x4)	\
+		STM_U32_REG(STXH205_SYSCONF_BANK3_BASE + ((x)-400)*0x4)		\
 	)
 
 /*

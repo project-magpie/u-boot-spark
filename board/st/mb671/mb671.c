@@ -36,7 +36,7 @@
 #define EPLD_BASE		0xa5000000
 #endif	/* CONFIG_ST40_SE_MODE */
 
-#define EPLD_FlashCtrlAddr	SH4_WORD_REG(EPLD_BASE + 0x400000)
+#define EPLD_FlashCtrlAddr	STM_U16_REG(EPLD_BASE + 0x400000)
 
 extern void flashWriteEnable(void)
 {

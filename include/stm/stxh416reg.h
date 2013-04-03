@@ -13,7 +13,7 @@
 #ifndef __INCLUDE_STM_STXH416REG_H
 #define __INCLUDE_STM_STXH416REG_H
 
-#include "sh4regtype.h"
+#include <stm/regtype.h>
 
 /*----------------------------------------------------------------------------*/
 
@@ -192,27 +192,27 @@
 #define STXH416_SYSCFG(x)							\
 	(									\
 		((x) < 1000)							\
-		? SH4_DWORD_REG(STXH416_SYSCONF0_BASE + ((x)-0)*0x4)		\
+		? STM_U32_REG(STXH416_SYSCONF0_BASE + ((x)-0)*0x4)		\
 		:								\
 		((x) < 2000)							\
-		? SH4_DWORD_REG(STXH416_SYSCONF1_BASE + ((x)-1000)*0x4)		\
+		? STM_U32_REG(STXH416_SYSCONF1_BASE + ((x)-1000)*0x4)		\
 		:								\
 		((x) < 5000)							\
-		? SH4_DWORD_REG(STXH416_SYSCONF2_BASE + ((x)-2000)*0x4)		\
+		? STM_U32_REG(STXH416_SYSCONF2_BASE + ((x)-2000)*0x4)		\
 		:								\
 		((x) < 6000)							\
-		? SH4_DWORD_REG(STXH416_SYSCONF3_BASE + ((x)-5000)*0x4)		\
+		? STM_U32_REG(STXH416_SYSCONF3_BASE + ((x)-5000)*0x4)		\
 		:								\
 		((x) < 7500)							\
-		? SH4_DWORD_REG(STXH416_SYSCONF4_BASE + ((x)-6000)*0x4)		\
+		? STM_U32_REG(STXH416_SYSCONF4_BASE + ((x)-6000)*0x4)		\
 		:								\
 		((x) < 8500)							\
-		? SH4_DWORD_REG(STXH416_SYSCONF5_BASE + 0x7D0 + ((x)-7500)*0x4) \
+		? STM_U32_REG(STXH416_SYSCONF5_BASE + 0x7D0 + ((x)-7500)*0x4)	\
 		:								\
 		((x) < 9500)							\
-		? SH4_DWORD_REG(STXH416_SYSCONF6_BASE + 0x7D0 + ((x)-8500)*0x4) \
+		? STM_U32_REG(STXH416_SYSCONF6_BASE + 0x7D0 + ((x)-8500)*0x4)	\
 		:								\
-		SH4_DWORD_REG(STXH416_SYSCONF7_BASE + 0x7D0 + ((x)-9500)*0x4)	\
+		STM_U32_REG(STXH416_SYSCONF7_BASE + 0x7D0 + ((x)-9500)*0x4)	\
 	)
 
 /*
@@ -241,10 +241,10 @@
  * STxP70 registers to configure the ARM boot zone (ABAP through xP70)
  */
 #define STXH416_LPM_STXP70_BASE			STXH416_SBC_LPM_BASE
-#define STXH416_LPM_STXP70_IMEM_BASE		SH4_DWORD_REG(STXH416_LPM_STXP70_BASE + 0x00018000)
-#define STXH416_LPM_STXP70_DMEM_BASE		SH4_DWORD_REG(STXH416_LPM_STXP70_BASE + 0x00010000)
-#define STXH416_LPM_STXP70_DMEM_04		SH4_DWORD_REG((unsigned int)(STXH416_LPM_STXP70_DMEM_BASE) + 0x04)
-#define STXH416_LPM_STXP70_CONFIG_REGS_BASE	SH4_DWORD_REG(STXH416_LPM_STXP70_BASE + 0x000b5100)
+#define STXH416_LPM_STXP70_IMEM_BASE		STM_U32_REG(STXH416_LPM_STXP70_BASE + 0x00018000)
+#define STXH416_LPM_STXP70_DMEM_BASE		STM_U32_REG(STXH416_LPM_STXP70_BASE + 0x00010000)
+#define STXH416_LPM_STXP70_DMEM_04		STM_U32_REG((unsigned int)(STXH416_LPM_STXP70_DMEM_BASE) + 0x04)
+#define STXH416_LPM_STXP70_CONFIG_REGS_BASE	STM_U32_REG(STXH416_LPM_STXP70_BASE + 0x000b5100)
 
 
 /*----------------------------------------------------------------------------*/
@@ -254,8 +254,8 @@
  * ARM reset vectors mirrored in the ST40 address map
  */
 
-#define STXH416_A9_RESET_VECTOR_MIRROR_BASE	SH4_DWORD_REG(0xFD4BF000)
-#define STXH416_A9_RESET_VECTOR_MIRROR_BOOTADDR	SH4_DWORD_REG((unsigned int)(STXH416_A9_RESET_VECTOR_MIRROR_BASE)+0x20)
+#define STXH416_A9_RESET_VECTOR_MIRROR_BASE	STM_U32_REG(0xFD4BF000)
+#define STXH416_A9_RESET_VECTOR_MIRROR_BOOTADDR	STM_U32_REG((unsigned int)(STXH416_A9_RESET_VECTOR_MIRROR_BASE)+0x20)
 
 
 /*----------------------------------------------------------------------------*/

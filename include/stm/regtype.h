@@ -1,7 +1,8 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2002.
+ * Copyright (C) STMicroelectronics Ltd. 2002, 2013
  *
  * andy.sturges@st.com
+ * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -22,30 +23,30 @@
  * MA 02111-1307 USA
  */
 
-#ifndef __INCLUDE_STM_SH4REGTYPE_H
-#define __INCLUDE_STM_SH4REGTYPE_H
+#ifndef __INCLUDE_STM_REGTYPE_H
+#define __INCLUDE_STM_REGTYPE_H
 
 
 #ifndef __ASSEMBLY__
 
-typedef volatile unsigned char *const		sh4_byte_reg_t;
-typedef volatile unsigned short *const		sh4_word_reg_t;
-typedef volatile unsigned int *const		sh4_dword_reg_t;
-typedef volatile unsigned long long *const	sh4_gword_reg_t;
+typedef volatile unsigned char *const		stm_u8_reg_t;
+typedef volatile unsigned short *const		stm_u16_reg_t;
+typedef volatile unsigned int *const		stm_u32_reg_t;
+typedef volatile unsigned long long *const	stm_u64_reg_t;
 
-#define SH4_BYTE_REG(address)	((sh4_byte_reg_t) (address))
-#define SH4_WORD_REG(address)	((sh4_word_reg_t) (address))
-#define SH4_DWORD_REG(address)	((sh4_dword_reg_t) (address))
-#define SH4_GWORD_REG(address)	((sh4_gword_reg_t) (address))
+#define STM_U8_REG(address)	((stm_u8_reg_t)  (address))
+#define STM_U16_REG(address)	((stm_u16_reg_t) (address))
+#define STM_U32_REG(address)	((stm_u32_reg_t) (address))
+#define STM_U64_REG(address)	((stm_u64_reg_t) (address))
 
 #else	/* __ASSEMBLY__ */
 
-#define SH4_BYTE_REG(address)	(address)
-#define SH4_WORD_REG(address)	(address)
-#define SH4_DWORD_REG(address)	(address)
-#define SH4_GWORD_REG(address)	(address)
+#define STM_U8_REG(address)	(address)
+#define STM_U16_REG(address)	(address)
+#define STM_U32_REG(address)	(address)
+#define STM_U64_REG(address)	(address)
 
 #endif	/* __ASSEMBLY__ */
 
 
-#endif /* __INCLUDE_STM_SH4REGTYPE_H */
+#endif /* __INCLUDE_STM_REGTYPE_H */

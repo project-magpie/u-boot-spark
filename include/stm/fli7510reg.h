@@ -7,7 +7,7 @@
 #ifndef __INCLUDE_STM_FLI7510REG_H
 #define __INCLUDE_STM_FLI7510REG_H
 
-#include "sh4regtype.h"
+#include <stm/regtype.h>
 
 /*----------------------------------------------------------------------------*/
 
