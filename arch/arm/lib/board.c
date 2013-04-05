@@ -6,6 +6,9 @@
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Marius Groeger <mgroeger@sysgo.de>
  *
+ *  Copyright (c) 2013 STMicroelectronics Limited
+ *	Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -49,6 +52,7 @@
 #include <nand.h>
 #include <onenand_uboot.h>
 #include <mmc.h>
+#include <spi.h>
 
 #ifdef CONFIG_BITBANGMII
 #include <miiphy.h>
@@ -346,6 +350,14 @@ void start_armboot (void)
 	AT91F_DataflashInit();
 	dataflash_print_info();
 #endif
+
+#if defined(CONFIG_SPI) && defined(CONFIG_STM)
+	puts ("SPI:  ");
+	spi_init ();		/* go init the SPI */
+#if defined(CONFIG_ENV_IS_IN_EEPROM) && !defined(CONFIG_SYS_BOOT_FROM_SPI)
+	env_init_after_spi_done ();
+#endif
+#endif	/* CONFIG_SPI && CONFIG_STM */
 
 #ifdef CONFIG_GENERIC_MMC
 /*

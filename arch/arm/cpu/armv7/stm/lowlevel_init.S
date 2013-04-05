@@ -1,6 +1,6 @@
 /*
- * (C) Copyright 2002
- * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+ * Copyright (C) 2013 STMicroelectronics
+ *	Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -21,26 +21,20 @@
  * MA 02111-1307 USA
  */
 
-/* for now: just dummy functions to satisfy the linker */
+#include <config.h>
 
-#include <common.h>
+	.section .text.init, "ax"
 
-void  flush_cache (unsigned long dummy1, unsigned long dummy2)
-{
-#ifdef CONFIG_OMAP2420
-	void arm1136_cache_flush(void);
 
-	arm1136_cache_flush();
-#endif
-	return;
-}
+	.globl lowlevel_init
+	.globl reset_timer		/* QQQ - DELETE */
+	.globl reset_cpu		/* QQQ - DELETE */
 
-extern void invalidate_dcache_range(unsigned long start, unsigned long stop)
-{
-	/* QQQ - to implement */
-}
+	.balign 4
 
-extern void flush_dcache_range(unsigned long start, unsigned long stop)
-{
-	/* QQQ - to implement */
-}
+lowlevel_init:
+reset_timer:		/* QQQ - DELETE */
+reset_cpu:		/* QQQ - DELETE */
+	nop		/* QQQ - TO DO */
+	mov	pc, lr	/* return immediately! */
+

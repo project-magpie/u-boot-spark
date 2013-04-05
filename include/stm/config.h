@@ -1,5 +1,6 @@
 /*
  * Copyright 2009 Freescale Semiconductor, Inc.
+ *
  * Copyright 2012-2013 STMicroelectronics Ltd.
  *	Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -74,6 +75,25 @@
 #if !defined(roundup)
 #	define roundup(x, y)		((((x) + ((y) - 1)) / (y)) * (y))
 #endif
+
+
+	/*
+	 * pull in the {in,out}[s][bwl] family of macros from
+	 * the file arch/arm/include/asm/io.h
+	 */
+#if defined(CONFIG_ARM)
+#	define __io
+#endif /* CONFIG_ARM */
+
+
+	/*
+	 * add additional (core-specific) CONFIG_* options.
+	 */
+#if defined(CONFIG_ARM)
+#	define CONFIG_ARCH_CPU_INIT	/* call arch_cpu_init() */
+#	define CONFIG_DISPLAY_BOARDINFO	/* call checkboard() */
+#	define CONFIG_CMD_CACHE		/* enable "icache" & "dcache" commands */
+#endif /* CONFIG_ARM */
 
 
 #endif /* __INCLUDE_STM_CONFIG_H */

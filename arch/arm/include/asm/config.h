@@ -1,6 +1,9 @@
 /*
  * Copyright 2009 Freescale Semiconductor, Inc.
  *
+ * Copyright 2013 STMicroelectronics Ltd.
+ *	Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -23,5 +26,10 @@
 
 /* Relocation to SDRAM works on all ARM boards */
 #define CONFIG_RELOC_FIXUP_WORKS
+
+/* common configuration for all STMicroelectronics' systems */
+#if defined(CONFIG_STM)
+#  include <stm/config.h>
+#endif
 
 #endif

@@ -2,6 +2,9 @@
  * (C) Copyright 2012 Nobuhiro Iwamatsu <nobuhiro.iwamatsu.yj@renesas.com>
  * (C) Copyright 2012 Renesas Solutions Corp.
  *
+ * Copyright (C) 2013 STMicroelectronics
+ *	Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -25,11 +28,14 @@
 #include <asm/io.h>
 #include <asm/arch-armv7/globaltimer.h>
 
-#define MPE41_GLOBAL_TIMER_BASE        (0xFFFE0000 + 0x0200)
+#if !defined(MPE41_GLOBAL_TIMER_BASE)
+#define MPE41_GLOBAL_TIMER_BASE		(0xFFFE0000 + 0x0200)
+#endif /* MPE41_GLOBAL_TIMER_BASE */
 
-static struct globaltimer *global_timer = (struct globaltimer *)MPE41_GLOBAL_TIMER_BASE;
+static struct globaltimer * const global_timer =
+	(struct globaltimer *)MPE41_GLOBAL_TIMER_BASE;
 
-#define CLK2MHZ(clk)    (clk / 1000 / 1000)
+#define CLK2MHZ(clk)    ((clk) / 1000 / 1000)
 
 /*
  * Extracted from kernel/lib/linux/lib64.c
@@ -104,13 +110,13 @@ static ulong get_time_ms(void)
    return (ulong)(div64_32(get_time_us(),1000));
 }
 
-int timer_init(void)
+extern int timer_init(void)
 {
     writel(0x01, &global_timer->ctl);
     return 0;
 }
 
-void __udelay(unsigned long usec)
+extern void __udelay(unsigned long usec)
 {
     u64 start, current;
     u64 wait;
@@ -122,18 +128,17 @@ void __udelay(unsigned long usec)
     } while ((current - start) < wait);
 }
 
-ulong get_timer(ulong base)
+extern ulong get_timer(ulong base)
 {
     return get_time_ms() - base;
 }
 
-unsigned long long get_ticks(void)
+extern unsigned long long get_ticks(void)
 {
     return get_cpu_global_timer();
 }
 
-ulong get_tbclk(void)
+extern ulong get_tbclk(void)
 {
     return (ulong)(CONFIG_SYS_CPU_CLK >> 1);
 }
-

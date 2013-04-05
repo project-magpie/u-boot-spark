@@ -7,6 +7,9 @@
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Alex Zuepke <azu@sysgo.de>
  *
+ * (C) Copyright 2013 STMicroelectronics Ltd.
+ * Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -47,6 +50,13 @@ typedef struct bd_info {
 	ulong start;
 	ulong size;
     }			bi_dram[CONFIG_NR_DRAM_BANKS];
+#if defined(CONFIG_STM)			/* For STMicroelectronics' SoCs */
+	ulong		bi_memstart;	/* start of DRAM memory */
+	phys_size_t	bi_memsize;	/* size  of DRAM memory in bytes */
+	ulong		bi_devid;	/* the device ID of the SoC */
+	ulong		bi_uart_frq;	/* frequency of the UART (in Hertz) */
+	ulong		bi_ssc_frq;	/* frequency of the SSC  (in Hertz) */
+#endif /* CONFIG_STM */
 } bd_t;
 
 #define bi_env_data bi_env->data

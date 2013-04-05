@@ -33,7 +33,13 @@
 #include <asm/io.h>
 #include <stm/socregs.h>
 #include <asm/cache.h>
-#include <asm/addrspace.h>
+
+
+#if defined(CONFIG_ST40)			/* for ST40 cores … */
+#	include <asm/addrspace.h>
+#elif defined(CONFIG_ARM)			/* for ARM cores … */
+#	define PHYSADDR(x)	((u32)(x))	/* identity mapped */
+#endif						/* ST40 || ARM */
 
 
 	/* define DEBUG_BCH to enable verbose debugging of BCH */

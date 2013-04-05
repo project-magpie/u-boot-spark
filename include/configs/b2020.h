@@ -30,9 +30,14 @@
  * (easy to change)
  */
 
-#define CONFIG_STM	1		/* The SoC is from STMicroelectronics */
-#define CONFIG_ST40	1		/* This is an SH4 CPU		*/
-#define CONFIG_CPU_SUBTYPE_SH4_3XX	/* it is an SH4-300		*/
+#define CONFIG_STM	1		/* The SoC is from STMicroelectronics	*/
+					/* It must be either ST40 or ARM.	*/
+#if defined(CONFIG_ST40) && defined(CONFIG_ARM)
+#  error Only one of CONFIG_ST40 or CONFIG_ARM should be defined.
+#endif
+#if defined(CONFIG_ST40)		/* Is this an ST40 CPU ?		*/
+#  define CONFIG_CPU_SUBTYPE_SH4_3XX	/* if so, then it is an SH4-300		*/
+#endif /* CONFIG_ST40 */
 
 
 /*-----------------------------------------------------------------------
@@ -95,6 +100,8 @@
 #	error Only one of CONFIG_SYS_BOOT_FROM_SPI or CONFIG_SYS_BOOT_FROM_NAND must be defined!
 #endif /* CONFIG_SYS_BOOT_FROM_SPI && CONFIG_SYS_BOOT_FROM_NAND */
 
+#if defined(CONFIG_ST40)	/* CONFIG_ST40 */
+
 #ifdef CONFIG_ST40_SE_MODE
 #if defined(CONFIG_STM_CONTIG_MODE)
 #define CONFIG_SYS_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
@@ -104,13 +111,21 @@
 #define CONFIG_SYS_SDRAM_BASE		0x80000000	/* LMI Cached addr via PMB */
 #else
 #error This SoC is not supported in 29-bit mode, please enable SE-mode!
-#endif
+#endif /* CONFIG_ST40_SE_MODE */
+
+#elif defined(CONFIG_ARM)	/* CONFIG_ST40 */
+#define CONFIG_L2_OFF					/* Disable the L2 caches */
+#define CONFIG_NR_DRAM_BANKS		1		/* Number of memory banks */
+#define CONFIG_SYS_SDRAM_BASE		0x60000000	/* Start of LMI RAM (identity mapped) */
+/* Cortex-A9 CPU clock, ideally it should be read dynamically, but for now set to fixed */
+#define CONFIG_SYS_CPU_CLK		1000000000	/* 1 GHz */
+#endif				/* CONFIG_ST40 */
 
 #define CONFIG_SYS_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
 
 #define CONFIG_SYS_MONITOR_LEN		0x00080000	/* Reserve 512 KiB for Monitor */
 #define CONFIG_SYS_MALLOC_LEN		(4 << 20)	/* Reserve 4 MiB for malloc */
-#define CONFIG_SYS_GBL_DATA_SIZE	1024		/* Global data structures */
+#define CONFIG_SYS_GBL_DATA_SIZE	(1024-8)	/* Global data structures */
 
 #define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
 #define CONFIG_SYS_MEMTEST_END		(TEXT_BASE - CONFIG_SYS_MALLOC_LEN - (1 << 20))
@@ -196,6 +211,8 @@
 #	define CONFIG_SYS_STM_STMAC1_BASE	0xfef08000ul	/* GMAC #1 */
 #	define CONFIG_SYS_STM_STMAC_BASE	CONFIG_SYS_STM_STMAC1_BASE
 #	define CONFIG_STMAC_IP1001		/* IC+ IP1001 (U77) */
+#else
+#	undef CONFIG_CMD_NET		/* remove all networking support */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user

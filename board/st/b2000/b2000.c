@@ -270,8 +270,6 @@ extern int board_init(void)
 #else
 #error Unknown base address for the STM GMAC
 #endif
-	/* Hard Reset the PHY -- do after we have configured the MAC */
-	stmac_phy_reset();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 #if defined(CONFIG_CMD_I2C)
@@ -294,7 +292,9 @@ int checkboard (void)
 #elif defined(CONFIG_STM_STXH416)
 		"-STxH416"
 #endif
-#ifdef CONFIG_ST40_SE_MODE
+#if defined(CONFIG_ARM)
+		"  [ARM]"
+#elif defined(CONFIG_ST40_SE_MODE)
 		"  [32-bit mode]"
 #else
 		"  [29-bit mode]"
@@ -314,6 +314,11 @@ int checkboard (void)
 	stxh416_configure_spi();
 #endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 #endif	/* CONFIG_SPI */
+
+#if defined(CONFIG_DRIVER_NET_STM_GMAC)
+	/* Hard Reset the PHY -- do after we have configured the MAC */
+	stmac_phy_reset();
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 	return 0;
 }

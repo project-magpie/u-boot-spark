@@ -9,7 +9,11 @@
 
 #include <config.h>
 #include <stm/socregs.h>
-#include "../../../arch/st40/cpu/init_ram.S"
+#if defined(CONFIG_ST40)
+#  include "../../../arch/st40/cpu/init_ram.S"
+#elif defined(CONFIG_ARM)
+#  include "poketable.h"	/* QQQ - temporary to get it to build */
+#endif
 
 
 	.section .data.init, "a"

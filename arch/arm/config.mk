@@ -2,6 +2,9 @@
 # (C) Copyright 2000-2002
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
+# (C) Copyright 2013 STMicroelectronics
+#	Sean McGoogan <Sean.McGoogan@st.com>
+#
 # See file CREDITS for list of people who contributed to this
 # project.
 #
@@ -20,6 +23,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston,
 # MA 02111-1307 USA
 #
+
+ifeq ($(VENDOR),st)
+include $(TOPDIR)/stm.mk
+CROSS_COMPILE ?= armv7-linux-
+PLATFORM_CPPFLAGS += -DCONFIG_IDENT_STRING=$(STM_IDENT_STRING)
+endif
 
 CROSS_COMPILE ?= arm-linux-
 

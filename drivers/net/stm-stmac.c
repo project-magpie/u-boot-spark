@@ -26,13 +26,23 @@
 
 #include <command.h>
 #include <stm/soc.h>
-#include <asm/addrspace.h>
+#include <stm/socregs.h>
 #include <asm/io.h>
 #include <net.h>
 #include <malloc.h>
 #include <miiphy.h>
 #include "stm-stmac.h"
-#include "asm/pmb.h"
+
+
+#if defined(CONFIG_ST40)			/* for ST40 cores … */
+#	include <asm/addrspace.h>
+#	include <asm/pmb.h>
+#elif defined(CONFIG_ARM)			/* for ARM cores … */
+#	define L1_CACHE_BYTES	32		/* Assume L1 cache line is 32-bytes */
+#	define PHYSADDR(x)	((u32)(x))	/* identity mapped */
+#	define P2SEGADDR(x)	PHYSADDR(x)	/* identity mapped */
+#endif						/* ST40 || ARM */
+
 
 #if defined(CONFIG_CMD_NET)
 

@@ -268,6 +268,8 @@ endif
 # Add STMicroelectronics-specific "drivers" (nominally ARCH-agnostic).
 ifeq ($(CONFIG_STM),y)
 LIBS += drivers/stm/libstm.a
+LIBS += $(shell if [ -f $(CPUDIR)/stm/Makefile ]; then echo \
+	"$(CPUDIR)/stm/lib$(SOC).a"; fi)
 endif
 
 LIBS := $(addprefix $(obj),$(LIBS))
@@ -2734,6 +2736,15 @@ b2075se_config :		unconfig
 	@$(MKCONFIG) -a -n $@ b2075 st40 st40 b2057 st stxh205
 	@$(MKROMGEN) no-such-ip b2075stxh205 st40 boot_companions=0,se=0
 
+b2000a9_config			\
+b2000a9_spi_config		\
+b2000a9_nand_config		\
+b2000stxh415a9_config		\
+b2000stxh415a9_spi_config	\
+b2000stxh415a9_nand_config	\
+b2000stxh416a9_config		\
+b2000stxh416a9_spi_config	\
+b2000stxh416a9_nand_config	\
 b2000se_config			\
 b2000se_spi_config		\
 b2000se_nand_config		\
@@ -2744,22 +2755,39 @@ b2000stxh416se_config		\
 b2000stxh416se_spi_config	\
 b2000stxh416se_nand_config :	unconfig
 	@mkdir -p $(obj)include $(obj)board/st/b2000
-	@echo "#define CONFIG_STM_B2000         1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_CONTIG_MODE   1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
-	 echo "TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2000/config.tmp)
+	@echo "#define CONFIG_STM_B2000          1" >>$(obj)include/config.h
+	@echo "#define CONFIG_STM_CONTIG_MODE    1" >>$(obj)include/config.h
 	$(if $(findstring _nand_,$@), \
 	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
 	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
+	$(if $(findstring a9,$@), \
+	@echo "TEXT_BASE = 0x7FF00000" >$(obj)board/st/b2000/config.tmp; \
 	$(if $(findstring stxh416,$@), \
-	@echo "#define CONFIG_STM_STXH416       1" >>$(obj)include/config.h; \
+	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
+	 $(MKCONFIG) -a -n $@ b2000 arm armv7 b2000 st stxh416; \
+	 $(MKROMGEN) no-such-ip b2000stxh416 a9_0, \
+	 echo "#define CONFIG_STM_STXH415        1" >>$(obj)include/config.h; \
+	 $(MKCONFIG) -a -n $@ b2000 arm armv7 b2000 st stxh415; \
+	 $(MKROMGEN) no-such-ip b2000stxh415 a9_0), \
+	@echo "TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2000/config.tmp; \
+	 echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
+	$(if $(findstring stxh416,$@), \
+	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
 	 $(MKCONFIG) -a -n $@ b2000 st40 st40 b2000 st stxh416; \
 	 $(MKROMGEN) no-such-ip b2000stxh416 st40 se=0, \
-	@echo "#define CONFIG_STM_STXH415       1" >>$(obj)include/config.h; \
+	 echo "#define CONFIG_STM_STXH415        1" >>$(obj)include/config.h; \
 	 $(MKCONFIG) -a -n $@ b2000 st40 st40 b2000 st stxh415; \
-	 $(MKROMGEN) no-such-ip b2000stxh415 st40 se=0)
+	 $(MKROMGEN) no-such-ip b2000stxh415 st40 se=0))
 
+b2020a9_config			\
+b2020a9_spi_config		\
+b2020a9_nand_config		\
+b2020stxh415a9_config		\
+b2020stxh415a9_spi_config	\
+b2020stxh415a9_nand_config	\
+b2020stxh416a9_config		\
+b2020stxh416a9_spi_config	\
+b2020stxh416a9_nand_config	\
 b2020se_config			\
 b2020se_spi_config		\
 b2020se_nand_config		\
@@ -2770,21 +2798,29 @@ b2020stxh416se_config		\
 b2020stxh416se_spi_config	\
 b2020stxh416se_nand_config :	unconfig
 	@mkdir -p $(obj)include $(obj)board/st/b2020
-	@echo "#define CONFIG_STM_B2020         1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_CONTIG_MODE   1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
-	 echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2020/config.tmp)
+	@echo "#define CONFIG_STM_B2020          1" >>$(obj)include/config.h
+	@echo "#define CONFIG_STM_CONTIG_MODE    1" >>$(obj)include/config.h
 	$(if $(findstring _nand_,$@), \
 	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
 	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
+	$(if $(findstring a9,$@), \
+	@echo "TEXT_BASE = 0x6FF00000" >$(obj)board/st/b2020/config.tmp; \
 	$(if $(findstring stxh416,$@), \
-	@echo "#define CONFIG_STM_STXH416       1" >>$(obj)include/config.h; \
+	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
+	 $(MKCONFIG) -a -n $@ b2020 arm armv7 b2020 st stxh416; \
+	 $(MKROMGEN) no-such-ip b2020stxh416 a9_0, \
+	 echo "#define CONFIG_STM_STXH415        1" >>$(obj)include/config.h; \
+	 $(MKCONFIG) -a -n $@ b2020 arm armv7 b2020 st stxh415; \
+	 $(MKROMGEN) no-such-ip b2020stxh415 a9_0), \
+	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2020/config.tmp; \
+	 echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
+	$(if $(findstring stxh416,$@), \
+	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
 	 $(MKCONFIG) -a -n $@ b2020 st40 st40 b2020 st stxh416; \
 	 $(MKROMGEN) no-such-ip b2020stxh416 st40 se=0, \
-	@echo "#define CONFIG_STM_STXH415       1" >>$(obj)include/config.h; \
+	 echo "#define CONFIG_STM_STXH415        1" >>$(obj)include/config.h; \
 	 $(MKCONFIG) -a -n $@ b2020 st40 st40 b2020 st stxh415; \
-	 $(MKROMGEN) no-such-ip b2020stxh415 st40 se=0)
+	 $(MKROMGEN) no-such-ip b2020stxh415 st40 se=0))
 
 
 #########################################################################
