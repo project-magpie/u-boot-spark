@@ -114,7 +114,7 @@ static void stmac_eth_hw_setup(void)
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
-int soc_init(void)
+extern int arch_cpu_init(void)
 {
 	bd_t * const bd = gd->bd;
 

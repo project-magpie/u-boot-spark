@@ -331,5 +331,12 @@ extern void		stxh416_i2c_scl(const int val);
 extern void		stxh416_i2c_sda(const int val);
 extern int		stxh416_i2c_read(void);
 
+
+/*
+ * Common functions for STMicroelectronics' SoCs.
+ */
+extern int arch_cpu_init(void);
+
+
 #endif	/* __INCLUDE_STM_SOC_H */
 

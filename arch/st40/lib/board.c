@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2012 STMicroelectronics.
+ * (C) Copyright 2004-2013 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -40,6 +40,7 @@
 #include <stm/socregs.h>
 #include <stm/stxxxxxreg.h>
 #include <asm/addrspace.h>
+#include <stm/soc.h>
 
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -170,7 +171,6 @@ const char version_string[] =
 	U_BOOT_VERSION" (" U_BOOT_DATE " - " U_BOOT_TIME ") - " CONFIG_IDENT_STRING ;
 
 
-extern int soc_init (void); 	/* Detect/set SOC settings  */
 extern int board_init (void);   /* Set up board             */
 extern int timer_init (void);
 extern int checkboard (void);   /* Give info about board    */
@@ -235,7 +235,7 @@ void flashWriteEnable(void);
 typedef int (init_fnc_t) (void);
 
 init_fnc_t *init_sequence[] = {
-	soc_init,
+	arch_cpu_init,		/* basic arch cpu dependent setup */
 	timer_init,
 	board_init,
 	env_init,		/* initialize environment */

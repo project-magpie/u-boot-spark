@@ -381,7 +381,7 @@ extern void spi_cs_deactivate(struct spi_slave * const slave)
 /**********************************************************************/
 
 
-extern int soc_init(void)
+extern int arch_cpu_init(void)
 {
 	bd_t * const bd = gd->bd;
 

@@ -149,7 +149,7 @@ extern void stx5206_configure_ethernet(
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 
-int soc_init(void)
+extern int arch_cpu_init(void)
 {
 	bd_t * const bd = gd->bd;
 

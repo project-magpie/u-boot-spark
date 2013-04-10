@@ -649,7 +649,7 @@ extern void stxh205_configure_ethernet(
 #define ST40_RST_UDI_OUT_MASK		(1u<<1)
 #define ST40_RST_MAN_OUT_MASK		(1u<<0)	/* ST40 Manual reset, including a "double-fault" */
 
-extern int soc_init(void)
+extern int arch_cpu_init(void)
 {
 	bd_t * const bd = gd->bd;
 
