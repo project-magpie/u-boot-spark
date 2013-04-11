@@ -660,7 +660,16 @@ static inline void bch_load_prog_cpu(const struct bch_prog * const prog)
 
 		/* load + execute the sequence by writing to the BCH registers */
 	while(i--) {
-		writel(*from++, to++);
+			/*
+			 * In the range of the (16) registers, used to
+			 * describe a single "Sequence Node", 2 of them
+			 * are strictly classed as being "RESERVED".
+			 * These registers are at offsets: +0x21c, +0x228.
+			 * On the ARM, we must *not* access them!
+			 */
+		if (!((i==4)||(i==1)))	/* not +0x21c, and not +0x228 */
+			writel(*from, to);
+		from++, to++;		/* next pair of addresses */
 	}
 }
 
