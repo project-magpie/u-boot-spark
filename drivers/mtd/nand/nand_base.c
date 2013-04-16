@@ -2622,7 +2622,7 @@ static int nand_flash_detect_onfi(struct mtd_info *mtd,
 	struct nand_onfi_params *p = &chip->onfi_params;
 	int i;
 	int val;
-	const char format[] = "%s, %llu MiB, page size %u+%u";
+	static const char format[] = "%s, %llu MiB, page size %u+%u";
 	char model[sizeof(p->model)+1];
 	char description[sizeof(format) + sizeof(model) + 10 + 10 + 10 + 1 ];
 

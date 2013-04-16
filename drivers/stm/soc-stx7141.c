@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -285,7 +285,7 @@ extern void stx7141_configure_ethernet(
 	const bd_t * const bd = gd->bd;
 	size_t i;
 
-	const struct {
+	static const struct {
 		struct {
 			unsigned char port, pin, alt;
 		} pio[2];

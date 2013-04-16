@@ -45,7 +45,7 @@ static int check_skip_bb(const ulong addr)
 {
 	const uchar * const signature = (uchar*)(addr+NAND_SIGNATURE_OFFSET);
 	const skip_bb * const ptr = (skip_bb*)(addr+NAND_BB_SKIP_OFFSET);
-	const uchar pattern[] = "SKIP_BBs";
+	static const uchar pattern[] = "SKIP_BBs";
 	size_t i;
 
 	/*

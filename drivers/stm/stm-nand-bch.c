@@ -1003,7 +1003,7 @@ static int bch_write_page (
 	const int bbt_last_page  = (mtd->size >> chip->page_shift) - 1;
 	const int bbt_first_page = bbt_last_page - (descr->maxblocks * pages_per_block) + 1;
 
-	const char author[] = "STMicroelectronics U-Boot (" CONFIG_IDENT_STRING ")";
+	static const char author[] = "STMicroelectronics U-Boot (" CONFIG_IDENT_STRING ")";
 
 #if defined(DEBUG_BCH)
 	printf("info: bch_write_page(mtd=%p, chip=%p, buf=%p, page=%d, cached=%d, raw=%d) ... page_size = %u\n",

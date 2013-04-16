@@ -679,7 +679,7 @@ extern int stxh205_usb_init(const int port)
 {
 	static int initialized = 0;
 	unsigned int flags;
-	const struct {
+	static const struct {
 		struct {
 			unsigned char port, pin, alt;
 		} oc, pwr;

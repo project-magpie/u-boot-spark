@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -214,8 +214,8 @@ extern int arch_cpu_init(void)
 extern int stx7105_usb_init(int port, int over_current, int power_ctrl)
 {
 	unsigned long reg;
-	const unsigned char oc_pins[2]    = {4, 6};	/* PIO4 */
-	const unsigned char power_pins[2] = {5, 7};	/* PIO4 */
+	static const unsigned char oc_pins[2]    = {4, 6};	/* PIO4 */
+	static const unsigned char power_pins[2] = {5, 7};	/* PIO4 */
 
 	if (port >= sizeof(oc_pins))	/* invalid port number ? */
 		return -1;		/* failed to initialize! */

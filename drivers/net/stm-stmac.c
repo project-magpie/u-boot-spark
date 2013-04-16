@@ -698,9 +698,9 @@ static int stmac_miiphy_write(const char *devname, unsigned char addr, unsigned 
 static void gmac_dump_regs(void)
 {
 	int i;
-	const char fmt[] =
+	static const char fmt[] =
 		"\tReg No. %2d (offset 0x%03x): 0x%08x\n";
-	const char header[] =
+	static const char header[] =
 		"\t----------------------------------------------\n"
 		"\t  %s registers (base addr = 0x%8x)\n"
 		"\t----------------------------------------------\n";

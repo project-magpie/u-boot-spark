@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2012 STMicroelectronics.
+ * (C) Copyright 2007-2013 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -453,8 +453,8 @@ extern void stx7200_usb_init(void)
 {
 	const bd_t * const bd = gd->bd;
 	unsigned long reg;
-	const unsigned char power_pins[3] = {1, 3, 4};
-	const unsigned char oc_pins[3] = {0, 2, 5};
+	static const unsigned char power_pins[3] = {1, 3, 4};
+	static const unsigned char oc_pins[3] = {0, 2, 5};
 #if CONFIG_SYS_USB_BASE == CONFIG_SYS_USB0_BASE
 	const size_t port = 0;
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB1_BASE
