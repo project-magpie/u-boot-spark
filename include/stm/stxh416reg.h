@@ -53,6 +53,16 @@
 
 /*----------------------------------------------------------------------------*/
 
+/* Recommended STBus Bridge Values for GMAC */
+#ifndef STM_GMAC_AHB2STBUS_BASE
+#define STM_GMAC_AHB2STBUS_BASE			0x2000		/* offset */
+#endif
+#ifndef STM_GMAC_AHB2STBUS_CONFIG
+#define STM_GMAC_AHB2STBUS_CONFIG		0x26c209	/* from validation */
+#endif
+
+/*----------------------------------------------------------------------------*/
+
 /* ASC UARTs */
 /* in the main "COMMs" block */
 #ifndef STXH416_ASC0_BASE

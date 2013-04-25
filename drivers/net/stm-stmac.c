@@ -719,9 +719,11 @@ static void gmac_dump_regs(void)
 	}
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
+#if defined(STM_GMAC_AHB2STBUS_BASE)
 	printf ("\tSTBus bridge register (0x%08x) = 0x%08x\n",
-		(unsigned int)(CONFIG_SYS_STM_STMAC_BASE + STBUS_BRIDGE_OFFSET),
-		STMAC_READ (STBUS_BRIDGE_OFFSET));
+		(unsigned int)(CONFIG_SYS_STM_STMAC_BASE + STM_GMAC_AHB2STBUS_BASE),
+		STMAC_READ (STM_GMAC_AHB2STBUS_BASE));
+#endif	/* STM_GMAC_AHB2STBUS_BASE */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 }
 #endif	/* DEBUG */
@@ -883,8 +885,10 @@ static void stmac_mac_core_init (void)
 	STMAC_WRITE (value, MAC_CONTROL);
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
+#if defined(STM_GMAC_AHB2STBUS_BASE)
 	/* STBus Bridge Configuration */
-	STMAC_WRITE(STBUS_BRIDGE_MAGIC, STBUS_BRIDGE_OFFSET);
+	STMAC_WRITE(STM_GMAC_AHB2STBUS_CONFIG, STM_GMAC_AHB2STBUS_BASE);
+#endif	/* STM_GMAC_AHB2STBUS_BASE */
 
 	/* Freeze MMC counters */
 	STMAC_WRITE(MMC_COUNTER_FREEZE, MMC_CONTROL);

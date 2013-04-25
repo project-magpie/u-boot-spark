@@ -449,11 +449,3 @@ typedef struct stmac_dma_des_t stmac_dma_des;
 #ifndef CONFIG_STMAC_TX_TIMEOUT
 #define CONFIG_STMAC_TX_TIMEOUT		(5*CONFIG_SYS_HZ)	/* 5 seconds */
 #endif
-
-/* Recommended STBus Bridge Values for GMAC */
-#ifdef CONFIG_DRIVER_NET_STM_GMAC
-#define STBUS_BRIDGE_OFFSET		0x00007000
-#define STBUS_BRIDGE_MAGIC		0x25C608		/* from validation */
-#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
-
-

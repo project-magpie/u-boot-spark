@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2008,2010-2012
+ * Copyright (C) STMicroelectronics Ltd. 2008,2010-2013
  *
  * All rights reserved.
  */
@@ -64,6 +64,18 @@
 
 /* EMISS (aka EMIPCISS) Register Configuration Space */
 #define STM_EMISS_REGS_BASE		0xfdaa8000
+
+/*----------------------------------------------------------------------------*/
+
+/* Recommended STBus Bridge Values for GMAC */
+#ifndef STM_GMAC_AHB2STBUS_BASE
+#define STM_GMAC_AHB2STBUS_BASE			0x7000		/* offset */
+#endif
+#ifndef STM_GMAC_AHB2STBUS_CONFIG
+#define STM_GMAC_AHB2STBUS_CONFIG		0x25C608	/* from validation */
+#endif
+
+/*----------------------------------------------------------------------------*/
 
 /* System Architecture Volume 4: I/O Devices */
 #ifndef STM_PIO0_REGS_BASE
