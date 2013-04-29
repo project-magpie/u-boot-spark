@@ -2,7 +2,7 @@
  * Copyright (c) 2007-2008, Juniper Networks, Inc.
  * Copyright (c) 2008, Excito Elektronik i Skåne AB
  * Copyright (c) 2008, Michael Trimarchi <trimarchimichael@yahoo.it>
- * Copyright (c) 2012, STMicroelectronics
+ * Copyright (c) 2012-2013, STMicroelectronics
  *	Sean McGoogan <Sean.McGoogan@st.com>
  *
  * All rights reserved.
@@ -55,6 +55,32 @@
 #else	/* __SH4__ */
 #	define PHYSICAL_ADDR(addr)	(addr)
 #endif	/* __SH4__ */
+
+
+/**********************************************************************
+ * With ARM cores on STMicroelectronics' SoCs, we currently do
+ * not support misaligned accesses, so we add a macro here
+ * to help us to force the compiler to convert such potential
+ * misaligned accesses into a series of byte accesses…
+ */
+#if defined(CONFIG_STM) && defined(CONFIG_ARM)
+#define UNALIGNED_OR16(x,value)					\
+do								\
+{								\
+	unsigned char * const byte0 = (unsigned char*)(&x);	\
+	unsigned char * const byte1 = byte0 + 1;		\
+	const unsigned char value0 = ((value) >> 0) & 0xFFu;	\
+	const unsigned char value1 = ((value) >> 8) & 0xFFu;	\
+/*	printf("old: *%p = 0x%02x\n", byte0, *byte0);	*/	\
+/*	printf("old: *%p = 0x%02x\n", byte1, *byte1);	*/	\
+	*byte0 |= value0;					\
+	*byte1 |= value1;					\
+/*	printf("new: *%p = 0x%02x\n", byte0, *byte0);	*/	\
+/*	printf("new: *%p = 0x%02x\n", byte1, *byte1);	*/	\
+} while (0)
+#else	/* CONFIG_STM && CONFIG_ARM */
+#define UNALIGNED_OR16(x,value)		(x) |= (value)
+#endif	/* CONFIG_STM && CONFIG_ARM */
 
 
 #define mdelay(n) ({unsigned long msec = (n); while (msec--) udelay(1000); })
@@ -775,10 +801,10 @@ int usb_lowlevel_init(void)
 	printf("Register %x NbrPorts %d\n", reg, descriptor.hub.bNbrPorts);
 	/* Port Indicators */
 	if (HCS_INDICATOR(reg))
-		descriptor.hub.wHubCharacteristics |= 0x80;
+		UNALIGNED_OR16(descriptor.hub.wHubCharacteristics, 0x80);
 	/* Port Power Control */
 	if (HCS_PPC(reg))
-		descriptor.hub.wHubCharacteristics |= 0x01;
+		UNALIGNED_OR16(descriptor.hub.wHubCharacteristics, 0x01);
 
 	/* Start the host controller. */
 	cmd = ehci_readl(&hcor->or_usbcmd);

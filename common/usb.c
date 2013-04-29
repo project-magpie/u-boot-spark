@@ -14,6 +14,8 @@
  *
  * Adapted for U-Boot:
  * (C) Copyright 2001 Denis Peter, MPL AG Switzerland
+ * (C) Copyright STMicroelectronics 2013,
+ *	Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -99,6 +101,46 @@ char usb_started; /* flag for the started/stopped USB status */
 #	define CONFIG_SYS_USB_DODGY_DEVICES_MAX_DELAY		15000	/* in ms */
 #endif	/* CONFIG_SYS_USB_DODGY_DEVICES_MAX_DELAY */
 #endif	/* CONFIG_SYS_USB_DODGY_DEVICES_SUPPORT */
+
+
+/**********************************************************************
+ * With ARM cores on STMicroelectronics' SoCs, we currently do
+ * not support misaligned accesses, so we add a few macros here
+ * to help us to force the compiler to convert such potential
+ * misaligned accesses into a series of byte accesses…
+ */
+#if defined(CONFIG_STM) && defined(CONFIG_ARM)
+#define UNALIGNED_WRITE16(x,value)				\
+do								\
+{								\
+	unsigned char * const byte0 = (unsigned char*)(&x);	\
+	unsigned char * const byte1 = byte0 + 1;		\
+	const unsigned char value0 = ((value) >> 0) & 0xFFu;	\
+	const unsigned char value1 = ((value) >> 8) & 0xFFu;	\
+/*	printf("old: *%p = 0x%02x\n", byte0, *byte0);	*/	\
+/*	printf("old: *%p = 0x%02x\n", byte1, *byte1);	*/	\
+	*byte0 = value0;					\
+	*byte1 = value1;					\
+/*	printf("new: *%p = 0x%02x\n", byte0, *byte0);	*/	\
+/*	printf("new: *%p = 0x%02x\n", byte1, *byte1);	*/	\
+} while (0)
+#define UNALIGNED_READ16(x)					\
+({								\
+	unsigned char * const byte0 = (unsigned char*)(&x);	\
+	unsigned char * const byte1 = byte0 + 1;		\
+	const unsigned char value0 = *byte0;			\
+	const unsigned char value1 = *byte1;			\
+	const unsigned short data = value1 << 8 | value0 << 0;	\
+/*	printf("read: *%p = 0x%02x\n", byte0, *byte0);	*/	\
+/*	printf("read: *%p = 0x%02x\n", byte1, *byte1);	*/	\
+/*	printf("read: 0x%04x\n", data);			*/	\
+	data;	/* finally, evaluate the result */		\
+})
+#else	/* CONFIG_STM && CONFIG_ARM */
+#define UNALIGNED_WRITE16(x,value)	(x) = (value)
+#define UNALIGNED_READ16(x)		(x)
+#endif	/* CONFIG_STM && CONFIG_ARM */
+
 
 /**********************************************************************
  * some forward declarations...
@@ -295,7 +337,7 @@ int usb_maxpacket(struct usb_device *dev, unsigned long pipe)
 static short __attribute__((noinline))
 getMaxPacketSize(const struct usb_endpoint_descriptor * const ep)
 {
-	return ep->wMaxPacketSize;
+	return UNALIGNED_READ16(ep->wMaxPacketSize);
 }
 
 /* The routine usb_set_maxpacket_ep() is extracted from the loop of routine
@@ -1225,6 +1267,7 @@ int usb_hub_configure(struct usb_device *dev)
 #endif
 	int i;
 	struct usb_hub_device *hub;
+	unsigned short wHubCharacteristics;
 
 	/* "allocate" Hub device */
 	hub = usb_hub_allocate();
@@ -1255,8 +1298,9 @@ int usb_hub_configure(struct usb_device *dev)
 	}
 	memcpy((unsigned char *)&hub->desc, buffer, descriptor->bLength);
 	/* adjust 16bit values */
-	hub->desc.wHubCharacteristics =
-				le16_to_cpu(descriptor->wHubCharacteristics);
+	wHubCharacteristics = UNALIGNED_READ16(descriptor->wHubCharacteristics);
+	wHubCharacteristics = le16_to_cpu(wHubCharacteristics);
+	UNALIGNED_WRITE16(hub->desc.wHubCharacteristics, wHubCharacteristics);
 	/* set the bitmap */
 	bitmap = (unsigned char *)&hub->desc.DeviceRemovable[0];
 	/* devices not removable by default */
@@ -1273,7 +1317,7 @@ int usb_hub_configure(struct usb_device *dev)
 	dev->maxchild = descriptor->bNbrPorts;
 	USB_HUB_PRINTF("%d ports detected\n", dev->maxchild);
 
-	switch (hub->desc.wHubCharacteristics & HUB_CHAR_LPSM) {
+	switch (wHubCharacteristics & HUB_CHAR_LPSM) {
 	case 0x00:
 		USB_HUB_PRINTF("ganged power switching\n");
 		break;
@@ -1286,12 +1330,12 @@ int usb_hub_configure(struct usb_device *dev)
 		break;
 	}
 
-	if (hub->desc.wHubCharacteristics & HUB_CHAR_COMPOUND)
+	if (wHubCharacteristics & HUB_CHAR_COMPOUND)
 		USB_HUB_PRINTF("part of a compound device\n");
 	else
 		USB_HUB_PRINTF("standalone hub\n");
 
-	switch (hub->desc.wHubCharacteristics & HUB_CHAR_OCPM) {
+	switch (wHubCharacteristics & HUB_CHAR_OCPM) {
 	case 0x00:
 		USB_HUB_PRINTF("global over-current protection\n");
 		break;
