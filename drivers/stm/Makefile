@@ -27,6 +27,7 @@ LIB	= $(obj)libstm.a
 
 # All the STMicroelectronics-specific stuff, which may be ARCH-agnostic
 ifdef CONFIG_STM
+COBJS-y += board.o
 COBJS-y += stm-sysconf.o
 COBJS-$(CONFIG_STM_USB) += usb.o
 COBJS-$(CONFIG_STM_SATA) += sata-init.o sata-probe.o
