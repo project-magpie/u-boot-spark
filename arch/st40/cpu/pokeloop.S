@@ -1,9 +1,9 @@
 /*
  * File     : pokeloop.S
  * Synopsis : ST40 poke loop/Sysinit Ops performing code.
- * Version  : 4.1
+ * Version  : 4.2
  *
- * Copyright (c) 2004-2012 STMicroelectronics Limited.  All rights reserved.
+ * Copyright (c) 2004-2013 STMicroelectronics Limited.  All rights reserved.
  */
 
 #include "poketable.h"
@@ -39,10 +39,9 @@
 #endif
 
 /* The section the pokeLoop code should be put in may be defined */
-#ifndef POKELOOPSECTION
-#define POKELOOPSECTION				.text.pokesection
-#endif /* !POKELOOPSECTION */
+#if defined(POKELOOPSECTION)
 	.pushsection	POKELOOPSECTION
+#endif /* !POKELOOPSECTION */
 
 /* The name of the pokeLoop function may be defined */
 #ifndef POKELOOP_FUNC_NAME_ASM
@@ -498,6 +497,7 @@ DoAnd32RegOff:
 	bra DoPoking
 	  mov.l	r2, @r1
 
+	.balign	32
 JUMPTHROUGH_POINT_NO_EXEC
 
 /* UPDATE32_REGOFF(A, REGOFF, AND, OR) */
@@ -515,6 +515,7 @@ DoUpdate32RegOff:
 	bra	DoPoking
 	  mov.l	r3, @r1		/* *(A + *REGOFF) = ((*(A + *REGOFF) & AND) | OR) */
 
+	.balign	32
 JUMPTHROUGH_POINT_NO_EXEC
 
 /* POKE_UPDATE32_REGOFF(DST, DST_REGOFF, SRC, SRC_REGOFF, AND, SHIFT, OR) -
@@ -534,9 +535,6 @@ DoPokeUpdate32RegOff:
 	shld	r2, r3
 	mov.l	@r4+, r2	/* Read OR */
 	or	r2, r3
-
-JUMPTHROUGH_POINT_EXEC
-
 	mov.l	@r4+, r1	/* Read DST */
 	mov.l	@r4+, r2	/* Read DST_REGOFF */
 	cmp/eq	r7, r2		/* Only use DST_REGOFF if it's not 0 */
@@ -669,8 +667,6 @@ DoOrReg:
 	bra	DoPoking
 	  mov.l	r3, @r2
 
-JUMPTHROUGH_POINT_NO_EXEC
-
 /* AND_REG(DST, SRC) - param order in table: SRC, DST */
 DoAndReg:
 	mov.l	@r1, r1		/* r1 = *SRC */
@@ -687,6 +683,8 @@ DoNotReg:
 	bra	DoPoking
 	  mov.l	r2, @r1
 
+JUMPTHROUGH_POINT_NO_EXEC
+
 /* IF_EQ_REG(NESTLEVEL, R1, R2)
    Note that NESTLEVEL is not in the actual table, but there is a distance
    field following the stated parameters.
@@ -700,8 +698,6 @@ DoIfEqReg:
 	bra	DoPoking
 	  add	r3, r4		/* Skip forward through pokes to ELSE or ENDIF */
 
-JUMPTHROUGH_POINT_NO_EXEC
-
 /* IF_GT_REG(NESTLEVEL, R1, R2)
    Note that NESTLEVEL is not in the actual table, but there is a distance
    field following the stated parameters.
@@ -714,6 +710,8 @@ DoIfGTReg:
 	bt	DoPoking3	/* Go ahead with these pokes if true*/
 	bra	DoPoking
 	  add	r3, r4		/* Skip forward through pokes to ELSE or ENDIF */
+
+JUMPTHROUGH_POINT_NO_EXEC
 
 /* COPY_REG_REGOFF(DST, DST_REGOFF, SRC, SRC_REGOFF)
  * - param order in table:
@@ -784,8 +782,6 @@ DoAndRegRegOff:
 	  mov.l	r3, @r2
 
 JUMPTHROUGH_POINT_NO_EXEC
-	.balign	32
-JUMPTHROUGH_POINT_NO_EXEC
 
 /* NOT_REG_REGOFF(A, A_REGOFF) */
 DoNotRegRegOff:
@@ -799,6 +795,7 @@ DoNotRegRegOff:
 	bra	DoPoking
 	  mov.l	r2, @r1
 
+	.balign	32
 JUMPTHROUGH_POINT_NO_EXEC
 
 /* IF_EQ_REG_REGOFF(NESTLEVEL, A1, A1_REGOFF, A2, A2_REGOFF)
@@ -825,6 +822,8 @@ DoIfEqRegRegOff:
 	bra	DoPoking
 	  add	r3, r4		/* Skip forward through pokes to ELSE or ENDIF */
 
+JUMPTHROUGH_POINT_NO_EXEC
+	.balign	32
 JUMPTHROUGH_POINT_NO_EXEC
 
 /* IF_GT_REG_REGOFF(NESTLEVEL, A1, A1_REGOFF, A2, A2_REGOFF)
@@ -1040,4 +1039,6 @@ DoSetDevIDReg:
 
 JUMPTHROUGH_END
 
+#if defined(POKELOOPSECTION)
 	.popsection
+#endif /* !POKELOOPSECTION */
