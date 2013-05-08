@@ -35,7 +35,10 @@ SECTIONS
 	.text	:
 	{
 		arch/arm/cpu/armv7/start.o	(.text)
-		*(.text)
+		*(.text.init)		/* pre-initialization code */
+		. = ALIGN(32);		/* align to a cache-line */
+		*(.data.init)		/* pre-initialization data */
+		*(.text*)		/* post-initialization code */
 	}
 
 	. = ALIGN(4);

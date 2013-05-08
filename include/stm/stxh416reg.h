@@ -199,6 +199,28 @@
 /*
  * STxH416 System Configuration "accessors"
  */
+#if defined(__ASSEMBLER__)
+#define STXH416_SYSCFG(x)	STXH416_SYSCFG x
+	.macro STXH416_SYSCFG x:req
+		.if ((\x) < 1000)
+			.long (STXH416_SYSCONF0_BASE + ((\x)-0)*0x4)
+		.elseif ((\x) < 2000)
+			.long (STXH416_SYSCONF1_BASE + ((\x)-1000)*0x4)
+		.elseif ((\x) < 5000)
+			.long (STXH416_SYSCONF2_BASE + ((\x)-2000)*0x4)
+		.elseif ((\x) < 6000)
+			.long (STXH416_SYSCONF3_BASE + ((\x)-5000)*0x4)
+		.elseif ((\x) < 7500)
+			.long (STXH416_SYSCONF4_BASE + ((\x)-6000)*0x4)
+		.elseif ((\x) < 8500)
+			.long (STXH416_SYSCONF5_BASE + 0x7D0 + ((\x)-7500)*0x4)
+		.elseif ((\x) < 9500)
+			.long (STXH416_SYSCONF6_BASE + 0x7D0 + ((\x)-8500)*0x4)
+		.else
+			.long (STXH416_SYSCONF7_BASE + 0x7D0 + ((\x)-9500)*0x4)
+		.endif
+	.endm
+#else	/* __ASSEMBLER__ */
 #define STXH416_SYSCFG(x)							\
 	(									\
 		((x) < 1000)							\
@@ -224,11 +246,12 @@
 		:								\
 		STM_U32_REG(STXH416_SYSCONF7_BASE + 0x7D0 + ((x)-9500)*0x4)	\
 	)
+#endif	/* __ASSEMBLER__ */
 
 /*
  * STxH416 System Status "accessors"
  */
-#define STXH416_SYSSTS(x)	(STXH416_SYSCFG(x))
+#define STXH416_SYSSTS(x)	STXH416_SYSCFG(x)
 
 
 /*----------------------------------------------------------------------------*/

@@ -188,6 +188,24 @@
 /*
  * STxH415 System Configuration "accessors"
  */
+#if defined(__ASSEMBLER__)
+#define STXH415_SYSCFG(x)	STXH415_SYSCFG x
+	.macro STXH415_SYSCFG x:req
+		.if ((\x) < 100)
+			.long (STXH415_SAS_SBC_SYSCONF_BASE + ((\x)-0)*0x4)
+		.elseif ((\x) < 300)
+			.long (STXH415_SAS_FRONT_SYSCONF_BASE + ((\x)-100)*0x4)
+		.elseif ((\x) < 400)
+			.long (STXH415_SAS_REAR_SYSCONF_BASE + ((\x)-300)*0x4)
+		.elseif ((\x) < 500)
+			.long (STXH415_MPE_LEFT_SYSCONF_BASE + ((\x)-400)*0x4)
+		.elseif ((\x) < 600)
+			.long (STXH415_MPE_RIGHT_SYSCONF_BASE + ((\x)-500)*0x4)
+		.else
+			.long (STXH415_MPE_SYSTEM_SYSCONF_BASE + ((\x)-600)*0x4)
+		.endif
+	.endm
+#else	/* __ASSEMBLER__ */
 #define STXH415_SYSCFG(x)							\
 	(									\
 		((x) < 100)							\
@@ -207,11 +225,12 @@
 		:								\
 		STM_U32_REG(STXH415_MPE_SYSTEM_SYSCONF_BASE + ((x)-600)*0x4)	\
 	)
+#endif	/* __ASSEMBLER__ */
 
 /*
  * STxH415 System Status "accessors"
  */
-#define STXH415_SYSSTS(x)	(STXH415_SYSCFG(x))
+#define STXH415_SYSSTS(x)	STXH415_SYSCFG(x)
 
 
 /*----------------------------------------------------------------------------*/

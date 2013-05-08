@@ -9,6 +9,8 @@
  * Copyright (c) 2003	Richard Woodruff <r-woodruff2@ti.com>
  * Copyright (c) 2003	Kshitij <kshitij@ti.com>
  * Copyright (c) 2006-2008 Syed Mohammed Khasim <x0khasim@ti.com>
+ * Copyright (c) 2013 STMicroelectronics Limited.
+ *	Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -94,6 +96,25 @@ IRQ_STACK_START:
 FIQ_STACK_START:
 	.word 0x0badc0de
 #endif
+
+
+	/*
+	 * If were are going to boot U-Boot from NAND flash, then
+	 * we need add a special "signature" pattern in the first
+	 * logical block (block zero), for STMicroelectronics' SoCs.
+	 */
+#if defined(CONFIG_STM) && defined(CONFIG_SYS_BOOT_FROM_NAND)
+#	include "asm/asmdefs.h"
+	/*
+	 * Write out the 64-byte preamble signature pattern, to identify
+	 * the current NAND flash block, as the good "logical block ZERO".
+	 * This signature must start at offset +0x0080 in the block.
+	 */
+	.balign 0x80, 0x00		/* starts 128 bytes into "Block Zero" */
+preamble_signature_pattern:
+	BYTES 0x00 0x3f			/* 64-bytes: 0x00, 0x01, ..., 0x3f */
+#endif	/* CONFIG_STM && CONFIG_SYS_BOOT_FROM_NAND */
+
 
 /*
  * the actual reset code
