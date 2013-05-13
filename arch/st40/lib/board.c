@@ -61,7 +61,6 @@ const char version_string[] =
 extern int board_init (void);   /* Set up board             */
 extern int timer_init (void);
 extern int checkboard (void);   /* Give info about board    */
-extern int env_init_after_spi_done (void);
 
 
 static int init_func_ram (void)

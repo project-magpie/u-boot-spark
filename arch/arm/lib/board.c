@@ -53,6 +53,7 @@
 #include <onenand_uboot.h>
 #include <mmc.h>
 #include <spi.h>
+#include <environment.h>
 
 #ifdef CONFIG_BITBANGMII
 #include <miiphy.h>

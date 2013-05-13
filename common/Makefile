@@ -51,7 +51,10 @@ COBJS-y += cmd_version.o
 # environment
 COBJS-y += env_common.o
 COBJS-$(CONFIG_ENV_IS_IN_DATAFLASH) += env_dataflash.o
+# for STMicroelectronics, use "drivers/stm/env_eeprom.o" instead
+ifndef CONFIG_STM
 COBJS-$(CONFIG_ENV_IS_IN_EEPROM) += env_eeprom.o
+endif # CONFIG_STM
 COBJS-$(CONFIG_ENV_IS_EMBEDDED) += env_embedded.o
 COBJS-$(CONFIG_ENV_IS_IN_EEPROM) += env_embedded.o
 COBJS-$(CONFIG_ENV_IS_IN_FLASH) += env_embedded.o

@@ -162,4 +162,7 @@ void env_crc_update (void);
 /* [re]set to the default environment */
 void set_default_env(void);
 
+/* initialize the environment *after* the SPI driver has been initialized */
+extern int env_init_after_spi_done(void);
+
 #endif	/* _ENVIRONMENT_H_ */
