@@ -157,6 +157,24 @@ static uchar env_get_char_init (int index)
 uchar env_get_char_memory (int index)
 {
 	if (gd->env_valid) {
+#if	defined(CONFIG_STM)			&& \
+	defined(CONFIG_SYS_BOOT_FROM_SPI)	&& \
+	defined(CONFIG_ENV_IS_IN_EEPROM)
+		/*
+		 * If we are booting from SPI, with the environment also
+		 * stored in an SPI Serial Flash, on an ARM core on
+		 * a SoC from STMicroelectronics, with the environment
+		 * not yet relocated to RAM, then we need to take some
+		 * additional special measures. This is because the
+		 * SPIBOOT controller does not support 1-byte reads (LD1),
+		 * which results in a fault on the ARM core. However,
+		 * on the ST40 there is no fault, but we do read garbage!
+		 * In this case, we decide we will perform a 4-byte read,
+		 * from this SPIBOOT controller, and extract only the
+		 * one byte we are really interested in.
+		 */
+		if (env_ptr==NULL) return env_get_char_spec(index);
+#endif	/* CONFIG_STM && CONFIG_SYS_BOOT_FROM_SPI && CONFIG_ENV_IS_IN_EEPROM */
 		return ( *((uchar *)(gd->env_addr + index)) );
 	} else {
 		return ( default_environment[index] );

@@ -89,7 +89,6 @@
  */
 
 #if defined(CONFIG_SYS_BOOT_FROM_SPI)			/* we are booting from SPI */
-#	define CONFIG_SYS_EMI_SPI_BASE		0xB0000000	/* CSA: SPI Flash,  Physical 0x00000000 (4MiB) */
 #	define CONFIG_SYS_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
 #elif defined(CONFIG_SYS_BOOT_FROM_NAND)		/* we are booting from NAND */
 #	define CONFIG_SYS_NAND_FLEX_CSn_MAP	{ 0 }		/* NAND is on Chip Select CSA */
@@ -103,6 +102,9 @@
 #if defined(CONFIG_ST40)	/* CONFIG_ST40 */
 
 #ifdef CONFIG_ST40_SE_MODE
+#if defined(CONFIG_SYS_BOOT_FROM_SPI)			/* we are booting from SPI */
+#	define CONFIG_SYS_EMI_SPI_BASE	0xB0000000	/* CSA: SPI Flash,  Physical 0x00000000 (4MiB) */
+#endif	/* CONFIG_SYS_BOOT_FROM_SPI */
 #if defined(CONFIG_STM_CONTIG_MODE)
 #define CONFIG_SYS_SE_PHYSICAL_BASE	0x40000000	/* LMI Physical Address */
 #else
@@ -114,11 +116,16 @@
 #endif /* CONFIG_ST40_SE_MODE */
 
 #elif defined(CONFIG_ARM)	/* CONFIG_ST40 */
+
+#if defined(CONFIG_SYS_BOOT_FROM_SPI)			/* we are booting from SPI */
+#	define CONFIG_SYS_EMI_SPI_BASE	0x00000000	/* CSA: SPI Flash,  Physical 0x00000000 (4MiB) */
+#endif	/* CONFIG_SYS_BOOT_FROM_SPI */
 #define CONFIG_L2_OFF					/* Disable the L2 caches */
 #define CONFIG_NR_DRAM_BANKS		1		/* Number of memory banks */
 #define CONFIG_SYS_SDRAM_BASE		0x60000000	/* Start of LMI RAM (identity mapped) */
 /* Cortex-A9 CPU clock, ideally it should be read dynamically, but for now set to fixed */
 #define CONFIG_SYS_CPU_CLK		1000000000	/* 1 GHz */
+
 #endif				/* CONFIG_ST40 */
 
 #define CONFIG_SYS_SDRAM_SIZE		0x10000000	/* 256 MiB of LMI SDRAM */
