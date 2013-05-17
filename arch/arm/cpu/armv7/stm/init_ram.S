@@ -39,6 +39,10 @@
 	.type		init_ram, %function
 
 
+#define LSB(x)		((x) & 1)	/* Return only the Least Significant Bit */
+#define LSB_MASK(x)	((x) & ~1)	/* Mask off the Least Significant Bit */
+
+
 	/*
 	 * We want some SRAM to store the "poke-table", whilst the
 	 * "pokeloop" interpreter is being executed. This is because
@@ -48,7 +52,8 @@
 	 * D-caches to hold the poke table (c.f. ST40), so we will
 	 * use a small SRAM buffer instead, as this will be safer.
 	 * This buffer only needs to be big enough to hold the raw
-	 * binary poke-table, so 32KiB (or more) should be sufficient.
+	 * binary poke-table and the poke_loop() function as well,
+	 * so 32KiB (or more) should be sufficient for our needs.
 	 * CONFIG_STM_SRAM_START is the beginning of this SRAM buffer.
 	 */
 #if !defined(CONFIG_STM_SRAM_START)
@@ -65,7 +70,8 @@
 	 * of "pokes" that GDB would normally perform.
 	 *
 	 * This code is just a wrapper around the "poke_loop()" function,
-	 * which copies the poke-table into SRAM, and passes the correct
+	 * which relocates the entirety of the poke-table *AND* the entirety
+	 * of the poke_loop() interpreter into SRAM, and passes the correct
 	 * parameters to the called function, whose C prototype would be:
 	 *
 	 * extern int poke_loop(const unsigned int* pokeTable, unsigned int deviceID);
@@ -75,58 +81,84 @@
 	 * location, this code *must* be PIC!
 	 * This code expects to be run with the I-cache enabled.
 	 * This code expects to be run with the D-cache DISabled.
-	 * This code will trash r0-r10 (and lr), it will preserve IP (r12).
+	 * This code will trash r0-r9 (and lr), it will preserve IP (r12).
 	 */
 init_ram:
 	mov	r4, lr			/* Stash the LR somewhere safe */
 	mov	r5, ip			/* Stash the IP (r12) somewhere safe */
 
 	/*
+	 * The following code and layout assumes:
+	 *
+	 *	1) The poke_loop() (both code+data) is placed immediately
+	 *	   before the poke-table (i.e. they abut).
+	 *
+	 *	2) The poke interpreter begins at poke_loop
+	 *
+	 *	3) The poke interpreter is PIC (no fix-ups needed)
+	 *
+	 *	4) The poke-table begins at __memory_setup_table
+	 *
+	 *	5) The poke-table ends at __memory_setup_table_end
+	 *
+	 *	6) Both the poke_loop(), and the poke-table will
+	 *	   easily fit in the SRAM, with no issues.
+	 */
+
+	/*
 	 * Initialize our local variables
 	 */
-	adr	r6, poke_loop_address	/* r6 = base of PIC calculations */
-	ldr	r3, poke_loop_address
-	add	r3, r3, r6		/* r3 = &poke_loop(); */
-	ldr	r2, data_end_address
-	add	r2, r2, r6		/* r2 = __memory_setup_table_end; */
-	ldr	r0, data_start_address
-	add	r0, r0, r6		/* r0 = __memory_setup_table; */
+	adr	r3, source_start_pic	/* r3 = base of PIC calculations */
+	ldr	r0, source_start_pic
+	add	r0, r0, r3		/* r0 = poke_loop() in FLASH */
+	ldr	r2, source_end_pic
+	add	r2, r2, r3		/* r2 = __memory_setup_table_end in FLASH */
 	ldr	r1, sram_start_address	/* r1 = CONFIG_STM_SRAM_START */
-	mov	r6, r1			/* r6 = CONFIG_STM_SRAM_START */
 
 	/*
 	 * Load the entire poke-table into the SRAM/ERAM buffer.
 	 */
 					/* copy 16 bytes at a time */
-1:	ldmia	r0!, {r7 - r10}		/* copy from source address [r0] */
-	stmia	r1!, {r7 - r10}		/* copy to   target address [r1] */
+1:	ldmia	r0!, {r6 - r9}		/* copy from source address [r0] */
+	stmia	r1!, {r6 - r9}		/* copy to   target address [r1] */
 	cmp	r0, r2			/* until source end address [r2] */
 	ble	1b
 
 	/*
+	 * Synchronisation Barriers … before we call the relocated code!
+	 */
+	dsb
+	isb
+
+	/*
 	 * It is now safe to call poke_loop() with real data, since the
-	 * poke-table data is now safely in the SRAM buffer. Recall,
+	 * poke-table data is now safely in the SRAM buffer. In addition,
+	 * both the code and the (data for the) jump-table for the poke_loop()
+	 * interpreter, have also been safely copied into SRAM.  Recall,
 	 * setting up the memory interfaces may cause the EMI (where FLASH
 	 * images resides) briefly to hang - but the CPU will be safely
-	 * executing from the I-cache, with its corresponding data in SRAM.
+	 * executing from the I-cache, with all its corresponding data in SRAM.
+	 * That is, we can safely run with the data-caches OFF, knowing we
+	 * will not try and read ANYTHING from the boot-device on the EMI.
 	 */
-	mov	r0, r6			/* r0 = CONFIG_STM_SRAM_START */
+	ldr	r0, poketable_start_address	/* r0 = __memory_setup_table in SRAM */
 	ldr	r1, deviceid_address
 	ldr	r1, [r1]		/* r1 = deviceID */
-	blx	r3			/* poke_loop(r0,r1); */
+	ldr	r2, poke_loop_in_sram	/* r2 = poke_loop() in SRAM */
+	blx	r2			/* poke_loop(r0,r1); */
 
 	mov	ip, r5			/* Restore the IP (r12) */
 	bx	r4			/* return to my caller */
-
 
 	/*
 	 * Variables …
 	 */
 	.balign 4
-poke_loop_address:	.long poke_loop - poke_loop_address
-data_start_address:	.long __memory_setup_table - poke_loop_address
-data_end_address:	.long __memory_setup_table_end - poke_loop_address
+source_start_pic:	.long LSB_MASK(poke_loop - source_start_pic)
+source_end_pic:		.long __memory_setup_table_end - source_start_pic
 sram_start_address:	.long CONFIG_STM_SRAM_START
+poke_loop_in_sram:	.long CONFIG_STM_SRAM_START + 1 /* QQQ: ought to be LSB(poke_loop) */
+poketable_start_address:.long CONFIG_STM_SRAM_START + __memory_setup_table - poke_loop
 	/*
 	 * The poke_loop() function, should be passed the SoC's DeviceID.
 	 * The following should be used to hold the address of the
