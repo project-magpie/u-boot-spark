@@ -92,7 +92,11 @@
 #if defined(CONFIG_ARM)
 #	define CONFIG_ARCH_CPU_INIT	/* call arch_cpu_init() */
 #	define CONFIG_DISPLAY_BOARDINFO	/* call checkboard() */
+#	define CONFIG_MISC_INIT_R	/* call misc_init_r() */
 #	define CONFIG_CMD_CACHE		/* enable "icache" & "dcache" commands */
+#	define CONFIG_SETUP_MEMORY_TAGS	/* use ATAGs for Memory Specification */
+#	define CONFIG_CMDLINE_TAG	/* use ATAGs for Kernel's Command Line */
+#	define CONFIG_INITRD_TAG	/* use ATAGs for an init ramdisk */
 #endif /* CONFIG_ARM */
 
 

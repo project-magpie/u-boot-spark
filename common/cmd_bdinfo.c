@@ -316,6 +316,10 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	print_num ("memstart",		(ulong)bd->bi_memstart);
 	print_lnum ("memsize",		(u64)bd->bi_memsize);
+#if defined(CONFIG_ARM)
+	print_num ("boot_params",	bd->bi_boot_params);
+	print_num ("arch_number",	bd->bi_arch_number);
+#endif	/* CONFIG_ST40 */
 #ifndef CONFIG_SYS_NO_FLASH
 	print_num ("flashstart",	(ulong)bd->bi_flashstart);
 	print_lnum ("flashsize",	(u64)bd->bi_flashsize);

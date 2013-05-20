@@ -66,6 +66,15 @@
 
 
 /*-----------------------------------------------------------------------
+ * For ARM CPUs, to boot linux, we also need a "Machine ID",
+ * which uniquely identifies this specific class of board.
+ * See http://www.arm.linux.org.uk/developer/machines
+ */
+#define CONFIG_MACH_STM_B2020	4182		/* MACH_TYPE_STM_B2020 */
+#define CONFIG_MACH_TYPE	CONFIG_MACH_STM_B2020
+
+
+/*-----------------------------------------------------------------------
  * Are we booting directly from a NAND Flash device ?
  * If so, then define the "CONFIG_SYS_BOOT_FROM_NAND" macro,
  * otherwise (e.g. SPI Flash booting), do not define it.
