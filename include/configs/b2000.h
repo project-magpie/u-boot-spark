@@ -124,8 +124,14 @@
 #	error Only one of CONFIG_SYS_BOOT_FROM_SPI or CONFIG_SYS_BOOT_FROM_NAND must be defined!
 #endif /* CONFIG_SYS_BOOT_FROM_SPI && CONFIG_SYS_BOOT_FROM_NAND */
 
+#define CONFIG_SYS_SDRAM_SIZE		0x40000000	/* 1 GiB of LMI SDRAM */
+
 #if defined(CONFIG_ST40)	/* CONFIG_ST40 */
 
+#if (CONFIG_SYS_SDRAM_SIZE > 0x20000000)		/* greater than 512 MiB ? */
+#	undef  CONFIG_SYS_SDRAM_SIZE			/* for ST40, we cap the usable RAM */
+#	define CONFIG_SYS_SDRAM_SIZE	0x20000000	/* 512 MiB of LMI SDRAM */
+#endif	/* CONFIG_SYS_SDRAM_SIZE > 512 MiB */
 #ifdef CONFIG_ST40_SE_MODE
 #if defined(CONFIG_SYS_BOOT_FROM_SPI)			/* we are booting from SPI */
 #	define CONFIG_SYS_EMI_SPI_BASE	0xB0000000	/* CSA: SPI Flash,  Physical 0x00000000 (4MiB) */
@@ -152,8 +158,6 @@
 #define CONFIG_SYS_CPU_CLK		1000000000	/* 1 GHz */
 
 #endif				/* CONFIG_ST40 */
-
-#define CONFIG_SYS_SDRAM_SIZE		0x20000000	/* 512 MiB of LMI SDRAM */
 
 #define CONFIG_SYS_MONITOR_LEN		0x00080000	/* Reserve 512 KiB for Monitor */
 #define CONFIG_SYS_MALLOC_LEN		(4 << 20)	/* Reserve 4 MiB for malloc */
