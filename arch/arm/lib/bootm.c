@@ -112,6 +112,14 @@ int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *ima
 	}
 #endif
 
+#if 0 || defined(DEBUG)
+	printf("\ninfo: transferring control to kernel with ...\n");
+	printf("\tr0 = 0x%x\n", 0);
+	printf("\tr1 = 0x%x  (%u)\n", machid, machid);
+	printf("\tr2 = 0x%08x\n", (int)bd->bi_boot_params);
+	printf("\tpc = 0x%08x\n", (int)theKernel);
+#endif
+
 	cleanup_before_linux ();
 
 	theKernel (0, machid, bd->bi_boot_params);
