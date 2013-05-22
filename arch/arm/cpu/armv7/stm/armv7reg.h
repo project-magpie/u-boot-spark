@@ -190,6 +190,9 @@
 	MCR	p15, \opc1, \reg, \crn, \crm, \opc2
 .endm
 
+/* Cache manipulation helpers */
+#define CACHE_INVALIDATE_DCACHE_SET_WAY(reg)	WRITE_CP15 reg, c7, 0, c6, 2
+
 #endif /* __ASSEMBLER__ */
 
 #endif /* __ARMV7REG_H_ */
