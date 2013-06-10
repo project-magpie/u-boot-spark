@@ -41,19 +41,35 @@
 
 
 /*-----------------------------------------------------------------------
- *	Switch settings to select between the SoC's main boot-modes:
- *		1) boot from 8-bit NAND, 2KiB page, long address, Hamming controller
- *		2) boot from SPI serial flash
+ *	Jumper settings to select between the SoC's main boot-modes:
+ *		*) boot from 8-bit NAND (with the Hamming or BCH controller)
+ *		*) boot from SPI serial flash (NOR)
  *
- *	Jumper	NAND	SPI
- *	------	----	---
- *	n/a	10100	11010		MODE[6:2]
- *	n/a	0x14	0x1A		MODE[6:2]
- *	J13	2-3	2-3		MODE[6]
- *	J22	1-2	2-3		MODE[5]
- *	J16	2-3	1-2		MODE[4]
- *	J32	1-2	2-3		MODE[3]
- *	J37	1-2	1-2		MODE[2]
+ *	In the following, NAND is always assumed to be 8-bits wide.
+ *	The following table only covers *some* of the more likely
+ *	configurations. Please consult the full boot-device selection
+ *	encoding table, for the other options for MODE[6-2].
+ *
+ *	There are 5 jumpers for the boot device (J6-1,J5-2,J5-1,J2-2,J2-1):
+ *
+ *					MODE	6-1 5-2 5-1 2-2 2-1
+ *	Flash Boot Configuration	[6-2]	[6] [5] [4] [3] [2]
+ *	------------------------	------	--- --- --- --- ---
+ *	NAND  2k, 5 cycles, 18-bit BCH	00101	 ON  ON off  ON off
+ *	NAND  2k, 5 cycles, 30-bit BCH	00110	 ON  ON off off  ON
+ *	NAND  4k, 5 cycles, 18-bit BCH	01001	 ON off  ON  ON off
+ *	NAND  4k, 5 cycles, 30-bit BCH	01010	 ON off  ON off  ON
+ *	NAND 512, 4 cycles, Hamming	10010	off  ON  ON off  ON
+ *	NAND  2k, 5 cycles, Hamming	10100	off  ON off  ON  ON
+ *	SPI (NOR)			11010	off off  ON off  ON
+ *
+ *
+ *	In addition, please select the boot-master core (J3-2):
+ *
+ *	Boot-Master	MODE[1]		J3-2
+ *	-----------	-------		----
+ *	Coretex-A9	0		 ON
+ *	ST40		1		off
  */
 
 
@@ -192,20 +208,16 @@
 
 /* choose which ST ASC UART to use */
 #if defined(CONFIG_STM_STXH415)
-#if 0
-#	define CONFIG_SYS_STM_ASC_BASE	STXH415_ASC2_BASE	/* UART2 on CN14 (COM0) */
-#elif 1
-#	define CONFIG_SYS_STM_ASC_BASE	STXH415_SBC_ASC1_BASE	/* SBC_UART1 on CN28 (COM1) */
+#if 1
+#	define CONFIG_SYS_STM_ASC_BASE	STXH415_SBC_ASC1_BASE	/* SBC_UART1 on J26 (off-board) */
 #else
-#	define CONFIG_SYS_STM_ASC_BASE	STXH415_SBC_ASC0_BASE	/* SBC_UART0 on CN19 */
+#	define CONFIG_SYS_STM_ASC_BASE	STXH415_SBC_ASC0_BASE	/* SBC_UART0 on J35 (off-board) */
 #endif
 #elif defined(CONFIG_STM_STXH416)
-#if 0
-#	define CONFIG_SYS_STM_ASC_BASE	STXH416_ASC2_BASE	/* UART2 on CN14 (COM0) */
-#elif 1
-#	define CONFIG_SYS_STM_ASC_BASE	STXH416_SBC_ASC1_BASE	/* SBC_UART1 on CN28 (COM1) */
+#if 1
+#	define CONFIG_SYS_STM_ASC_BASE	STXH416_SBC_ASC1_BASE	/* SBC_UART1 on J26 (off-board) */
 #else
-#	define CONFIG_SYS_STM_ASC_BASE	STXH416_SBC_ASC0_BASE	/* SBC_UART0 on CN19 */
+#	define CONFIG_SYS_STM_ASC_BASE	STXH416_SBC_ASC0_BASE	/* SBC_UART0 on J35 (off-board) */
 #endif
 #endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 
@@ -252,10 +264,10 @@
 #	define CONFIG_CMD_USB
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_STORAGE
-#	define CONFIG_SYS_USB0_BASE			0xfe100000	/* #0 is rear, next to E-SATA */
-#	define CONFIG_SYS_USB1_BASE			0xfe200000	/* #1 is rear, next to HDMI */
-#	define CONFIG_SYS_USB2_BASE			0xfe300000	/* #2 is front port */
-#	define CONFIG_SYS_USB3_BASE			0xfe340000	/* #3 is another usb - QQQ to check! */
+#	define CONFIG_SYS_USB0_BASE			0xfe100000	/* #0 is next to SD */
+#	define CONFIG_SYS_USB1_BASE			0xfe200000	/* #1 is next to SATA */
+#	define CONFIG_SYS_USB2_BASE			0xfe300000	/* #2 is next to IR */
+#	define CONFIG_SYS_USB3_BASE			0xfe340000	/* #3 is next to NIM */
 #	define CONFIG_SYS_USB_BASE			CONFIG_SYS_USB0_BASE
 #	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
