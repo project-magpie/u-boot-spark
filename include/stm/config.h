@@ -100,4 +100,36 @@
 #endif /* CONFIG_ARM */
 
 
+	/*
+	 * We want some SRAM to store the "poke-table", whilst the
+	 * "pokeloop" interpreter is being executed. This is because
+	 * whilst the "pokeloop" interpreter is being executed, both
+	 * LMI and EMI may temporarily "disappear" from the CPU.
+	 * On the ARM, it is considered to be "unsafe" to use the
+	 * D-caches to hold the poke table (c.f. ST40), so we will
+	 * use a small region in SRAM instead, as this will be safer.
+	 *
+	 * We will also store U-Boot's (non-flash) "holding-pens"
+	 * for the secondary cores, in SRAM, rather than in SDRAM.
+	 * So, we also need a small region reserved for that use.
+	 *
+	 * The SRAM region only needs to be big enough to hold:
+	 *	* the "holding-pens", and their data;
+	 *	* the raw binary poke-table;
+	 *	* the poke_loop() function as well.
+	 * So 32KiB (or more) should be sufficient for our needs.
+	 *
+	 * CONFIG_STM_SRAM_START is the beginning of this SRAM region.
+	 */
+#if !defined(CONFIG_STM_SRAM_START)
+#	define CONFIG_STM_SRAM_START		0xc00c0000	/* Start of HVA_eRAM (256KiB) */
+#endif
+#if !defined(CONFIG_STM_SRAM_HOLDING_PEN)	/* For U-Boot's "Holding-Pens" (in SRAM) */
+#	define CONFIG_STM_SRAM_HOLDING_PEN	(CONFIG_STM_SRAM_START + 0x0000)
+#endif
+#if !defined(CONFIG_STM_SRAM_POKE_STORAGE)	/* For the "poke" interpreter (in SRAM) */
+#	define CONFIG_STM_SRAM_POKE_STORAGE	(CONFIG_STM_SRAM_START + 0x0100)
+#endif
+
+
 #endif /* __INCLUDE_STM_CONFIG_H */

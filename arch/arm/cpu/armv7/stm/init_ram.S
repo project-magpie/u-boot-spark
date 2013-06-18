@@ -43,24 +43,6 @@
 #define LSB_MASK(x)	((x) & ~1)	/* Mask off the Least Significant Bit */
 
 
-	/*
-	 * We want some SRAM to store the "poke-table", whilst the
-	 * "pokeloop" interpreter is being executed. This is because
-	 * whilst the "pokeloop" interpreter is being executed, both
-	 * LMI and EMI may temporarily "disappear" from the CPU.
-	 * On the ARM, it is considered to be "unsafe" to use the
-	 * D-caches to hold the poke table (c.f. ST40), so we will
-	 * use a small SRAM buffer instead, as this will be safer.
-	 * This buffer only needs to be big enough to hold the raw
-	 * binary poke-table and the poke_loop() function as well,
-	 * so 32KiB (or more) should be sufficient for our needs.
-	 * CONFIG_STM_SRAM_START is the beginning of this SRAM buffer.
-	 */
-#if !defined(CONFIG_STM_SRAM_START)
-#	define CONFIG_STM_SRAM_START	0xc00c0000	/* Start of HVA_eRAM (256KiB) */
-#endif
-
-
 	.balign 4
 	/*
 	 * The init_ram() function should initialize all the RAM, and it does
@@ -113,7 +95,7 @@ init_ram:
 	add	r0, r0, r3		/* r0 = poke_loop() in FLASH */
 	ldr	r2, source_end_pic
 	add	r2, r2, r3		/* r2 = __memory_setup_table_end in FLASH */
-	ldr	r1, sram_start_address	/* r1 = CONFIG_STM_SRAM_START */
+	ldr	r1, sram_start_address	/* r1 = CONFIG_STM_SRAM_POKE_STORAGE */
 
 	/*
 	 * Load the entire poke-table into the SRAM/ERAM buffer.
@@ -156,9 +138,9 @@ init_ram:
 	.balign 4
 source_start_pic:	.long LSB_MASK(poke_loop - source_start_pic)
 source_end_pic:		.long __memory_setup_table_end - source_start_pic
-sram_start_address:	.long CONFIG_STM_SRAM_START
-poke_loop_in_sram:	.long CONFIG_STM_SRAM_START + 1 /* QQQ: ought to be LSB(poke_loop) */
-poketable_start_address:.long CONFIG_STM_SRAM_START + __memory_setup_table - poke_loop
+sram_start_address:	.long CONFIG_STM_SRAM_POKE_STORAGE
+poke_loop_in_sram:	.long CONFIG_STM_SRAM_POKE_STORAGE + 1 /* QQQ: ought to be LSB(poke_loop) */
+poketable_start_address:.long CONFIG_STM_SRAM_POKE_STORAGE + __memory_setup_table - poke_loop
 	/*
 	 * The poke_loop() function, should be passed the SoC's DeviceID.
 	 * The following should be used to hold the address of the
