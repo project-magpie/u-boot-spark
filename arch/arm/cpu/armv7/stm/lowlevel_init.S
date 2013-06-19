@@ -39,6 +39,14 @@
 	.type		reset_cpu, %function
 
 
+	/*
+	 * Some macros for defining the Holding-Pen area in SRAM.
+	 */
+#define HPEN_KEEP_LOOPING_VALUE		0xFFFFFFFF
+#define HPEN_JUMP_POINTER		0x00
+#define HPEN_ENTRY_POINT		0x20
+
+
 	.balign 4
 reset_timer:		/* QQQ - TO IMPLEMENT PROPERLY */
 	bx	lr	/* return immediately! */
@@ -172,33 +180,146 @@ flashBooting:
 	 * of this holding pen resides in I-caches as, in parallel the
 	 * boot-master core should be executing the "pokeloop" interpreter,
 	 * and our EMI (FLASH) and LMI (RAM) may "disappear" from under our feet!
+	 *
+	 * We capture all the slaves in our "FLASH" holding pen first.
+	 * The slaves will write the sentinel value HPEN_KEEP_LOOPING_VALUE
+	 * into the "jump pointer", and then will use Wait-For-Event to wait.
+	 * When woken, they will read the "jump pointer", and see if its value
+	 * has changed from HPEN_KEEP_LOOPING_VALUE. If not, they go back to waiting.
+	 * If the "jump pointer" has changed, then the slave will jump to
+	 * the address pointed to by the "jump pointer" - which should be in SRAM.
+	 *
+	 * Note: The "jump pointer" itself should also be located in SRAM,
+	 * so we do not need any SDRAM available, in order to to transition
+	 * from the initial FLASH Holding-Pen into the SRAM Holding-Pen.
 	 */
 flashSlaveHoldingPen:
+	/*
+	 * Each (and every) slave should initialize the "sentinel" value for
+	 * the (global) "jump pointer", to indicate we have *not* been kicked yet.
+	 * There is only one "jump pointer", and all slaves will use it.
+	 * All slaves will initialize it with the exact *same* value, so
+	 * the execution order of the slaves is unimportant. However, each
+	 * slave must write to it, before it reads from it … just in case!
+	 */
+	ldr	r5, hpen_base			/* r5 = CONFIG_STM_SRAM_HOLDING_PEN */
+	ldr	r1, =HPEN_KEEP_LOOPING_VALUE	/* sentinel value to keep looping */
+	str	r1, [r5, #HPEN_JUMP_POINTER]	/* write sentinel to the jump pointer */
+	dsb					/* Data Synchronization Barrier */
+
+1:	wfe					/* Wait for an Event */
+	ldr	r1, [r5, #HPEN_JUMP_POINTER]	/* read the "jump pointer" */
+	cmp	r1, #HPEN_KEEP_LOOPING_VALUE	/* Have we been "kicked" yet ? */
+	beq	1b				/* No, so wait some more… */
+
+	/*
+	 * Yes, if we get here, we have been "kicked", and the value in the
+	 * "jump pointer" has been changed (presumably by the master core).
+	 */
+
+	/*
+	 * Invalidate caches as master core may have copied into addresses
+	 * this core has performed speculative reads from.
+	 */
+//QQQ	Do we really need to do anything here - probably not!
+
+	/*
+	 * Okay, we have now been "kicked" by the master core, and
+	 * we should now transition from the initial FLASH Holding-Pen,
+	 * to the SRAM Holding-Pen (i.e. jump to sramSlaveHoldingPen).
+	 * Simply, jump to the address we just read from "jump pointer".
+	 * We execute some memory synchronization barriers first.
+	 */
 	dsb
 	isb
-	/*
-	 * QQQ - We need to decide when to exit from this pen!
-	 * For the time being, we will simply tell *all* slave
-	 * cores just to loop forever …
-	 * Clearly this is wrong, but it will suffice for now.
-	 */
-1:	wfe
-	b	1b
+	bx	r1				/* Off we go! */
 
 
 masterCore:
 	/*
 	 * ARM core 0 (the boot-master) continues here.
-	 * We also assume we are booting from FLASH, and that we
+	 */
+	mov	r10, lr			/* Stash the LR somewhere safe */
+
+	/*
+	 * Initialize a few "convenience" variables.
+	 */
+	ldr	r5, hpen_base		/* r5 = CONFIG_STM_SRAM_HOLDING_PEN */
+	ldr	r4, =HPEN_ENTRY_POINT
+	add	r4, r4, r5		/* r4 = CONFIG_STM_SRAM_HOLDING_PEN + HPEN_ENTRY_POINT */
+
+	/*
+	 * Re-locate the SRAM Holding-Pen code, to reside in SRAM/ERAM.
+	 */
+copyHoldingPen:
+	ldr	r0, hpen_start_pic
+	adr	r1, hpen_start_pic
+	add	r0, r1, r0		/* r0 = sramSlaveHoldingPen */
+	mov	r1, r4			/* r1 = CONFIG_STM_SRAM_HOLDING_PEN + HPEN_ENTRY_POINT */
+	ldr	r2, hpen_size
+	add	r2, r2, r0		/* r2 = sramSlaveHoldingPenEnd */
+
+	/*
+	 * Copy 16 bytes at a time, from FLASH to SRAM.
+	 */
+copyHoldingPenLoop:
+	ldmia	r0!, {r6 - r9}		/* copy from source address [r0] */
+	stmia	r1!, {r6 - r9}		/* copy to   target address [r1] */
+	cmp	r0, r2			/* until source end address [r2] */
+	ble	copyHoldingPenLoop
+
+	/*
+	 * The master is now ready to "kick" each slave, and transition them
+	 * all from the initial FLASH Holding-Pen, into the SRAM Holding-Pen.
+	 * We need to write the address of sramSlaveHoldingPen to the jump
+	 * pointer, over-writing the initial HPEN_KEEP_LOOPING_VALUE sentinel.
+	 *
+	 * WARNING! - WARNING! - WARNING! - WARNING! - WARNING! - WARNING!
+	 * We make an important, and fundamental assumption here!
+	 * We assume that *all* the slaves have *already* written to the
+	 * jump pointer (with HPEN_KEEP_LOOPING_VALUE), and that no
+	 * slaves (or anything else for that matter) will subsequently
+	 * write to the location of the "jump pointer" in SRAM.
+	 * Simply put - we expect all the slaves to be waiting in "WFE".
+	 * QQQ - Do we need to add a delay to mitigate this risk???
+	 * NOTE: Using a debugger may violate this assumption.
+	 * WARNING! - WARNING! - WARNING! - WARNING! - WARNING! - WARNING!
+	 */
+kickSlavesToSramHoldingPen:
+	str	r4, [r5, #HPEN_JUMP_POINTER]
+	/*
+	 * Synchronisation Barriers … before we call the relocated code!
+	 */
+	dsb
+	isb
+	/*
+	 * Finally, we can now "kick" all the slaves by explicitly sending
+	 * them all an event, from which they should all wake up, at which
+	 * point, they should all re-read the "jump pointer", and notice
+	 * that is is no longer yielding the sentinel HPEN_KEEP_LOOPING_VALUE!
+	 */
+	sev				/* Wakey! Wakey! */
+
+	/*
+	 * ARM core 0 (the boot-master) continues here.
+	 */
+
+	/*
+	 * We assume we are booting from FLASH, and that we
 	 * need to execute the "pokeloop" interpreter, to complete
 	 * the low-level initialization - i.e. call init_ram().
 	 * Our caller should relocate us into RAM on our return.
 	 */
+do_init_ram:
 	ldr	r0, init_ram_pic
 	adr	r1, init_ram_pic
 	add	r0, r1, r0		/* r0 = &init_ram(); */
-	bx	r0			/* execute the "pokeloop" interpreter */
-					/* The callee, should return to our caller */
+	blx	r0			/* execute the "pokeloop" interpreter */
+
+	/*
+	 * The master core's low-level initialization is done!
+	 */
+	mov	pc, r10			/* finally, we return to our caller */
 
 
 	/*
@@ -207,3 +328,26 @@ masterCore:
 	.balign 4
 init_ram_pic:	.word init_ram - .
 here:		.word .
+hpen_base:	.word CONFIG_STM_SRAM_HOLDING_PEN
+hpen_start_pic:	.word sramSlaveHoldingPen - .
+hpen_size:	.word sramSlaveHoldingPenEnd - sramSlaveHoldingPen
+
+
+	/*
+	 * So we are presumably, a SLAVE core, now running in SRAM.
+	 * We will now capture the slave(s) in an SRAM Holding-Pen.
+	 * They will be held here until we are about to pass control
+	 * to the "payload" image to be booted - typically linux.
+	 */
+	.balign 32	/* Cache-line aligned */
+sramSlaveHoldingPen:
+	/* QQQ - We need to decide when to exit from this pen!
+	 * For the time being, we will simply tell *all* slave
+	 * cores just to loop forever …
+	 * Clearly this is wrong, but it will suffice for now.
+	 */
+1:	wfe
+	b	1b
+	nop
+	nop
+sramSlaveHoldingPenEnd:
