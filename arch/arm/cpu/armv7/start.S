@@ -229,7 +229,11 @@ cpu_init_crit:
 	bic	r0, r0, #0x00002000	@ clear bits 13 (--V-)
 	bic	r0, r0, #0x00000007	@ clear bits 2:0 (-CAM)
 	orr	r0, r0, #0x00000002	@ set bit 1 (--A-) Align
+#if defined(CONFIG_STM)
+	bic	r0, r0, #0x00000800	@ clear bit 11 (Z---) BTB
+#else
 	orr	r0, r0, #0x00000800	@ set bit 11 (Z---) BTB
+#endif	/* CONFIG_STM */
 #if defined(CONFIG_STM)
 	orr	r0, r0, #0x00001000	@ set bit 12 (---I) I-cache
 #endif	/* CONFIG_STM */
