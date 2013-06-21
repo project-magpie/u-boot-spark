@@ -47,9 +47,6 @@ extern int misc_init_r(void)
 {
 	bd_t * const bd = gd->bd;
 
-	bd->bi_boot_params =				/* address of boot parameters */
-		CONFIG_SYS_SDRAM_BASE + 0x0100;		/* i.e. RAM base + 256 Bytes */
-
 #if defined(CONFIG_MACH_TYPE)
 	bd->bi_arch_number = CONFIG_MACH_TYPE;		/* unique Machine ID for this board */
 #endif	/* CONFIG_MACH_TYPE */

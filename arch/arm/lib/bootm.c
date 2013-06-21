@@ -5,6 +5,8 @@
  *
  * Copyright (C) 2001  Erik Mouw (J.A.K.Mouw@its.tudelft.nl)
  *
+ * Copyright (C) 2013  STMicroelectronics Ltd, Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -57,6 +59,10 @@ int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *ima
 	int	machid = bd->bi_arch_number;
 	void	(*theKernel)(int zero, int arch, uint params);
 
+#if defined(CONFIG_STM)
+#define TEXT_OFFSET		0x8000		/* default value from Linux build */
+#endif	/* CONFIG_STM */
+
 #ifdef CONFIG_CMDLINE_TAG
 	char *commandline = getenv ("bootargs");
 #endif
@@ -65,6 +71,11 @@ int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *ima
 		return 1;
 
 	theKernel = (void (*)(int, int, uint))images->ep;
+
+#if defined(CONFIG_STM)
+		/* address of (ATAG) boot parameters */
+	bd->bi_boot_params    = images->ep - TEXT_OFFSET + 0x220;
+#endif	/* CONFIG_STM */
 
 	s = getenv ("machid");
 	if (s) {
