@@ -33,6 +33,8 @@
 
 	.global		lowlevel_init
 	.type		lowlevel_init, %function
+	.globl		prepare_hpen_for_linux
+	.type		prepare_hpen_for_linux, %function
 	.globl		reset_timer			/* QQQ - DELETE ? */
 	.type		reset_timer, %function
 	.globl		reset_cpu			/* QQQ - DELETE ? */
@@ -43,7 +45,8 @@
 	 * Some macros for defining the Holding-Pen area in SRAM.
 	 */
 #define HPEN_KEEP_LOOPING_VALUE		0xFFFFFFFF
-#define HPEN_JUMP_POINTER		0x00
+#define HPEN_JUMP_POINTER		0x00		/* FLASH to SRAM */
+#define HPEN_JUMP_POINTER2		0x04		/* SRAM to linux */
 #define HPEN_ENTRY_POINT		0x20
 
 
@@ -53,6 +56,27 @@ reset_timer:		/* QQQ - TO IMPLEMENT PROPERLY */
 
 reset_cpu:		/* QQQ - TO IMPLEMENT PROPERLY */
 	bx	lr	/* return immediately! */
+
+
+	/*
+	 * extern void prepare_hpen_for_linux( void (**stm_secondary_startup)(void) );
+	 *
+	 * We prepare to pass all the slave cores to linux.
+	 * We are given a pointer into which the function pointer will be written.
+	 * We ensure that pointer is initialized with HPEN_KEEP_LOOPING_VALUE.
+	 * We update jump pointer #2, to point to that pointer.
+	 */
+prepare_hpen_for_linux:
+	ldr	r1, =HPEN_KEEP_LOOPING_VALUE	/* sentinel value to keep looping */
+	str	r1, [r0]			/* write sentinel to function pointer */
+	dsb					/* Data Synchronization Barrier */
+
+	ldr	r2, hpen_base			/* r2 = CONFIG_STM_SRAM_HOLDING_PEN */
+	str	r0, [r2, #HPEN_JUMP_POINTER2]	/* write indirect pointer to jump pointer #2 */
+	dsb					/* Data Synchronization Barrier */
+
+	bx	lr				/* return to my caller */
+
 
 
 	/*
@@ -249,6 +273,12 @@ masterCore:
 	add	r4, r4, r5		/* r4 = CONFIG_STM_SRAM_HOLDING_PEN + HPEN_ENTRY_POINT */
 
 	/*
+	 * write HPEN_KEEP_LOOPING_VALUE to HPEN_JUMP_POINTER2
+	 */
+	ldr	r1, =HPEN_KEEP_LOOPING_VALUE	/* sentinel value to keep looping */
+	str	r1, [r5, #HPEN_JUMP_POINTER2]	/* write sentinel to jump pointer #2 */
+
+	/*
 	 * Re-locate the SRAM Holding-Pen code, to reside in SRAM/ERAM.
 	 */
 copyHoldingPen:
@@ -341,13 +371,50 @@ hpen_size:	.word sramSlaveHoldingPenEnd - sramSlaveHoldingPen
 	 */
 	.balign 32	/* Cache-line aligned */
 sramSlaveHoldingPen:
-	/* QQQ - We need to decide when to exit from this pen!
-	 * For the time being, we will simply tell *all* slave
-	 * cores just to loop forever …
-	 * Clearly this is wrong, but it will suffice for now.
+#if 0
+	/*
+	 * Enable the signalling of interrupts. i.e. ICCICR = 1
+	 * This is needed to wake up from an "WFI" instruction.
+	 * NOTE: we do not need to do this, if we use "WFE" instead!
 	 */
-1:	wfe
-	b	1b
-	nop
-	nop
+	ldr	r1, =1				/* Enable signalling of interrupts by the CPU interfaces */
+	read_cp15	r2, CP15_PERIPHBASE	/* r2 = CP15_PERIPHBASE */
+	str	r1, [r2, #A9MP_GIC_CPU_INTERFACE_ICCICR]	/* ICCICR = ENABLE */
+	dsb					/* Data Synchronization Barrier */
+#endif
+
+	/* QQQ - we ideally want to do a "WFI", and not a "WFE" here! */
+1:	wfe					/* Wait for an Event (or an Interrupt) */
+	ldr	r1, [r5, #HPEN_JUMP_POINTER2]	/* read jump pointer #2 */
+	cmp	r1, #HPEN_KEEP_LOOPING_VALUE	/* Has it been changed yet? */
+	beq	1b				/* No, so wait some more… */
+	ldr	r2, [r1]			/* dereference the pointer */
+	cmp	r2, #HPEN_KEEP_LOOPING_VALUE	/* Has it been changed yet? */
+	beq	1b				/* No, so wait some more… */
+
+	/*
+	 * Yes, if we get here, we have been "kicked", and the value in the
+	 * "jump pointer" has been changed (presumably by the master core).
+	 * Furthermore, the contents of the address it points to has also
+	 * been modified (presumably by the master core running linux).
+	 * This should be the function pointer for the secondary entry
+	 * point for all the slave cores, to enter the linux kernel.
+	 */
+
+	/*
+	 * Invalidate caches as master core may have copied into addresses
+	 * this core has performed speculative reads from.
+	 */
+//QQQ	Do we really need to do anything here - probably not!
+
+	/*
+	 * Okay, we have now been "kicked" by the master core, and
+	 * we should now transition from the SRAM Holding-Pen, to the
+	 * linux kernel (i.e. jump to virt_to_phys(stm_secondary_startup)).
+	 * Simply, jump to the indirect address we read via "jump pointer".
+	 * We execute some memory synchronization barriers first.
+	 */
+	dsb
+	isb
+	bx	r2				/* SMP, here we come! */
 sramSlaveHoldingPenEnd:

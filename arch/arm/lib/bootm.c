@@ -61,6 +61,8 @@ int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *ima
 
 #if defined(CONFIG_STM)
 #define TEXT_OFFSET		0x8000		/* default value from Linux build */
+	void (**stm_secondary_startup)(void);	/* in linux space, not U-Boot! */
+extern	void prepare_hpen_for_linux(void (**stm_secondary_startup)(void));
 #endif	/* CONFIG_STM */
 
 #ifdef CONFIG_CMDLINE_TAG
@@ -73,6 +75,8 @@ int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *ima
 	theKernel = (void (*)(int, int, uint))images->ep;
 
 #if defined(CONFIG_STM)
+		/* address of the pointer to stm_secondary_startup() */
+	stm_secondary_startup = (void*)(images->ep - TEXT_OFFSET + 0x200);
 		/* address of (ATAG) boot parameters */
 	bd->bi_boot_params    = images->ep - TEXT_OFFSET + 0x220;
 #endif	/* CONFIG_STM */
@@ -129,7 +133,25 @@ int do_bootm_linux(int flag, int argc, char * const argv[], bootm_headers_t *ima
 	printf("\tr1 = 0x%x  (%u)\n", machid, machid);
 	printf("\tr2 = 0x%08x\n", (int)bd->bi_boot_params);
 	printf("\tpc = 0x%08x\n", (int)theKernel);
-#endif
+#if defined(CONFIG_STM)
+	printf("\tstm_secondary_startup = 0x%08x\n", (int)stm_secondary_startup);
+#endif	/* CONFIG_STM */
+	printf("\n\n");
+#endif	/* 0 || DEBUG */
+
+#if defined(CONFIG_STM)
+	/*
+	 * SMP Linux, when running on the master core, will write the
+	 * *physical* address of the function stm_secondary_startup()
+	 * into the location CONFIG_PAGE_OFFSET + 0x200.
+	 * U-Boot needs to "herd" all the slaves from their U-Boot
+	 * (SRAM) "Holding-Pens", and pass control to this function.
+	 * We now need to configure our slave's Holding-Pens to
+	 * jump via this pointer, once linux has written the secondary
+	 * entry point to this location.
+	 */
+	prepare_hpen_for_linux(stm_secondary_startup);
+#endif	/* CONFIG_STM */
 
 	cleanup_before_linux ();
 

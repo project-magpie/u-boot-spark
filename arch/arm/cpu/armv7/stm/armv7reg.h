@@ -170,6 +170,10 @@
  */
 #define CP15_PERIPHBASE		c15, 4, c0, 0
 
+/* Cortex-A9 GIC CPU Interface Register offsets from peripheral base */
+#define A9MP_GIC_CPU_INTERFACE_BASE		0x100
+#define A9MP_GIC_CPU_INTERFACE_ICCICR		(A9MP_GIC_CPU_INTERFACE_BASE + 0x000)
+
 /* Cortex-A9 MP-Core Global Timer register offsets from peripheral base */
 #define A9MP_GLOBAL_TIMER_COUNTER_LO_OFFSET	0x200
 #define A9MP_GLOBAL_TIMER_COUNTER_HI_OFFSET	0x204
