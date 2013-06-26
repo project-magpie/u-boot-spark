@@ -57,6 +57,20 @@
 /**********************************************************************/
 
 
+	/*
+	 * Do we want to apply the recommended S/W work-around for
+	 * the known H/W bug in STMicroelectronics' FSM-based
+	 * Serial Flash Controller (SFC), pertaining to the FIFO
+	 * not being cleared correctly in FSM or FSM-Boot modes?
+	 * STMicroelectronics' Bug Reference: RnDHV00053934
+	 * If so, then define the following macro.
+	 */
+#define CONFIG_STM_FIX_FOR_RnDHV00053934
+
+
+/**********************************************************************/
+
+
 #define ENABLE_ASSERTS
 
 #if defined(ENABLE_ASSERTS)
@@ -146,6 +160,23 @@ static const struct fsm_seq seq_read_status = {
 		    SEQ_CFG_CSDEASSERT |
 		    SEQ_CFG_STARTSEQ),
 };
+
+#if defined(CONFIG_STM_FIX_FOR_RnDHV00053934)
+/* Dummy sequence to read one byte of data from SPI device into the FIFO */
+static const struct fsm_seq fsm_seq_load_fifo_byte = {
+	.data_size = TRANSFER_SIZE(1),	/* transfer only ONE byte */
+	.seq_opc[0] = SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_READ_STATUS),
+	.seq = {
+		FSM_INST_CMD1,
+		FSM_INST_DATA_READ,
+		FSM_INST_STOP,
+	},
+	.seq_cfg = (SEQ_CFG_PADS_1 |
+		    SEQ_CFG_READNOTWRITE |
+		    SEQ_CFG_CSDEASSERT |
+		    SEQ_CFG_STARTSEQ),
+};
+#endif	/* CONFIG_STM_FIX_FOR_RnDHV00053934 */
 
 #if defined(CONFIG_SPI_FLASH_ST) && defined(CONFIG_STM_SPI_READ_FLAG_FUNCTION)
 static const struct fsm_seq seq_read_flag_status = {
@@ -395,19 +426,62 @@ static int fsm_wait_seq(void)
 	return 0;
 }
 
-#if 0
+#if defined(CONFIG_STM_FIX_FOR_RnDHV00053934)
 static void fsm_clear_fifo(void)
 {
-	uint32_t avail;
+	const struct fsm_seq * const seq = &fsm_seq_load_fifo_byte;
+	uint32_t words;
+	int i;
 
-	while ((avail = fsm_fifo_available()) > 0) {
-		while (avail) {
-			fsm_read_reg(SPI_FAST_SEQ_DATA_REG);
-			avail--;
+	/*
+	 * Clear any whole (32-bit) words in the FIFO
+	 */
+	while ((words = fsm_fifo_available()) > 0) {
+		DEBUG("info: FSM clearing %u 32-bit word(s) from the data FIFO...\n", words);
+		while (words) {
+			(void)fsm_read_reg(SPI_FAST_SEQ_DATA_REG);
+			words--;
 		}
 	}
+
+	/*
+	 * Clear any remaining (8-bit) bytes in the FIFO…
+	 */
+
+	/*
+	 * Load the FIFO, one byte at a time, until a complete 32-bit word is available.
+	 * We will insert a maximum of 4 * 8-bit bytes into the FIFO.
+	 */
+	for (i=0; i<4 && !words; i++) {
+		/* Transfer exactly 1 byte into the FIFO */
+		fsm_load_seq(seq);
+		/* Wait for FSM sequence to finish */
+		fsm_wait_seq();
+		/* Do we have a whole (32-bit) word in the FIFO yet? */
+		words = fsm_fifo_available();
+	}
+
+	/*
+	 * For debug, it might be useful to let the user know
+	 * how many stray bytes were originally in the FIFO.
+	 */
+	DEBUG("info: FSM cleared %d 8-bit byte(s) from the data FIFO\n", 4 - i);
+
+	/*
+	 * We should now have a single complete 32-bit word in the FIFO.
+	 * If not, something has gone horribly wrong!
+	 */
+	assert(fsm_fifo_available() == 1);
+
+	/* Finally, read the single 32-bit word from the FIFO */
+	(void)fsm_read_reg(SPI_FAST_SEQ_DATA_REG);
+
+	/*
+	 * We should now have absolutely nothing in the FIFO.
+	 */
+//	assert(fsm_fifo_available() == 0);
 }
-#endif
+#endif	/* CONFIG_STM_FIX_FOR_RnDHV00053934 */
 
 static int fsm_read_fifo(uint32_t *buf, const uint32_t size)
 {
@@ -757,8 +831,11 @@ extern int fsm_init(void)
 	fsm_write_reg(SPI_CONFIGDATA, 0x00a00aa1);
 	fsm_write_reg(SPI_PROGRAM_ERASE_TIME, 0x00000002);
 
+#if defined(CONFIG_STM_FIX_FOR_RnDHV00053934)
+	fsm_clear_fifo();
+#endif	/* CONFIG_STM_FIX_FOR_RnDHV00053934 */
+
 	assert( fsm_fifo_available() == 0 );
-/*	fsm_clear_fifo();	*/
 
 	return 0;
 }
