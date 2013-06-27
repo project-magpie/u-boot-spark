@@ -45,8 +45,8 @@
 	 * Some macros for defining the Holding-Pen area in SRAM.
 	 */
 #define HPEN_KEEP_LOOPING_VALUE		0xFFFFFFFF
-#define HPEN_JUMP_POINTER		0x00		/* FLASH to SRAM */
-#define HPEN_JUMP_POINTER2		0x04		/* SRAM to linux */
+#define HPEN_JUMP_POINTER		0x00		/* "First" Holding-Pen to SRAM Holding-Pen */
+#define HPEN_JUMP_POINTER2		0x04		/* SRAM Holding-Pen to linux */
 #define HPEN_ENTRY_POINT		0x20
 
 
@@ -145,47 +145,113 @@ cacheInvalidateDataDone:
 
 	/*
 	 * Next, we need to determine if we are already running in the
-	 * correct location, or not. The 2 most likely cases are:
+	 * correct location, or not; and if we are a master or a slave core.
 	 *
-	 *	1) The current PC agrees with the (virtual) address
-	 *	   we were originally linked against.
-	 *	   This means we are running out of RAM, and we are
-	 *	   already correctly loaded at the correct address.
-	 *	   So, some other "entity" (e.g. GDB, or some other boot-loader)
-	 *	   has already copied us to RAM, and initialized our environment.
-	 *	   As this "entity" has copied us to RAM, then we can assume
-	 *	   that all the low-level initialisation has been done.
-	 *	   That is, we do not need to execute the "pokeloop" interpreter,
-	 *	   nor do we need to be kept in a "holding-pen".
-	 *	   We simply return, knowing we do not need to do anymore…
+	 * The 4 main possibilities are:
 	 *
-	 *	2) The current PC does NOT agree with the (virtual) address
-	 *	   we were originally linked against.
-	 *	   This means we are (probably) running out of FLASH, and we are
-	 *	   not loaded at the correct address.
-	 *	   So, no other "entity" (e.g. GDB, U-Boot, or other boot-loader)
-	 *	   has initialized RAM yet, or initialized our environment yet.
-	 *	   So, all the low-level initialisation has yet to be done.
-	 *	   If we are the "boot-master", we now need to complete the
-	 *	   low-level initialisation, and execute the "pokeloop" interpreter.
-	 *	   If we are not the "boot-master", we are a SLAVE core,
-	 *	   and we need to be kept in a "holding-pen"… for a while!
+	 *		Core		Location
+	 *		----		--------
+	 *	1)	SLAVE-core	FLASH	(in the WRONG location)
+	 *	2)	SLAVE-core	SDRAM	(in the correct location)
+	 *	3)	MASTER-core	FLASH	(in the WRONG location)
+	 *	4)	MASTER-core	SDRAM	(in the correct location)
+	 *
+	 * By "correct location", we mean the current PC agrees with
+	 * the (virtual) address the program was originally linked against.
+	 * So, we assume:
+	 *	a) some "other" loader has executed the "poke-table"
+	 *	b) some "other" loader has already initialized SDRAM
+	 *	c) some "other" loader has loaded us into SDRAM
+	 *	d) we are already running in SDRAM (not FLASH)
+	 *	e) most of the low-level initialization has already been done.
+	 *	f) we do not need to re-locate ourself at all.
+	 *	g) we do not need to execute the "poke-table"
+	 *
+	 * Note: by "other" loader, we mean "GDB", or some other boot-loader
+	 * (such as the "PBL") which is "chaining" us, such that we are in
+	 * effect a secondary "boot-loader".
+	 *
+	 * By "wrong location", we mean the current PC does NOT agree with
+	 * the (virtual) address the program was originally linked against.
+	 * So, we assume:
+	 *	a) nothing has executed the "poke-table" yet
+	 *	b) nothing has initialized SDRAM yet
+	 *	c) we are still running from FLASH (not SDRAM)
+	 *	d) we do need to perform the low-level initialization
+	 *	e) we do need to initialize SDRAM, before we use it
+	 *	f) we do need to execute the "poke-table"
+	 *	g) we do need to re-locate ourself to SDRAM
+	 *
+	 * By "master-core", we mean we are the "boot-master" (CPU #0),
+	 * and we will:
+	 *	a) exclusively run the "main" U-Boot program
+	 *	b) initialize SDRAM - IF required
+	 *	c) execute the "poke-table" - IF required
+	 *	d) re-locate ourself to SDRAM - IF required
+	 *	e) create the SRAM Holding-Pens (for the slaves)
+	 *	f) "herd" (or marshal) the slaves through their Holding-Pens
+	 *
+	 * By "slave-core", we mean we are NOT the "boot-master", we will
+	 * not run the U-Boot program, except the absolute minimum of code.
+	 * Slaves will typically perform the following:
+	 *	a) enter the "First" Holding-Pen ASAP
+	 *	b) transition from the "First" Holding-Pen to the SRAM
+	 *	   Holding-Pen, under control of the master-core.
+	 *	c) transition from the "SRAM" Holding-Pen to the "payload"
+	 *	   application (e.g. linux), under control of the master-core.
+	 *	d) spend most time in a low-power mode ("WFE", or "WFI")
+	 *	e) do not initialize SDRAM, or execute the "poke-table"
+	 *	f) do not re-locate ourself to SDRAM
+	 *	g) do not create the SRAM Holding-Pens
+	 *
+	 *
+	 * All the slaves are treated the same, so there are only
+	 * really 3 main "use-case" scenarios we need to consider:
+	 *
+	 *	------------------------------------
+	 *
+	 * 1)	SLAVE-core	FLASH *or* SDRAM
+	 *
+	 *	A slave-core is being booted, so we:
+	 *		enter the "First" Holding-Pen
+	 *		wait, and transition to the SRAM Holding-Pen
+	 *		wait, and transition to "payload" application
+	 *
+	 *	This is equally applicable if we were booted directly
+	 *	from FLASH, or if we are loaded via "GDB", or if we
+	 *	were "chained" by some other boot-loader.
+	 *
+	 *	------------------------------------
+	 *
+	 * 2)	MASTER-core	FLASH	(in the WRONG location)
+	 *
+	 *	The master is being booted from FLASH, so we:
+	 *		create the SRAM Holding-Pens (for the slaves)
+	 *		"kick" slaves into SRAM Holding-Pen
+	 *		execute the "poke-table".
+	 *
+	 *	This is typical, if we are booted directly from
+	 *	FLASH, and we are a primary boot-loader.
+	 *
+	 *	------------------------------------
+	 *
+	 * 3)	MASTER-core	SDRAM	(in the correct location)
+	 *
+	 *	The master is being booted from SDRAM, so we:
+	 *		create the SRAM Holding-Pens (for the slaves)
+	 *		"kick" slaves into SRAM Holding-Pen
+	 *		must NOT execute the "poke-table".
+	 *
+	 *	This is typical, if we are loaded via "GDB", or if we
+	 *	are "chained" by some other boot-loader.
+	 *
+	 *	------------------------------------
 	 */
-whereAreWe:
-	adr	r0, here		/* r0 = current position of code */
-	ldr	r1, here		/* r1 = &here; (link-time) */
-	cmp	r0, r1			/* test if we in the correct place? */
-	it	eq			/* Z = (r1 == r0); */
-	bxeq	lr			/* return, if in the correct place */
 
 	/*
-	 * We now know we are executing at the "wrong" address, so we
-	 * assume we are running from FLASH (and not from RAM).
-	 * At this stage we can send slave ARM cores to a holding pen where they
-	 * can wait, until we are ready to do something with them.
-	 * First, we figure out whether we are the boot-master or not...
+	 * First, we figure out whether we are the boot-master or a slave…
 	 */
-flashBooting:
+masterOrSlave:
 	read_cp15	r1, CP15_MPIDR
 	tst	r1, #(1 << 31)			/* Register has MPCore format?  0 means no */
 	beq	masterCore
@@ -198,14 +264,19 @@ flashBooting:
 	beq	masterCore
 
 	/*
-	 * So we are presumably, a SLAVE core running from FLASH.
-	 * Capture the slave(s) in a holding pen, when booting from FLASH.
-	 * We need the I-caches to be activated, to ensure the entirety
-	 * of this holding pen resides in I-caches as, in parallel the
-	 * boot-master core should be executing the "pokeloop" interpreter,
+	 * So we are presumably a SLAVE core, if we get here.
+	 *
+	 * At this point, we may be running from either FLASH or SDRAM.
+	 * We do not care, and (please note) the code does *not* differentiate
+	 * if the SLAVE core was booted from either SDRAM or FLASH.
+	 * All slaves will unconditionally now be put in the "First" Holding-Pen.
+	 *
+	 * If we are booting from FLASH, we need the I-caches to be activated, to
+	 * ensure the entirety of this holding pen resides in I-caches as, in
+	 * parallel the boot-master core should be executing the "pokeloop" interpreter,
 	 * and our EMI (FLASH) and LMI (RAM) may "disappear" from under our feet!
 	 *
-	 * We capture all the slaves in our "FLASH" holding pen first.
+	 * We capture all the slaves in our "First" Holding-Pen.
 	 * The slaves will write the sentinel value HPEN_KEEP_LOOPING_VALUE
 	 * into the "jump pointer", and then will use Wait-For-Event to wait.
 	 * When woken, they will read the "jump pointer", and see if its value
@@ -215,9 +286,9 @@ flashBooting:
 	 *
 	 * Note: The "jump pointer" itself should also be located in SRAM,
 	 * so we do not need any SDRAM available, in order to to transition
-	 * from the initial FLASH Holding-Pen into the SRAM Holding-Pen.
+	 * from the "First" Holding-Pen, into the (second) SRAM Holding-Pen.
 	 */
-flashSlaveHoldingPen:
+firstSlaveHoldingPen:
 	/*
 	 * Each (and every) slave should initialize the "sentinel" value for
 	 * the (global) "jump pointer", to indicate we have *not* been kicked yet.
@@ -249,7 +320,7 @@ flashSlaveHoldingPen:
 
 	/*
 	 * Okay, we have now been "kicked" by the master core, and
-	 * we should now transition from the initial FLASH Holding-Pen,
+	 * we should now transition from the "First" Holding-Pen,
 	 * to the SRAM Holding-Pen (i.e. jump to sramSlaveHoldingPen).
 	 * Simply, jump to the address we just read from "jump pointer".
 	 * We execute some memory synchronization barriers first.
@@ -290,7 +361,7 @@ copyHoldingPen:
 	add	r2, r2, r0		/* r2 = sramSlaveHoldingPenEnd */
 
 	/*
-	 * Copy 16 bytes at a time, from FLASH to SRAM.
+	 * Copy 16 bytes at a time, from PIC ".TEXT" to SRAM.
 	 */
 copyHoldingPenLoop:
 	ldmia	r0!, {r6 - r9}		/* copy from source address [r0] */
@@ -300,7 +371,7 @@ copyHoldingPenLoop:
 
 	/*
 	 * The master is now ready to "kick" each slave, and transition them
-	 * all from the initial FLASH Holding-Pen, into the SRAM Holding-Pen.
+	 * all from the "First" Holding-Pen, into the SRAM Holding-Pen.
 	 * We need to write the address of sramSlaveHoldingPen to the jump
 	 * pointer, over-writing the initial HPEN_KEEP_LOOPING_VALUE sentinel.
 	 *
@@ -332,13 +403,26 @@ kickSlavesToSramHoldingPen:
 
 	/*
 	 * ARM core 0 (the boot-master) continues here.
+	 *
+	 * If we were booted from FLASH, then we now need to perform
+	 * the initialization of the SDRAM, and execute the "poke-table".
+	 * Otherwise, we assume this was done for us by the "other" loader.
+	 *
+	 * We can simply return, if our environment is already set up for us,
+	 * and we do not need to perform any other low-level initialization.
 	 */
+whereAreWe:
+	adr	r0, here		/* r0 = current position of code */
+	ldr	r1, here		/* r1 = &here; (link-time) */
+	cmp	r0, r1			/* test if we in the correct place? */
+	it	eq			/* Z = (r1 == r0); */
+	bxeq	lr			/* return, if in the correct place */
 
 	/*
-	 * We assume we are booting from FLASH, and that we
+	 * We now know we are executing at the "wrong" address, so we
+	 * assume we are running from FLASH (and not from RAM), and we
 	 * need to execute the "pokeloop" interpreter, to complete
 	 * the low-level initialization - i.e. call init_ram().
-	 * Our caller should relocate us into RAM on our return.
 	 */
 do_init_ram:
 	ldr	r0, init_ram_pic
@@ -348,8 +432,9 @@ do_init_ram:
 
 	/*
 	 * The master core's low-level initialization is done!
+	 * Our caller should relocate us into SDRAM on our return.
 	 */
-	mov	pc, r10			/* finally, we return to our caller */
+	bx	r10			/* finally, we return to our caller */
 
 
 	/*
