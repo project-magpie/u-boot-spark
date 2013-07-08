@@ -81,6 +81,28 @@ prepare_hpen_for_linux:
 
 	/*
 	 * Main entry point, jumped to by start.S code.
+	 *
+	 * The master core, and all the slave cores will eventually enter
+	 * here, via this STMicroelectronics-specific main entry point.
+	 *
+	 * If we are booted directly from FLASH, then, to a first order of
+	 * approximation, we would typically expect *all* the cores to get here
+	 * at roughly the same time (i.e. plesiosynchronously), and hence, our
+	 * relative timing assumptions should be readily met in full.
+	 *
+	 * However, if we are "chained" from a primary boot-loader (e.g. the PBL),
+	 * then the onus is on that primary boot-loader to ensure that our
+	 * timing assumptions are satisfied. Failure to satisfy these timing
+	 * constraints may result in the system appearing to boot correctly,
+	 * but subsequent boots of (say) SMP-linux might not start any (or all)
+	 * of the slave cores. The timing assumptions are summarised as follows:
+	 *
+	 *	"The slave cores should all start U-Boot *before*
+	 *	(or plesiosynchronously with) the master core."
+	 *
+	 * Failure to comply with this critical constraint can introduce
+	 * a "race-condition" with the management of the Holding-Pens,
+	 * resulting in undefined behaviour. Caveat Emptor!
 	 */
 	.balign 4
 lowlevel_init:
