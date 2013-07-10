@@ -219,6 +219,12 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 #define PHY_ADDR_MSK		0x180	/* PHY Address Mask */
 #define PHY_ADDR_SHIFT		7	/* PHY Address Mask */
 
+#elif defined(CONFIG_STMAC_RTL8211E)	/* REALTEK RTL8211E(G) */
+
+/* REALTEK RTL8211E(G) phy identifier values */
+#define RTL8211E_PHY_ID		0x001cc915u
+#define RTL8211E_PHY_ID_MASK	0xffffffffu
+
 #elif defined(CONFIG_STMAC_MARVELL)	/* MARVELL 88EC060 */
 
 /* MARVELL 88EC060 phy identifier values */
@@ -411,6 +417,11 @@ static unsigned int stmac_phy_get_addr (void)
 			printf (STMAC "REALTEK RTL8201E(L) found\n");
 			return phyaddr;
 		}
+#elif defined(CONFIG_STMAC_RTL8211E)
+		if ((id & RTL8211E_PHY_ID_MASK) == RTL8211E_PHY_ID) {
+			printf (STMAC "REALTEK RTL8211E(G) found\n");
+			return phyaddr;
+		}
 #elif defined(CONFIG_STMAC_MARVELL)
 		if ((id & MARVELL_PHY_ID_MASK) == MARVELL_PHY_ID) {
 			printf (STMAC "MARVELL 88EC060 found\n");
@@ -466,6 +477,10 @@ static int stmac_phy_init (void)
 	value = stmac_mii_read (eth_phy_addr, PHY_SUP_REG);
 #elif defined(CONFIG_STMAC_RTL8201E)
 	value = stmac_mii_read (eth_phy_addr, PHY_TEST_REG);
+#elif defined(CONFIG_STMAC_RTL8211E)
+	/* The REALTEK RTL8211E(G) does not appear to support
+	 * reading the H/W PHY address from any register.  */
+#	define CONFIG_STMAC_BYPASS_ADDR_MISMATCH
 #elif defined(CONFIG_STMAC_KSZ8041)
 	/* The Micrel KSZ8041 does not appear to support
 	 * reading the H/W PHY address from any register.  */
@@ -534,7 +549,7 @@ static int stmac_phy_init (void)
 	 * ability to auto-negotiate at 1000BASE-T (Gigabit).
 	 * Once ST's SoCs are capable of Gigabit, then we will review!
 	 */
-#if defined(CONFIG_STMAC_IP1001) || defined(CONFIG_STMAC_MARVELL)
+#if defined(CONFIG_STMAC_IP1001) || defined(CONFIG_STMAC_MARVELL) || defined(CONFIG_STMAC_RTL8211E)
 	value = stmac_mii_read (eth_phy_addr, MII_GBCR);
 	value &= ~(GBCR_1000HALF|GBCR_1000FULL);
 	stmac_mii_write (eth_phy_addr, MII_GBCR, value);
