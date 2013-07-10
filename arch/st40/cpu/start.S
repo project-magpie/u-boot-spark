@@ -421,6 +421,10 @@ set_pmb:
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
 	SH4_SET_PMB 5,0xb0,0x00, 16		/* NAND/SPI FLASH CACHED */
 	SH4_SET_PMB 6,0xa1,0x01, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
+#elif defined(CONFIG_STM_STXH416) && defined(CONFIG_STM_B2116)
+	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
+	SH4_SET_PMB 5,0xb0,0x00, 16		/* NAND/SPI FLASH CACHED */
+	SH4_SET_PMB 6,0xa1,0x01, 16,0,0,1	/* NAND/SPI FLASH UN-cached */
 #elif defined(CONFIG_STM_STXH205) &&	\
 	( defined(CONFIG_STM_B2057) || defined(CONFIG_STM_B2064) || defined(CONFIG_STM_B2067) || defined(CONFIG_STM_B2075) )
 	SH4_SET_PMB 4,0xa0,0x00, 16,0,0,1	/* NAND/SPI FLASH UN-cached */

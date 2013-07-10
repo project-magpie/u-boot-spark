@@ -2822,6 +2822,28 @@ b2020stxh416se_nand_config :	unconfig
 	 $(MKCONFIG) -a -n $@ b2020 st40 st40 b2020 st stxh415; \
 	 $(MKROMGEN) no-such-ip b2020stxh415 st40 se=0))
 
+b2116a9_config			\
+b2116a9_spi_config		\
+b2116a9_nand_config		\
+b2116se_config			\
+b2116se_spi_config		\
+b2116se_nand_config :		unconfig
+	@mkdir -p $(obj)include $(obj)board/st/b2116
+	@echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h
+	@echo "#define CONFIG_STM_B2116          1" >>$(obj)include/config.h
+	@echo "#define CONFIG_STM_CONTIG_MODE    1" >>$(obj)include/config.h
+	$(if $(findstring _nand_,$@), \
+	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
+	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
+	$(if $(findstring a9,$@), \
+	@echo "TEXT_BASE = 0xBFF00000" >$(obj)board/st/b2116/config.tmp; \
+	 $(MKCONFIG) -a -n $@ b2116 arm armv7 b2116 st stxh416; \
+	 $(MKROMGEN) no-such-ip b2116stxh315 a9_0 boardrev=2, \
+	@echo "TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2116/config.tmp; \
+	 echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
+	 $(MKCONFIG) -a -n $@ b2116 st40 st40 b2116 st stxh416; \
+	 $(MKROMGEN) no-such-ip b2116stxh315 st40 se=0,boardrev=2)
+
 
 #########################################################################
 ## sh2 (Renesas SuperH)
