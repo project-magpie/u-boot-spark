@@ -629,7 +629,12 @@ static struct stm_gmac_pin stxh416_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(0, 3, 1, RET_DE_IO(1, 0)),/* TXD[3] */
 			DATA_OUT(0, 5, 1, RET_DE_IO(0, 0)),/* TXEN */
 			CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK */
+#if defined(CONFIG_STM_B2116)
+			/* add an internal pull-up, if board does not have one */
+			DATA_OUT_PU(1, 0, 1, RET_BYPASS(0)),/* MDIO */
+#else			/* no need for additional internal pull-up */
 			MDIO(1, 0, 1, RET_BYPASS(0)),/* MDIO */
+#endif	/* CONFIG_STM_B2116 */
 			MDC(1, 1, 1, RET_NICLK(0)),/* MDC */
 			DATA_IN(1, 4, 1, RET_DE_IO(0, 0)),/* RXD[0] */
 			DATA_IN(1, 5, 1, RET_DE_IO(0, 0)),/* RXD[1] */
