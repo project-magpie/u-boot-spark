@@ -224,6 +224,9 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 /* REALTEK RTL8211E(G) phy identifier values */
 #define RTL8211E_PHY_ID		0x001cc915u
 #define RTL8211E_PHY_ID_MASK	0xffffffffu
+#if !defined(CONFIG_STMAC_LINK_STATUS_TIMEOUT)
+#	define CONFIG_STMAC_LINK_STATUS_TIMEOUT	(CONFIG_SYS_HZ/20)	/* 50 ms*/
+#endif	/* CONFIG_STMAC_LINK_STATUS_TIMEOUT */
 
 #elif defined(CONFIG_STMAC_MARVELL)	/* MARVELL 88EC060 */
 
@@ -293,6 +296,21 @@ static unsigned int stmac_phy_check_speed (int phy_addr)
 
 	/* Read Status register */
 	status = stmac_mii_read (phy_addr, MII_BMSR);
+
+#if defined(CONFIG_STMAC_LINK_STATUS_TIMEOUT)
+	/*
+	 * For the RealTek RTL8211E(G) (and potentially other PHYs),
+	 * empirically, we need to wait a little while after the
+	 * auto-negotiation has completed, before the "Link Status"
+	 * bitfield in the BMSR actually becomes asserted!
+	 * So, read it again, until it is asserted, or we timeout.
+	 */
+	ulong now = get_timer(0);
+	while ( !(status & BMSR_LSTATUS) &&
+		(get_timer(now) < CONFIG_STMAC_LINK_STATUS_TIMEOUT) ) {
+		status = stmac_mii_read(phy_addr, MII_BMSR);
+	}
+#endif	/* CONFIG_STMAC_LINK_STATUS_TIMEOUT */
 
 	printf (STMAC);
 
