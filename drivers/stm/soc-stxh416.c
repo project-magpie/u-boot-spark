@@ -91,7 +91,11 @@ static void stxh416_clocks(void)
 #endif
 	bd->bi_ssc_frq  = 100ul * 1000000ul;	/* 100 MHz */
 #if defined(CONFIG_ST40)
+#if defined(CONFIG_STM_STXH416)
+	bd->bi_tmu_frq  = 200ul * 1000000ul;	/* 200 MHz */
+#else
 	bd->bi_tmu_frq  = bd->bi_ssc_frq;
+#endif /* CONFIG_STM_STXH416 */
 #endif /* CONFIG_ST40 */
 }
 
