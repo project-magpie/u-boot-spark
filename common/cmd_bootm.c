@@ -2,6 +2,8 @@
  * (C) Copyright 2000-2009
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
+ * Copyright (C) 2013 STMicroelectronics Ltd, Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -1144,6 +1146,24 @@ static int image_info (ulong addr)
 	void *hdr = (void *)addr;
 
 	printf ("\n## Checking Image at %08lx ...\n", addr);
+
+#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_STM)
+	if (genimg_get_format(hdr)==IMAGE_FORMAT_FIT) {
+		if (fdt_getprop(hdr, 0, "compatible", NULL)) {
+			const char *model;
+			model = fdt_getprop(hdr, 0, "model", NULL);
+			if (model) {
+				printf("info: image looks like a FDT for %s\n\n"
+					"info: please run the following commands:\n"
+					"\tU-Boot> help fdt\n"
+					"\tU-Boot> fdt addr %lx\n"
+					"\tU-Boot> fdt header\n",
+					model, addr);
+				return 0;	/* assume this is valid */
+			}
+		}
+	}
+#endif	/* CONFIG_OF_LIBFDT && CONFIG_STM */
 
 	switch (genimg_get_format (hdr)) {
 	case IMAGE_FORMAT_LEGACY:

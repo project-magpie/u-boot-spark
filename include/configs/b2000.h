@@ -91,6 +91,16 @@
 
 
 /*-----------------------------------------------------------------------
+ * When booting ARM linux, we also need to pass in some additional
+ * configuration information. This can be done either using ATAGS,
+ * or with a "Device Tree" (DT), using a FDT binary blob ("*.dtb").
+ * By default, we will use the ATAGs paradigm. To use FDT instead, then
+ * define the macro "CONFIG_OF_LIBFDT", and use the "fdt addr" command.
+ */
+//#define CONFIG_OF_LIBFDT			/* enable the "fdt" command set */
+
+
+/*-----------------------------------------------------------------------
  * Are we booting directly from a NAND Flash device ?
  * If so, then define the "CONFIG_SYS_BOOT_FROM_NAND" macro,
  * otherwise (e.g. SPI Flash booting), do not define it.

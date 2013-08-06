@@ -115,6 +115,22 @@ extern	void prepare_hpen_for_linux(void (**stm_secondary_startup)(void));
 		setup_initrd_tag (bd, images->rd_start, images->rd_end);
 #endif
 	setup_end_tag (bd);
+#elif defined(CONFIG_OF_LIBFDT) && defined(CONFIG_STM)
+	/*
+	 * Have we run the "fdt addr <addr>" sub-command yet ?
+	 * Or, have we set the "fdtaddr" environment variable yet ?
+	 * If we have done either of these, then we also have an additional
+	 * "Flattened Device Tree" (FDT) image ("*.dtb") to pass to the kernel.
+	 */
+	s = getenv("fdtaddr");		/* written by the "fdt addr" sub-command */
+	if (s) {
+		const ulong fdtaddr = simple_strtoul(s, NULL, 16);
+		if (fdtaddr) {
+			/* address of (FDT) boot parameters */
+			bd->bi_boot_params = fdtaddr;
+			printf("Using FDT image at 0x%08lx (from environment)\n", fdtaddr);
+		}
+	}
 #endif
 
 	/* we assume that the kernel is in place */
