@@ -5,6 +5,8 @@
  *   Pantelis Antoniou <pantelis.antoniou@gmail.com> and
  *   Matthew McClintock <msm@freescale.com>
  *
+ * Copyright (C) 2013 STMicroelectronics Ltd, Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -160,7 +162,12 @@ int do_fdt (cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 				fdt_strerror(err));
 			return 1;
 		}
-		working_fdt = newaddr;
+
+		/*
+		 * Update both the FDT working address, and the
+		 * environment variable "fdtaddr".
+		 */
+		set_working_fdt_addr((void *)newaddr);
 
 	/*
 	 * Make a new node
