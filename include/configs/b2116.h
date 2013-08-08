@@ -568,7 +568,7 @@
 #define CONFIG_CMD_I2C				/* do we want I2C support ? */
 
 #if defined(CONFIG_CMD_I2C)
-	/* Note: I2C Bus #1 "probes" devices when a suitable HDMI device is plugged in to CN5. */
+	/* Note: I2C Bus #1 "probes" devices when a suitable HDMI device is plugged in to J40. */
 #	define CONFIG_I2C_BUS		1	/* Use I2C Bus associated with SSC #1 */
 #	define CONFIG_I2C_CMD_TREE		/* use a "i2c" root command */
 #	define CONFIG_SYS_I2C_SLAVE	0x7F	/* I2C slave address - Bogus: master-only in U-Boot */
