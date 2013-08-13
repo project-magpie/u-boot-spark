@@ -92,11 +92,28 @@ extern	void prepare_hpen_for_linux(void (**stm_secondary_startup)(void));
 	debug ("## Transferring control to Linux (at address %08lx) ...\n",
 	       (ulong) theKernel);
 
+#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_STM)
+	/*
+	 * Did we execute "bootm" with a 3rd parameter, and that parameter
+	 * was the address of a valid "Flattened Device Tree" image ?
+	 * If so then we also have an additional image to pass to the kernel.
+	 */
+	if (images->ft_addr) {
+		/* address of (FDT) boot parameters */
+		bd->bi_boot_params = (ulong)images->ft_addr;
+		printf("   Using FDT blob at 0x%08lx\n", bd->bi_boot_params);
+	}
+	else {	/* start processing ATAGs … */
+#endif	/* CONFIG_OF_LIBFDT && CONFIG_STM */
+
 #if defined (CONFIG_SETUP_MEMORY_TAGS) || \
     defined (CONFIG_CMDLINE_TAG) || \
     defined (CONFIG_INITRD_TAG) || \
     defined (CONFIG_SERIAL_TAG) || \
     defined (CONFIG_REVISION_TAG)
+#if defined(CONFIG_STM)
+	printf("   Using ATAGs at 0x%08lx\n", bd->bi_boot_params);
+#endif	/* CONFIG_STM */
 	setup_start_tag (bd);
 #ifdef CONFIG_SERIAL_TAG
 	setup_serial_tag (&params);
@@ -115,23 +132,11 @@ extern	void prepare_hpen_for_linux(void (**stm_secondary_startup)(void));
 		setup_initrd_tag (bd, images->rd_start, images->rd_end);
 #endif
 	setup_end_tag (bd);
-#elif defined(CONFIG_OF_LIBFDT) && defined(CONFIG_STM)
-	/*
-	 * Have we run the "fdt addr <addr>" sub-command yet ?
-	 * Or, have we set the "fdtaddr" environment variable yet ?
-	 * If we have done either of these, then we also have an additional
-	 * "Flattened Device Tree" (FDT) image ("*.dtb") to pass to the kernel.
-	 */
-	s = getenv("fdtaddr");		/* written by the "fdt addr" sub-command */
-	if (s) {
-		const ulong fdtaddr = simple_strtoul(s, NULL, 16);
-		if (fdtaddr) {
-			/* address of (FDT) boot parameters */
-			bd->bi_boot_params = fdtaddr;
-			printf("Using FDT image at 0x%08lx (from environment)\n", fdtaddr);
-		}
-	}
 #endif
+#if defined(CONFIG_OF_LIBFDT) && defined(CONFIG_STM)
+	/* … done processing ATAGs */
+	}
+#endif	/* CONFIG_OF_LIBFDT && CONFIG_STM */
 
 	/* we assume that the kernel is in place */
 	printf ("\nStarting kernel ...\n\n");
