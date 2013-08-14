@@ -168,6 +168,11 @@ static unsigned char op_read  = OP_READ_ARRAY;	/* default read command opcode to
 #define DYB_LOCKED	0x00u
 #define DYB_UNLOCK	0xffu
 
+#if defined(CONFIG_SPI_FLASH_SPANSION)
+	/* bool: do we want to unlock all the sectors protected with DBY ? */
+static int want_dby_unlock = 0;	/* we assume no DBY unlocking is required */
+#endif	/* CONFIG_SPI_FLASH_SPANSION */
+
 
 /**********************************************************************/
 
@@ -1021,39 +1026,53 @@ static int spi_probe_serial_flash(
 
 #elif defined(CONFIG_SPI_FLASH_SPANSION)
 
-	if (
-		(devid[1] != 0x01u)				||	/* Manufacturer ID */
+	if ( (devid[1] == 0x01u) && (devid[2] == 0x02u) && (devid[3] == 0x15) )
+	{							/* S25FL032P */
+		eraseSize  = 64u<<10;				/* Hybrid: 64 KiB + 4KiB parameter sectors  */
+		deviceSize = 4u<<20;				/* 32Mbit == 4MiB */
+		deviceName = "Spansion S25FL032P";
+	}
+	else if (
+		(devid[1] == 0x01u)				&&	/* Manufacturer ID */
 		(
-			( (devid[2] != 0x20u) || (devid[3] != 0x18) )	&&	/* S25FL128S */
-			( (devid[2] != 0x02u) || (devid[3] != 0x19) )		/* S25FL256S */
+			( (devid[2] == 0x20u) && (devid[3] == 0x18) )	||	/* S25FL128S */
+			( (devid[2] == 0x02u) && (devid[3] == 0x19) )		/* S25FL256S */
 		)
 	   )
+	{
+		if (devid[5] == 0)				/* Uniform Sector Architecture ? */
+		{
+			eraseSize = 256u<<10;			/* Uniform 256 KiB sector */
+		}
+		else
+		{
+			eraseSize = 64u<<10;			/* Hybrid: 64 KiB + 4KiB parameter sectors  */
+		}
+		deviceSize = 1u<<devid[3];			/* Memory Capacity */
+		if (devid[3] == 0x18u)
+		{
+			deviceName = "Spansion S25FL128S";	/* 128 Mbit == 16 MiB */
+		}
+		else if (devid[3] == 0x19u)
+		{
+			deviceName = "Spansion S25FL256S";	/* 256 Mbit == 32 MiB */
+			op_read  = OP_READ_4BYTE;		/* use 4-byte addressing for READ */
+			op_write = OP_PP_4BYTE;			/* use 4-byte addressing for WRITE */
+			op_erase = OP_SE_4BYTE;			/* use 4-byte addressing for ERASE */
+		}
+			/*
+			 * Finally, for the S25FLxxxS family, we probably also
+			 * want to unlock all the sectors protected with DBY.
+			 */
+		want_dby_unlock = 1;
+	}
+	else
 	{
 		printf("ERROR: Unknown SPI Device detected, devid = 0x%02x, 0x%02x, 0x%02x\n",
 			devid[1], devid[2], devid[3]);
 		return -1;
 	}
-	pageSize   = 256u;
-	if (devid[5] == 0)				/* Uniform Sector Architecture ? */
-	{
-		eraseSize = 256u<<10;			/* Uniform 256 KiB sector */
-	}
-	else
-	{
-		eraseSize = 64u<<10;			/* Hybrid: 64 KiB + 4KiB parameter sectors  */
-	}
-	deviceSize = 1u<<devid[3];			/* Memory Capacity */
-	if (devid[3] == 0x18u)
-	{
-		deviceName = "Spansion S25FL128S";	/* 128 Mbit == 16 MiB */
-	}
-	else if (devid[3] == 0x19u)
-	{
-		deviceName = "Spansion S25FL256S";	/* 256 Mbit == 32 MiB */
-		op_read  = OP_READ_4BYTE;		/* use 4-byte addressing for READ */
-		op_write = OP_PP_4BYTE;			/* use 4-byte addressing for WRITE */
-		op_erase = OP_SE_4BYTE;			/* use 4-byte addressing for ERASE */
-	}
+	pageSize = 256u;
 
 #else
 #error Please specify which SPI Serial Flash is being used
@@ -1119,7 +1138,7 @@ static int spi_probe_serial_flash(
 #endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_MXIC || defined(CONFIG_SPI_FLASH_WINBOND) */
 
 #if defined(CONFIG_SPI_FLASH_SPANSION)
-	if (1)	/* if from the S25FLxxxS family ? */
+	if (want_dby_unlock)	/* if from the S25FLxxxS family ? */
 	{
 		/* Unlock all the sectors protected with DBY */
 		spi_dby_unlock_all(slave);
