@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2008, Michael Trimarchi <trimarchimichael@yahoo.it>
- * Copyright (C) 2012 STMicroelectronics Limited
+ * Copyright (C) 2012-2013 STMicroelectronics Limited
  *	Sean McGoogan <Sean.McGoogan@st.com>
  *
  * Author: Michael Trimarchi <trimarchimichael@yahoo.it>
@@ -24,8 +24,8 @@
  */
 #include <common.h>
 #include <usb.h>
-#include "ehci.h"
-#include "ehci-core.h"
+#include <../drivers/usb/host/ehci.h>
+#include <../drivers/usb/host/ehci-core.h>
 #include <stm/stbus.h>
 
 

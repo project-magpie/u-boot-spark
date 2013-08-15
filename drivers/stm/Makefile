@@ -30,11 +30,16 @@ ifdef CONFIG_STM
 COBJS-y += board.o
 COBJS-y += stm-sysconf.o
 COBJS-$(CONFIG_STM_USB) += usb.o
+COBJS-$(CONFIG_USB_EHCI_STM) += stm-ehci-host.o
 COBJS-$(CONFIG_STM_SATA) += sata-init.o sata-probe.o
 COBJS-$(CONFIG_CMD_STTESTS) += cmd_sttests.o st_mtests.o
 COBJS-$(CONFIG_STM_FSM_SPI) += stm_spi_fsm.o
 COBJS-$(CONFIG_SPI) += spi.o
 COBJS-$(CONFIG_ENV_IS_IN_EEPROM) += env_eeprom.o
+COBJS-$(CONFIG_STM_ASC_SERIAL) += stm-asc.o
+COBJS-$(CONFIG_STM_DTF_SERIAL) += stm-dtf.o
+COBJS-$(CONFIG_DRIVER_NETSTMAC)     += stm-stmac.o
+COBJS-$(CONFIG_DRIVER_NET_STM_GMAC) += stm-stmac.o
 
 ifdef CONFIG_CMD_NAND
 COBJS-y += ecc.o stm-nand.o
