@@ -31,6 +31,7 @@
 #include <stm/pio.h>
 #include <stm/stbus.h>
 #include <ata.h>
+#include <netdev.h>
 
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -361,6 +362,27 @@ extern void stx7141_configure_ethernet(
 			pins[i].pio[port].pin,
 			pins[i].dir);
 	}
+}
+
+	/*
+	 * SoC-specific function to register all ST-MAC/GMAC controllers.
+	 * The function "board_eth_init()" should ideally be defined
+	 * for *each* board.  However, "cpu_eth_init()" can be used
+	 * as a generic fall-back, for all boards of a given CPU type.
+	 * In any event, "board_eth_init()" will have a higher priority,
+	 * so define it, if you want to override the following SoC function.
+	 */
+extern int cpu_eth_init(bd_t * const bis)
+{
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
+	stmac_eth_register(0, CONFIG_SYS_STM_STMAC0_BASE);
+#endif
+
+#if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
+	stmac_eth_register(1, CONFIG_SYS_STM_STMAC1_BASE);
+#endif
+
+	return 0;
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 

@@ -515,7 +515,6 @@ char *eth_get_name (void)
 extern int at91rm9200_miiphy_initialize(bd_t *bis);
 extern int mcf52x2_miiphy_initialize(bd_t *bis);
 extern int ns7520_miiphy_initialize(bd_t *bis);
-extern int stmac_miiphy_initialize(bd_t *bis);
 
 
 int eth_initialize(bd_t *bis)
@@ -532,9 +531,6 @@ int eth_initialize(bd_t *bis)
 #endif
 #if defined(CONFIG_DRIVER_NS7520_ETHERNET)
 	ns7520_miiphy_initialize(bis);
-#endif
-#if defined(CONFIG_DRIVER_NETSTMAC) || defined(CONFIG_DRIVER_NET_STM_GMAC)
-	stmac_miiphy_initialize(bis);
 #endif
 	return 0;
 }

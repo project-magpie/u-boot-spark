@@ -432,8 +432,8 @@ typedef struct stmac_dma_des_t stmac_dma_des;
  *---------------------------------------------------------------------------*/
 
 /* MAC Register Accessors */
-#define STMAC_READ(REG)		readl(CONFIG_SYS_STM_STMAC_BASE+(REG))
-#define STMAC_WRITE(V, REG)	writel((V), CONFIG_SYS_STM_STMAC_BASE+(REG))
+#define STMAC_READ(REG)		readl((dev->iobase)+(REG))
+#define STMAC_WRITE(V, REG)	writel((V), (dev->iobase)+(REG))
 
 /* max delay to wait after performing a MII Register read/write */
 #ifndef CONFIG_STMAC_MII_POLL_BUSY_DELAY

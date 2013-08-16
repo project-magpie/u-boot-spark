@@ -32,6 +32,7 @@
 #include <stm/stbus.h>
 #include <ata.h>
 #include <spi.h>
+#include <netdev.h>
 
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -177,6 +178,21 @@ static void stmac_eth_hw_setup( int reverse_mii, int rmii_mode, int mode,
 	else
 		SET_PIO_PIN(PIO_PORT(9), 5, STPIO_ALT_OUT);
 	SET_PIO_PIN(PIO_PORT(9), 6, STPIO_IN);
+}
+
+	/*
+	 * SoC-specific function to register all ST-MAC/GMAC controllers.
+	 * The function "board_eth_init()" should ideally be defined
+	 * for *each* board.  However, "cpu_eth_init()" can be used
+	 * as a generic fall-back, for all boards of a given CPU type.
+	 * In any event, "board_eth_init()" will have a higher priority,
+	 * so define it, if you want to override the following SoC function.
+	 */
+extern int cpu_eth_init(bd_t * const bis)
+{
+	stmac_eth_register(0, CONFIG_SYS_STM_STMAC_BASE);
+
+	return 0;
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 

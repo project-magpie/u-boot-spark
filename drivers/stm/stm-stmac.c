@@ -32,6 +32,7 @@
 #include <malloc.h>
 #include <miiphy.h>
 #include "stm-stmac.h"
+#include <netdev.h>
 
 
 #if defined(CONFIG_ST40)			/* for ST40 cores … */
@@ -75,14 +76,13 @@ static volatile stmac_dma_des *dma_tx;
 static volatile stmac_dma_des *dma_rx;
 static int cur_rx;
 static int eth_phy_addr;
-static const char miidevice[] = "stmacphy";
 
 #define MAX_ETH_FRAME_SIZE	1536
 #define MAX_PAUSE_TIME (MAC_FLOW_CONTROL_PT_MASK>>MAC_FLOW_CONTROL_PT_SHIFT)
 
-static void stmac_mii_write (int phy_addr, int reg, int value);
-static unsigned int stmac_mii_read (int phy_addr, int reg);
-static void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed);
+static void stmac_mii_write(struct eth_device * const dev, int phy_addr, int reg, int value);
+static unsigned int stmac_mii_read(struct eth_device * const dev, int phy_addr, int reg);
+static void stmac_set_mac_mii_cap(struct eth_device * const dev, int full_duplex, unsigned int speed);
 
 /* DMA structure */
 struct dma_t
@@ -94,6 +94,12 @@ struct dma_t
 } __attribute__ ((aligned (L1_CACHE_BYTES))) dma;
 
 static void *rx_packets[CONFIG_DMA_RX_SIZE];
+
+/* private data structure */
+struct stmac_private
+{
+	u32	id;		/* unique ID of MAC */
+};
 
 #define likely(x)	__builtin_expect(!!(x), 1)
 #define unlikely(x)	__builtin_expect(!!(x), 0)
@@ -250,19 +256,19 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 
 
 #ifndef CONFIG_PHY_LOOPBACK
-static int stmac_phy_negotiate (int phy_addr)
+static int stmac_phy_negotiate(struct eth_device * const dev, int phy_addr)
 {
 	uint now, tmp, status;
 
 	status = 0;
 
-	tmp = stmac_mii_read (phy_addr, MII_BMCR);
+	tmp = stmac_mii_read(dev, phy_addr, MII_BMCR);
 	tmp |= (BMCR_ANENABLE | BMCR_ANRESTART);
-	stmac_mii_write (phy_addr, MII_BMCR, tmp);
+	stmac_mii_write(dev, phy_addr, MII_BMCR, tmp);
 
 	now = get_timer (0);
 	while (get_timer (now) < CONFIG_STMAC_AUTONEG_TIMEOUT) {
-		status = stmac_mii_read (phy_addr, MII_BMSR);
+		status = stmac_mii_read(dev, phy_addr, MII_BMSR);
 		if (status & BMSR_ANEGCOMPLETE) {
 			break;
 		}
@@ -272,7 +278,7 @@ static int stmac_phy_negotiate (int phy_addr)
 			printf (STMAC "PHY remote fault detected\n");
 			/* Restart auto-negotiation */
 			printf (STMAC "PHY restarting auto-negotiation\n");
-			stmac_mii_write (phy_addr, MII_BMCR,
+			stmac_mii_write(dev, phy_addr, MII_BMCR,
 					 BMCR_ANENABLE | BMCR_ANRESTART);
 		}
 	}
@@ -288,14 +294,14 @@ static int stmac_phy_negotiate (int phy_addr)
 	return (1);
 }
 
-static unsigned int stmac_phy_check_speed (int phy_addr)
+static unsigned int stmac_phy_check_speed(struct eth_device * const dev, int phy_addr)
 {
 	unsigned int status;
 	int full_duplex = 0;
 	int speed = 0;
 
 	/* Read Status register */
-	status = stmac_mii_read (phy_addr, MII_BMSR);
+	status = stmac_mii_read(dev, phy_addr, MII_BMSR);
 
 #if defined(CONFIG_STMAC_LINK_STATUS_TIMEOUT)
 	/*
@@ -308,7 +314,7 @@ static unsigned int stmac_phy_check_speed (int phy_addr)
 	ulong now = get_timer(0);
 	while ( !(status & BMSR_LSTATUS) &&
 		(get_timer(now) < CONFIG_STMAC_LINK_STATUS_TIMEOUT) ) {
-		status = stmac_mii_read(phy_addr, MII_BMSR);
+		status = stmac_mii_read(dev, phy_addr, MII_BMSR);
 	}
 #endif	/* CONFIG_STMAC_LINK_STATUS_TIMEOUT */
 
@@ -319,7 +325,7 @@ static unsigned int stmac_phy_check_speed (int phy_addr)
 		printf ("*Warning* no link detected\n");
 		return 1;
 	} else {
-		int negotiated = stmac_mii_read (phy_addr, MII_LPA);
+		int negotiated = stmac_mii_read(dev, phy_addr, MII_LPA);
 
 		if (negotiated & LPA_100FULL) {
 			printf ("100Mbs full duplex link detected\n");
@@ -339,13 +345,13 @@ static unsigned int stmac_phy_check_speed (int phy_addr)
 			speed = 10;
 		}
 	}
-	stmac_set_mac_mii_cap (full_duplex, speed);
+	stmac_set_mac_mii_cap(dev, full_duplex, speed);
 	return 0;
 }
 #endif	/* CONFIG_PHY_LOOPBACK */
 
 /* Automatically gets and returns the PHY device */
-static unsigned int stmac_phy_get_addr (void)
+static unsigned int stmac_phy_get_addr(struct eth_device * const dev)
 {
 	unsigned int i, id;
 #if defined(CONFIG_STMAC_IP101A) || defined(CONFIG_STMAC_IP101G)
@@ -354,8 +360,8 @@ static unsigned int stmac_phy_get_addr (void)
 
 	for (i = 0; i < 32; i++) {
 		unsigned int phyaddr = (i + 1u) % 32u;
-		unsigned int id1 = stmac_mii_read (phyaddr, MII_PHYSID1);
-		unsigned int id2 = stmac_mii_read (phyaddr, MII_PHYSID2);
+		unsigned int id1 = stmac_mii_read(dev, phyaddr, MII_PHYSID1);
+		unsigned int id2 = stmac_mii_read(dev, phyaddr, MII_PHYSID2);
 		id  = (id1 << 16) | (id2);
 
 #if	0							&& \
@@ -419,7 +425,7 @@ static unsigned int stmac_phy_get_addr (void)
 		}
 #elif defined(CONFIG_STMAC_IP101A) || defined(CONFIG_STMAC_IP101G)
 		if ((id & IP101x_PHY_ID_MASK) == IP101x_PHY_ID) {
-			const unsigned int page = stmac_mii_read (phyaddr, IP101G_PAGE_CONTROL_REG);
+			const unsigned int page = stmac_mii_read(dev, phyaddr, IP101G_PAGE_CONTROL_REG);
 			if (page == 16)		/* page 16 ? */
 				deviceName = "IP101G";	/* assume a "G" part */
 			printf (STMAC "IC+ %s found\n", deviceName);
@@ -460,8 +466,8 @@ static unsigned int stmac_phy_get_addr (void)
 	/* write out the IDs of all PHYs who respond */
 	for (i = 0; i < 32; i++) {
 		unsigned int phyaddr = i;
-		unsigned int id1 = stmac_mii_read (phyaddr, MII_PHYSID1);
-		unsigned int id2 = stmac_mii_read (phyaddr, MII_PHYSID2);
+		unsigned int id1 = stmac_mii_read(dev, phyaddr, MII_PHYSID1);
+		unsigned int id2 = stmac_mii_read(dev, phyaddr, MII_PHYSID2);
 		id  = (id1 << 16) | (id2);
 		if (id != ~0u) {	/* not all ones */
 			printf (STMAC "info: PHY at address=0x%02x has ID=0x%08x\n", phyaddr, id);
@@ -471,30 +477,30 @@ static unsigned int stmac_phy_get_addr (void)
 	return (-1);
 }
 
-static int stmac_phy_init (void)
+static int stmac_phy_init(struct eth_device * const dev)
 {
 	uint advertised_caps, value;
 
 	/* Obtain the PHY's address/id */
-	eth_phy_addr = stmac_phy_get_addr ();
+	eth_phy_addr = stmac_phy_get_addr(dev);
 	if (eth_phy_addr < 0)
 		return -1;
 
 	/* Now reset the PHY we just found */
-	if (miiphy_reset (miidevice, eth_phy_addr)< 0) {
+	if (miiphy_reset(dev->name, eth_phy_addr)< 0) {
 		PRINTK (STMAC "PHY reset failed!\n");
 		return -1;
 	}
 
 	/* test for H/W address disagreement with the assigned address */
 #if defined(CONFIG_STMAC_STE10XP)
-	value = stmac_mii_read (eth_phy_addr, MII_XMC);
+	value = stmac_mii_read(dev, eth_phy_addr, MII_XMC);
 #elif defined(CONFIG_STMAC_LAN8700) || defined(CONFIG_STMAC_LAN8710)
-	value = stmac_mii_read (eth_phy_addr, SPECIAL_MODE_REG);
+	value = stmac_mii_read(dev, eth_phy_addr, SPECIAL_MODE_REG);
 #elif defined(CONFIG_STMAC_DP83865)
-	value = stmac_mii_read (eth_phy_addr, PHY_SUP_REG);
+	value = stmac_mii_read(dev, eth_phy_addr, PHY_SUP_REG);
 #elif defined(CONFIG_STMAC_RTL8201E)
-	value = stmac_mii_read (eth_phy_addr, PHY_TEST_REG);
+	value = stmac_mii_read(dev, eth_phy_addr, PHY_TEST_REG);
 #elif defined(CONFIG_STMAC_RTL8211E)
 	/* The REALTEK RTL8211E(G) does not appear to support
 	 * reading the H/W PHY address from any register.  */
@@ -536,10 +542,10 @@ static int stmac_phy_init (void)
 #endif
 
 	/* Read the ANE Advertisement register */
-	advertised_caps = stmac_mii_read (eth_phy_addr, MII_ADVERTISE);
+	advertised_caps = stmac_mii_read(dev, eth_phy_addr, MII_ADVERTISE);
 
 	/* Copy our capabilities from MII_BMSR to MII_ADVERTISE */
-	value = stmac_mii_read (eth_phy_addr, MII_BMSR);
+	value = stmac_mii_read(dev, eth_phy_addr, MII_BMSR);
 
 	/* Set the advertised capabilities */
 	if (value & BMSR_100BASE4)
@@ -560,7 +566,7 @@ static int stmac_phy_init (void)
 #endif
 
 	/* Update our Auto-Neg Advertisement Register */
-	stmac_mii_write (eth_phy_addr, MII_ADVERTISE, advertised_caps);
+	stmac_mii_write(dev, eth_phy_addr, MII_ADVERTISE, advertised_caps);
 
 	/*
 	 * For Gigabit capable PHYs, then we will disable the
@@ -568,9 +574,9 @@ static int stmac_phy_init (void)
 	 * Once ST's SoCs are capable of Gigabit, then we will review!
 	 */
 #if defined(CONFIG_STMAC_IP1001) || defined(CONFIG_STMAC_MARVELL) || defined(CONFIG_STMAC_RTL8211E)
-	value = stmac_mii_read (eth_phy_addr, MII_GBCR);
+	value = stmac_mii_read(dev, eth_phy_addr, MII_GBCR);
 	value &= ~(GBCR_1000HALF|GBCR_1000FULL);
-	stmac_mii_write (eth_phy_addr, MII_GBCR, value);
+	stmac_mii_write(dev, eth_phy_addr, MII_GBCR, value);
 #endif
 
 	/*
@@ -579,33 +585,33 @@ static int stmac_phy_init (void)
 	 * QQQ: This code-hackery should really be in a board-specific file!
 	 */
 #if defined(CONFIG_STMAC_IP1001) && defined(CONFIG_STM_B2020)
-	value = stmac_mii_read(eth_phy_addr, IP1001_SPEC_CTRL_STATUS);
+	value = stmac_mii_read(dev, eth_phy_addr, IP1001_SPEC_CTRL_STATUS);
 	value |= (IP1001_RXPHASE_SEL | IP1001_TXPHASE_SEL);
-	stmac_mii_write(eth_phy_addr, IP1001_SPEC_CTRL_STATUS, value);
+	stmac_mii_write(dev, eth_phy_addr, IP1001_SPEC_CTRL_STATUS, value);
 #endif	/* CONFIG_STMAC_IP1001 && CONFIG_STM_B2020 */
 
 #ifdef CONFIG_PHY_LOOPBACK
 
 	/* put the PHY in loop-back mode, if required */
 	printf ( STMAC "Forcing PHY loop-back at full-duplex, 100Mbps\n");
-	value = stmac_mii_read (eth_phy_addr, MII_BMCR);
+	value = stmac_mii_read(dev, eth_phy_addr, MII_BMCR);
 	value |= BMCR_LOOPBACK;		/* enable loop-back mode (in the PHY) */
 	value &= ~BMCR_ANENABLE;	/* disable auto-negotiation */
 	value &= ~BMCR_SPEED_MASK;	/* clear all speed bits */
 	value |= BMCR_SPEED100;		/* set speed to 100Mbps */
 	value |= BMCR_FULLDPLX;		/* enable full-duplex */
-	stmac_mii_write (eth_phy_addr, MII_BMCR, value);
+	stmac_mii_write(dev, eth_phy_addr, MII_BMCR, value);
 	/* ensure the write completes! */
-	(void)stmac_mii_read (eth_phy_addr, MII_BMCR);
+	(void)stmac_mii_read(dev, eth_phy_addr, MII_BMCR);
 
 	/* set the MAC capabilities appropriately */
-	stmac_set_mac_mii_cap (1, 100);	/* 100Mbps, full-duplex */
+	stmac_set_mac_mii_cap(dev, 1, 100);	/* 100Mbps, full-duplex */
 
 #else	/* CONFIG_PHY_LOOPBACK */
 
 	/* auto-negotiate with remote link partner */
-	stmac_phy_negotiate (eth_phy_addr);
-	stmac_phy_check_speed (eth_phy_addr);
+	stmac_phy_negotiate(dev, eth_phy_addr);
+	stmac_phy_check_speed(dev, eth_phy_addr);
 
 #endif	/* CONFIG_PHY_LOOPBACK */
 
@@ -617,7 +623,7 @@ static int stmac_phy_init (void)
 				 MII Interface
    ---------------------------------------------------------------------------*/
 
-static int stmac_mii_poll_busy (void)
+static int stmac_mii_poll_busy(struct eth_device * const dev)
 {
 	/* arm simple, non interrupt dependent timer */
 	ulong now = get_timer (0);
@@ -630,7 +636,7 @@ static int stmac_mii_poll_busy (void)
 	return (0);
 }
 
-static void stmac_mii_write (int phy_addr, int reg, int value)
+static void stmac_mii_write(struct eth_device * const dev, int phy_addr, int reg, int value)
 {
 	int mii_addr;
 
@@ -644,21 +650,21 @@ static void stmac_mii_write (int phy_addr, int reg, int value)
 		| ((reg & MAC_MII_ADDR_REG_MASK) << MAC_MII_ADDR_REG_SHIFT)
 		| MAC_MII_ADDR_WRITE | MAC_MII_ADDR_BUSY;
 
-	stmac_mii_poll_busy ();
+	stmac_mii_poll_busy(dev);
 
 	/* Set the MII address register to write */
 	STMAC_WRITE (value, MAC_MII_DATA);
 	STMAC_WRITE (mii_addr, MAC_MII_ADDR);
 
-	stmac_mii_poll_busy ();
+	stmac_mii_poll_busy(dev);
 
 #if defined(CONFIG_STMAC_STE10XP)	/* ST STE10xP PHY */
 	/* QQQ: is the following actually needed ? */
-	(void) stmac_mii_read (phy_addr, reg);
+	(void) stmac_mii_read(dev, phy_addr, reg);
 #endif	/* CONFIG_STMAC_STE10XP */
 }
 
-static unsigned int stmac_mii_read (int phy_addr, int reg)
+static unsigned int stmac_mii_read(struct eth_device * const dev, int phy_addr, int reg)
 {
 	int mii_addr, val;
 
@@ -668,11 +674,11 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 		| MAC_MII_ADDR_BUSY;
 
 	/* Select register */
-	stmac_mii_poll_busy ();
+	stmac_mii_poll_busy(dev);
 
 	STMAC_WRITE (mii_addr, MAC_MII_ADDR);
 
-	stmac_mii_poll_busy ();
+	stmac_mii_poll_busy(dev);
 
 	/* Return read value */
 	val = STMAC_READ (MAC_MII_DATA);
@@ -714,10 +720,18 @@ static unsigned int stmac_mii_read (int phy_addr, int reg)
 	return val;
 }
 
+
+/* ----------------------------------------------------------------------------
+				MII Call-Back Functions
+   ---------------------------------------------------------------------------*/
+
+
+#if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
 /* define external interface to mii, through miiphy_register() */
 static int stmac_miiphy_read(const char *devname, unsigned char addr, unsigned char reg, unsigned short *value)
 {
-	*value = stmac_mii_read (addr, reg);
+	struct eth_device * const dev = eth_get_dev_by_name(devname);
+	*value = stmac_mii_read(dev, addr, reg);
 #if 0
 	printf("QQQ: %s(addr=%u, reg=%u) --> value=0x%04x)\n", __FUNCTION__, addr, reg, *value);
 #endif
@@ -726,19 +740,22 @@ static int stmac_miiphy_read(const char *devname, unsigned char addr, unsigned c
 
 static int stmac_miiphy_write(const char *devname, unsigned char addr, unsigned char reg, unsigned short value)
 {
+	struct eth_device * const dev = eth_get_dev_by_name(devname);
 #if 0
 	printf("QQQ: %s(addr=%u, reg=%u, value=0x%04x)\n", __FUNCTION__, addr, reg, value);
 #endif
-	stmac_mii_write (addr, reg, value);
+	stmac_mii_write(dev, addr, reg, value);
 	return 0;
 }
+#endif	/* CONFIG_MII || CONFIG_CMD_MII */
+
 
 /* ----------------------------------------------------------------------------
 				 MAC CORE Interface
    ---------------------------------------------------------------------------*/
 
 #ifdef DEBUG
-static void gmac_dump_regs(void)
+static void gmac_dump_regs(struct eth_device * const dev)
 {
 	int i;
 	static const char fmt[] =
@@ -748,13 +765,13 @@ static void gmac_dump_regs(void)
 		"\t  %s registers (base addr = 0x%8x)\n"
 		"\t----------------------------------------------\n";
 
-	printf (header, "MAC CORE", (unsigned int)CONFIG_SYS_STM_STMAC_BASE);
+	printf (header, "MAC CORE", (unsigned int)dev->iobase);
 	for (i = 0; i < 18; i++) {
 		int offset = i * 4;
 		printf(fmt, i, offset, STMAC_READ (offset));
 	}
 
-	printf (header, "MAC DMA", (unsigned int)CONFIG_SYS_STM_STMAC_BASE);
+	printf (header, "MAC DMA", (unsigned int)dev->iobase);
 	for (i = 0; i < 9; i++) {
 		int offset = i * 4;
 		printf (fmt, i, (DMA_BUS_MODE + offset),
@@ -764,14 +781,14 @@ static void gmac_dump_regs(void)
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #if defined(STM_GMAC_AHB2STBUS_BASE)
 	printf ("\tSTBus bridge register (0x%08x) = 0x%08x\n",
-		(unsigned int)(CONFIG_SYS_STM_STMAC_BASE + STM_GMAC_AHB2STBUS_BASE),
+		(unsigned int)(dev->iobase + STM_GMAC_AHB2STBUS_BASE),
 		STMAC_READ (STM_GMAC_AHB2STBUS_BASE));
 #endif	/* STM_GMAC_AHB2STBUS_BASE */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 }
 #endif	/* DEBUG */
 
-static void stmac_set_mac_addr (unsigned char *Addr)
+static void stmac_set_mac_addr(struct eth_device * const dev, unsigned char *Addr)
 {
 	unsigned long data;
 
@@ -781,7 +798,7 @@ static void stmac_set_mac_addr (unsigned char *Addr)
 	STMAC_WRITE (data, MAC_ADDR_LOW);
 }
 
-static int stmac_get_mac_addr (unsigned char *addr)
+static int stmac_get_mac_addr(struct eth_device * const dev, unsigned char *addr)
 {
 	unsigned int hi_addr, lo_addr;
 
@@ -804,7 +821,7 @@ static int stmac_get_mac_addr (unsigned char *addr)
 	return 1;
 }
 
-static void stmac_mac_enable (void)
+static void stmac_mac_enable(struct eth_device * const dev)
 {
 	unsigned int value = (unsigned int) STMAC_READ (MAC_CONTROL);
 
@@ -822,7 +839,7 @@ static void stmac_mac_enable (void)
 	return;
 }
 
-static void stmac_mac_disable (void)
+static void stmac_mac_disable(struct eth_device * const dev)
 {
 	unsigned int value = (unsigned int) STMAC_READ (MAC_CONTROL);
 
@@ -838,7 +855,7 @@ static void stmac_mac_disable (void)
 	return;
 }
 
-static void stmac_set_rx_mode (void)
+static void stmac_set_rx_mode(struct eth_device * const dev)
 {
 	unsigned int value = (unsigned int) STMAC_READ (MAC_CONTROL);
 
@@ -856,7 +873,7 @@ static void stmac_set_rx_mode (void)
 	return;
 }
 
-static void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed)
+static void stmac_set_mac_mii_cap(struct eth_device * const dev, int full_duplex, unsigned int speed)
 {
 	unsigned int flow = (unsigned int) STMAC_READ (MAC_FLOW_CONTROL);
 	unsigned int ctrl = (unsigned int) STMAC_READ (MAC_CONTROL);
@@ -918,7 +935,7 @@ static void stmac_set_mac_mii_cap (int full_duplex, unsigned int speed)
 }
 
 /* This function provides the initial setup of the MAC controller */
-static void stmac_mac_core_init (void)
+static void stmac_mac_core_init(struct eth_device * const dev)
 {
 	unsigned int value;
 
@@ -955,7 +972,8 @@ static void display_dma_desc_ring (volatile const stmac_dma_des * p, int size)
 		printf ("\t%d [0x%x]: "
 			"desc0=0x%08x, desc1=0x%08x, buffer1=0x%08x\n",
 			i, (unsigned int) &p[i].des01.u.des0,
-			p[i].des01.u.des0, p[i].des01.u.des1, p[i].des2);
+			p[i].des01.u.des0, p[i].des01.u.des1,
+			(unsigned int)p[i].des2);
 }
 #endif	/* DEBUG */
 
@@ -1058,7 +1076,7 @@ static void free_dma_desc_resources (void)
  *	   SW reset otherwise the MAC core won't exit the reset state.
  *  NOTE2: after a SW reset all interrupts are disabled */
 
-static void stmac_dma_reset (void)
+static void stmac_dma_reset(struct eth_device * const dev)
 {
 	unsigned int value;
 
@@ -1074,7 +1092,7 @@ static void stmac_dma_reset (void)
 }
 
 /* START/STOP the DMA TX/RX processes */
-static void stmac_dma_start_tx (void)
+static void stmac_dma_start_tx(struct eth_device * const dev)
 {
 	unsigned int value;
 
@@ -1085,7 +1103,7 @@ static void stmac_dma_start_tx (void)
 	return;
 }
 
-static void stmac_dma_stop_tx (void)
+static void stmac_dma_stop_tx(struct eth_device * const dev)
 {
 	unsigned int value;
 
@@ -1095,7 +1113,7 @@ static void stmac_dma_stop_tx (void)
 
 	return;
 }
-static void stmac_dma_start_rx (void)
+static void stmac_dma_start_rx(struct eth_device * const dev)
 {
 	unsigned int value;
 
@@ -1106,7 +1124,7 @@ static void stmac_dma_start_rx (void)
 	return;
 }
 
-static void stmac_dma_stop_rx (void)
+static void stmac_dma_stop_rx(struct eth_device * const dev)
 {
 	unsigned int value;
 
@@ -1117,10 +1135,9 @@ static void stmac_dma_stop_rx (void)
 	return;
 }
 
-static void stmac_eth_stop_tx (void)
+static void stmac_eth_stop_tx(struct eth_device * const dev)
 {
-
-	stmac_dma_stop_tx ();
+	stmac_dma_stop_tx(dev);
 
 	return;
 }
@@ -1130,7 +1147,7 @@ static void stmac_eth_stop_tx (void)
  * - the DMA HW controller initialization
  * NOTE: the DMA TX/RX processes will be started in the 'open' method. */
 
-static int stmac_dma_init (void)
+static int stmac_dma_init(struct eth_device * const dev)
 {
 	/* Note: PHYSADDR() needs the CACHED address (not the PHYSICAL one) */
 	stmac_dma_des * const dma_rx = (stmac_dma_des *) (&dma.desc_rx[0]);
@@ -1298,7 +1315,7 @@ static int check_rx_error_summary (const stmac_dma_des * const p)
 	return (ret);
 }
 
-static int stmac_eth_tx (volatile uchar * data, int len)
+static int stmac_eth_tx(struct eth_device * const dev, volatile uchar * data, int len)
 {
 	volatile stmac_dma_des *p = dma_tx;
 	uint now = get_timer (0);
@@ -1330,8 +1347,9 @@ static int stmac_eth_tx (volatile uchar * data, int len)
 	p->des01.tx.own = 1;
 
 #ifdef DEBUG
-	PRINTK ("\n" STMAC "TX %s(data=0x%08x, len=%d)\n", __FUNCTION__, data, len);
-	display_dma_desc_ring (dma_tx, CONFIG_DMA_TX_SIZE);
+	PRINTK("\n" STMAC "TX %s(data=0x%08x, len=%d)\n",
+		__FUNCTION__, (unsigned int)data, len);
+	display_dma_desc_ring(dma_tx, CONFIG_DMA_TX_SIZE);
 #endif
 
 	/* CSR1 enables the transmit DMA to check for new descriptor */
@@ -1352,7 +1370,7 @@ static int stmac_eth_tx (volatile uchar * data, int len)
 }
 
 /* Receive function */
-static void stmac_eth_rx (void)
+static void stmac_eth_rx(struct eth_device * const dev)
 {
 	int frame_len = 0;
 	volatile stmac_dma_des *drx;
@@ -1417,7 +1435,7 @@ static void stmac_eth_rx (void)
 	return;
 }
 
-static int stmac_get_ethaddr(void)
+static int stmac_get_ethaddr(struct eth_device * const dev)
 {
 	int rom_valid, env_valid;
 	uchar v_env_mac[6], v_rom_mac[6], *v_mac;
@@ -1432,7 +1450,7 @@ static int stmac_get_ethaddr(void)
 	 * Get the MAC address from the ROM via the MAC/GMAC hardware.
 	 * Returns 1, if the MAC is valid.
 	 */
-	rom_valid = stmac_get_mac_addr(v_rom_mac);
+	rom_valid = stmac_get_mac_addr(dev, v_rom_mac);
 
 	if (!env_valid) {	/* if NO valid MAC in the environment */
 		if (rom_valid) {	/* but ROM is valid */
@@ -1454,43 +1472,43 @@ static int stmac_get_ethaddr(void)
 	}
 
 	printf("Using MAC Address %pM\n", v_mac);
-	stmac_set_mac_addr(v_mac);	/* update H/W (volatile only) */
+	stmac_set_mac_addr(dev, v_mac);	/* update H/W (volatile only) */
 
 	return (0);
 }
 
-static int stmac_reset_eth(void)
+static int stmac_reset_eth(struct eth_device * const dev)
 {
 	/* MAC Software reset */
-	stmac_dma_reset ();		/* Must be done early  */
+	stmac_dma_reset(dev);		/* Must be done early  */
 
 	/*
 	 * set MAC address (in H/W), and sync it with the global
 	 * U-Boot environment variable "ethaddr".
 	 */
-	if (stmac_get_ethaddr() < 0) {
+	if (stmac_get_ethaddr(dev) < 0) {
 		return (-1);
 	}
 
-	if (stmac_phy_init () < 0) {
+	if (stmac_phy_init(dev) < 0) {
 		printf (STMAC "ERROR: no PHY detected\n");
 		return -1;
 	}
 
 	init_dma_desc_rings ();
 
-	stmac_mac_core_init ();
-	stmac_dma_init ();
+	stmac_mac_core_init(dev);
+	stmac_dma_init(dev);
 
-	stmac_set_rx_mode ();
+	stmac_set_rx_mode(dev);
 
-	stmac_mac_enable ();
+	stmac_mac_enable(dev);
 
-	stmac_dma_start_rx ();
-	stmac_dma_start_tx ();
+	stmac_dma_start_rx(dev);
+	stmac_dma_start_tx(dev);
 
 #ifdef DEBUG
-	gmac_dump_regs ();
+	gmac_dump_regs(dev);
 #endif
 
 	STMAC_WRITE (1, DMA_RCV_POLL_DEMAND);	/* request input */
@@ -1498,57 +1516,114 @@ static int stmac_reset_eth(void)
 	return (0);
 }
 
-extern int eth_init (bd_t * bd)
+
+/* ----------------------------------------------------------------------------
+				Ethernet API Call-Back Functions
+   ---------------------------------------------------------------------------*/
+
+
+static int stmac_init(
+	struct eth_device * const dev,
+	bd_t * const bis)
 {
-	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
-	return stmac_reset_eth();
+	PRINTK(STMAC "entering %s()\n", __FUNCTION__);
+
+	return stmac_reset_eth(dev);
 }
 
-extern void eth_halt (void)
+static void stmac_halt(struct eth_device * const dev)
 {
-	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
+	PRINTK(STMAC "entering %s()\n", __FUNCTION__);
 
 	/* Reset the TX/RX processes */
-	stmac_dma_stop_rx ();
-	stmac_eth_stop_tx ();
+	stmac_dma_stop_rx(dev);
+	stmac_eth_stop_tx(dev);
 
 	/* Disable the MAC core */
-	stmac_mac_disable ();
+	stmac_mac_disable(dev);
 
 	/* Free buffers */
-	free_dma_desc_resources ();
+	free_dma_desc_resources();
 }
 
 /* Get a data block via Ethernet */
-extern int eth_rx (void)
+static int stmac_rx(struct eth_device * const dev)
 {
-	stmac_eth_rx ();
+	stmac_eth_rx(dev);
+
 	return 1;
 }
 
 /* Send a data block via Ethernet. */
-extern int eth_send (volatile void *packet, int length)
+static int stmac_send(
+	struct eth_device * const dev,
+	volatile void * const packet,
+	const int length)
 {
-	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
+	PRINTK(STMAC "entering %s()\n", __FUNCTION__);
+
 #if defined(DEBUG) || defined(CONFIG_PHY_LOOPBACK) || defined(DUMP_ENCAPSULATION_HEADER)
 	const unsigned char * const p = (const unsigned char*)packet;
 	printf("TX   :  0x%08x DA=%pM SA=%pM Type=%04x\n",
 		(unsigned int)p, p, p+6, p[12]<<8|p[13]);
 #endif
 
-	return stmac_eth_tx (packet, length);
+	return stmac_eth_tx(dev, packet, length);
 }
 
-#endif /* CONFIG_CMD_NET */
 
-extern int stmac_miiphy_initialize(bd_t *bis)
+/* ----------------------------------------------------------------------------
+				Ethernet Registration Function
+   ---------------------------------------------------------------------------*/
+
+
+extern int stmac_eth_register(
+	const int id,
+	const u32 base_addr)
 {
-	PRINTK (STMAC "entering %s()\n", __FUNCTION__);
+	struct stmac_private *priv;
+	struct eth_device *dev;
+
+	PRINTK(STMAC "entering %s()\n", __FUNCTION__);
+
+	/* allocate memory for the 2 new structures */
+	priv = malloc(sizeof(*priv));
+	if (priv == NULL)
+		return -1;
+	dev = malloc(sizeof(*dev));
+	if (dev == NULL) {
+		free(priv);
+		return -1;
+	}
+
+	/* initialize the "device" structure */
+	memset(dev, 0, sizeof(*dev));
+	sprintf(dev->name, "%s-%u", "stmac", id);
+	dev->iobase = base_addr;
+
+	/* initialize the "private" structure */
+	dev->priv = priv;
+	priv->id  = id;
+
+	/* also set up the call-back functions */
+	dev->init = stmac_init;
+	dev->halt = stmac_halt;
+	dev->send = stmac_send;
+	dev->recv = stmac_rx;
+//	dev->write_hwaddr = stmac_write_hwaddr;
+
+	/* now register the ethernet device */
+	eth_register(dev);
+
 #if defined(CONFIG_MII) || defined(CONFIG_CMD_MII)
-	miiphy_register(miidevice, stmac_miiphy_read, stmac_miiphy_write);
-#endif
+	/* finally, add support for MII */
+	miiphy_register(dev->name, stmac_miiphy_read, stmac_miiphy_write);
+#endif	/* CONFIG_MII || CONFIG_CMD_MII */
+
 	return 0;
 }
 
-#endif /* CONFIG_DRIVER_NETSTMAC || CONFIG_DRIVER_NET_STM_GMAC */
 
+#endif /* CONFIG_CMD_NET */
+
+#endif /* CONFIG_DRIVER_NETSTMAC || CONFIG_DRIVER_NET_STM_GMAC */

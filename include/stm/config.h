@@ -133,4 +133,12 @@
 #endif
 
 
+	/*
+	 * For all STMicroelectronics board, we now want to use the
+	 * "newer" (multi-MAC) network API (CONFIG_NET_MULTI).
+	 * The "older" API is deprecated, and about to be removed.
+	 */
+#define CONFIG_NET_MULTI
+
+
 #endif /* __INCLUDE_STM_CONFIG_H */

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -33,6 +33,7 @@
 #include <stm/sysconf.h>
 #include <ata.h>
 #include <spi.h>
+#include <netdev.h>
 
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -97,6 +98,21 @@ static void stmac_eth_hw_setup(const int rmii, const int ext_clk, const int phy_
 	SET_SYSCONF_BIT(sysconf, !rmii, 2);
 
 	*STX5197_HD_CONF_MON_CONFIG_CONTROL_E = sysconf;
+}
+
+	/*
+	 * SoC-specific function to register all ST-MAC/GMAC controllers.
+	 * The function "board_eth_init()" should ideally be defined
+	 * for *each* board.  However, "cpu_eth_init()" can be used
+	 * as a generic fall-back, for all boards of a given CPU type.
+	 * In any event, "board_eth_init()" will have a higher priority,
+	 * so define it, if you want to override the following SoC function.
+	 */
+extern int cpu_eth_init(bd_t * const bis)
+{
+	stmac_eth_register(0, CONFIG_SYS_STM_STMAC_BASE);
+
+	return 0;
 }
 #endif	/* CONFIG_DRIVER_NETSTMAC */
 
