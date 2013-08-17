@@ -89,9 +89,9 @@ struct dma_t
 {
 	stmac_dma_des desc_rx[CONFIG_DMA_RX_SIZE];
 	stmac_dma_des desc_tx[CONFIG_DMA_TX_SIZE];
-	uchar rx_buff[CONFIG_DMA_RX_SIZE * (PKTSIZE_ALIGN)];
+	uchar rx_buff[CONFIG_DMA_RX_SIZE *(PKTSIZE_ALIGN)];
 	uchar _dummy[L1_CACHE_BYTES];
-} __attribute__ ((aligned (L1_CACHE_BYTES))) dma;
+} __attribute__ ((aligned(L1_CACHE_BYTES)))dma;
 
 static void *rx_packets[CONFIG_DMA_RX_SIZE];
 
@@ -266,8 +266,8 @@ static int stmac_phy_negotiate(struct eth_device * const dev, int phy_addr)
 	tmp |= (BMCR_ANENABLE | BMCR_ANRESTART);
 	stmac_mii_write(dev, phy_addr, MII_BMCR, tmp);
 
-	now = get_timer (0);
-	while (get_timer (now) < CONFIG_STMAC_AUTONEG_TIMEOUT) {
+	now = get_timer(0);
+	while (get_timer(now) < CONFIG_STMAC_AUTONEG_TIMEOUT) {
 		status = stmac_mii_read(dev, phy_addr, MII_BMSR);
 		if (status & BMSR_ANEGCOMPLETE) {
 			break;
@@ -275,20 +275,20 @@ static int stmac_phy_negotiate(struct eth_device * const dev, int phy_addr)
 
 		/* Restart auto-negotiation if remote fault */
 		if (status & BMSR_RFAULT) {
-			printf (STMAC "PHY remote fault detected\n");
+			printf(STMAC "PHY remote fault detected\n");
 			/* Restart auto-negotiation */
-			printf (STMAC "PHY restarting auto-negotiation\n");
+			printf(STMAC "PHY restarting auto-negotiation\n");
 			stmac_mii_write(dev, phy_addr, MII_BMCR,
 					 BMCR_ANENABLE | BMCR_ANRESTART);
 		}
 	}
 
 	if (!(status & BMSR_ANEGCOMPLETE)) {
-		printf (STMAC "PHY auto-negotiate timed out\n");
+		printf(STMAC "PHY auto-negotiate timed out\n");
 	}
 
 	if (status & BMSR_RFAULT) {
-		printf (STMAC "PHY remote fault detected\n");
+		printf(STMAC "PHY remote fault detected\n");
 	}
 
 	return (1);
@@ -318,29 +318,29 @@ static unsigned int stmac_phy_check_speed(struct eth_device * const dev, int phy
 	}
 #endif	/* CONFIG_STMAC_LINK_STATUS_TIMEOUT */
 
-	printf (STMAC);
+	printf(STMAC);
 
 	/* Check link status.  If 0, default to 100 Mbps. */
 	if ((status & BMSR_LSTATUS) == 0) {
-		printf ("*Warning* no link detected\n");
+		printf("*Warning* no link detected\n");
 		return 1;
 	} else {
 		int negotiated = stmac_mii_read(dev, phy_addr, MII_LPA);
 
 		if (negotiated & LPA_100FULL) {
-			printf ("100Mbs full duplex link detected\n");
+			printf("100Mbs full duplex link detected\n");
 			full_duplex = 1;
 			speed = 100;
 		} else if (negotiated & LPA_100HALF) {
-			printf ("100Mbs half duplex link detected\n");
+			printf("100Mbs half duplex link detected\n");
 			full_duplex = 0;
 			speed = 100;
 		} else if (negotiated & LPA_10FULL) {
-			printf ("10Mbs full duplex link detected\n");
+			printf("10Mbs full duplex link detected\n");
 			full_duplex = 1;
 			speed = 10;
 		} else {
-			printf ("10Mbs half duplex link detected\n");
+			printf("10Mbs half duplex link detected\n");
 			full_duplex = 0;
 			speed = 10;
 		}
@@ -376,14 +376,14 @@ static unsigned int stmac_phy_get_addr(struct eth_device * const dev)
 		if (id != ~0u) {
 			const unsigned int fixMask = 0x7fff7fffu;
 			if ((id & IP1001_PHY_ID_MASK) == IP1001_PHY_ID) {
-				/* printf (STMAC "info: PHY_ID: got a prefect match\n"); */
+				/* printf(STMAC "info: PHY_ID: got a prefect match\n"); */
 			}
 			else if (((id & (IP1001_PHY_ID_MASK & fixMask))) == IP1001_PHY_ID) {
-				printf (STMAC "Warning: Corrupted PHY_ID: expected=%08x, obtained=%08x, XOR=%08x\n",
+				printf(STMAC "Warning: Corrupted PHY_ID: expected=%08x, obtained=%08x, XOR=%08x\n",
 					IP1001_PHY_ID		& IP1001_PHY_ID_MASK,
 					id			& IP1001_PHY_ID_MASK,
 					(id ^ IP1001_PHY_ID)	& IP1001_PHY_ID_MASK);
-				printf (STMAC "Warning: Compensating for presumed error (bit #15) in SMI register reads!\n");
+				printf(STMAC "Warning: Compensating for presumed error (bit #15) in SMI register reads!\n");
 				id &= fixMask;		/* clear the two bits coming from bit #15 */
 			}
 		}
@@ -392,35 +392,35 @@ static unsigned int stmac_phy_get_addr(struct eth_device * const dev)
 		/* Make sure it is a valid (known) identifier */
 #if defined(CONFIG_STMAC_STE10XP)
 		if ((id & STE101P_PHY_ID_MASK) == STE101P_PHY_ID) {
-			printf (STMAC "STe101P found\n");
+			printf(STMAC "STe101P found\n");
 			return phyaddr;
 		} else if ((id & STE100P_PHY_ID_MASK) == STE100P_PHY_ID) {
-			printf (STMAC "STe100P found\n");
+			printf(STMAC "STe100P found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_LAN8700)
 		if ((id & LAN8700_PHY_ID_MASK) == LAN8700_PHY_ID) {
-			printf (STMAC "SMSC LAN8700 found\n");
+			printf(STMAC "SMSC LAN8700 found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_LAN8710)
 		if ((id & LAN8710_PHY_ID_MASK) == LAN8710_PHY_ID) {
-			printf (STMAC "SMSC LAN8710/20 found\n");
+			printf(STMAC "SMSC LAN8710/20 found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_DP83865)
 		if ((id & DP83865_PHY_ID_MASK) == DP83865_PHY_ID) {
-			printf (STMAC "NS DP83865 found\n");
+			printf(STMAC "NS DP83865 found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_KSZ8041)
 		if ((id & KSZ8041_PHY_ID_MASK) == KSZ8041_PHY_ID) {
-			printf (STMAC "Micrel KSZ8041 found\n");
+			printf(STMAC "Micrel KSZ8041 found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_IP1001)
 		if ((id & IP1001_PHY_ID_MASK) == IP1001_PHY_ID) {
-			printf (STMAC "IC+ IP1001 found\n");
+			printf(STMAC "IC+ IP1001 found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_IP101A) || defined(CONFIG_STMAC_IP101G)
@@ -428,32 +428,32 @@ static unsigned int stmac_phy_get_addr(struct eth_device * const dev)
 			const unsigned int page = stmac_mii_read(dev, phyaddr, IP101G_PAGE_CONTROL_REG);
 			if (page == 16)		/* page 16 ? */
 				deviceName = "IP101G";	/* assume a "G" part */
-			printf (STMAC "IC+ %s found\n", deviceName);
+			printf(STMAC "IC+ %s found\n", deviceName);
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_78Q2123)
 		if ((id & TERIDIAN_PHY_ID_MASK) == TERIDIAN_PHY_ID) {
-			printf (STMAC "TERIDIAN 78Q2123 found\n");
+			printf(STMAC "TERIDIAN 78Q2123 found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_RTL8201E)
 		if ((id & RTL8201E_PHY_ID_MASK) == RTL8201E_PHY_ID) {
-			printf (STMAC "REALTEK RTL8201E(L) found\n");
+			printf(STMAC "REALTEK RTL8201E(L) found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_RTL8211E)
 		if ((id & RTL8211E_PHY_ID_MASK) == RTL8211E_PHY_ID) {
-			printf (STMAC "REALTEK RTL8211E(G) found\n");
+			printf(STMAC "REALTEK RTL8211E(G) found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_MARVELL)
 		if ((id & MARVELL_PHY_ID_MASK) == MARVELL_PHY_ID) {
-			printf (STMAC "MARVELL 88EC060 found\n");
+			printf(STMAC "MARVELL 88EC060 found\n");
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_GENERIC)
 		if ((id & GENERIC_PHY_ID_MASK) != GENERIC_PHY_ID) {
-			printf (STMAC "Generic PHY found (ID=0x%08x)\n",id);
+			printf(STMAC "Generic PHY found (ID=0x%08x)\n",id);
 			return phyaddr;
 		}
 #else
@@ -461,7 +461,7 @@ static unsigned int stmac_phy_get_addr(struct eth_device * const dev)
 #endif	/* CONFIG_STMAC_STE10XP */
 	}
 
-	printf (STMAC "Unable to find a known PHY!\n");
+	printf(STMAC "Unable to find a known PHY!\n");
 
 	/* write out the IDs of all PHYs who respond */
 	for (i = 0; i < 32; i++) {
@@ -470,7 +470,7 @@ static unsigned int stmac_phy_get_addr(struct eth_device * const dev)
 		unsigned int id2 = stmac_mii_read(dev, phyaddr, MII_PHYSID2);
 		id  = (id1 << 16) | (id2);
 		if (id != ~0u) {	/* not all ones */
-			printf (STMAC "info: PHY at address=0x%02x has ID=0x%08x\n", phyaddr, id);
+			printf(STMAC "info: PHY at address=0x%02x has ID=0x%08x\n", phyaddr, id);
 		}
 	}
 
@@ -488,7 +488,7 @@ static int stmac_phy_init(struct eth_device * const dev)
 
 	/* Now reset the PHY we just found */
 	if (miiphy_reset(dev->name, eth_phy_addr)< 0) {
-		PRINTK (STMAC "PHY reset failed!\n");
+		PRINTK(STMAC "PHY reset failed!\n");
 		return -1;
 	}
 
@@ -535,7 +535,7 @@ static int stmac_phy_init(struct eth_device * const dev)
 #if !defined(CONFIG_STMAC_BYPASS_ADDR_MISMATCH)
 	value = (value & PHY_ADDR_MSK) >> PHY_ADDR_SHIFT;
 	if (value != eth_phy_addr) {
-		printf (STMAC "PHY address mismatch with hardware (hw %d != %d)\n",
+		printf(STMAC "PHY address mismatch with hardware (hw %d != %d)\n",
 			value,
 			eth_phy_addr);
 	}
@@ -593,7 +593,7 @@ static int stmac_phy_init(struct eth_device * const dev)
 #ifdef CONFIG_PHY_LOOPBACK
 
 	/* put the PHY in loop-back mode, if required */
-	printf ( STMAC "Forcing PHY loop-back at full-duplex, 100Mbps\n");
+	printf( STMAC "Forcing PHY loop-back at full-duplex, 100Mbps\n");
 	value = stmac_mii_read(dev, eth_phy_addr, MII_BMCR);
 	value |= BMCR_LOOPBACK;		/* enable loop-back mode (in the PHY) */
 	value &= ~BMCR_ANENABLE;	/* disable auto-negotiation */
@@ -626,13 +626,13 @@ static int stmac_phy_init(struct eth_device * const dev)
 static int stmac_mii_poll_busy(struct eth_device * const dev)
 {
 	/* arm simple, non interrupt dependent timer */
-	ulong now = get_timer (0);
-	while (get_timer (now) < CONFIG_STMAC_MII_POLL_BUSY_DELAY) {
-		if (!(STMAC_READ (MAC_MII_ADDR) & MAC_MII_ADDR_BUSY)) {
+	ulong now = get_timer(0);
+	while (get_timer(now) < CONFIG_STMAC_MII_POLL_BUSY_DELAY) {
+		if (!(STMAC_READ(MAC_MII_ADDR) & MAC_MII_ADDR_BUSY)) {
 			return 1;
 		}
 	}
-	printf (STMAC "stmac_mii_busy timeout\n");
+	printf(STMAC "stmac_mii_busy timeout\n");
 	return (0);
 }
 
@@ -653,14 +653,14 @@ static void stmac_mii_write(struct eth_device * const dev, int phy_addr, int reg
 	stmac_mii_poll_busy(dev);
 
 	/* Set the MII address register to write */
-	STMAC_WRITE (value, MAC_MII_DATA);
-	STMAC_WRITE (mii_addr, MAC_MII_ADDR);
+	STMAC_WRITE(value, MAC_MII_DATA);
+	STMAC_WRITE(mii_addr, MAC_MII_ADDR);
 
 	stmac_mii_poll_busy(dev);
 
 #if defined(CONFIG_STMAC_STE10XP)	/* ST STE10xP PHY */
 	/* QQQ: is the following actually needed ? */
-	(void) stmac_mii_read(dev, phy_addr, reg);
+	(void)stmac_mii_read(dev, phy_addr, reg);
 #endif	/* CONFIG_STMAC_STE10XP */
 }
 
@@ -676,12 +676,12 @@ static unsigned int stmac_mii_read(struct eth_device * const dev, int phy_addr, 
 	/* Select register */
 	stmac_mii_poll_busy(dev);
 
-	STMAC_WRITE (mii_addr, MAC_MII_ADDR);
+	STMAC_WRITE(mii_addr, MAC_MII_ADDR);
 
 	stmac_mii_poll_busy(dev);
 
 	/* Return read value */
-	val = STMAC_READ (MAC_MII_DATA);
+	val = STMAC_READ(MAC_MII_DATA);
 
 #if	defined(CONFIG_STM_STXH415)					&& \
 	defined(CONFIG_STM_B2000)					&& \
@@ -765,24 +765,24 @@ static void gmac_dump_regs(struct eth_device * const dev)
 		"\t  %s registers (base addr = 0x%8x)\n"
 		"\t----------------------------------------------\n";
 
-	printf (header, "MAC CORE", (unsigned int)dev->iobase);
+	printf(header, "MAC CORE", (unsigned int)dev->iobase);
 	for (i = 0; i < 18; i++) {
 		int offset = i * 4;
-		printf(fmt, i, offset, STMAC_READ (offset));
+		printf(fmt, i, offset, STMAC_READ(offset));
 	}
 
-	printf (header, "MAC DMA", (unsigned int)dev->iobase);
+	printf(header, "MAC DMA", (unsigned int)dev->iobase);
 	for (i = 0; i < 9; i++) {
 		int offset = i * 4;
-		printf (fmt, i, (DMA_BUS_MODE + offset),
-			STMAC_READ (DMA_BUS_MODE + offset));
+		printf(fmt, i, (DMA_BUS_MODE + offset),
+			STMAC_READ(DMA_BUS_MODE + offset));
 	}
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #if defined(STM_GMAC_AHB2STBUS_BASE)
-	printf ("\tSTBus bridge register (0x%08x) = 0x%08x\n",
+	printf("\tSTBus bridge register (0x%08x) = 0x%08x\n",
 		(unsigned int)(dev->iobase + STM_GMAC_AHB2STBUS_BASE),
-		STMAC_READ (STM_GMAC_AHB2STBUS_BASE));
+		STMAC_READ(STM_GMAC_AHB2STBUS_BASE));
 #endif	/* STM_GMAC_AHB2STBUS_BASE */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 }
@@ -793,9 +793,9 @@ static void stmac_set_mac_addr(struct eth_device * const dev, unsigned char *Add
 	unsigned long data;
 
 	data = (Addr[5] << 8) | Addr[4];
-	STMAC_WRITE (data, MAC_ADDR_HIGH);
+	STMAC_WRITE(data, MAC_ADDR_HIGH);
 	data = (Addr[3] << 24) | (Addr[2] << 16) | (Addr[1] << 8) | Addr[0];
-	STMAC_WRITE (data, MAC_ADDR_LOW);
+	STMAC_WRITE(data, MAC_ADDR_LOW);
 }
 
 static int stmac_get_mac_addr(struct eth_device * const dev, unsigned char *addr)
@@ -803,8 +803,8 @@ static int stmac_get_mac_addr(struct eth_device * const dev, unsigned char *addr
 	unsigned int hi_addr, lo_addr;
 
 	/* Read the MAC address from the hardware */
-	hi_addr = (unsigned int) STMAC_READ (MAC_ADDR_HIGH);
-	lo_addr = (unsigned int) STMAC_READ (MAC_ADDR_LOW);
+	hi_addr = (unsigned int)STMAC_READ(MAC_ADDR_HIGH);
+	lo_addr = (unsigned int)STMAC_READ(MAC_ADDR_LOW);
 
 	/* only if all 48 bits are '1', then it is an invalid MAC address */
 	if (((hi_addr & 0x0000FFFFU) == 0x0000FFFFU) && (lo_addr == 0xFFFFFFFFU))
@@ -823,9 +823,9 @@ static int stmac_get_mac_addr(struct eth_device * const dev, unsigned char *addr
 
 static void stmac_mac_enable(struct eth_device * const dev)
 {
-	unsigned int value = (unsigned int) STMAC_READ (MAC_CONTROL);
+	unsigned int value = (unsigned int)STMAC_READ(MAC_CONTROL);
 
-	PRINTK (STMAC "MAC RX/TX enabled\n");
+	PRINTK(STMAC "MAC RX/TX enabled\n");
 
 	/* set: TE (transmitter enable), RE (receive enable) */
 	value |= (MAC_CONTROL_TE | MAC_CONTROL_RE);
@@ -835,15 +835,15 @@ static void stmac_mac_enable(struct eth_device * const dev)
 //	value |= MAC_CONTROL_RA;	/* QQQ: suspect we can delete this */
 #endif	/* CONFIG_DRIVER_NETSTMAC */
 
-	STMAC_WRITE (value, MAC_CONTROL);
+	STMAC_WRITE(value, MAC_CONTROL);
 	return;
 }
 
 static void stmac_mac_disable(struct eth_device * const dev)
 {
-	unsigned int value = (unsigned int) STMAC_READ (MAC_CONTROL);
+	unsigned int value = (unsigned int)STMAC_READ(MAC_CONTROL);
 
-	PRINTK (STMAC "MAC RX/TX disabled\n");
+	PRINTK(STMAC "MAC RX/TX disabled\n");
 
 	value &= ~(MAC_CONTROL_TE | MAC_CONTROL_RE);
 
@@ -851,34 +851,34 @@ static void stmac_mac_disable(struct eth_device * const dev)
 //	value &= ~MAC_CONTROL_RA;	/* QQQ: suspect we can delete this */
 #endif	/* CONFIG_DRIVER_NETSTMAC */
 
-	STMAC_WRITE (value, MAC_CONTROL);
+	STMAC_WRITE(value, MAC_CONTROL);
 	return;
 }
 
 static void stmac_set_rx_mode(struct eth_device * const dev)
 {
-	unsigned int value = (unsigned int) STMAC_READ (MAC_CONTROL);
+	unsigned int value = (unsigned int)STMAC_READ(MAC_CONTROL);
 
 #ifdef CONFIG_DRIVER_NETSTMAC
-	PRINTK (STMAC "MAC address perfect filtering only mode\n");
+	PRINTK(STMAC "MAC address perfect filtering only mode\n");
 	value &= ~(MAC_CONTROL_PM | MAC_CONTROL_PR | MAC_CONTROL_IF |
 		   MAC_CONTROL_HO | MAC_CONTROL_HP);
 #endif	/* CONFIG_DRIVER_NETSTMAC */
 
-	STMAC_WRITE (0x0, MAC_HASH_HIGH);
-	STMAC_WRITE (0x0, MAC_HASH_LOW);
+	STMAC_WRITE(0x0, MAC_HASH_HIGH);
+	STMAC_WRITE(0x0, MAC_HASH_LOW);
 
-	STMAC_WRITE (value, MAC_CONTROL);
+	STMAC_WRITE(value, MAC_CONTROL);
 
 	return;
 }
 
 static void stmac_set_mac_mii_cap(struct eth_device * const dev, int full_duplex, unsigned int speed)
 {
-	unsigned int flow = (unsigned int) STMAC_READ (MAC_FLOW_CONTROL);
-	unsigned int ctrl = (unsigned int) STMAC_READ (MAC_CONTROL);
+	unsigned int flow = (unsigned int)STMAC_READ(MAC_FLOW_CONTROL);
+	unsigned int ctrl = (unsigned int)STMAC_READ(MAC_CONTROL);
 
-	PRINTK (STMAC "%s(full_duplex=%d, speed=%u)\n", __FUNCTION__, full_duplex, speed);
+	PRINTK(STMAC "%s(full_duplex=%d, speed=%u)\n", __FUNCTION__, full_duplex, speed);
 
 	if (!(full_duplex)) {	/* Half Duplex */
 #ifdef CONFIG_DRIVER_NETSTMAC
@@ -925,11 +925,11 @@ static void stmac_set_mac_mii_cap(struct eth_device * const dev, int full_duplex
 	}
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
-	STMAC_WRITE (flow, MAC_FLOW_CONTROL);
-	STMAC_WRITE (ctrl, MAC_CONTROL);
+	STMAC_WRITE(flow, MAC_FLOW_CONTROL);
+	STMAC_WRITE(ctrl, MAC_CONTROL);
 
 	/* ensure the SoC knows the correct speed */
-	stmac_set_mac_speed (speed);
+	stmac_set_mac_speed(speed);
 
 	return;
 }
@@ -940,9 +940,9 @@ static void stmac_mac_core_init(struct eth_device * const dev)
 	unsigned int value;
 
 	/* Set the MAC control register with our default value */
-	value = (unsigned int) STMAC_READ (MAC_CONTROL);
+	value = (unsigned int)STMAC_READ(MAC_CONTROL);
 	value |= MAC_CORE_INIT;
-	STMAC_WRITE (value, MAC_CONTROL);
+	STMAC_WRITE(value, MAC_CONTROL);
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #if defined(STM_GMAC_AHB2STBUS_BASE)
@@ -965,19 +965,19 @@ static void stmac_mac_core_init(struct eth_device * const dev)
  * ---------------------------------------------------------------------------*/
 
 #ifdef DEBUG
-static void display_dma_desc_ring (volatile const stmac_dma_des * p, int size)
+static void display_dma_desc_ring(volatile const stmac_dma_des * p, int size)
 {
 	int i;
 	for (i = 0; i < size; i++)
-		printf ("\t%d [0x%x]: "
+		printf("\t%d [0x%x]: "
 			"desc0=0x%08x, desc1=0x%08x, buffer1=0x%08x\n",
-			i, (unsigned int) &p[i].des01.u.des0,
+			i, (unsigned int)&p[i].des01.u.des0,
 			p[i].des01.u.des0, p[i].des01.u.des1,
 			(unsigned int)p[i].des2);
 }
 #endif	/* DEBUG */
 
-static void init_rx_desc (volatile stmac_dma_des * p,
+static void init_rx_desc(volatile stmac_dma_des * p,
 	unsigned int ring_size, void **buffers)
 {
 	int i;
@@ -989,14 +989,14 @@ static void init_rx_desc (volatile stmac_dma_des * p,
 		p->des01.rx.disable_ic = 1;
 		if (i == ring_size - 1)
 			p->des01.rx.end_ring = 1;
-		p->des2 = ((void *) (PHYSADDR (buffers[i])));
+		p->des2 = ((void *)(PHYSADDR(buffers[i])));
 		p->des3 = NULL;
 		p++;
 	}
 	return;
 }
 
-static void init_tx_desc (volatile stmac_dma_des * p, unsigned int ring_size)
+static void init_tx_desc(volatile stmac_dma_des * p, unsigned int ring_size)
 {
 	int i;
 
@@ -1015,25 +1015,25 @@ static void init_tx_desc (volatile stmac_dma_des * p, unsigned int ring_size)
  * The driver uses the 'implicit' scheme for implementing the TX/RX DMA
  * linked lists. */
 
-static void init_dma_desc_rings (void)
+static void init_dma_desc_rings(void)
 {
 	int i;
 
-	PRINTK (STMAC "allocate and init the DMA RX/TX lists\n");
+	PRINTK(STMAC "allocate and init the DMA RX/TX lists\n");
 
 	/* Clean out uncached buffers */
-	flush_cache ((unsigned long)&dma, sizeof (struct dma_t));
+	flush_cache((unsigned long)&dma, sizeof(struct dma_t));
 
 	/* Allocate memory for the DMA RX/TX buffer descriptors */
-	dma_rx = (volatile stmac_dma_des *) P2SEGADDR (&dma.desc_rx[0]);
-	dma_tx = (volatile stmac_dma_des *) P2SEGADDR (&dma.desc_tx[0]);
+	dma_rx = (volatile stmac_dma_des *)P2SEGADDR(&dma.desc_rx[0]);
+	dma_tx = (volatile stmac_dma_des *)P2SEGADDR(&dma.desc_tx[0]);
 
 	cur_rx = 0;
 
 	if ((dma_rx == NULL) || (dma_tx == NULL) ||
 	    (((u32)dma_rx % L1_CACHE_BYTES) != 0) ||
 	    (((u32)dma_tx % L1_CACHE_BYTES) != 0)) {
-		printf (STMAC "ERROR allocating the DMA Tx/Rx desc\n");
+		printf(STMAC "ERROR allocating the DMA Tx/Rx desc\n");
 		return;
 	}
 
@@ -1042,25 +1042,25 @@ static void init_dma_desc_rings (void)
 		rx_packets[i] = (void *)(dma.rx_buff + (PKTSIZE_ALIGN * i));
 
 	/* Initialize the contents of the DMA buffers */
-	init_rx_desc (dma_rx, CONFIG_DMA_RX_SIZE, rx_packets);
-	init_tx_desc (dma_tx, CONFIG_DMA_TX_SIZE);
+	init_rx_desc(dma_rx, CONFIG_DMA_RX_SIZE, rx_packets);
+	init_tx_desc(dma_tx, CONFIG_DMA_TX_SIZE);
 
 	/* now, we want UN-cached addresses in the array rx_packets[] */
 	for (i = 0; i < CONFIG_DMA_RX_SIZE; i++)
-		rx_packets[i] = (void *) P2SEGADDR (rx_packets[i]);
+		rx_packets[i] = (void *)P2SEGADDR(rx_packets[i]);
 
 #ifdef DEBUG
-	printf (STMAC "RX descriptor ring:\n");
-	display_dma_desc_ring (dma_rx, CONFIG_DMA_RX_SIZE);
-	printf (STMAC "TX descriptor ring:\n");
-	display_dma_desc_ring (dma_tx, CONFIG_DMA_TX_SIZE);
+	printf(STMAC "RX descriptor ring:\n");
+	display_dma_desc_ring(dma_rx, CONFIG_DMA_RX_SIZE);
+	printf(STMAC "TX descriptor ring:\n");
+	display_dma_desc_ring(dma_tx, CONFIG_DMA_TX_SIZE);
 #endif
 
 	return;
 }
 
 /* Release and free the descriptor resources. */
-static void free_dma_desc_resources (void)
+static void free_dma_desc_resources(void)
 {
 	dma_tx = NULL;
 	dma_rx = NULL;
@@ -1080,12 +1080,12 @@ static void stmac_dma_reset(struct eth_device * const dev)
 {
 	unsigned int value;
 
-	value = (unsigned int) STMAC_READ (DMA_BUS_MODE);
+	value = (unsigned int)STMAC_READ(DMA_BUS_MODE);
 	value |= DMA_BUS_MODE_SFT_RESET;
 
-	STMAC_WRITE (value, DMA_BUS_MODE);
+	STMAC_WRITE(value, DMA_BUS_MODE);
 
-	while ((STMAC_READ (DMA_BUS_MODE) & DMA_BUS_MODE_SFT_RESET)) {
+	while ((STMAC_READ(DMA_BUS_MODE) & DMA_BUS_MODE_SFT_RESET)) {
 	}
 
 	return;
@@ -1096,9 +1096,9 @@ static void stmac_dma_start_tx(struct eth_device * const dev)
 {
 	unsigned int value;
 
-	value = (unsigned int) STMAC_READ (DMA_CONTROL);
+	value = (unsigned int)STMAC_READ(DMA_CONTROL);
 	value |= DMA_CONTROL_ST;
-	STMAC_WRITE (value, DMA_CONTROL);
+	STMAC_WRITE(value, DMA_CONTROL);
 
 	return;
 }
@@ -1107,9 +1107,9 @@ static void stmac_dma_stop_tx(struct eth_device * const dev)
 {
 	unsigned int value;
 
-	value = (unsigned int) STMAC_READ (DMA_CONTROL);
+	value = (unsigned int)STMAC_READ(DMA_CONTROL);
 	value &= ~DMA_CONTROL_ST;
-	STMAC_WRITE (value, DMA_CONTROL);
+	STMAC_WRITE(value, DMA_CONTROL);
 
 	return;
 }
@@ -1117,9 +1117,9 @@ static void stmac_dma_start_rx(struct eth_device * const dev)
 {
 	unsigned int value;
 
-	value = (unsigned int) STMAC_READ (DMA_CONTROL);
+	value = (unsigned int)STMAC_READ(DMA_CONTROL);
 	value |= DMA_CONTROL_SR;
-	STMAC_WRITE (value, DMA_CONTROL);
+	STMAC_WRITE(value, DMA_CONTROL);
 
 	return;
 }
@@ -1128,9 +1128,9 @@ static void stmac_dma_stop_rx(struct eth_device * const dev)
 {
 	unsigned int value;
 
-	value = (unsigned int) STMAC_READ (DMA_CONTROL);
+	value = (unsigned int)STMAC_READ(DMA_CONTROL);
 	value &= ~DMA_CONTROL_SR;
-	STMAC_WRITE (value, DMA_CONTROL);
+	STMAC_WRITE(value, DMA_CONTROL);
 
 	return;
 }
@@ -1150,27 +1150,27 @@ static void stmac_eth_stop_tx(struct eth_device * const dev)
 static int stmac_dma_init(struct eth_device * const dev)
 {
 	/* Note: PHYSADDR() needs the CACHED address (not the PHYSICAL one) */
-	stmac_dma_des * const dma_rx = (stmac_dma_des *) (&dma.desc_rx[0]);
-	stmac_dma_des * const dma_tx = (stmac_dma_des *) (&dma.desc_tx[0]);
+	stmac_dma_des * const dma_rx = (stmac_dma_des *)(&dma.desc_rx[0]);
+	stmac_dma_des * const dma_tx = (stmac_dma_des *)(&dma.desc_tx[0]);
 
-	PRINTK (STMAC "DMA Core setup\n");
+	PRINTK(STMAC "DMA Core setup\n");
 
 	/* Enable Application Access by writing to DMA CSR0 */
-	STMAC_WRITE (DMA_BUS_MODE_DEFAULT |
-		     (stmac_default_pbl () << DMA_BUS_MODE_PBL_SHIFT),
+	STMAC_WRITE(DMA_BUS_MODE_DEFAULT |
+		     (stmac_default_pbl() << DMA_BUS_MODE_PBL_SHIFT),
 		     DMA_BUS_MODE);
 
 	/* Disable interrupts */
-	STMAC_WRITE (0, DMA_INTR_ENA);
+	STMAC_WRITE(0, DMA_INTR_ENA);
 
 	/* The base address of the RX/TX descriptor */
-	STMAC_WRITE (PHYSADDR (dma_tx), DMA_TX_BASE_ADDR);
-	STMAC_WRITE (PHYSADDR (dma_rx), DMA_RCV_BASE_ADDR);
+	STMAC_WRITE(PHYSADDR(dma_tx), DMA_TX_BASE_ADDR);
+	STMAC_WRITE(PHYSADDR(dma_rx), DMA_RCV_BASE_ADDR);
 
 	return (0);
 }
 
-static int check_tx_error_summary (const stmac_dma_des * const p)
+static int check_tx_error_summary(const stmac_dma_des * const p)
 {
 	int ret = 0;	/* assume there are no errors */
 
@@ -1237,7 +1237,7 @@ static int check_tx_error_summary (const stmac_dma_des * const p)
 	return (ret);
 }
 
-static int check_rx_error_summary (const stmac_dma_des * const p)
+static int check_rx_error_summary(const stmac_dma_des * const p)
 {
 	int ret = 0;	/* assume there are no errors */
 
@@ -1318,23 +1318,23 @@ static int check_rx_error_summary (const stmac_dma_des * const p)
 static int stmac_eth_tx(struct eth_device * const dev, volatile uchar * data, int len)
 {
 	volatile stmac_dma_des *p = dma_tx;
-	uint now = get_timer (0);
+	uint now = get_timer(0);
 	uint status = 0;
 	u32 end_ring;
 
 	while (p->des01.tx.own
-	       && (get_timer (now) < CONFIG_STMAC_TX_TIMEOUT)) {
+	       && (get_timer(now) < CONFIG_STMAC_TX_TIMEOUT)) {
 		;
 	}
 
 	if (p->des01.tx.own) {
-		printf (STMAC "tx timeout - no desc available\n");
+		printf(STMAC "tx timeout - no desc available\n");
 		return -1;
 	}
 
 	/* Make sure data is in real memory */
-	flush_cache ((ulong) data, len);
-	p->des2 = (void *) PHYSADDR (data);
+	flush_cache((ulong)data, len);
+	p->des2 = (void *)PHYSADDR(data);
 
 	/* Clean and set the TX descriptor */
 	end_ring = p->des01.tx.end_ring;
@@ -1353,20 +1353,20 @@ static int stmac_eth_tx(struct eth_device * const dev, volatile uchar * data, in
 #endif
 
 	/* CSR1 enables the transmit DMA to check for new descriptor */
-	STMAC_WRITE (DMA_STATUS_TI, DMA_STATUS);
-	STMAC_WRITE (1, DMA_XMT_POLL_DEMAND);
+	STMAC_WRITE(DMA_STATUS_TI, DMA_STATUS);
+	STMAC_WRITE(1, DMA_XMT_POLL_DEMAND);
 
-	now = get_timer (0);
-	while (get_timer (now) < CONFIG_STMAC_TX_TIMEOUT) {
-		status = STMAC_READ (DMA_STATUS);
+	now = get_timer(0);
+	while (get_timer(now) < CONFIG_STMAC_TX_TIMEOUT) {
+		status = STMAC_READ(DMA_STATUS);
 		if (status & DMA_STATUS_TI)
 			break;
 	}
 	if (!(status & DMA_STATUS_TI)) {
-		printf (STMAC "tx timeout\n");
+		printf(STMAC "tx timeout\n");
 	}
 
-	return check_tx_error_summary ((stmac_dma_des *)p);
+	return check_tx_error_summary((stmac_dma_des *)p);
 }
 
 /* Receive function */
@@ -1379,21 +1379,21 @@ static void stmac_eth_rx(struct eth_device * const dev)
 	drx = dma_rx + cur_rx;
 
 	if ((cur_rx < 0) || (cur_rx >= CONFIG_DMA_RX_SIZE)) {
-		printf (STMAC "%s: [dma drx = 0x%x, cur_rx=%d]\n", __FUNCTION__,
-			(unsigned int) drx, cur_rx);
+		printf(STMAC "%s: [dma drx = 0x%x, cur_rx=%d]\n", __FUNCTION__,
+			(unsigned int)drx, cur_rx);
 #ifdef DEBUG
-		display_dma_desc_ring (dma_rx, CONFIG_DMA_RX_SIZE);
+		display_dma_desc_ring(dma_rx, CONFIG_DMA_RX_SIZE);
 #endif	/* DEBUG */
 	}
 
 	if (!(drx->des01.rx.own) && (drx->des01.rx.last_descriptor)) {
 #ifdef DEBUG
-		PRINTK (STMAC "RX descriptor ring:\n");
-		display_dma_desc_ring (dma_rx, CONFIG_DMA_RX_SIZE);
+		PRINTK(STMAC "RX descriptor ring:\n");
+		display_dma_desc_ring(dma_rx, CONFIG_DMA_RX_SIZE);
 #endif
 
 		/* Check if the frame was not successfully received */
-		if (check_rx_error_summary ((stmac_dma_des *)drx) < 0) {
+		if (check_rx_error_summary((stmac_dma_des *)drx) < 0) {
 			drx->des01.rx.own = 1;
 		} else if (drx->des01.rx.first_descriptor
 			   && drx->des01.rx.last_descriptor) {
@@ -1407,19 +1407,19 @@ static void stmac_eth_rx(struct eth_device * const dev)
 				printf("\nRX[%d]:  0x%08x DA=%pM SA=%pM Type=%04x\n",
 					cur_rx, (unsigned int)p, p, p+6, p[12]<<8|p[13]);
 #endif
-				memcpy ((void*)NetRxPackets[0], rx_packets[cur_rx],
+				memcpy((void*)NetRxPackets[0], rx_packets[cur_rx],
 					frame_len);
-				NetReceive (NetRxPackets[0], frame_len);
+				NetReceive(NetRxPackets[0], frame_len);
 			} else {
-				printf (STMAC "%s: Framelen %d too long\n",
+				printf(STMAC "%s: Framelen %d too long\n",
 					__FUNCTION__, frame_len);
 			}
 			drx->des01.rx.own = 1;
 #ifdef DEBUG
-			PRINTK (STMAC "%s: frame received \n", __FUNCTION__);
+			PRINTK(STMAC "%s: frame received \n", __FUNCTION__);
 #endif
 		} else {
-			printf (STMAC "%s: very long frame received\n",
+			printf(STMAC "%s: very long frame received\n",
 				__FUNCTION__);
 		}
 
@@ -1430,7 +1430,7 @@ static void stmac_eth_rx(struct eth_device * const dev)
 			cur_rx++;	/* advance to next */
 
 	} else {
-		STMAC_WRITE (1, DMA_RCV_POLL_DEMAND);	/* request input */
+		STMAC_WRITE(1, DMA_RCV_POLL_DEMAND);	/* request input */
 	}
 	return;
 }
@@ -1464,7 +1464,7 @@ static int stmac_get_ethaddr(struct eth_device * const dev)
 	}
 
 	if (env_valid && rom_valid) {	/* if both env and ROM are good */
-		if (memcmp (v_env_mac, v_rom_mac, 6) != 0) {
+		if (memcmp(v_env_mac, v_rom_mac, 6) != 0) {
 			printf("\nWarning: MAC addresses don't match:\n");
 			printf("\tHW MAC address:  %pM\n", v_rom_mac);
 			printf("\t\"ethaddr\" value: %pM\n", v_env_mac);
@@ -1491,11 +1491,11 @@ static int stmac_reset_eth(struct eth_device * const dev)
 	}
 
 	if (stmac_phy_init(dev) < 0) {
-		printf (STMAC "ERROR: no PHY detected\n");
+		printf(STMAC "ERROR: no PHY detected\n");
 		return -1;
 	}
 
-	init_dma_desc_rings ();
+	init_dma_desc_rings();
 
 	stmac_mac_core_init(dev);
 	stmac_dma_init(dev);
@@ -1511,7 +1511,7 @@ static int stmac_reset_eth(struct eth_device * const dev)
 	gmac_dump_regs(dev);
 #endif
 
-	STMAC_WRITE (1, DMA_RCV_POLL_DEMAND);	/* request input */
+	STMAC_WRITE(1, DMA_RCV_POLL_DEMAND);	/* request input */
 
 	return (0);
 }
