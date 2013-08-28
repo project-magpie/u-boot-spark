@@ -694,6 +694,13 @@ NfsHandler(uchar *pkt, unsigned dest, IPaddr_t sip, unsigned src, unsigned len)
 			/* symbolic link */
 			NfsState = STATE_READLINK_REQ;
 			NfsSend();
+		} else if (rlen == -NFS_RPC_DROP) {
+			/*
+			 * We just "drop" answers to old timed-out messages.
+			 * Essentially, we do nothing here!
+			 * Specifically, we do not umount in the else clause.
+			 */
+			puts(" D");
 		} else {
 			if (!rlen)
 				nfs_download_state = NETLOOP_SUCCESS;
