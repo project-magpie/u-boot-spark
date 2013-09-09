@@ -32,6 +32,8 @@
 #define FLASH_CMD_ERASE_CONFIRM		0xD0
 #define FLASH_CMD_WRITE			0x40
 #define FLASH_CMD_PROTECT		0x60
+#define FLASH_CMD_SETUP			0x60
+#define FLASH_CMD_SET_CR_CONFIRM	0x03
 #define FLASH_CMD_PROTECT_SET		0x01
 #define FLASH_CMD_PROTECT_CLEAR		0xD0
 #define FLASH_CMD_CLEAR_STATUS		0x50
@@ -58,6 +60,13 @@
 #define AMD_CMD_UNLOCK_ACK		0x55
 #define AMD_CMD_WRITE_TO_BUFFER		0x25
 #define AMD_CMD_WRITE_BUFFER_CONFIRM	0x29
+#define AMD_CMD_SET_PPB_ENTRY		0xC0
+#define AMD_CMD_SET_PPB_EXIT_BC1	0x90
+#define AMD_CMD_SET_PPB_EXIT_BC2	0x00
+#define AMD_CMD_PPB_UNLOCK_BC1		0x80
+#define AMD_CMD_PPB_UNLOCK_BC2		0x30
+#define AMD_CMD_PPB_LOCK_BC1		0xA0
+#define AMD_CMD_PPB_LOCK_BC2		0x00
 
 #define AMD_STATUS_TOGGLE		0x40
 #define AMD_STATUS_ERROR		0x20
@@ -150,6 +159,24 @@ struct cfi_pri_hdr {
 	u8	major_version;
 	u8	minor_version;
 } __attribute__((packed));
+
+#ifndef CONFIG_SYS_FLASH_BANKS_LIST
+#define CONFIG_SYS_FLASH_BANKS_LIST { CONFIG_SYS_FLASH_BASE }
+#endif
+
+/*
+ * CFI_MAX_FLASH_BANKS only used for flash_info struct declaration.
+ *
+ * Use CONFIG_SYS_MAX_FLASH_BANKS_DETECT if defined
+ */
+#if defined(CONFIG_SYS_MAX_FLASH_BANKS_DETECT)
+#define CONFIG_SYS_MAX_FLASH_BANKS	(cfi_flash_num_flash_banks)
+#define CFI_MAX_FLASH_BANKS	CONFIG_SYS_MAX_FLASH_BANKS_DETECT
+/* board code can update this variable before CFI detection */
+extern int cfi_flash_num_flash_banks;
+#else
+#define CFI_MAX_FLASH_BANKS	CONFIG_SYS_MAX_FLASH_BANKS
+#endif
 
 void flash_write_cmd(flash_info_t * info, flash_sect_t sect,
 		     uint offset, u32 cmd);

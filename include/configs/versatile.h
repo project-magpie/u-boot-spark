@@ -39,10 +39,6 @@
 #define CONFIG_VERSATILE	1	/* in Versatile Platform Board	*/
 #define CONFIG_ARCH_VERSATILE	1	/* Specifically, a Versatile	*/
 
-#ifndef CONFIG_ARCH_VERSATILE_AB	/* AB				*/
-#define CONFIG_ARCH_VERSATILE_PB	/* Versatile PB is default	*/
-#endif
-
 #define CONFIG_SYS_MEMTEST_START	0x100000
 #define CONFIG_SYS_MEMTEST_END		0x10000000
 #define CONFIG_SYS_HZ			(1000000 / 256)
@@ -74,15 +70,13 @@
 /*
  * Size of malloc() pool
  */
+#define CONFIG_ENV_SIZE			8192
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 128 * 1024)
-/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_SIZE	128
 
 /*
  * Hardware drivers
  */
 
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111
 #define CONFIG_SMC_USE_32_BIT
 #define CONFIG_SMC91111_BASE	0x10010000
@@ -99,7 +93,6 @@
 #define CONFIG_CONS_INDEX	0
 
 #define CONFIG_BAUDRATE			38400
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_SYS_SERIAL0		0x101F1000
 #define CONFIG_SYS_SERIAL1		0x101F2000
 
@@ -152,17 +145,6 @@
 #define CONFIG_SYS_LOAD_ADDR	0x7fc0	/* default load address */
 
 /*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128 * 1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4 * 1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4 * 1024)	/* FIQ stack */
-#endif
-
-/*-----------------------------------------------------------------------
  * Physical Memory Map
  */
 #define CONFIG_NR_DRAM_BANKS	1	/* we have 1 bank of DRAM */
@@ -170,9 +152,26 @@
 #define PHYS_SDRAM_1_SIZE	0x08000000	/* 128 MB */
 #define PHYS_FLASH_SIZE		0x04000000	/* 64MB */
 
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_RAM_ADDR	0x00800000
+#define CONFIG_SYS_INIT_RAM_SIZE	0x000FFFFF
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - \
+						GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_INIT_RAM_ADDR + \
+						CONFIG_SYS_GBL_DATA_OFFSET)
+
+#define CONFIG_BOARD_EARLY_INIT_F
+
 /*-----------------------------------------------------------------------
  * FLASH and environment organization
  */
+#ifdef CONFIG_ARCH_VERSATILE_QEMU
+#define CONFIG_SYS_TEXT_BASE		0x10000
+#define CONFIG_SYS_NO_FLASH
+#define CONFIG_ENV_IS_NOWHERE
+#define CONFIG_SYS_MONITOR_LEN		0x80000
+#else
+#define CONFIG_SYS_TEXT_BASE		0x01000000
 /*
  * Use the CFI flash driver for ease of use
  */
@@ -224,12 +223,14 @@
 /* The ARM Boot Monitor is shipped in the lowest sector of flash */
 
 #define FLASH_TOP			(CONFIG_SYS_FLASH_BASE + PHYS_FLASH_SIZE)
-#define CONFIG_ENV_SIZE			8192
 #define CONFIG_ENV_ADDR			(FLASH_TOP - CONFIG_ENV_SECT_SIZE)
 #define CONFIG_ENV_OFFSET		(CONFIG_ENV_ADDR - CONFIG_SYS_FLASH_BASE)
 #define CONFIG_SYS_MONITOR_BASE		(CONFIG_ENV_ADDR - CONFIG_SYS_MONITOR_LEN)
 
 #define CONFIG_SYS_FLASH_PROTECTION	/* The devices have real protection */
 #define CONFIG_SYS_FLASH_EMPTY_INFO	/* flinfo indicates empty blocks */
+
+#define CONFIG_SYS_FLASH_USE_BUFFER_WRITE /* use buffered writes */
+#endif
 
 #endif	/* __CONFIG_H */

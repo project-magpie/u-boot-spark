@@ -9,6 +9,8 @@
  * MCF5275 additions
  * Copyright (C) 2008 Arthur Shipkowski (art@videon-central.com)
  *
+ * Copyright (C) 2012 Freescale Semiconductor, Inc. All Rights Reserved.
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
@@ -32,19 +34,20 @@
 #include <watchdog.h>
 #include <command.h>
 #include <asm/immap.h>
+#include <asm/io.h>
 #include <netdev.h>
 #include "cpu.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef	CONFIG_M5208
-int do_reset(cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char * const argv[])
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	volatile rcm_t *rcm = (rcm_t *)(MMAP_RCM);
+	rcm_t *rcm = (rcm_t *)(MMAP_RCM);
 
 	udelay(1000);
 
-	rcm->rcr = RCM_RCR_SOFTRST;
+	out_8(&rcm->rcr, RCM_RCR_SOFTRST);
 
 	/* we don't return! */
 	return 0;
@@ -65,19 +68,21 @@ int checkcpu(void)
 /* Called by macro WATCHDOG_RESET */
 void watchdog_reset(void)
 {
-	volatile wdog_t *wdt = (volatile wdog_t *)(MMAP_WDOG);
-	wdt->sr = 0x5555;
-	wdt->sr = 0xAAAA;
+	wdog_t *wdt = (wdog_t *)(MMAP_WDOG);
+
+	out_be16(&wdt->sr, 0x5555);
+	out_be16(&wdt->sr, 0xaaaa);
 }
 
 int watchdog_disable(void)
 {
-	volatile wdog_t *wdt = (volatile wdog_t *)(MMAP_WDOG);
+	wdog_t *wdt = (wdog_t *)(MMAP_WDOG);
 
-	wdt->sr = 0x5555; /* reset watchdog counteDECLARE_GLOBAL_DATA_PTR;
-r */
-	wdt->sr = 0xAAAA;
-	wdt->cr = 0;	/* disable watchdog timer */
+	/* reset watchdog counter */
+	out_be16(&wdt->sr, 0x5555);
+	out_be16(&wdt->sr, 0xaaaa);
+	/* disable watchdog timer */
+	out_be16(&wdt->cr, 0);
 
 	puts("WATCHDOG:disabled\n");
 	return (0);
@@ -85,15 +90,18 @@ r */
 
 int watchdog_init(void)
 {
-	volatile wdog_t *wdt = (volatile wdog_t *)(MMAP_WDOG);
+	wdog_t *wdt = (wdog_t *)(MMAP_WDOG);
 
-	wdt->cr = 0;	/* disable watchdog */
+	/* disable watchdog */
+	out_be16(&wdt->cr, 0);
 
 	/* set timeout and enable watchdog */
-	wdt->mr =
-		((CONFIG_WATCHDOG_TIMEOUT * CONFIG_SYS_HZ) / (32768 * 1000)) - 1;
-	wdt->sr = 0x5555; /* reset watchdog counter */
-	wdt->sr = 0xAAAA;
+	out_be16(&wdt->mr,
+		(CONFIG_WATCHDOG_TIMEOUT * CONFIG_SYS_HZ) / (32768 * 1000) - 1);
+
+	/* reset watchdog counter */
+	out_be16(&wdt->sr, 0x5555);
+	out_be16(&wdt->sr, 0xaaaa);
 
 	puts("WATCHDOG:enabled\n");
 	return (0);
@@ -142,7 +150,7 @@ int checkcpu(void)
 	return 0;
 }
 
-int do_reset(cmd_tbl_t * cmdtp, bd_t * bd, int flag, int argc, char * const argv[])
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	/* Call the board specific reset actions first. */
 	if(board_reset) {
@@ -177,15 +185,15 @@ int watchdog_init(void)
 #endif
 
 #ifdef	CONFIG_M5272
-int do_reset(cmd_tbl_t * cmdtp, bd_t * bd, int flag, int argc, char * const argv[])
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	volatile wdog_t *wdp = (wdog_t *) (MMAP_WDOG);
+	wdog_t *wdp = (wdog_t *) (MMAP_WDOG);
 
-	wdp->wdog_wrrr = 0;
+	out_be16(&wdp->wdog_wrrr, 0);
 	udelay(1000);
 
 	/* enable watchdog, set timeout to 0 and wait */
-	wdp->wdog_wrrr = 1;
+	out_be16(&wdp->wdog_wrrr, 1);
 	while (1) ;
 
 	/* we don't return! */
@@ -194,12 +202,12 @@ int do_reset(cmd_tbl_t * cmdtp, bd_t * bd, int flag, int argc, char * const argv
 
 int checkcpu(void)
 {
-	volatile sysctrl_t *sysctrl = (sysctrl_t *) (MMAP_CFG);
+	sysctrl_t *sysctrl = (sysctrl_t *) (MMAP_CFG);
 	uchar msk;
 	char *suf;
 
 	puts("CPU:   ");
-	msk = (sysctrl->sc_dir > 28) & 0xf;
+	msk = (in_be32(&sysctrl->sc_dir) > 28) & 0xf;
 	switch (msk) {
 	case 0x2:
 		suf = "1K75N";
@@ -222,17 +230,21 @@ int checkcpu(void)
 /* Called by macro WATCHDOG_RESET */
 void watchdog_reset(void)
 {
-	volatile wdog_t *wdt = (volatile wdog_t *)(MMAP_WDOG);
-	wdt->wdog_wcr = 0;
+	wdog_t *wdt = (wdog_t *)(MMAP_WDOG);
+
+	out_be16(&wdt->wdog_wcr, 0);
 }
 
 int watchdog_disable(void)
 {
-	volatile wdog_t *wdt = (volatile wdog_t *)(MMAP_WDOG);
+	wdog_t *wdt = (wdog_t *)(MMAP_WDOG);
 
-	wdt->wdog_wcr = 0;	/* reset watchdog counter */
-	wdt->wdog_wirr = 0;	/* disable watchdog interrupt */
-	wdt->wdog_wrrr = 0;	/* disable watchdog timer */
+	/* reset watchdog counter */
+	out_be16(&wdt->wdog_wcr, 0);
+	/* disable watchdog interrupt */
+	out_be16(&wdt->wdog_wirr, 0);
+	/* disable watchdog timer */
+	out_be16(&wdt->wdog_wrrr, 0);
 
 	puts("WATCHDOG:disabled\n");
 	return (0);
@@ -240,14 +252,17 @@ int watchdog_disable(void)
 
 int watchdog_init(void)
 {
-	volatile wdog_t *wdt = (volatile wdog_t *)(MMAP_WDOG);
+	wdog_t *wdt = (wdog_t *)(MMAP_WDOG);
 
-	wdt->wdog_wirr = 0;	/* disable watchdog interrupt */
+	/* disable watchdog interrupt */
+	out_be16(&wdt->wdog_wirr, 0);
 
 	/* set timeout and enable watchdog */
-	wdt->wdog_wrrr =
-	    ((CONFIG_WATCHDOG_TIMEOUT * CONFIG_SYS_HZ) / (32768 * 1000)) - 1;
-	wdt->wdog_wcr = 0;	/* reset watchdog counter */
+	out_be16(&wdt->wdog_wrrr,
+		(CONFIG_WATCHDOG_TIMEOUT * CONFIG_SYS_HZ) / (32768 * 1000) - 1);
+
+	/* reset watchdog counter */
+	out_be16(&wdt->wdog_wcr, 0);
 
 	puts("WATCHDOG:enabled\n");
 	return (0);
@@ -257,13 +272,13 @@ int watchdog_init(void)
 #endif				/* #ifdef CONFIG_M5272 */
 
 #ifdef	CONFIG_M5275
-int do_reset(cmd_tbl_t *cmdtp, bd_t *bd, int flag, int argc, char * const argv[])
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
-	volatile rcm_t *rcm = (rcm_t *)(MMAP_RCM);
+	rcm_t *rcm = (rcm_t *)(MMAP_RCM);
 
 	udelay(1000);
 
-	rcm->rcr = RCM_RCR_SOFTRST;
+	out_8(&rcm->rcr, RCM_RCR_SOFTRST);
 
 	/* we don't return! */
 	return 0;
@@ -283,18 +298,22 @@ int checkcpu(void)
 /* Called by macro WATCHDOG_RESET */
 void watchdog_reset(void)
 {
-	volatile wdog_t *wdt = (volatile wdog_t *)(MMAP_WDOG);
-	wdt->wsr = 0x5555;
-	wdt->wsr = 0xAAAA;
+	wdog_t *wdt = (wdog_t *)(MMAP_WDOG);
+
+	out_be16(&wdt->wsr, 0x5555);
+	out_be16(&wdt->wsr, 0xaaaa);
 }
 
 int watchdog_disable(void)
 {
-	volatile wdog_t *wdt = (volatile wdog_t *)(MMAP_WDOG);
+	wdog_t *wdt = (wdog_t *)(MMAP_WDOG);
 
-	wdt->wsr = 0x5555; /* reset watchdog counter */
-	wdt->wsr = 0xAAAA;
-	wdt->wcr = 0;	/* disable watchdog timer */
+	/* reset watchdog counter */
+	out_be16(&wdt->wsr, 0x5555);
+	out_be16(&wdt->wsr, 0xaaaa);
+
+	/* disable watchdog timer */
+	out_be16(&wdt->wcr, 0);
 
 	puts("WATCHDOG:disabled\n");
 	return (0);
@@ -302,15 +321,18 @@ int watchdog_disable(void)
 
 int watchdog_init(void)
 {
-	volatile wdog_t *wdt = (volatile wdog_t *)(MMAP_WDOG);
+	wdog_t *wdt = (wdog_t *)(MMAP_WDOG);
 
-	wdt->wcr = 0;	/* disable watchdog */
+	/* disable watchdog */
+	out_be16(&wdt->wcr, 0);
 
 	/* set timeout and enable watchdog */
-	wdt->wmr =
-		((CONFIG_WATCHDOG_TIMEOUT * CONFIG_SYS_HZ) / (32768 * 1000)) - 1;
-	wdt->wsr = 0x5555; /* reset watchdog counter */
-	wdt->wsr = 0xAAAA;
+	out_be16(&wdt->wmr,
+		(CONFIG_WATCHDOG_TIMEOUT * CONFIG_SYS_HZ) / (32768 * 1000) - 1);
+
+	/* reset watchdog counter */
+	out_be16(&wdt->wsr, 0x5555);
+	out_be16(&wdt->wsr, 0xaaaa);
 
 	puts("WATCHDOG:enabled\n");
 	return (0);
@@ -337,7 +359,7 @@ int checkcpu(void)
 	return 0;
 }
 
-int do_reset(cmd_tbl_t * cmdtp, bd_t * bd, int flag, int argc, char * const argv[])
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	MCFRESET_RCR = MCFRESET_RCR_SOFTRST;
 	return 0;
@@ -354,7 +376,7 @@ int checkcpu(void)
 	return 0;
 }
 
-int do_reset(cmd_tbl_t * cmdtp, bd_t * bd, int flag, int argc, char * const argv[])
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	/* enable watchdog, set timeout to 0 and wait */
 	mbar_writeByte(MCFSIM_SYPCR, 0xc0);
@@ -384,7 +406,7 @@ int checkcpu(void)
 	return 0;
 }
 
-int do_reset(cmd_tbl_t * cmdtp, bd_t * bd, int flag, int argc, char * const argv[])
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	/* enable watchdog, set timeout to 0 and wait */
 	mbar_writeByte(SIM_SYPCR, 0xc0);

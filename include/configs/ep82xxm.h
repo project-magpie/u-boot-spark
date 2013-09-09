@@ -31,6 +31,8 @@
 #define CONFIG_EP82XXM	/* Embedded Planet EP82xxM H 1.0 board */
 			/* 256MB SDRAM / 64MB FLASH */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* Call board_early_init_f */
 
 /* Allow serial number (serial#) and MAC address (ethaddr) to be overwritten */
@@ -65,7 +67,6 @@
 #define CONFIG_ETHER_ON_FCC		/* Ethernet is on FCC     */
 #undef	CONFIG_ETHER_NONE		/* No external Ethernet   */
 
-#define CONFIG_NET_MULTI
 
 #define CONFIG_ETHER_ON_FCC2
 #define CONFIG_ETHER_ON_FCC3
@@ -164,7 +165,6 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_LONGHELP			/* undef to save memory	    */
 #define CONFIG_SYS_PROMPT		"ep82xxm=> "	/* Monitor Command Prompt   */
 #if defined(CONFIG_CMD_KGDB)
@@ -333,7 +333,7 @@
 #define CONFIG_SYS_I2C_SLAVE		0x7F	/* I2C slave address		*/
 #endif
 
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #define CONFIG_SYS_RAMBOOT
 #endif
@@ -344,9 +344,8 @@
 #define CONFIG_SYS_IMMR		0xF0000000
 
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_END	0x2000	/* End of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x2000	/* Size of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 
@@ -360,9 +359,6 @@
 #define CONFIG_SYS_HRCW_SLAVE5		0
 #define CONFIG_SYS_HRCW_SLAVE6		0
 #define CONFIG_SYS_HRCW_SLAVE7		0
-
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM		0x02	/* Software reboot                  */
 
 #define CONFIG_SYS_MALLOC_LEN		(4096 << 10)	/* Reserve 4 MB for malloc()	*/
 #define CONFIG_SYS_BOOTMAPSZ		(8 << 20)	/* Initial Memory map for Linux */

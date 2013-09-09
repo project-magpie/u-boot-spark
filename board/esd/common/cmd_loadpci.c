@@ -29,7 +29,6 @@
 
 #if defined(CONFIG_CMD_BSP)
 
-extern int do_bootm (cmd_tbl_t *, int, int, char *[]);
 extern int do_source (cmd_tbl_t *, int, int, char *[]);
 
 #define ADDRMASK 0xfffff000
@@ -111,7 +110,7 @@ int do_loadpci(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			 * Call run_cmd
 			 */
 			printf("running command at addr 0x%s ...\n", addr);
-			run_command((char*)la, 0);
+			run_command((char *)la, 0);
 			break;
 
 		default:

@@ -486,11 +486,13 @@
 #define SPRN_L2CFG0	0x207	/* L2 Cache Configuration Register 0 */
 #define SPRN_L1CSR0	0x3f2	/* L1 Data Cache Control and Status Register 0 */
 #define   L1CSR0_CPE		0x00010000	/* Data Cache Parity Enable */
+#define   L1CSR0_CUL		0x00000400	/* (D-)Cache Unable to Lock */
 #define   L1CSR0_DCLFR		0x00000100	/* D-Cache Lock Flash Reset */
 #define   L1CSR0_DCFI		0x00000002	/* Data Cache Flash Invalidate */
 #define   L1CSR0_DCE		0x00000001	/* Data Cache Enable */
 #define SPRN_L1CSR1	0x3f3	/* L1 Instruction Cache Control and Status Register 1 */
 #define   L1CSR1_CPE		0x00010000	/* Instruction Cache Parity Enable */
+#define   L1CSR1_ICUL		0x00000400	/* I-Cache Unable to Lock */
 #define   L1CSR1_ICLFR		0x00000100	/* I-Cache Lock Flash Reset */
 #define   L1CSR1_ICFI		0x00000002	/* Instruction Cache Flash Invalidate */
 #define   L1CSR1_ICE		0x00000001	/* Instruction Cache Enable */
@@ -513,7 +515,14 @@
 
 #define SPRN_TLB0CFG	0x2B0	/* TLB 0 Config Register */
 #define SPRN_TLB1CFG	0x2B1	/* TLB 1 Config Register */
+#define   TLBnCFG_NENTRY_MASK	0x00000fff
+#define SPRN_TLB0PS	0x158	/* TLB 0 Page Size Register */
+#define SPRN_TLB1PS	0x159	/* TLB 1 Page Size Register */
 #define SPRN_MMUCSR0	0x3f4	/* MMU control and status register 0 */
+#define SPRN_MMUCFG	0x3F7	/* MMU Configuration Register */
+#define MMUCFG_MAVN	0x00000003	/* MMU Architecture Version Number */
+#define MMUCFG_MAVN_V1	0x00000000	/* v1.0 */
+#define MMUCFG_MAVN_V2	0x00000001	/* v2.0 */
 #define SPRN_MAS0	0x270	/* MMU Assist Register 0 */
 #define SPRN_MAS1	0x271	/* MMU Assist Register 1 */
 #define SPRN_MAS2	0x272	/* MMU Assist Register 2 */
@@ -916,6 +925,7 @@
 #define PVR_460SX_RA_V1 0x13541801 /* 460SX rev A Variant 1 Security disabled */
 #define PVR_460GX_RA    0x13541802 /* 460GX rev A                   */
 #define PVR_460GX_RA_V1 0x13541803 /* 460GX rev A Variant 1 Security disabled */
+#define PVR_APM821XX_RA 0x12C41C80 /* APM821XX rev A */
 #define PVR_601		0x00010000
 #define PVR_602		0x00050000
 #define PVR_603		0x00030000
@@ -937,6 +947,11 @@
 #define PVR_85xx	0x80200000
 #define PVR_85xx_REV1	(PVR_85xx | 0x0010)
 #define PVR_85xx_REV2	(PVR_85xx | 0x0020)
+#define PVR_VER_E500_V1	0x8020
+#define PVR_VER_E500_V2	0x8021
+#define PVR_VER_E500MC	0x8023
+#define PVR_VER_E5500	0x8024
+#define PVR_VER_E6500	0x8040
 
 #define PVR_86xx	0x80040000
 
@@ -973,6 +988,37 @@
 #define PVR_5200B	0x80822014
 
 /*
+ * 405EX/EXr CHIP_21 Errata
+ */
+#ifdef CONFIG_SYS_4xx_CHIP_21_405EX_SECURITY
+#define CONFIG_SYS_4xx_CHIP_21_ERRATA
+#define CONFIG_405EX_CHIP21_PVR_REV_C	PVR_405EX1_RC
+#define CONFIG_405EX_CHIP21_PVR_REV_D	PVR_405EX1_RD
+#define CONFIG_405EX_CHIP21_ECID3_REV_D	0x0
+#endif
+
+#ifdef CONFIG_SYS_4xx_CHIP_21_405EX_NO_SECURITY
+#define CONFIG_SYS_4xx_CHIP_21_ERRATA
+#define CONFIG_405EX_CHIP21_PVR_REV_C	PVR_405EX2_RC
+#define CONFIG_405EX_CHIP21_PVR_REV_D	PVR_405EX2_RD
+#define CONFIG_405EX_CHIP21_ECID3_REV_D	0x1
+#endif
+
+#ifdef CONFIG_SYS_4xx_CHIP_21_405EXr_SECURITY
+#define CONFIG_SYS_4xx_CHIP_21_ERRATA
+#define CONFIG_405EX_CHIP21_PVR_REV_C	PVR_405EXR1_RC
+#define CONFIG_405EX_CHIP21_PVR_REV_D	PVR_405EXR1_RD
+#define CONFIG_405EX_CHIP21_ECID3_REV_D	0x2
+#endif
+
+#ifdef CONFIG_SYS_4xx_CHIP_21_405EXr_NO_SECURITY
+#define CONFIG_SYS_4xx_CHIP_21_ERRATA
+#define CONFIG_405EX_CHIP21_PVR_REV_C	PVR_405EXR2_RC
+#define CONFIG_405EX_CHIP21_PVR_REV_D	PVR_405EXR2_RD
+#define CONFIG_405EX_CHIP21_ECID3_REV_D	0x3
+#endif
+
+/*
  * System Version Register
  */
 
@@ -986,11 +1032,15 @@
 #define SVR_FAM(svr)	(((svr) >> 20) & 0xFFF)	/* Family field */
 #define SVR_MEM(svr)	(((svr) >> 16) & 0xF)	/* Member field */
 
+#ifdef CONFIG_MPC8536
+#define SVR_MAJ(svr)	(((svr) >>  4) & 0x7)	/* Major revision field*/
+#else
 #define SVR_MAJ(svr)	(((svr) >>  4) & 0xF)	/* Major revision field*/
+#endif
 #define SVR_MIN(svr)	(((svr) >>  0) & 0xF)	/* Minor revision field*/
 
 /* Some parts define SVR[0:23] as the SOC version */
-#define SVR_SOC_VER(svr) (((svr) >> 8) & 0xFFFFFF)	/* SOC Version fields */
+#define SVR_SOC_VER(svr) (((svr) >> 8) & 0xFFF7FF) /* SOC w/o E bit*/
 
 /* whether MPC8xxxE (i.e. has SEC) */
 #if defined(CONFIG_MPC85xx)
@@ -1009,64 +1059,60 @@
  */
 
 #define SVR_8533	0x803400
-#define SVR_8533_E	0x803C00
 #define SVR_8535	0x803701
-#define SVR_8535_E	0x803F01
 #define SVR_8536	0x803700
-#define SVR_8536_E	0x803F00
 #define SVR_8540	0x803000
 #define SVR_8541	0x807200
-#define SVR_8541_E	0x807A00
 #define SVR_8543	0x803200
-#define SVR_8543_E	0x803A00
 #define SVR_8544	0x803401
-#define SVR_8544_E	0x803C01
 #define SVR_8545	0x803102
-#define SVR_8545_E	0x803902
-#define SVR_8547_E	0x803901
+#define SVR_8547	0x803101
 #define SVR_8548	0x803100
-#define SVR_8548_E	0x803900
 #define SVR_8555	0x807100
-#define SVR_8555_E	0x807900
 #define SVR_8560	0x807000
-#define SVR_8567	0x807600
-#define SVR_8567_E	0x807E00
+#define SVR_8567	0x807501
 #define SVR_8568	0x807500
-#define SVR_8568_E	0x807D00
 #define SVR_8569	0x808000
-#define SVR_8569_E	0x808800
 #define SVR_8572	0x80E000
-#define SVR_8572_E	0x80E800
+#define SVR_P1010	0x80F100
 #define SVR_P1011	0x80E500
-#define SVR_P1011_E	0x80ED00
 #define SVR_P1012	0x80E501
-#define SVR_P1012_E	0x80ED01
 #define SVR_P1013	0x80E700
-#define SVR_P1013_E	0x80EF00
+#define SVR_P1014	0x80F101
+#define SVR_P1017	0x80F700
 #define SVR_P1020	0x80E400
-#define SVR_P1020_E	0x80EC00
 #define SVR_P1021	0x80E401
-#define SVR_P1021_E	0x80EC01
 #define SVR_P1022	0x80E600
-#define SVR_P1022_E	0x80EE00
+#define SVR_P1023	0x80F600
+#define SVR_P1024	0x80E402
+#define SVR_P1025	0x80E403
 #define SVR_P2010	0x80E300
-#define SVR_P2010_E	0x80EB00
 #define SVR_P2020	0x80E200
-#define SVR_P2020_E	0x80EA00
+#define SVR_P2040	0x821000
+#define SVR_P2041	0x821001
 #define SVR_P3041	0x821103
-#define SVR_P3041_E	0x821903
 #define SVR_P4040	0x820100
-#define SVR_P4040_E	0x820900
 #define SVR_P4080	0x820000
-#define SVR_P4080_E	0x820800
 #define SVR_P5010	0x822100
-#define SVR_P5010_E	0x822900
 #define SVR_P5020	0x822000
-#define SVR_P5020_E	0x822800
+#define SVR_P5021	0X820500
+#define SVR_P5040	0x820400
+#define SVR_T4240	0x824000
+#define SVR_T4120	0x824001
+#define SVR_B4860	0X868000
+#define SVR_G4860	0x868001
+#define SVR_G4060	0x868003
+#define SVR_B4440	0x868100
+#define SVR_G4440	0x868101
+#define SVR_B4420	0x868102
+#define SVR_B4220	0x868103
 
 #define SVR_8610	0x80A000
 #define SVR_8641	0x809000
 #define SVR_8641D	0x809001
+
+#define SVR_9130	0x860001
+#define SVR_9131	0x860000
 
 #define SVR_Unknown	0xFFFFFF
 
@@ -1120,13 +1166,18 @@ struct cpu_type {
 	char name[15];
 	u32 soc_ver;
 	u32 num_cores;
+	u32 mask;	/* which cpu(s) actually exist */
 };
 
 struct cpu_type *identify_cpu(u32 ver);
+int fixup_cpu(void);
 
 #if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
 #define CPU_TYPE_ENTRY(n, v, nc) \
-	{ .name = #n, .soc_ver = SVR_##v, .num_cores = (nc), }
+	{ .name = #n, .soc_ver = SVR_##v, .num_cores = (nc), \
+	  .mask = (1 << (nc)) - 1 }
+#define CPU_TYPE_ENTRY_MASK(n, v, nc, m) \
+	{ .name = #n, .soc_ver = SVR_##v, .num_cores = (nc), .mask = (m) }
 #else
 #if defined(CONFIG_MPC83xx)
 #define CPU_TYPE_ENTRY(x) {#x, SPR_##x}
@@ -1290,5 +1341,11 @@ void _nmask_and_or_msr(unsigned long nmask, unsigned long or_val);
 #error "Machine not defined correctly"
 #endif
 #endif /* CONFIG_MACH_SPECIFIC */
+
+#if defined(CONFIG_MPC85xx) || defined(CONFIG_440)
+ #define EPAPR_MAGIC	(0x45504150)
+#else
+ #define EPAPR_MAGIC	(0x65504150)
+#endif
 
 #endif /* __ASM_PPC_PROCESSOR_H */

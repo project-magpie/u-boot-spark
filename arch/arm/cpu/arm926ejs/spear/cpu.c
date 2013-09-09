@@ -26,7 +26,6 @@
 #include <asm/arch/hardware.h>
 #include <asm/arch/spr_misc.h>
 
-#ifdef CONFIG_ARCH_CPU_INIT
 int arch_cpu_init(void)
 {
 	struct misc_regs *const misc_p =
@@ -64,14 +63,10 @@ int arch_cpu_init(void)
 #if defined(CONFIG_NAND_FSMC)
 	periph1_clken |= MISC_FSMCENB;
 #endif
-#if defined(CONFIG_USB_EHCI_SPEAR)
-	periph1_clken |= MISC_USBHENB;
-#endif
 
 	writel(periph1_clken, &misc_p->periph1_clken);
 	return 0;
 }
-#endif
 
 #ifdef CONFIG_DISPLAY_CPUINFO
 int print_cpuinfo(void)
@@ -82,8 +77,6 @@ int print_cpuinfo(void)
 	printf("CPU:   SPEAr310\n");
 #elif defined(CONFIG_SPEAR320)
 	printf("CPU:   SPEAr320\n");
-#elif defined(CONFIG_SPEAR320_HMI)
-	printf("CPU:   SPEAr320_HMI\n");
 #elif defined(CONFIG_SPEAR600)
 	printf("CPU:   SPEAr600\n");
 #else

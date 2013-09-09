@@ -433,8 +433,7 @@ static struct dma_descriptor rx_descr_array[NUM_RX_DESC]
 static struct dma_descriptor *rx_descr_current;
 
 static int tsi108_eth_probe (struct eth_device *dev, bd_t * bis);
-static int tsi108_eth_send (struct eth_device *dev,
-			   volatile void *packet, int length);
+static int tsi108_eth_send(struct eth_device *dev, void *packet, int length);
 static int tsi108_eth_recv (struct eth_device *dev);
 static void tsi108_eth_halt (struct eth_device *dev);
 static unsigned int read_phy (unsigned int base,
@@ -731,7 +730,11 @@ int tsi108_eth_initialize (bd_t * bis)
 
 	for (index = 0; index < CONFIG_TSI108_ETH_NUM_PORTS; index++) {
 		dev = (struct eth_device *)malloc(sizeof(struct eth_device));
-
+		if (!dev) {
+			printf("tsi108: Can not allocate memory\n");
+			break;
+		}
+		memset(dev, 0, sizeof(*dev));
 		sprintf (dev->name, "TSI108_eth%d", index);
 
 		dev->iobase = ETH_BASE + (index * ETH_PORT_OFFSET);
@@ -868,8 +871,7 @@ static int tsi108_eth_probe (struct eth_device *dev, bd_t * bis)
 /*
  * send a packet
  */
-static int tsi108_eth_send (struct eth_device *dev,
-			   volatile void *packet, int length)
+static int tsi108_eth_send(struct eth_device *dev, void *packet, int length)
 {
 	unsigned long base;
 	int timeout;
@@ -944,7 +946,7 @@ static int tsi108_eth_recv (struct eth_device *dev)
 	unsigned long base;
 	int length = 0;
 	unsigned long status;
-	volatile uchar *buffer;
+	uchar *buffer;
 
 	base = dev->iobase;
 
@@ -979,10 +981,8 @@ static int tsi108_eth_recv (struct eth_device *dev)
 			    le32_to_cpu(rx_descr->vlan_byte_count) & 0xFFFF;
 
 			/*** process packet ***/
-			buffer =
-			    (volatile uchar
-			     *)(le32_to_cpu (rx_descr->start_addr0));
-			NetReceive (buffer, length);
+			buffer = (uchar *)(le32_to_cpu(rx_descr->start_addr0));
+			NetReceive(buffer, length);
 
 			invalidate_dcache_range ((unsigned long)buffer,
 						(unsigned long)buffer +

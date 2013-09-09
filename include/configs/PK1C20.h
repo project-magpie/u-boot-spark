@@ -62,12 +62,11 @@
  *	-The stack is placed below global data (&grows down).
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_MONITOR_LEN		(256 * 1024)	/* Reserve 128k		*/
-#define CONFIG_SYS_GBL_DATA_SIZE	128		/* Global data size rsvd*/
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 128*1024)
 
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_MALLOC_BASE		(CONFIG_SYS_MONITOR_BASE - CONFIG_SYS_MALLOC_LEN)
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_MALLOC_BASE - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_MALLOC_BASE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP		CONFIG_SYS_GBL_DATA_OFFSET
 
 /*------------------------------------------------------------------------
@@ -129,6 +128,7 @@
  * TMRMS represents the desired mecs per tick (msecs per interrupt).
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_HZ			1000	/* Always 1000 */
+#define CONFIG_SYS_LOW_RES_TIMER
 #define CONFIG_SYS_NIOS_TMRBASE	0x02120820	/* Tick timer base addr */
 #define CONFIG_SYS_NIOS_TMRIRQ		3	/* Timer IRQ num */
 #define CONFIG_SYS_NIOS_TMRMS		10	/* Desired period */
@@ -142,6 +142,7 @@
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_LEDPIO_ADDR		0x02120870	/* LED PIO base addr	*/
 #define CONFIG_STATUS_LED			/* Enable status driver */
+#define CONFIG_BOARD_SPECIFIC_LED
 
 #define STATUS_LED_BIT		1		/* Bit-0 on PIO		*/
 #define STATUS_LED_STATE	1		/* Blinking		*/
@@ -154,7 +155,6 @@
  * cache bypass so there's no need to monkey with inx/outx macros.
  *----------------------------------------------------------------------*/
 #define CONFIG_SMC91111_BASE	0x82110300	/* Base addr (bypass)	*/
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111			/* Using SMC91c111	*/
 #undef	CONFIG_SMC91111_EXT_PHY			/* Internal PHY		*/
 #define CONFIG_SMC_USE_32_BIT			/* 32-bit interface	*/
@@ -239,6 +239,5 @@
 #define CONFIG_SYS_MEMTEST_END		CONFIG_SYS_INIT_SP - 0x00020000
 
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #endif	/* __CONFIG_H */

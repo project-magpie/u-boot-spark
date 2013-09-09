@@ -35,6 +35,8 @@
 #define CONFIG_MPC860
 #define CONFIG_GEN860T
 
+#define	CONFIG_SYS_TEXT_BASE		0x40000000
+
 /*
  * Identify the board
  */
@@ -60,16 +62,6 @@
  */
 #define	CONFIG_8xx_CONS_SMC1
 #define CONFIG_BAUDRATE			38400
-
-/*
- * Set allowable console baud rates
- */
-#define CONFIG_SYS_BAUDRATE_TABLE		{ 9600,		\
-					  19200,	\
-					  38400,	\
-					  57600,	\
-					  115200,	\
-					}
 
 /*
  * Print console information
@@ -102,11 +94,6 @@
  */
 #undef	CONFIG_LOADS_ECHO
 #define	CONFIG_SYS_LOADS_BAUD_CHANGE
-
-/*
- * Set default load address for tftp network downloads
- */
-#define	CONFIG_SYS_TFTP_LOADADDR				0x01000000
 
 /*
  * Turn off the watchdog timer
@@ -290,7 +277,6 @@
  * Use the "hush" command parser
  */
 #define	CONFIG_SYS_HUSH_PARSER
-#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 /*
  * Set buffer size for console I/O
@@ -380,9 +366,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR		CONFIG_SYS_IMMR
-#define	CONFIG_SYS_INIT_RAM_END		0x2F00	/* End of used area in DPRAM		*/
+#define	CONFIG_SYS_INIT_RAM_SIZE		0x2F00	/* Size of used area in DPRAM		*/
 #define	CONFIG_SYS_INIT_DATA_SIZE		64	/* # bytes reserved for initial data*/
-#define CONFIG_SYS_GBL_DATA_OFFSET		(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_INIT_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET		(CONFIG_SYS_INIT_RAM_SIZE - CONFIG_SYS_INIT_DATA_SIZE)
 #define	CONFIG_SYS_INIT_SP_OFFSET		CONFIG_SYS_GBL_DATA_OFFSET
 
 /*
@@ -723,12 +709,6 @@
 						  BR_MS_GPCM				| \
 						  BR_V						  \
 						)
-
-/*
- * Boot Flags
- */
-#define	BOOTFLAG_COLD	0x01	/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM	0x02	/* Software reboot					*/
 
 /*
  * FEC interrupt assignment

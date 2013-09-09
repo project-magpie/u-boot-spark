@@ -38,15 +38,16 @@
 #include <common.h>
 #include <asm/proc-armv/ptrace.h>
 
-#ifdef CONFIG_USE_IRQ
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef CONFIG_USE_IRQ
 int interrupt_init (void)
 {
 	/*
 	 * setup up stacks if necessary
 	 */
-	IRQ_STACK_START = _armboot_start - CONFIG_SYS_MALLOC_LEN - CONFIG_SYS_GBL_DATA_SIZE - 4;
+	IRQ_STACK_START = gd->irq_sp - 4;
+	IRQ_STACK_START_IN = gd->irq_sp + 8;
 	FIQ_STACK_START = IRQ_STACK_START - CONFIG_STACKSIZE_IRQ;
 
 	return arch_interrupt_init();
@@ -81,6 +82,16 @@ int disable_interrupts (void)
 	return (old & 0x80) == 0;
 }
 #else
+int interrupt_init (void)
+{
+	/*
+	 * setup up stacks if necessary
+	 */
+	IRQ_STACK_START_IN = gd->irq_sp + 8;
+
+	return 0;
+}
+
 void enable_interrupts (void)
 {
 	return;
@@ -158,7 +169,7 @@ void do_prefetch_abort (struct pt_regs *pt_regs)
 
 void do_data_abort (struct pt_regs *pt_regs)
 {
-	printf ("data abort\n");
+	printf ("data abort\n\n    MAYBE you should read doc/README.arm-unaligned-accesses\n\n");
 	show_regs (pt_regs);
 	bad_mode ();
 }

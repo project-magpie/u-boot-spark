@@ -1,7 +1,7 @@
 /*
  * Configuation settings for the Freescale MCF5373 FireEngine board.
  *
- * Copyright (C) 2004-2007 Freescale Semiconductor, Inc.
+ * Copyright (C) 2004-2007, 2012 Freescale Semiconductor, Inc.
  * TsiChung Liew (Tsi-Chung.Liew@freescale.com)
  *
  * See file CREDITS for list of people who contributed to this
@@ -40,7 +40,6 @@
 #define CONFIG_MCFUART
 #define CONFIG_SYS_UART_PORT		(0)
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600 , 19200 , 38400 , 57600, 115200 }
 
 #undef CONFIG_WATCHDOG
 #define CONFIG_WATCHDOG_TIMEOUT	3360	/* timeout in ms, max is 3.36 sec */
@@ -60,7 +59,7 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_REGINFO
 
-#ifdef NANDFLASH_SIZE
+#ifdef CONFIG_NANDFLASH_SIZE
 #      define CONFIG_CMD_NAND
 #endif
 
@@ -68,7 +67,6 @@
 
 #define CONFIG_MCFFEC
 #ifdef CONFIG_MCFFEC
-#	define CONFIG_NET_MULTI		1
 #	define CONFIG_MII		1
 #	define CONFIG_MII_INIT		1
 #	define CONFIG_SYS_DISCOVER_PHY
@@ -120,12 +118,12 @@
 #define CONFIG_HOSTNAME		M5373EVB
 #define CONFIG_EXTRA_ENV_SETTINGS					\
 	"netdev=eth0\0"			\
-	"loadaddr=" MK_STR(CONFIG_SYS_LOAD_ADDR) "\0"	\
+	"loadaddr=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0"	\
 	"u-boot=u-boot.bin\0"	\
 	"load=tftp ${loadaddr) ${u-boot}\0"	\
 	"upd=run load; run prog\0"	\
-	"prog=prot off 0 2ffff;"	\
-	"era 0 2ffff;"	\
+	"prog=prot off 0 3ffff;"	\
+	"era 0 3ffff;"	\
 	"cp.b ${loadaddr} 0 ${filesize};"	\
 	"save\0"	\
 	""
@@ -162,10 +160,9 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	0x80000000
-#define CONFIG_SYS_INIT_RAM_END	0x8000	/* End of used area in internal SRAM */
+#define CONFIG_SYS_INIT_RAM_SIZE	0x8000	/* Size of used area in internal SRAM */
 #define CONFIG_SYS_INIT_RAM_CTRL	0x221
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	((CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE) - 0x10)
+#define CONFIG_SYS_GBL_DATA_OFFSET	((CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE) - 0x10)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -211,7 +208,7 @@
 #	define CONFIG_SYS_FLASH_PROTECTION	/* "Real" (hardware) sectors protection */
 #endif
 
-#ifdef NANDFLASH_SIZE
+#ifdef CONFIG_NANDFLASH_SIZE
 #	define CONFIG_SYS_MAX_NAND_DEVICE	1
 #	define CONFIG_SYS_NAND_BASE		CONFIG_SYS_CS2_BASE
 #	define CONFIG_SYS_NAND_SIZE		1
@@ -238,9 +235,9 @@
 #define CONFIG_SYS_CACHELINE_SIZE	16
 
 #define ICACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_END - 8)
+					 CONFIG_SYS_INIT_RAM_SIZE - 8)
 #define DCACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_END - 4)
+					 CONFIG_SYS_INIT_RAM_SIZE - 4)
 #define CONFIG_SYS_ICACHE_INV		(CF_CACR_CINVA)
 #define CONFIG_SYS_CACHE_ACR0		(CONFIG_SYS_SDRAM_BASE | \
 					 CF_ADDRMASK(CONFIG_SYS_SDRAM_SIZE) | \
@@ -267,9 +264,9 @@
 #define CONFIG_SYS_CS1_MASK		0x001f0001
 #define CONFIG_SYS_CS1_CTRL		0x002A3780
 
-#ifdef NANDFLASH_SIZE
+#ifdef CONFIG_NANDFLASH_SIZE
 #define CONFIG_SYS_CS2_BASE		0x20000000
-#define CONFIG_SYS_CS2_MASK		((NANDFLASH_SIZE << 20) | 1)
+#define CONFIG_SYS_CS2_MASK		((CONFIG_NANDFLASH_SIZE << 20) | 1)
 #define CONFIG_SYS_CS2_CTRL		0x00001f60
 #endif
 

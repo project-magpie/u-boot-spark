@@ -19,9 +19,9 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(SOC).a
+LIB	= $(obj)lib$(SOC).o
 
-COBJS	+= aemif.o clock.o init.o mux.o timer.o wdt.o
+COBJS	+= aemif.o clock.o init.o mux.o timer.o
 SOBJS	+= lowlevel_init.o
 
 SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS:.o=.c)
@@ -32,7 +32,7 @@ START	:= $(addprefix $(obj),$(START))
 all:	$(obj).depend $(LIB)
 
 $(LIB):	$(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

@@ -119,7 +119,7 @@
 #include <watchdog.h>
 #include <jffs2/jffs2.h>
 #include <jffs2/jffs2_1pass.h>
-#include <linux/mtd/compat.h>
+#include <linux/compat.h>
 #include <asm/errno.h>
 
 #include "jffs2_private.h"
@@ -806,7 +806,7 @@ jffs2_1pass_read_inode(struct b_lists *pL, u32 inode, char *dest)
 #endif
 				default:
 					/* unknown */
-					putLabeledWord("UNKOWN COMPRESSION METHOD = ", jNode->compr);
+					putLabeledWord("UNKNOWN COMPRESSION METHOD = ", jNode->compr);
 					put_fl_mem(jNode, pL->readbuf);
 					return -1;
 					break;

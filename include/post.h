@@ -33,6 +33,7 @@
 
 #if defined(CONFIG_POST) || defined(CONFIG_LOGBUFFER)
 
+#ifndef CONFIG_POST_EXTERNAL_WORD_FUNCS
 #ifdef CONFIG_SYS_POST_WORD_ADDR
 #define _POST_WORD_ADDR	CONFIG_SYS_POST_WORD_ADDR
 #else
@@ -57,8 +58,14 @@
 #define _POST_WORD_ADDR	(CONFIG_SYS_IMMR + CPM_POST_WORD_ADDR)
 
 #elif defined (CONFIG_MPC85xx)
-#include <asm/cpm_85xx.h>
-#define _POST_WORD_ADDR	(CONFIG_SYS_IMMR + CPM_POST_WORD_ADDR)
+#include <asm/immap_85xx.h>
+#define _POST_WORD_ADDR	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC85xx_PIC_OFFSET + \
+				offsetof(ccsr_pic_t, tfrr))
+
+#elif defined (CONFIG_MPC86xx)
+#include <asm/immap_86xx.h>
+#define _POST_WORD_ADDR	(CONFIG_SYS_IMMR + CONFIG_SYS_MPC86xx_PIC_OFFSET + \
+				offsetof(ccsr_pic_t, tfrr))
 
 #elif defined (CONFIG_4xx)
 #define _POST_WORD_ADDR \
@@ -79,6 +86,13 @@ static inline void post_word_store (ulong value)
 {
 	out_le32((volatile void *)(_POST_WORD_ADDR), value);
 }
+
+#else
+
+extern ulong post_word_load(void);
+extern void post_word_store(ulong value);
+
+#endif /* CONFIG_POST_EXTERNAL_WORD_FUNCS */
 #endif /* defined (CONFIG_POST) || defined(CONFIG_LOGBUFFER) */
 #endif /* __ASSEMBLY__ */
 
@@ -133,7 +147,7 @@ void post_output_backlog ( void );
 int post_run (char *name, int flags);
 int post_info (char *name);
 int post_log (char *format, ...);
-#ifndef CONFIG_RELOC_FIXUP_WORKS
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
 void post_reloc (void);
 #endif
 unsigned long post_time_ms (unsigned long base);
@@ -141,6 +155,7 @@ unsigned long post_time_ms (unsigned long base);
 extern struct post_test post_list[];
 extern unsigned int post_list_size;
 extern int post_hotkeys_pressed(void);
+extern int memory_post_test(int flags);
 
 /*
  *  If GCC is configured to use a version of GAS that supports
@@ -180,6 +195,8 @@ extern int post_hotkeys_pressed(void);
 #define CONFIG_SYS_POST_BSPEC5		0x00100000
 #define CONFIG_SYS_POST_CODEC		0x00200000
 #define CONFIG_SYS_POST_COPROC		0x00400000
+#define CONFIG_SYS_POST_FLASH		0x00800000
+#define CONFIG_SYS_POST_MEM_REGIONS	0x01000000
 
 #endif /* CONFIG_POST */
 

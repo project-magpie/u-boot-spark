@@ -24,12 +24,14 @@
 #ifndef _IMX_REGS_H
 #define _IMX_REGS_H
 
+#include <asm/arch/regs-rtc.h>
+
 #ifndef __ASSEMBLY__
 
 extern void imx_gpio_mode (int gpio_mode);
 
 #ifdef CONFIG_MXC_UART
-extern void mx27_uart_init_pins(void);
+extern void mx27_uart1_init_pins(void);
 #endif /* CONFIG_MXC_UART */
 
 #ifdef CONFIG_FEC_MXC
@@ -162,29 +164,6 @@ struct gpt_regs {
 #define PORTE 4
 #define PORTF 5
 
-struct gpio_regs {
-	struct {
-		u32 ddir;
-		u32 ocr1;
-		u32 ocr2;
-		u32 iconfa1;
-		u32 iconfa2;
-		u32 iconfb1;
-		u32 iconfb2;
-		u32 dr;
-		u32 gius;
-		u32 ssr;
-		u32 icr1;
-		u32 icr2;
-		u32 imr;
-		u32 isr;
-		u32 gpr;
-		u32 swr;
-		u32 puen;
-		u32 res[0x2f];
-	} port[6];
-};
-
 /* IIM Control Registers */
 struct iim_regs {
 	u32 iim_stat;
@@ -202,10 +181,22 @@ struct iim_regs {
 	u32 iim_scs1;
 	u32 iim_scs2;
 	u32 iim_scs3;
-	u32 res[0x1F0];
-	u32 iim_bank_area0[0x100];
+	u32 res[0x1f1];
+	struct fuse_bank {
+		u32 fuse_regs[0x20];
+		u32 fuse_rsvd[0xe0];
+	} bank[1];
 };
+
+struct fuse_bank0_regs {
+	u32 fuse0_3[5];
+	u32 mac_addr[6];
+	u32 fuse10_31[0x16];
+};
+
 #endif
+
+#define ARCH_MXC
 
 #define IMX_IO_BASE		0x10000000
 
@@ -214,10 +205,11 @@ struct iim_regs {
 #define IMX_TIM1_BASE		(0x03000 + IMX_IO_BASE)
 #define IMX_TIM2_BASE		(0x04000 + IMX_IO_BASE)
 #define IMX_TIM3_BASE		(0x05000 + IMX_IO_BASE)
-#define IMX_UART1_BASE		(0x0a000 + IMX_IO_BASE)
-#define IMX_UART2_BASE		(0x0b000 + IMX_IO_BASE)
-#define IMX_UART3_BASE		(0x0c000 + IMX_IO_BASE)
-#define IMX_UART4_BASE		(0x0d000 + IMX_IO_BASE)
+#define IMX_RTC_BASE		(0x07000 + IMX_IO_BASE)
+#define UART1_BASE		(0x0a000 + IMX_IO_BASE)
+#define UART2_BASE		(0x0b000 + IMX_IO_BASE)
+#define UART3_BASE		(0x0c000 + IMX_IO_BASE)
+#define UART4_BASE		(0x0d000 + IMX_IO_BASE)
 #define IMX_I2C1_BASE		(0x12000 + IMX_IO_BASE)
 #define IMX_GPIO_BASE		(0x15000 + IMX_IO_BASE)
 #define IMX_TIM4_BASE		(0x19000 + IMX_IO_BASE)
@@ -461,6 +453,13 @@ struct iim_regs {
 #define TSTAT_CAPT	(1 << 1)	/* Capture event */
 #define TSTAT_COMP	1		/* Compare event */
 
+#define GPIO1_BASE_ADDR 0x10015000
+#define GPIO2_BASE_ADDR 0x10015100
+#define GPIO3_BASE_ADDR 0x10015200
+#define GPIO4_BASE_ADDR 0x10015300
+#define GPIO5_BASE_ADDR 0x10015400
+#define GPIO6_BASE_ADDR 0x10015500
+
 #define GPIO_PIN_MASK	0x1f
 
 #define GPIO_PORT_SHIFT	5
@@ -511,10 +510,5 @@ struct iim_regs {
 #define IIM_ERR_WLRE	(1 << 3)
 #define IIM_ERR_SNSE	(1 << 2)
 #define IIM_ERR_PARITYE	(1 << 1)
-
-/* Definitions for i.MX27 TO2 */
-#define IIM0_MAC		5
-#define IIM0_SCC_KEY		11
-#define IIM1_SUID		1
 
 #endif				/* _IMX_REGS_H */

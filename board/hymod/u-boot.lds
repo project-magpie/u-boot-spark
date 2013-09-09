@@ -87,13 +87,14 @@ SECTIONS
   PROVIDE (erotext = .);
   .reloc   :
   {
-    *(.got)
     _GOT2_TABLE_ = .;
-    *(.got2)
+    KEEP(*(.got2))
+    KEEP(*(.got))
+    PROVIDE(_GLOBAL_OFFSET_TABLE_ = . + 4);
     _FIXUP_TABLE_ = .;
     *(.fixup)
   }
-  __got2_entries = (_FIXUP_TABLE_ - _GOT2_TABLE_) >>2;
+  __got2_entries = ((_GLOBAL_OFFSET_TABLE_ - _GOT2_TABLE_) >> 2) - 1;
   __fixup_entries = (. - _FIXUP_TABLE_)>>2;
 
   .data    :
@@ -109,9 +110,11 @@ SECTIONS
   PROVIDE (edata = .);
 
   . = .;
-  __u_boot_cmd_start = .;
-  .u_boot_cmd : { *(.u_boot_cmd) }
-  __u_boot_cmd_end = .;
+
+  . = ALIGN(4);
+  .u_boot_list : {
+	#include <u-boot.lst>
+  }
 
 
   . = .;
@@ -140,6 +143,6 @@ SECTIONS
     common/env_embedded.o (.ppcenv)
   }
   . = ALIGN(4);
-  _end = . ;
+  __bss_end__ = . ;
   PROVIDE (end = .);
 }

@@ -50,12 +50,31 @@ SECTIONS
 	. = ALIGN(4);
 	.got : { *(.got) }
 
-	__u_boot_cmd_start = .;
-	.u_boot_cmd : { *(.u_boot_cmd) }
-	__u_boot_cmd_end = .;
 
 	. = ALIGN(4);
-	__bss_start = .;
-	.bss : { *(.bss) . = ALIGN(4); }
+	.u_boot_list : {
+	#include <u-boot.lst>
+	}
+
+	. = ALIGN(4);
+
+	.rel.dyn : {
+	__rel_dyn_start = .;
+	*(.rel*)
+	__rel_dyn_end = .;
+	}
+
+	.dynsym : {
+	__dynsym_start = .;
+	*(.dynsym)
+	}
+
 	_end = .;
+
+	.bss __rel_dyn_start (OVERLAY) : {
+	__bss_start = .;
+	*(.bss)
+	. = ALIGN(4);
+	__bss_end__ = .;
+	}
 }

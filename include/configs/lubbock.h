@@ -34,31 +34,28 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_PXA250		1	/* This is an PXA250 CPU    */
+#define CONFIG_CPU_PXA25X		1	/* This is an PXA250 CPU    */
 #define CONFIG_LUBBOCK		1	/* on an LUBBOCK Board	    */
 #define CONFIG_LCD		1
 #ifdef CONFIG_LCD
 #define CONFIG_SHARP_LM8V31
 #endif
 #define CONFIG_MMC
-#define BOARD_LATE_INIT		1
+#define CONFIG_BOARD_LATE_INIT
 #define CONFIG_DOS_PARTITION
-
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
+#define	CONFIG_SYS_TEXT_BASE	0x0
 
 /* we will never enable dcache, because we have to setup MMU first */
-#define CONFIG_SYS_NO_DCACHE
+#define CONFIG_SYS_DCACHE_OFF
 
 /*
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN	    (CONFIG_ENV_SIZE + 128*1024)
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 /*
  * Hardware drivers
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_LAN91C96
 #define CONFIG_LAN91C96_BASE 0x0C000000
 
@@ -67,6 +64,7 @@
  */
 #define CONFIG_PXA_SERIAL
 #define CONFIG_FFUART	       1       /* we use FFUART on LUBBOCK */
+#define CONFIG_CONS_INDEX	3
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -110,7 +108,6 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_HUSH_PARSER		1
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #define CONFIG_SYS_LONGHELP				/* undef to save memory		*/
 #ifdef CONFIG_SYS_HUSH_PARSER
@@ -132,24 +129,11 @@
 #define CONFIG_SYS_HZ			1000
 #define CONFIG_SYS_CPUSPEED		0x161		/* set core clock to 400/200/100 MHz */
 
-						/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 #ifdef CONFIG_MMC
-#define CONFIG_PXA_MMC
+#define	CONFIG_GENERIC_MMC
+#define	CONFIG_PXA_MMC_GENERIC
 #define CONFIG_CMD_MMC
 #define CONFIG_SYS_MMC_BASE		0xF0000000
-#endif
-
-/*
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128*1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4*1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4*1024)	/* FIQ stack */
 #endif
 
 /*
@@ -176,6 +160,9 @@
 
 #define CONFIG_SYS_FLASH_BASE		PHYS_FLASH_1
 
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define	CONFIG_SYS_INIT_SP_ADDR		0xfffff800
+
 #define FPGA_REGS_BASE_PHYSICAL 0x08000000
 
 /*
@@ -199,6 +186,9 @@
 
 #define CONFIG_SYS_PSSR_VAL		0x20
 
+#define	CONFIG_SYS_CCCR			CCCR_L27|CCCR_M2|CCCR_N10
+#define	CONFIG_SYS_CKEN			0x0
+
 /*
  * Memory settings
  */
@@ -208,6 +198,9 @@
 #define CONFIG_SYS_MDCNFG_VAL		0x00001AC9
 #define CONFIG_SYS_MDREFR_VAL		0x00018018
 #define CONFIG_SYS_MDMRS_VAL		0x00000000
+
+#define	CONFIG_SYS_FLYCNFG_VAL		0x00000000
+#define	CONFIG_SYS_SXCNFG_VAL		0x00000000
 
 /*
  * PCMCIA and CF Interfaces

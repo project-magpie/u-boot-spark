@@ -29,7 +29,6 @@
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
 #include <asm/arch/spr_emi.h>
-#include <asm/arch/spr_xloader_table.h>
 #include <asm/arch/spr_defs.h>
 
 #define CPU		0
@@ -37,7 +36,6 @@
 #define SRAM_REL	0xD2801000
 
 DECLARE_GLOBAL_DATA_PTR;
-static struct chip_data chip_data;
 
 #if defined(CONFIG_CMD_NET)
 static int i2c_read_mac(uchar *buffer);
@@ -45,32 +43,25 @@ static int i2c_read_mac(uchar *buffer);
 
 int dram_init(void)
 {
-	struct xloader_table *xloader_tb =
-	    (struct xloader_table *)XLOADER_TABLE_ADDRESS;
-	struct xloader_table_1_1 *table_1_1;
-	struct xloader_table_1_2 *table_1_2;
-	struct chip_data *chip = &chip_data;
-
-	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
-	gd->bd->bi_dram[0].size = get_ram_size(PHYS_SDRAM_1,
-					       PHYS_SDRAM_1_MAXSIZE);
-
-	if (XLOADER_TABLE_VERSION_1_1 == xloader_tb->table_version) {
-		table_1_1 = &xloader_tb->table.table_1_1;
-		chip->dramfreq = table_1_1->ddrfreq;
-		chip->dramtype = table_1_1->ddrtype;
-
-	} else if (XLOADER_TABLE_VERSION_1_2 == xloader_tb->table_version) {
-		table_1_2 = &xloader_tb->table.table_1_2;
-		chip->dramfreq = table_1_2->ddrfreq;
-		chip->dramtype = table_1_2->ddrtype;
-	} else {
-		chip->dramfreq = -1;
-	}
+	/* Store complete RAM size and return */
+	gd->ram_size = get_ram_size(PHYS_SDRAM_1, PHYS_SDRAM_1_MAXSIZE);
 
 	return 0;
 }
 
+void dram_init_banksize(void)
+{
+	gd->bd->bi_dram[0].start = PHYS_SDRAM_1;
+	gd->bd->bi_dram[0].size = gd->ram_size;
+}
+
+int board_early_init_f()
+{
+#if defined(CONFIG_ST_SMI)
+	smi_init();
+#endif
+	return 0;
+}
 int misc_init_r(void)
 {
 #if defined(CONFIG_CMD_NET)
@@ -150,28 +141,11 @@ void spear_emi_init(void)
 
 int spear_board_init(ulong mach_type)
 {
-	struct xloader_table *xloader_tb =
-	    (struct xloader_table *)XLOADER_TABLE_ADDRESS;
-	struct xloader_table_1_2 *table_1_2;
-	struct chip_data *chip = &chip_data;
-
 	gd->bd->bi_arch_number = mach_type;
 
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = CONFIG_BOOT_PARAMS_ADDR;
 
-	/* CPU is initialized to work at 333MHz in Xloader */
-	chip->cpufreq = 333;
-
-	if (XLOADER_TABLE_VERSION_1_2 == xloader_tb->table_version) {
-		table_1_2 = &xloader_tb->table.table_1_2;
-		memcpy(chip->version, table_1_2->version,
-		       sizeof(chip->version));
-	}
-
-#if defined(CONFIG_ST_SMI)
-	smi_init();
-#endif
 #ifdef CONFIG_SPEAR_EMI
 	spear_emi_init();
 #endif
@@ -215,7 +189,7 @@ static int write_mac(uchar *mac)
 		return 0;
 	}
 
-	puts("I2C EEPROM writing failed \n");
+	puts("I2C EEPROM writing failed\n");
 	return -1;
 }
 #endif
@@ -223,9 +197,7 @@ static int write_mac(uchar *mac)
 int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	void (*sram_setfreq) (unsigned int, unsigned int);
-	struct chip_data *chip = &chip_data;
 	unsigned int frequency;
-
 #if defined(CONFIG_CMD_NET)
 	unsigned char mac[6];
 #endif
@@ -247,13 +219,9 @@ int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		if (!strcmp(argv[1], "cpufreq")) {
 			sram_setfreq(CPU, frequency);
 			printf("CPU frequency changed to %u\n", frequency);
-
-			chip->cpufreq = frequency;
 		} else {
 			sram_setfreq(DDR, frequency);
 			printf("DDR frequency changed to %u\n", frequency);
-
-			chip->dramfreq = frequency;
 		}
 
 		return 0;
@@ -273,24 +241,6 @@ int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return 0;
 #endif
 	} else if (!strcmp(argv[1], "print")) {
-
-		if (chip->cpufreq == -1)
-			printf("CPU Freq    = Not Known\n");
-		else
-			printf("CPU Freq    = %d MHz\n", chip->cpufreq);
-
-		if (chip->dramfreq == -1)
-			printf("DDR Freq    = Not Known\n");
-		else
-			printf("DDR Freq    = %d MHz\n", chip->dramfreq);
-
-		if (chip->dramtype == DDRMOBILE)
-			printf("DDR Type    = MOBILE\n");
-		else if (chip->dramtype == DDR2)
-			printf("DDR Type    = DDR2\n");
-		else
-			printf("DDR Type    = Not Known\n");
-
 #if defined(CONFIG_CMD_NET)
 		if (!i2c_read_mac(mac)) {
 			printf("Ethaddr (from i2c mem) = %pM\n", mac);
@@ -298,8 +248,6 @@ int do_chip_config(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			printf("Ethaddr (from i2c mem) = Not set\n");
 		}
 #endif
-		printf("Xloader Rev = %s\n", chip->version);
-
 		return 0;
 	}
 

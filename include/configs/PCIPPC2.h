@@ -43,15 +43,20 @@
 
 #define CONFIG_PCIPPC2		1	/* this is a PCIPPC2 board	*/
 
+#define	CONFIG_SYS_TEXT_BASE	0xfff00000
+
 #define CONFIG_BOARD_EARLY_INIT_F 1
 #define CONFIG_MISC_INIT_R	1
 
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		9600
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define CONFIG_PREBOOT		""
 #define CONFIG_BOOTDELAY	5
+
+#ifndef __ASSEMBLY__
+#include <galileo/core.h>
+#endif
 
 /*
  * BOOTP options
@@ -90,9 +95,6 @@
 #define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt	*/
 
 #define	CONFIG_SYS_HUSH_PARSER		1	/* use "hush" command parser	*/
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#endif
 #define CONFIG_SYS_CBSIZE	256		/* Console I/O Buffer Size	*/
 
 /* Print Buffer Size
@@ -117,7 +119,7 @@
 
 #define CONFIG_SYS_RESET_ADDRESS   0xFFF00100
 
-#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_MONITOR_LEN	    (256 << 10) /* Reserve 256 kB for Monitor	*/
 #define CONFIG_SYS_MALLOC_LEN	    (128 << 10) /* Reserve 128 kB for malloc()	*/
@@ -136,13 +138,9 @@
  * Definitions for initial stack pointer and data area
  */
 
-/* Size in bytes reserved for initial data
- */
-#define CONFIG_SYS_GBL_DATA_SIZE    128
-
 #define CONFIG_SYS_INIT_RAM_ADDR     0x40000000
-#define CONFIG_SYS_INIT_RAM_END      0x8000
-#define CONFIG_SYS_GBL_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE      0x8000
+#define CONFIG_SYS_GBL_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET    CONFIG_SYS_GBL_DATA_OFFSET
 
 #define CONFIG_SYS_INIT_RAM_LOCK
@@ -238,14 +236,6 @@
 		   L2CR_L2OH_5 | L2CR_L2CTL | L2CR_L2WT)
 #define L2_ENABLE (L2_INIT | L2CR_L2E)
 
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM		0x02	/* Software reboot			*/
-
 /*-----------------------------------------------------------------------
   RTC m48t59
 */
@@ -253,7 +243,6 @@
 
 #define CONFIG_WATCHDOG
 
-#define CONFIG_NET_MULTI			/* Multi ethernet cards support */
 
 #define CONFIG_EEPRO100
 #define CONFIG_SYS_RX_ETH_BUFFER	8               /* use 8 rx buffer on eepro100  */

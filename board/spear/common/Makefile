@@ -27,35 +27,19 @@ ifneq ($(OBJTREE),$(SRCTREE))
 $(shell mkdir -p $(obj)board/$(VENDOR)/common)
 endif
 
-LIB	= $(obj)lib$(VENDOR).a
+LIB	= $(obj)lib$(VENDOR).o
 
-COBJS-$(CONFIG_SPEAR3XX) += padmux.o spear3xx.o
-COBJS-$(CONFIG_SPEAR310) += spear310.o
-COBJS-$(CONFIG_SPEAR320) += spear320.o
-COBJS-$(CONFIG_SPEAR320_HMI) += spear320.o
-COBJS-$(CONFIG_SPEAR3XX) += spr_misc.o
-COBJS-$(CONFIG_SPEAR600) += spr_misc.o
-COBJS-$(CONFIG_SPEAR13XX) += spr13xx_misc.o
-
-SOBJS-$(CONFIG_SPEAR3XX) += spr_lowlevel_init.o
-SOBJS-$(CONFIG_SPEAR600) += spr_lowlevel_init.o
-SOBJS-$(CONFIG_SPEAR13XX) += spr13xx_lowlevel_init.o
-
-COBJS	:= $(COBJS-y)
-SOBJS	:= $(SOBJS-y)
+ifndef CONFIG_SPL_BUILD
+COBJS	:= spr_misc.o
+SOBJS	:= spr_lowlevel_init.o
+endif
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
 SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
 $(LIB):	$(obj).depend $(OBJS) $(SOBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS) $(SOBJS)
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
+	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
 
 #########################################################################
 # This is for $(obj).depend target

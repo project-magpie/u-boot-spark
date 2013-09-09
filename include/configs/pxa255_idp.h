@@ -42,7 +42,7 @@
  * so we MUST NOT initialize critical regs like mem-timing ...
  */
 #undef CONFIG_SKIP_LOWLEVEL_INIT			/* define for developing */
-#undef CONFIG_SKIP_RELOCATE_UBOOT			/* define for developing */
+#define	CONFIG_SYS_TEXT_BASE	0x0
 
 /*
  * define the following to enable debug blinks.  A debug blink function
@@ -55,7 +55,7 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_PXA250		1	/* This is an PXA250 CPU    */
+#define CONFIG_CPU_PXA25X		1	/* This is an PXA250 CPU    */
 
 #undef CONFIG_LCD
 #ifdef CONFIG_LCD
@@ -64,18 +64,15 @@
 
 #define CONFIG_MMC		1
 #define CONFIG_DOS_PARTITION	1
-#define BOARD_LATE_INIT		1
-
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
+#define CONFIG_BOARD_LATE_INIT
 
 /* we will never enable dcache, because we have to setup MMU first */
-#define CONFIG_SYS_NO_DCACHE
+#define CONFIG_SYS_DCACHE_OFF
 
 /*
  * Size of malloc() pool
  */
 #define CONFIG_SYS_MALLOC_LEN	    (CONFIG_ENV_SIZE + 128*1024)
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 /*
  * PXA250 IDP memory map information
@@ -87,7 +84,6 @@
 /*
  * Hardware drivers
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111
 #define CONFIG_SMC91111_BASE	(PXA_CS5_PHYS + IDP_CS5_ETH_OFFSET + 0x300)
 #define CONFIG_SMC_USE_32_BIT	1
@@ -103,6 +99,7 @@
  */
 #define CONFIG_PXA_SERIAL
 #define CONFIG_FFUART	       1       /* we use FFUART on LUBBOCK */
+#define CONFIG_CONS_INDEX	3
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -224,7 +221,6 @@
  * Miscellaneous configurable options
  */
 #define CONFIG_SYS_HUSH_PARSER		1
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #define CONFIG_SYS_LONGHELP				/* undef to save memory		*/
 #ifdef CONFIG_SYS_HUSH_PARSER
@@ -248,30 +244,17 @@
 
 #define RTC	1				/* enable 32KHz osc */
 
-						/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 #ifdef CONFIG_MMC
-#define CONFIG_PXA_MMC
+#define	CONFIG_GENERIC_MMC
+#define	CONFIG_PXA_MMC_GENERIC
 #define CONFIG_CMD_MMC
 #define CONFIG_SYS_MMC_BASE		0xF0000000
 #endif
 
 /*
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128*1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4*1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4*1024)	/* FIQ stack */
-#endif
-
-/*
  * Physical Memory Map
  */
-#define CONFIG_NR_DRAM_BANKS	4	   /* we have 1 banks of DRAM */
+#define CONFIG_NR_DRAM_BANKS	1	   /* we have 1 bank of DRAM */
 #define PHYS_SDRAM_1		0xa0000000 /* SDRAM Bank #1 */
 #define PHYS_SDRAM_1_SIZE	0x04000000 /* 64 MB */
 #define PHYS_SDRAM_2		0xa4000000 /* SDRAM Bank #2 */
@@ -291,6 +274,9 @@
 #define CONFIG_SYS_DRAM_SIZE		0x04000000
 
 #define CONFIG_SYS_FLASH_BASE		PHYS_FLASH_1
+
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define	CONFIG_SYS_INIT_SP_ADDR		0xfffff800
 
 /*
  * GPIO settings
@@ -314,6 +300,9 @@
 
 #define CONFIG_SYS_PSSR_VAL		0x20
 
+#define	CONFIG_SYS_CCCR			CCCR_L27|CCCR_M2|CCCR_N10
+#define	CONFIG_SYS_CKEN			0x0
+
 /*
  * Memory settings
  */
@@ -323,6 +312,8 @@
 #define CONFIG_SYS_MDCNFG_VAL		0x090009C9
 #define CONFIG_SYS_MDREFR_VAL		0x0085C017
 #define CONFIG_SYS_MDMRS_VAL		0x00220022
+#define	CONFIG_SYS_FLYCNFG_VAL		0x00000000
+#define	CONFIG_SYS_SXCNFG_VAL		0x00000000
 
 /*
  * PCMCIA and CF Interfaces

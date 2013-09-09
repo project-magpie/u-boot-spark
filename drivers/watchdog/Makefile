@@ -23,9 +23,15 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	:= $(obj)libwatchdog.a
+LIB	:= $(obj)libwatchdog.o
 
 COBJS-$(CONFIG_AT91SAM9_WATCHDOG) += at91sam9_wdt.o
+COBJS-$(CONFIG_FTWDT010_WATCHDOG) += ftwdt010_wdt.o
+ifneq (,$(filter $(SOC), mx31 mx35 mx5 mx6))
+COBJS-y += imx_watchdog.o
+endif
+COBJS-$(CONFIG_TNETV107X_WATCHDOG) += tnetv107x_wdt.o
+COBJS-$(CONFIG_S5P)               += s5p_wdt.o
 
 COBJS	:= $(COBJS-y)
 SRCS	:= $(COBJS:.o=.c)
@@ -34,7 +40,7 @@ OBJS	:= $(addprefix $(obj),$(COBJS))
 all:	$(LIB)
 
 $(LIB):	$(obj).depend $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004,2009 Freescale Semiconductor, Inc.
+ * Copyright 2004,2009-2011 Freescale Semiconductor, Inc.
  * Jeff Brown
  * Srikanth Srinivasan (srikanth.srinivasan@freescale.com)
  *
@@ -31,9 +31,10 @@
 #include <mpc86xx.h>
 #include <asm/mmu.h>
 #include <asm/fsl_law.h>
+#include <asm/fsl_serdes.h>
 #include <asm/mp.h>
 
-void setup_bats(void);
+extern void srio_init(void);
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -76,37 +77,17 @@ void cpu_init_f(void)
  */
 int cpu_init_r(void)
 {
+	/* needs to be in ram since code uses global static vars */
+	fsl_serdes_init();
+
+#ifdef CONFIG_SYS_SRIO
+	srio_init();
+#endif
+
 #if defined(CONFIG_MP)
 	setup_mp();
 #endif
 	return 0;
-}
-
-/* Set up BAT registers */
-void setup_bats(void)
-{
-#if defined(CONFIG_SYS_DBAT0U) && defined(CONFIG_SYS_DBAT0L)
-	write_bat(DBAT0, CONFIG_SYS_DBAT0U, CONFIG_SYS_DBAT0L);
-#endif
-#if defined(CONFIG_SYS_IBAT0U) && defined(CONFIG_SYS_IBAT0L)
-	write_bat(IBAT0, CONFIG_SYS_IBAT0U, CONFIG_SYS_IBAT0L);
-#endif
-	write_bat(DBAT1, CONFIG_SYS_DBAT1U, CONFIG_SYS_DBAT1L);
-	write_bat(IBAT1, CONFIG_SYS_IBAT1U, CONFIG_SYS_IBAT1L);
-	write_bat(DBAT2, CONFIG_SYS_DBAT2U, CONFIG_SYS_DBAT2L);
-	write_bat(IBAT2, CONFIG_SYS_IBAT2U, CONFIG_SYS_IBAT2L);
-	write_bat(DBAT3, CONFIG_SYS_DBAT3U, CONFIG_SYS_DBAT3L);
-	write_bat(IBAT3, CONFIG_SYS_IBAT3U, CONFIG_SYS_IBAT3L);
-	write_bat(DBAT4, CONFIG_SYS_DBAT4U, CONFIG_SYS_DBAT4L);
-	write_bat(IBAT4, CONFIG_SYS_IBAT4U, CONFIG_SYS_IBAT4L);
-	write_bat(DBAT5, CONFIG_SYS_DBAT5U, CONFIG_SYS_DBAT5L);
-	write_bat(IBAT5, CONFIG_SYS_IBAT5U, CONFIG_SYS_IBAT5L);
-	write_bat(DBAT6, CONFIG_SYS_DBAT6U, CONFIG_SYS_DBAT6L);
-	write_bat(IBAT6, CONFIG_SYS_IBAT6U, CONFIG_SYS_IBAT6L);
-	write_bat(DBAT7, CONFIG_SYS_DBAT7U, CONFIG_SYS_DBAT7L);
-	write_bat(IBAT7, CONFIG_SYS_IBAT7U, CONFIG_SYS_IBAT7L);
-
-	return;
 }
 
 #ifdef CONFIG_ADDR_MAP

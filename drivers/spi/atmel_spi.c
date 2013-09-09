@@ -26,7 +26,7 @@
 #include <asm/io.h>
 
 #include <asm/arch/clk.h>
-#include <asm/arch/memory-map.h>
+#include <asm/arch/hardware.h>
 
 #include "atmel_spi.h"
 
@@ -48,21 +48,21 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 
 	switch (bus) {
 	case 0:
-		regs = (void *)SPI0_BASE;
+		regs = (void *)ATMEL_BASE_SPI0;
 		break;
-#ifdef SPI1_BASE
+#ifdef ATMEL_BASE_SPI1
 	case 1:
-		regs = (void *)SPI1_BASE;
+		regs = (void *)ATMEL_BASE_SPI1;
 		break;
 #endif
-#ifdef SPI2_BASE
+#ifdef ATMEL_BASE_SPI2
 	case 2:
-		regs = (void *)SPI2_BASE;
+		regs = (void *)ATMEL_BASE_SPI2;
 		break;
 #endif
-#ifdef SPI3_BASE
+#ifdef ATMEL_BASE_SPI3
 	case 3:
-		regs = (void *)SPI3_BASE;
+		regs = (void *)ATMEL_BASE_SPI3;
 		break;
 #endif
 	default:
@@ -92,6 +92,9 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 	as->slave.cs = cs;
 	as->regs = regs;
 	as->mr = ATMEL_SPI_MR_MSTR | ATMEL_SPI_MR_MODFDIS
+#if defined(CONFIG_AT91SAM9X5) || defined(CONFIG_AT91SAM9M10G45)
+			| ATMEL_SPI_MR_WDRBT
+#endif
 			| ATMEL_SPI_MR_PCS(~(1 << cs) & 0xf);
 	spi_writel(as, CSR(cs), csrx);
 
@@ -136,13 +139,11 @@ int spi_xfer(struct spi_slave *slave, unsigned int bitlen,
 	unsigned int	len_tx;
 	unsigned int	len_rx;
 	unsigned int	len;
-	int		ret;
 	u32		status;
 	const u8	*txp = dout;
 	u8		*rxp = din;
 	u8		value;
 
-	ret = 0;
 	if (bitlen == 0)
 		/* Finish any previously submitted transfers */
 		goto out;

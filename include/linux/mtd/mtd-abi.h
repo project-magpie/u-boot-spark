@@ -8,8 +8,10 @@
 #define __MTD_ABI_H__
 
 #if 1
-#include <linux/mtd/compat.h>
+#include <linux/compat.h>
 #endif
+
+#include <linux/compiler.h>
 
 struct erase_info_user {
 	uint32_t start;
@@ -100,15 +102,16 @@ struct otp_info {
 #define ECCGETSTATS		_IOR('M', 18, struct mtd_ecc_stats)
 #define MTDFILEMODE		_IO('M', 19)
 
-/* This constant declares the max. oobsize / page, which
+/*
+ * This constant declares the max. oobsize / page, which
  * is supported now. If you add a chip with bigger oobsize/page
  * adjust this accordingly.
  * max oobfree is the max. number of "free" regions/areas
  * in the OOB area.
  */
 #define NAND_MAX_OOBFREE	16	/* 16 regions for STMicroelectronics SoCs */
-#define NAND_MAX_OOBSIZE	224	/* for some 4KiB (VLP) devices */
-#define NAND_MAX_PAGESIZE	4096	/* 4KiB, for Very Large Page (VLP) devices */
+#define NAND_MAX_OOBSIZE	576	/* for some 8KiB (VVLP) devices */
+#define NAND_MAX_PAGESIZE	8192	/* 8KiB, for Very Very Large Page (VVLP) devices */
 
 
 /*

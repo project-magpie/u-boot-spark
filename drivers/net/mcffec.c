@@ -95,7 +95,6 @@ struct fec_info_s fec_info[] = {
 #endif
 };
 
-int fec_send(struct eth_device *dev, volatile void *packet, int length);
 int fec_recv(struct eth_device *dev);
 int fec_init(struct eth_device *dev, bd_t * bd);
 void fec_halt(struct eth_device *dev);
@@ -134,14 +133,14 @@ void setFecDuplexSpeed(volatile fec_t * fecp, bd_t * bd, int dup_spd)
 	}
 }
 
-int fec_send(struct eth_device *dev, volatile void *packet, int length)
+static int fec_send(struct eth_device *dev, void *packet, int length)
 {
 	struct fec_info_s *info = dev->priv;
 	volatile fec_t *fecp = (fec_t *) (info->iobase);
 	int j, rc;
 	u16 phyStatus;
 
-	miiphy_read(dev->name, info->phy_addr, PHY_BMSR, &phyStatus);
+	miiphy_read(dev->name, info->phy_addr, MII_BMSR, &phyStatus);
 
 	/* section 16.9.23.3
 	 * Wait for ready

@@ -38,6 +38,8 @@
 /*#define CONFIG_APTIX           1    #* define if on APTIX test chip */
 /*#define CONFIG_VIRTIO          1    #* Using Virtio simulator */
 
+#define CONFIG_STANDALONE_LOAD_ADDR	0x80300000
+
 /* Clock config to target*/
 #define PRCM_CONFIG_II	1
 /* #define PRCM_CONFIG_III		1 */
@@ -59,7 +61,6 @@
 /* the OMAP2420 H4 has 12MHz, 13MHz, or 19.2Mhz crystal input */
 #define CONFIG_SYS_CLK_FREQ      V_SCLK
 
-#undef CONFIG_USE_IRQ                 /* no support for IRQs */
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_CMDLINE_TAG       1    /* enable passing of ATAGs */
@@ -72,7 +73,6 @@
  */
 #define CONFIG_ENV_SIZE             SZ_128K     /* Total Size of Environment Sector */
 #define CONFIG_SYS_MALLOC_LEN           (CONFIG_ENV_SIZE + SZ_128K)
-#define CONFIG_SYS_GBL_DATA_SIZE        128  /* size in bytes reserved for initial data */
 
 /*
  * Hardware drivers
@@ -81,7 +81,6 @@
 /*
  * SMC91c96 Etherent
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_LAN91C96
 #define CONFIG_LAN91C96_BASE     (H4_CS1_BASE+0x300)
 #define CONFIG_LAN91C96_EXT_PHY
@@ -118,8 +117,6 @@
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_CONS_INDEX        1
 #define CONFIG_BAUDRATE          115200
-#define CONFIG_SYS_BAUDRATE_TABLE       {9600, 19200, 38400, 57600, 115200}
-
 
 /*
  * Command line configuration.
@@ -195,17 +192,6 @@
 #define CONFIG_SYS_HZ			((CONFIG_SYS_CLK_FREQ)/(2 << CONFIG_SYS_PTV))
 
 /*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE         SZ_128K /* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ     SZ_4K   /* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ     SZ_4K   /* FIQ stack */
-#endif
-
-/*-----------------------------------------------------------------------
  * Physical Memory Map
  */
 #define CONFIG_NR_DRAM_BANKS     2                 /* CS1 may or may not be populated */
@@ -219,6 +205,7 @@
 #define PHYS_FLASH_2             (H4_CS0_BASE+SZ_32M) /* same cs, 2 chips in series */
 #define PHYS_FLASH_SIZE_2        SZ_32M
 
+#define PHYS_SRAM		0x4020F800
 /*-----------------------------------------------------------------------
  * FLASH and environment organization
  */
@@ -269,5 +256,8 @@
 #define MTDIDS_DEFAULT		"nor1=omap2420-1"
 #define MTDPARTS_DEFAULT	"mtdparts=omap2420-1:-(jffs2)"
 */
+
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_SP_ADDR 	PHYS_SRAM
 
 #endif							/* __CONFIG_H */

@@ -30,13 +30,14 @@
  */
 
 #include <common.h>
+#include <linux/compiler.h>
 #include <asm/io.h>
 #include <asm/processor.h>
 #include <serial.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_PSC_CONSOLE) || defined(CONFIG_SERIAL_MULTI)
+#if defined(CONFIG_PSC_CONSOLE)
 
 static void fifo_init (volatile psc512x_t *psc)
 {
@@ -51,7 +52,6 @@ static void fifo_init (volatile psc512x_t *psc)
 	out_be32(&psc->rfintmask, 0);
 	out_be32(&psc->tfintmask, 0);
 
-#if defined(CONFIG_SERIAL_MULTI)
 	switch (((u32)psc & 0xf00) >> 8) {
 	case 0:
 		tfsize = FIFOC_PSC0_TX_SIZE | (FIFOC_PSC0_TX_ADDR << 16);
@@ -104,10 +104,7 @@ static void fifo_init (volatile psc512x_t *psc)
 	default:
 		return;
 	}
-#else
-	tfsize = CONSOLE_FIFO_TX_SIZE | (CONSOLE_FIFO_TX_ADDR << 16);
-	rfsize = CONSOLE_FIFO_RX_SIZE | (CONSOLE_FIFO_RX_ADDR << 16);
-#endif
+
 	out_be32(&psc->tfsize, tfsize);
 	out_be32(&psc->rfsize, rfsize);
 
@@ -139,7 +136,7 @@ void serial_setbrg_dev(unsigned int idx)
 		if (br_env)
 			baudrate = simple_strtoul(br_env, NULL, 10);
 
-		debug("%s: idx %d, baudrate %d\n", __func__, idx, baudrate);
+		debug("%s: idx %d, baudrate %ld\n", __func__, idx, baudrate);
 	}
 
 	/* calculate divisor for setting PSC CTUR and CTLR registers */
@@ -154,12 +151,10 @@ int serial_init_dev(unsigned int idx)
 {
 	volatile immap_t *im = (immap_t *) CONFIG_SYS_IMMR;
 	volatile psc512x_t *psc = (psc512x_t *) &im->psc[idx];
-#if defined(CONFIG_SERIAL_MULTI)
 	u32 reg;
 
 	reg = in_be32(&im->clk.sccr[0]);
 	out_be32(&im->clk.sccr[0], reg | CLOCK_SCCR1_PSC_EN(idx));
-#endif
 
 	fifo_init (psc);
 
@@ -284,9 +279,7 @@ int serial_getcts_dev(unsigned int idx)
 
 	return (in_8(&psc->ip) & 0x1) ? 0 : 1;
 }
-#endif /* CONFIG_PSC_CONSOLE || CONFIG_SERIAL_MULTI */
-
-#if defined(CONFIG_SERIAL_MULTI)
+#endif /* CONFIG_PSC_CONSOLE */
 
 #define DECLARE_PSC_SERIAL_FUNCTIONS(port) \
 	int serial##port##_init(void) \
@@ -318,91 +311,68 @@ int serial_getcts_dev(unsigned int idx)
 		serial_puts_dev(port, s); \
 	}
 
-#define INIT_PSC_SERIAL_STRUCTURE(port, name, bus) { \
-	name, \
-	bus, \
-	serial##port##_init, \
-	serial##port##_uninit, \
-	serial##port##_setbrg, \
-	serial##port##_getc, \
-	serial##port##_tstc, \
-	serial##port##_putc, \
-	serial##port##_puts, \
+#define INIT_PSC_SERIAL_STRUCTURE(port, __name) {	\
+	.name	= __name,				\
+	.start	= serial##port##_init,			\
+	.stop	= serial##port##_uninit,		\
+	.setbrg	= serial##port##_setbrg,		\
+	.getc	= serial##port##_getc,			\
+	.tstc	= serial##port##_tstc,			\
+	.putc	= serial##port##_putc,			\
+	.puts	= serial##port##_puts,			\
 }
 
 #if defined(CONFIG_SYS_PSC1)
 DECLARE_PSC_SERIAL_FUNCTIONS(1);
 struct serial_device serial1_device =
-INIT_PSC_SERIAL_STRUCTURE(1, "psc1", "UART1");
+INIT_PSC_SERIAL_STRUCTURE(1, "psc1");
 #endif
 
 #if defined(CONFIG_SYS_PSC3)
 DECLARE_PSC_SERIAL_FUNCTIONS(3);
 struct serial_device serial3_device =
-INIT_PSC_SERIAL_STRUCTURE(3, "psc3", "UART3");
+INIT_PSC_SERIAL_STRUCTURE(3, "psc3");
 #endif
 
 #if defined(CONFIG_SYS_PSC4)
 DECLARE_PSC_SERIAL_FUNCTIONS(4);
 struct serial_device serial4_device =
-INIT_PSC_SERIAL_STRUCTURE(4, "psc4", "UART4");
+INIT_PSC_SERIAL_STRUCTURE(4, "psc4");
 #endif
 
 #if defined(CONFIG_SYS_PSC6)
 DECLARE_PSC_SERIAL_FUNCTIONS(6);
 struct serial_device serial6_device =
-INIT_PSC_SERIAL_STRUCTURE(6, "psc6", "UART6");
+INIT_PSC_SERIAL_STRUCTURE(6, "psc6");
 #endif
 
+__weak struct serial_device *default_serial_console(void)
+{
+#if (CONFIG_PSC_CONSOLE == 3)
+	return &serial3_device;
+#elif (CONFIG_PSC_CONSOLE == 6)
+	return &serial6_device;
 #else
-
-void serial_setbrg(void)
-{
-	serial_setbrg_dev(CONFIG_PSC_CONSOLE);
+#error "invalid CONFIG_PSC_CONSOLE"
+#endif
 }
 
-int serial_init(void)
+void mpc512x_serial_initialize(void)
 {
-	return serial_init_dev(CONFIG_PSC_CONSOLE);
+#if defined(CONFIG_SYS_PSC1)
+	serial_register(&serial1_device);
+#endif
+#if defined(CONFIG_SYS_PSC3)
+	serial_register(&serial3_device);
+#endif
+#if defined(CONFIG_SYS_PSC4)
+	serial_register(&serial4_device);
+#endif
+#if defined(CONFIG_SYS_PSC6)
+	serial_register(&serial6_device);
+#endif
 }
 
-void serial_putc(const char c)
-{
-	serial_putc_dev(CONFIG_PSC_CONSOLE, c);
-}
-
-void serial_putc_raw(const char c)
-{
-	serial_putc_raw_dev(CONFIG_PSC_CONSOLE, c);
-}
-
-void serial_puts(const char *s)
-{
-	serial_puts_dev(CONFIG_PSC_CONSOLE, s);
-}
-
-int serial_getc(void)
-{
-	return serial_getc_dev(CONFIG_PSC_CONSOLE);
-}
-
-int serial_tstc(void)
-{
-	return serial_tstc_dev(CONFIG_PSC_CONSOLE);
-}
-
-void serial_setrts(int s)
-{
-	return serial_setrts_dev(CONFIG_PSC_CONSOLE, s);
-}
-
-int serial_getcts(void)
-{
-	return serial_getcts_dev(CONFIG_PSC_CONSOLE);
-}
-#endif /* CONFIG_PSC_CONSOLE */
-
-#if defined(CONFIG_SERIAL_MULTI)
 #include <stdio_dev.h>
 /*
  * Routines for communication with serial devices over PSC
@@ -487,4 +457,3 @@ int read_port(struct stdio_dev *port, char *buf, int size)
 
 	return cnt;
 }
-#endif /* CONFIG_SERIAL_MULTI */

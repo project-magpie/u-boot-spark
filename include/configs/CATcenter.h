@@ -75,6 +75,9 @@
 #define CONFIG_4xx		1	/* ...member of PPC4xx family	*/
 #define CONFIG_PPCHAMELEONEVB	1	/* ...on a PPChameleonEVB board */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFFB0000	/* Reserve 320 kB for Monitor */
+#define CONFIG_SYS_LDSCRIPT	"board/dave/PPChameleonEVB/u-boot.lds"
+
 #define CONFIG_BOARD_EARLY_INIT_F 1	/* call board_early_init_f()	*/
 #define CONFIG_MISC_INIT_R	1	/* call misc_init_r()		*/
 
@@ -86,7 +89,11 @@
 # error "* External frequency (SysClk) not defined! *"
 #endif
 
-#define CONFIG_UART1_CONSOLE	1	/* Use second UART		*/
+#define CONFIG_CONS_INDEX	2	/* Use UART1			*/
+#define CONFIG_SYS_NS16550
+#define CONFIG_SYS_NS16550_SERIAL
+#define CONFIG_SYS_NS16550_REG_SIZE	1
+#define CONFIG_SYS_NS16550_CLK		get_serial_clock()
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_BOOTDELAY	5	/* autoboot after 5 seconds	*/
 
@@ -107,7 +114,6 @@
 
 #define CONFIG_PPC4xx_EMAC
 #undef CONFIG_EXT_PHY
-#define CONFIG_NET_MULTI	1
 
 #define CONFIG_MII		1	/* MII PHY management		*/
 #ifndef	 CONFIG_EXT_PHY
@@ -164,9 +170,6 @@
 #define CONFIG_SYS_PROMPT		"=> "	/* Monitor Command Prompt	*/
 
 #define	CONFIG_SYS_HUSH_PARSER			/* use "hush" command parser	*/
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#endif
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size	*/
@@ -508,10 +511,9 @@
 #define CONFIG_SYS_OCM_DATA_ADDR	0xF8000000
 #define CONFIG_SYS_OCM_DATA_SIZE	0x1000
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_OCM_DATA_ADDR /* inside of SDRAM		*/
-#define CONFIG_SYS_INIT_RAM_END	CONFIG_SYS_OCM_DATA_SIZE /* End of used area in RAM	*/
+#define CONFIG_SYS_INIT_RAM_SIZE	CONFIG_SYS_OCM_DATA_SIZE /* Size of used area in RAM	*/
 
-#define CONFIG_SYS_GBL_DATA_SIZE      128  /* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -527,23 +529,14 @@
  * GPIO0[30]	- EMAC0 input
  * GPIO0[31]	- EMAC1 reject packet as output
  */
-#define CONFIG_SYS_GPIO0_OSRH		0x40000550
-#define CONFIG_SYS_GPIO0_OSRL		0x00000110
-#define CONFIG_SYS_GPIO0_ISR1H		0x00000000
-/*#define CONFIG_SYS_GPIO0_ISR1L	0x15555445*/
-#define CONFIG_SYS_GPIO0_ISR1L		0x15555444
-#define CONFIG_SYS_GPIO0_TSRH		0x00000000
+#define CONFIG_SYS_GPIO0_OSRL		0x40000550
+#define CONFIG_SYS_GPIO0_OSRH		0x00000110
+#define CONFIG_SYS_GPIO0_ISR1L		0x00000000
+/*#define CONFIG_SYS_GPIO0_ISR1H	0x15555445*/
+#define CONFIG_SYS_GPIO0_ISR1H		0x15555444
 #define CONFIG_SYS_GPIO0_TSRL		0x00000000
+#define CONFIG_SYS_GPIO0_TSRH		0x00000000
 #define CONFIG_SYS_GPIO0_TCR		0xF7FF8014
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
-
 
 #define CONFIG_NO_SERIAL_EEPROM
 

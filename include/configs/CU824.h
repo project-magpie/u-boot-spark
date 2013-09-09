@@ -45,10 +45,10 @@
 #define CONFIG_MPC8240		1
 #define CONFIG_CU824		1
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
 
 #define CONFIG_CONS_INDEX	1
 #define CONFIG_BAUDRATE		9600
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define CONFIG_PREBOOT	"echo;echo Type \\\"run flash_nfs\\\" to mount root filesystem over NFS;echo"
 
@@ -90,9 +90,6 @@
 #if 1
 #define	CONFIG_SYS_HUSH_PARSER		1	/* use "hush" command parser	*/
 #endif
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#endif
 
 /* Print Buffer Size
  */
@@ -114,7 +111,7 @@
 
 #define CONFIG_SYS_EUMB_ADDR	    0xFCE00000
 
-#define CONFIG_SYS_MONITOR_BASE    TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE    CONFIG_SYS_TEXT_BASE
 
 #define CONFIG_SYS_MONITOR_LEN	    (256 << 10) /* Reserve 256 kB for Monitor	*/
 #define CONFIG_SYS_MALLOC_LEN	    (128 << 10) /* Reserve 128 kB for malloc()	*/
@@ -138,13 +135,9 @@
  * Definitions for initial stack pointer and data area
  */
 
-	/* Size in bytes reserved for initial data
-	 */
-#define CONFIG_SYS_GBL_DATA_SIZE    128
-
 #define CONFIG_SYS_INIT_RAM_ADDR     0x40000000
-#define CONFIG_SYS_INIT_RAM_END      0x1000
-#define CONFIG_SYS_GBL_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE      0x1000
+#define CONFIG_SYS_GBL_DATA_OFFSET  (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 
 /*
  * NS16550 Configuration
@@ -290,14 +283,6 @@
 #  define CONFIG_SYS_CACHELINE_SHIFT	5	/* log base 2 of the above value	*/
 #endif
 
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM		0x02	/* Software reboot			*/
-
 /*-----------------------------------------------------------------------
  * PCI stuff
  *-----------------------------------------------------------------------
@@ -305,7 +290,6 @@
 #define CONFIG_PCI			/* include pci support			*/
 #undef CONFIG_PCI_PNP
 
-#define CONFIG_NET_MULTI		/* Multi ethernet cards support		*/
 
 #define CONFIG_TULIP
 #define CONFIG_TULIP_USE_IO

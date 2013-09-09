@@ -178,8 +178,6 @@ static void smc_phy_configure(struct eth_device *dev);
  * inx,outx functions fixed this problem.
  */
 
-#define barrier() __asm__ __volatile__("": : :"memory")
-
 static inline word SMC_inw(struct eth_device *dev, dword offset)
 {
 	word v;
@@ -426,8 +424,7 @@ static void smc_halt(struct eth_device *dev)
  .	Enable the transmit interrupt, so I know if it failed
  .	Free the kernel data if I actually sent it.
 */
-static int smc_send(struct eth_device *dev, volatile void *packet,
-	int packet_length)
+static int smc_send(struct eth_device *dev, void *packet, int packet_length)
 {
 	byte packet_no;
 	byte *buf;
@@ -654,6 +651,28 @@ again:
 	return length;
 }
 
+static int smc_write_hwaddr(struct eth_device *dev)
+{
+	int i;
+
+	swap_to(ETHERNET);
+	SMC_SELECT_BANK (dev, 1);
+#ifdef USE_32_BIT
+	for (i = 0; i < 6; i += 2) {
+		word address;
+
+		address = dev->enetaddr[i + 1] << 8;
+		address |= dev->enetaddr[i];
+		SMC_outw(dev, address, (ADDR0_REG + i));
+	}
+#else
+	for (i = 0; i < 6; i++)
+		SMC_outb(dev, dev->enetaddr[i], (ADDR0_REG + i));
+#endif
+	swap_to(FLASH);
+	return 0;
+}
+
 /*
  * Open and Initialize the board
  *
@@ -662,8 +681,6 @@ again:
  */
 static int smc_init(struct eth_device *dev, bd_t *bd)
 {
-	int i;
-
 	swap_to(ETHERNET);
 
 	PRINTK2 ("%s: smc_init\n", SMC_DEV_NAME);
@@ -680,20 +697,6 @@ static int smc_init(struct eth_device *dev, bd_t *bd)
 	/* conservative setting (10Mbps, HalfDuplex, no AutoNeg.) */
 /*	SMC_SELECT_BANK(dev, 0); */
 /*	SMC_outw(dev, 0, RPC_REG); */
-	SMC_SELECT_BANK (dev, 1);
-
-#ifdef USE_32_BIT
-	for (i = 0; i < 6; i += 2) {
-		word address;
-
-		address = dev->enetaddr[i + 1] << 8;
-		address |= dev->enetaddr[i];
-		SMC_outw(dev, address, (ADDR0_REG + i));
-	}
-#else
-	for (i = 0; i < 6; i++)
-		SMC_outb(dev, dev->enetaddr[i], (ADDR0_REG + i));
-#endif
 
 	printf(SMC_DEV_NAME ": MAC %pM\n", dev->enetaddr);
 
@@ -1163,17 +1166,6 @@ static void smc_write_phy_register (struct eth_device *dev, byte phyreg,
 
 
 /*------------------------------------------------------------
- . Waits the specified number of milliseconds - kernel friendly
- .-------------------------------------------------------------*/
-#ifndef CONFIG_SMC91111_EXT_PHY
-static void smc_wait_ms(unsigned int ms)
-{
-	udelay(ms*1000);
-}
-#endif /* !CONFIG_SMC91111_EXT_PHY */
-
-
-/*------------------------------------------------------------
  . Configures the specified PHY using Autonegotiation. Calls
  . smc_phy_fixed() if the user has requested a certain config.
  .-------------------------------------------------------------*/
@@ -1181,17 +1173,11 @@ static void smc_wait_ms(unsigned int ms)
 static void smc_phy_configure (struct eth_device *dev)
 {
 	int timeout;
-	byte phyaddr;
 	word my_phy_caps;	/* My PHY capabilities */
 	word my_ad_caps;	/* My Advertised capabilities */
 	word status = 0;	/*;my status = 0 */
-	int failed = 0;
 
 	PRINTK3 ("%s: smc_program_phy()\n", SMC_DEV_NAME);
-
-
-	/* Get the detected phy address */
-	phyaddr = SMC_PHY_ADDR;
 
 	/* Reset the PHY, setting all other bits to zero */
 	smc_write_phy_register (dev, PHY_CNTL_REG, PHY_CNTL_RST);
@@ -1205,7 +1191,7 @@ static void smc_phy_configure (struct eth_device *dev)
 			break;
 		}
 
-		smc_wait_ms (500);	/* wait 500 millisecs */
+		mdelay(500);	/* wait 500 millisecs */
 	}
 
 	if (timeout < 1) {
@@ -1270,7 +1256,7 @@ static void smc_phy_configure (struct eth_device *dev)
 			break;
 		}
 
-		smc_wait_ms (500);	/* wait 500 millisecs */
+		mdelay(500);	/* wait 500 millisecs */
 
 		/* Restart auto-negotiation if remote fault */
 		if (status & PHY_STAT_REM_FLT) {
@@ -1290,13 +1276,11 @@ static void smc_phy_configure (struct eth_device *dev)
 
 	if (timeout < 1) {
 		printf ("%s: PHY auto-negotiate timed out\n", SMC_DEV_NAME);
-		failed = 1;
 	}
 
 	/* Fail if we detected an auto-negotiate remote fault */
 	if (status & PHY_STAT_REM_FLT) {
 		printf ("%s: PHY remote fault detected\n", SMC_DEV_NAME);
-		failed = 1;
 	}
 
 	/* Re-Configure the Receive/Phy Control register */
@@ -1360,6 +1344,7 @@ int smc91111_initialize(u8 dev_num, int base_addr)
 		return 0;
 	}
 
+	memset(dev, 0, sizeof(*dev));
 	priv->dev_num = dev_num;
 	dev->priv = priv;
 	dev->iobase = base_addr;
@@ -1374,6 +1359,7 @@ int smc91111_initialize(u8 dev_num, int base_addr)
 	dev->halt = smc_halt;
 	dev->send = smc_send;
 	dev->recv = smc_rcv;
+	dev->write_hwaddr = smc_write_hwaddr;
 	sprintf(dev->name, "%s-%hu", SMC_DEV_NAME, dev_num);
 
 	eth_register(dev);

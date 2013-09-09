@@ -44,6 +44,8 @@
  * (easy to change)
  */
 
+#define	CONFIG_SYS_TEXT_BASE	0x40000000
+
 #define CONFIG_MPC8260		1	/* This is a MPC8260 CPU		*/
 
 #if 0
@@ -179,7 +181,7 @@
  *  - RX clk is CLK11
  *  - TX clk is CLK12
  */
-# define CONFIG_SYS_CMXSCR_VALUE	(CMXSCR_RS1CS_CLK11 | CMXSCR_TS1CS_CLK12)
+# define CONFIG_SYS_CMXSCR_VALUE1	(CMXSCR_RS1CS_CLK11 | CMXSCR_TS1CS_CLK12)
 
 #elif defined(CONFIG_ETHER_ON_FCC) && (CONFIG_ETHER_INDEX == 2)
 
@@ -189,8 +191,8 @@
  * - RAM for BD/Buffers is on the 60x Bus (see 28-13)
  * - Enable Full Duplex in FSMR
  */
-# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC2|CMXFCR_RF2CS_MSK|CMXFCR_TF2CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF2CS_CLK13|CMXFCR_TF2CS_CLK14)
+# define CONFIG_SYS_CMXFCR_MASK2	(CMXFCR_FC2|CMXFCR_RF2CS_MSK|CMXFCR_TF2CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE2	(CMXFCR_RF2CS_CLK13|CMXFCR_TF2CS_CLK14)
 # define CONFIG_SYS_CPMFCR_RAMTYPE	0
 # define CONFIG_SYS_FCC_PSMR		(FCC_PSMR_FDE|FCC_PSMR_LPB)
 
@@ -246,9 +248,6 @@
 
 #define CONFIG_CMDLINE_EDITING	1	/* add command line history	*/
 #define CONFIG_SYS_HUSH_PARSER		1	/* Use the HUSH parser		*/
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#endif
 
 #if defined(CONFIG_CMD_KGDB)
 #define	CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size	*/
@@ -266,8 +265,6 @@
 
 #define	CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks	*/
 
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 #define	CONFIG_SYS_RESET_ADDRESS 0xFFFFFFFC	/* "bad" address		*/
 
 /*
@@ -279,7 +276,7 @@
 
 
 /* What should the base address of the main FLASH be and how big is
- * it (in MBytes)? This must contain TEXT_BASE from board/tqm8260/config.mk
+ * it (in MBytes)? This must contain CONFIG_SYS_TEXT_BASE from board/tqm8260/config.mk
  * The main FLASH is whichever is connected to *CS0.
  */
 #define CONFIG_SYS_FLASH0_BASE 0x40000000
@@ -360,9 +357,8 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_END	0x4000  /* End of used area in DPRAM    */
-#define CONFIG_SYS_GBL_DATA_SIZE	128 /* size in bytes reserved for initial data*/
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x4000  /* Size of used area in DPRAM    */
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -375,18 +371,9 @@
  */
 #define CONFIG_SYS_SDRAM_BASE		0x00000000
 #define CONFIG_SYS_FLASH_BASE		CONFIG_SYS_FLASH0_BASE
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 256 kB for Monitor */
 #define CONFIG_SYS_MALLOC_LEN		(512 << 10)	/* Reserve 512 kB for malloc()*/
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH*/
-#define BOOTFLAG_WARM		0x02	/* Software reboot                 */
-
 
 /*-----------------------------------------------------------------------
  * Cache Configuration

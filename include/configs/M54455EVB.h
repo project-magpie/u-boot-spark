@@ -41,7 +41,6 @@
 #define CONFIG_MCFUART
 #define CONFIG_SYS_UART_PORT		(0)
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600 , 19200 , 38400 , 57600, 115200 }
 
 #undef CONFIG_WATCHDOG
 
@@ -85,7 +84,6 @@
 /* Network configuration */
 #define CONFIG_MCFFEC
 #ifdef CONFIG_MCFFEC
-#	define CONFIG_NET_MULTI		1
 #	define CONFIG_MII		1
 #	define CONFIG_MII_INIT		1
 #	define CONFIG_SYS_DISCOVER_PHY
@@ -127,14 +125,14 @@
 #define	CONFIG_SYS_LOAD_ADDR2		0x40010013
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	"netdev=eth0\0"				\
-	"inpclk=" MK_STR(CONFIG_SYS_INPUT_CLKSRC) "\0"	\
+	"inpclk=" __stringify(CONFIG_SYS_INPUT_CLKSRC) "\0"	\
 	"loadaddr=0x40010000\0"			\
 	"sbfhdr=sbfhdr.bin\0"			\
 	"uboot=u-boot.bin\0"			\
 	"load=tftp ${loadaddr} ${sbfhdr};"	\
-	"tftp " MK_STR(CONFIG_SYS_LOAD_ADDR2) " ${uboot} \0"	\
+	"tftp " __stringify(CONFIG_SYS_LOAD_ADDR2) " ${uboot} \0"	\
 	"upd=run load; run prog\0"		\
-	"prog=sf probe 0:1 10000 1;"		\
+	"prog=sf probe 0:1 1000000 3;"		\
 	"sf erase 0 30000;"			\
 	"sf write ${loadaddr} 0 0x30000;"	\
 	"save\0"				\
@@ -148,16 +146,16 @@
 #endif
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	"netdev=eth0\0"				\
-	"inpclk=" MK_STR(CONFIG_SYS_INPUT_CLKSRC) "\0"	\
+	"inpclk=" __stringify(CONFIG_SYS_INPUT_CLKSRC) "\0"	\
 	"loadaddr=0x40010000\0"			\
 	"uboot=u-boot.bin\0"			\
 	"load=tftp ${loadaddr} ${uboot}\0"	\
 	"upd=run load; run prog\0"		\
-	"prog=prot off " MK_STR(CONFIG_SYS_FLASH_BASE)	\
-	" " MK_STR(CONFIG_SYS_UBOOT_END) ";"		\
-	"era " MK_STR(CONFIG_SYS_FLASH_BASE) " "	\
-	MK_STR(CONFIG_SYS_UBOOT_END) ";"		\
-	"cp.b ${loadaddr} " MK_STR(CONFIG_SYS_FLASH_BASE)	\
+	"prog=prot off " __stringify(CONFIG_SYS_FLASH_BASE)	\
+	" " __stringify(CONFIG_SYS_UBOOT_END) ";"		\
+	"era " __stringify(CONFIG_SYS_FLASH_BASE) " "		\
+	__stringify(CONFIG_SYS_UBOOT_END) ";"			\
+	"cp.b ${loadaddr} " __stringify(CONFIG_SYS_FLASH_BASE)	\
 	" ${filesize}; save\0"			\
 	""
 #endif
@@ -279,12 +277,11 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	0x80000000
-#define CONFIG_SYS_INIT_RAM_END		0x8000	/* End of used area in internal SRAM */
+#define CONFIG_SYS_INIT_RAM_SIZE		0x8000	/* Size of used area in internal SRAM */
 #define CONFIG_SYS_INIT_RAM_CTRL	0x221
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	((CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE) - 32)
+#define CONFIG_SYS_GBL_DATA_OFFSET	((CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE) - 32)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
-#define CONFIG_SYS_SBFHDR_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - 32)
+#define CONFIG_SYS_SBFHDR_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - 32)
 
 /*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
@@ -305,13 +302,16 @@
 #define CONFIG_SYS_MEMTEST_END		((CONFIG_SYS_SDRAM_SIZE - 3) << 20)
 
 #ifdef CONFIG_CF_SBF
-#	define CONFIG_SYS_MONITOR_BASE	(TEXT_BASE + 0x400)
+#	define CONFIG_SERIAL_BOOT
+#	define CONFIG_SYS_MONITOR_BASE	(CONFIG_SYS_TEXT_BASE + 0x400)
 #else
 #	define CONFIG_SYS_MONITOR_BASE	(CONFIG_SYS_FLASH_BASE + 0x400)
 #endif
 #define CONFIG_SYS_BOOTPARAMS_LEN	64*1024
 #define CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 256 kB for Monitor */
-#define CONFIG_SYS_MALLOC_LEN		(128 << 10)	/* Reserve 128 kB for malloc() */
+
+/* Reserve 256 kB for malloc() */
+#define CONFIG_SYS_MALLOC_LEN		(256 << 10)
 
 /*
  * For booting Linux, the board info and command line data
@@ -323,7 +323,8 @@
 
 /*
  * Configuration for environment
- * Environment is embedded in u-boot in the second sector of the flash
+ * Environment is not embedded in u-boot. First time runing may have env
+ * crc error warning if there is no correct environment on the flash.
  */
 #ifdef CONFIG_CF_SBF
 #	define CONFIG_ENV_IS_IN_SPI_FLASH
@@ -347,8 +348,9 @@
 #	define CONFIG_SYS_FLASH_BASE		CONFIG_SYS_CS0_BASE
 #	define CONFIG_SYS_FLASH0_BASE		CONFIG_SYS_CS0_BASE
 #	define CONFIG_SYS_FLASH1_BASE		CONFIG_SYS_CS1_BASE
-#	define CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + 0x4000)
-#	define CONFIG_ENV_SECT_SIZE	0x2000
+#	define CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + 0x40000)
+#	define CONFIG_ENV_SIZE		0x2000
+#	define CONFIG_ENV_SECT_SIZE	0x10000
 #endif
 #ifdef CONFIG_SYS_INTEL_BOOT
 #	define CONFIG_SYS_FLASH_BASE		CONFIG_SYS_CS0_BASE
@@ -409,9 +411,9 @@
 #define CONFIG_SYS_CACHELINE_SIZE		16
 
 #define ICACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_END - 8)
+					 CONFIG_SYS_INIT_RAM_SIZE - 8)
 #define DCACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_END - 4)
+					 CONFIG_SYS_INIT_RAM_SIZE - 4)
 #define CONFIG_SYS_ICACHE_INV		(CF_CACR_BCINVA + CF_CACR_ICINVA)
 #define CONFIG_SYS_DCACHE_INV		(CF_CACR_DCINVA)
 #define CONFIG_SYS_CACHE_ACR2		(CONFIG_SYS_SDRAM_BASE | \

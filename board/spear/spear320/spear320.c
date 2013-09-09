@@ -34,26 +34,18 @@
 
 #define PLGPIO_SEL_36	0xb3000028
 #define PLGPIO_IO_36	0xb3000038
-#define PLGPIO_SEL_76	0xb300002C
-#define PLGPIO_IO_76	0xb300003C
-#define PLGPIO_36	(0x1 << 4)
-#define PLGPIO_76	(0x1 << 12)
 
-static void phy_reset(void)
+static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
+
+static void spear_phy_reset(void)
 {
-	/* PLGPIO36 is used to enable oscillator */
-	writel(readl(PLGPIO_IO_36) | PLGPIO_36, PLGPIO_IO_36);
-	writel(readl(PLGPIO_SEL_36) | PLGPIO_36, PLGPIO_SEL_36);
-
-	/* PLGPIO76 is used to reset phy */
-	writel(readl(PLGPIO_IO_76) & ~PLGPIO_76, PLGPIO_IO_76);
-	writel(readl(PLGPIO_SEL_76) | PLGPIO_76, PLGPIO_SEL_76);
-	writel(readl(PLGPIO_IO_76) | PLGPIO_76, PLGPIO_IO_76);
+	writel(0x10, PLGPIO_IO_36);
+	writel(0x10, PLGPIO_SEL_36);
 }
 
 int board_init(void)
 {
-	phy_reset();
+	spear_phy_reset();
 	return spear_board_init(MACH_TYPE_SPEAR320);
 }
 
@@ -64,30 +56,29 @@ int board_init(void)
  * Called by nand_init_chip to initialize the board specific functions
  */
 
-int board_nand_init(struct nand_chip *nand)
+void board_nand_init()
 {
-#if defined(CONFIG_NAND_FSMC)
 	struct misc_regs *const misc_regs_p =
 	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+	struct nand_chip *nand = &nand_chip[0];
 
+#if defined(CONFIG_NAND_FSMC)
 	if (((readl(&misc_regs_p->auto_cfg_reg) & MISC_SOCCFGMSK) ==
 	     MISC_SOCCFG30) ||
 	    ((readl(&misc_regs_p->auto_cfg_reg) & MISC_SOCCFGMSK) ==
 	     MISC_SOCCFG31)) {
 
-		return fsmc_nand_init(nand);
+		fsmc_nand_init(nand);
 	}
 #endif
-	return -1;
+
+	return;
 }
 
 int board_eth_init(bd_t *bis)
 {
-#if defined(CONFIG_MACB)
-	struct misc_regs *const misc_regs_p =
-		(struct misc_regs *)CONFIG_SPEAR_MISCBASE;
-#endif
 	int ret = 0;
+
 #if defined(CONFIG_DESIGNWARE_ETH)
 	u32 interface = PHY_INTERFACE_MODE_MII;
 	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY,
@@ -95,12 +86,8 @@ int board_eth_init(bd_t *bis)
 		ret++;
 #endif
 #if defined(CONFIG_MACB)
-	/* Enable AMEM clock for memory port access */
-	writel(readl(&misc_regs_p->amem_cfg_ctrl) | 0x1,
-			&misc_regs_p->amem_cfg_ctrl);
-
-	if (macb_eth_initialize(0, (void *)CONFIG_SYS_MACB1_BASE,
-				CONFIG_MACB1_PHY) >= 0)
+	if (macb_eth_initialize(0, (void *)CONFIG_SYS_MACB0_BASE,
+				CONFIG_MACB0_PHY) >= 0)
 		ret++;
 #endif
 	return ret;

@@ -25,13 +25,14 @@
 #include <common.h>
 #include <miiphy.h>
 #include <netdev.h>
+#include <asm/arch/cpu.h>
 #include <asm/arch/kirkwood.h>
 #include <asm/arch/mpp.h>
 #include "rd6281a.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
-int board_init(void)
+int board_early_init_f(void)
 {
 	/*
 	 * default gpio configuration
@@ -43,7 +44,7 @@ int board_init(void)
 			RD6281A_OE_LOW, RD6281A_OE_HIGH);
 
 	/* Multi-Purpose Pins Functionality configuration */
-	u32 kwmpp_config[] = {
+	static const u32 kwmpp_config[] = {
 		MPP0_NF_IO2,
 		MPP1_NF_IO3,
 		MPP2_NF_IO4,
@@ -96,8 +97,12 @@ int board_init(void)
 		MPP49_GPIO,
 		0
 	};
-	kirkwood_mpp_conf(kwmpp_config);
+	kirkwood_mpp_conf(kwmpp_config, NULL);
+	return 0;
+}
 
+int board_init(void)
+{
 	/*
 	 * arch number of board
 	 */
@@ -106,17 +111,6 @@ int board_init(void)
 	/* adress of boot parameters */
 	gd->bd->bi_boot_params = kw_sdram_bar(0) + 0x100;
 
-	return 0;
-}
-
-int dram_init(void)
-{
-	int i;
-
-	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
-		gd->bd->bi_dram[i].start = kw_sdram_bar(i);
-		gd->bd->bi_dram[i].size = kw_sdram_bs(i);
-	}
 	return 0;
 }
 
@@ -146,11 +140,11 @@ void mv_phy_88e1116_init(char *name)
 	miiphy_write(name, devadr, MV88E1116_PGADR_REG, 0);
 
 	/* reset the phy */
-	if (miiphy_read (name, devadr, PHY_BMCR, &reg) != 0) {
+	if (miiphy_read (name, devadr, MII_BMCR, &reg) != 0) {
 		printf("Err..(%s) PHY status read failed\n", __FUNCTION__);
 		return;
 	}
-	if (miiphy_write (name, devadr, PHY_BMCR, reg | 0x8000) != 0) {
+	if (miiphy_write (name, devadr, MII_BMCR, reg | 0x8000) != 0) {
 		printf("Err..(%s) PHY reset failed\n", __FUNCTION__);
 		return;
 	}

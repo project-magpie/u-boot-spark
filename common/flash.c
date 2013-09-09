@@ -27,6 +27,7 @@
 #include <flash.h>
 
 #if !defined(CONFIG_SYS_NO_FLASH)
+#include <mtd/cfi_flash.h>
 
 extern flash_info_t  flash_info[]; /* info for FLASH chips */
 
@@ -219,6 +220,9 @@ void flash_perror (int err)
 		break;
 	case ERR_PROG_ERROR:
 		puts ("General Flash Programming Error\n");
+		break;
+	case ERR_ABORTED:
+		puts("Flash Programming Aborted\n");
 		break;
 	default:
 		printf ("%s[%d] FIXME: rc=%d\n", __FILE__, __LINE__, err);

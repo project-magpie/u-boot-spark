@@ -24,26 +24,25 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(BOARD).a
+LIB	= $(obj)lib$(BOARD).o
 
 COBJS-y	+= $(BOARD).o
-COBJS-$(CONFIG_DDR_SPD)	+= ddr.o
-COBJS-$(CONFIG_PCI)	+= pci.o
-COBJS-y	+= law.o
-COBJS-y	+= tlb.o
+COBJS-y	+= ddr.o
+COBJS-$(CONFIG_P3041DS)	+= eth_hydra.o
+COBJS-$(CONFIG_P4080DS)	+= eth_p4080.o
+COBJS-$(CONFIG_P5020DS)	+= eth_hydra.o
+COBJS-$(CONFIG_P5040DS)	+= eth_superhydra.o
+COBJS-$(CONFIG_P3041DS)	+= p3041ds_ddr.o
+COBJS-$(CONFIG_P4080DS)	+= p4080ds_ddr.o
+COBJS-$(CONFIG_P5020DS)	+= p5020ds_ddr.o
+COBJS-$(CONFIG_P5040DS)	+= p5040ds_ddr.o
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS-y))
 SOBJS	:= $(addprefix $(obj),$(SOBJS))
 
 $(LIB):	$(obj).depend $(OBJS) $(SOBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
-
-clean:
-	rm -f $(OBJS) $(SOBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak .depend
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

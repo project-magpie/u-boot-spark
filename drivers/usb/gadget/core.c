@@ -212,20 +212,6 @@ struct usb_device_descriptor *usbd_device_device_descriptor (struct usb_device_i
 	return (device->device_descriptor);
 }
 
-#if defined(CONFIG_USBD_HS)
-/**
- * usbd_device_qualifier_descriptor
- * @device: which device
- * @port: which port
- *
- * Return the specified qualifier descriptor for the specified device.
- */
-struct usb_qualifier_descriptor *usbd_device_qualifier_descriptor(struct usb_device_instance *device, int port)
-{
-	return device->qualifier_descriptor;
-}
-#endif
-
 /**
  * usbd_device_configuration_descriptor
  * @device: which device
@@ -606,14 +592,14 @@ void usbd_dealloc_urb (struct urb *urb)
  */
 void usbd_device_event_irq (struct usb_device_instance *device, usb_device_event_t event, int data)
 {
-	/* usb_device_state_t state; */
+	usb_device_state_t state;
 
 	if (!device || !device->bus) {
 		usberr("(%p,%d) NULL device or device->bus", device, event);
 		return;
 	}
 
-	/* state = device->device_state; */
+	state = device->device_state;
 
 	usbinfo("%s", usbd_device_events[event]);
 
@@ -684,9 +670,9 @@ void usbd_device_event_irq (struct usb_device_instance *device, usb_device_event
 		usbdbg("event %d - not handled",event);
 		break;
 	}
-	/*usbdbg("%s event: %d oldstate: %d newstate: %d status: %d address: %d",
+	debug("%s event: %d oldstate: %d newstate: %d status: %d address: %d",
 		device->name, event, state,
-		device->device_state, device->status, device->address); */
+		device->device_state, device->status, device->address);
 
 	/* tell the bus interface driver */
 	if( device->event ) {

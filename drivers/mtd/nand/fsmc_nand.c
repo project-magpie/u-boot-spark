@@ -1,6 +1,9 @@
 /*
  * (C) Copyright 2010
- * Vipin Kumar, ST Micoelectronics, vipin.kumar@st.com.
+ * Vipin Kumar, ST Microelectronics, vipin.kumar@st.com.
+ *
+ * (C) Copyright 2012
+ * Amit Virdi, ST Microelectronics, amit.virdi@st.com.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -31,8 +34,8 @@
 #include <asm/arch/hardware.h>
 
 static u32 fsmc_version;
-static struct fsmc_regs *const fsmc_regs_p =
-    (struct fsmc_regs *)CONFIG_SYS_FSMC_BASE;
+static struct fsmc_regs *const fsmc_regs_p = (struct fsmc_regs *)
+	CONFIG_SYS_FSMC_BASE;
 
 /*
  * ECC4 and ECC1 have 13 bytes and 3 bytes of ecc respectively for 512 bytes of
@@ -141,26 +144,40 @@ static struct nand_ecclayout fsmc_ecc4_sp_layout = {
 
 static struct fsmc_eccplace fsmc_eccpl_sp = {
 	.eccplace = {
-		    {.offset = 0, .length = 4},
-		    {.offset = 6, .length = 9}
-		    }
+		{.offset = 0, .length = 4},
+		{.offset = 6, .length = 9}
+	}
 };
 
 static struct nand_ecclayout fsmc_ecc1_layout = {
 	.eccbytes = 24,
 	.eccpos = {2, 3, 4, 18, 19, 20, 34, 35, 36, 50, 51, 52,
-		   66, 67, 68, 82, 83, 84, 98, 99, 100, 114, 115, 116},
+		66, 67, 68, 82, 83, 84, 98, 99, 100, 114, 115, 116},
 	.oobfree = {
-		    {.offset = 8, .length = 8},
-		    {.offset = 24, .length = 8},
-		    {.offset = 40, .length = 8},
-		    {.offset = 56, .length = 8},
-		    {.offset = 72, .length = 8},
-		    {.offset = 88, .length = 8},
-		    {.offset = 104, .length = 8},
-		    {.offset = 120, .length = 8}
-		    }
+		{.offset = 8, .length = 8},
+		{.offset = 24, .length = 8},
+		{.offset = 40, .length = 8},
+		{.offset = 56, .length = 8},
+		{.offset = 72, .length = 8},
+		{.offset = 88, .length = 8},
+		{.offset = 104, .length = 8},
+		{.offset = 120, .length = 8}
+	}
 };
+
+/* Count the number of 0's in buff upto a max of max_bits */
+static int count_written_bits(uint8_t *buff, int size, int max_bits)
+{
+	int k, written_bits = 0;
+
+	for (k = 0; k < size; k++) {
+		written_bits += hweight8(~buff[k]);
+		if (written_bits > max_bits)
+			break;
+	}
+
+	return written_bits;
+}
 
 static void fsmc_nand_hwcontrol(struct mtd_info *mtd, int cmd, uint ctrl)
 {
@@ -178,10 +195,10 @@ static void fsmc_nand_hwcontrol(struct mtd_info *mtd, int cmd, uint ctrl)
 
 		if (ctrl & NAND_NCE) {
 			writel(readl(&fsmc_regs_p->pc) |
-			       FSMC_ENABLE, &fsmc_regs_p->pc);
+					FSMC_ENABLE, &fsmc_regs_p->pc);
 		} else {
 			writel(readl(&fsmc_regs_p->pc) &
-			       ~FSMC_ENABLE, &fsmc_regs_p->pc);
+					~FSMC_ENABLE, &fsmc_regs_p->pc);
 		}
 		this->IO_ADDR_W = (void *)IO_ADDR_W;
 	}
@@ -191,53 +208,90 @@ static void fsmc_nand_hwcontrol(struct mtd_info *mtd, int cmd, uint ctrl)
 }
 
 static int fsmc_bch8_correct_data(struct mtd_info *mtd, u_char *dat,
-		      u_char *read_ecc, u_char *calc_ecc)
+		u_char *read_ecc, u_char *calc_ecc)
 {
 	/* The calculated ecc is actually the correction index in data */
 	u32 err_idx[8];
-	u64 ecc_data[2];
 	u32 num_err, i;
-
-	memcpy(ecc_data, calc_ecc, 13);
-
-	for (i = 0; i < 8; i++) {
-		if (i == 4) {
-			err_idx[4] = ((ecc_data[1] & 0x1) << 12) | ecc_data[0];
-			ecc_data[1] >>= 1;
-			continue;
-		}
-		err_idx[i] = (ecc_data[i/4] & 0x1FFF);
-		ecc_data[i/4] >>= 13;
-	}
+	u32 ecc1, ecc2, ecc3, ecc4;
 
 	num_err = (readl(&fsmc_regs_p->sts) >> 10) & 0xF;
 
-	if (num_err > 8)
+	if (likely(num_err == 0))
+		return 0;
+
+	if (unlikely(num_err > 8)) {
+		/*
+		 * This is a temporary erase check. A newly erased page read
+		 * would result in an ecc error because the oob data is also
+		 * erased to FF and the calculated ecc for an FF data is not
+		 * FF..FF.
+		 * This is a workaround to skip performing correction in case
+		 * data is FF..FF
+		 *
+		 * Logic:
+		 * For every page, each bit written as 0 is counted until these
+		 * number of bits are greater than 8 (the maximum correction
+		 * capability of FSMC for each 512 + 13 bytes)
+		 */
+
+		int bits_ecc = count_written_bits(read_ecc, 13, 8);
+		int bits_data = count_written_bits(dat, 512, 8);
+
+		if ((bits_ecc + bits_data) <= 8) {
+			if (bits_data)
+				memset(dat, 0xff, 512);
+			return bits_data + bits_ecc;
+		}
+
 		return -EBADMSG;
+	}
+
+	ecc1 = readl(&fsmc_regs_p->ecc1);
+	ecc2 = readl(&fsmc_regs_p->ecc2);
+	ecc3 = readl(&fsmc_regs_p->ecc3);
+	ecc4 = readl(&fsmc_regs_p->sts);
+
+	err_idx[0] = (ecc1 >> 0) & 0x1FFF;
+	err_idx[1] = (ecc1 >> 13) & 0x1FFF;
+	err_idx[2] = (((ecc2 >> 0) & 0x7F) << 6) | ((ecc1 >> 26) & 0x3F);
+	err_idx[3] = (ecc2 >> 7) & 0x1FFF;
+	err_idx[4] = (((ecc3 >> 0) & 0x1) << 12) | ((ecc2 >> 20) & 0xFFF);
+	err_idx[5] = (ecc3 >> 1) & 0x1FFF;
+	err_idx[6] = (ecc3 >> 14) & 0x1FFF;
+	err_idx[7] = (((ecc4 >> 16) & 0xFF) << 5) | ((ecc3 >> 27) & 0x1F);
 
 	i = 0;
-	while (num_err--) {
-		change_bit(0, &err_idx[i]);
-		change_bit(1, &err_idx[i]);
+	while (i < num_err) {
+		err_idx[i] ^= 3;
 
-		if (err_idx[i] <= 512 * 8) {
-			change_bit(err_idx[i], dat);
-			i++;
-		}
+		if (err_idx[i] < 512 * 8)
+			__change_bit(err_idx[i], dat);
+
+		i++;
 	}
-	return i;
+
+	return num_err;
 }
 
 static int fsmc_read_hwecc(struct mtd_info *mtd,
-			    const u_char *data, u_char *ecc)
+			const u_char *data, u_char *ecc)
 {
 	u_int ecc_tmp;
+	int timeout = CONFIG_SYS_HZ;
+	ulong start;
 
 	switch (fsmc_version) {
 	case FSMC_VER8:
-		/* Busy waiting for ecc computation to finish for 512 bytes */
-		while (!(readl(&fsmc_regs_p->sts) & FSMC_CODE_RDY))
-			;
+		start = get_timer(0);
+		while (get_timer(start) < timeout) {
+			/*
+			 * Busy waiting for ecc computation
+			 * to finish for 512 bytes
+			 */
+			if (readl(&fsmc_regs_p->sts) & FSMC_CODE_RDY)
+				break;
+		}
 
 		ecc_tmp = readl(&fsmc_regs_p->ecc1);
 		ecc[0] = (u_char) (ecc_tmp >> 0);
@@ -275,11 +329,11 @@ static int fsmc_read_hwecc(struct mtd_info *mtd,
 void fsmc_enable_hwecc(struct mtd_info *mtd, int mode)
 {
 	writel(readl(&fsmc_regs_p->pc) & ~FSMC_ECCPLEN_256,
-	       &fsmc_regs_p->pc);
+			&fsmc_regs_p->pc);
 	writel(readl(&fsmc_regs_p->pc) & ~FSMC_ECCEN,
-	       &fsmc_regs_p->pc);
+			&fsmc_regs_p->pc);
 	writel(readl(&fsmc_regs_p->pc) | FSMC_ECCEN,
-	       &fsmc_regs_p->pc);
+			&fsmc_regs_p->pc);
 }
 
 /*
@@ -299,20 +353,14 @@ static int fsmc_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
 				 uint8_t *buf, int page)
 {
 	struct fsmc_eccplace *fsmc_eccpl;
-	int i, j, k, s, stat, eccsize = chip->ecc.size;
+	int i, j, s, stat, eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
 	int eccsteps = chip->ecc.steps;
 	uint8_t *p = buf;
 	uint8_t *ecc_calc = chip->buffers->ecccalc;
 	uint8_t *ecc_code = chip->buffers->ecccode;
 	int off, len, group = 0;
-	/*
-	 * ecc_oob is intentionally taken as u16. In 16bit devices, we end up
-	 * reading 14 bytes (7 words) from oob. The local array is to maintain
-	 * word alignment
-	 */
-	uint16_t ecc_oob[7];
-	uint8_t *oob = (uint8_t *)&ecc_oob[0];
+	uint8_t oob[13] __attribute__ ((aligned (2)));
 
 	/* Differentiate between small and large page ecc place definitions */
 	if (mtd->writesize == 512)
@@ -336,36 +384,22 @@ static int fsmc_read_page_hwecc(struct mtd_info *mtd, struct nand_chip *chip,
 			 * to read at least 13 bytes even in case of 16 bit NAND
 			 * devices
 			 */
-			len = roundup(len, 2);
+			if (chip->options & NAND_BUSWIDTH_16)
+				len = roundup(len, 2);
 			chip->cmdfunc(mtd, NAND_CMD_READOOB, off, page);
 			chip->read_buf(mtd, oob + j, len);
 			j += len;
 		}
 
-		memcpy(&ecc_code[i], ecc_oob, 13);
+		memcpy(&ecc_code[i], oob, 13);
 		chip->ecc.calculate(mtd, p, &ecc_calc[i]);
 
-		/*
-		 * This is a temporary erase check. A newly erased page read
-		 * would result in an ecc error because the oob data is also
-		 * erased to FF and the calculated ecc for an FF data is not
-		 * FF..FF.
-		 * This is a workaround to skip performing correction in case
-		 * data is FF..FF
-		 */
-		for (k = 0; k < eccsize; k++) {
-			if (*(p + k) != 0xff)
-				break;
-		}
-
-		if (k < eccsize) {
-			stat = chip->ecc.correct(mtd, p, &ecc_code[i],
-					&ecc_calc[i]);
-			if (stat < 0)
-				mtd->ecc_stats.failed++;
-			else
-				mtd->ecc_stats.corrected += stat;
-		}
+		stat = chip->ecc.correct(mtd, p, &ecc_code[i],
+				&ecc_calc[i]);
+		if (stat < 0)
+			mtd->ecc_stats.failed++;
+		else
+			mtd->ecc_stats.corrected += stat;
 	}
 
 	return 0;
@@ -375,28 +409,29 @@ int fsmc_nand_init(struct nand_chip *nand)
 {
 	static int chip_nr;
 	struct mtd_info *mtd;
+	int i;
 	u32 peripid2 = readl(&fsmc_regs_p->peripid2);
 
 	fsmc_version = (peripid2 >> FSMC_REVISION_SHFT) &
-		       FSMC_REVISION_MSK;
+		FSMC_REVISION_MSK;
 
 	writel(readl(&fsmc_regs_p->ctrl) | FSMC_WP, &fsmc_regs_p->ctrl);
 
 #if defined(CONFIG_SYS_FSMC_NAND_16BIT)
 	writel(FSMC_DEVWID_16 | FSMC_DEVTYPE_NAND | FSMC_ENABLE | FSMC_WAITON,
-	       &fsmc_regs_p->pc);
+			&fsmc_regs_p->pc);
 #elif defined(CONFIG_SYS_FSMC_NAND_8BIT)
 	writel(FSMC_DEVWID_8 | FSMC_DEVTYPE_NAND | FSMC_ENABLE | FSMC_WAITON,
-	       &fsmc_regs_p->pc);
+			&fsmc_regs_p->pc);
 #else
 #error Please define CONFIG_SYS_FSMC_NAND_16BIT or CONFIG_SYS_FSMC_NAND_8BIT
 #endif
 	writel(readl(&fsmc_regs_p->pc) | FSMC_TCLR_1 | FSMC_TAR_1,
-	       &fsmc_regs_p->pc);
+			&fsmc_regs_p->pc);
 	writel(FSMC_THIZ_1 | FSMC_THOLD_4 | FSMC_TWAIT_6 | FSMC_TSET_0,
-	       &fsmc_regs_p->comm);
+			&fsmc_regs_p->comm);
 	writel(FSMC_THIZ_1 | FSMC_THOLD_4 | FSMC_TWAIT_6 | FSMC_TSET_0,
-	       &fsmc_regs_p->attrib);
+			&fsmc_regs_p->attrib);
 
 	nand->options = 0;
 #if defined(CONFIG_SYS_FSMC_NAND_16BIT)
@@ -407,13 +442,12 @@ int fsmc_nand_init(struct nand_chip *nand)
 	nand->ecc.calculate = fsmc_read_hwecc;
 	nand->ecc.hwctl = fsmc_enable_hwecc;
 	nand->cmd_ctrl = fsmc_nand_hwcontrol;
+	nand->IO_ADDR_R = nand->IO_ADDR_W =
+		(void  __iomem *)CONFIG_SYS_NAND_BASE;
+	nand->badblockbits = 7;
 
 	mtd = &nand_info[chip_nr++];
 	mtd->priv = nand;
-
-	/* Detect NAND chips */
-	if (nand_scan_ident(mtd, 1))
-		return -ENXIO;
 
 	switch (fsmc_version) {
 	case FSMC_VER8:
@@ -436,6 +470,17 @@ int fsmc_nand_init(struct nand_chip *nand)
 		nand->ecc.correct = nand_correct_data;
 		break;
 	}
+
+	/* Detect NAND chips */
+	if (nand_scan_ident(mtd, CONFIG_SYS_MAX_NAND_DEVICE, NULL))
+		return -ENXIO;
+
+	if (nand_scan_tail(mtd))
+		return -ENXIO;
+
+	for (i = 0; i < CONFIG_SYS_MAX_NAND_DEVICE; i++)
+		if (nand_register(i))
+			return -ENXIO;
 
 	return 0;
 }

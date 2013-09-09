@@ -31,7 +31,7 @@
 #include <dataflash.h>
 #endif
 
-#if defined(CONFIG_CMD_JFFS2) && defined(CONFIG_CMD_MTDPARTS)
+#if defined(CONFIG_CMD_MTDPARTS)
 #include <jffs2/jffs2.h>
 
 /* partition handling routines */
@@ -42,6 +42,8 @@ int find_dev_and_part(const char *id, struct mtd_device **dev,
 #endif
 
 #ifndef CONFIG_SYS_NO_FLASH
+#include <flash.h>
+#include <mtd/cfi_flash.h>
 extern flash_info_t flash_info[];	/* info for FLASH chips */
 
 /*
@@ -137,7 +139,7 @@ int flash_sect_roundb (ulong *addr)
 		} /* bank */
 	}
 	if (!found) {
-		/* error, addres not in flash */
+		/* error, address not in flash */
 		printf("Error: end address (0x%08lx) not in flash!\n", *addr);
 		return 1;
 	}
@@ -287,7 +289,7 @@ flash_fill_sect_ranges (ulong addr_first, ulong addr_last,
 }
 #endif /* CONFIG_SYS_NO_FLASH */
 
-int do_flinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_flinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 #ifndef CONFIG_SYS_NO_FLASH
 	ulong bank;
@@ -319,13 +321,13 @@ int do_flinfo ( cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	return 0;
 }
 
-int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_flerase(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 #ifndef CONFIG_SYS_NO_FLASH
-	flash_info_t *info;
+	flash_info_t *info = NULL;
 	ulong bank, addr_first, addr_last;
-	int n, sect_first, sect_last;
-#if defined(CONFIG_CMD_JFFS2) && defined(CONFIG_CMD_MTDPARTS)
+	int n, sect_first = 0, sect_last = 0;
+#if defined(CONFIG_CMD_MTDPARTS)
 	struct mtd_device *dev;
 	struct part_info *part;
 	u8 dev_type, dev_num, pnum;
@@ -333,7 +335,7 @@ int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	int rcode = 0;
 
 	if (argc < 2)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	if (strcmp(argv[1], "all") == 0) {
 		for (bank=1; bank<=CONFIG_SYS_MAX_FLASH_BANKS; ++bank) {
@@ -355,7 +357,7 @@ int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return rcode;
 	}
 
-#if defined(CONFIG_CMD_JFFS2) && defined(CONFIG_CMD_MTDPARTS)
+#if defined(CONFIG_CMD_MTDPARTS)
 	/* erase <part-id> - erase partition */
 	if ((argc == 2) && (mtd_id_parse(argv[1], NULL, &dev_type, &dev_num) == 0)) {
 		mtdparts_init();
@@ -382,7 +384,7 @@ int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #endif
 
 	if (argc != 3)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	if (strcmp(argv[1], "bank") == 0) {
 		bank = simple_strtoul(argv[2], NULL, 16);
@@ -403,7 +405,7 @@ int do_flerase (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 
 	if (addr_first >= addr_last)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	rcode = flash_sect_erase(addr_first, addr_last);
 	return rcode;
@@ -417,11 +419,7 @@ int flash_sect_erase (ulong addr_first, ulong addr_last)
 {
 	flash_info_t *info;
 	ulong bank;
-#ifdef CONFIG_SYS_MAX_FLASH_BANKS_DETECT
-	int s_first[CONFIG_SYS_MAX_FLASH_BANKS_DETECT], s_last[CONFIG_SYS_MAX_FLASH_BANKS_DETECT];
-#else
 	int s_first[CONFIG_SYS_MAX_FLASH_BANKS], s_last[CONFIG_SYS_MAX_FLASH_BANKS];
-#endif
 	int erased = 0;
 	int planned;
 	int rcode = 0;
@@ -445,7 +443,8 @@ int flash_sect_erase (ulong addr_first, ulong addr_last)
 				rcode = flash_erase (info, s_first[bank], s_last[bank]);
 			}
 		}
-		printf ("Erased %d sectors\n", erased);
+		if (rcode == 0)
+			printf("Erased %d sectors\n", erased);
 	} else if (rcode == 0) {
 		puts ("Error: start and/or end address"
 			" not on sector boundary\n");
@@ -455,36 +454,38 @@ int flash_sect_erase (ulong addr_first, ulong addr_last)
 }
 #endif /* CONFIG_SYS_NO_FLASH */
 
-int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_protect(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
+	int rcode = 0;
 #ifndef CONFIG_SYS_NO_FLASH
-	flash_info_t *info;
+	flash_info_t *info = NULL;
 	ulong bank;
-	int i, n, sect_first, sect_last;
-#endif /* CONFIG_SYS_NO_FLASH */
-#if !defined(CONFIG_SYS_NO_FLASH) || defined(CONFIG_HAS_DATAFLASH)
-	ulong addr_first, addr_last;
-#endif
-#if defined(CONFIG_CMD_JFFS2) && defined(CONFIG_CMD_MTDPARTS)
+	int i, n, sect_first = 0, sect_last = 0;
+#if defined(CONFIG_CMD_MTDPARTS)
 	struct mtd_device *dev;
 	struct part_info *part;
 	u8 dev_type, dev_num, pnum;
 #endif
+#endif /* CONFIG_SYS_NO_FLASH */
 #ifdef CONFIG_HAS_DATAFLASH
 	int status;
 #endif
+#if !defined(CONFIG_SYS_NO_FLASH) || defined(CONFIG_HAS_DATAFLASH)
 	int p;
-	int rcode = 0;
+	ulong addr_first, addr_last;
+#endif
 
 	if (argc < 3)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
+#if !defined(CONFIG_SYS_NO_FLASH) || defined(CONFIG_HAS_DATAFLASH)
 	if (strcmp(argv[1], "off") == 0)
 		p = 0;
 	else if (strcmp(argv[1], "on") == 0)
 		p = 1;
 	else
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
+#endif
 
 #ifdef CONFIG_HAS_DATAFLASH
 	if ((strcmp(argv[2], "all") != 0) && (strcmp(argv[2], "bank") != 0)) {
@@ -555,7 +556,7 @@ int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return rcode;
 	}
 
-#if defined(CONFIG_CMD_JFFS2) && defined(CONFIG_CMD_MTDPARTS)
+#if defined(CONFIG_CMD_MTDPARTS)
 	/* protect on/off <part-id> */
 	if ((argc == 3) && (mtd_id_parse(argv[2], NULL, &dev_type, &dev_num) == 0)) {
 		mtdparts_init();
@@ -583,7 +584,7 @@ int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #endif
 
 	if (argc != 4)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	if (strcmp(argv[2], "bank") == 0) {
 		bank = simple_strtoul(argv[3], NULL, 16);
@@ -623,7 +624,7 @@ int do_protect (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 
 	if (addr_first >= addr_last)
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 
 	rcode = flash_sect_protect (p, addr_first, addr_last);
 #endif /* CONFIG_SYS_NO_FLASH */
@@ -635,11 +636,7 @@ int flash_sect_protect (int p, ulong addr_first, ulong addr_last)
 {
 	flash_info_t *info;
 	ulong bank;
-#ifdef CONFIG_SYS_MAX_FLASH_BANKS_DETECT
-	int s_first[CONFIG_SYS_MAX_FLASH_BANKS_DETECT], s_last[CONFIG_SYS_MAX_FLASH_BANKS_DETECT];
-#else
 	int s_first[CONFIG_SYS_MAX_FLASH_BANKS], s_last[CONFIG_SYS_MAX_FLASH_BANKS];
-#endif
 	int protected, i;
 	int planned;
 	int rcode;
@@ -687,7 +684,7 @@ int flash_sect_protect (int p, ulong addr_first, ulong addr_last)
 
 
 /**************************************************/
-#if defined(CONFIG_CMD_JFFS2) && defined(CONFIG_CMD_MTDPARTS)
+#if defined(CONFIG_CMD_MTDPARTS)
 # define TMP_ERASE	"erase <part-id>\n    - erase partition\n"
 # define TMP_PROT_ON	"protect on <part-id>\n    - protect partition\n"
 # define TMP_PROT_OFF	"protect off <part-id>\n    - make partition writable\n"

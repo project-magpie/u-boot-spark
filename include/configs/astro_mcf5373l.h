@@ -33,6 +33,8 @@
 #ifndef _CONFIG_ASTRO_MCF5373L_H
 #define _CONFIG_ASTRO_MCF5373L_H
 
+#include <linux/stringify.h>
+
 /*
  * set the card type to actually compile for; either of
  * the possibilities listed below has to be used!
@@ -69,17 +71,17 @@
 #include <config_cmd_default.h>
 
 /*
- * CONFIG_MK_RAM defines if u-boot is loaded via BDM (or started from
+ * CONFIG_RAM defines if u-boot is loaded via BDM (or started from
  * a different bootloader that has already performed RAM setup) or
  * started directly from flash, which is the regular case for production
  * boards.
  */
-#ifdef CONFIG_MK_RAM
+#ifdef CONFIG_RAM
 #define CONFIG_MONITOR_IS_IN_RAM
-#define CONFIG_TEXT_BASE		0x40020000
+#define CONFIG_SYS_TEXT_BASE		0x40020000
 #define ENABLE_JFFS	0
 #else
-#define CONFIG_TEXT_BASE		0x00000000
+#define CONFIG_SYS_TEXT_BASE		0x00000000
 #define ENABLE_JFFS	1
 #endif
 
@@ -105,7 +107,6 @@
 #define CONFIG_CMDLINE_EDITING
 
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2 "> "
 
 #define CONFIG_MCFRTC
 #undef RTC_DEBUG
@@ -147,7 +148,6 @@
  */
 
 #define CONFIG_BAUDRATE		115200
-#define CONFIG_SYS_BAUDRATE_TABLE { 9600 , 19200 , 38400 , 57600, 115200 }
 
 #define CONFIG_MCFUART
 #define CONFIG_SYS_UART_PORT		(2)
@@ -211,12 +211,9 @@
  * u-boot: 'set' command
  */
 
-#define _QUOTEME(x)	#x
-#define QUOTEME(x)	_QUOTEME(x)
-
 #define CONFIG_EXTRA_ENV_SETTINGS			\
 	"loaderversion=11\0"				\
-	"card_id="QUOTEME(ASTRO_ID)"\0"			\
+	"card_id="__stringify(ASTRO_ID)"\0"			\
 	"alterafile=0\0"				\
 	"xilinxfile=0\0"				\
 	"xilinxload=imxtract 0x540000 $xilinxfile 0x41000000&&"\
@@ -300,11 +297,10 @@
  * Definitions for initial stack pointer and data area (in internal SRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	0x80000000
-#define CONFIG_SYS_INIT_RAM_END		0x8000
+#define CONFIG_SYS_INIT_RAM_SIZE		0x8000
 #define CONFIG_SYS_INIT_RAM_CTRL	0x221
-#define CONFIG_SYS_GBL_DATA_SIZE	128
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - \
-					 CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - \
+					 GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*
@@ -343,7 +339,7 @@
 #define CONFIG_SYS_FLASH_BASE		0x00000000
 
 #ifdef	CONFIG_MONITOR_IS_IN_RAM
-#define CONFIG_SYS_MONITOR_BASE		CONFIG_TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE
 #else
 /* This is mainly used during relocation in start.S */
 #define CONFIG_SYS_MONITOR_BASE		(CONFIG_SYS_FLASH_BASE + 0x400)
@@ -387,9 +383,9 @@
 #define CONFIG_SYS_CACHELINE_SIZE	16
 
 #define ICACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_END - 8)
+					 CONFIG_SYS_INIT_RAM_SIZE - 8)
 #define DCACHE_STATUS			(CONFIG_SYS_INIT_RAM_ADDR + \
-					 CONFIG_SYS_INIT_RAM_END - 4)
+					 CONFIG_SYS_INIT_RAM_SIZE - 4)
 #define CONFIG_SYS_ICACHE_INV		(CF_CACR_CINVA)
 #define CONFIG_SYS_CACHE_ACR0		(CONFIG_SYS_SDRAM_BASE | \
 					 CF_ADDRMASK(CONFIG_SYS_SDRAM_SIZE) | \

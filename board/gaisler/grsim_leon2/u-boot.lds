@@ -84,10 +84,11 @@ SECTIONS
 
 	/* CMD Table */
 
-	__u_boot_cmd_start = .;
-	.u_boot_cmd : { *(.u_boot_cmd) }
+
 	. = ALIGN(4);
-	__u_boot_cmd_end = .;
+	.u_boot_list : {
+	#include <u-boot.lst>
+	}
 
 	.data	:
 	{
@@ -132,7 +133,7 @@ SECTIONS
 	. = ALIGN(16); /* to speed clearing of bss up */
 	}
 	__bss_end = . ;
-	_end = . ;
+	__bss_end__ = . ;
 	PROVIDE (end = .);
 
 /* Relocated into main memory */

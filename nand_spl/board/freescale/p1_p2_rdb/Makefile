@@ -2,7 +2,7 @@
 # (C) Copyright 2007
 # Stefan Roese, DENX Software Engineering, sr@denx.de.
 #
-# Copyright 2009 Freescale Semiconductor, Inc.
+# Copyright 2009-2011 Freescale Semiconductor, Inc.
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -24,26 +24,28 @@
 #
 
 NAND_SPL := y
-TEXT_BASE := 0xfff00000
+CONFIG_SYS_TEXT_BASE_SPL := 0xfff00000
 PAD_TO := 0xfff01000
 
 include $(TOPDIR)/config.mk
 
+nandobj	:= $(OBJTREE)/nand_spl/
+
 LDSCRIPT= $(TOPDIR)/$(CPUDIR)/u-boot-nand_spl.lds
-LDFLAGS	= -Bstatic -T $(LDSCRIPT) -Ttext $(TEXT_BASE) $(PLATFORM_LDFLAGS)
+LSTSCRIPT= $(nandobj)/board/$(BOARDDIR)/u-boot.lst
+LDFLAGS := -T $(nandobj)u-boot-nand_spl.lds -Ttext $(CONFIG_SYS_TEXT_BASE_SPL) \
+		$(LDFLAGS) $(LDFLAGS_FINAL)
 AFLAGS	+= -DCONFIG_NAND_SPL
 CFLAGS	+= -DCONFIG_NAND_SPL
 
 SOBJS	= start.o resetvec.o
-COBJS	= cache.o cpu_init_early.o cpu_init_nand.o fsl_law.o law.o \
+COBJS	= cache.o cpu_init_early.o spl_minimal.o fsl_law.o law.o \
 	  nand_boot.o nand_boot_fsl_elbc.o ns16550.o tlb.o tlb_table.o
 
 SRCS	:= $(addprefix $(obj),$(SOBJS:.o=.S) $(COBJS:.o=.c))
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
 __OBJS	:= $(SOBJS) $(COBJS)
-LNDIR	:= $(OBJTREE)/nand_spl/board/$(BOARDDIR)
-
-nandobj	:= $(OBJTREE)/nand_spl/
+LNDIR	:= $(nandobj)board/$(BOARDDIR)
 
 ALL	= $(nandobj)u-boot-spl $(nandobj)u-boot-spl.bin $(nandobj)u-boot-spl-16k.bin
 
@@ -55,10 +57,18 @@ $(nandobj)u-boot-spl-16k.bin: $(nandobj)u-boot-spl
 $(nandobj)u-boot-spl.bin:	$(nandobj)u-boot-spl
 	$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
 
-$(nandobj)u-boot-spl:	$(OBJS)
+$(nandobj)u-boot-spl:	$(OBJS) $(nandobj)u-boot-nand_spl.lds
 	cd $(LNDIR) && $(LD) $(LDFLAGS) $(__OBJS) $(PLATFORM_LIBS) \
 		-Map $(nandobj)u-boot-spl.map \
 		-o $(nandobj)u-boot-spl
+
+# The following line expands into whole rule which generates $(LSTSCRIPT),
+# the file containing u-boots LG-array linker section. This is included into
+# $(LDSCRIPT). The function make_u_boot_list is defined in helper.mk file.
+$(eval $(call make_u_boot_list, $(LSTSCRIPT), $(OBJS)))
+$(nandobj)u-boot-nand_spl.lds: $(LDSCRIPT) $(LSTSCRIPT)
+	$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -I$(nandobj)/board/$(BOARDDIR) \
+		-ansi -D__ASSEMBLY__ -P - <$< >$@
 
 # create symbolic links for common files
 
@@ -70,13 +80,13 @@ $(obj)cpu_init_early.c:
 	@rm -f $(obj)cpu_init_early.c
 	ln -sf $(SRCTREE)/arch/powerpc/cpu/mpc85xx/cpu_init_early.c $(obj)cpu_init_early.c
 
-$(obj)cpu_init_nand.c:
-	@rm -f $(obj)cpu_init_nand.c
-	ln -sf $(SRCTREE)/arch/powerpc/cpu/mpc85xx/cpu_init_nand.c $(obj)cpu_init_nand.c
+$(obj)spl_minimal.c:
+	@rm -f $(obj)spl_minimal.c
+	ln -sf $(SRCTREE)/arch/powerpc/cpu/mpc85xx/spl_minimal.c $(obj)spl_minimal.c
 
 $(obj)fsl_law.c:
 	@rm -f $(obj)fsl_law.c
-	ln -sf $(SRCTREE)/drivers/misc/fsl_law.c $(obj)fsl_law.c
+	ln -sf $(SRCTREE)/arch/powerpc/cpu/mpc8xxx/law.c $(obj)fsl_law.c
 
 $(obj)law.c:
 	@rm -f $(obj)law.c

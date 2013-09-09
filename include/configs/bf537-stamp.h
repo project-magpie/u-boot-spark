@@ -63,7 +63,6 @@
 #define ADI_CMDS_NETWORK	1
 #define CONFIG_BFIN_MAC
 #define CONFIG_NETCONSOLE	1
-#define CONFIG_NET_MULTI	1
 #endif
 #define CONFIG_HOSTNAME		bf537-stamp
 /* Uncomment next line to use fixed MAC address */
@@ -89,10 +88,7 @@
 #define CONFIG_ENV_SPI_MAX_HZ	30000000
 #define CONFIG_SF_DEFAULT_SPEED	30000000
 #define CONFIG_SPI_FLASH
-#define CONFIG_SPI_FLASH_ATMEL
-#define CONFIG_SPI_FLASH_SPANSION
-#define CONFIG_SPI_FLASH_STMICRO
-#define CONFIG_SPI_FLASH_WINBOND
+#define CONFIG_SPI_FLASH_ALL
 
 
 /*
@@ -122,13 +118,10 @@
  * it linked after the configuration sector.
  */
 # define LDS_BOARD_TEXT \
-	arch/blackfin/cpu/traps.o		(.text .text.*); \
-	arch/blackfin/cpu/interrupt.o	(.text .text.*); \
-	arch/blackfin/cpu/serial.o		(.text .text.*); \
-	common/dlmalloc.o		(.text .text.*); \
-	lib/crc32.o		(.text .text.*); \
+	arch/blackfin/lib/libblackfin.o (.text*); \
+	arch/blackfin/cpu/libblackfin.o (.text*); \
 	. = DEFINED(env_offset) ? env_offset : .; \
-	common/env_embedded.o		(.text .text.*);
+	common/env_embedded.o (.text*);
 #endif
 
 
@@ -143,7 +136,8 @@
  * SPI_MMC Settings
  */
 #define CONFIG_MMC
-#define CONFIG_SPI_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_MMC_SPI
 
 
 /*
@@ -262,10 +256,16 @@
 /* Define if want to do post memory test */
 #undef CONFIG_POST
 #ifdef CONFIG_POST
-#define FLASH_START_POST_BLOCK	11	/* Should > = 11 */
-#define FLASH_END_POST_BLOCK	71	/* Should < = 71 */
+#define CONFIG_SYS_POST_HOTKEYS_GPIO	GPIO_PF5
+#define CONFIG_POST_BSPEC1_GPIO_LEDS \
+	GPIO_PF6, GPIO_PF7, GPIO_PF8, GPIO_PF9, GPIO_PF10, GPIO_PF11,
+#define CONFIG_POST_BSPEC2_GPIO_BUTTONS \
+	GPIO_PF5, GPIO_PF4, GPIO_PF3, GPIO_PF2,
+#define CONFIG_POST_BSPEC2_GPIO_NAMES \
+	10, 11, 12, 13,
+#define CONFIG_SYS_POST_FLASH_START	11
+#define CONFIG_SYS_POST_FLASH_END	71
 #endif
-#define CONFIG_SYS_POST_WORD_ADDR	0xFF903FFC
 
 /* These are for board tests */
 #if 0

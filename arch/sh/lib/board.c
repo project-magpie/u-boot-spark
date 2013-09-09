@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007,2008
+ * Copyright (C) 2007, 2008, 2010
  * Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
  *
  * This program is free software; you can redistribute it and/or
@@ -22,34 +22,38 @@
 #include <command.h>
 #include <malloc.h>
 #include <stdio_dev.h>
-#include <timestamp.h>
 #include <version.h>
 #include <watchdog.h>
 #include <net.h>
+#include <mmc.h>
 #include <environment.h>
 
 #ifdef CONFIG_BITBANGMII
 #include <miiphy.h>
 #endif
 
+DECLARE_GLOBAL_DATA_PTR;
+
 extern int cpu_init(void);
 extern int board_init(void);
 extern int dram_init(void);
 extern int timer_init(void);
 
-const char version_string[] = U_BOOT_VERSION" ("U_BOOT_DATE" - "U_BOOT_TIME")";
-
 unsigned long monitor_flash_len = CONFIG_SYS_MONITOR_LEN;
 
+#ifndef CONFIG_SYS_NO_FLASH
 static int sh_flash_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	gd->bd->bi_flashsize = flash_init();
-	printf("FLASH: %ldMB\n", gd->bd->bi_flashsize / (1024*1024));
+
+	if (gd->bd->bi_flashsize >= (1024 * 1024))
+		printf("Flash: %ldMB\n", gd->bd->bi_flashsize / (1024*1024));
+	else
+		printf("Flash: %ldKB\n", gd->bd->bi_flashsize / 1024);
 
 	return 0;
 }
+#endif /* CONFIG_SYS_NO_FLASH */
 
 #if defined(CONFIG_CMD_NAND)
 # include <nand.h>
@@ -89,18 +93,18 @@ static int sh_pci_init(void)
 
 static int sh_mem_env_init(void)
 {
-	mem_malloc_init(TEXT_BASE - CONFIG_SYS_GBL_DATA_SIZE -
+	mem_malloc_init(CONFIG_SYS_TEXT_BASE - GENERATED_GBL_DATA_SIZE -
 			CONFIG_SYS_MALLOC_LEN, CONFIG_SYS_MALLOC_LEN - 16);
 	env_relocate();
 	jumptable_init();
 	return 0;
 }
 
-#if defined(CONFIG_CMD_NET)
-static int sh_net_init(void)
+#if defined(CONFIG_CMD_MMC)
+static int sh_mmc_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-	gd->bd->bi_ip_addr = getenv_IPaddr("ipaddr");
+	puts("MMC:   ");
+	mmc_initialize(gd->bd);
 	return 0;
 }
 #endif
@@ -122,29 +126,29 @@ init_fnc_t *init_sequence[] =
 	dram_init,		/* SDRAM init */
 	timer_init,		/* SuperH Timer (TCNT0 only) init */
 	sh_mem_env_init,
-	sh_flash_init,	/* Flash memory(NOR) init*/
+#ifndef CONFIG_SYS_NO_FLASH
+	sh_flash_init,	/* Flash memory init*/
+#endif
 	INIT_FUNC_NAND_INIT/* Flash memory (NAND) init */
 	INIT_FUNC_PCI_INIT	/* PCI init */
 	stdio_init,
 	console_init_r,
 	interrupt_init,
-#ifdef BOARD_LATE_INIT
+#ifdef CONFIG_BOARD_LATE_INIT
 	board_late_init,
 #endif
-#if defined(CONFIG_CMD_NET)
-	sh_net_init,		/* SH specific eth init */
+#if defined(CONFIG_CMD_MMC)
+	sh_mmc_init,
 #endif
 	NULL			/* Terminate this list */
 };
 
 void sh_generic_init(void)
 {
-	DECLARE_GLOBAL_DATA_PTR;
-
 	bd_t *bd;
 	init_fnc_t **init_fnc_ptr;
 
-	memset(gd, 0, CONFIG_SYS_GBL_DATA_SIZE);
+	memset(gd, 0, GENERATED_GBL_DATA_SIZE);
 
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
 
@@ -156,7 +160,9 @@ void sh_generic_init(void)
 	bd = gd->bd;
 	bd->bi_memstart	= CONFIG_SYS_SDRAM_BASE;
 	bd->bi_memsize = CONFIG_SYS_SDRAM_SIZE;
+#ifndef CONFIG_SYS_NO_FLASH
 	bd->bi_flashstart = CONFIG_SYS_FLASH_BASE;
+#endif
 #if defined(CONFIG_SYS_SRAM_BASE) && defined(CONFIG_SYS_SRAM_SIZE)
 	bd->bi_sramstart = CONFIG_SYS_SRAM_BASE;
 	bd->bi_sramsize	= CONFIG_SYS_SRAM_SIZE;
@@ -184,15 +190,8 @@ void sh_generic_init(void)
 	bb_miiphy_init();
 #endif
 #if defined(CONFIG_CMD_NET)
-	{
-		char *s;
-		puts("Net:   ");
-		eth_initialize(gd->bd);
-
-		s = getenv("bootfile");
-		if (s != NULL)
-			copy_filename(BootFile, s, sizeof(BootFile));
-	}
+	puts("Net:   ");
+	eth_initialize(gd->bd);
 #endif /* CONFIG_CMD_NET */
 
 	while (1) {

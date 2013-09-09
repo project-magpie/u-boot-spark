@@ -32,10 +32,12 @@
 #define CONFIG_MPC5xxx	1
 #define CONFIG_MPC5200 	1
 
-#define CONFIG_SYS_MPC5XXX_CLKIN	33000000
+#ifndef CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_TEXT_BASE	0xFF800000
+#endif
+#define CONFIG_SYS_LDSCRIPT	"board/matrix_vision/mvsmr/u-boot.lds"
 
-#define BOOTFLAG_COLD		0x01
-#define BOOTFLAG_WARM		0x02
+#define CONFIG_SYS_MPC5XXX_CLKIN	33000000
 
 #define CONFIG_MISC_INIT_R	1
 
@@ -120,9 +122,6 @@
 #define CONFIG_BOOTARGS		"root=/dev/ram ro rootfstype=squashfs" \
 					" allocate=6M"
 
-#define XMK_STR(x)      #x
-#define MK_STR(x)       XMK_STR(x)
-
 #define CONFIG_EXTRA_ENV_SETTINGS				\
 	"console_nr=0\0"					\
 	"console=no\0"						\
@@ -130,19 +129,19 @@
 	"stdout=serial\0"					\
 	"stderr=serial\0"					\
 	"fpga=0\0"						\
-	"fpgadata=" MK_STR(MV_FPGA_DATA) "\0"			\
-	"fpgadatasize=" MK_STR(MV_FPGA_SIZE) "\0"		\
-	"mv_kernel_addr=" MK_STR(MV_KERNEL_ADDR) "\0"		\
-	"mv_kernel_addr_ram=" MK_STR(MV_KERNEL_ADDR_RAM) "\0"	\
-	"script_addr=" MK_STR(MV_SCRIPT_ADDR) "\0"		\
-	"mv_initrd_addr=" MK_STR(MV_INITRD_ADDR) "\0"		\
-	"mv_initrd_addr_ram=" MK_STR(MV_INITRD_ADDR_RAM) "\0"	\
-	"mv_initrd_length=" MK_STR(MV_INITRD_LENGTH) "\0"	\
-	"mv_scratch_addr=" MK_STR(MV_SCRATCH_ADDR) "\0"		\
-	"mv_scratch_length=" MK_STR(MV_SCRATCH_LENGTH) "\0"	\
+	"fpgadata=" __stringify(MV_FPGA_DATA) "\0"			\
+	"fpgadatasize=" __stringify(MV_FPGA_SIZE) "\0"		\
+	"mv_kernel_addr=" __stringify(MV_KERNEL_ADDR) "\0"		\
+	"mv_kernel_addr_ram=" __stringify(MV_KERNEL_ADDR_RAM) "\0"	\
+	"script_addr=" __stringify(MV_SCRIPT_ADDR) "\0"		\
+	"mv_initrd_addr=" __stringify(MV_INITRD_ADDR) "\0"		\
+	"mv_initrd_addr_ram=" __stringify(MV_INITRD_ADDR_RAM) "\0"	\
+	"mv_initrd_length=" __stringify(MV_INITRD_LENGTH) "\0"	\
+	"mv_scratch_addr=" __stringify(MV_SCRATCH_ADDR) "\0"		\
+	"mv_scratch_length=" __stringify(MV_SCRATCH_LENGTH) "\0"	\
 	"mv_version=" U_BOOT_VERSION "\0"			\
-	"dhcp_client_id=" MK_STR(MV_CI) "\0"			\
-	"dhcp_vendor-class-identifier=" MK_STR(MV_VCI) "\0"	\
+	"dhcp_client_id=" __stringify(MV_CI) "\0"			\
+	"dhcp_vendor-class-identifier=" __stringify(MV_VCI) "\0"	\
 	"netretry=no\0"						\
 	"use_static_ipaddr=no\0"				\
 	"static_ipaddr=192.168.0.101\0"				\
@@ -152,9 +151,6 @@
 	"zcip=yes\0"						\
 	"netboot=no\0"						\
 	""
-
-#undef XMK_STR
-#undef MK_STR
 
 /*
  * IPB Bus clocking configuration.
@@ -177,7 +173,7 @@
 #define CONFIG_SYS_MAX_FLASH_SECT	256
 
 #define CONFIG_SYS_LOWBOOT
-#define CONFIG_SYS_FLASH_BASE		TEXT_BASE
+#define CONFIG_SYS_FLASH_BASE		CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_FLASH_SIZE		0x00800000
 
 /*
@@ -185,7 +181,6 @@
  */
 #define CONFIG_ENV_IS_IN_FLASH
 #undef	CONFIG_SYS_FLASH_PROTECTION
-#define CONFIG_HAS_UID
 #define	CONFIG_OVERWRITE_ETHADDR_ONCE
 
 #define CONFIG_ENV_OFFSET	0x8000
@@ -204,14 +199,13 @@
 #define CONFIG_SYS_DEFAULT_MBAR	0x80000000
 
 #define CONFIG_SYS_INIT_RAM_ADDR	MPC5XXX_SRAM
-#define CONFIG_SYS_INIT_RAM_END	MPC5XXX_SRAM_SIZE
+#define CONFIG_SYS_INIT_RAM_SIZE	MPC5XXX_SRAM_SIZE
 
-#define CONFIG_SYS_GBL_DATA_SIZE	128
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - \
-						CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - \
+						GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
 #define CONFIG_SYS_RAMBOOT		1
 #endif
@@ -244,7 +238,6 @@
  */
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_CMDLINE_EDITING
-#define CONFIG_SYS_PROMPT_HUSH_PS2 	"> "
 #undef 	CONFIG_SYS_LONGHELP
 #define CONFIG_SYS_PROMPT		"=> "
 #ifdef CONFIG_CMD_KGDB

@@ -21,14 +21,13 @@
 #include <malloc.h>
 
 
-#if 0 /* not used - was: #ifndef __HAVE_ARCH_STRNICMP */
 /**
- * strnicmp - Case insensitive, length-limited string comparison
+ * strncasecmp - Case insensitive, length-limited string comparison
  * @s1: One string
  * @s2: The other string
  * @len: the maximum number of characters to compare
  */
-int strnicmp(const char *s1, const char *s2, size_t len)
+int strncasecmp(const char *s1, const char *s2, size_t len)
 {
 	/* Yes, Virginia, it had better be unsigned */
 	unsigned char c1, c2;
@@ -52,7 +51,16 @@ int strnicmp(const char *s1, const char *s2, size_t len)
 	}
 	return (int)c1 - (int)c2;
 }
-#endif
+
+/**
+ * strcasecmp - Case insensitive string comparison
+ * @s1: One string
+ * @s2: The other string
+ */
+int strcasecmp(const char *s1, const char *s2)
+{
+	return strncasecmp(s1, s2, -1U);
+}
 
 char * ___strtok;
 
@@ -467,6 +475,9 @@ void * memcpy(void *dest, const void *src, size_t count)
 	unsigned long *dl = (unsigned long *)dest, *sl = (unsigned long *)src;
 	char *d8, *s8;
 
+	if (src == dest)
+		return dest;
+
 	/* while all data is aligned (common case), copy a word at a time */
 	if ( (((ulong)dest | (ulong)src) & (sizeof(*dl) - 1)) == 0) {
 		while (count >= sizeof(*dl)) {
@@ -496,6 +507,9 @@ void * memcpy(void *dest, const void *src, size_t count)
 void * memmove(void * dest,const void *src,size_t count)
 {
 	char *tmp, *s;
+
+	if (src == dest)
+		return dest;
 
 	if (dest <= src) {
 		tmp = (char *) dest;

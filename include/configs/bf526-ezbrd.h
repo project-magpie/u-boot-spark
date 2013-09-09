@@ -53,7 +53,7 @@
 #define CONFIG_EBIU_AMBCTL0_VAL	(B1WAT_15 | B1RAT_15 | B1HT_3 | B1RDYPOL | B0WAT_15 | B0RAT_15 | B0HT_3 | B0RDYPOL)
 #define CONFIG_EBIU_AMBCTL1_VAL	(B3WAT_15 | B3RAT_15 | B3HT_3 | B3RDYPOL | B2WAT_15 | B2RAT_15 | B2HT_3 | B2RDYPOL)
 
-#define CONFIG_SYS_MONITOR_LEN	(512 * 1024)
+#define CONFIG_SYS_MONITOR_LEN	(768 * 1024)
 #define CONFIG_SYS_MALLOC_LEN	(512 * 1024)
 
 
@@ -62,14 +62,14 @@
  * (can't be used same time as ethernet)
  */
 #if (CONFIG_BFIN_BOOT_MODE == BFIN_BOOT_NAND)
-#define CONFIG_BFIN_NFC
+# define CONFIG_BFIN_NFC
+# define CONFIG_BFIN_NFC_BOOTROM_ECC
 #endif
 #ifdef CONFIG_BFIN_NFC
 #define CONFIG_BFIN_NFC_CTL_VAL	0x0033
 #define CONFIG_DRIVER_NAND_BFIN
 #define CONFIG_SYS_NAND_BASE		0 /* not actually used */
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
-#define NAND_MAX_CHIPS		1
 #define CONFIG_CMD_NAND
 #endif
 
@@ -83,7 +83,6 @@
 #define CONFIG_BFIN_MAC
 #define CONFIG_RMII
 #define CONFIG_NETCONSOLE	1
-#define CONFIG_NET_MULTI	1
 #endif
 #define CONFIG_HOSTNAME		bf526-ezbrd
 /* Uncomment next line to use fixed MAC address */

@@ -28,7 +28,6 @@
 #define CONFIG_SYS_NAND_LARGEPAGE
 #define CONFIG_SYS_USE_NAND
 #define CONFIG_SYS_USE_DSPLINK		/* don't power up the DSP. */
-#define CONFIG_DISPLAY_CPUINFO
 /* SoC Configuration */
 #define CONFIG_ARM926EJS			/* arm926ejs CPU core */
 #define CONFIG_SYS_TIMERBASE		0x01c21400	/* use timer 0 */
@@ -42,11 +41,9 @@
 #define CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	20
 /* Memory Info */
 #define CONFIG_SYS_MALLOC_LEN		(0x10000 + 256*1024)	/* malloc() len */
-#define CONFIG_SYS_GBL_DATA_SIZE	128		/* reserved for initial data */
 #define CONFIG_SYS_MEMTEST_START	0x80000000	/* memtest start address */
 #define CONFIG_SYS_MEMTEST_END		0x81000000	/* 16MB RAM test */
 #define CONFIG_NR_DRAM_BANKS	1		/* we have 1 bank of DRAM */
-#define CONFIG_STACKSIZE	(256*1024)	/* regular stack */
 #define PHYS_SDRAM_1		0x80000000	/* DDR Start */
 #define PHYS_SDRAM_1_SIZE	0x08000000	/* DDR size 128MB */
 #define DDR_4BANKS				/* 4-bank DDR2 (128MB) */
@@ -58,7 +55,6 @@
 #define CONFIG_SYS_NS16550_CLK	CONFIG_SYS_HZ_CLOCK	/* Input clock to NS16550 */
 #define CONFIG_CONS_INDEX	1		/* use UART0 for console */
 #define CONFIG_BAUDRATE		115200		/* Default baud rate */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 /* I2C Configuration */
 #define CONFIG_HARD_I2C
 #define CONFIG_DRIVER_DAVINCI_I2C
@@ -66,7 +62,6 @@
 #define CONFIG_SYS_I2C_SLAVE		10	/* Bogus, master-only in U-Boot */
 /* Network & Ethernet Configuration */
 #define CONFIG_DRIVER_TI_EMAC
-#define CONFIG_EMAC_MDIO_PHY_NUM	1
 #define CONFIG_MII
 #define CONFIG_BOOTP_DEFAULT
 #define CONFIG_BOOTP_DNS
@@ -74,7 +69,6 @@
 #define CONFIG_BOOTP_SEND_HOSTNAME
 #define CONFIG_NET_RETRY_COUNT	10
 #define CONFIG_OVERWRITE_ETHADDR_ONCE
-#define CONFIG_NET_MULTI
 /* Flash & Environment */
 #undef CONFIG_ENV_IS_IN_FLASH
 #define CONFIG_SYS_NO_FLASH
@@ -84,7 +78,6 @@
 #define CONFIG_ENV_SECT_SIZE	2048	/* Env sector Size */
 #define CONFIG_ENV_SIZE		(128 << 10)	/* 128 KiB */
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* U-Boot is loaded by a bootloader */
-#define CONFIG_SKIP_RELOCATE_UBOOT	/* to a proper address, init done */
 #define CONFIG_SYS_NAND_BASE		0x02000000
 #define CONFIG_SYS_NAND_HW_ECC
 #define CONFIG_SYS_MAX_NAND_DEVICE	1	/* Max number of NAND devices */
@@ -94,7 +87,6 @@
 #define CONFIG_SYS_I2C_PCA9543_ADDR_LEN	0	/* Single register. */
 #define CONFIG_SYS_I2C_PCA9543_ENABLE_CH0	0x01	/* Enable channel 0. */
 /* U-Boot general configuration */
-#undef CONFIG_USE_IRQ				/* No IRQ/FIQ in U-Boot */
 #define CONFIG_MISC_INIT_R
 #define CONFIG_BOOTDELAY	5		/* Autoboot after 5 seconds. */
 #define CONFIG_BOOTFILE		"uImage"	/* Boot file name */
@@ -110,7 +102,6 @@
 #define CONFIG_AUTO_COMPLETE		/* Won't work with hush so far,
 					 * may be later */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_CMDLINE_EDITING
 #define CONFIG_SYS_LONGHELP
 #define CONFIG_CRC32_VERIFY
@@ -145,9 +136,17 @@
 #undef CONFIG_CMD_SETGETDCR
 #undef CONFIG_CMD_FLASH
 #undef CONFIG_CMD_IMLS
-/* KGDB support (if any) */
-#ifdef CONFIG_CMD_KGDB
-#define CONFIG_KGDB_BAUDRATE	115200	/* speed to run kgdb serial port */
-#define CONFIG_KGDB_SER_INDEX	1	/* which serial port to use */
+
+#ifdef CONFIG_CMD_BDI
+#define CONFIG_CLOCKS
 #endif
+
+#define CONFIG_MAX_RAM_BANK_SIZE	(256 << 20)	/* 256 MB */
+
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_RAM_SIZE	0x1000
+#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + \
+					 CONFIG_SYS_INIT_RAM_SIZE - \
+					 GENERATED_GBL_DATA_SIZE)
+
 #endif /* __CONFIG_H */

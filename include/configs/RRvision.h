@@ -36,6 +36,8 @@
 #define CONFIG_MPC823		1	/* This is a MPC823 CPU		*/
 #define CONFIG_RRVISION		1	/* ...on a RRvision board	*/
 
+#define	CONFIG_SYS_TEXT_BASE	0x40000000
+
 #define CONFIG_8xx_GCLK_FREQ 64000000
 
 #define	CONFIG_8xx_CONS_SMC1	1	/* Console is on SMC1		*/
@@ -58,7 +60,7 @@
 #define CONFIG_IPADDR                 10.0.0.5
 #define CONFIG_SERVERIP               10.0.0.2
 #define CONFIG_NETMASK                255.0.0.0
-#define CONFIG_ROOTPATH               /opt/eldk/ppc_8xx
+#define CONFIG_ROOTPATH               "/opt/eldk/ppc_8xx"
 #define CONFIG_BOOTCOMMAND            "run flash_self"
 
 #define	CONFIG_EXTRA_ENV_SETTINGS					\
@@ -178,8 +180,6 @@
 
 #define	CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks	*/
 
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 /*
  * Low Level Configuration Settings
  * (address mappings, register initial values, etc.)
@@ -194,9 +194,8 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define	CONFIG_SYS_INIT_RAM_END	0x2F00	/* End of used area in DPRAM	*/
-#define	CONFIG_SYS_GBL_DATA_SIZE	64  /* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define	CONFIG_SYS_INIT_RAM_SIZE	0x2F00	/* Size of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define	CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -330,6 +329,7 @@
  *-----------------------------------------------------------------------
  */
 
+#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define	CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card	Adapter	*/
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE    not supported	*/
@@ -467,13 +467,5 @@
 			 MAMR_AMA_TYPE_1 | MAMR_DSA_1_CYCL | MAMR_G0CLA_A10 |	\
 			 MAMR_RLFA_1X	 | MAMR_WLFA_1X	   | MAMR_TLFA_4X)
 
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define	BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
 
 #endif	/* __CONFIG_H */

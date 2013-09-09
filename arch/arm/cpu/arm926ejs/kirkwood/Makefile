@@ -24,12 +24,13 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(SOC).a
+LIB	= $(obj)lib$(SOC).o
 
 COBJS-y	= cpu.o
 COBJS-y	+= dram.o
 COBJS-y	+= mpp.o
 COBJS-y	+= timer.o
+COBJS-y	+= cache.o
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
@@ -37,7 +38,7 @@ OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
 all:	$(obj).depend $(LIB)
 
 $(LIB):	$(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

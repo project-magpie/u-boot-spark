@@ -28,22 +28,16 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_SPEAR600				1
+#define CONFIG_SPEAR600
 
-#if defined(CONFIG_MK_nand)
-#define CONFIG_ENV_IS_IN_NAND			1
-#else
-#define CONFIG_ENV_IS_IN_FLASH			1
+#if defined(CONFIG_usbtty)
+#define CONFIG_SPEAR_USBTTY
 #endif
 
-#if defined(CONFIG_MK_usbtty)
-#define CONFIG_SPEAR_USBTTY			1
-#undef CONFIG_ENV_IS_IN_NAND
-#undef CONFIG_ENV_IS_IN_FLASH
-#define CONFIG_ENV_IS_NOWHERE			1
-/*
- * To support saveenv command
- */
+#if defined(CONFIG_nand)
+#define CONFIG_ENV_IS_IN_NAND
+#else
+#define CONFIG_ENV_IS_IN_FLASH
 #endif
 
 #include <configs/spear-common.h>
@@ -55,7 +49,11 @@
 						(void *)CONFIG_SYS_SERIAL1 }
 
 /* NAND flash configuration */
-#define CONFIG_SYS_FSMC_NAND_8BIT		1
-#define CONFIG_SYS_NAND_BASE			(0xD2000000)
+#define CONFIG_SYS_FSMC_NAND_SP
+#define CONFIG_SYS_FSMC_NAND_8BIT
+#define CONFIG_SYS_NAND_BASE			0xD2000000
+
+/* Environment Settings */
+#define CONFIG_EXTRA_ENV_SETTINGS              CONFIG_EXTRA_ENV_USBTTY
 
 #endif  /* __CONFIG_H */

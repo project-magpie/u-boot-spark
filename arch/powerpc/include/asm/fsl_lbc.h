@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2008,2010 Freescale Semiconductor, Inc.
+ * Copyright (C) 2004-2008,2010-2011 Freescale Semiconductor, Inc.
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -15,6 +15,10 @@
 
 #include <config.h>
 #include <common.h>
+
+#ifdef CONFIG_MPC85xx
+void lbc_sdram_init(void);
+#endif
 
 /* BR - Base Registers
  */
@@ -46,8 +50,10 @@
 #define BR_MSEL				0x000000E0
 #define BR_MSEL_SHIFT			5
 #define BR_MS_GPCM			0x00000000	/* GPCM */
+#if !defined(CONFIG_MPC834x) && !defined(CONFIG_MPC8360)
 #define BR_MS_FCM			0x00000020	/* FCM */
-#ifdef CONFIG_MPC83xx
+#endif
+#if defined(CONFIG_MPC834x) || defined(CONFIG_MPC8360)
 #define BR_MS_SDRAM			0x00000060	/* SDRAM */
 #elif defined(CONFIG_MPC85xx)
 #define BR_MS_SDRAM			0x00000000	/* SDRAM */
@@ -76,10 +82,10 @@
 
 /* Convert an address into the right format for the BR registers */
 #if defined(CONFIG_PHYS_64BIT) && !defined(CONFIG_FSL_ELBC)
-#define BR_PHYS_ADDR(x)	((unsigned long)((x & 0x0ffff8000ULL) | \
-					 ((x & 0x300000000ULL) >> 19)))
+#define BR_PHYS_ADDR(x)	\
+	((u32)(((x) & 0x0ffff8000ULL) | (((x) & 0x300000000ULL) >> 19)))
 #else
-#define BR_PHYS_ADDR(x) (x & 0xffff8000)
+#define BR_PHYS_ADDR(x) ((u32)(x) & 0xffff8000)
 #endif
 
 /* OR - Option Registers
@@ -134,8 +140,10 @@
 #define OR_GPCM_EHTR_SHIFT		1
 #define OR_GPCM_EHTR_CLEAR		0x00000000
 #define OR_GPCM_EHTR_SET		0x00000002
+#if !defined(CONFIG_MPC8308)
 #define OR_GPCM_EAD			0x00000001
 #define OR_GPCM_EAD_SHIFT		0
+#endif
 
 /* helpers to convert values into an OR address mask (GPCM mode) */
 #define P2SZ_TO_AM(s)	((~((s) - 1)) & 0xffff8000)	/* must be pow of 2 */
@@ -192,8 +200,10 @@
 #define OR_SDRAM_XAM_SHIFT		13
 #define OR_SDRAM_COLS			0x00001C00
 #define OR_SDRAM_COLS_SHIFT		10
+#define OR_SDRAM_MIN_COLS		7
 #define OR_SDRAM_ROWS			0x000001C0
 #define OR_SDRAM_ROWS_SHIFT		6
+#define OR_SDRAM_MIN_ROWS		9
 #define OR_SDRAM_PMSEL			0x00000020
 #define OR_SDRAM_PMSEL_SHIFT		5
 #define OR_SDRAM_EAD			0x00000001
@@ -291,6 +301,8 @@
 #define LBCR_EPAR_SHIFT			16
 #define LBCR_BMT			0x0000FF00
 #define LBCR_BMT_SHIFT			8
+#define LBCR_BMTPS	 		0x0000000F
+#define LBCR_BMTPS_SHIFT 		0
 
 /* LCRR - Clock Ratio Register
  */
@@ -463,6 +475,8 @@ extern void init_early_memctl_regs(void);
 extern void upmconfig(uint upm, uint *table, uint size);
 
 #define LBC_BASE_ADDR ((fsl_lbc_t *)CONFIG_SYS_LBC_ADDR)
+#define get_lbc_lcrr() (in_be32(&(LBC_BASE_ADDR)->lcrr))
+#define get_lbc_lbcr() (in_be32(&(LBC_BASE_ADDR)->lbcr))
 #define get_lbc_br(i) (in_be32(&(LBC_BASE_ADDR)->bank[i].br))
 #define get_lbc_or(i) (in_be32(&(LBC_BASE_ADDR)->bank[i].or))
 #define set_lbc_br(i, v) (out_be32(&(LBC_BASE_ADDR)->bank[i].br, v))

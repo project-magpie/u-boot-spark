@@ -59,7 +59,6 @@
 #define CONFIG_BAUDRATE		115200
 
 /* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 
 #define	CONFIG_TIMESTAMP		/* Print image info with timestamp */
 #undef	CONFIG_BOOTARGS
@@ -186,7 +185,7 @@
 #define CONFIG_FLASH_CFI_DRIVER    1
 
 /* The following #defines are needed to get flash environment right */
-#define	CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define	CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #define	CONFIG_SYS_MONITOR_LEN		(192 << 10)
 
 #define CONFIG_SYS_INIT_SP_OFFSET	0x400000
@@ -208,7 +207,6 @@
 
 #define CONFIG_NR_DRAM_BANKS	2
 
-#define CONFIG_NET_MULTI
 
 #ifdef CONFIG_DBAU1550
 #define MEM_SIZE 192

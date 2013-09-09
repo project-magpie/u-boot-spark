@@ -2,7 +2,7 @@
  * Copyright (C) 2009, DENX Software Engineering
  * Author: John Rigby <jcrigby@gmail.com
  *
- *   Based on arch-mx31/mx31-regs.h
+ *   Based on arch-mx31/imx-regs.h
  *	Copyright (C) 2009 Ilya Yanok,
  *		Emcraft Systems <yanok@emcraft.com>
  *   and arch-mx27/imx-regs.h
@@ -33,10 +33,8 @@
 #ifndef _IMX_REGS_H
 #define _IMX_REGS_H
 
-#ifndef __ASSEMBLY__
-#ifdef CONFIG_FEC_MXC
-extern void mx25_fec_init_pins(void);
-#endif
+#if !(defined(__KERNEL_STRICT_NAMES) || defined(__ASSEMBLY__))
+#include <asm/types.h>
 
 /* Clock Control Module (CCM) registers */
 struct ccm_regs {
@@ -83,18 +81,6 @@ struct esdramc_regs {
 	u32 cdlyl;	/* delay line cycle length debug */
 };
 
-/* GPIO registers */
-struct gpio_regs {
-	u32 dr;		/* data */
-	u32 dir;	/* direction */
-	u32 psr;	/* pad satus */
-	u32 icr1;	/* interrupt config 1 */
-	u32 icr2;	/* interrupt config 2 */
-	u32 imr;	/* interrupt mask */
-	u32 isr;	/* interrupt status */
-	u32 edge_sel;	/* edge select */
-};
-
 /* General Purpose Timer (GPT) registers */
 struct gpt_regs {
 	u32 ctrl;   	/* control */
@@ -108,11 +94,11 @@ struct gpt_regs {
 
 /* Watchdog Timer (WDOG) registers */
 struct wdog_regs {
-	u32 wcr;	/* Control */
-	u32 wsr;	/* Service */
-	u32 wrsr;	/* Reset Status */
-	u32 wicr;	/* Interrupt Control */
-	u32 wmcr;	/* Misc Control */
+	u16 wcr;	/* Control */
+	u16 wsr;	/* Service */
+	u16 wrsr;	/* Reset Status */
+	u16 wicr;	/* Interrupt Control */
+	u16 wmcr;	/* Misc Control */
 };
 
 /* IIM control registers */
@@ -129,13 +115,59 @@ struct iim_regs {
 	u32 iim_srev;
 	u32 iim_prog_p;
 	u32 res1[0x1f5];
-	u32 iim_bank_area0[0x20];
-	u32 res2[0xe0];
-	u32 iim_bank_area1[0x20];
-	u32 res3[0xe0];
-	u32 iim_bank_area2[0x20];
+	struct fuse_bank {
+		u32 fuse_regs[0x20];
+		u32 fuse_rsvd[0xe0];
+	} bank[3];
 };
+
+struct fuse_bank0_regs {
+	u32 fuse0_25[0x1a];
+	u32 mac_addr[6];
+};
+
+/* Multi-Layer AHB Crossbar Switch (MAX) registers */
+struct max_regs {
+	u32 mpr0;
+	u32 pad00[3];
+	u32 sgpcr0;
+	u32 pad01[59];
+	u32 mpr1;
+	u32 pad02[3];
+	u32 sgpcr1;
+	u32 pad03[59];
+	u32 mpr2;
+	u32 pad04[3];
+	u32 sgpcr2;
+	u32 pad05[59];
+	u32 mpr3;
+	u32 pad06[3];
+	u32 sgpcr3;
+	u32 pad07[59];
+	u32 mpr4;
+	u32 pad08[3];
+	u32 sgpcr4;
+	u32 pad09[251];
+	u32 mgpcr0;
+	u32 pad10[63];
+	u32 mgpcr1;
+	u32 pad11[63];
+	u32 mgpcr2;
+	u32 pad12[63];
+	u32 mgpcr3;
+	u32 pad13[63];
+	u32 mgpcr4;
+};
+
+/* AHB <-> IP-Bus Interface (AIPS) */
+struct aips_regs {
+	u32 mpr_0_7;
+	u32 mpr_8_15;
+};
+
 #endif
+
+#define ARCH_MXC
 
 /* AIPS 1 */
 #define IMX_AIPS1_BASE		(0x43F00000)
@@ -148,8 +180,8 @@ struct iim_regs {
 #define IMX_I2C3_BASE		(0x43F84000)
 #define IMX_CAN1_BASE		(0x43F88000)
 #define IMX_CAN2_BASE		(0x43F8C000)
-#define IMX_UART1_BASE		(0x43F90000)
-#define IMX_UART2_BASE		(0x43F94000)
+#define UART1_BASE		(0x43F90000)
+#define UART2_BASE		(0x43F94000)
 #define IMX_I2C2_BASE		(0x43F98000)
 #define IMX_OWIRE_BASE		(0x43F9C000)
 #define IMX_CSPI1_BASE		(0x43FA4000)
@@ -165,15 +197,15 @@ struct iim_regs {
 /* SPBA */
 #define IMX_SPBA_BASE		(0x50000000)
 #define IMX_CSPI3_BASE		(0x50004000)
-#define IMX_UART4_BASE		(0x50008000)
-#define IMX_UART3_BASE		(0x5000C000)
+#define UART4_BASE		(0x50008000)
+#define UART3_BASE		(0x5000C000)
 #define IMX_CSPI2_BASE		(0x50010000)
 #define IMX_SSI2_BASE		(0x50014000)
 #define IMX_ESAI_BASE		(0x50018000)
 #define IMX_ATA_DMA_BASE	(0x50020000)
 #define IMX_SIM1_BASE		(0x50024000)
 #define IMX_SIM2_BASE		(0x50028000)
-#define IMX_UART5_BASE		(0x5002C000)
+#define UART5_BASE		(0x5002C000)
 #define IMX_TSC_BASE		(0x50030000)
 #define IMX_SSI1_BASE		(0x50034000)
 #define IMX_FEC_BASE		(0x50038000)
@@ -209,6 +241,7 @@ struct iim_regs {
 #define IMX_RTIC_BASE		(0x53FEC000)
 #define IMX_IIM_BASE		(0x53FF0000)
 #define IMX_USB_BASE		(0x53FF4000)
+#define IMX_USB_PORT_OFFSET	0x200
 #define IMX_CSI_BASE		(0x53FF8000)
 #define IMX_DRYICE_BASE		(0x53FFC000)
 
@@ -217,6 +250,7 @@ struct iim_regs {
 
 /* 128K Internal Static RAM */
 #define IMX_RAM_BASE		(0x78000000)
+#define IMX_RAM_SIZE		(128 * 1024)
 
 /* SDRAM BANKS */
 #define IMX_SDRAM_BANK0_BASE	(0x80000000)
@@ -308,9 +342,18 @@ struct iim_regs {
 #define GPT_CTRL_TEN		1		/* Timer enable	*/
 
 /* WDOG enable */
-#define WCR_WDE 0x04
+#define WCR_WDE 		0x04
+#define WSR_UNLOCK1		0x5555
+#define WSR_UNLOCK2		0xAAAA
 
-/* FUSE bank offsets */
-#define IIM0_MAC		0x1a
+/* Names used in GPIO driver */
+#define GPIO1_BASE_ADDR		IMX_GPIO1_BASE
+#define GPIO2_BASE_ADDR		IMX_GPIO2_BASE
+#define GPIO3_BASE_ADDR		IMX_GPIO3_BASE
+#define GPIO4_BASE_ADDR		IMX_GPIO4_BASE
+
+#define CHIP_REV_1_0		0x10
+#define CHIP_REV_1_1		0x11
+#define CHIP_REV_1_2		0x12
 
 #endif				/* _IMX_REGS_H */

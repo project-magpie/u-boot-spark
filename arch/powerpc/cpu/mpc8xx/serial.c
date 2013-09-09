@@ -26,6 +26,7 @@
 #include <command.h>
 #include <serial.h>
 #include <watchdog.h>
+#include <linux/compiler.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -389,15 +390,14 @@ smc_tstc(void)
 
 struct serial_device serial_smc_device =
 {
-	"serial_smc",
-	"SMC",
-	smc_init,
-	NULL,
-	smc_setbrg,
-	smc_getc,
-	smc_tstc,
-	smc_putc,
-	smc_puts,
+	.name	= "serial_smc",
+	.start	= smc_init,
+	.stop	= NULL,
+	.setbrg	= smc_setbrg,
+	.getc	= smc_getc,
+	.tstc	= smc_tstc,
+	.putc	= smc_putc,
+	.puts	= smc_puts,
 };
 
 #endif /* CONFIG_8xx_CONS_SMC1 || CONFIG_8xx_CONS_SMC2 */
@@ -660,18 +660,37 @@ scc_tstc(void)
 
 struct serial_device serial_scc_device =
 {
-	"serial_scc",
-	"SCC",
-	scc_init,
-	NULL,
-	scc_setbrg,
-	scc_getc,
-	scc_tstc,
-	scc_putc,
-	scc_puts,
+	.name	= "serial_scc",
+	.start	= scc_init,
+	.stop	= NULL,
+	.setbrg	= scc_setbrg,
+	.getc	= scc_getc,
+	.tstc	= scc_tstc,
+	.putc	= scc_putc,
+	.puts	= scc_puts,
 };
 
 #endif	/* CONFIG_8xx_CONS_SCCx */
+
+__weak struct serial_device *default_serial_console(void)
+{
+#if defined(CONFIG_8xx_CONS_SMC1) || defined(CONFIG_8xx_CONS_SMC2)
+	return &serial_smc_device;
+#else
+	return &serial_scc_device;
+#endif
+}
+
+void mpc8xx_serial_initialize(void)
+{
+#if defined(CONFIG_8xx_CONS_SMC1) || defined(CONFIG_8xx_CONS_SMC2)
+	serial_register(&serial_smc_device);
+#endif
+#if	defined(CONFIG_8xx_CONS_SCC1) || defined(CONFIG_8xx_CONS_SCC2) || \
+	defined(CONFIG_8xx_CONS_SCC3) || defined(CONFIG_8xx_CONS_SCC4)
+	serial_register(&serial_scc_device);
+#endif
+}
 
 #ifdef CONFIG_MODEM_SUPPORT
 void disable_putc(void)
@@ -692,7 +711,7 @@ kgdb_serial_init(void)
 {
 	int i = -1;
 
-	if (strcmp(default_serial_console()->ctlr, "SMC") == 0)
+	if (strcmp(default_serial_console()->name, "serial_smc") == 0)
 	{
 #if defined(CONFIG_8xx_CONS_SMC1)
 		i = 1;
@@ -700,7 +719,7 @@ kgdb_serial_init(void)
 		i = 2;
 #endif
 	}
-	else if (strcmp(default_serial_console()->ctlr, "SMC") == 0)
+	else if (strcmp(default_serial_console()->name, "serial_scc") == 0)
 	{
 #if defined(CONFIG_8xx_CONS_SCC1)
 		i = 1;
@@ -715,7 +734,7 @@ kgdb_serial_init(void)
 
 	if (i >= 0)
 	{
-		serial_printf("[on %s%d] ", default_serial_console()->ctlr, i);
+		serial_printf("[on %s%d] ", default_serial_console()->name, i);
 	}
 }
 

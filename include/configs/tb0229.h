@@ -38,8 +38,6 @@
 
 #define CONFIG_BAUDRATE		115200
 
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 #define CONFIG_TIMESTAMP		/* Print image info with timestamp */
 
 #define CONFIG_PREBOOT	"echo;" \
@@ -142,7 +140,7 @@
 #define PHYS_FLASH_1		0xbfc00000 /* Flash Bank #1 */
 
 /* The following #defines are needed to get flash environment right */
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_MONITOR_LEN		(192 << 10)
 
 #define CONFIG_SYS_INIT_SP_OFFSET	0x400000
@@ -184,7 +182,6 @@
  */
 #define CONFIG_PCI
 #define CONFIG_PCI_PNP
-#define CONFIG_NET_MULTI
 #define CONFIG_EEPRO100
 #define CONFIG_SYS_RX_ETH_BUFFER	8		/* use 8 rx buffer on eepro100	*/
 

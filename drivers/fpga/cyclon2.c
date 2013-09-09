@@ -47,13 +47,13 @@
 #define CONFIG_SYS_FPGA_WAIT CONFIG_SYS_HZ/10		/* 100 ms */
 #endif
 
-static int CYC2_ps_load( Altera_desc *desc, void *buf, size_t bsize );
-static int CYC2_ps_dump( Altera_desc *desc, void *buf, size_t bsize );
+static int CYC2_ps_load(Altera_desc *desc, const void *buf, size_t bsize);
+static int CYC2_ps_dump(Altera_desc *desc, const void *buf, size_t bsize);
 /* static int CYC2_ps_info( Altera_desc *desc ); */
 
 /* ------------------------------------------------------------------------- */
 /* CYCLON2 Generic Implementation */
-int CYC2_load (Altera_desc * desc, void *buf, size_t bsize)
+int CYC2_load(Altera_desc *desc, const void *buf, size_t bsize)
 {
 	int ret_val = FPGA_FAIL;
 
@@ -61,6 +61,16 @@ int CYC2_load (Altera_desc * desc, void *buf, size_t bsize)
 	case passive_serial:
 		PRINTF ("%s: Launching Passive Serial Loader\n", __FUNCTION__);
 		ret_val = CYC2_ps_load (desc, buf, bsize);
+		break;
+
+	case fast_passive_parallel:
+		/* Fast Passive Parallel (FPP) and PS only differ in what is
+		 * done in the write() callback. Use the existing PS load
+		 * function for FPP, too.
+		 */
+		PRINTF ("%s: Launching Fast Passive Parallel Loader\n",
+		      __FUNCTION__);
+		ret_val = CYC2_ps_load(desc, buf, bsize);
 		break;
 
 		/* Add new interface types here */
@@ -73,7 +83,7 @@ int CYC2_load (Altera_desc * desc, void *buf, size_t bsize)
 	return ret_val;
 }
 
-int CYC2_dump (Altera_desc * desc, void *buf, size_t bsize)
+int CYC2_dump(Altera_desc *desc, const void *buf, size_t bsize)
 {
 	int ret_val = FPGA_FAIL;
 
@@ -100,7 +110,7 @@ int CYC2_info( Altera_desc *desc )
 
 /* ------------------------------------------------------------------------- */
 /* CYCLON2 Passive Serial Generic Implementation                                  */
-static int CYC2_ps_load (Altera_desc * desc, void *buf, size_t bsize)
+static int CYC2_ps_load(Altera_desc *desc, const void *buf, size_t bsize)
 {
 	int ret_val = FPGA_FAIL;	/* assume the worst */
 	Altera_CYC2_Passive_Serial_fns *fn = desc->iface_fns;
@@ -134,6 +144,8 @@ static int CYC2_ps_load (Altera_desc * desc, void *buf, size_t bsize)
 		}
 
 		/* Establish the initial state */
+		(*fn->config) (FALSE, TRUE, cookie);	/* De-assert nCONFIG */
+		udelay(100);
 		(*fn->config) (TRUE, TRUE, cookie);	/* Assert nCONFIG */
 
 		udelay(2);		/* T_cfg > 2us	*/
@@ -200,7 +212,7 @@ static int CYC2_ps_load (Altera_desc * desc, void *buf, size_t bsize)
 	return ret_val;
 }
 
-static int CYC2_ps_dump (Altera_desc * desc, void *buf, size_t bsize)
+static int CYC2_ps_dump(Altera_desc *desc, const void *buf, size_t bsize)
 {
 	/* Readback is only available through the Slave Parallel and         */
 	/* boundary-scan interfaces.                                         */

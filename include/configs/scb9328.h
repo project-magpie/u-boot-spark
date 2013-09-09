@@ -27,14 +27,12 @@
 #define CONFIG_ARM920T		1     /* this is an ARM920T CPU	    */
 #define CONFIG_IMX		1     /* in a Motorola MC9328MXL Chip */
 #define CONFIG_SCB9328		1     /* on a scb9328tronix board */
-#undef	CONFIG_USE_IRQ		      /* don't need use IRQ/FIQ	   */
 
 #define CONFIG_IMX_SERIAL
 #define CONFIG_IMX_SERIAL1
 /*
  * Select serial console configuration
  */
-
 
 /*
  * BOOTP options
@@ -43,7 +41,6 @@
 #define CONFIG_BOOTP_BOOTPATH
 #define CONFIG_BOOTP_GATEWAY
 #define CONFIG_BOOTP_HOSTNAME
-
 
 /*
  * Command line configuration.
@@ -57,7 +54,6 @@
 #undef CONFIG_CMD_CONSOLE
 #undef CONFIG_CMD_LOADS
 #undef CONFIG_CMD_SOURCE
-
 
 /*
  * Boot options. Setting delay to -1 stops autostart count down.
@@ -90,7 +86,6 @@
 #define CONFIG_SYS_HZ			3686400	     /* incrementer freq: 3.6864 MHz */
 #define CONFIG_SYS_CPUSPEED		0x141	     /* core clock - register value  */
 
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_BAUDRATE 115200
 /*
  * Definitions related to passing arguments to kernel.
@@ -98,23 +93,11 @@
 #define CONFIG_CMDLINE_TAG	     1	 /* send commandline to Kernel	     */
 #define CONFIG_SETUP_MEMORY_TAGS     1	 /* send memory definition to kernel */
 #define CONFIG_INITRD_TAG	     1	 /* send initrd params		     */
-#undef	CONFIG_VFD			 /* do not send framebuffer setup    */
-
 
 /*
  * Malloc pool need to host env + 128 Kb reserve for other allocations.
  */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + (128<<10) )
-
-
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
-
-#define CONFIG_STACKSIZE	(120<<10)      /* stack size		     */
-
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4<<10)	       /* IRQ stack		     */
-#define CONFIG_STACKSIZE_FIQ	(4<<10)	       /* FIQ stack		     */
-#endif
 
 /* SDRAM Setup Values
 0x910a8300 Precharge Command CAS 3
@@ -134,14 +117,10 @@
 #define SCB9328_SDRAM_1		0x08000000	/* SDRAM bank #1	   */
 #define SCB9328_SDRAM_1_SIZE	0x01000000	/* 16 MB		   */
 
-/*
- * Flash Controller settings
- */
+#define CONFIG_SYS_TEXT_BASE	0x10000000
 
-/*
- * Hardware drivers
- */
-
+#define CONFIG_SYS_SDRAM_BASE	SCB9328_SDRAM_1
+#define CONFIG_SYS_INIT_SP_ADDR	(SCB9328_SDRAM_1 + 0xf00000)
 
 /*
  * Configuration for FLASH memory for the Synertronixx board
@@ -255,7 +234,6 @@
 #define CONFIG_SYS_CS5U_VAL 0x00008400
 #define CONFIG_SYS_CS5L_VAL 0x00000D03
 
-#define CONFIG_NET_MULTI		1
 #define CONFIG_DRIVER_DM9000		1
 #define CONFIG_DM9000_BASE		0x16000000
 #define DM9000_IO			CONFIG_DM9000_BASE

@@ -23,7 +23,7 @@
  */
 
 #include <common.h>
-#include <ppc4xx.h>
+#include <asm/ppc4xx.h>
 #include <asm/processor.h>
 #include <asm/io.h>
 #include <asm/cache.h>
@@ -113,8 +113,6 @@ static force_inline void set_mcopt1_mchk(u32 bits)
  */
 static void inject_ecc_error(void *ptr, int par)
 {
-	u32 val;
-
 	/*
 	 * Taken from PPC460EX/EXr/GT users manual (Rev 1.21)
 	 * 22.2.17.13 ECC Diagnostics
@@ -124,7 +122,7 @@ static void inject_ecc_error(void *ptr, int par)
 	 */
 
 	out_be32(ptr, 0x00000000);
-	val = in_be32(ptr);
+	in_be32(ptr);
 
 	/* 6. Set memory controller to no error checking */
 	set_mcopt1_mchk(SDRAM_MCOPT1_MCHK_NON);
@@ -136,7 +134,7 @@ static void inject_ecc_error(void *ptr, int par)
 		out_be32(ptr, in_be32(ptr) ^ 0x00000003);
 
 	/* 8. Wait for SDRAM idle */
-	val = in_be32(ptr);
+	in_be32(ptr);
 	set_mcopt1_mchk(SDRAM_MCOPT1_MCHK_CHK_REP);
 
 	/* Wait for SDRAM idle */
@@ -151,7 +149,6 @@ static void rewrite_ecc_parity(void *ptr, int par)
 	u32 end_address;
 	u32 address_increment;
 	u32 mcopt1;
-	u32 val;
 
 	/*
 	 * Fill ECC parity byte again. Otherwise further accesses to
@@ -159,7 +156,7 @@ static void rewrite_ecc_parity(void *ptr, int par)
 	 */
 
 	/* Wait for SDRAM idle */
-	val = in_be32(0x00000000);
+	in_be32(0x00000000);
 	set_mcopt1_mchk(SDRAM_MCOPT1_MCHK_GEN);
 
 	/* ECC bit set method for non-cached memory */
@@ -190,15 +187,13 @@ static int do_ecctest(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	int error;
 
 	if (argc < 3) {
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	}
 
 	ptr = (u32 *)simple_strtoul(argv[1], NULL, 16);
 	error = simple_strtoul(argv[2], NULL, 16);
 	if ((error < 1) || (error > 2)) {
-		cmd_usage(cmdtp);
-		return 1;
+		return cmd_usage(cmdtp);
 	}
 
 	printf("Using address %p for %d bit ECC error injection\n",

@@ -49,6 +49,8 @@
 #define CONFIG_MPC512X		1	/* MPC512X family */
 #define CONFIG_FSL_DIU_FB	1	/* FSL DIU */
 
+#define	CONFIG_SYS_TEXT_BASE	0xF0000000
+
 /* Used for silent command in environment */
 #define CONFIG_SYS_DEVICE_NULLDEV
 #define CONFIG_SILENT_CONSOLE
@@ -62,8 +64,6 @@
 #define CONFIG_SPLASH_SCREEN
 #define CONFIG_VIDEO_LOGO
 #define CONFIG_VIDEO_BMP_RLE8
-#define CONFIG_VIDEO_XRES	800
-#define CONFIG_VIDEO_YRES	480
 #endif
 
 #define CONFIG_SYS_MPC512X_CLKIN	33333333	/* in Hz */
@@ -225,9 +225,7 @@
 #define CONFIG_CMD_NAND			/* enable NAND support */
 #define CONFIG_NAND_MPC5121_NFC
 #define CONFIG_SYS_NAND_BASE            0x40000000
-
 #define CONFIG_SYS_MAX_NAND_DEVICE      1
-#define NAND_MAX_CHIPS                  CONFIG_SYS_MAX_NAND_DEVICE
 #define CONFIG_SYS_NAND_SELECT_DEVICE	/* driver supports mutipl. chips */
 
 /*
@@ -271,7 +269,7 @@
 #define CONFIG_FDT_FIXUP_PARTITIONS
 #endif
 
-#define CONFIG_SYS_MONITOR_BASE		TEXT_BASE	/* Start of monitor */
+#define CONFIG_SYS_MONITOR_BASE		CONFIG_SYS_TEXT_BASE	/* Start of monitor */
 #define CONFIG_SYS_MONITOR_LEN		(512 * 1024)	/* 512 kB for monitor */
 #ifdef	CONFIG_FSL_DIU_FB
 #define CONFIG_SYS_MALLOC_LEN		(6 * 1024 * 1024) /* for malloc */
@@ -300,7 +298,6 @@
 /*
  * Used PSC UART devices
  */
-#define CONFIG_SERIAL_MULTI
 #define CONFIG_SYS_PSC1
 #define CONFIG_SYS_PSC4
 #define CONFIG_SYS_PSC6
@@ -344,7 +341,6 @@
  * Ethernet configuration
  */
 #define CONFIG_MPC512x_FEC	1
-#define CONFIG_NET_MULTI
 #define CONFIG_PHY_ADDR		0x1F
 #define CONFIG_MII		1	/* MII PHY management	*/
 #define CONFIG_FEC_AN_TIMEOUT	1
@@ -412,11 +408,11 @@
 
 /*
  * For booting Linux, the board info and command line data
- * have to be in the first 8 MB of memory, since this is
+ * have to be in the first 256 MB of memory, since this is
  * the maximum mapped by the Linux kernel during initialization.
  */
 /* Initial Memory map for Linux */
-#define CONFIG_SYS_BOOTMAPSZ	(8 << 20)
+#define CONFIG_SYS_BOOTMAPSZ	(256 << 20)
 
 /* Cache Configuration */
 #define CONFIG_SYS_DCACHE_SIZE		32768
@@ -432,23 +428,13 @@
 
 #define CONFIG_HIGH_BATS	1	/* High BATs supported */
 
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD		0x01	/* Normal Power-On: Boot from FLASH */
-#define BOOTFLAG_WARM		0x02	/* Software reboot */
-
 #ifdef CONFIG_CMD_KGDB
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed of kgdb serial port */
 #define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
 #endif
 
-#ifdef CONFIG_SERIAL_MULTI
 /* POST support */
 #define CONFIG_POST             (CONFIG_SYS_POST_COPROC)
-#endif
 
 /*
  * Environment Configuration

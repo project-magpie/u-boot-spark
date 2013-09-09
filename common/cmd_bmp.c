@@ -31,9 +31,9 @@
 #include <command.h>
 #include <asm/byteorder.h>
 #include <malloc.h>
+#include <video.h>
 
 static int bmp_info (ulong addr);
-static int bmp_display (ulong addr, int x, int y);
 
 /*
  * Allocate and decompress a BMP image using gunzip().
@@ -79,7 +79,7 @@ bmp_image_t *gunzip_bmp(unsigned long addr, unsigned long *lenp)
 		return NULL;
 	}
 
-	puts("Gzipped BMP image detected!\n");
+	debug("Gzipped BMP image detected!\n");
 
 	return bmp;
 }
@@ -102,7 +102,7 @@ static int do_bmp_info(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[
 		addr = simple_strtoul(argv[1], NULL, 16);
 		break;
 	default:
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 	}
 
 	return (bmp_info(addr));
@@ -126,7 +126,7 @@ static int do_bmp_display(cmd_tbl_t * cmdtp, int flag, int argc, char * const ar
 	        y = simple_strtoul(argv[3], NULL, 10);
 	        break;
 	default:
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 	}
 
 	 return (bmp_display(addr, x, y));
@@ -136,6 +136,12 @@ static cmd_tbl_t cmd_bmp_sub[] = {
 	U_BOOT_CMD_MKENT(info, 3, 0, do_bmp_info, "", ""),
 	U_BOOT_CMD_MKENT(display, 5, 0, do_bmp_display, "", ""),
 };
+
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
+void bmp_reloc(void) {
+	fixup_cmdtable(cmd_bmp_sub, ARRAY_SIZE(cmd_bmp_sub));
+}
+#endif
 
 /*
  * Subroutine:  do_bmp
@@ -160,7 +166,7 @@ static int do_bmp(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (c)
 		return  c->cmd(cmdtp, flag, argc, argv);
 	else
-		return cmd_usage(cmdtp);
+		return CMD_RET_USAGE;
 }
 
 U_BOOT_CMD(
@@ -215,7 +221,7 @@ static int bmp_info(ulong addr)
  * Return:      None
  *
  */
-static int bmp_display(ulong addr, int x, int y)
+int bmp_display(ulong addr, int x, int y)
 {
 	int ret;
 	bmp_image_t *bmp = (bmp_image_t *)addr;
@@ -231,13 +237,9 @@ static int bmp_display(ulong addr, int x, int y)
 	}
 
 #if defined(CONFIG_LCD)
-	extern int lcd_display_bitmap (ulong, int, int);
-
-	ret = lcd_display_bitmap ((unsigned long)bmp, x, y);
+	ret = lcd_display_bitmap((ulong)bmp, x, y);
 #elif defined(CONFIG_VIDEO)
-	extern int video_display_bitmap (ulong, int, int);
-
-	ret = video_display_bitmap ((unsigned long)bmp, x, y);
+	ret = video_display_bitmap((unsigned long)bmp, x, y);
 #else
 # error bmp_display() requires CONFIG_LCD or CONFIG_VIDEO
 #endif

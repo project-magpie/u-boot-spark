@@ -40,24 +40,21 @@
  * High Level Configuration Options
  * (easy to change)
  */
-#define CONFIG_PXA250		1	/* This is an PXA255 CPU    */
+#define CONFIG_CPU_PXA25X		1	/* This is an PXA255 CPU    */
 #define CONFIG_XAENIAX		1	/* on a xaeniax board	    */
+#define	CONFIG_SYS_TEXT_BASE	0x0
 
-
-#define BOARD_LATE_INIT		1
-
-
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff */
+#define CONFIG_BOARD_LATE_INIT
 
 /* we will never enable dcache, because we have to setup MMU first */
-#define CONFIG_SYS_NO_DCACHE
+#define CONFIG_SYS_DCACHE_OFF
 
 /*
  * select serial console configuration
  */
 #define CONFIG_PXA_SERIAL
 #define CONFIG_BTUART	       1       /* we use BTUART on XAENIAX */
-
+#define CONFIG_CONS_INDEX	4
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -65,9 +62,6 @@
 #define	CONFIG_TIMESTAMP		/* Print image info with timestamp */
 
 #define CONFIG_BAUDRATE		115200
-
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 } /* valid baudrates */
-
 
 /*
  * BOOTP options
@@ -114,7 +108,6 @@
  * used for the RAM copy of the uboot code
  */
 #define CONFIG_SYS_MALLOC_LEN	    (CONFIG_ENV_SIZE + 128*1024)
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
 
 /*
  * Miscellaneous configurable options
@@ -122,7 +115,6 @@
 #define CONFIG_SYS_LONGHELP				/* undef to save memory	*/
 #define CONFIG_SYS_HUSH_PARSER		1
 
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #ifdef CONFIG_SYS_HUSH_PARSER
 #define CONFIG_SYS_PROMPT		"u-boot$ "	/* Monitor Command Prompt */
@@ -167,6 +159,9 @@
 
 #define CONFIG_SYS_FLASH_BASE		PHYS_FLASH_1
 
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define	CONFIG_SYS_INIT_SP_ADDR		0xfffff800
+
 /*
  * FLASH and environment organization
  */
@@ -183,20 +178,8 @@
 #define CONFIG_ENV_SIZE		0x40000			/* Total Size of Environment Sector	*/
 
 /*
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128*1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4*1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4*1024)	/* FIQ stack */
-#endif
-
-/*
  * SMSC91C111 Network Card
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_SMC91111		1
 #define CONFIG_SMC91111_BASE		0x10000300  /* chip select 3         */
 #define CONFIG_SMC_USE_32_BIT		1          /* 32 bit bus  */
@@ -434,8 +417,9 @@
  */
 #define CONFIG_SYS_PSSR_VAL		0x00000030
 
-#define CONFIG_SYS_CKEN_VAL            0x00000080  /*  */
-#define CONFIG_SYS_ICMR_VAL            0x00000000  /* No interrupts enabled        */
+#define CONFIG_SYS_CKEN			0x00000080  /*  */
+#define CONFIG_SYS_ICMR			0x00000000  /* No interrupts enabled        */
+#define	CONFIG_SYS_CCCR			CCCR_L27|CCCR_M2|CCCR_N10
 
 
 /*
@@ -558,6 +542,9 @@
  * [02:00]   010     - MDBL0:  SDRAM0/1 burst Length. Fixed to 4.
  */
 #define CONFIG_SYS_MDMRS_VAL		0x00320032
+
+#define	CONFIG_SYS_FLYCNFG_VAL		0x00000000
+#define	CONFIG_SYS_SXCNFG_VAL		0x00000000
 
 /*
  * PCMCIA and CF Interfaces

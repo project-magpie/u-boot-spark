@@ -34,7 +34,7 @@ struct pad_conf_entry {
 
 	u16 val;
 
-} __attribute__ ((packed));
+};
 
 #ifdef CONFIG_OFF_PADCONF
 #define OFF_PD          (1 << 12)
@@ -341,4 +341,5 @@ struct pad_conf_entry {
 #define CONTROL_SPARE_R		0x0618
 #define CONTROL_SPARE_R_C0		0x061C
 
+#define CONTROL_WKUP_PAD1_FREF_CLK4_REQ	0x4A31E05A
 #endif /* _MUX_OMAP4_H_ */

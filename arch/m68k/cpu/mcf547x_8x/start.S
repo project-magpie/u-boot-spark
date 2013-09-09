@@ -21,8 +21,8 @@
  * MA 02111-1307 USA
  */
 
+#include <asm-offsets.h>
 #include <config.h>
-#include <timestamp.h>
 #include "version.h"
 #include <asm/cache.h>
 
@@ -164,8 +164,8 @@ _start:
 
 	move.l #__got_start, %a5	/* put relocation table address to a5 */
 
-	bsr cpu_init_f			/* run low-level CPU init code (from flash) */
-	bsr board_init_f		/* run low-level board init code (from flash) */
+	jbsr cpu_init_f			/* run low-level CPU init code (from flash) */
+	jbsr board_init_f		/* run low-level board init code (from flash) */
 
 	/* board_init_f() does not return */
 
@@ -276,7 +276,5 @@ _int_handler:
 
 	.globl	version_string
 version_string:
-	.ascii U_BOOT_VERSION
-	.ascii " (", U_BOOT_DATE, " - ", U_BOOT_TIME, ")"
-	.ascii CONFIG_IDENT_STRING, "\0"
+	.ascii U_BOOT_VERSION_STRING, "\0"
 	.align 4

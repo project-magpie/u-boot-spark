@@ -31,6 +31,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define	CONFIG_SYS_TEXT_BASE	0x40000000
+
 /* Custom configuration */
 /* SC823,SC850,SC860SAR, FEL8xx-AT(823/850/860) */
 /* SC85T,SC860T, FEL8xx-AT(855T/860T) */
@@ -156,7 +158,6 @@
 #define	CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt	*/
 
 #ifdef  CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2     "> "
 #endif
 
 #if defined(CONFIG_CMD_KGDB)
@@ -175,8 +176,6 @@
 
 #define	CONFIG_SYS_HZ		1000		/* decrementer freq: 1 ms ticks	*/
 
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
 /*
  * Low Level Configuration Settings
  * (address mappings, register initial values, etc.)
@@ -191,9 +190,8 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define	CONFIG_SYS_INIT_RAM_END	0x2F00	/* End of used area in DPRAM	*/
-#define	CONFIG_SYS_GBL_DATA_SIZE	64  /* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define	CONFIG_SYS_INIT_RAM_SIZE	0x2F00	/* Size of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define	CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -361,6 +359,8 @@
 
 #undef	CONFIG_IDE_8xx_PCCARD		/* Use IDE with PC Card	Adapter	*/
 
+#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
+#define CONFIG_IDE_INIT_POSTRESET	1	/* Use postreset IDE hook */
 #define	CONFIG_IDE_8xx_DIRECT	1	/* Direct IDE    not supported	*/
 #undef	CONFIG_IDE_LED			/* LED   for ide not supported	*/
 #undef	CONFIG_IDE_RESET		/* reset for ide not supported	*/
@@ -464,14 +464,5 @@
 #define CONFIG_SYS_DOC_SUPPORT_2000
 #define CONFIG_SYS_DOC_SUPPORT_MILLENNIUM
 #define CONFIG_SYS_DOC_BASE 0x80000000
-
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define	BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
 
 #endif	/* __CONFIG_H */

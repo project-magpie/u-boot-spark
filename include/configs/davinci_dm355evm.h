@@ -24,10 +24,8 @@
 #define DAVINCI_DM355EVM
 
 #define CONFIG_SKIP_LOWLEVEL_INIT	/* U-Boot is a 3rd stage loader */
-#define CONFIG_SKIP_RELOCATE_UBOOT
 #define CONFIG_SYS_NO_FLASH		/* that is, no *NOR* flash */
 #define CONFIG_SYS_CONSOLE_INFO_QUIET
-#define CONFIG_DISPLAY_CPUINFO
 
 /* SoC Configuration */
 #define CONFIG_ARM926EJS				/* arm926ejs CPU */
@@ -47,7 +45,6 @@
 #define CONFIG_SYS_NS16550_REG_SIZE	-4
 #define CONFIG_SYS_NS16550_COM1		0x01c20000
 #define CONFIG_SYS_NS16550_CLK		CONFIG_SYS_HZ_CLOCK
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
 #define CONFIG_CONS_INDEX		1
 #define CONFIG_BAUDRATE			115200
 
@@ -56,7 +53,6 @@
 #define CONFIG_DM9000_BASE		0x04014000
 #define DM9000_IO			CONFIG_DM9000_BASE
 #define DM9000_DATA			(CONFIG_DM9000_BASE + 2)
-#define CONFIG_NET_MULTI
 
 /* I2C */
 #define CONFIG_HARD_I2C
@@ -77,6 +73,13 @@
 #define CONFIG_SYS_MAX_NAND_DEVICE	1
 #define CONFIG_SYS_NAND_MAX_CHIPS	2
 
+/* SD/MMC */
+#define CONFIG_MMC
+#define CONFIG_GENERIC_MMC
+#define CONFIG_DAVINCI_MMC
+#define CONFIG_DAVINCI_MMC_SD1
+#define CONFIG_MMC_MBLOCK
+
 /* USB: OTG connector */
 /* NYET -- #define CONFIG_USB_DAVINCI */
 
@@ -93,6 +96,17 @@
 #define CONFIG_CMD_I2C
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_SAVES
+
+#ifdef CONFIG_CMD_BDI
+#define CONFIG_CLOCKS
+#endif
+
+#ifdef CONFIG_MMC
+#define CONFIG_DOS_PARTITION
+#define CONFIG_CMD_EXT2
+#define CONFIG_CMD_FAT
+#define CONFIG_CMD_MMC
+#endif
 
 #ifdef CONFIG_NAND_DAVINCI
 #define CONFIG_CMD_MTDPARTS
@@ -117,7 +131,6 @@
 #define CONFIG_MX_CYCLIC
 
 /* U-Boot general configuration */
-#undef CONFIG_USE_IRQ				/* No IRQ/FIQ in U-Boot */
 #define CONFIG_BOOTFILE		"uImage"	/* Boot file name */
 #define CONFIG_SYS_PROMPT	"DM355 EVM # "	/* Monitor Command Prompt */
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size  */
@@ -125,13 +138,20 @@
 		(CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_MAXARGS	16		/* max number of command args */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 #define CONFIG_SYS_LONGHELP
 
 #ifdef CONFIG_NAND_DAVINCI
 #define CONFIG_ENV_SIZE		(256 << 10)	/* 256 KiB */
 #define CONFIG_ENV_IS_IN_NAND
 #define CONFIG_ENV_OFFSET	0x3C0000
+#undef CONFIG_ENV_IS_IN_FLASH
+#endif
+
+#if defined(CONFIG_MMC) && !defined(CONFIG_ENV_IS_IN_NAND)
+#define CONFIG_CMD_ENV
+#define CONFIG_ENV_SIZE		(16 << 10)	/* 16 KiB */
+#define CONFIG_ENV_OFFSET	(51 << 9)	/* Sector 51 */
+#define CONFIG_ENV_IS_IN_MMC
 #undef CONFIG_ENV_IS_IN_FLASH
 #endif
 
@@ -149,9 +169,7 @@
 #define CONFIG_NET_RETRY_COUNT 10
 
 /* U-Boot memory configuration */
-#define CONFIG_STACKSIZE		(256 << 10)	/* 256 KiB */
 #define CONFIG_SYS_MALLOC_LEN		(1 << 20)	/* 1 MiB */
-#define CONFIG_SYS_GBL_DATA_SIZE	128		/* for initial data */
 #define CONFIG_SYS_MEMTEST_START	0x87000000	/* physical address */
 #define CONFIG_SYS_MEMTEST_END		0x88000000	/* test 16MB RAM */
 
@@ -190,5 +208,11 @@
 
 #define MTDPARTS_DEFAULT	\
 	"mtdparts=davinci_nand.0:" PART_BOOT PART_KERNEL PART_REST
+
+#define CONFIG_MAX_RAM_BANK_SIZE	(256 << 20)	/* 256 MB */
+
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_SP_ADDR		\
+	(CONFIG_SYS_SDRAM_BASE + 0x1000 - GENERATED_GBL_DATA_SIZE)
 
 #endif /* __CONFIG_H */

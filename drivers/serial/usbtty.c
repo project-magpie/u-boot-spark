@@ -25,6 +25,7 @@
 #include <config.h>
 #include <circbuf.h>
 #include <stdio_dev.h>
+#include <asm/unaligned.h>
 #include "usbtty.h"
 #include "usb_cdc_acm.h"
 #include "usbdescriptors.h"
@@ -232,11 +233,7 @@ static struct acm_config_desc acm_configuration_descriptors[NUM_CONFIGS] = {
 			.bmAttributes		= USB_ENDPOINT_XFER_INT,
 			.wMaxPacketSize
 				= cpu_to_le16(CONFIG_USBD_SERIAL_INT_PKTSIZE),
-#if defined(CONFIG_USBD_HS)
-			.bInterval		= 0x0C,
-#else
 			.bInterval		= 0xFF,
-#endif
 		},
 
 		/* Interface 2 */
@@ -263,7 +260,7 @@ static struct acm_config_desc acm_configuration_descriptors[NUM_CONFIGS] = {
 					USB_ENDPOINT_XFER_BULK,
 				.wMaxPacketSize		=
 					cpu_to_le16(CONFIG_USBD_SERIAL_BULK_PKTSIZE),
-				.bInterval		= 0x0,
+				.bInterval		= 0xFF,
 			},
 			{
 				.bLength		=
@@ -274,7 +271,7 @@ static struct acm_config_desc acm_configuration_descriptors[NUM_CONFIGS] = {
 					USB_ENDPOINT_XFER_BULK,
 				.wMaxPacketSize		=
 					cpu_to_le16(CONFIG_USBD_SERIAL_BULK_PKTSIZE),
-				.bInterval		= 0x00,
+				.bInterval		= 0xFF,
 			},
 		},
 	},
@@ -342,7 +339,7 @@ gserial_configuration_descriptors[NUM_CONFIGS] ={
 				.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 				.wMaxPacketSize =
 					cpu_to_le16(CONFIG_USBD_SERIAL_OUT_PKTSIZE),
-				.bInterval =		0x00,
+				.bInterval=		0xFF,
 			},
 			{
 				.bLength =
@@ -352,7 +349,7 @@ gserial_configuration_descriptors[NUM_CONFIGS] ={
 				.bmAttributes =		USB_ENDPOINT_XFER_BULK,
 				.wMaxPacketSize =
 					cpu_to_le16(CONFIG_USBD_SERIAL_IN_PKTSIZE),
-				.bInterval =		0x00,
+				.bInterval =		0xFF,
 			},
 			{
 				.bLength =
@@ -362,11 +359,7 @@ gserial_configuration_descriptors[NUM_CONFIGS] ={
 				.bmAttributes =		USB_ENDPOINT_XFER_INT,
 				.wMaxPacketSize =
 					cpu_to_le16(CONFIG_USBD_SERIAL_INT_PKTSIZE),
-#if defined(CONFIG_USBD_HS)
-				.bInterval =		0x0C,
-#else
 				.bInterval =		0xFF,
-#endif
 			},
 		},
 	},
@@ -575,10 +568,10 @@ int drv_usbtty_init (void)
 	usbtty_init_strings ();
 	usbtty_init_instances ();
 
+	usbtty_init_endpoints ();
+
 	udc_startup_events (device_instance);/* Enable dev, init udc pointers */
 	udc_connect ();		/* Enable pullup for host detection */
-
-	usbtty_init_endpoints ();
 
 	/* Device initialization */
 	memset (&usbttydev, 0, sizeof (usbttydev));
@@ -647,6 +640,9 @@ static void usbtty_init_strings (void)
 	usb_strings = usbtty_string_table;
 }
 
+#define init_wMaxPacketSize(x)	le16_to_cpu(get_unaligned(\
+			&ep_descriptor_ptrs[(x) - 1]->wMaxPacketSize));
+
 static void usbtty_init_instances (void)
 {
 	int i;
@@ -712,14 +708,12 @@ static void usbtty_init_instances (void)
 		endpoint_instance[i].rcv_attributes =
 			ep_descriptor_ptrs[i - 1]->bmAttributes;
 
-		endpoint_instance[i].rcv_packetSize =
-			le16_to_cpu(ep_descriptor_ptrs[i - 1]->wMaxPacketSize);
+		endpoint_instance[i].rcv_packetSize = init_wMaxPacketSize(i);
 
 		endpoint_instance[i].tx_attributes =
 			ep_descriptor_ptrs[i - 1]->bmAttributes;
 
-		endpoint_instance[i].tx_packetSize =
-			le16_to_cpu(ep_descriptor_ptrs[i - 1]->wMaxPacketSize);
+		endpoint_instance[i].tx_packetSize = init_wMaxPacketSize(i);
 
 		endpoint_instance[i].tx_attributes =
 			ep_descriptor_ptrs[i - 1]->bmAttributes;
@@ -980,20 +974,20 @@ static void usbtty_event_handler (struct usb_device_instance *device,
 		 * It returns TRUE if device enumerates at High speed
 		 * Retuns FALSE otherwise
 		 */
-		for (i = 1; i <= NUM_ENDPOINTS; i++) {
-			if (((ep_descriptor_ptrs[i - 1]->bmAttributes &
+		for (i = 0; i < NUM_ENDPOINTS; i++) {
+			if (((ep_descriptor_ptrs[i]->bmAttributes &
 			      USB_ENDPOINT_XFERTYPE_MASK) ==
 			      USB_ENDPOINT_XFER_BULK)
 			    && is_usbd_high_speed()) {
 
-				ep_descriptor_ptrs[i - 1]->wMaxPacketSize =
+				ep_descriptor_ptrs[i]->wMaxPacketSize =
 					CONFIG_USBD_SERIAL_BULK_HS_PKTSIZE;
 			}
 
-			endpoint_instance[i].tx_packetSize =
-				ep_descriptor_ptrs[i - 1]->wMaxPacketSize;
-			endpoint_instance[i].rcv_packetSize =
-				ep_descriptor_ptrs[i - 1]->wMaxPacketSize;
+			endpoint_instance[i + 1].tx_packetSize =
+				ep_descriptor_ptrs[i]->wMaxPacketSize;
+			endpoint_instance[i + 1].rcv_packetSize =
+				ep_descriptor_ptrs[i]->wMaxPacketSize;
 		}
 #endif
 		usbtty_init_endpoints ();

@@ -39,6 +39,8 @@
 #define CONFIG_MPC823		1	/* This is a MPC823E CPU	*/
 #define CONFIG_LWMON		1	/* ...on a LWMON board		*/
 
+#define	CONFIG_SYS_TEXT_BASE	0x40000000
+
 /* Default Ethernet MAC address */
 #define CONFIG_ETHADDR          00:11:B0:00:00:00
 
@@ -58,7 +60,6 @@
 #define CONFIG_LCD_INFO		1	/* ... and some board info	*/
 #define	CONFIG_SPLASH_SCREEN		/* ... with splashscreen support*/
 
-#define CONFIG_SERIAL_MULTI	1
 #define CONFIG_8xx_CONS_SMC2	1	/* Console is on SMC2		*/
 #define CONFIG_8xx_CONS_SCC2	1	/* Console is on SCC2		*/
 
@@ -214,9 +215,6 @@
 #define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt	*/
 
 #define	CONFIG_SYS_HUSH_PARSER		1	/* use "hush" command parser	*/
-#ifdef	CONFIG_SYS_HUSH_PARSER
-#define	CONFIG_SYS_PROMPT_HUSH_PS2	"> "
-#endif
 
 #if defined(CONFIG_CMD_KGDB)
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size	*/
@@ -241,8 +239,6 @@
  */
 #ifdef CONFIG_WATCHDOG
 #define CONFIG_SYS_BAUDRATE_TABLE	{		38400, 57600, 115200 }
-#else
-#define CONFIG_SYS_BAUDRATE_TABLE	{  9600, 19200, 38400, 57600, 115200 }
 #endif
 
 /*----------------------------------------------------------------------*/
@@ -273,9 +269,8 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_END	0x2F00	/* End of used area in DPRAM	*/
-#define CONFIG_SYS_GBL_DATA_SIZE	68  /* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	0x2F00	/* Size of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -347,32 +342,32 @@
 
 /* List of I2C addresses to be verified by POST */
 #ifdef CONFIG_USE_FRAM
-#define I2C_ADDR_LIST	{  /*	CONFIG_SYS_I2C_AUDIO_ADDR, */	\
-				CONFIG_SYS_I2C_SYSMON_ADDR,	\
-				CONFIG_SYS_I2C_RTC_ADDR,	\
-				CONFIG_SYS_I2C_POWER_A_ADDR,	\
-				CONFIG_SYS_I2C_POWER_B_ADDR,	\
-				CONFIG_SYS_I2C_KEYBD_ADDR,	\
-				CONFIG_SYS_I2C_PICIO_ADDR,	\
-				CONFIG_SYS_I2C_EEPROM_ADDR,	\
-			}
+#define CONFIG_SYS_POST_I2C_ADDRS	{/* CONFIG_SYS_I2C_AUDIO_ADDR, */ \
+					 CONFIG_SYS_I2C_SYSMON_ADDR,	\
+					 CONFIG_SYS_I2C_RTC_ADDR,	\
+					 CONFIG_SYS_I2C_POWER_A_ADDR,	\
+					 CONFIG_SYS_I2C_POWER_B_ADDR,	\
+					 CONFIG_SYS_I2C_KEYBD_ADDR,	\
+					 CONFIG_SYS_I2C_PICIO_ADDR,	\
+					 CONFIG_SYS_I2C_EEPROM_ADDR,	\
+					}
 #else	/* Use EEPROM - which show up on 8 consequtive addresses */
-#define I2C_ADDR_LIST	{  /*	CONFIG_SYS_I2C_AUDIO_ADDR, */	\
-				CONFIG_SYS_I2C_SYSMON_ADDR,	\
-				CONFIG_SYS_I2C_RTC_ADDR,	\
-				CONFIG_SYS_I2C_POWER_A_ADDR,	\
-				CONFIG_SYS_I2C_POWER_B_ADDR,	\
-				CONFIG_SYS_I2C_KEYBD_ADDR,	\
-				CONFIG_SYS_I2C_PICIO_ADDR,	\
-				CONFIG_SYS_I2C_EEPROM_ADDR+0,	\
-				CONFIG_SYS_I2C_EEPROM_ADDR+1,	\
-				CONFIG_SYS_I2C_EEPROM_ADDR+2,	\
-				CONFIG_SYS_I2C_EEPROM_ADDR+3,	\
-				CONFIG_SYS_I2C_EEPROM_ADDR+4,	\
-				CONFIG_SYS_I2C_EEPROM_ADDR+5,	\
-				CONFIG_SYS_I2C_EEPROM_ADDR+6,	\
-				CONFIG_SYS_I2C_EEPROM_ADDR+7,	\
-			}
+#define CONFIG_SYS_POST_I2C_ADDRS	{/* CONFIG_SYS_I2C_AUDIO_ADDR, */ \
+					 CONFIG_SYS_I2C_SYSMON_ADDR,	\
+					 CONFIG_SYS_I2C_RTC_ADDR,	\
+					 CONFIG_SYS_I2C_POWER_A_ADDR,	\
+					 CONFIG_SYS_I2C_POWER_B_ADDR,	\
+					 CONFIG_SYS_I2C_KEYBD_ADDR,	\
+					 CONFIG_SYS_I2C_PICIO_ADDR,	\
+					 CONFIG_SYS_I2C_EEPROM_ADDR+0,	\
+					 CONFIG_SYS_I2C_EEPROM_ADDR+1,	\
+					 CONFIG_SYS_I2C_EEPROM_ADDR+2,	\
+					 CONFIG_SYS_I2C_EEPROM_ADDR+3,	\
+					 CONFIG_SYS_I2C_EEPROM_ADDR+4,	\
+					 CONFIG_SYS_I2C_EEPROM_ADDR+5,	\
+					 CONFIG_SYS_I2C_EEPROM_ADDR+6,	\
+					 CONFIG_SYS_I2C_EEPROM_ADDR+7,	\
+					}
 #endif	/* CONFIG_USE_FRAM */
 
 /*-----------------------------------------------------------------------
@@ -499,6 +494,7 @@
  *-----------------------------------------------------------------------
  */
 
+#define CONFIG_IDE_PREINIT	1	/* Use preinit IDE hook */
 #define CONFIG_IDE_8xx_PCCARD	1	/* Use IDE with PC Card Adapter */
 
 #undef	CONFIG_IDE_8xx_DIRECT		/* Direct IDE	 not supported	*/
@@ -609,13 +605,5 @@
  * MAR setting for SDRAM
  */
 #define CONFIG_SYS_MAR		0x00000088
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
 
 #endif	/* __CONFIG_H */

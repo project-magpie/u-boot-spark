@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2010 Freescale Semiconductor, Inc.
+ * Copyright 2008-2011 Freescale Semiconductor, Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -60,14 +60,19 @@ enum law_trgt_if {
 
 	LAW_TRGT_IF_DDR_1 = 0x10,
 	LAW_TRGT_IF_DDR_2 = 0x11,	/* 2nd controller */
+	LAW_TRGT_IF_DDR_3 = 0x12,
+	LAW_TRGT_IF_DDR_4 = 0x13,
 	LAW_TRGT_IF_DDR_INTRLV = 0x14,
-
+	LAW_TRGT_IF_DDR_INTLV_34 = 0x15,
+	LAW_TRGT_IF_DDR_INTLV_123 = 0x17,
+	LAW_TRGT_IF_DDR_INTLV_1234 = 0x16,
 	LAW_TRGT_IF_BMAN = 0x18,
 	LAW_TRGT_IF_DCSR = 0x1d,
 	LAW_TRGT_IF_LBC = 0x1f,
 	LAW_TRGT_IF_QMAN = 0x3c,
 };
 #define LAW_TRGT_IF_DDR		LAW_TRGT_IF_DDR_1
+#define LAW_TRGT_IF_IFC		LAW_TRGT_IF_LBC
 #else
 enum law_trgt_if {
 	LAW_TRGT_IF_PCI = 0x00,
@@ -83,13 +88,22 @@ enum law_trgt_if {
 	LAW_TRGT_IF_DDR_INTRLV = 0x0b,
 	LAW_TRGT_IF_RIO = 0x0c,
 	LAW_TRGT_IF_RIO_2 = 0x0d,
+	LAW_TRGT_IF_DPAA_SWP_SRAM = 0x0e,
 	LAW_TRGT_IF_DDR = 0x0f,
 	LAW_TRGT_IF_DDR_2 = 0x16,	/* 2nd controller */
+	/* place holder for 3-way and 4-way interleaving */
+	LAW_TRGT_IF_DDR_3,
+	LAW_TRGT_IF_DDR_4,
+	LAW_TRGT_IF_DDR_INTLV_34,
+	LAW_TRGT_IF_DDR_INTLV_123,
+	LAW_TRGT_IF_DDR_INTLV_1234,
 };
 #define LAW_TRGT_IF_DDR_1	LAW_TRGT_IF_DDR
 #define LAW_TRGT_IF_PCI_1	LAW_TRGT_IF_PCI
 #define LAW_TRGT_IF_PCIX	LAW_TRGT_IF_PCI
 #define LAW_TRGT_IF_PCIE_2	LAW_TRGT_IF_PCI_2
+#define LAW_TRGT_IF_RIO_1	LAW_TRGT_IF_RIO
+#define LAW_TRGT_IF_IFC		LAW_TRGT_IF_LBC
 
 #ifdef CONFIG_MPC8641
 #define LAW_TRGT_IF_PCIE_1	LAW_TRGT_IF_PCI

@@ -222,7 +222,6 @@
 
 
 
-
 /* Preliminaries */
 
 #ifndef __STD_C
@@ -286,13 +285,6 @@ extern "C" {
     detail the assumptions and invariants underlying the algorithms.
 
 */
-
-#ifdef DEBUG
-#include <assert.h>
-#else
-#define assert(x) ((void)0)
-#endif
-
 
 /*
   INTERNAL_SIZE_T is the word-size used for internal bookkeeping
@@ -935,10 +927,10 @@ struct mallinfo mALLINFo();
 #endif
 
 /* ---------- To make a malloc.h, end cutting here ------------ */
-#else				/* Moved to malloc.h */
+#endif	/* 0 */			/* Moved to malloc.h */
 
 #include <malloc.h>
-#if 0
+#ifdef DEBUG
 #if __STD_C
 static void malloc_update_mallinfo (void);
 void malloc_stats (void);
@@ -946,9 +938,7 @@ void malloc_stats (void);
 static void malloc_update_mallinfo ();
 void malloc_stats();
 #endif
-#endif	/* 0 */
-
-#endif	/* 0 */			/* Moved to malloc.h */
+#endif	/* DEBUG */
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -1155,7 +1145,7 @@ struct malloc_chunk
   INTERNAL_SIZE_T size;      /* Size in bytes, including overhead. */
   struct malloc_chunk* fd;   /* double links -- used only if free. */
   struct malloc_chunk* bk;
-};
+} __attribute__((__may_alias__)) ;
 
 typedef struct malloc_chunk* mchunkptr;
 
@@ -1475,7 +1465,7 @@ typedef struct malloc_chunk* mbinptr;
 #define IAV(i)  bin_at(i), bin_at(i)
 
 static mbinptr av_[NAV * 2 + 2] = {
- 0, 0,
+ NULL, NULL,
  IAV(0),   IAV(1),   IAV(2),   IAV(3),   IAV(4),   IAV(5),   IAV(6),   IAV(7),
  IAV(8),   IAV(9),   IAV(10),  IAV(11),  IAV(12),  IAV(13),  IAV(14),  IAV(15),
  IAV(16),  IAV(17),  IAV(18),  IAV(19),  IAV(20),  IAV(21),  IAV(22),  IAV(23),
@@ -1494,14 +1484,14 @@ static mbinptr av_[NAV * 2 + 2] = {
  IAV(120), IAV(121), IAV(122), IAV(123), IAV(124), IAV(125), IAV(126), IAV(127)
 };
 
-#ifndef CONFIG_RELOC_FIXUP_WORKS
+#ifdef CONFIG_NEEDS_MANUAL_RELOC
 void malloc_bin_reloc (void)
 {
-	unsigned long *p = (unsigned long *)(&av_[2]);
-	int i;
-	for (i=2; i<(sizeof(av_)/sizeof(mbinptr)); ++i) {
-		*p++ += gd->reloc_off;
-	}
+	mbinptr *p = &av_[2];
+	size_t i;
+
+	for (i = 2; i < ARRAY_SIZE(av_); ++i, ++p)
+		*p = (mbinptr)((ulong)*p + gd->reloc_off);
 }
 #endif
 
@@ -1513,6 +1503,13 @@ void *sbrk(ptrdiff_t increment)
 {
 	ulong old = mem_malloc_brk;
 	ulong new = old + increment;
+
+	/*
+	 * if we are giving memory back make sure we clear it out since
+	 * we set MORECORE_CLEARS to 1
+	 */
+	if (increment < 0)
+		memset((void *)new, 0, -increment);
 
 	if ((new < mem_malloc_start) || (new > mem_malloc_end))
 		return (void *)MORECORE_FAILURE;
@@ -1618,9 +1615,9 @@ static struct mallinfo current_mallinfo = {  0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 /* Tracking mmaps */
 
-#if 0
+#ifdef DEBUG
 static unsigned int n_mmaps = 0;
-#endif	/* 0 */
+#endif	/* DEBUG */
 static unsigned long mmapped_mem = 0;
 #if HAVE_MMAP
 static unsigned int max_n_mmaps = 0;
@@ -1650,9 +1647,7 @@ static void do_check_chunk(mchunkptr p)
 static void do_check_chunk(p) mchunkptr p;
 #endif
 {
-#if 0	/* causes warnings because assert() is off */
   INTERNAL_SIZE_T sz = p->size & ~PREV_INUSE;
-#endif	/* 0 */
 
   /* No checkable chunk is mmapped */
   assert(!chunk_is_mmapped(p));
@@ -1674,9 +1669,7 @@ static void do_check_free_chunk(p) mchunkptr p;
 #endif
 {
   INTERNAL_SIZE_T sz = p->size & ~PREV_INUSE;
-#if 0	/* causes warnings because assert() is off */
   mchunkptr next = chunk_at_offset(p, sz);
-#endif	/* 0 */
 
   do_check_chunk(p);
 
@@ -1740,10 +1733,8 @@ static void do_check_malloced_chunk(mchunkptr p, INTERNAL_SIZE_T s)
 static void do_check_malloced_chunk(p, s) mchunkptr p; INTERNAL_SIZE_T s;
 #endif
 {
-#if 0	/* causes warnings because assert() is off */
   INTERNAL_SIZE_T sz = p->size & ~PREV_INUSE;
   long room = sz - s;
-#endif	/* 0 */
 
   do_check_inuse_chunk(p);
 
@@ -2182,10 +2173,10 @@ Void_t* mALLOc(bytes) size_t bytes;
   /* check if mem_malloc_init() was run */
   if ((mem_malloc_start == 0) && (mem_malloc_end == 0)) {
     /* not initialized yet */
-    return 0;
+    return NULL;
   }
 
-  if ((long)bytes < 0) return 0;
+  if ((long)bytes < 0) return NULL;
 
   nb = request2size(bytes);  /* padded request size; */
 
@@ -2388,7 +2379,7 @@ Void_t* mALLOc(bytes) size_t bytes;
     /* Try to extend */
     malloc_extend_top(nb);
     if ( (remainder_size = chunksize(top) - nb) < (long)MINSIZE)
-      return 0; /* propagate failure */
+      return NULL; /* propagate failure */
   }
 
   victim = top;
@@ -2442,7 +2433,7 @@ void fREe(mem) Void_t* mem;
   mchunkptr fwd;       /* misc temp for linking */
   int       islr;      /* track whether merging with last_remainder */
 
-  if (mem == 0)                              /* free(0) has no effect */
+  if (mem == NULL)                              /* free(0) has no effect */
     return;
 
   p = mem2chunk(mem);
@@ -2588,10 +2579,10 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
   if (bytes == 0) { fREe(oldmem); return 0; }
 #endif
 
-  if ((long)bytes < 0) return 0;
+  if ((long)bytes < 0) return NULL;
 
   /* realloc of null is supposed to be same as malloc */
-  if (oldmem == 0) return mALLOc(bytes);
+  if (oldmem == NULL) return mALLOc(bytes);
 
   newp    = oldp    = mem2chunk(oldmem);
   newsize = oldsize = chunksize(oldp);
@@ -2652,7 +2643,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
     }
     else
     {
-      next = 0;
+      next = NULL;
       nextsize = 0;
     }
 
@@ -2665,7 +2656,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
 
       /* try forward + backward first to save a later consolidation */
 
-      if (next != 0)
+      if (next != NULL)
       {
 	/* into top */
 	if (next == top)
@@ -2698,7 +2689,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
       }
 
       /* backward only */
-      if (prev != 0 && (long)(prevsize + newsize) >= (long)nb)
+      if (prev != NULL && (long)(prevsize + newsize) >= (long)nb)
       {
 	unlink(prev, bck, fwd);
 	newp = prev;
@@ -2713,8 +2704,8 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
 
     newmem = mALLOc (bytes);
 
-    if (newmem == 0)  /* propagate failure */
-      return 0;
+    if (newmem == NULL)  /* propagate failure */
+      return NULL;
 
     /* Avoid copy if newp is next chunk after oldp. */
     /* (This can only happen when new chunk is sbrk'ed.) */
@@ -2792,7 +2783,7 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
   mchunkptr remainder;        /* spare room at end to split off */
   long      remainder_size;   /* its size */
 
-  if ((long)bytes < 0) return 0;
+  if ((long)bytes < 0) return NULL;
 
   /* If need less alignment than we give anyway, just relay to malloc */
 
@@ -2807,7 +2798,7 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
   nb = request2size(bytes);
   m  = (char*)(mALLOc(nb + alignment + MINSIZE));
 
-  if (m == 0) return 0; /* propagate failure */
+  if (m == NULL) return NULL; /* propagate failure */
 
   p = mem2chunk(m);
 
@@ -2932,10 +2923,10 @@ Void_t* cALLOc(n, elem_size) size_t n; size_t elem_size;
 #endif
   Void_t* mem = mALLOc (sz);
 
-  if ((long)n < 0) return 0;
+  if ((long)n < 0) return NULL;
 
-  if (mem == 0)
-    return 0;
+  if (mem == NULL)
+    return NULL;
   else
   {
     p = mem2chunk(mem);
@@ -3081,7 +3072,7 @@ size_t malloc_usable_size(mem) Void_t* mem;
 #endif
 {
   mchunkptr p;
-  if (mem == 0)
+  if (mem == NULL)
     return 0;
   else
   {
@@ -3101,7 +3092,7 @@ size_t malloc_usable_size(mem) Void_t* mem;
 
 /* Utility to update current_mallinfo for malloc_stats and mallinfo() */
 
-#if 0
+#ifdef DEBUG
 static void malloc_update_mallinfo()
 {
   int i;
@@ -3139,7 +3130,7 @@ static void malloc_update_mallinfo()
   current_mallinfo.keepcost = chunksize(top);
 
 }
-#endif	/* 0 */
+#endif	/* DEBUG */
 
 
 
@@ -3158,7 +3149,7 @@ static void malloc_update_mallinfo()
 
 */
 
-#if 0
+#ifdef DEBUG
 void malloc_stats()
 {
   malloc_update_mallinfo();
@@ -3173,19 +3164,19 @@ void malloc_stats()
 	  (unsigned int)max_n_mmaps);
 #endif
 }
-#endif	/* 0 */
+#endif	/* DEBUG */
 
 /*
   mallinfo returns a copy of updated current mallinfo.
 */
 
-#if 0
+#ifdef DEBUG
 struct mallinfo mALLINFo()
 {
   malloc_update_mallinfo();
   return current_mallinfo;
 }
-#endif	/* 0 */
+#endif	/* DEBUG */
 
 
 

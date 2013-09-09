@@ -32,6 +32,8 @@
 #include <asm/arch/spr_defs.h>
 #include <asm/arch/spr_misc.h>
 
+static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE];
+
 int board_init(void)
 {
 	return spear_board_init(MACH_TYPE_SPEAR310);
@@ -44,10 +46,11 @@ int board_init(void)
  * Called by nand_init_chip to initialize the board specific functions
  */
 
-int board_nand_init(struct nand_chip *nand)
+void board_nand_init()
 {
 	struct misc_regs *const misc_regs_p =
 	    (struct misc_regs *)CONFIG_SPEAR_MISCBASE;
+	struct nand_chip *nand = &nand_chip[0];
 
 #if defined(CONFIG_NAND_FSMC)
 	if (((readl(&misc_regs_p->auto_cfg_reg) & MISC_SOCCFGMSK) ==
@@ -55,15 +58,16 @@ int board_nand_init(struct nand_chip *nand)
 	    ((readl(&misc_regs_p->auto_cfg_reg) & MISC_SOCCFGMSK) ==
 	     MISC_SOCCFG31)) {
 
-		return fsmc_nand_init(nand);
+		fsmc_nand_init(nand);
 	}
 #endif
-	return -1;
+	return;
 }
 
 int board_eth_init(bd_t *bis)
 {
 	int ret = 0;
+
 #if defined(CONFIG_DESIGNWARE_ETH)
 	u32 interface = PHY_INTERFACE_MODE_MII;
 	if (designware_initialize(0, CONFIG_SPEAR_ETHBASE, CONFIG_DW0_PHY,

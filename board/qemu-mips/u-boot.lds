@@ -24,7 +24,11 @@
 /*
 OUTPUT_FORMAT("elf32-bigmips", "elf32-bigmips", "elf32-bigmips")
 */
+#if defined(CONFIG_64BIT)
+OUTPUT_FORMAT("elf64-tradbigmips", "elf64-tradbigmips", "elf64-tradlittlemips")
+#else
 OUTPUT_FORMAT("elf32-tradbigmips", "elf32-tradbigmips", "elf32-tradlittlemips")
+#endif
 OUTPUT_ARCH(mips)
 ENTRY(_start)
 SECTIONS
@@ -34,14 +38,14 @@ SECTIONS
 	. = ALIGN(4);
 	.text       :
 	{
-	  *(.text)
+	  *(.text*)
 	}
 
 	. = ALIGN(4);
 	.rodata  : { *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) }
 
 	. = ALIGN(4);
-	.data  : { *(.data) }
+	.data  : { *(.data*) }
 
 	. = .;
 	_gp = ALIGN(16) +0x7ff0;
@@ -53,20 +57,22 @@ SECTIONS
 	}
 
 	. = ALIGN(4);
-	.sdata  : { *(.sdata) }
+	.sdata  : { *(.sdata*) }
 
-	. = .;
-	.u_boot_cmd : {
-	__u_boot_cmd_start = .;
-	*(.u_boot_cmd)
-	__u_boot_cmd_end = .;
+	. = ALIGN(4);
+	.u_boot_list : {
+		#include <u-boot.lst>
 	}
 
 	uboot_end_data = .;
+#if defined(CONFIG_64BIT)
+	num_got_entries = (__got_end - __got_start) >> 3;
+#else
 	num_got_entries = (__got_end - __got_start) >> 2;
+#endif
 
 	. = ALIGN(4);
-	.sbss  : { *(.sbss) }
-	.bss  : { *(.bss) . = ALIGN(4); }
+	.sbss  : { *(.sbss*) }
+	.bss  : { *(.bss*) . = ALIGN(4); }
 	uboot_end = .;
 }

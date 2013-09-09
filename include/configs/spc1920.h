@@ -26,6 +26,8 @@
 #define CONFIG_SPC1920			1	/* SPC1920 board */
 #define CONFIG_MPC885			1	/* MPC885 CPU */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+
 #define	CONFIG_8xx_CONS_SMC1		/* Console is on SMC1 */
 #undef	CONFIG_8xx_CONS_SMC2
 #undef	CONFIG_8xx_CONS_NONE
@@ -108,7 +110,6 @@
 #define	CONFIG_SYS_LONGHELP				/* undef to save memory		*/
 #define	CONFIG_SYS_PROMPT		"=>"		/* Monitor Command Prompt	*/
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #if defined(CONFIG_CMD_KGDB)
 #define	CONFIG_SYS_CBSIZE		1024		/* Console I/O Buffer Size	*/
@@ -141,9 +142,8 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_IMMR
-#define	CONFIG_SYS_INIT_RAM_END	0x2F00	/* End of used area in DPRAM	*/
-#define	CONFIG_SYS_GBL_DATA_SIZE	64  /* size in bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define	CONFIG_SYS_INIT_RAM_SIZE	0x2F00	/* Size of used area in DPRAM	*/
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define	CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -161,7 +161,7 @@
  */
 #define	CONFIG_SYS_BOOTMAPSZ		(8 << 20)	/* Initial Memory map for Linux	*/
 
-#define CONFIG_SYS_MONITOR_BASE	TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #define	CONFIG_SYS_MONITOR_LEN		(256 << 10)	/* Reserve 256 KB for monitor	*/
 
 #ifdef CONFIG_BZIP2
@@ -421,13 +421,5 @@
 					OR_TRLX)
 
 #define CONFIG_SYS_BR5_PRELIM ((CONFIG_SYS_SPC1920_PLD_BASE & BR_BA_MSK) | BR_PS_8 | BR_V)
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define	BOOTFLAG_COLD	0x01		/* Normal Power-On: Boot from FLASH	*/
-#define BOOTFLAG_WARM	0x02		/* Software reboot			*/
 
 #endif	/* __CONFIG_H */

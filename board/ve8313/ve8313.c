@@ -65,8 +65,14 @@ static long fixed_sdram(void)
 	 */
 	__udelay(50000);
 
-	out_be32(&im->ddr.csbnds[0].csbnds, (msize - 1) >> 24);
-	out_be32(&im->ddr.cs_config[0], CONFIG_SYS_DDR_CONFIG);
+#if ((CONFIG_SYS_DDR_SDRAM_BASE & 0x00FFFFFF) != 0)
+#warning Chip select bounds is only configurable in 16MB increments
+#endif
+	out_be32(&im->ddr.csbnds[0].csbnds,
+		((CONFIG_SYS_DDR_SDRAM_BASE >> CSBNDS_SA_SHIFT) & CSBNDS_SA) |
+		(((CONFIG_SYS_DDR_SDRAM_BASE + msize - 1) >> CSBNDS_EA_SHIFT) &
+			CSBNDS_EA));
+	out_be32(&im->ddr.cs_config[0], CONFIG_SYS_DDR_CS0_CONFIG);
 
 	/* Currently we use only one CS, so disable the other bank. */
 	out_be32(&im->ddr.cs_config[1], 0);
@@ -184,7 +190,6 @@ void pci_init_board(void)
 	volatile clk83xx_t *clk = (volatile clk83xx_t *)&immr->clk;
 	volatile law83xx_t *pci_law = immr->sysconf.pcilaw;
 	struct pci_region *reg[] = { pci_regions };
-	int warmboot;
 
 	/* Enable all 3 PCI_CLK_OUTPUTs. */
 	setbits_be32(&clk->occr, 0xe0000000);
@@ -198,9 +203,7 @@ void pci_init_board(void)
 	out_be32(&pci_law[1].bar, CONFIG_SYS_PCI1_IO_PHYS & LAWBAR_BAR);
 	out_be32(&pci_law[1].ar, LBLAWAR_EN | LBLAWAR_1MB);
 
-	warmboot = gd->bd->bi_bootflags & BOOTFLAG_WARM;
-
-	mpc83xx_pci_init(1, reg, warmboot);
+	mpc83xx_pci_init(1, reg);
 }
 #endif
 

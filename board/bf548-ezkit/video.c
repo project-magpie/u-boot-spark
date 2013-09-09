@@ -18,11 +18,15 @@
 #include <linux/types.h>
 #include <stdio_dev.h>
 
+#include <lzma/LzmaTypes.h>
+#include <lzma/LzmaDec.h>
+#include <lzma/LzmaTools.h>
+
 #define DMA_SIZE16	2
 
 #include <asm/mach-common/bits/eppi.h>
 
-#include <asm/bfin_logo_230x230.h>
+#include EASYLOGO_HEADER
 
 #define LCD_X_RES		480	/*Horizontal Resolution */
 #define LCD_Y_RES		272	/* Vertical Resolution */
@@ -153,24 +157,25 @@ void Init_DMA(void *dst)
 {
 
 #if defined(CONFIG_DEB_DMA_URGENT)
-	*pEBIU_DDRQUE |= DEB2_URGENT;
+	bfin_write_EBIU_DDRQUE(bfin_read_EBIU_DDRQUE() | DEB2_URGENT);
 #endif
 
-	*pDMA12_START_ADDR = dst;
+	bfin_write_DMA12_START_ADDR(dst);
 
 	/* X count */
-	*pDMA12_X_COUNT = (LCD_X_RES * LCD_BPP) / DMA_BUS_SIZE;
-	*pDMA12_X_MODIFY = DMA_BUS_SIZE / 8;
+	bfin_write_DMA12_X_COUNT((LCD_X_RES * LCD_BPP) / DMA_BUS_SIZE);
+	bfin_write_DMA12_X_MODIFY(DMA_BUS_SIZE / 8);
 
 	/* Y count */
-	*pDMA12_Y_COUNT = LCD_Y_RES;
-	*pDMA12_Y_MODIFY = DMA_BUS_SIZE / 8;
+	bfin_write_DMA12_Y_COUNT(LCD_Y_RES);
+	bfin_write_DMA12_Y_MODIFY(DMA_BUS_SIZE / 8);
 
 	/* DMA Config */
-	*pDMA12_CONFIG =
+	bfin_write_DMA12_CONFIG(
 		WDSIZE_32	|	/* 32 bit DMA */
 		DMA2D 		|	/* 2D DMA */
-		FLOW_AUTO;		/* autobuffer mode */
+		FLOW_AUTO		/* autobuffer mode */
+	);
 }
 
 void Init_Ports(void)
@@ -194,12 +199,12 @@ void Init_Ports(void)
 
 void EnableDMA(void)
 {
-	*pDMA12_CONFIG |= DMAEN;
+	bfin_write_DMA12_CONFIG(bfin_read_DMA12_CONFIG() | DMAEN);
 }
 
 void DisableDMA(void)
 {
-	*pDMA12_CONFIG &= ~DMAEN;
+	bfin_write_DMA12_CONFIG(bfin_read_DMA12_CONFIG() & ~DMAEN);
 }
 
 /* enable and disable PPI functions */
@@ -302,13 +307,23 @@ int drv_video_init(void)
 #ifdef EASYLOGO_ENABLE_GZIP
 	unsigned char *data = EASYLOGO_DECOMP_BUFFER;
 	unsigned long src_len = EASYLOGO_ENABLE_GZIP;
-	if (gunzip(data, bfin_logo.size, bfin_logo.data, &src_len)) {
+	error = gunzip(data, bfin_logo.size, bfin_logo.data, &src_len);
+	bfin_logo.data = data;
+#elif defined(EASYLOGO_ENABLE_LZMA)
+	unsigned char *data = EASYLOGO_DECOMP_BUFFER;
+	SizeT lzma_len = bfin_logo.size;
+	error = lzmaBuffToBuffDecompress(data, &lzma_len,
+		bfin_logo.data, EASYLOGO_ENABLE_LZMA);
+	bfin_logo.data = data;
+#else
+	error = 0;
+#endif
+
+	if (error) {
 		puts("Failed to decompress logo\n");
 		free(dst);
 		return -1;
 	}
-	bfin_logo.data = data;
-#endif
 
 	memset(dst + ACTIVE_VIDEO_MEM_OFFSET, bfin_logo.data[0], fbmem_size - ACTIVE_VIDEO_MEM_OFFSET);
 

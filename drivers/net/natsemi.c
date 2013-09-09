@@ -237,8 +237,7 @@ static void natsemi_init_txd(struct eth_device *dev);
 static void natsemi_init_rxd(struct eth_device *dev);
 static void natsemi_set_rx_mode(struct eth_device *dev);
 static void natsemi_check_duplex(struct eth_device *dev);
-static int natsemi_send(struct eth_device *dev, volatile void *packet,
-			int length);
+static int natsemi_send(struct eth_device *dev, void *packet, int length);
 static int natsemi_poll(struct eth_device *dev);
 static void natsemi_disable(struct eth_device *dev);
 
@@ -282,7 +281,7 @@ OUTL(struct eth_device *dev, int command, u_long addr)
  * ready to send and receive packets.
  *
  * Side effects:
- *            leaves the natsemi initialized, and ready to recieve packets.
+ *            leaves the natsemi initialized, and ready to receive packets.
  *
  * Returns:   struct eth_device *:          pointer to NIC data structure
  */
@@ -321,6 +320,11 @@ natsemi_initialize(bd_t * bis)
 		}
 
 		dev = (struct eth_device *) malloc(sizeof *dev);
+		if (!dev) {
+			printf("natsemi: Can not allocate memory\n");
+			break;
+		}
+		memset(dev, 0, sizeof(*dev));
 
 		sprintf(dev->name, "dp83815#%d", card_number);
 		dev->iobase = bus_to_phys(iobase);
@@ -749,8 +753,7 @@ natsemi_check_duplex(struct eth_device *dev)
  * Description: transmits a packet and waits for completion or timeout.
  *
  * Returns:   void.  */
-static int
-natsemi_send(struct eth_device *dev, volatile void *packet, int length)
+static int natsemi_send(struct eth_device *dev, void *packet, int length)
 {
 	u32 i, status = 0;
 	u32 tx_status = 0;

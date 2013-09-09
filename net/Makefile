@@ -25,25 +25,29 @@ include $(TOPDIR)/config.mk
 
 # CFLAGS += -DDEBUG
 
-LIB	= $(obj)libnet.a
+LIB	= $(obj)libnet.o
 
+COBJS-$(CONFIG_CMD_NET)  += arp.o
 COBJS-$(CONFIG_CMD_NET)  += bootp.o
+COBJS-$(CONFIG_CMD_CDP)  += cdp.o
 COBJS-$(CONFIG_CMD_DNS)  += dns.o
 COBJS-$(CONFIG_CMD_NET)  += eth.o
+COBJS-$(CONFIG_CMD_LINK_LOCAL) += link_local.o
 COBJS-$(CONFIG_CMD_NET)  += net.o
 COBJS-$(CONFIG_CMD_NFS)  += nfs.o
-COBJS-$(CONFIG_CMD_NET)  += rarp.o
+COBJS-$(CONFIG_CMD_PING) += ping.o
+COBJS-$(CONFIG_CMD_RARP) += rarp.o
 COBJS-$(CONFIG_CMD_SNTP) += sntp.o
 COBJS-$(CONFIG_CMD_NET)  += tftp.o
 
-COBJS	:= $(COBJS-y)
+COBJS	:= $(sort $(COBJS-y))
 SRCS	:= $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(COBJS))
 
 all:	$(LIB)
 
 $(LIB):	$(obj).depend $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

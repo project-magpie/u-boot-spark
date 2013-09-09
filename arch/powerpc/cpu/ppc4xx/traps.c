@@ -46,15 +46,6 @@ extern unsigned long search_exception_table(unsigned long);
  */
 #define END_OF_MEM	(gd->bd->bi_memstart + gd->bd->bi_memsize)
 
-static __inline__ void set_tsr(unsigned long val)
-{
-#if defined(CONFIG_440)
-	asm volatile("mtspr 0x150, %0" : : "r" (val));
-#else
-	asm volatile("mttsr %0" : : "r" (val));
-#endif
-}
-
 static __inline__ unsigned long get_esr(void)
 {
 	unsigned long val;
@@ -83,8 +74,7 @@ extern void do_bedbug_breakpoint(struct pt_regs *);
  * Trap & Exception support
  */
 
-void
-print_backtrace(unsigned long *sp)
+static void print_backtrace(unsigned long *sp)
 {
 	int cnt = 0;
 	unsigned long i;
@@ -104,7 +94,7 @@ print_backtrace(unsigned long *sp)
 	printf("\n");
 }
 
-void show_regs(struct pt_regs * regs)
+void show_regs(struct pt_regs *regs)
 {
 	int i;
 
@@ -130,16 +120,14 @@ void show_regs(struct pt_regs * regs)
 }
 
 
-void
-_exception(int signr, struct pt_regs *regs)
+static void _exception(int signr, struct pt_regs *regs)
 {
 	show_regs(regs);
 	print_backtrace((unsigned long *)regs->gpr[1]);
 	panic("Exception");
 }
 
-void
-MachineCheckException(struct pt_regs *regs)
+void MachineCheckException(struct pt_regs *regs)
 {
 	unsigned long fixup, val;
 #if defined(CONFIG_440EPX) || defined(CONFIG_440GRX)
@@ -321,8 +309,7 @@ MachineCheckException(struct pt_regs *regs)
 	panic("machine check");
 }
 
-void
-AlignmentException(struct pt_regs *regs)
+void AlignmentException(struct pt_regs *regs)
 {
 #if defined(CONFIG_CMD_KGDB)
 	if (debugger_exception_handler && (*debugger_exception_handler)(regs))
@@ -334,8 +321,7 @@ AlignmentException(struct pt_regs *regs)
 	panic("Alignment Exception");
 }
 
-void
-ProgramCheckException(struct pt_regs *regs)
+void ProgramCheckException(struct pt_regs *regs)
 {
 	long esr_val;
 
@@ -358,13 +344,12 @@ ProgramCheckException(struct pt_regs *regs)
 	panic("Program Check Exception");
 }
 
-void
-DecrementerPITException(struct pt_regs *regs)
+void DecrementerPITException(struct pt_regs *regs)
 {
 	/*
 	 * Reset PIT interrupt
 	 */
-	set_tsr(0x08000000);
+	mtspr(SPRN_TSR, 0x08000000);
 
 	/*
 	 * Call timer_interrupt routine in interrupts.c
@@ -373,8 +358,7 @@ DecrementerPITException(struct pt_regs *regs)
 }
 
 
-void
-UnknownException(struct pt_regs *regs)
+void UnknownException(struct pt_regs *regs)
 {
 #if defined(CONFIG_CMD_KGDB)
 	if (debugger_exception_handler && (*debugger_exception_handler)(regs))
@@ -386,8 +370,7 @@ UnknownException(struct pt_regs *regs)
 	_exception(0, regs);
 }
 
-void
-DebugException(struct pt_regs *regs)
+void DebugException(struct pt_regs *regs)
 {
 	printf("Debugger trap at @ %lx\n", regs->nip );
 	show_regs(regs);

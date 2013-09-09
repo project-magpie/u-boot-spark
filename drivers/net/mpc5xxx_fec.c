@@ -250,6 +250,13 @@ static int mpc5xxx_fec_init(struct eth_device *dev, bd_t * bis)
 	mpc5xxx_fec_init_phy(dev, bis);
 
 	/*
+	 * Call board-specific PHY fixups (if any)
+	 */
+#ifdef CONFIG_RESET_PHY_R
+	reset_phy();
+#endif
+
+	/*
 	 * Initialize RxBD/TxBD rings
 	 */
 	mpc5xxx_fec_rbd_init(fec);
@@ -700,7 +707,7 @@ static void rfifo_print(char *devname, mpc5xxx_fec_priv *fec)
 
 /********************************************************************/
 
-static int mpc5xxx_fec_send(struct eth_device *dev, volatile void *eth_data,
+static int mpc5xxx_fec_send(struct eth_device *dev, void *eth_data,
 		int data_length)
 {
 	/*

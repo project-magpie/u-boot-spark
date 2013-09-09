@@ -63,6 +63,7 @@
 #include <malloc.h>
 #include "lan91c96.h"
 #include <net.h>
+#include <linux/compiler.h>
 
 /*------------------------------------------------------------------------
  *
@@ -154,7 +155,7 @@ static void smc_set_mac_addr(const unsigned char *addr)
  ***********************************************/
 void dump_memory_info(struct eth_device *dev)
 {
-	word mem_info;
+	__maybe_unused word mem_info;
 	word old_bank;
 
 	old_bank = SMC_inw(dev, LAN91C96_BANK_SELECT) & 0xF;
@@ -313,11 +314,10 @@ static void smc_shutdown(struct eth_device *dev)
  *	Enable the transmit interrupt, so I know if it failed
  *	Free the kernel data if I actually sent it.
  */
-static int smc_send_packet(struct eth_device *dev, volatile void *packet,
+static int smc_send_packet(struct eth_device *dev, void *packet,
 		int packet_length)
 {
 	byte packet_no;
-	unsigned long ioaddr;
 	byte *buf;
 	int length;
 	int numPages;
@@ -381,9 +381,6 @@ static int smc_send_packet(struct eth_device *dev, volatile void *packet,
 			 dev->name, try);
 
 	/* I can send the packet now.. */
-
-	ioaddr = dev->iobase;
-
 	buf = (byte *) packet;
 
 	/* If I get here, I _know_ there is a packet slot waiting for me */
@@ -703,7 +700,7 @@ static int lan91c96_recv(struct eth_device *dev)
 	return smc_rcv(dev);
 }
 
-static int lan91c96_send(struct eth_device *dev, volatile void *packet,
+static int lan91c96_send(struct eth_device *dev, void *packet,
 		int length)
 {
 	return smc_send_packet(dev, packet, length);
@@ -767,8 +764,8 @@ static struct id_type supported_chips[] = {
 	{8, "LAN91C100FD"},
 	{7, "LAN91C100"},
 	{5, "LAN91C95"},
-	{4, "LAN91C94/LAN91C96"},
-	{3, "LAN91C90/LAN91C92"},
+	{4, "LAN91C94/96"},
+	{3, "LAN91C90/92"},
 };
 /* lan91c96_detect_chip
  * See:
@@ -780,7 +777,7 @@ static int lan91c96_detect_chip(struct eth_device *dev)
 	u8 chip_id;
 	int r;
 	SMC_SELECT_BANK(dev, 3);
-	chip_id = SMC_inw(dev, 0xA) & LAN91C96_REV_REVID;
+	chip_id = (SMC_inw(dev, 0xA) & LAN91C96_REV_CHIPID) >> 4;
 	SMC_SELECT_BANK(dev, 0);
 	for (r = 0; r < sizeof(supported_chips) / sizeof(struct id_type); r++)
 		if (chip_id == supported_chips[r].id)

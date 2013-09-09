@@ -48,11 +48,11 @@ static inline uint32_t bfin_read_emudat(void)
 static bool jtag_write_emudat(uint32_t emudat)
 {
 	static bool overflowed = false;
-	ulong timeout = get_timer(0) + CONFIG_JTAG_CONSOLE_TIMEOUT;
+	ulong timeout = get_timer(0);
 	while (bfin_read_DBGSTAT() & 0x1) {
 		if (overflowed)
 			return overflowed;
-		if (timeout < get_timer(0))
+		if (get_timer(timeout) > CONFIG_JTAG_CONSOLE_TIMEOUT)
 			overflowed = true;
 	}
 	overflowed = false;
@@ -194,12 +194,35 @@ int drv_jtag_console_init(void)
 }
 
 #ifdef CONFIG_UART_CONSOLE_IS_JTAG
+#include <serial.h>
 /* Since the JTAG is always available (at power on), allow it to fake a UART */
-void serial_set_baud(uint32_t baud) {}
-void serial_setbrg(void)            {}
-int serial_init(void)               { return 0; }
-void serial_putc(const char c)      __attribute__((alias("jtag_putc")));
-void serial_puts(const char *s)     __attribute__((alias("jtag_puts")));
-int serial_tstc(void)               __attribute__((alias("jtag_tstc")));
-int serial_getc(void)               __attribute__((alias("jtag_getc")));
+void jtag_serial_setbrg(void)
+{
+}
+
+int jtag_serial_init(void)
+{
+	return 0;
+}
+
+static struct serial_device serial_jtag_drv = {
+	.name	= "jtag",
+	.start	= jtag_serial_init,
+	.stop	= NULL,
+	.setbrg	= jtag_serial_setbrg,
+	.putc	= jtag_putc,
+	.puts	= jtag_puts,
+	.tstc	= jtag_tstc,
+	.getc	= jtag_getc,
+};
+
+void bfin_jtag_initialize(void)
+{
+	serial_register(&serial_jtag_drv);
+}
+
+struct serial_device *default_serial_console(void)
+{
+	return &serial_jtag_drv;
+}
 #endif

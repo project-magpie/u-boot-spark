@@ -4,6 +4,8 @@
 # (C) Copyright 2000-2004
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
+# Copyright 2011-2012 Freescale Semiconductor, Inc.
+#
 # See file CREDITS for list of people who contributed to this
 # project.
 #
@@ -24,10 +26,14 @@
 #
 
 PLATFORM_RELFLAGS += -ffixed-d7 -msep-data
-ifneq ($(findstring 4.1,$(shell $(CC) --version)),4.1)
-PLATFORM_CPPFLAGS += -mcpu=54455 -fPIC
+
+cfg=$(shell grep configs $(OBJTREE)/include/config.h | sed 's/.*<\(configs.*\)>/\1/')
+is5441x:=$(shell grep CONFIG_MCF5441x $(TOPDIR)/include/$(cfg))
+
+ifneq (,$(findstring CONFIG_MCF5441x,$(is5441x)))
+PLATFORM_CPPFLAGS += -mcpu=54418 -fPIC
 else
-PLATFORM_CPPFLAGS += -m5407 -fPIC
+PLATFORM_CPPFLAGS += -mcpu=54455 -fPIC
 endif
 
 ifneq (,$(findstring -linux-,$(shell $(CC) --version)))

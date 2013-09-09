@@ -35,7 +35,6 @@
 #define CONFIG_ARM920T		1	/* This is an ARM920T Core		*/
 #define CONFIG_IMX		1	/* It's a Motorola MC9328 SoC		*/
 #define CONFIG_MX1ADS		1	/* on a Motorola MX1ADS Board		*/
-#undef CONFIG_USE_IRQ			/* we don't need IRQ/FIQ stuff		*/
 
 /*
  * Select serial console configuration
@@ -45,7 +44,7 @@
 /* #define _CONFIG_UART2 */		/* internal uart 2 */
 /* #define CONFIG_SILENT_CONSOLE */	/* use this to disable output */
 
-#define BOARD_LATE_INIT		1
+#define CONFIG_BOARD_LATE_INIT
 #define USE_920T_MMU		1
 
 #if 0
@@ -60,13 +59,9 @@
 
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 128*1024)
 
-
-#define CONFIG_SYS_GBL_DATA_SIZE	128	/* size in bytes reserved for initial data */
-
 /*
  *  CS8900 Ethernet drivers
  */
-#define CONFIG_NET_MULTI
 #define CONFIG_CS8900		/* we have a CS8900 on-board */
 #define CONFIG_CS8900_BASE	0x15000300
 #define CONFIG_CS8900_BUS16	/* the Linux driver does accesses as shorts */
@@ -80,7 +75,6 @@
 
 #define CONFIG_BAUDRATE		115200
 
-
 /*
  * BOOTP options
  */
@@ -88,7 +82,6 @@
 #define CONFIG_BOOTP_BOOTPATH
 #define CONFIG_BOOTP_GATEWAY
 #define CONFIG_BOOTP_HOSTNAME
-
 
 /*
  * Command line configuration.
@@ -98,7 +91,6 @@
 #define CONFIG_CMD_CACHE
 #define CONFIG_CMD_REGINFO
 #define CONFIG_CMD_ELF
-
 
 #define CONFIG_BOOTDELAY	3
 #define CONFIG_BOOTARGS		"root=/dev/msdk mem=48M"
@@ -116,7 +108,6 @@
  */
 
 #define CONFIG_SYS_HUSH_PARSER		1
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 #define CONFIG_SYS_LONGHELP				/* undef to save memory		*/
 
@@ -140,20 +131,6 @@
 #define CONFIG_SYS_HZ			3686400
 #define CONFIG_SYS_CPUSPEED		0x141
 
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
-
-/*-----------------------------------------------------------------------
- * Stack sizes
- *
- * The stack sizes are set up in start.S using the settings below
- */
-#define CONFIG_STACKSIZE	(128*1024)	/* regular stack */
-#ifdef CONFIG_USE_IRQ
-#define CONFIG_STACKSIZE_IRQ	(4*1024)	/* IRQ stack */
-#define CONFIG_STACKSIZE_FIQ	(4*1024)	/* FIQ stack */
-#endif
-
 /*-----------------------------------------------------------------------
  * Physical Memory Map
  */
@@ -161,6 +138,16 @@
 #define CONFIG_NR_DRAM_BANKS	1		/* we have 1 bank of SDRAM	*/
 #define PHYS_SDRAM_1		0x08000000	/* SDRAM  on CSD0		*/
 #define PHYS_SDRAM_1_SIZE	0x04000000	/* 64 MB			*/
+
+#define CONFIG_SYS_TEXT_BASE	0x10000000
+
+#define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
+#define CONFIG_SYS_INIT_RAM_ADDR	0x00300000
+#define CONFIG_SYS_INIT_RAM_SIZE	0x000FFFFF
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - \
+						GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_SP_ADDR	(CONFIG_SYS_INIT_RAM_ADDR + \
+						CONFIG_SYS_GBL_DATA_OFFSET)
 
 #define CONFIG_SYS_MAX_FLASH_BANKS	1		/* 1 bank of SyncFlash		*/
 #define CONFIG_SYS_FLASH_BASE		0x0C000000	/* SyncFlash on CSD1		*/

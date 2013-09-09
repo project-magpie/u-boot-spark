@@ -214,13 +214,13 @@ const iop_conf_t iop_conf_tab[4][32] = {
 /*********************************************************************/
 int checkboard (void)
 {
-	char *str;
+	char buf[64];
+	int i = getenv_f("serial#", buf, sizeof(buf));
 
 	puts ("Board: Advent Networks gw8260\n");
 
-	str = getenv ("serial#");
-	if (str != NULL) {
-		printf ("SN:    %s\n", str);
+	if (i > 0) {
+		printf("SN:    %s\n", buf);
 	}
 	return 0;
 }
@@ -544,15 +544,11 @@ int mem_test_walk (void)
 /*********************************************************************/
 int testdram (void)
 {
-	char *s;
 	int rundata, runaddress, runwalk;
 
-	s = getenv ("testdramdata");
-	rundata = (s && (*s == 'y')) ? 1 : 0;
-	s = getenv ("testdramaddress");
-	runaddress = (s && (*s == 'y')) ? 1 : 0;
-	s = getenv ("testdramwalk");
-	runwalk = (s && (*s == 'y')) ? 1 : 0;
+	rundata = getenv_yesno("testdramdata") == 1;
+	runaddress = getenv_yesno("testdramaddress") == 1;
+	runwalk = getenv_yesno("testdramwalk") == 1;
 
 	if ((rundata == 1) || (runaddress == 1) || (runwalk == 1)) {
 		printf ("Testing RAM ... ");

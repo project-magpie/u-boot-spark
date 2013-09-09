@@ -30,6 +30,9 @@
 
 #include <common.h>
 #include <asm/arch/ixp425.h>
+#include <watchdog.h>
+#include <serial.h>
+#include <linux/compiler.h>
 
 /*
  *               14.7456 MHz
@@ -40,7 +43,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-void serial_setbrg (void)
+static void ixp_serial_setbrg(void)
 {
 	unsigned int quot = 0;
 	int uart = CONFIG_SYS_IXP425_CONSOLE;
@@ -71,7 +74,7 @@ void serial_setbrg (void)
  * are always 8 data bits, no parity, 1 stop bit, no start bits.
  *
  */
-int serial_init (void)
+static int ixp_serial_init(void)
 {
 	serial_setbrg ();
 
@@ -82,10 +85,11 @@ int serial_init (void)
 /*
  * Output a single byte to the serial port.
  */
-void serial_putc (const char c)
+static void ixp_serial_putc(const char c)
 {
 	/* wait for room in the tx FIFO on UART */
-	while ((LSR(CONFIG_SYS_IXP425_CONSOLE) & LSR_TEMT) == 0);
+	while ((LSR(CONFIG_SYS_IXP425_CONSOLE) & LSR_TEMT) == 0)
+		WATCHDOG_RESET();	/* Reset HW Watchdog, if needed */
 
 	THR(CONFIG_SYS_IXP425_CONSOLE) = c;
 
@@ -99,7 +103,7 @@ void serial_putc (const char c)
  * otherwise. When the function is succesfull, the character read is
  * written into its argument c.
  */
-int serial_tstc (void)
+static int ixp_serial_tstc(void)
 {
 	return LSR(CONFIG_SYS_IXP425_CONSOLE) & LSR_DR;
 }
@@ -109,17 +113,31 @@ int serial_tstc (void)
  * otherwise. When the function is succesfull, the character read is
  * written into its argument c.
  */
-int serial_getc (void)
+static int ixp_serial_getc(void)
 {
-	while (!(LSR(CONFIG_SYS_IXP425_CONSOLE) & LSR_DR));
+	while (!(LSR(CONFIG_SYS_IXP425_CONSOLE) & LSR_DR))
+		WATCHDOG_RESET();	/* Reset HW Watchdog, if needed */
 
 	return (char) RBR(CONFIG_SYS_IXP425_CONSOLE) & 0xff;
 }
 
-void
-serial_puts (const char *s)
+static struct serial_device ixp_serial_drv = {
+	.name	= "ixp_serial",
+	.start	= ixp_serial_init,
+	.stop	= NULL,
+	.setbrg	= ixp_serial_setbrg,
+	.putc	= ixp_serial_putc,
+	.puts	= default_serial_puts,
+	.getc	= ixp_serial_getc,
+	.tstc	= ixp_serial_tstc,
+};
+
+void ixp_serial_initialize(void)
 {
-	while (*s) {
-		serial_putc (*s++);
-	}
+	serial_register(&ixp_serial_drv);
+}
+
+__weak struct serial_device *default_serial_console(void)
+{
+	return &ixp_serial_drv;
 }

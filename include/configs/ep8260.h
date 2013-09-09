@@ -48,6 +48,8 @@
 #define CONFIG_SYS_EP8260_H2	1
 /* #undef CONFIG_SYS_EP8260_H2  */
 
+#define	CONFIG_SYS_TEXT_BASE	0xFFF00000
+
 #define CONFIG_CPM2		1	/* Has a CPM2 */
 
 /* What is the oscillator's (UX2) frequency in Hz? */
@@ -97,7 +99,7 @@
 #define CONFIG_SYS_RESET_ADDRESS	0xFFF00100
 
 /* What should the base address of the main FLASH be and how big is
- * it (in MBytes)? This must contain TEXT_BASE from board/ep8260/config.mk
+ * it (in MBytes)? This must contain CONFIG_SYS_TEXT_BASE from board/ep8260/config.mk
  * The main FLASH is whichever is connected to *CS0. U-Boot expects
  * this to be the SIMM.
  */
@@ -198,8 +200,8 @@
  * - RAM for BD/Buffers is on the local Bus (see 28-13)
  * - Enable Half Duplex in FSMR
  */
-# define CONFIG_SYS_CMXFCR_MASK	(CMXFCR_FC3|CMXFCR_RF3CS_MSK|CMXFCR_TF3CS_MSK)
-# define CONFIG_SYS_CMXFCR_VALUE	(CMXFCR_RF3CS_CLK15|CMXFCR_TF3CS_CLK16)
+# define CONFIG_SYS_CMXFCR_MASK3	(CMXFCR_FC3|CMXFCR_RF3CS_MSK|CMXFCR_TF3CS_MSK)
+# define CONFIG_SYS_CMXFCR_VALUE3	(CMXFCR_RF3CS_CLK15|CMXFCR_TF3CS_CLK16)
 
 /*
  * - RAM for BD/Buffers is on the local Bus (see 28-13)
@@ -288,7 +290,6 @@
    with a somewhat smapper memory footprint.
 */
 #define CONFIG_SYS_HUSH_PARSER
-#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
 
 
 /*
@@ -323,7 +324,6 @@
 #define CONFIG_CMD_SDRAM
 #define CONFIG_CMD_SNTP
 
-#undef CONFIG_CMD_DCR
 #undef CONFIG_CMD_XIMG
 
 /* Where do the internal registers live? */
@@ -371,12 +371,8 @@
 #define	CONFIG_CLOCKS_IN_MHZ	1      /* clocks passsed to Linux in MHz */
 
 #define CONFIG_SYS_LOAD_ADDR     0x00100000   /* default load address */
-#define CONFIG_SYS_TFTP_LOADADDR 0x00100000   /* default load address for network file downloads */
 
 #define CONFIG_SYS_HZ            1000         /* decrementer freq: 1 ms ticks */
-
-/* valid baudrates */
-#define CONFIG_SYS_BAUDRATE_TABLE      { 9600, 19200, 38400, 57600, 115200 }
 
 /*
  * Low Level Configuration Settings
@@ -427,9 +423,8 @@
  * Definitions for initial stack pointer and data area (in DPRAM)
  */
 #define CONFIG_SYS_INIT_RAM_ADDR       CONFIG_SYS_IMMR
-#define CONFIG_SYS_INIT_RAM_END        0x4000  /* End of used area in DPRAM    */
-#define CONFIG_SYS_GBL_DATA_SIZE      128     /* bytes reserved for initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE        0x4000  /* Size of used area in DPRAM    */
+#define CONFIG_SYS_GBL_DATA_OFFSET    (CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET      CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
@@ -438,7 +433,7 @@
  * Please note that CONFIG_SYS_SDRAM_BASE _must_ start at 0
  * Note also that the logic that sets CONFIG_SYS_RAMBOOT is platform dependent.
  */
-#define CONFIG_SYS_MONITOR_BASE          TEXT_BASE
+#define CONFIG_SYS_MONITOR_BASE          CONFIG_SYS_TEXT_BASE
 
 
 #if (CONFIG_SYS_MONITOR_BASE < CONFIG_SYS_FLASH_BASE)
@@ -744,14 +739,6 @@
 			   ORxG_SETA                   |\
 			   ORxG_SCY_10_CLK)
 #endif
-
-/*
- * Internal Definitions
- *
- * Boot Flags
- */
-#define BOOTFLAG_COLD   0x01    /* Normal Power-On: Boot from FLASH  */
-#define BOOTFLAG_WARM   0x02    /* Software reboot                   */
 
 /*
  * JFFS2 partitions

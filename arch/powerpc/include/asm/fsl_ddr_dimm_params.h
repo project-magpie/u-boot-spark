@@ -9,6 +9,10 @@
 #ifndef DDR2_DIMM_PARAMS_H
 #define DDR2_DIMM_PARAMS_H
 
+#define EDC_DATA_PARITY	1
+#define EDC_ECC		2
+#define EDC_AC_PARITY	4
+
 /* Parameters for a DDR2 dimm computed from the SPD */
 typedef struct dimm_params_s {
 
@@ -39,6 +43,7 @@ typedef struct dimm_params_s {
 	/* DIMM timing parameters */
 
 	unsigned int mtb_ps;	/* medium timebase ps, only for ddr3 */
+	unsigned int ftb_10th_ps; /* fine timebase, in 1/10 ps, only for ddr3 */
 	unsigned int tAA_ps;	/* minimum CAS latency time, only for ddr3 */
 	unsigned int tFAW_ps;	/* four active window delay, only for ddr3 */
 

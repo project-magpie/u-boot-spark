@@ -230,11 +230,8 @@ static int usbgetpckfromfifo(int epNum, u8 *bufp, u32 len)
 	readl(&outep_regs_p[epNum].write_done);
 
 	/* copy back tmp buffer to bufp if bufp is not word aligned */
-	if ((int)bufp & 0x3) {
-		bytp = (u8 *)&tmp[0];
-		for (i = 0;i < len; i++)
-			bufp[i] = bytp[i];
-	}
+	if ((int)bufp & 0x3)
+		memcpy(bufp, tmp, len);
 
 	return 0;
 }
@@ -579,8 +576,13 @@ int udc_init(void)
 	writel(~0x0, &udc_regs_p->dev_int_mask);
 	writel(~0x0, &udc_regs_p->endp_int_mask);
 
-	writel(DEV_CONF_HS_SPEED | DEV_CONF_REMWAKEUP | DEV_CONF_SELFPOW |
+#ifndef CONFIG_USBD_HS
+	writel(DEV_CONF_FS_SPEED | DEV_CONF_REMWAKEUP | DEV_CONF_SELFPOW |
 	       DEV_CONF_PHYINT_16, &udc_regs_p->dev_conf);
+#else
+	writel(DEV_CONF_HS_SPEED | DEV_CONF_REMWAKEUP | DEV_CONF_SELFPOW |
+			DEV_CONF_PHYINT_16, &udc_regs_p->dev_conf);
+#endif
 
 	writel(DEV_CNTL_SOFTDISCONNECT, &udc_regs_p->dev_cntl);
 

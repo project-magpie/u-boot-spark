@@ -21,6 +21,7 @@
 #include <common.h>
 #include <lcd.h>
 #include <mpc5xxx.h>
+#include <malloc.h>
 
 #ifdef CONFIG_LCD
 
@@ -54,6 +55,9 @@
 
 #define PSOC_RETRIES	10	/* each of PSOC_WAIT_TIME */
 #define PSOC_WAIT_TIME	10	/* usec */
+
+#include <video_font.h>
+#define FONT_WIDTH	VIDEO_FONT_WIDTH
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -185,7 +189,6 @@ void lcd_enable (void)
 }
 #ifdef CONFIG_PROGRESSBAR
 
-#define FONT_WIDTH      8 /* the same as VIDEO_FONT_WIDTH in video_font.h */
 void show_progress (int size, int tot)
 {
 	int cnt;
@@ -208,4 +211,23 @@ void show_progress (int size, int tot)
 }
 
 #endif
+
+int bmp_display(ulong addr, int x, int y)
+{
+	int ret;
+	bmp_image_t *bmp = (bmp_image_t *)addr;
+
+	if (!bmp) {
+		printf("There is no valid bmp file at the given address\n");
+		return 1;
+	}
+
+	ret = lcd_display_bitmap((ulong)bmp, x, y);
+
+	if ((unsigned long)bmp != addr)
+		free(bmp);
+
+	return ret;
+}
+
 #endif /* CONFIG_LCD */

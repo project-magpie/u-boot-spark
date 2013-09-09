@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2002
+ * (C) Copyright 2002-2010
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
  * See file CREDITS for list of people who contributed to this
@@ -33,14 +33,12 @@
  * some locked parts of the data cache) to allow for a minimum set of
  * global variables during system initialization (until we have set
  * up the memory controller so that we can use RAM).
- *
- * Keep it *SMALL* and remember to set CONFIG_SYS_GBL_DATA_SIZE > sizeof(gd_t)
  */
 
 typedef	struct	global_data {
 	bd_t		*bd;
 	unsigned long	flags;
-	unsigned long	baudrate;
+	unsigned int	baudrate;
 	unsigned long	cpu_clk;	/* CPU clock in Hz! */
 	unsigned long	bus_clk;
 #if defined(CONFIG_8xx)
@@ -64,6 +62,8 @@ typedef	struct	global_data {
 	defined(CONFIG_MPC834x) || defined(CONFIG_MPC837x)
 	u32 tsec1_clk;
 	u32 tsec2_clk;
+	u32 usbdr_clk;
+#elif defined(CONFIG_MPC8309)
 	u32 usbdr_clk;
 #endif
 #if defined (CONFIG_MPC834x)
@@ -138,6 +138,9 @@ typedef	struct	global_data {
 	unsigned long	env_addr;	/* Address  of Environment struct	*/
 	unsigned long	env_valid;	/* Checksum of Environment valid?	*/
 	unsigned long	have_console;	/* serial_init() was called		*/
+#ifdef CONFIG_PRE_CONSOLE_BUFFER
+	unsigned long	precon_buf_idx;	/* Pre-Console buffer index */
+#endif
 #if defined(CONFIG_SYS_ALLOC_DPRAM) || defined(CONFIG_CPM2)
 	unsigned int	dp_alloc_base;
 	unsigned int	dp_alloc_top;
@@ -160,6 +163,7 @@ typedef	struct	global_data {
 #endif
 #if defined(CONFIG_POST) || defined(CONFIG_LOGBUFFER)
 	unsigned long	post_log_word;  /* Record POST activities */
+	unsigned long	post_log_res; /* success of POST test */
 	unsigned long	post_init_f_time;  /* When post_init_f started */
 #endif
 #ifdef CONFIG_BOARD_TYPES
@@ -172,22 +176,17 @@ typedef	struct	global_data {
 #if defined(CONFIG_LWMON) || defined(CONFIG_LWMON5)
 	unsigned long kbd_status;
 #endif
+#ifdef CONFIG_SYS_FPGA_COUNT
+	unsigned fpga_state[CONFIG_SYS_FPGA_COUNT];
+#endif
 #if defined(CONFIG_WD_MAX_RATE)
 	unsigned long long wdt_last;	/* trace watch-dog triggering rate */
 #endif
 	void		**jt;		/* jump table */
+	char		env_buf[32];	/* buffer for getenv() before reloc. */
 } gd_t;
 
-/*
- * Global Data Flags
- */
-#define	GD_FLG_RELOC	0x00001		/* Code was relocated to RAM		*/
-#define	GD_FLG_DEVINIT	0x00002		/* Devices have been initialized	*/
-#define	GD_FLG_SILENT	0x00004		/* Silent mode				*/
-#define	GD_FLG_POSTFAIL	0x00008		/* Critical POST test failed		*/
-#define	GD_FLG_POSTSTOP	0x00010		/* POST seqeunce aborted		*/
-#define	GD_FLG_LOGINIT	0x00020		/* Log Buffer has been initialized	*/
-#define GD_FLG_DISABLE_CONSOLE	0x00040		/* Disable console (in & out)	 */
+#include <asm-generic/global_data_flags.h>
 
 #if 1
 #define DECLARE_GLOBAL_DATA_PTR     register volatile gd_t *gd asm ("r2")

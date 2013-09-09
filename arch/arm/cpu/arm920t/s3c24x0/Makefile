@@ -23,14 +23,12 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)lib$(SOC).a
+LIB	= $(obj)lib$(SOC).o
 
 COBJS-$(CONFIG_USE_IRQ) += interrupts.o
+COBJS-$(CONFIG_DISPLAY_CPUINFO)	+= cpu_info.o
 COBJS-y	+= speed.o
 COBJS-y	+= timer.o
-COBJS-y	+= usb.o
-COBJS-y	+= usb_ohci.o
-
 
 SRCS	:= $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
@@ -38,7 +36,7 @@ OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS-y))
 all:	$(obj).depend $(LIB)
 
 $(LIB):	$(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 

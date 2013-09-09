@@ -35,49 +35,52 @@
 #include <command.h>
 #include <asm/system.h>
 #include <asm/cache.h>
-#ifndef CONFIG_L2_OFF
-#include <asm/arch/sys_proto.h>
-#endif
+#include <asm/armv7.h>
+#include <linux/compiler.h>
 
-static void cache_flush(void);
+void __weak cpu_cache_initialization(void){}
 
 int cleanup_before_linux(void)
 {
-	unsigned int i;
-
 	/*
 	 * this function is called just before we call linux
 	 * it prepares the processor for linux
 	 *
 	 * we turn off caches etc ...
 	 */
+#ifndef CONFIG_SPL_BUILD
 	disable_interrupts();
+#endif
 
-	/* turn off I/D-cache */
+	/*
+	 * Turn off I-cache and invalidate it
+	 */
 	icache_disable();
+	invalidate_icache_all();
+
+	/*
+	 * turn off D-cache
+	 * dcache_disable() in turn flushes the d-cache and disables MMU
+	 */
 	dcache_disable();
+	v7_outer_cache_disable();
 
-	/* invalidate I-cache */
-	cache_flush();
+	/*
+	 * After D-cache is flushed and before it is disabled there may
+	 * be some new valid entries brought into the cache. We are sure
+	 * that these lines are not dirty and will not affect our execution.
+	 * (because unwinding the call-stack and setting a bit in CP15 SCTRL
+	 * is all we did during this. We have not pushed anything on to the
+	 * stack. Neither have we affected any static data)
+	 * So just invalidate the entire d-cache again to avoid coherency
+	 * problems for kernel
+	 */
+	invalidate_dcache_all();
 
-#ifndef CONFIG_L2_OFF
-	/* turn off L2 cache */
-	l2_cache_disable();
-	/* invalidate L2 cache also */
-	invalidate_dcache(get_device_type());
-#endif
-	i = 0;
-	/* mem barrier to sync up things */
-	asm("mcr p15, 0, %0, c7, c10, 4": :"r"(i));
-
-#ifndef CONFIG_L2_OFF
-	l2_cache_enable();
-#endif
+	/*
+	 * Some CPU need more cache attention before starting the kernel.
+	 */
+	cpu_cache_initialization();
 
 	return 0;
-}
-
-static void cache_flush(void)
-{
-	asm ("mcr p15, 0, %0, c7, c5, 0": :"r" (0));
 }

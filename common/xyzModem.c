@@ -100,7 +100,7 @@ static struct
 
 #ifndef REDBOOT			/*SB */
 typedef int cyg_int32;
-int
+static int
 CYGACC_COMM_IF_GETC_TIMEOUT (char chan, char *c)
 {
 #define DELAY 20
@@ -118,7 +118,7 @@ CYGACC_COMM_IF_GETC_TIMEOUT (char chan, char *c)
   return 0;
 }
 
-void
+static void
 CYGACC_COMM_IF_PUTC (char x, char y)
 {
   putc (y);
@@ -165,7 +165,7 @@ _tolower (char c)
 }
 
 /* Parse (scan) a number */
-bool
+static bool
 parse_num (char *s, unsigned long *val, char **es, char *delim)
 {
   bool first = true;
@@ -786,7 +786,7 @@ xyzModem_stream_terminate (bool abort, int (*getc) (void))
       ZM_DEBUG (zm_dprintf ("Engaging cleanup mode...\n"));
       /*
        * Consume any trailing crap left in the inbuffer from
-       * previous recieved blocks. Since very few files are an exact multiple
+       * previous received blocks. Since very few files are an exact multiple
        * of the transfer block size, there will almost always be some gunk here.
        * If we don't eat it now, RedBoot will think the user typed it.
        */

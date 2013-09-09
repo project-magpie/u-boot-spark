@@ -24,15 +24,15 @@
 #include <common.h>
 #include <asm/system.h>
 
-#if !(defined(CONFIG_SYS_NO_ICACHE) && defined(CONFIG_SYS_NO_DCACHE))
-
-#if defined(CONFIG_SYS_ARM_CACHE_WRITETHROUGH)
-#define CACHE_SETUP	0x1a
-#else
-#define CACHE_SETUP	0x1e
-#endif
+#if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
 
 DECLARE_GLOBAL_DATA_PTR;
+
+void __arm_init_before_mmu(void)
+{
+}
+void arm_init_before_mmu(void)
+	__attribute__((weak, alias("__arm_init_before_mmu")));
 
 static void cp_delay (void)
 {
@@ -44,29 +44,74 @@ static void cp_delay (void)
 	asm volatile("" : : : "memory");
 }
 
-/* to activate the MMU we need to set up virtual memory: use 1M areas in bss */
+void set_section_dcache(int section, enum dcache_option option)
+{
+	u32 *page_table = (u32 *)gd->tlb_addr;
+	u32 value;
+
+	value = (section << MMU_SECTION_SHIFT) | (3 << 10);
+	value |= option;
+	page_table[section] = value;
+}
+
+void __mmu_page_table_flush(unsigned long start, unsigned long stop)
+{
+	debug("%s: Warning: not implemented\n", __func__);
+}
+
+void mmu_page_table_flush(unsigned long start, unsigned long stop)
+	__attribute__((weak, alias("__mmu_page_table_flush")));
+
+void mmu_set_region_dcache_behaviour(u32 start, int size,
+				     enum dcache_option option)
+{
+	u32 *page_table = (u32 *)gd->tlb_addr;
+	u32 upto, end;
+
+	end = ALIGN(start + size, MMU_SECTION_SIZE) >> MMU_SECTION_SHIFT;
+	start = start >> MMU_SECTION_SHIFT;
+	debug("%s: start=%x, size=%x, option=%d\n", __func__, start, size,
+	      option);
+	for (upto = start; upto < end; upto++)
+		set_section_dcache(upto, option);
+	mmu_page_table_flush((u32)&page_table[start], (u32)&page_table[end]);
+}
+
+static inline void dram_bank_mmu_setup(int bank)
+{
+	bd_t *bd = gd->bd;
+	int	i;
+
+	debug("%s: bank: %d\n", __func__, bank);
+	for (i = bd->bi_dram[bank].start >> 20;
+	     i < (bd->bi_dram[bank].start + bd->bi_dram[bank].size) >> 20;
+	     i++) {
+#if defined(CONFIG_SYS_ARM_CACHE_WRITETHROUGH)
+		set_section_dcache(i, DCACHE_WRITETHROUGH);
+#else
+		set_section_dcache(i, DCACHE_WRITEBACK);
+#endif
+	}
+}
+
+/* to activate the MMU we need to set up virtual memory: use 1M areas */
 static inline void mmu_setup(void)
 {
-	static u32 __attribute__((aligned(16384))) page_table[4096];
-	bd_t *bd = gd->bd;
-	int i, j;
+	int i;
 	u32 reg;
 
+	arm_init_before_mmu();
 	/* Set up an identity-mapping for all 4GB, rw for everyone */
 	for (i = 0; i < 4096; i++)
-		page_table[i] = i << 20 | (3 << 10) | 0x12;
-	/* Then, enable cacheable and bufferable for RAM only */
-	for (j = 0; j < CONFIG_NR_DRAM_BANKS; j++) {
-		for (i = bd->bi_dram[j].start >> 20;
-			i < (bd->bi_dram[j].start + bd->bi_dram[j].size) >> 20;
-			i++) {
-			page_table[i] = i << 20 | (3 << 10) | CACHE_SETUP;
-		}
+		set_section_dcache(i, DCACHE_OFF);
+
+	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
+		dram_bank_mmu_setup(i);
 	}
 
 	/* Copy the page table address to cp15 */
 	asm volatile("mcr p15, 0, %0, c2, c0, 0"
-		     : : "r" (page_table) : "memory");
+		     : : "r" (gd->tlb_addr) : "memory");
 	/* Set the access control to all-supervisor */
 	asm volatile("mcr p15, 0, %0, c3, c0, 0"
 		     : : "r" (~0));
@@ -74,7 +119,11 @@ static inline void mmu_setup(void)
 	reg = get_cr();	/* get control reg. */
 	cp_delay();
 	set_cr(reg | CR_M);
+}
 
+static int mmu_enabled(void)
+{
+	return get_cr() & CR_M;
 }
 
 /* cache_bit must be either CR_I or CR_C */
@@ -83,7 +132,7 @@ static void cache_enable(uint32_t cache_bit)
 	uint32_t reg;
 
 	/* The data cache is not active unless the mmu is enabled too */
-	if (cache_bit == CR_C)
+	if ((cache_bit == CR_C) && !mmu_enabled())
 		mmu_setup();
 	reg = get_cr();	/* get control reg. */
 	cp_delay();
@@ -95,18 +144,25 @@ static void cache_disable(uint32_t cache_bit)
 {
 	uint32_t reg;
 
+	reg = get_cr();
+	cp_delay();
+
 	if (cache_bit == CR_C) {
+		/* if cache isn;t enabled no need to disable */
+		if ((reg & CR_C) != CR_C)
+			return;
 		/* if disabling data cache, disable mmu too */
 		cache_bit |= CR_M;
-		flush_cache(0, ~0);
 	}
 	reg = get_cr();
 	cp_delay();
+	if (cache_bit == (CR_C | CR_M))
+		flush_dcache_all();
 	set_cr(reg & ~cache_bit);
 }
 #endif
 
-#ifdef CONFIG_SYS_NO_ICACHE
+#ifdef CONFIG_SYS_ICACHE_OFF
 void icache_enable (void)
 {
 	return;
@@ -138,7 +194,7 @@ int icache_status(void)
 }
 #endif
 
-#ifdef CONFIG_SYS_NO_DCACHE
+#ifdef CONFIG_SYS_DCACHE_OFF
 void dcache_enable (void)
 {
 	return;

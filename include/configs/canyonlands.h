@@ -48,6 +48,10 @@
 #define CONFIG_440		1
 #define CONFIG_4xx		1	/* ... PPC4xx family */
 
+#ifndef CONFIG_SYS_TEXT_BASE
+#define CONFIG_SYS_TEXT_BASE	0xFFF80000
+#endif
+
 /*
  * Include common defines/options for all AMCC eval boards
  */
@@ -111,9 +115,8 @@
 
 #define CONFIG_SYS_OCM_BASE		0xE3000000	/* OCM: 64k		*/
 #define CONFIG_SYS_SRAM_BASE		0xE8000000	/* SRAM: 256k		*/
+#define CONFIG_SYS_SRAM_SIZE		(256 << 10)
 #define CONFIG_SYS_LOCAL_CONF_REGS	0xEF000000
-
-#define CONFIG_SYS_PERIPHERAL_BASE	0xEF600000	/* internal peripherals */
 
 #define CONFIG_SYS_AHB_BASE		0xE2000000	/* internal AHB peripherals	*/
 
@@ -121,15 +124,14 @@
  * Initial RAM & stack pointer (placed in OCM)
  *----------------------------------------------------------------------*/
 #define CONFIG_SYS_INIT_RAM_ADDR	CONFIG_SYS_OCM_BASE	/* OCM			*/
-#define CONFIG_SYS_INIT_RAM_END	(4 << 10)
-#define CONFIG_SYS_GBL_DATA_SIZE	256		/* num bytes initial data */
-#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_END - CONFIG_SYS_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_RAM_SIZE	(4 << 10)
+#define CONFIG_SYS_GBL_DATA_OFFSET	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
 #define CONFIG_SYS_INIT_SP_OFFSET	CONFIG_SYS_GBL_DATA_OFFSET
 
 /*-----------------------------------------------------------------------
  * Serial Port
  *----------------------------------------------------------------------*/
-#undef CONFIG_UART1_CONSOLE	/* define this if you want console on UART1 */
+#define CONFIG_CONS_INDEX	1	/* Use UART0			*/
 
 /*-----------------------------------------------------------------------
  * Environment
@@ -195,9 +197,7 @@
 
 #define CONFIG_SYS_NAND_ECCSIZE	256
 #define CONFIG_SYS_NAND_ECCBYTES	3
-#define CONFIG_SYS_NAND_ECCSTEPS	(CONFIG_SYS_NAND_PAGE_SIZE / CONFIG_SYS_NAND_ECCSIZE)
 #define CONFIG_SYS_NAND_OOBSIZE	64
-#define CONFIG_SYS_NAND_ECCTOTAL	(CONFIG_SYS_NAND_ECCBYTES * CONFIG_SYS_NAND_ECCSTEPS)
 #define CONFIG_SYS_NAND_ECCPOS		{40, 41, 42, 43, 44, 45, 46, 47, \
 				 48, 49, 50, 51, 52, 53, 54, 55, \
 				 56, 57, 58, 59, 60, 61, 62, 63}
