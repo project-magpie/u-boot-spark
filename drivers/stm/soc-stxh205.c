@@ -760,12 +760,17 @@ extern int stxh205_usb_init(const int port)
 	stxh205_pioalt_pad(usb_pins[port].pwr.port,
 			  usb_pins[port].pwr.pin, stm_pad_direction_output);
 
-	/* route the USB over-current (input) signal */
+	/*
+	 * route the USB over-current (input) signal.
+	 * We enable the internal pull-up here, just in case the
+	 * external resistor is missing (as it is on some boards).
+	 */
 	stxh205_pioalt_select(usb_pins[port].oc.port,
 			    usb_pins[port].oc.pin,
 			    usb_pins[port].oc.alt);
 	stxh205_pioalt_pad(usb_pins[port].oc.port,
-			  usb_pins[port].oc.pin, stm_pad_direction_input);
+			  usb_pins[port].oc.pin,
+			  stm_pad_direction_input_with_pullup);
 
 	/* start the USB Wrapper Host Controller */
 	flags = USB_FLAGS_STRAP_8BIT | USB_FLAGS_STBUS_CONFIG_THRESHOLD128;
