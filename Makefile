@@ -834,7 +834,7 @@ mb618se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb618/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/mb618/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb618 st40 st40 mb618 st stx7111
 
 hdk7111_config \
@@ -845,7 +845,7 @@ hdk7111se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7111/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7111/config.tmp)
 	@$(MKCONFIG) -a -n $@ hdk7111 st40 st40 hdk7111 st stx7111
 	@$(MKROMGEN) no-such-ip hdk7111 st40
 
@@ -857,7 +857,7 @@ mb628se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x83700000" >$(obj)board/st/mb628/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x83700000" >$(obj)board/st/mb628/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb628 st40 st40 mb628 st stx7141
 	@$(MKROMGEN) no-such-ip mb628 estb
 
@@ -869,7 +869,7 @@ eud7141se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/eud7141/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/eud7141/config.tmp)
 	@$(MKCONFIG) -a -n $@ eud7141 st40 st40 eud7141 st stx7141
 
 b2042_config \
@@ -880,7 +880,7 @@ b2042se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/b2042/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/b2042/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2042 st40 st40 b2042 st stx7141
 
 mb671_config \
@@ -891,7 +891,7 @@ mb671se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb671/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb671/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb671 st40 st40 mb671 st stx7200
 	@$(MKROMGEN) no-such-ip mb671 st40
 
@@ -903,7 +903,7 @@ mb680se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb680/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb680/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb680 st40 st40 mb680 st stx7105
 	@$(MKROMGEN) no-such-ip mb680 st40
 
@@ -915,7 +915,7 @@ hdk7106se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7106/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7106/config.tmp)
 	@$(MKCONFIG) -a -n $@ hdk7106 st40 st40 hdk7106 st stx7105
 
 pdk7105_config \
@@ -926,7 +926,7 @@ pdk7105se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/pdk7105/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/pdk7105/config.tmp)
 	@$(MKCONFIG) -a -n $@ pdk7105 st40 st40 pdk7105 st stx7105
 	@$(MKROMGEN) no-such-ip hdk7105 st40
 
@@ -938,7 +938,7 @@ ipidtv7105se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE    1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/pdk7105/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/pdk7105/config.tmp)
 	@$(MKCONFIG) -a -n $@ ipidtv7105 st40 st40 pdk7105 st stx7105
 
 mb837se_config :		unconfig
@@ -948,7 +948,7 @@ mb837se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE    1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb837/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/mb837/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb837 st40 st40 mb837 st stx7108
 	@$(MKROMGEN) no-such-ip mb837stx7108 host se=0
 
@@ -961,12 +961,12 @@ hdk7108se_config :		unconfig
 	@echo "#define CONFIG_STM_HDK7108    1" >>$(obj)include/config.h
 	@echo "#define CONFIG_ST40_SE_MODE    1" >>$(obj)include/config.h
 	@case "$@" in \
-		hdk7108se_512_config)	TEXT_BASE=0x9FF00000;; \
-		hdk7108se_256_config)	TEXT_BASE=0x8FF00000;; \
-		hdk7108se_128_config)	TEXT_BASE=0x87F00000;; \
-		hdk7108se_config)	TEXT_BASE=0x87F00000;; \
+		hdk7108se_512_config)	CONFIG_SYS_TEXT_BASE=0x9FF00000;; \
+		hdk7108se_256_config)	CONFIG_SYS_TEXT_BASE=0x8FF00000;; \
+		hdk7108se_128_config)	CONFIG_SYS_TEXT_BASE=0x87F00000;; \
+		hdk7108se_config)	CONFIG_SYS_TEXT_BASE=0x87F00000;; \
 	esac; \
-	echo "TEXT_BASE = $${TEXT_BASE}" >$(obj)board/st/hdk7108/config.tmp
+	echo "CONFIG_SYS_TEXT_BASE = $${CONFIG_SYS_TEXT_BASE}" >$(obj)board/st/hdk7108/config.tmp
 	@$(MKCONFIG) -a -n $@ hdk7108 st40 st40 hdk7108 st stx7108
 	@$(MKROMGEN) no-such-ip hdk7108stx7108 host boardrev=3,se=0,spi_4x=1,lmi_contig=1
 
@@ -977,7 +977,7 @@ mb903se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE    1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb903/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb903/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb903 st40 st40 mb903 st stx7108
 	@$(MKROMGEN) no-such-ip mb903stx7108 host boot_companions=0,se=0
 
@@ -988,7 +988,7 @@ b2037se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2037/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2037/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2037 st40 st40 b2037 st stx7108
 	@$(MKROMGEN) no-such-ip b2037stxh205 host spi_4x=1,se=0
 
@@ -1000,7 +1000,7 @@ mb704se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/st/mb704/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x83F00000" >$(obj)board/st/mb704/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb704 st40 st40 mb704 st stx5197
 
 5197cab_config \
@@ -1011,7 +1011,7 @@ mb704se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x83F00000" >$(obj)board/st/5197cab/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x83F00000" >$(obj)board/st/5197cab/config.tmp)
 	@$(MKCONFIG) -a -n $@ 5197cab st40 st40 5197cab st stx5197
 
 fldbse_config :		unconfig
@@ -1030,7 +1030,7 @@ fudbse_config :		unconfig
 	@$(MKCONFIG) -a -n $@ fudb st40 st40 fudb st fli7540
 	@$(MKROMGEN) no-such-ip fudb_gpd201 st40host boot_companions=0
 
-# QQQ following should have "TEXT_BASE = 0x8FF00000" for SE mode.
+# QQQ following should have "CONFIG_SYS_TEXT_BASE = 0x8FF00000" for SE mode.
 # QQQ However, the current TargetPacks only define the PMB
 # QQQ for the first 128MiB region of RAM.
 # QQQ Hence, we need the targetpacks to be updated first!
@@ -1042,7 +1042,7 @@ mb796se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/mb796/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/mb796/config.tmp)
 	@$(MKCONFIG) -a -n $@ mb796 st40 st40 mb796 st stx5206
 	@$(MKROMGEN) no-such-ip mb796stx5206 st40 boot_companions=0
 
@@ -1055,7 +1055,7 @@ hdk5289se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk5289/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk5289/config.tmp)
 	@$(MKCONFIG) -a -n $@ hdk5289 st40 st40 hdk5289 st stx5206
 
 b2057se_config :		unconfig
@@ -1065,7 +1065,7 @@ b2057se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2057 st40 st40 b2057 st stxh205
 	@$(MKROMGEN) no-such-ip b2057stxh205 st40 boot_companions=0,se=0
 
@@ -1076,7 +1076,7 @@ b2064se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2064 st40 st40 b2057 st stxh205
 	@$(MKROMGEN) no-such-ip b2064stxh205 st40 boot_companions=0,se=0,lmi_16bits=1
 
@@ -1087,7 +1087,7 @@ b2067se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2067 st40 st40 b2057 st stxh205
 	@$(MKROMGEN) no-such-ip b2067stxh205 st40 boot_companions=0,se=0,lmi_freq=266,lmi_16bits=1
 
@@ -1098,7 +1098,7 @@ b2075se_config :		unconfig
 	$(if $(findstring se,$@), \
 	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
 	$(if $(findstring se,$@), \
-	@echo "TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
+	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
 	@$(MKCONFIG) -a -n $@ b2075 st40 st40 b2057 st stxh205
 	@$(MKROMGEN) no-such-ip b2075stxh205 st40 boot_companions=0,se=0
 
@@ -1127,7 +1127,7 @@ b2000stxh416se_nand_config :	unconfig
 	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
 	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
 	$(if $(findstring a9,$@), \
-	@echo "TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2000/config.tmp; \
+	@echo "CONFIG_SYS_TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2000/config.tmp; \
 	$(if $(findstring stxh416,$@), \
 	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
 	 $(MKCONFIG) -a -n $@ b2000 arm armv7 b2000 st stxh416; \
@@ -1135,7 +1135,7 @@ b2000stxh416se_nand_config :	unconfig
 	 echo "#define CONFIG_STM_STXH415        1" >>$(obj)include/config.h; \
 	 $(MKCONFIG) -a -n $@ b2000 arm armv7 b2000 st stxh415; \
 	 $(MKROMGEN) no-such-ip b2000stxh415 a9_0), \
-	@echo "TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2000/config.tmp; \
+	@echo "CONFIG_SYS_TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2000/config.tmp; \
 	 echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
 	$(if $(findstring stxh416,$@), \
 	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
@@ -1170,7 +1170,7 @@ b2020stxh416se_nand_config :	unconfig
 	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
 	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
 	$(if $(findstring a9,$@), \
-	@echo "TEXT_BASE = 0xBFF00000" >$(obj)board/st/b2020/config.tmp; \
+	@echo "CONFIG_SYS_TEXT_BASE = 0xBFF00000" >$(obj)board/st/b2020/config.tmp; \
 	$(if $(findstring stxh416,$@), \
 	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
 	 $(MKCONFIG) -a -n $@ b2020 arm armv7 b2020 st stxh416; \
@@ -1178,7 +1178,7 @@ b2020stxh416se_nand_config :	unconfig
 	 echo "#define CONFIG_STM_STXH415        1" >>$(obj)include/config.h; \
 	 $(MKCONFIG) -a -n $@ b2020 arm armv7 b2020 st stxh415; \
 	 $(MKROMGEN) no-such-ip b2020stxh415 a9_0), \
-	@echo "TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2020/config.tmp; \
+	@echo "CONFIG_SYS_TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2020/config.tmp; \
 	 echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
 	$(if $(findstring stxh416,$@), \
 	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
@@ -1202,10 +1202,10 @@ b2116se_nand_config :		unconfig
 	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
 	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
 	$(if $(findstring a9,$@), \
-	@echo "TEXT_BASE = 0xBFF00000" >$(obj)board/st/b2116/config.tmp; \
+	@echo "CONFIG_SYS_TEXT_BASE = 0xBFF00000" >$(obj)board/st/b2116/config.tmp; \
 	 $(MKCONFIG) -a -n $@ b2116 arm armv7 b2116 st stxh416; \
 	 $(MKROMGEN) no-such-ip b2116stxh315 a9_0 boardrev=2, \
-	@echo "TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2116/config.tmp; \
+	@echo "CONFIG_SYS_TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2116/config.tmp; \
 	 echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
 	 $(MKCONFIG) -a -n $@ b2116 st40 st40 b2116 st stxh416; \
 	 $(MKROMGEN) no-such-ip b2116stxh315 st40 se=0,boardrev=2)

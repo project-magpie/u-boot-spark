@@ -199,7 +199,7 @@ which_location:
 #endif	/* CONFIG_ST40_SE_MODE */
 #if defined(CONFIG_SYS_STM_BART_BASE)
 	/* OR, are we already running from RAM, mapped via the BART ? */
-	MOV_CONST32_R0 (CONFIG_SYS_STM_BART_BASE + (TEXT_BASE & ((64<<20)-1)))
+	MOV_CONST32_R0 (CONFIG_SYS_STM_BART_BASE + (CONFIG_SYS_TEXT_BASE & ((64<<20)-1)))
 	cmp/eq	r9, r0			/* is the PC in the BART region ? */
 	movt	r0
 	or	r0, r8			/* r8 |= (PC==BART); */
@@ -258,7 +258,7 @@ set_pmb:
 	 * the same 16 MiB of physical memory will be mapped twice (once
 	 * cached, and once un-cached) in the PMB virtual area. This
 	 * area that is mapped twice should include U-Boot's ".text"
-	 * section, i.e. the memory around "TEXT_BASE".
+	 * section, i.e. the memory around "CONFIG_SYS_TEXT_BASE".
 	 */
 	SH4_SET_PMB 0,0x80,BASE,SIZE,0,0,1	/* LMI (512 MiB), will eventually be CACHED */
 	SH4_SET_PMB 2,UBVPN,UBPPN,16,0,0,1	/* Last 16MiB of LMI un-cached (for U-Boot's TEXT) */
@@ -752,12 +752,12 @@ do_start_st40_boot:
 
 .balign 4
 _start_offset:	.long . - _start
-target_addr:	.long TEXT_BASE
-target_end:	.long TEXT_BASE + __uboot_bin_size
+target_addr:	.long CONFIG_SYS_TEXT_BASE
+target_end:	.long CONFIG_SYS_TEXT_BASE + __uboot_bin_size
 #if defined(CONFIG_SYS_USE_VMA_DATA)
 stack_addr:	.long __USE_VMA_DATA	/* start of the stack, just below relocated ".data" */
 #else
-stack_addr:	.long TEXT_BASE - (CONFIG_SYS_GBL_DATA_SIZE + CONFIG_SYS_MALLOC_LEN)
+stack_addr:	.long CONFIG_SYS_TEXT_BASE - (CONFIG_SYS_GBL_DATA_SIZE + CONFIG_SYS_MALLOC_LEN)
 #endif	/* CONFIG_SYS_USE_VMA_DATA */
 bss_start:	.long __bss_start
 bss_end:	.long __bss_end

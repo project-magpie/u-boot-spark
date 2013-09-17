@@ -146,7 +146,7 @@ void start_st40_boot (void)
 
 	char *s;
 
-	addr = TEXT_BASE;
+	addr = CONFIG_SYS_TEXT_BASE;
 	/* Reserve memory for malloc() arena. */
 	addr -= CONFIG_SYS_MALLOC_LEN;
 	/* (permanently) allocate a Board Info struct
@@ -192,7 +192,7 @@ void start_st40_boot (void)
 #endif /* CONFIG_SYS_NO_FLASH */
 
 	/* initialize malloc() area */
-	mem_malloc_init(TEXT_BASE - CONFIG_SYS_MALLOC_LEN,
+	mem_malloc_init(CONFIG_SYS_TEXT_BASE - CONFIG_SYS_MALLOC_LEN,
 		CONFIG_SYS_MALLOC_LEN);
 
 #if defined(CONFIG_CMD_NAND)

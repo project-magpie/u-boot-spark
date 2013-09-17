@@ -161,7 +161,7 @@ SECTIONS
 	 * However, we need to make sure that the end of the ".data" section
 	 * does not actually overlap with the ".text" section.
 	 */
-	ASSERT((__USE_VMA_DATA) ? (. <= __text_start) : (1), "ERROR: .data located too close to TEXT_BASE! (move it!)")
+	ASSERT((__USE_VMA_DATA) ? (. <= __text_start) : (1), "ERROR: .data located too close to CONFIG_SYS_TEXT_BASE! (move it!)")
 }
 
 

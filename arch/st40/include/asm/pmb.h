@@ -116,7 +116,7 @@
 #	define CONFIG_SYS_ST40_LMI_NEEDS_2_PMB_ENTRIES	0	/* use 1 * 512 MiB PMB page */
 #	define CONFIG_SYS_ST40_LMI_PMB_PAGE_SIZE	512
 		/* the PMB 16MiB VIRTUAL page where U-Boot will logically reside CACHED */
-#	define CONFIG_SYS_ST40_PMB_TEXT_CACHED_PAGE	(TEXT_BASE & 0xFF000000)
+#	define CONFIG_SYS_ST40_PMB_TEXT_CACHED_PAGE	(CONFIG_SYS_TEXT_BASE & 0xFF000000)
 		/* the PMB 16MiB VIRTUAL page where U-Boot will logically reside UN-cached */
 #	define CONFIG_SYS_ST40_PMB_TEXT_UNCACHED_PAGE	(CONFIG_SYS_SE_UNCACHED_BASE)
 		/* the PMB 16MiB PHYSICAL page where U-Boot will physically reside */
