@@ -726,7 +726,7 @@ clear_bss:
 done_bss:
 
 #if defined(CONFIG_SYS_USE_VMA_DATA)
-	/* Copy ".data" (and ".u_boot_cmd") from LMA to VMA (RAM to RAM) */
+	/* Copy ".data" (and ".u_boot_list") from LMA to VMA (RAM to RAM) */
 copy_data:
 	mov.l	data_vma_start, r1
 	mov.l	data_lma_start, r3

@@ -34,7 +34,7 @@ ENTRY(_start)
 	/*
 	 * Both the "u-boot" and "u-boot.bin" images contain the following
 	 * allocated and loadable sections:
-	 *	".text", ".rodata", ".data", and ".u_boot_cmd".
+	 *	".text", ".rodata", ".data", and ".u_boot_list".
 	 * Whereas, the STACK, HEAP, and the ".bss" sections are all *not*
 	 * allocated/loadable, hence they are not physically present in these images.
 	 *
@@ -59,7 +59,7 @@ ENTRY(_start)
 	 * the ".rodata" sections, as (in general) these should be read-only. It is not
 	 * a problem for the STACK, HEAP, and the ".bss" sections, as these should never
 	 * be positioned in a read-only region of RAM. However, this presents a significant
-	 * problem for the ".data", and the ".u_boot_cmd" sections, which must be
+	 * problem for the ".data", and the ".u_boot_list" sections, which must be
 	 * stored in a READ-WRITE region of RAM, but are also physically stored in
 	 * the u-boot.bin binary image which is now in a READ-ONLY region of RAM!
 	 *
@@ -138,11 +138,9 @@ SECTIONS
 		__data_end = .;
 	}
 
-	.u_boot_cmd ALIGN(0x4):
+	.u_boot_list ALIGN(0x4):
 	{
-		__u_boot_cmd_start = .;
-		*(.u_boot_cmd)
-		__u_boot_cmd_end = .;
+		#include "u-boot.lst"
 	}
 
 	__data_vma_end = .;
