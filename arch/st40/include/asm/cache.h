@@ -34,6 +34,15 @@
 #endif
 
 
+/*
+ * Just use the (L1) data cache line-size value for the
+ * minimum DMA buffer alignment value on the ST40.
+ */
+#if !defined(ARCH_DMA_MINALIGN)
+#	define ARCH_DMA_MINALIGN	L1_CACHE_BYTES
+#endif	/* ARCH_DMA_MINALIGN */
+
+
 #ifndef __ASSEMBLER__
 
 extern void sh_cache_set_op(unsigned long);

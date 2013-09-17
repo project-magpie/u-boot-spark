@@ -293,7 +293,12 @@ LIBS-y += drivers/mtd/libmtd.o
 LIBS-y += drivers/mtd/nand/libnand.o
 LIBS-y += drivers/mtd/onenand/libonenand.o
 LIBS-y += drivers/mtd/ubi/libubi.o
+ifeq ($(CONFIG_STM),n)
+# For STMicroelectronics' SoCs, we will *temporarily* disable
+# U-Boot's MTD drivers on SPI, and use the older "eeprom" driver.
+# QQQ: Re-enable once STMicroelectronics' FSM has been ported.
 LIBS-y += drivers/mtd/spi/libspi_flash.o
+endif
 LIBS-y += drivers/net/libnet.o
 LIBS-y += drivers/net/phy/libphy.o
 LIBS-y += drivers/pci/libpci.o

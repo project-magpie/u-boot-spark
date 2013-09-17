@@ -30,6 +30,9 @@
 /* Enable use of the Logical Memory Blocks (LMB). */
 #define CONFIG_LMB
 
+/* Enable the "initrd_high" functionality. */
+#define CONFIG_SYS_BOOT_RAMDISK_HIGH
+
 /*
  * (Optionally) enable a few more generally 'useful' commands ...
  */
@@ -98,6 +101,18 @@
 #	define CONFIG_CMDLINE_TAG	/* use ATAGs for Kernel's Command Line */
 #	define CONFIG_INITRD_TAG	/* use ATAGs for an init ramdisk */
 #	define CONFIG_OF_LIBFDT		/* enable "fdt" command and support DTBs */
+#endif /* CONFIG_ARM */
+
+
+	/*
+	 * additional (core-specific) CONFIG_SYS_* system definitions.
+	 */
+#if defined(CONFIG_ARM)
+		/* address of the initial Stack Pointer (SP) */
+#	define CONFIG_SYS_INIT_SP_ADDR			\
+			( CONFIG_SYS_TEXT_BASE -	\
+			  CONFIG_SYS_MALLOC_LEN -	\
+			  CONFIG_SYS_GBL_DATA_SIZE )
 #endif /* CONFIG_ARM */
 
 

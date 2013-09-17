@@ -101,7 +101,7 @@ static int stm_nand_scan(struct mtd_info *mtd, int maxchips)
 	 * Perform the first phase of the normal nand_scan() function.
 	 * It reads the flash ID and sets up MTD fields accordingly.
 	 */
-	ret = nand_scan_ident(mtd, maxchips);
+	ret = nand_scan_ident(mtd, maxchips, NULL);
 	if (ret)
 		return ret;
 

@@ -44,4 +44,7 @@ typedef struct bd_info
 	unsigned long bi_ssc_frq;	/* frequency of the SSC  (in Hertz) */
 } bd_t;
 
+/* For image.h:image_check_target_arch() */
+#define IH_ARCH_DEFAULT IH_ARCH_SH
+
 #endif /* __ARCH_ST40_INCLUDE_ASM_U_BOOT_H */

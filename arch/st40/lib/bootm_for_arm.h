@@ -25,6 +25,7 @@
 #define __ARCH_ST40_LIB_BOOTM_FOR_ARM_H
 
 
+#include <config.h>
 #include <image.h>
 
 

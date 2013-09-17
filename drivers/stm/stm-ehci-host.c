@@ -25,7 +25,6 @@
 #include <common.h>
 #include <usb.h>
 #include <../drivers/usb/host/ehci.h>
-#include <../drivers/usb/host/ehci-core.h>
 #include <stm/stbus.h>
 
 
@@ -36,7 +35,10 @@
  * Create the appropriate control structures to manage
  * a new EHCI host controller.
  */
-extern int ehci_hcd_init(void)
+extern int ehci_hcd_init(
+	const int index,
+	struct ehci_hccr ** const hccr,
+	struct ehci_hcor ** const hcor)
 {
 	uint32_t hc_length;
 
@@ -50,18 +52,19 @@ extern int ehci_hcd_init(void)
 
 	/*
 	 * Save address for both the HCCR and HCOR registers in the EHCI
-	 * H/W controller, into the 2 global variables "hccr", and "hcor".
+	 * H/W controller, into the 2 indirect-pointers "hccr", and "hcor".
+	 * NOTE: this limits us to only ONE host-controller (QQQ: allow 1+)
 	 */
-	hccr = (struct ehci_hccr *)AHB2STBUS_EHCI_BASE;
+	*hccr = (struct ehci_hccr *)AHB2STBUS_EHCI_BASE;
 
-	hc_length = HC_LENGTH(ehci_readl(&hccr->cr_capbase));
+	hc_length = HC_LENGTH(ehci_readl(&(*hccr)->cr_capbase));
 	BUG_ON(hc_length != 0x10);	/* should always be 16 for ST's SoCs */
 
-	hcor = (struct ehci_hcor *)((uint32_t)hccr + hc_length);
+	*hcor = (struct ehci_hcor *)((uint32_t)*hccr + hc_length);
 
 #if 1
 	printf("STM EHCI HCD initialization HCCR=0x%08x, HCOR=0x%08x, hc_length=%u\n",
-		(uint32_t)hccr, (uint32_t)hcor, hc_length);
+		(uint32_t)*hccr, (uint32_t)*hcor, hc_length);
 #endif
 
 	return 0;	/* indicate success */
@@ -72,7 +75,7 @@ extern int ehci_hcd_init(void)
  * Destroy the appropriate control structures corresponding
  * to the EHCI host controller.
  */
-extern int ehci_hcd_stop(void)
+extern int ehci_hcd_stop(const int index)
 {
 	return 0;
 }
