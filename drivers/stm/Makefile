@@ -23,7 +23,7 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)libstm.a
+LIB	= $(obj)libstm.o
 
 # All the STMicroelectronics-specific stuff, which may be ARCH-agnostic
 ifdef CONFIG_STM
@@ -75,7 +75,7 @@ $(obj)stm-nand-flex.o: stm-nand-flex.c
 endif
 
 $(LIB):	$(obj).depend $(OBJS)
-	$(AR) $(ARFLAGS) $@ $(OBJS)
+	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 
