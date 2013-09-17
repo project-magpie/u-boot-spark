@@ -211,9 +211,6 @@ void start_st40_boot (void)
 	/* Allocate environment function pointers etc. */
 	env_relocate ();
 
-	/* IP Address */
-	bd->bi_ip_addr = getenv_IPaddr ("ipaddr");
-
 #if defined(CONFIG_PCI)
 	/*
 	 * Do pci configuration

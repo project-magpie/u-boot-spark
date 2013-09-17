@@ -353,9 +353,9 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 #if defined(CONFIG_CMD_NET)
 	print_eth(0);
-	printf ("ip_addr     = %pI4\n", &bd->bi_ip_addr);
+	printf("ip_addr     = %s\n", getenv("ipaddr"));
 #endif
-	printf ("baudrate    = %d bps\n", bd->bi_baudrate);
+	printf("baudrate    = %d bps\n", bd->bi_baudrate);
 
 #if defined(CONFIG_STM_STX5197)
 	if (STX5197_DEVICEID_5197(bd->bi_devid))

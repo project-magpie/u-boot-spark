@@ -30,7 +30,6 @@
 typedef struct bd_info
 {
 	int bi_baudrate;		/* serial console baud-rate */
-	unsigned long bi_ip_addr;	/* IP Address */
 	unsigned long bi_arch_number;	/* unique id for this board */
 	unsigned long bi_memstart;	/* start of DRAM memory */
 	phys_size_t   bi_memsize;	/* size  of DRAM memory in bytes */
