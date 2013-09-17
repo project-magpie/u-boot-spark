@@ -5,7 +5,7 @@
  * DTF (Data Transfer Format) mechanism, over a JTAG link, to
  * a remote GDB debugger on a host machine.
  *
- *  Copyright (c) 2009-2012  STMicroelectronics Limited
+ *  Copyright (c) 2009-2013  STMicroelectronics Limited
  *  Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -28,11 +28,7 @@
  */
 
 #include "common.h"
-
-
-#ifdef CONFIG_STM_ASC_SERIAL
-#error Can not define CONFIG_STM_ASC_SERIAL and CONFIG_STM_DTF_SERIAL at same time!
-#endif
+#include <serial.h>
 
 
 static int dtf_transfer(
@@ -95,7 +91,7 @@ static int CachedKey = 0;	/* is "CachedKeyCode" valid */
 
 
 /* returns TRUE if a char is available, ready to be read */
-extern int serial_tstc (void)
+static int stm_dtf_serial_tstc(void)
 {
 	volatile unsigned char buff[8] __attribute__((aligned(4))) = {24};
 	int buffLen = 1;
@@ -122,7 +118,7 @@ extern int serial_tstc (void)
 
 
 /* blocking function, that returns next char */
-extern int serial_getc (void)
+static int stm_dtf_serial_getc(void)
 {
 	/* have we already got one key-stroke cached ? */
 	if (CachedKey)
@@ -132,7 +128,7 @@ extern int serial_getc (void)
 	}
 
 	/* polling wait: for a char to be read */
-	while (!serial_tstc ());
+	while (!stm_dtf_serial_tstc());
 
 	/* return the key just read */
 	CachedKey = 0;			/* empty the cache */
@@ -141,7 +137,7 @@ extern int serial_getc (void)
 
 
 /* write out a single char */
-extern void serial_putc (const char ch)
+static void stm_dtf_serial_putc(const char ch)
 {
 	unsigned char buff[6] = { 7, 1, 0, 0, 0 };
 	int buffLen = sizeof(buff);
@@ -154,16 +150,8 @@ extern void serial_putc (const char ch)
 }
 
 
-/* write an entire (NUL-terminated) string */
-extern void serial_puts (const char *s)
-{
-	while (*s) {
-		serial_putc (*s++);
-	}
-}
-
 /* initialize the serial device */
-extern int serial_init (void)
+static int stm_dtf_serial_init(void)
 {
 	/* do nothing */
 	return 0;
@@ -171,7 +159,33 @@ extern int serial_init (void)
 
 
 /* called to adjust baud-rate */
-extern void serial_setbrg (void)
+static void stm_dtf_serial_setbrg(void)
 {
 	/* do nothing */
+}
+
+
+static struct serial_device stm_dtf_serial_drv = {
+	.name	= "stm_dtf",
+	.start	= stm_dtf_serial_init,
+	.stop	= NULL,
+	.setbrg	= stm_dtf_serial_setbrg,
+	.putc	= stm_dtf_serial_putc,
+	.puts	= default_serial_puts,
+	.getc	= stm_dtf_serial_getc,
+	.tstc	= stm_dtf_serial_tstc,
+};
+
+extern void stm_dtf_serial_initialize(void)
+{
+	serial_register(&stm_dtf_serial_drv);
+}
+
+/*
+ * If we are using DTF (JTAG), we probably want this driver to
+ * dominate, hence we do not define this function as "__weak".
+ */
+extern struct serial_device *default_serial_console(void)
+{
+	return &stm_dtf_serial_drv;
 }

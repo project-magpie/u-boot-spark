@@ -141,6 +141,8 @@ serial_initfunc(mpc512x_serial_initialize);
 serial_initfunc(uartlite_serial_initialize);
 serial_initfunc(au1x00_serial_initialize);
 serial_initfunc(asc_serial_initialize);
+serial_initfunc(stm_asc_serial_initialize);
+serial_initfunc(stm_dtf_serial_initialize);
 serial_initfunc(jz_serial_initialize);
 serial_initfunc(mpc5xx_serial_initialize);
 serial_initfunc(mpc8220_serial_initialize);
@@ -236,6 +238,8 @@ void serial_initialize(void)
 	zynq_serial_initalize();
 	au1x00_serial_initialize();
 	asc_serial_initialize();
+	stm_asc_serial_initialize();
+	stm_dtf_serial_initialize();
 	jz_serial_initialize();
 	mpc5xx_serial_initialize();
 	mpc8220_serial_initialize();

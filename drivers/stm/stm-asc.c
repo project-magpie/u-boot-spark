@@ -14,6 +14,7 @@
  */
 
 #include "common.h"
+#include <serial.h>
 #include "asm/io.h"
 #include <stm/pio.h>
 #include <stm/socregs.h>
@@ -123,7 +124,7 @@ static inline void TxCharReady (void)
 }
 
 /* initialize the ASC */
-extern int serial_init (void)
+static int stm_asc_serial_init(void)
 {
 	const int cflag = CREAD | HUPCL | CLOCAL | CSTOPB | CS8 | PARODD;
 	unsigned long val;
@@ -217,7 +218,7 @@ extern int serial_init (void)
 }
 
 /* returns TRUE if a char is available, ready to be read */
-extern int serial_tstc (void)
+static int stm_asc_serial_tstc(void)
 {
 	unsigned long status;
 
@@ -226,12 +227,12 @@ extern int serial_tstc (void)
 }
 
 /* blocking function, that returns next char */
-extern int serial_getc (void)
+static int stm_asc_serial_getc(void)
 {
 	char ch;
 
 	/* polling wait: for a char to be read */
-	while (!serial_tstc ());
+	while (!stm_asc_serial_tstc());
 
 	/* read char, now that we know we have one */
 	ch = p2_inl (UART_RXBUFFER_REG);
@@ -241,11 +242,11 @@ extern int serial_getc (void)
 }
 
 /* write write out a single char */
-extern void serial_putc (char ch)
+static void stm_asc_serial_putc(char ch)
 {
 	/* Stream-LF to CR+LF conversion */
 	if (ch == 10)
-		serial_putc ('\r');
+		stm_asc_serial_putc('\r');
 
 	/* wait till safe to write next char */
 	TxCharReady ();
@@ -254,19 +255,11 @@ extern void serial_putc (char ch)
 	p2_outl (UART_TXBUFFER_REG, ch);
 }
 
-/* write an entire (NUL-terminated) string */
-extern void serial_puts (const char *s)
-{
-	while (*s) {
-		serial_putc (*s++);
-	}
-}
-
 /* called to adjust baud-rate */
-extern void serial_setbrg (void)
+static void stm_asc_serial_setbrg(void)
 {
 	/* just re-initialize ASC */
-	serial_init ();
+	stm_asc_serial_init();
 }
 
 #ifdef CONFIG_HWFLOW
@@ -278,14 +271,38 @@ extern int hwflow_onoff (int on)
 		break;		/* return current */
 	case 1:
 		hwflow = 1;	/* turn on */
-		serial_init ();
+		stm_asc_serial_init();
 		break;
 	case -1:
 		hwflow = 0;	/* turn off */
-		serial_init ();
+		stm_asc_serial_init();
 		break;
 	}
 	return hwflow;
 }
 #endif	/* CONFIG_HWFLOW */
 
+static struct serial_device stm_asc_serial_drv = {
+	.name	= "stm_asc",
+	.start	= stm_asc_serial_init,
+	.stop	= NULL,
+	.setbrg	= stm_asc_serial_setbrg,
+	.putc	= stm_asc_serial_putc,
+	.puts	= default_serial_puts,
+	.getc	= stm_asc_serial_getc,
+	.tstc	= stm_asc_serial_tstc,
+};
+
+extern void stm_asc_serial_initialize(void)
+{
+	serial_register(&stm_asc_serial_drv);
+}
+
+/*
+ * If we are also using DTF (JTAG), we probably want that driver
+ * to dominate, hence we define this function as "__weak".
+ */
+extern __weak struct serial_device *default_serial_console(void)
+{
+	return &stm_asc_serial_drv;
+}
