@@ -141,8 +141,6 @@
 #ifdef CONFIG_DRIVER_NETSTMAC
 #	define CONFIG_SYS_STM_STMAC_BASE	0xfde00000ul	/* MAC = STM MAC */
 #	define CONFIG_STMAC_LAN8700				/* PHY = SMSC LAN8700 */
-#else
-#	undef CONFIG_CMD_NET		/* un-define if no networking at all */
 #endif	/* CONFIG_DRIVER_NETSTMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user

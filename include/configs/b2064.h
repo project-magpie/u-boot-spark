@@ -191,8 +191,6 @@
 #	define CONFIG_SYS_STM_STMAC_BASE	0xfda88000ul
 //#	define CONFIG_STM_USE_RMII_MODE	/* define only for RMII mode */
 #	define CONFIG_STMAC_IP101G	/* IC+ IP101G (via EJ1) */
-#else
-#	undef CONFIG_CMD_NET		/* remove all networking support */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user

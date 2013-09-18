@@ -235,8 +235,6 @@
 #	define CONFIG_SYS_STM_STMAC1_BASE	0xfef08000ul	/* GMAC #1 */
 #	define CONFIG_SYS_STM_STMAC_BASE	CONFIG_SYS_STM_STMAC1_BASE
 #	define CONFIG_STMAC_RTL8211E		/* Realtek RTL8211E PHY (UE1) */
-#else
-#	undef CONFIG_CMD_NET		/* remove all networking support */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user

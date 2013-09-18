@@ -265,8 +265,6 @@
 #	else
 #		define CONFIG_STMAC_IP101A			/* IC+ IP101A (B2035) */
 #	endif
-#else
-#	undef CONFIG_CMD_NET		/* remove all networking support */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user

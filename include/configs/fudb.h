@@ -165,8 +165,6 @@
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #	define CONFIG_SYS_STM_STMAC_BASE	0xfd920000ul	/* MAC = STM GMAC0 */
 #	define CONFIG_STMAC_KSZ8041				/* PHY = Micrel KSZ8041NL */
-#else
-#	undef CONFIG_CMD_NET		/* undefine if no networking at all */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user

@@ -140,5 +140,18 @@
 	 */
 #define CONFIG_NET_MULTI
 
+	/*
+	 * If no MAC/GMAC driver is to be included, then we should
+	 * not include *any* of the "networking" sub-modules,
+	 * otherwise we may have a fatal linking problem!
+	 * We conveniently un-define them all here, just in case!
+	 */
+#if !defined(CONFIG_DRIVER_NET_STM_GMAC) && !defined(CONFIG_DRIVER_NETSTMAC)
+#	undef CONFIG_CMD_NET		/* No networking! */
+#	undef CONFIG_CMD_NFS		/* No networking! */
+#	undef CONFIG_CMD_PING		/* No networking! */
+#	undef CONFIG_CMD_DHCP		/* No networking! */
+#endif	/* !CONFIG_DRIVER_NET_STM_GMAC && !CONFIG_DRIVER_NETSTMAC */
+
 
 #endif /* __INCLUDE_STM_CONFIG_H */

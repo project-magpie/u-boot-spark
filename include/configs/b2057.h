@@ -206,8 +206,6 @@
 //#	define CONFIG_STM_USE_RMII_MODE		/* define only for RMII mode */
 //#	define CONFIG_STMAC_IP101G		/* IC+ IP101G (via JP2) */
 #	define CONFIG_STMAC_IP101A		/* IC+ IP101A (via JP2) */
-#else
-#	undef CONFIG_CMD_NET		/* remove all networking support */
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user
