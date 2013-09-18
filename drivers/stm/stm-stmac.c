@@ -1557,7 +1557,7 @@ static int stmac_rx(struct eth_device * const dev)
 /* Send a data block via Ethernet. */
 static int stmac_send(
 	struct eth_device * const dev,
-	volatile void * const packet,
+	void * const packet,
 	const int length)
 {
 	PRINTK(STMAC "entering %s()\n", __FUNCTION__);

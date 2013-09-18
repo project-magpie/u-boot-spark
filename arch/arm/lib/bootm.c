@@ -376,7 +376,7 @@ extern	void prepare_hpen_for_linux(void (**stm_secondary_startup)(void));
 #if 0 || defined(DEBUG)
 	printf("\ninfo: transferring control to kernel with ...\n");
 	printf("\tr0 = 0x%x\n", 0);
-	printf("\tr1 = 0x%x  (%u)\n", machid, machid);
+	printf("\tr1 = 0x%lx  (%lu)\n", machid, machid);
 	printf("\tr2 = 0x%08x\n", (int)r2);
 	printf("\tpc = 0x%08x\n", (int)kernel_entry);
 #if defined(CONFIG_STM)

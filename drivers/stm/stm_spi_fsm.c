@@ -78,6 +78,7 @@
 static const char assert_message[] =
 	"ERROR: Assertion failed in %s() @ %s:%u\n";
 
+#undef  assert
 #define assert(x)					\
 	do {						\
 		if (!(x)) {				\
@@ -88,10 +89,6 @@ static const char assert_message[] =
 				__LINE__);		\
 		}					\
 	} while (0)
-#else	/* ENABLE_ASSERTS */
-
-#define assert(x) do {} while (0)
-
 #endif	/* ENABLE_ASSERTS */
 
 
