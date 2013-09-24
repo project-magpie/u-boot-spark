@@ -77,10 +77,10 @@ uchar env_get_char_memory(int index)
 		 * from this SPIBOOT controller, and extract only the
 		 * one byte we are really interested in.
 		 */
-	if ( (gd->env_valid) && (env_ptr==NULL) )
-		return env_get_char_spec(index);
-#endif	/* CONFIG_STM && CONFIG_SYS_BOOT_FROM_SPI && CONFIG_ENV_IS_IN_EEPROM */
+	return env_get_char_spec(index);
+#else	/* CONFIG_STM && CONFIG_SYS_BOOT_FROM_SPI && CONFIG_ENV_IS_IN_EEPROM */
 	return *env_get_addr(index);
+#endif	/* CONFIG_STM && CONFIG_SYS_BOOT_FROM_SPI && CONFIG_ENV_IS_IN_EEPROM */
 }
 
 uchar env_get_char(int index)

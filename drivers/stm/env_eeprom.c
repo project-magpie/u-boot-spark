@@ -5,7 +5,7 @@
  * (C) Copyright 2001 Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Andreas Heppel <aheppel@sysgo.de>
  *
- * (C) Copyright 2009,2012 STMicroelectronics Ltd.
+ * (C) Copyright 2009-2013 STMicroelectronics Ltd.
  * Sean McGoogan <Sean.McGoogan@st.com>
 
  * See file CREDITS for list of people who contributed to this
@@ -64,14 +64,13 @@
 #include <command.h>
 #include <environment.h>
 #include <linux/stddef.h>
+#include <errno.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-env_t *env_ptr = NULL;
-
 char * env_name_spec = "SPI Serial Flash";
 
-extern uchar env_get_char_memory (int index);
+static const uchar *import_buffer;
 
 
 #if defined(CONFIG_SYS_BOOT_FROM_SPI)
@@ -206,16 +205,15 @@ extern int env_init_after_spi_done(void)
 #endif	/* !CONFIG_SYS_BOOT_FROM_SPI */
 
 
-extern uchar env_get_char_spec (int index)
+extern uchar env_get_char_spec(const int index)
 {
 	uchar c;
 
 #if defined(CONFIG_SYS_BOOT_FROM_SPI)
-	if ( (env_ptr==NULL) ||
-	     (gd->env_addr != (ulong)&(env_ptr->data)) )
+	if ( (gd->flags & GD_FLG_RELOC) == 0 )
 	{
 		/*
-		 * Not relocated the environment yet.
+		 * U-Boot is not yet fully relocated (still in "boot-mode").
 		 * So the SPI is not yet initialized, so use the SPI-BOOT
 		 * controller to read the environment directly via the EMI.
 		 */
@@ -223,35 +221,81 @@ extern uchar env_get_char_spec (int index)
 	}
 	else
 #endif	/* CONFIG_SYS_BOOT_FROM_SPI */
+	if (import_buffer != NULL)
 	{
 		/*
-		 * Serial flash accessible via SSC or PIO, so
+		 * We are being called whilst env_relocate_spec()
+		 * is still active. So, we can fish out the raw
+		 * environment data directly from the (automatic)
+		 * buffer it is using. This is a cheeky optimization!
+		 */
+		c = import_buffer[index];
+	}
+	else
+	{
+		/*
+		 * Serial flash accessible via FSM, SSC or PIO, so
 		 * we can need to use the 'normal' SPI interfaces
 		 * to talk to the SPI serial flash device.
 		 */
-		eeprom_read (CONFIG_SYS_DEF_EEPROM_ADDR,
-			     CONFIG_ENV_OFFSET+index+offsetof(env_t,data),
-			     &c, 1);
+		eeprom_read(
+			CONFIG_SYS_DEF_EEPROM_ADDR,
+			CONFIG_ENV_OFFSET+index+offsetof(env_t,data),
+			&c, 1);
 	}
 
-	return (c);
+	return c;
 }
 
 
-extern void env_relocate_spec (void)
+extern void env_relocate_spec(void)
 {
-	eeprom_read (
+	env_t env;
+
+	/* read raw binary representation of environment from FLASH */
+	eeprom_read(
 		CONFIG_SYS_DEF_EEPROM_ADDR,
 		CONFIG_ENV_OFFSET,
-		(uchar *)env_ptr,
+		(uchar *)&env,
 		CONFIG_ENV_SIZE);
+
+	/*
+	 * As an optimization, we allow getenv() (and friends) to
+	 * read directly from the raw binary representation of the
+	 * environment, that was read by eeprom_read() above, whilst
+	 * we are in the context of env_import() below.
+	 * i.e. make a local stack variable available externally!
+	 */
+	import_buffer = (const uchar*)&env;
+
+	/* import into the hash table (from 'env') */
+	env_import((const char*)import_buffer, 1);
+
+	/* shut the above "back-door" we recently opened */
+	import_buffer = NULL;
 }
 
 
 extern int saveenv(void)
 {
-	return eeprom_write (CONFIG_SYS_DEF_EEPROM_ADDR,
-			     CONFIG_ENV_OFFSET,
-			     (uchar *)env_ptr,
-			     CONFIG_ENV_SIZE);
+	env_t env;
+	char *data = (char *)&env.data;
+	ssize_t len;
+
+	/* export from the hash table (to 'env') */
+	len = hexport_r(&env_htab, '\0', 0, &data, ENV_SIZE, 0, NULL);
+	if (len < 0) {
+		error("Cannot export environment: errno = %d\n", errno);
+		return 1;
+	}
+
+	/* compute the CRC for the binary representation of environment */
+	env.crc = crc32(0, env.data, ENV_SIZE);
+
+	/* write raw binary representation of environment to FLASH */
+	return eeprom_write(
+		CONFIG_SYS_DEF_EEPROM_ADDR,
+		CONFIG_ENV_OFFSET,
+		(uchar *)&env,
+		CONFIG_ENV_SIZE);
 }
