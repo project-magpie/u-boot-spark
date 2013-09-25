@@ -411,11 +411,11 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #error Unknown ARCH for STMicroelectronics.
 #endif
 
-	print_mhz("UART", stm_get_uart_clk_rate()/1000000ul);
+	print_mhz("UART", stm_get_uart_clk_rate());
 #if defined(CONFIG_ST40)
-	print_mhz("TMU",  stm_get_tmu_clk_rate()/1000000ul);
+	print_mhz("TMU",  stm_get_tmu_clk_rate());
 #endif
-	print_mhz("SSC",  stm_get_ssc_clk_rate()/1000000ul);
+	print_mhz("SSC",  stm_get_ssc_clk_rate());
 
 #if CONFIG_CMD_BDI_DUMP_EMI_BANKS
 	enabled = *STM_EMI_BANK_ENABLE;
