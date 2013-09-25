@@ -49,10 +49,9 @@ int find_dev_and_part(const char *id, struct mtd_device **dev,
 	 * to the user about what is happening physically. To see the *raw*
 	 * physical layout, then simply set the environment variable "bch_raw".
 	 *
-	 * Note: our caller mallocs space for "oobbuf", but *never* uses it.
-	 * We exploit this (effectively) "free" buffer, and use it as our temporary
-	 * buffer whilst we shuffle all the ECC to the end of the DATA section,
-	 * so it logically appears conveniently in the OOB region.
+	 * On the stack we create a large char array, and use it as our
+	 * temporary buffer, whilst we move all the ECC to 'oobbuf', and
+	 * we also move all the (pure) DATA to 'datbuf'.
 	 */
 static void stm_remap_bch_buffers(
 	const nand_info_t * const nand,
@@ -65,6 +64,7 @@ static void stm_remap_bch_buffers(
 	const int ecc_size         = nand_chip->ecc.bytes;
 	size_t sector;
 	const char * const bch_raw = getenv("bch_raw");
+	u_char tmpbuf[nand->writesize + nand->oobsize];
 
 	if (ecc_size == 0)	/* no ECC bytes used ? */
 		return;		/* do nothing, if NO ECC used */
@@ -72,22 +72,28 @@ static void stm_remap_bch_buffers(
 	if (bch_raw)		/* does "bch_raw" exist as an environment variable ? */
 		return;		/* do nothing, if "bch_raw" exists */
 
+	/*
+	 * Create a temporary buffer, which is the concatenation of
+	 * both the in-band (datbuf), and the out-of-band (oobbuf)
+	 * buffers. It will be much easier to extract the DATA and
+	 * ECC sections from a single 'logically contiguous' buffer.
+	 * No need to copy the 0-th sector's DATA (subtle optimization).
+	 */
+	memcpy(&tmpbuf[sector_size], &datbuf[sector_size], nand->writesize-sector_size);
+	memcpy(&tmpbuf[nand->writesize], &oobbuf[0], nand->oobsize);
+
 	/* copy *only* the ECC bytes, from the interleaved DATA+ECC stripes */
 	for(sector=0; sector<sectors_per_page; sector++) {
-		memcpy(&oobbuf[sector*ecc_size], &datbuf[sector_size+sector*(sector_size+ecc_size)], ecc_size);
+		memcpy(&oobbuf[sector*ecc_size], &tmpbuf[sector_size+sector*(sector_size+ecc_size)], ecc_size);
 	}
 
 	/*
 	 * abut data i.e. remove ECC bytes from interleaved DATA+ECC stripes.
-	 * Note: use memmove(), as the regions are likely to overlap!
 	 * No need to "move" the 0-th sector, so we start with sector #1.
 	 */
 	for(sector=1; sector<sectors_per_page; sector++) {
-		memmove(&datbuf[sector*sector_size], &datbuf[sector*(sector_size+ecc_size)], sector_size);
+		memcpy(&datbuf[sector*sector_size], &tmpbuf[sector*(sector_size+ecc_size)], sector_size);
 	}
-
-	/* copy *only* the ECC bytes, to the OOB region (after pure DATA) */
-	memcpy(&datbuf[sector_size*sectors_per_page], oobbuf, ecc_size*sectors_per_page);
 }
 #endif /* CONFIG_SYS_STM_NAND_USE_BCH */
 
@@ -144,6 +150,7 @@ static int nand_dump(nand_info_t *nand, ulong off, int only_oob, int repeat)
 		p += 16;
 	}
 	puts("OOB:\n");
+	p = oobbuf;
 	if (nand->oobsize >= 16) {
 		i = nand->oobsize >> 4;
 		while (i--) {	/* print 16-bytes of OOB per line */
