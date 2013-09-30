@@ -41,17 +41,15 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static void stx7200_clocks(void)
 {
-	bd_t * const bd = gd->bd;
-
 	/*
 	 * Ideally, we should probe to determine all the clock frequencies.
 	 * However, for simplicity, we will simply hard-wire the values
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
-	bd->bi_tmu_frq  = bd->bi_uart_frq;
-	bd->bi_ssc_frq  = bd->bi_uart_frq;
+	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->stm_tmu_frq  = gd->stm_uart_frq;
+	gd->stm_ssc_frq  = gd->stm_uart_frq;
 }
 
 #ifdef CONFIG_DRIVER_NETSTMAC
@@ -154,11 +152,9 @@ extern int cpu_eth_init(bd_t * const bis)
 
 extern int arch_cpu_init(void)
 {
-	bd_t * const bd = gd->bd;
-
 	stx7200_clocks();
 
-	bd->bi_devid = *STX7200_SYSCONF_DEVICEID_0;
+	gd->stm_devid = *STX7200_SYSCONF_DEVICEID_0;
 
 	/*  Make sure reset period is shorter than WDT timeout */
 	*STX7200_SYSCONF_SYS_CFG09 = (*STX7200_SYSCONF_SYS_CFG09 & 0xFF000000) | 0x000A8C;
@@ -467,7 +463,6 @@ static void usb_soft_jtag_reset(void)
 
 extern void stx7200_usb_init(void)
 {
-	const bd_t * const bd = gd->bd;
 	unsigned long reg;
 	static const unsigned char power_pins[3] = {1, 3, 4};
 	static const unsigned char oc_pins[3] = {0, 2, 5};
@@ -510,7 +505,7 @@ extern void stx7200_usb_init(void)
 	STPIO_SET_PIN(PIO_PORT(7), power_pins[port], 1);
 
 	/* USB Over-Current */
-	if (STX7200_DEVICEID_CUT(bd->bi_devid) < 2)
+	if (STX7200_DEVICEID_CUT(gd->stm_devid) < 2)
 		SET_PIO_PIN(PIO_PORT(7), oc_pins[port], STPIO_ALT_BIDIR);
 	else
 		SET_PIO_PIN(PIO_PORT(7), oc_pins[port], STPIO_IN);

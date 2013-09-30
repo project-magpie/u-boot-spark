@@ -73,17 +73,15 @@ volatile int debug_pad_configs = 0;
 
 static void stx7108_clocks(void)
 {
-	bd_t * const bd = gd->bd;
-
 	/*
 	 * Ideally, we should probe to determine all the clock frequencies.
 	 * However, for simplicity, we will simply hard-wire the values
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
-	bd->bi_tmu_frq  = bd->bi_uart_frq;
-	bd->bi_ssc_frq  = bd->bi_uart_frq;
+	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->stm_tmu_frq  = gd->stm_uart_frq;
+	gd->stm_ssc_frq  = gd->stm_uart_frq;
 }
 
 
@@ -699,8 +697,6 @@ extern int stmac_default_pbl(void)
 #define GMAC_AHB_CONFIG		0x7000
 static void stx7108_ethernet_bus_setup(void)
 {
-	const bd_t * const bd = gd->bd;
-
 	/* Configure the bridge to generate more efficient STBus traffic.
 	 *
 	 * Cut Version	| Ethernet AD_CONFIG[21:0]
@@ -708,7 +704,7 @@ static void stx7108_ethernet_bus_setup(void)
 	 *	1.1	|	0x00264006
 	 *	2.0	|	0x00264207
 	 */
-	if (STX7108_DEVICEID_CUT(bd->bi_devid) < 2)	/* for cut 1.x */
+	if (STX7108_DEVICEID_CUT(gd->stm_devid) < 2)	/* for cut 1.x */
 		writel(0x00264006, CONFIG_SYS_STM_STMAC_BASE + GMAC_AHB_CONFIG);
 	else						/* for cut 2.x */
 		writel(0x00264207, CONFIG_SYS_STM_STMAC_BASE + GMAC_AHB_CONFIG);
@@ -880,11 +876,9 @@ extern int cpu_eth_init(bd_t * const bis)
 
 extern int arch_cpu_init(void)
 {
-	bd_t * const bd = gd->bd;
-
 	stx7108_clocks();
 
-	bd->bi_devid = *STX7108_SYSCONF_DEVICEID_0;
+	gd->stm_devid = *STX7108_SYSCONF_DEVICEID_0;
 
 	/* Make sure reset period is shorter than WDT time-out */
 	*STX7108_BANK0_SYSCFG(14) = 3000;	/* about 100 us */

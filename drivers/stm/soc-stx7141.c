@@ -39,17 +39,15 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static void stx7141_clocks(void)
 {
-	bd_t * const bd = gd->bd;
-
 	/*
 	 * Ideally, we should probe to determine all the clock frequencies.
 	 * However, for simplicity, we will simply hard-wire the values
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
-	bd->bi_tmu_frq  = bd->bi_uart_frq;
-	bd->bi_ssc_frq  = bd->bi_uart_frq;
+	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->stm_tmu_frq  = gd->stm_uart_frq;
+	gd->stm_ssc_frq  = gd->stm_uart_frq;
 }
 
 
@@ -283,7 +281,6 @@ extern void stx7141_configure_ethernet(
 	const int mode,
 	const int phy_bus)
 {
-	const bd_t * const bd = gd->bd;
 	size_t i;
 
 	static const struct {
@@ -326,7 +323,7 @@ extern void stx7141_configure_ethernet(
 
 	/* Cut 2 of 7141 has AHB wrapper bug for ethernet gmac */
 	/* Need to disable read-ahead - performance impact     */
-	if (STX7141_DEVICEID_CUT(bd->bi_devid) == 2)
+	if (STX7141_DEVICEID_CUT(gd->stm_devid) == 2)
 	{
 		const unsigned long addr = CONFIG_SYS_STM_STMAC_BASE + AD_CONFIG_OFFSET;
 		writel(readl(addr) & READ_AHEAD_MASK, addr);
@@ -388,12 +385,11 @@ extern int cpu_eth_init(bd_t * const bis)
 
 extern int arch_cpu_init(void)
 {
-	bd_t * const bd = gd->bd;
 	unsigned long reg;
 
 	stx7141_clocks();
 
-	bd->bi_devid = *STX7141_SYSCONF_DEVICEID_0;
+	gd->stm_devid = *STX7141_SYSCONF_DEVICEID_0;
 
 	/*
 	 * Reset Generation Configuration

@@ -56,17 +56,15 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static void fli7540_clocks(void)
 {
-	bd_t * const bd = gd->bd;
-
 	/*
 	 * Ideally, we should probe to determine all the clock frequencies.
 	 * However, for simplicity, we will simply hard-wire the values
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
-	bd->bi_tmu_frq  = bd->bi_uart_frq;
-	bd->bi_ssc_frq  = bd->bi_uart_frq;
+	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->stm_tmu_frq  = gd->stm_uart_frq;
+	gd->stm_ssc_frq  = gd->stm_uart_frq;
 }
 
 
@@ -449,12 +447,10 @@ extern void spi_cs_deactivate(struct spi_slave * const slave)
 
 extern int arch_cpu_init(void)
 {
-	bd_t * const bd = gd->bd;
-
 	fli7540_clocks();
 
 	/* obtain the chip cut + device id */
-	bd->bi_devid = readl(CONFIG_SYS_DEVICE_ID);
+	gd->stm_devid = readl(CONFIG_SYS_DEVICE_ID);
 
 	return 0;
 }

@@ -145,7 +145,7 @@ poketable_start_address:.long CONFIG_STM_SRAM_POKE_STORAGE + __memory_setup_tabl
 	 * The poke_loop() function, should be passed the SoC's DeviceID.
 	 * The following should be used to hold the address of the
 	 * system configuration register which contains the DeviceID.
-	 * Note: we can not retrieve this ID from bi_devid in struct bd_info,
+	 * Note: we can not retrieve this ID from stm_devid in struct global_data,
 	 * as we do have RAM yet, hence this structure is not initialized.
 	 */
 deviceid_address:

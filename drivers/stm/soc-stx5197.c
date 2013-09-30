@@ -41,17 +41,15 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static void stx5197_clocks(void)
 {
-	bd_t * const bd = gd->bd;
-
 	/*
 	 * Ideally, we should probe to determine all the clock frequencies.
 	 * However, for simplicity, we will simply hard-wire the values
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	bd->bi_uart_frq = 140ul * 1000000ul;	/* 140 MHz */
-	bd->bi_tmu_frq  = 200ul * 1000000ul;	/* 200 MHz */
-	bd->bi_ssc_frq  = bd->bi_uart_frq;
+	gd->stm_uart_frq = 140ul * 1000000ul;	/* 140 MHz */
+	gd->stm_tmu_frq  = 200ul * 1000000ul;	/* 200 MHz */
+	gd->stm_ssc_frq  = gd->stm_uart_frq;
 }
 
 
@@ -189,12 +187,10 @@ extern void spi_cs_deactivate(struct spi_slave * const slave)
 
 extern int arch_cpu_init(void)
 {
-	bd_t * const bd = gd->bd;
-
 	stx5197_clocks();
 
 	/* obtain the chip cut + device id */
-	bd->bi_devid = *STX5197_HD_CONF_MON_CONFIG_MONITOR_H;
+	gd->stm_devid = *STX5197_HD_CONF_MON_CONFIG_MONITOR_H;
 
 #ifdef CONFIG_DRIVER_NETSTMAC
 	stmac_eth_hw_setup(0, 1, 0);

@@ -358,48 +358,48 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	printf("baudrate    = %d bps\n", bd->bi_baudrate);
 
 #if defined(CONFIG_STM_STX5197)
-	if (STX5197_DEVICEID_5197(bd->bi_devid))
-		printf ("\nSTx5197 version %ld.x", STX5197_DEVICEID_CUT(bd->bi_devid));
+	if (STX5197_DEVICEID_5197(gd->stm_devid))
+		printf ("\nSTx5197 version %ld.x", STX5197_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STX5206)
-	if (STX5206_DEVICEID_5206(bd->bi_devid))
-		printf ("\nSTx5206/STx5289 version %ld.x", STX5206_DEVICEID_CUT(bd->bi_devid));
+	if (STX5206_DEVICEID_5206(gd->stm_devid))
+		printf ("\nSTx5206/STx5289 version %ld.x", STX5206_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STX7105)
-	if (STX7105_DEVICEID_7105(bd->bi_devid))
-		printf ("\nSTx7105 version %ld.x", STX7105_DEVICEID_CUT(bd->bi_devid));
-	else if (STX7105_DEVICEID_7106(bd->bi_devid))
-		printf ("\nSTx7106 version %ld.x", STX7105_DEVICEID_CUT(bd->bi_devid));
+	if (STX7105_DEVICEID_7105(gd->stm_devid))
+		printf ("\nSTx7105 version %ld.x", STX7105_DEVICEID_CUT(gd->stm_devid));
+	else if (STX7105_DEVICEID_7106(gd->stm_devid))
+		printf ("\nSTx7106 version %ld.x", STX7105_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STX7108)
-	if (STX7108_DEVICEID_7108(bd->bi_devid))
-		printf ("\nSTx7108 version %ld.x", STX7108_DEVICEID_CUT(bd->bi_devid));
+	if (STX7108_DEVICEID_7108(gd->stm_devid))
+		printf ("\nSTx7108 version %ld.x", STX7108_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STX7111)
-	if (STX7111_DEVICEID_7111(bd->bi_devid))
-		printf ("\nSTx7111 version %ld.x", STX7111_DEVICEID_CUT(bd->bi_devid));
+	if (STX7111_DEVICEID_7111(gd->stm_devid))
+		printf ("\nSTx7111 version %ld.x", STX7111_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STX7141)
-	if (STX7141_DEVICEID_7141(bd->bi_devid))
-		printf ("\nSTx7141 version %ld.x", STX7141_DEVICEID_CUT(bd->bi_devid));
+	if (STX7141_DEVICEID_7141(gd->stm_devid))
+		printf ("\nSTx7141 version %ld.x", STX7141_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STX7200)
-	if (STX7200_DEVICEID_7200(bd->bi_devid))
-		printf ("\nSTx7200 version %ld.x", STX7200_DEVICEID_CUT(bd->bi_devid));
+	if (STX7200_DEVICEID_7200(gd->stm_devid))
+		printf ("\nSTx7200 version %ld.x", STX7200_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_FLI7510)
-	if (FLI7510_DEVICEID_7510(bd->bi_devid))
-		printf ("\nFLI7510 version %ld.x", FLI7510_DEVICEID_CUT(bd->bi_devid));
+	if (FLI7510_DEVICEID_7510(gd->stm_devid))
+		printf ("\nFLI7510 version %ld.x", FLI7510_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_FLI7540)
-	if (FLI7540_DEVICEID_7540(bd->bi_devid))
-		printf ("\nFLI7540 version %ld.x", FLI7540_DEVICEID_CUT(bd->bi_devid));
+	if (FLI7540_DEVICEID_7540(gd->stm_devid))
+		printf ("\nFLI7540 version %ld.x", FLI7540_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STXH415)
-	if (STXH415_DEVICEID_415(bd->bi_devid))
-		printf ("\nSTxH415 version %ld.x", STXH415_DEVICEID_CUT(bd->bi_devid));
+	if (STXH415_DEVICEID_415(gd->stm_devid))
+		printf ("\nSTxH415 version %ld.x", STXH415_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STXH416)
-	if (STXH416_DEVICEID_416(bd->bi_devid))
-		printf ("\nSTxH416 version %ld.x", STXH416_DEVICEID_CUT(bd->bi_devid));
+	if (STXH416_DEVICEID_416(gd->stm_devid))
+		printf ("\nSTxH416 version %ld.x", STXH416_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STXH205)
-	if (STXH205_DEVICEID_H205(bd->bi_devid))
-		printf ("\nSTxH205/7 version %ld.x", STXH205_DEVICEID_CUT(bd->bi_devid));
+	if (STXH205_DEVICEID_H205(gd->stm_devid))
+		printf ("\nSTxH205/7 version %ld.x", STXH205_DEVICEID_CUT(gd->stm_devid));
 #else
 #error Missing Device Definitions!
 #endif
 	else
-		printf ("\nUnknown device! (id=0x%08lx)", bd->bi_devid);
+		printf ("\nUnknown device! (id=0x%08lx)", gd->stm_devid);
 
 #if defined(CONFIG_ST40) && defined(CONFIG_ST40_SE_MODE)
 	printf ("  [32-bit mode]\n");

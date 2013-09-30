@@ -44,6 +44,10 @@ typedef struct global_data
 	unsigned long	env_valid;	/* Checksum of Environment valid? */
 	void		**jt;		/* jump table */
 	char		env_buf[32];	/* buffer for getenv() before reloc. */
+	unsigned long	stm_devid;
+	unsigned long	stm_uart_frq;	/* frequency of the UART (in Hertz) */
+	unsigned long	stm_tmu_frq;	/* frequency of the TMU  (in Hertz) */
+	unsigned long	stm_ssc_frq;	/* frequency of the SSC  (in Hertz) */
 } gd_t;
 
 #include <asm-generic/global_data_flags.h>

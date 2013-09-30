@@ -41,17 +41,15 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static void stx5206_clocks(void)
 {
-	bd_t * const bd = gd->bd;
-
 	/*
 	 * Ideally, we should probe to determine all the clock frequencies.
 	 * However, for simplicity, we will simply hard-wire the values
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
-	bd->bi_tmu_frq  = bd->bi_uart_frq;
-	bd->bi_ssc_frq  = bd->bi_uart_frq;
+	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->stm_tmu_frq  = gd->stm_uart_frq;
+	gd->stm_ssc_frq  = gd->stm_uart_frq;
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -167,11 +165,9 @@ extern int cpu_eth_init(bd_t * const bis)
 
 extern int arch_cpu_init(void)
 {
-	bd_t * const bd = gd->bd;
-
 	stx5206_clocks();
 
-	bd->bi_devid = *STX5206_SYSCONF_DEVICEID_0;
+	gd->stm_devid = *STX5206_SYSCONF_DEVICEID_0;
 
 	/*
 	 * Make sure the reset period is shorter than WDT time-out,

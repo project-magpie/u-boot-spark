@@ -74,8 +74,6 @@ volatile int debug_pad_configs = 0;
 
 static void stxh416_clocks(void)
 {
-	bd_t * const bd = gd->bd;
-
 	/*
 	 * Ideally, we should probe to determine all the clock frequencies.
 	 * However, for simplicity, we will simply hard-wire the values
@@ -86,16 +84,16 @@ static void stxh416_clocks(void)
 	 *       otherwise we expect the ASC to be 100MHz.
 	 */
 #if (CONFIG_SYS_STM_ASC_BASE==STXH416_SBC_ASC0_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH416_SBC_ASC1_BASE)
-	bd->bi_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
+	gd->stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
 #else
-	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
 #endif
-	bd->bi_ssc_frq  = 100ul * 1000000ul;	/* 100 MHz */
+	gd->stm_ssc_frq  = 100ul * 1000000ul;	/* 100 MHz */
 #if defined(CONFIG_ST40)
 #if defined(CONFIG_STM_STXH416)
-	bd->bi_tmu_frq  = 200ul * 1000000ul;	/* 200 MHz */
+	gd->stm_tmu_frq  = 200ul * 1000000ul;	/* 200 MHz */
 #else
-	bd->bi_tmu_frq  = bd->bi_ssc_frq;
+	gd->stm_tmu_frq  = gd->stm_ssc_frq;
 #endif /* CONFIG_STM_STXH416 */
 #endif /* CONFIG_ST40 */
 }
@@ -969,11 +967,9 @@ extern int cpu_eth_init(bd_t * const bis)
 
 extern int arch_cpu_init(void)
 {
-	bd_t * const bd = gd->bd;
-
 	stxh416_clocks();
 
-	bd->bi_devid = *STXH416_SYSCONF_DEVICEID;
+	gd->stm_devid = *STXH416_SYSCONF_DEVICEID;
 
 #if 0	/* QQQ - TO IMPLEMENT */
 	/* Make sure reset period is shorter than WDT time-out */

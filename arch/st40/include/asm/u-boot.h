@@ -38,10 +38,6 @@ typedef struct bd_info
 	unsigned long bi_flashsize;	/* size  of FLASH memory */
 	unsigned long bi_flashoffset;	/* reserved area for startup monitor */
 #endif /* CONFIG_SYS_NO_FLASH */
-	unsigned long bi_devid;
-	unsigned long bi_uart_frq;	/* frequency of the UART (in Hertz) */
-	unsigned long bi_tmu_frq;	/* frequency of the TMU  (in Hertz) */
-	unsigned long bi_ssc_frq;	/* frequency of the SSC  (in Hertz) */
 } bd_t;
 
 /* For image.h:image_check_target_arch() */

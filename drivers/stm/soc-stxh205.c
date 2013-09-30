@@ -73,8 +73,6 @@ volatile int debug_pad_configs = 0;
 
 static void stxh205_clocks(void)
 {
-	bd_t * const bd = gd->bd;
-
 	/*
 	 * Ideally, we should probe to determine all the clock frequencies.
 	 * However, for simplicity, we will simply hard-wire the values
@@ -85,12 +83,12 @@ static void stxh205_clocks(void)
 	 *       otherwise we expect the ASC to be 100MHz.
 	 */
 #if (CONFIG_SYS_STM_ASC_BASE==STXH205_ASC10_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH205_ASC11_BASE)
-	bd->bi_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
+	gd->stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
 #else
-	bd->bi_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
 #endif
-	bd->bi_tmu_frq  = 100ul * 1000000ul;	/* 100 MHz */
-	bd->bi_ssc_frq  = bd->bi_tmu_frq;
+	gd->stm_tmu_frq  = 100ul * 1000000ul;	/* 100 MHz */
+	gd->stm_ssc_frq  = gd->stm_tmu_frq;
 }
 
 
@@ -667,11 +665,9 @@ extern int cpu_eth_init(bd_t * const bis)
 
 extern int arch_cpu_init(void)
 {
-	bd_t * const bd = gd->bd;
-
 	stxh205_clocks();
 
-	bd->bi_devid = *STXH205_SYSCONF_DEVICEID_0;
+	gd->stm_devid = *STXH205_SYSCONF_DEVICEID_0;
 
 	/*
 	 * Allow both the Manual + Watchdog resets *OUT* of the

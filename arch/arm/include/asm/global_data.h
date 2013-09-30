@@ -83,6 +83,11 @@ typedef	struct	global_data {
 	unsigned long	post_log_res; /* success of POST test */
 	unsigned long	post_init_f_time; /* When post_init_f started */
 #endif
+#if defined(CONFIG_STM)			/* For STMicroelectronics' SoCs */
+	unsigned long	stm_devid;	/* the device ID of the SoC */
+	unsigned long	stm_uart_frq;	/* frequency of the UART (in Hertz) */
+	unsigned long	stm_ssc_frq;	/* frequency of the SSC  (in Hertz) */
+#endif /* CONFIG_STM */
 } gd_t;
 
 #include <asm-generic/global_data_flags.h>
