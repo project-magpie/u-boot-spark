@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -50,7 +50,7 @@ do							\
 	stx7108_pioalt_pad((port), (pin), (dir));	\
 } while(0)
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	/* Setup PIOs for ASC device */
 
@@ -74,14 +74,6 @@ static void configPIO(void)
 #error Unknown ASC port selected!
 #endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASCx_REGS_BASE */
 
-#ifdef CONFIG_DRIVER_NET_STM_GMAC
-	/*
-	 * Configure the Ethernet PHY Reset signal
-	 *	PIO15[4] == POWER_ON_ETH (a.k.a. ETH_RESET)
-	 */
-	SET_PIO_PIN(STM_PIO_BASE(15), 4, STPIO_OUT);
-#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
-
 	/*
 	 * Some of the peripherals are powered by regulators
 	 * controlled by the following PIO line...
@@ -89,6 +81,8 @@ static void configPIO(void)
 	 */
 	SET_PIO_PIN(STM_PIO_BASE(5), 0, STPIO_OUT);
 	STPIO_SET_PIN(STM_PIO_BASE(5), 0, 1);
+
+	return 0;
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -108,7 +102,13 @@ extern void stmac_phy_reset(void)
 
 extern int board_init(void)
 {
-	configPIO();
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	/*
+	 * Configure the Ethernet PHY Reset signal
+	 *	PIO15[4] == POWER_ON_ETH (a.k.a. ETH_RESET)
+	 */
+	SET_PIO_PIN(STM_PIO_BASE(15), 4, STPIO_OUT);
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 #ifdef QQQ	/* QQQ - DELETE */
 #if defined(CONFIG_STM_SATA)

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2009 STMicroelectronics.
+ * (C) Copyright 2007-2013 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -52,11 +52,13 @@ extern void flashWriteDisable(void)
 
 #define PIO_BASE  0xfd020000
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	/*  Setup PIO of ASC device */
 	SET_PIO_ASC(PIO_PORT(4), 3, 2, 4, 5);  /* UART2 - AS0 */
 	SET_PIO_ASC(PIO_PORT(5), 4, 3, 5, 6);  /* UART3 - AS1 */
+
+	return 0;
 }
 
 extern int board_init(void)
@@ -114,8 +116,6 @@ extern int board_init(void)
 	sysconf |= (1<<6);
 	sysconf &= ~((1<<0)|(1<<1)|(1<<2)|(1<<3));
 	*STX7200_SYSCONF_SYS_CFG33 = sysconf;
-
-	configPIO();
 
 	return 0;
 }

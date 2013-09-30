@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -270,7 +270,7 @@ extern int i2c_set_bus_speed(unsigned int speed)
 }
 #endif	/* CONFIG_I2C_CMD_TREE */
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	unsigned long sysconf;
 
@@ -325,6 +325,11 @@ static void configPIO(void)
 #error Unsure which UART to configure!
 #endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASCx_REGS_BASE */
 
+	return 0;
+}
+
+extern int board_init(void)
+{
 	/* Setup PIO for FLASH_WP# (Active-Low WriteProtect) */
 	SET_PIO_PIN(PIO_PORT(6), 4, STPIO_OUT);
 
@@ -340,11 +345,6 @@ static void configPIO(void)
 	/* Configuration for the I2C bus */
 	configI2c();
 #endif	/* CONFIG_SOFT_I2C */
-}
-
-extern int board_init(void)
-{
-	configPIO();
 
 #if defined(CONFIG_STM_SATA)
 	stx7105_configure_sata ();

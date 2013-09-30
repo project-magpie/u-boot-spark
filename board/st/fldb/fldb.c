@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009-2012 STMicroelectronics.
+ * (C) Copyright 2009-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -44,9 +44,9 @@ extern void flashWriteDisable (void)
 }
 
 
-#ifdef CONFIG_STM_ASC_SERIAL
-static void configSerial (void)
+extern int board_early_init_f(void)
 {
+#ifdef CONFIG_STM_ASC_SERIAL
 #if (CONFIG_SYS_STM_ASC_BASE == STM_ASC0_REGS_BASE)	/* UART #1 */
 	/* Route UART #1 via PIO9 for TX, RX, CTS & RTS */
 	SET_PIO_ASC(PIO_PORT(9), 3, 2, 1, 0);
@@ -59,9 +59,10 @@ static void configSerial (void)
 #else
 #error Unknown serial port configuration!
 #endif
-}
 #endif /* CONFIG_STM_ASC_SERIAL */
 
+	return 0;
+}
 
 #if defined(CONFIG_SPI)
 static void configSpi(void)
@@ -174,10 +175,6 @@ extern int i2c_set_bus_speed(unsigned int speed)
 
 extern int board_init (void)
 {
-#ifdef CONFIG_STM_ASC_SERIAL
-	configSerial ();
-#endif /* CONFIG_STM_ASC_SERIAL */
-
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	fli7510_configure_ethernet (fli7510_ethernet_mii, 0, 0);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */

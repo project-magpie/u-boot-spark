@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2011 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -154,7 +154,7 @@ do							\
 	stx7108_pioalt_pad((port), (pin), (dir));	\
 } while(0)
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	/* Setup PIOs for ASC device */
 
@@ -177,12 +177,12 @@ static void configPIO(void)
 #else
 #error Unknown ASC port selected!
 #endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASCx_REGS_BASE */
+
+	return 0;
 }
 
 extern int board_init(void)
 {
-	configPIO();
-
 #ifdef QQQ	/* QQQ - DELETE */
 #if defined(CONFIG_STM_SATA)
 	stx7105_configure_sata ();

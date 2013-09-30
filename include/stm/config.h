@@ -169,4 +169,13 @@
 #endif	/* !CONFIG_DRIVER_NET_STM_GMAC && !CONFIG_DRIVER_NETSTMAC */
 
 
+	/*
+	 * Call board_early_init_f() for STMicroelectronics' boards.
+	 * This is mainly for all *early* board-specific PIO
+	 * configuration, specifically used to enable the UART (ASC),
+	 * for the main serial console (as early as we can).
+	 */
+#define CONFIG_BOARD_EARLY_INIT_F	/* call board_early_init_f() */
+
+
 #endif /* __INCLUDE_STM_CONFIG_H */

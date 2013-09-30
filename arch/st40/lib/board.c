@@ -123,6 +123,7 @@ typedef int (init_fnc_t) (void);
 init_fnc_t *init_sequence[] = {
 	arch_cpu_init,		/* basic arch cpu dependent setup */
 	timer_init,
+	board_early_init_f,	/* board-specific PIO configuration */
 	board_init,
 	env_init,		/* initialize environment */
 	init_baudrate,		/* initialze baudrate settings */

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -58,7 +58,7 @@ extern void stmac_phy_reset(void)
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	unsigned long sysconf;
 
@@ -85,6 +85,11 @@ static void configPIO(void)
 #error Unknown ASC port selected!
 #endif	/* CONFIG_SYS_STM_ASC_BASE */
 
+	return 0;
+}
+
+extern int board_init(void)
+{
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/*
 	 * Configure the Ethernet PHY Reset signal
@@ -92,11 +97,6 @@ static void configPIO(void)
 	 */
 	SET_PIO_PIN(PIO_PORT(2), 2, STPIO_OUT);
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
-}
-
-extern int board_init(void)
-{
-	configPIO();
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	stx5206_configure_ethernet(stx5206_ethernet_mii, 0, 0);

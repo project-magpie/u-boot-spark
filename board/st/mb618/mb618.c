@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -69,19 +69,19 @@ void flashWriteDisable(void)
 	STPIO_SET_PIN(PIO_PORT(3), 4, 0);
 }
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	/* Setup PIO of ASC device */
 	SET_PIO_ASC(PIO_PORT(4), 3, 2, 4, 5);  /* UART2 - AS0 */
 	SET_PIO_ASC(PIO_PORT(5), 0, 1, 2, 3);  /* UART3 - AS1 */
 
-	/* Setup up Vpp for NOR FLASH */
-	SET_PIO_PIN(PIO_PORT(3), 4, STPIO_OUT);
+	return 0;
 }
 
 extern int board_init(void)
 {
-	configPIO();
+	/* Setup up Vpp for NOR FLASH */
+	SET_PIO_PIN(PIO_PORT(3), 4, STPIO_OUT);
 
 	return 0;
 }

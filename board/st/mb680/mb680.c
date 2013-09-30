@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -141,7 +141,7 @@ extern void stmac_phy_reset(void)
 }
 #endif	/* CONFIG_STMAC_LAN8700 */
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	unsigned long sysconf;
 
@@ -176,16 +176,16 @@ static void configPIO(void)
 	sysconf |=  0x000ful;	/* 1,1,1,1 */
 	*STX7105_SYSCONF_SYS_CFG35 = sysconf;
 
+	return 0;
+}
+
+extern int board_init(void)
+{
 #ifdef CONFIG_STMAC_LAN8700
 	/* Configure SMSC LAN8700 PHY Reset signals */
 	SET_PIO_PIN(PIO_PORT(5), 5, STPIO_OUT);
 	SET_PIO_PIN(PIO_PORT(11), 2, STPIO_OUT);
 #endif	/* CONFIG_STMAC_LAN8700 */
-}
-
-extern int board_init(void)
-{
-	configPIO();
 
 #ifdef CONFIG_STMAC_LAN8700
 	/* Hard Reset the PHY -- do after we have configured the MAC */

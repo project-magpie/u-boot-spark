@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -50,7 +50,7 @@ do							\
 	stx7108_pioalt_pad((port), (pin), (dir));	\
 } while(0)
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	/* Setup PIOs for ASC device */
 
@@ -71,14 +71,7 @@ static void configPIO(void)
 #error Unknown ASC port selected!
 #endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASCx_REGS_BASE */
 
-#ifdef CONFIG_DRIVER_NET_STM_GMAC
-	/*
-	 * Configure the Ethernet PHY Reset signal
-	 *	PIO20[0] == GMII0_notRESET
-	 *	PIO15[4] == GMII1_notRESET
-	 */
-	SET_PIO_PIN(STM_PIO_BASE(15), 4, STPIO_OUT);
-#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+	return 0;
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -98,7 +91,14 @@ extern void stmac_phy_reset(void)
 
 extern int board_init(void)
 {
-	configPIO();
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	/*
+	 * Configure the Ethernet PHY Reset signal
+	 *	PIO20[0] == GMII0_notRESET
+	 *	PIO15[4] == GMII1_notRESET
+	 */
+	SET_PIO_PIN(STM_PIO_BASE(15), 4, STPIO_OUT);
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 		/*
 		 * Note each EMI bank can only be a maximum of 64MiB.

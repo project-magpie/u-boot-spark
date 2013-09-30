@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -76,7 +76,7 @@ do							\
 } while(0)
 
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	/* Setup PIOs for ASC device */
 
@@ -100,19 +100,7 @@ static void configPIO(void)
 #error Unknown ASC port selected!
 #endif	/* CONFIG_SYS_STM_ASC_BASE == STXH205_ASCx_BASE */
 
-#ifdef CONFIG_DRIVER_NET_STM_GMAC
-	/*
-	 * Configure the Ethernet PHY Reset signal
-	 */
-	SET_PIO_PIN2(POWER_ON_ETH, STPIO_OUT);
-#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
-
-#if defined(CONFIG_CMD_NAND)
-	/*
-	 * Configure FLASH_WP# (Active-Low, FLASH Write-Protect)
-	 */
-	SET_PIO_PIN2(FLASH_notWP, STPIO_OUT);
-#endif	/* CONFIG_CMD_NAND */
+	return 0;
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -130,7 +118,19 @@ extern void stmac_phy_reset(void)
 
 extern int board_init(void)
 {
-	configPIO();
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	/*
+	 * Configure the Ethernet PHY Reset signal
+	 */
+	SET_PIO_PIN2(POWER_ON_ETH, STPIO_OUT);
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+
+#if defined(CONFIG_CMD_NAND)
+	/*
+	 * Configure FLASH_WP# (Active-Low, FLASH Write-Protect)
+	 */
+	SET_PIO_PIN2(FLASH_notWP, STPIO_OUT);
+#endif	/* CONFIG_CMD_NAND */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #if defined(CONFIG_STMAC_IP101A)

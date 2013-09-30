@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009 STMicroelectronics.
+ * (C) Copyright 2009-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -54,9 +54,9 @@ extern void flashWriteDisable (void)
 }
 
 
-#ifdef CONFIG_STM_ASC_SERIAL
-static void configSerial (void)
+extern int board_early_init_f(void)
 {
+#ifdef CONFIG_STM_ASC_SERIAL
 	unsigned long sysconf;
 
 #if (CONFIG_SYS_STM_ASC_BASE == CONFIG_SYS_STM_ASC2_BASE)
@@ -82,16 +82,14 @@ static void configSerial (void)
 #else
 #error Unknown serial port configuration!
 #endif
-}
 #endif /* CONFIG_STM_ASC_SERIAL */
+
+	return 0;
+}
 
 
 extern int board_init (void)
 {
-#ifdef CONFIG_STM_ASC_SERIAL
-	configSerial ();
-#endif /* CONFIG_STM_ASC_SERIAL */
-
 	return 0;
 }
 

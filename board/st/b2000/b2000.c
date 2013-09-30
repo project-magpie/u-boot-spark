@@ -76,7 +76,7 @@ do							\
 #endif
 
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	/* Setup PIOs for ASC device */
 
@@ -139,20 +139,7 @@ static void configPIO(void)
 #endif	/* CONFIG_SYS_STM_ASC_BASE == STXH416_ASCx_REGS_BASE */
 #endif	/* CONFIG_STM_STXH415/CONFIG_STM_STXH416 */
 
-#ifdef CONFIG_DRIVER_NET_STM_GMAC
-	/*
-	 * Configure the Ethernet PHY Reset signal
-	 */
-	SET_PIO_PIN2(GMII_PHY_NOT_RESET, STPIO_OUT);
-
-	/*
-	 * Configure the Ethernet PHY Mux PIO clock signal,
-	 * as an output, which controls the speed of the MAC.
-	 */
-	SET_PIO_PIN2(GMII_PHY_CLKOUT_NOT_TXCLK_SEL, STPIO_OUT);
-	STPIO_SET_PIN2(GMII_PHY_CLKOUT_NOT_TXCLK_SEL, 1);
-
-#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+	return 0;
 }
 
 
@@ -182,7 +169,20 @@ extern void stmac_set_mac_speed(int speed)
 
 extern int board_init(void)
 {
-	configPIO();
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	/*
+	 * Configure the Ethernet PHY Reset signal
+	 */
+	SET_PIO_PIN2(GMII_PHY_NOT_RESET, STPIO_OUT);
+
+	/*
+	 * Configure the Ethernet PHY Mux PIO clock signal,
+	 * as an output, which controls the speed of the MAC.
+	 */
+	SET_PIO_PIN2(GMII_PHY_CLKOUT_NOT_TXCLK_SEL, STPIO_OUT);
+	STPIO_SET_PIN2(GMII_PHY_CLKOUT_NOT_TXCLK_SEL, 1);
+
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 #if 0	/* QQQ - TO IMPLEMENT */
 #if defined(CONFIG_STM_SATA)

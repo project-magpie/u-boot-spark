@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2010 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -61,7 +61,7 @@ extern void stmac_phy_reset(void)
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	unsigned long sysconf;
 
@@ -80,12 +80,12 @@ static void configPIO(void)
 	/* PIO1[1] Selector: CFG19[3:2] = 3 RX */
 	sysconf |= 3ul << 0 | 3ul << 2;
 	*STX7141_SYSCONF_SYS_CFG19 = sysconf;
+
+	return 0;
 }
 
 extern int board_init(void)
 {
-	configPIO();
-
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MAC = STM GMAC#0 */
 	/* QQQ TODO: No H/W provided to test this! */

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -75,7 +75,7 @@ static void configSpi(void)
 }
 #endif	/* CONFIG_SPI */
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	/* Setup PIO of ASC device */
 #if CONFIG_SYS_STM_ASC_BASE == STM_ASC2_REGS_BASE	/* UART #2 */
@@ -84,6 +84,11 @@ static void configPIO(void)
 #error Unsure which UART to configure!
 #endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASC2_REGS_BASE */
 
+	return 0;
+}
+
+extern int board_init(void)
+{
 	/* Hard Reset the PHY -- do after we have configured the MAC */
 	configEthernet();
 
@@ -91,11 +96,7 @@ static void configPIO(void)
 	/* Configure for SPI Serial Flash */
 	configSpi();
 #endif	/* CONFIG_SPI */
-}
 
-extern int board_init(void)
-{
-	configPIO();
 
 	return 0;
 }

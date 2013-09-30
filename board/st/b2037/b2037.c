@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2011 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -50,7 +50,7 @@ do							\
 	stx7108_pioalt_pad((port), (pin), (dir));	\
 } while(0)
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	/* Setup PIOs for ASC device */
 
@@ -74,13 +74,7 @@ static void configPIO(void)
 #error Unknown ASC port selected!
 #endif	/* CONFIG_SYS_STM_ASC_BASE == STM_ASCx_REGS_BASE */
 
-#ifdef CONFIG_DRIVER_NET_STM_GMAC
-	/*
-	 * Configure the Ethernet PHY Reset signal
-	 *	PIO3[6] == POWER_ON_ETH (a.k.a. ETH_RESET)
-	 */
-	SET_PIO_PIN(STM_PIO_BASE(3), 6, STPIO_OUT);
-#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+	return 0;
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -99,7 +93,13 @@ extern void stmac_phy_reset(void)
 
 extern int board_init(void)
 {
-	configPIO();
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+	/*
+	 * Configure the Ethernet PHY Reset signal
+	 *	PIO3[6] == POWER_ON_ETH (a.k.a. ETH_RESET)
+	 */
+	SET_PIO_PIN(STM_PIO_BASE(3), 6, STPIO_OUT);
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE

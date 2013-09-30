@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -164,7 +164,7 @@ static void configSpi(void)
 #endif	/* CONFIG_SPI */
 
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	unsigned long sysconf;
 
@@ -184,15 +184,15 @@ static void configPIO(void)
 	sysconf |= 3ul << 0 | 3ul << 2;
 	*STX7141_SYSCONF_SYS_CFG19 = sysconf;
 
-#if defined(CONFIG_SPI)
-	/* Configure for SPI Serial Flash */
-	configSpi();
-#endif	/* CONFIG_SPI */
+	return 0;
 }
 
 extern int board_init(void)
 {
-	configPIO();
+#if defined(CONFIG_SPI)
+	/* Configure for SPI Serial Flash */
+	configSpi();
+#endif	/* CONFIG_SPI */
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* MAC = STM GMAC#0 */

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2009 STMicroelectronics.
+ * (C) Copyright 2008-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -65,7 +65,7 @@ extern void flashWriteDisable(void)
 	epld_write(2, EPLD_FLASH);
 }
 
-static void configPIO(void)
+extern int board_early_init_f(void)
 {
 	unsigned long sysconf;
 
@@ -104,12 +104,12 @@ static void configPIO(void)
 	/* PIO6[0] Selector: CFG25[3:2] = 3 */
 	sysconf |= 3ul << 0 | 3ul << 2;
 	*STX7141_SYSCONF_SYS_CFG25 = sysconf;
+
+	return 0;
 }
 
 extern int board_init(void)
 {
-	configPIO();
-
 #if defined(CONFIG_STM_SATA)
 	stx7141_configure_sata ();
 #endif	/* CONFIG_STM_SATA */
