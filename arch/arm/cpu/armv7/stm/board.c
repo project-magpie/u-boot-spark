@@ -29,6 +29,20 @@ DECLARE_GLOBAL_DATA_PTR;
 
 extern int dram_init(void)
 {
+	/*
+	 * Note: this function should only called when gd->bd == NULL
+	 */
+	gd->ram_size = CONFIG_SYS_SDRAM_SIZE;		/* size of DRAM memory in bytes */
+
+	return 0;
+}
+
+
+extern void dram_init_banksize(void)
+{
+	/*
+	 * Note: this function should only called when gd->bd != NULL
+	 */
 	bd_t * const bd = gd->bd;
 
 	bd->bi_memstart = CONFIG_SYS_SDRAM_BASE;	/* start of DRAM memory */
@@ -36,8 +50,6 @@ extern int dram_init(void)
 
 	bd->bi_memsize  = CONFIG_SYS_SDRAM_SIZE;	/* size  of DRAM memory in bytes */
 	bd->bi_dram[0].size  = bd->bi_memsize;
-
-	return 0;
 }
 
 
