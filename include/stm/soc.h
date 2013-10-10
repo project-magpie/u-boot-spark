@@ -52,6 +52,21 @@ extern void stxh205_pioalt_select(
 	const int alt);
 #define STXH205_PIOALT_SELECT(PAIR, ALT) stxh205_pioalt_select(PAIR, (ALT))
 
+extern void stxh407_pioalt_pad(
+	int port,
+	const int pin,
+	const enum stm_pad_gpio_direction direction);
+extern void stxh407_pioalt_select(
+	const int port,
+	const int pin,
+	const int alt);
+extern void stxh407_pioalt_retime(
+	const int port,
+	const int pin,
+	const struct stm_pio_control_retime_config * const cfg,
+	const enum stm_pad_gpio_direction direction);
+#define STXH407_PIOALT_SELECT(PAIR, ALT) stxh407_pioalt_select(PAIR, (ALT))
+
 extern void stxh415_pioalt_pad(
 	int port,
 	const int pin,
@@ -247,6 +262,7 @@ extern int  stxh416_usb_init(const int port);
  * SPI initialization functions.
  */
 extern void		stxh205_configure_spi(void);
+extern void		stxh407_configure_spi(void);
 extern void		stxh415_configure_spi(void);
 extern void		stxh416_configure_spi(void);
 extern void		stx7108_configure_spi(void);
@@ -283,6 +299,10 @@ extern void		stxh205_spi_scl(const int val);
 extern void		stxh205_spi_sda(const int val);
 extern unsigned char	stxh205_spi_read(void);
 
+extern void		stxh407_spi_scl(const int val);
+extern void		stxh407_spi_sda(const int val);
+extern unsigned char	stxh407_spi_read(void);
+
 extern void		stxh415_spi_scl(const int val);
 extern void		stxh415_spi_sda(const int val);
 extern unsigned char	stxh415_spi_read(void);
@@ -296,6 +316,7 @@ extern unsigned char	stxh416_spi_read(void);
  */
 extern void		stx7108_configure_i2c(void);
 extern void		stxh205_configure_i2c(void);
+extern void		stxh407_configure_i2c(void);
 extern void		stxh415_configure_i2c(void);
 extern void		stxh416_configure_i2c(void);
 
@@ -322,6 +343,10 @@ extern int		fli7540_i2c_read(void);
 extern void		stxh205_i2c_scl(const int val);
 extern void		stxh205_i2c_sda(const int val);
 extern int		stxh205_i2c_read(void);
+
+extern void		stxh407_i2c_scl(const int val);
+extern void		stxh407_i2c_sda(const int val);
+extern int		stxh407_i2c_read(void);
 
 extern void		stxh415_i2c_scl(const int val);
 extern void		stxh415_i2c_sda(const int val);

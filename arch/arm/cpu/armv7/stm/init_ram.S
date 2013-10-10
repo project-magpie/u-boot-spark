@@ -149,7 +149,9 @@ poketable_start_address:.long CONFIG_STM_SRAM_POKE_STORAGE + __memory_setup_tabl
 	 * as we do have RAM yet, hence this structure is not initialized.
 	 */
 deviceid_address:
-#if defined(CONFIG_STM_STXH415)
+#if defined(CONFIG_STM_STXH407)
+		STXH407_SYSCONF_DEVICEID
+#elif defined(CONFIG_STM_STXH415)
 		STXH415_SYSCONF_DEVICEID
 #elif defined(CONFIG_STM_STXH416)
 		STXH416_SYSCONF_DEVICEID

@@ -136,16 +136,27 @@
 	 * So 32KiB (or more) should be sufficient for our needs.
 	 *
 	 * CONFIG_STM_SRAM_START is the beginning of this SRAM region.
+	 *
+	 * We only need to define these areas in SRAM for ARM cores,
+	 * as ST40 cores can use its caches, and need not use SRAM.
 	 */
+#if defined(CONFIG_ARM)
 #if !defined(CONFIG_STM_SRAM_START)
+#if defined(CONFIG_STM_STXH407)
+#	define CONFIG_STM_SRAM_START		0x06000000	/* Start of ERAM_0 (256KiB) */
+#elif defined(CONFIG_STM_STXH415) || defined(CONFIG_STM_STXH416)
 #	define CONFIG_STM_SRAM_START		0xc00c0000	/* Start of HVA_eRAM (256KiB) */
-#endif
+#else
+#	error Please define CONFIG_STM_SRAM_START for this system
+#endif	/* CONFIG_STM_STXH407 */
+#endif	/* CONFIG_STM_SRAM_START */
 #if !defined(CONFIG_STM_SRAM_HOLDING_PEN)	/* For U-Boot's "Holding-Pens" (in SRAM) */
 #	define CONFIG_STM_SRAM_HOLDING_PEN	(CONFIG_STM_SRAM_START + 0x0000)
 #endif
 #if !defined(CONFIG_STM_SRAM_POKE_STORAGE)	/* For the "poke" interpreter (in SRAM) */
 #	define CONFIG_STM_SRAM_POKE_STORAGE	(CONFIG_STM_SRAM_START + 0x0100)
 #endif
+#endif /* CONFIG_ARM */
 
 
 	/*

@@ -386,6 +386,9 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #elif defined(CONFIG_STM_FLI7540)
 	if (FLI7540_DEVICEID_7540(gd->stm_devid))
 		printf ("\nFLI7540 version %ld.x", FLI7540_DEVICEID_CUT(gd->stm_devid));
+#elif defined(CONFIG_STM_STXH407)
+	if (STXH407_DEVICEID_407(gd->stm_devid))
+		printf ("\nSTxH407 version %ld.x", STXH407_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STXH415)
 	if (STXH415_DEVICEID_415(gd->stm_devid))
 		printf ("\nSTxH415 version %ld.x", STXH415_DEVICEID_CUT(gd->stm_devid));

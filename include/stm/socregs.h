@@ -47,6 +47,8 @@
 #	include <stm/fli7540reg.h>
 #elif defined(CONFIG_STM_STXH205)
 #	include <stm/stxh205reg.h>
+#elif defined(CONFIG_STM_STXH407)
+#	include <stm/stxh407reg.h>
 #elif defined(CONFIG_STM_STXH415)
 #	include <stm/stxh415reg.h>
 #elif defined(CONFIG_STM_STXH416)
