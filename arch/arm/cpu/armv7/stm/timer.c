@@ -27,13 +27,14 @@
 #include <common.h>
 #include <asm/io.h>
 #include <asm/arch-armv7/globaltimer.h>
+#include <stm/socregs.h>
 
-#if !defined(MPE41_GLOBAL_TIMER_BASE)
-#define MPE41_GLOBAL_TIMER_BASE		(0xFFFE0000 + 0x0200)
-#endif /* MPE41_GLOBAL_TIMER_BASE */
+#if !defined(STM_A9_GLOBAL_TIMER_BASE)
+#define STM_A9_GLOBAL_TIMER_BASE		(STM_A9_CONFIG_BASE + 0x0200)
+#endif /* STM_A9_GLOBAL_TIMER_BASE */
 
 static struct globaltimer * const global_timer =
-	(struct globaltimer *)MPE41_GLOBAL_TIMER_BASE;
+	(struct globaltimer *)STM_A9_GLOBAL_TIMER_BASE;
 
 #define CLK2MHZ(clk)    ((clk) / 1000 / 1000)
 

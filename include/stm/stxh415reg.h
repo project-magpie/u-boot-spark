@@ -51,6 +51,11 @@
 /* Low-Power Block */
 #define STXH415_SBC_LPM_BASE			0xfe400000
 
+/* ARM Cortex-A9 Configuration Registers */
+#ifndef STM_A9_CONFIG_BASE
+#define STM_A9_CONFIG_BASE			0xfffe0000
+#endif
+
 /* Clock Generator (CLOCKGENB) */
 #ifndef STXH415_CKGB_REGS_BASE
 #define STXH415_CKGB_REGS_BASE			0xfe81c000
