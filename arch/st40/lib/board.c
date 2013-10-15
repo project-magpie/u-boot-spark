@@ -50,14 +50,6 @@ extern ulong __uboot_bin_size;	/* linker symbol defined in arch/st40/cpu/u-boot.
 ulong monitor_flash_len = (ulong)&__uboot_bin_size;
 
 
-#ifndef CONFIG_IDENT_STRING
-#define CONFIG_IDENT_STRING ""
-#endif
-
-const char version_string[] =
-	U_BOOT_VERSION" (" U_BOOT_DATE " - " U_BOOT_TIME ") - " CONFIG_IDENT_STRING ;
-
-
 extern int board_init (void);   /* Set up board             */
 extern int timer_init (void);
 extern int checkboard (void);   /* Give info about board    */
