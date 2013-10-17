@@ -212,6 +212,19 @@
 
 #define CONFIG_CMDLINE_EDITING
 
+	/*
+	 * Do we want to decrease Vcore for the A9 sub-system?
+	 * To boot linux reliably, we may need to decrease the voltage of the A9
+	 * sub-system (i.e. Vcore) to a nominal value of 1.10V.
+	 * This is due to an issue in the JTAG-A9 connection whereby it appears
+	 * some samples need to be powered at 1.30V, but this elevated voltage
+	 * can create problems for some IP blocks (e.g. PL310 L2$ controller).
+	 * This is just a temporary software work-around for such samples.
+	 * WARNING: After the Vcore voltage is decreased, JTAG connections can be lost.
+	 * Enable this option if you have a sample affected by such an issue.
+	 */
+#define CONFIG_MACH_STM_STXH407_A9SS_VCORE_HACK
+
 /*-----------------------------------------------------------------------
  * FLASH organization
  */

@@ -188,6 +188,17 @@ extern int board_init(void)
 
 int checkboard (void)
 {
+#if defined(CONFIG_MACH_STM_STXH407_A9SS_VCORE_HACK)
+	const unsigned long pwm1_1100 = STXH407_PWM1_VOLTS(1100);	/* value for 1.10V */
+	const unsigned long pwm1 = readl(STXH407_SBC_PWM1_REG);		/* current value */
+
+	/* S/W Workaround: Decrease Vcore for the CA9 cores, if Vcore > 1.10V */
+	if (pwm1 < pwm1_1100)			/* greater than 1.10V ? */
+	{
+		writel(pwm1_1100, STXH407_SBC_PWM1_REG);	/* lower Vcore to 1.10V */
+	}
+#endif	/* CONFIG_MACH_STM_STXH407_A9SS_VCORE_HACK */
+
 	printf ("\n\nBoard: B2120-STxH407"
 #if defined(CONFIG_ARM)
 		"  [ARM]"

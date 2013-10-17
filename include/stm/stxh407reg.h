@@ -256,6 +256,21 @@
 
 /*----------------------------------------------------------------------------*/
 
+/*
+ * Pulse-Width Modulator in SBC.
+ */
+#ifndef STXH407_SBC_PWM_BASE
+#define STXH407_SBC_PWM_BASE		(STXH407_SBC_LPM_BASE + 0x00110000)
+#endif
+
+#ifndef STXH407_SBC_PWM1_REG
+#define STXH407_SBC_PWM1_REG		(STXH407_SBC_PWM_BASE + 0x04)
+#endif
+
+#define STXH407_PWM1_VOLTS(vcore)	((1135740-823*(vcore))/1000)	/* 1070=>255, 1380=>0 */
+
+/*----------------------------------------------------------------------------*/
+
 #include <stm/stxxxxxreg.h>
 
 /*----------------------------------------------------------------------------*/
