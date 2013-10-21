@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2012 STMicroelectronics.
+ * (C) Copyright 2010-2013 STMicroelectronics.
  *
  * Angus Clark   <Angus.Clark@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -171,6 +171,7 @@ extern void fsm_init_4byte_mode(
 
 extern uint8_t fsm_read_status(void);
 extern uint8_t fsm_read_flag_status(void);
+extern void fsm_clear_flag_status(void);
 
 extern void fsm_enter_4byte_mode(
 	const int enter);

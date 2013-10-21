@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007,2009-2012 STMicroelectronics.
+ * (C) Copyright 2007,2009-2013 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -69,6 +69,7 @@
 #define OP_READ_STATUS		0x05u			/* Read Status Register */
 #define OP_WRITE_STATUS		0x01u			/* Write Status Register */
 #define OP_READ_FLAG_STATUS	0x70u			/* Read Flag Status Register */
+#define OP_CLEAR_FLAG_STATUS	0x50u			/* Clear Flag Status Register */
 #define OP_READ_DEVID		0x9fu			/* Read ID */
 #define OP_READ_ARRAY		0x03u			/* Read Data Bytes */
 #define OP_READ_4BYTE		0x13u			/* Read Data Bytes, with 4-byte addressing */
@@ -81,6 +82,20 @@
 
 #define SR_WIP			(1u<<0)			/* Status Register Write In Progress bit */
 #define SR_BP_MASK		0x1c			/* Block Protect Bits (BP[2:0]) */
+
+/*
+ * N25Qxx Flag Status Register:
+ * Error Flags - All these error flags are "sticky".
+ * They *must* be cleared with the Clear Flag Status Register Command.
+ */
+#define N25Q_FLAGS_ERR_ERASE	(1 << 5)
+#define N25Q_FLAGS_ERR_PROG	(1 << 4)
+#define N25Q_FLAGS_ERR_VPP	(1 << 3)
+#define N25Q_FLAGS_ERR_PROT	(1 << 1)
+#define N25Q_FLAGS_ERROR	(N25Q_FLAGS_ERR_ERASE	| \
+				 N25Q_FLAGS_ERR_PROG	| \
+				 N25Q_FLAGS_ERR_VPP	| \
+				 N25Q_FLAGS_ERR_PROT)
 
 
 #elif defined(CONFIG_SPI_FLASH_MXIC)	/******************************/

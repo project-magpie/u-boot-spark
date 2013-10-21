@@ -56,17 +56,6 @@
 /**********************************************************************/
 
 
-/*
- * Define the following macro to define the helper function
- * spi_read_flag_status(), to read the FLAG register.
- * This is usually only for DEBUG purposes.
- */
-//#define CONFIG_STM_SPI_READ_FLAG_FUNCTION
-
-
-/**********************************************************************/
-
-
 static struct spi_slave * MyDefaultSlave = NULL;	/* QQQ - TO DO SOMETHING HERE ??? */
 
 #define DEFAULT_SPI_XFER_FLAGS	(SPI_XFER_BEGIN | SPI_XFER_END)
@@ -172,6 +161,19 @@ static unsigned char op_read  = OP_READ_ARRAY;	/* default read command opcode to
 	/* bool: do we want to unlock all the sectors protected with DBY ? */
 static int want_dby_unlock = 0;	/* we assume no DBY unlocking is required */
 #endif	/* CONFIG_SPI_FLASH_SPANSION */
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI_FLASH_ST)
+	/*
+	 * bool: do we want to read and test the "Flag Status Register"
+	 * after each WRITE/ERASE operation, and then CLEAR it, if
+	 * any of the "sticky" (error) bits are set?
+	 */
+static int want_check_flag_status = 0;	/* we assume no check+clear is required */
+#endif	/* CONFIG_SPI_FLASH_ST */
 
 
 /**********************************************************************/
@@ -506,14 +508,14 @@ static unsigned int spi_read_status(
 /**********************************************************************/
 
 
-#if defined(CONFIG_SPI_FLASH_ST) && defined(CONFIG_STM_SPI_READ_FLAG_FUNCTION)
+#if defined(CONFIG_SPI_FLASH_ST)
 /*
  * read the SPI slave device's "Flag Status Register".
  *
  * input:   slave, the SPI slave which will be sending/receiving the data.
  * returns: the value of the flag status register.
  */
-static unsigned int spi_read_flag_status(
+static unsigned int spi_read_flag_status_register(
 	struct spi_slave * const slave)
 {
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
@@ -529,7 +531,68 @@ static unsigned int spi_read_flag_status(
 	return data[1];
 #endif	/* CONFIG_STM_FSM_SPI */
 }
-#endif	/* CONFIG_SPI_FLASH_ST && CONFIG_STM_SPI_READ_FLAG_FUNCTION */
+#endif	/* CONFIG_SPI_FLASH_ST */
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI_FLASH_ST)
+/*
+ * Clear the SPI slave device's "Flag Status Register".
+ * That is, clear any "sticky" error flags that are set.
+ *
+ * input:   slave, the SPI slave whose register we will be clearing.
+ * returns: nothing
+ */
+static void spi_clear_flag_status_register(struct spi_slave * const slave)
+{
+#if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
+	/* clear the Flag Status Register */
+	fsm_clear_flag_status();
+#else	/* CONFIG_STM_FSM_SPI */
+	const unsigned char cmd[1] = { OP_CLEAR_FLAG_STATUS };
+
+	/* issue the Clear Flag Status Register command */
+	spi_xfer(slave, sizeof(cmd)*8, cmd, NULL, DEFAULT_SPI_XFER_FLAGS);
+#endif	/* CONFIG_STM_FSM_SPI */
+}
+#endif	/* CONFIG_SPI_FLASH_ST */
+
+
+/**********************************************************************/
+
+
+#if defined(CONFIG_SPI_FLASH_ST)
+/*
+ * Read the "Flag Status Register", and if any of the
+ * "sticky" error flags that are set, then clear them all.
+ *
+ * input:   slave, the SPI slave whose register we will be accessing.
+ *	    offset, the offset for the last ERASE/WRITE we attempted.
+ * returns: nothing
+ */
+static void check_flag_status_register(
+	struct spi_slave * const slave,
+	const unsigned long offset)
+{
+	/* read the "Flag Status Register" */
+	const unsigned int flags = spi_read_flag_status_register(slave);
+
+	/*
+	 * if there are any "sticky" bits set, then we need
+	 * to issue an additional command to clear them.
+	 */
+	if (flags & N25Q_FLAGS_ERROR)	/* any "sticky" bits set ? */
+	{
+			/* let the user know! */
+		printf("Error: Flag Status Register = 0x%02x (offset = 0x%lx)\n",
+			flags, offset);
+			/* clear them all */
+		spi_clear_flag_status_register(slave);
+	}
+}
+#endif	/* CONFIG_SPI_FLASH_ST */
 
 
 /**********************************************************************/
@@ -794,6 +857,28 @@ static int spi_probe_serial_flash(
 		return -1;
 	}
 
+#if defined(CONFIG_SPI_FLASH_ST)
+	/*
+	 * If we are using a N25Q512 device, then it is possible that the
+	 * device could be in an "unclean" state when we try and probe it.
+	 * This could be caused by a previous erase/write that did
+	 * not successfully read the Flag Status Register (FSR) afterwards!
+	 * Empirical observation suggests that in this case, the JEDEC ID
+	 * read command may return: 0x00, 0x00, 0x00 (as the first 3 bytes).
+	 * In this case, we need to read the FSR *before* we read the JEDEC
+	 * ID, (or RESET it) otherwise we will not probe it correctly.
+	 * However, we do not want to do this for *all* SPI devices!
+	 * We appear to be in a "Catch-22" situation - we do not want
+	 * to issue the read FSR if we do not know the device supports this
+	 * command, and we can not probe it until we have read the FSR!
+	 * You may wish to enable the following call if you have such a
+	 * device, and suffer from the aforementioned problem!
+	 */
+#if 0
+	check_flag_status_register(slave, 0);
+#endif
+#endif	/* CONFIG_SPI_FLASH_ST */
+
 	/*
 	 * if we get here, then we think we may have a SPI
 	 * device, so now check it is the correct one!
@@ -904,7 +989,8 @@ static int spi_probe_serial_flash(
 			(devid[3] == 0x16u) ||	/* N25Q032 */
 			(devid[3] == 0x17u) ||	/* N25Q064 */
 			(devid[3] == 0x18u) ||	/* N25Q128 */
-			(devid[3] == 0x19u)	/* N25Q256 */
+			(devid[3] == 0x19u) ||	/* N25Q256 */
+			(devid[3] == 0x20u)	/* N25Q512 */
 		)
 	   )
 	{
@@ -928,12 +1014,25 @@ static int spi_probe_serial_flash(
 			deviceName = "ST N25Q256";	/* 256 Mbit == 32 MiB */
 			op_read = OP_READ_4BYTE;	/* use 4-byte addressing for READ */
 		}
+		else if (devid[3] == 0x20u)
+		{
+			deviceName = "ST N25Q512";	/* 512 Mbit == 64 MiB */
+			deviceSize = 1u<<(devid[3]-6u);	/* Memory Capacity */
+			op_read = OP_READ_4BYTE;	/* use 4-byte addressing for READ */
+			want_check_flag_status = 1;	/* do check+clear "Flag Status Register" */
+		}
 	}
 	else
 	{
 		printf("ERROR: Unknown SPI Device detected, devid = 0x%02x, 0x%02x, 0x%02x\n",
 			devid[1], devid[2], devid[3]);
 		return -1;
+	}
+
+	/* do we want to check+clear the Flag Status Register, after probing ? */
+	if (want_check_flag_status)
+	{
+		check_flag_status_register(slave, deviceSize);
 	}
 
 #elif defined(CONFIG_SPI_FLASH_MXIC)
@@ -1528,6 +1627,14 @@ static void my_spi_write(
 	/* now wait until the erase has completed ... */
 	spi_wait_till_ready(slave);
 
+#if defined(CONFIG_SPI_FLASH_ST)
+	/* do we want to check+clear the Flag Status Register for the ERASE ? */
+	if (want_check_flag_status)
+	{
+		check_flag_status_register(slave, sector);
+	}
+#endif	/* CONFIG_SPI_FLASH_ST */
+
 	/* now program each page in turn ... */
 	for (page_base=sector,page=0u; page<pages; page++)
 	{
@@ -1567,6 +1674,14 @@ static void my_spi_write(
 
 		/* now wait until the programming has completed ... */
 		spi_wait_till_ready(slave);
+
+#if defined(CONFIG_SPI_FLASH_ST)
+		/* do we want to check+clear the Flag Status Register for the WRITE ? */
+		if (want_check_flag_status)
+		{
+			check_flag_status_register(slave, page_base);
+		}
+#endif	/* CONFIG_SPI_FLASH_ST */
 
 		/* advance to next page */
 		page_base += pageSize;

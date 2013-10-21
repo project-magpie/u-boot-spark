@@ -46,13 +46,6 @@
 #define DEBUG(args...) do {} while (0)
 #endif
 
-/*
- * Define the following macro to define the helper function
- * fsm_read_flag_status(), to read the FLAG register.
- * This is usually only for DEBUG purposes.
- */
-//#define CONFIG_STM_SPI_READ_FLAG_FUNCTION
-
 
 /**********************************************************************/
 
@@ -175,7 +168,7 @@ static const struct fsm_seq fsm_seq_load_fifo_byte = {
 };
 #endif	/* CONFIG_STM_FIX_FOR_RnDHV00053934 */
 
-#if defined(CONFIG_SPI_FLASH_ST) && defined(CONFIG_STM_SPI_READ_FLAG_FUNCTION)
+#if defined(CONFIG_SPI_FLASH_ST)
 static const struct fsm_seq seq_read_flag_status = {
 	.data_size = TRANSFER_SIZE(4),
 	.seq_opc[0] = SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) | SEQ_OPC_OPCODE(OP_READ_FLAG_STATUS),
@@ -189,7 +182,22 @@ static const struct fsm_seq seq_read_flag_status = {
 		    SEQ_CFG_CSDEASSERT |
 		    SEQ_CFG_STARTSEQ),
 };
-#endif	/* CONFIG_SPI_FLASH_ST && CONFIG_STM_SPI_READ_FLAG_FUNCTION */
+#endif	/* CONFIG_SPI_FLASH_ST */
+
+#if defined(CONFIG_SPI_FLASH_ST)
+static const struct fsm_seq seq_clear_flag_status = {
+	.seq_opc[0] = SEQ_OPC_PADS_1 | SEQ_OPC_CYCLES(8) |
+	              SEQ_OPC_OPCODE(OP_CLEAR_FLAG_STATUS) | SEQ_OPC_CSDEASSERT,
+	.seq = {
+		FSM_INST_CMD1,
+		FSM_INST_STOP,
+	},
+	.seq_cfg = (SEQ_CFG_PADS_1 |
+		    SEQ_CFG_READNOTWRITE |
+		    SEQ_CFG_CSDEASSERT |
+		    SEQ_CFG_STARTSEQ),
+};
+#endif	/* CONFIG_SPI_FLASH_ST */
 
 #if defined(CONFIG_SPI_FLASH_ST)
 static struct fsm_seq seq_enter_4byte_mode = {
@@ -543,7 +551,7 @@ extern uint8_t fsm_read_status(void)
 /**********************************************************************/
 
 
-#if defined(CONFIG_SPI_FLASH_ST) && defined(CONFIG_STM_SPI_READ_FLAG_FUNCTION)
+#if defined(CONFIG_SPI_FLASH_ST)
 extern uint8_t fsm_read_flag_status(void)
 {
 	const struct fsm_seq * const seq = &seq_read_flag_status;
@@ -558,7 +566,20 @@ extern uint8_t fsm_read_flag_status(void)
 		/* return the LAST byte retrieved */
 	return status[sizeof(status)-1u];
 }
-#endif	/* CONFIG_SPI_FLASH_ST && CONFIG_STM_SPI_READ_FLAG_FUNCTION */
+#endif	/* CONFIG_SPI_FLASH_ST */
+
+#if defined(CONFIG_SPI_FLASH_ST)
+extern void fsm_clear_flag_status(void)
+{
+	const struct fsm_seq * const seq = &seq_clear_flag_status;
+
+	/* Now load + execute the FSM sequence */
+	fsm_load_seq(seq);
+
+	/* Wait for FSM sequence to finish */
+	fsm_wait_seq();
+}
+#endif	/* CONFIG_SPI_FLASH_ST */
 
 
 /**********************************************************************/
