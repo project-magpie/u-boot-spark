@@ -412,10 +412,10 @@ static struct stm_gmac_pin stxh415_ethernet_mii_pad_configs[] = {
 			DATA_OUT(14, 3, 2, RET_SE_NICLK_IO(0, 1)),/* TXD[3] */
 			DATA_OUT(15, 1, 2, RET_SE_NICLK_IO(0, 0)),/* TXER */
 			DATA_OUT(13, 7, 2, RET_SE_NICLK_IO(0, 0)),/* TXEN */
-			CLOCK_IN(15, 0, 2, RET_NICLK(0)),/* TXCLK */
+			CLOCK_IN(15, 0, 2, RET_NICLK(0, 0)),/* TXCLK */
 			DATA_IN(15, 3, 2, RET_BYPASS(2)),/* COL */
 			DATA_OUT(15, 4, 2, RET_BYPASS(3)),/* MDIO*/
-			CLOCK_OUT(15, 5, 2, RET_NICLK(1)),/* MDC */
+			CLOCK_OUT(15, 5, 2, RET_NICLK(0, 1)),/* MDC */
 			DATA_IN(15, 2, 2, RET_BYPASS(2)),/* CRS */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)),/* MDINT */
 			DATA_IN(16, 0, 2, RET_SE_NICLK_IO(0, 0)),/* 5 RXD[0] */
@@ -424,8 +424,8 @@ static struct stm_gmac_pin stxh415_ethernet_mii_pad_configs[] = {
 			DATA_IN(16, 3, 2, RET_SE_NICLK_IO(0, 0)),/* RXD[3] */
 			DATA_IN(15, 6, 2, RET_SE_NICLK_IO(0, 0)),/* RXDV */
 			DATA_IN(15, 7, 2, RET_SE_NICLK_IO(0, 0)),/* RX_ER */
-			CLOCK_IN(17, 0, 2, RET_NICLK(0)),/* RXCLK */
-			PHY_CLOCK(13, 5, 2, RET_NICLK(1)),/* PHYCLK */
+			CLOCK_IN(17, 0, 2, RET_NICLK(0, 0)),/* RXCLK */
+			PHY_CLOCK(13, 5, 2, RET_NICLK(0, 1)),/* PHYCLK */
 };
 static struct stm_pad_sysconf stxh415_ethernet_mii_pad_sysconfs[] = {
 			/* ETH0_GMAC_EN */
@@ -447,10 +447,10 @@ static struct stm_gmac_pin stxh415_ethernet_mii_pad_configs[] = {
 			DATA_OUT(0, 3, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[3] */
 			DATA_OUT(0, 4, 1, RET_SE_NICLK_IO(0, 0)),/* TXER */
 			DATA_OUT(0, 5, 1, RET_SE_NICLK_IO(0, 0)),/* TXEN */
-			CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK */
+			CLOCK_IN(0, 6, 1, RET_NICLK(0, 0)),/* TXCLK */
 			DATA_IN(0, 7, 1, RET_BYPASS(2)),/* COL */
 			DATA_OUT(1, 0, 1, RET_BYPASS(0)),/* MDIO */
-			CLOCK_OUT(1, 1, 1, RET_NICLK(0)),/* MDC */
+			CLOCK_OUT(1, 1, 1, RET_NICLK(0, 0)),/* MDC */
 			DATA_IN(1, 2, 1, RET_BYPASS(2)),/* CRS */
 			DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
 			DATA_IN(1, 4, 1, RET_SE_NICLK_IO(0, 0)),/* RXD[0] */
@@ -459,8 +459,8 @@ static struct stm_gmac_pin stxh415_ethernet_mii_pad_configs[] = {
 			DATA_IN(1, 7, 1, RET_SE_NICLK_IO(0, 0)),/* RXD[3] */
 			DATA_IN(2, 0, 1, RET_SE_NICLK_IO(0, 0)),/* RXDV */
 			DATA_IN(2, 1, 1, RET_SE_NICLK_IO(0, 0)),/* RX_ER */
-			CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
-			PHY_CLOCK(2, 3, 1, RET_NICLK(1)),/* PHYCLK */
+			CLOCK_IN(2, 2, 1, RET_NICLK(0, 0)),/* RXCLK */
+			PHY_CLOCK(2, 3, 1, RET_NICLK(0, 1)),/* PHYCLK */
 };
 static struct stm_pad_sysconf stxh415_ethernet_mii_pad_sysconfs[] = {
 			/* EN_GMAC1 */
@@ -479,7 +479,7 @@ static struct stm_pad_sysconf stxh415_ethernet_mii_pad_sysconfs[] = {
 #if 0
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
-			PHY_CLOCK(13, 5, 4, RET_NICLK(1)),/* GTXCLK */
+			PHY_CLOCK(13, 5, 4, RET_NICLK(0, 1)),/* GTXCLK */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(13, 7, 2, RET_SE_NICLK_IO(3, 0)),/* TXEN */
 			DATA_OUT(14, 0, 2, RET_SE_NICLK_IO(3, 0)),/* TXD[0] */
@@ -490,12 +490,12 @@ static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
 			DATA_OUT(14, 5, 2, RET_SE_NICLK_IO(3, 1)),/* TXD[5] */
 			DATA_OUT(14, 6, 2, RET_SE_NICLK_IO(3, 1)),/* TXD[6] */
 			DATA_OUT(14, 7, 2, RET_SE_NICLK_IO(3, 1)),/* TXD[7] */
-			CLOCK_IN(15, 0, 2, RET_NICLK(0)),/* TXCLK */
+			CLOCK_IN(15, 0, 2, RET_NICLK(0, 0)),/* TXCLK */
 			DATA_OUT(15, 1, 2, RET_SE_NICLK_IO(3, 0)),/* TXER */
 			DATA_IN(15, 2, 2, RET_BYPASS(2)),/* CRS */
 			DATA_IN(15, 3, 2, RET_BYPASS(2)),/* COL */
 			DATA_OUT_PU(15, 4, 2, RET_BYPASS(3)),/* MDIO */
-			CLOCK_OUT(15, 5, 2, RET_NICLK(1)),/* MDC */
+			CLOCK_OUT(15, 5, 2, RET_NICLK(0, 1)),/* MDC */
 			DATA_IN(15, 6, 2, RET_SE_NICLK_IO(3, 0)),/* RXDV */
 			DATA_IN(15, 7, 2, RET_SE_NICLK_IO(3, 0)),/* RX_ER */
 			DATA_IN(16, 0, 2, RET_SE_NICLK_IO(3, 0)),/* RXD[0] */
@@ -506,8 +506,8 @@ static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
 			DATA_IN(16, 5, 2, RET_SE_NICLK_IO(3, 0)),/* RXD[5] */
 			DATA_IN(16, 6, 2, RET_SE_NICLK_IO(3, 0)),/* RXD[6] */
 			DATA_IN(16, 7, 2, RET_SE_NICLK_IO(3, 0)),/* RXD[7] */
-			CLOCK_IN(17, 0, 2, RET_NICLK(0)),/* RXCLK */
-			CLOCK_IN(17, 6, 1, RET_NICLK(0)),/* 125MHZ i/p clk */
+			CLOCK_IN(17, 0, 2, RET_NICLK(0, 0)),/* RXCLK */
+			CLOCK_IN(17, 6, 1, RET_NICLK(0, 0)),/* 125MHZ i/p clk */
 };
 static struct stm_pad_sysconf stxh415_ethernet_gmii_pad_sysconfs[] = {
 			/* EN_GMAC0 */
@@ -529,10 +529,10 @@ static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
 			DATA_OUT(0, 3, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[3] */
 			DATA_OUT(0, 4, 1, RET_SE_NICLK_IO(3, 0)),/* TXER */
 			DATA_OUT(0, 5, 1, RET_SE_NICLK_IO(3, 0)),/* TXEN */
-			CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK  FIXME*/
+			CLOCK_IN(0, 6, 1, RET_NICLK(0, 0)),/* TXCLK  FIXME*/
 			DATA_IN(0, 7, 1, RET_BYPASS(2)),/* COL */
 			DATA_OUT_PU(1, 0, 1, RET_BYPASS(3)),/* MDIO */
-			CLOCK_OUT(1, 1, 1, RET_NICLK(0)),/* MDC */
+			CLOCK_OUT(1, 1, 1, RET_NICLK(0, 0)),/* MDC */
 			DATA_IN(1, 2, 1, RET_BYPASS(2)),/* CRS */
 			DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
 			DATA_IN(1, 4, 1, RET_SE_NICLK_IO(3, 0)),/* RXD[0] */
@@ -541,15 +541,15 @@ static struct stm_gmac_pin stxh415_ethernet_gmii_pad_configs[] = {
 			DATA_IN(1, 7, 1, RET_SE_NICLK_IO(3, 0)),/* RXD[3] */
 			DATA_IN(2, 0, 1, RET_SE_NICLK_IO(3, 0)),/* RXDV */
 			DATA_IN(2, 1, 1, RET_SE_NICLK_IO(3, 0)),/* RX_ER */
-			CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
-			PHY_CLOCK(2, 3, 4, RET_NICLK(1)), /* GTXCLK */
+			CLOCK_IN(2, 2, 1, RET_NICLK(0, 0)),/* RXCLK */
+			PHY_CLOCK(2, 3, 4, RET_NICLK(0, 1)), /* GTXCLK */
 			DATA_OUT(2, 6, 4, RET_SE_NICLK_IO(3, 0)),/* TXD[4] */
 			DATA_OUT(2, 7, 4, RET_SE_NICLK_IO(3, 0)),/* TXD[5] */
 			DATA_IN(3, 0, 4, RET_SE_NICLK_IO(3, 0)),/* RXD[4] */
 			DATA_IN(3, 1, 4, RET_SE_NICLK_IO(3, 0)),/* RXD[5] */
 			DATA_IN(3, 2, 4, RET_SE_NICLK_IO(3, 0)),/* RXD[6] */
 			DATA_IN(3, 3, 4, RET_SE_NICLK_IO(3, 0)),/* RXD[7] */
-			CLOCK_IN(3, 7, 4, RET_NICLK(0)),/* 125MHZ input clock */
+			CLOCK_IN(3, 7, 4, RET_NICLK(0, 0)),/* 125MHZ input clock */
 			DATA_OUT(4, 1, 4, RET_SE_NICLK_IO(3, 1)),/* TXD[6] */
 			DATA_OUT(4, 2, 4, RET_SE_NICLK_IO(3, 1)),/* TXD[7] */
 };
@@ -570,7 +570,7 @@ static struct stm_pad_sysconf stxh415_ethernet_gmii_pad_sysconfs[] = {
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
-			PHY_CLOCK(13, 5, 2, RET_NICLK(1)),/* GTXCLK */
+			PHY_CLOCK(13, 5, 2, RET_NICLK(0, 1)),/* GTXCLK */
 			DATA_OUT(13, 7, 2, RET_DE_IO(0, 0)),/* TXEN */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)), /* MDINT */
 			DATA_OUT(14, 0, 2, RET_DE_IO(1, 0)),/* TXD[0] */
@@ -578,16 +578,16 @@ static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(14, 2, 2, RET_DE_IO(1, 1)),/* TXD[2] */
 			DATA_OUT(14, 3, 2, RET_DE_IO(1, 1)),/* TXD[3] */
 			/* TX Clock inversion is not set for 1000Mbps */
-			CLOCK_IN(15, 0, 2, RET_ICLK(0)),/* TXCLK */
+			CLOCK_IN(15, 0, 2, RET_ICLK(0, 0)),/* TXCLK */
 			MDIO(15, 4, 2, RET_BYPASS(3)),/* MDIO */
-			MDC(15, 5, 2, RET_NICLK(1)),/* MDC */
+			MDC(15, 5, 2, RET_NICLK(0, 1)),/* MDC */
 			DATA_IN(15, 6, 2, RET_DE_IO(1, 0)),/* RXDV */
 			DATA_IN(16, 0, 2, RET_DE_IO(1, 0)),/* RXD[0] */
 			DATA_IN(16, 1, 2, RET_DE_IO(1, 0)),/* RXD[1] */
 			DATA_IN(16, 2, 2, RET_DE_IO(1, 0)),/* RXD[2] */
 			DATA_IN(16, 3, 2, RET_DE_IO(1, 0)),/* RXD[3] */
-			CLOCK_IN(17, 0, 2, RET_NICLK(0)),/* RXCLK */
-			CLOCK_IN(17, 6, 1, RET_NICLK(0)),/* 125MHZ i/p clk */
+			CLOCK_IN(17, 0, 2, RET_NICLK(0, 0)),/* RXCLK */
+			CLOCK_IN(17, 6, 1, RET_NICLK(0, 0)),/* 125MHZ i/p clk */
 };
 static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
 			/* EN_GMAC0 */
@@ -605,17 +605,17 @@ static struct stm_gmac_pin stxh415_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(0, 2, 1, RET_DE_IO(1, 0)),/* TXD[2] */
 			DATA_OUT(0, 3, 1, RET_DE_IO(1, 0)),/* TXD[3] */
 			DATA_OUT(0, 5, 1, RET_DE_IO(0, 0)),/* TXEN */
-			CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK */
+			CLOCK_IN(0, 6, 1, RET_NICLK(0, 0)),/* TXCLK */
 			MDIO(1, 0, 1, RET_BYPASS(0)),/* MDIO */
-			MDC(1, 1, 1, RET_NICLK(0)),/* MDC */
+			MDC(1, 1, 1, RET_NICLK(0, 0)),/* MDC */
 			DATA_IN(1, 4, 1, RET_DE_IO(0, 0)),/* RXD[0] */
 			DATA_IN(1, 5, 1, RET_DE_IO(0, 0)),/* RXD[1] */
 			DATA_IN(1, 6, 1, RET_DE_IO(0, 0)),/* RXD[2] */
 			DATA_IN(1, 7, 1, RET_DE_IO(0, 0)),/* RXD[3] */
 			DATA_IN(2, 0, 1, RET_DE_IO(1, 0)),/* RXDV */
-			CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
-			PHY_CLOCK(2, 3, 4, RET_NICLK(1)), /* GTXCLK */
-			CLOCK_IN(3, 7, 4, RET_NICLK(0)),/* 125MHZ input clock */
+			CLOCK_IN(2, 2, 1, RET_NICLK(0, 0)),/* RXCLK */
+			PHY_CLOCK(2, 3, 4, RET_NICLK(0, 1)), /* GTXCLK */
+			CLOCK_IN(3, 7, 4, RET_NICLK(0, 0)),/* 125MHZ input clock */
 };
 static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
 			/* EN_GMAC1 */
@@ -631,13 +631,13 @@ static struct stm_pad_sysconf stxh415_ethernet_rgmii_pad_sysconfs[] = {
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
 static struct stm_gmac_pin stxh415_ethernet_rmii_pad_configs[] = {
-			PHY_CLOCK(13, 5, 2, RET_NICLK(1)),/* PHYCLK */
+			PHY_CLOCK(13, 5, 2, RET_NICLK(0, 1)),/* PHYCLK */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(13, 7, 2, RET_SE_NICLK_IO(0, 0)),/* TXEN */
 			DATA_OUT(14, 0, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(14, 1, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(15, 4, 2, RET_BYPASS(3)),/* MDIO */
-			CLOCK_OUT(15, 5, 2, RET_NICLK(1)),/* MDC */
+			CLOCK_OUT(15, 5, 2, RET_NICLK(0, 1)),/* MDC */
 			/* NOTE:
 			 * retime settings for RX pins is
 			 * incorrect in App note */
@@ -664,13 +664,13 @@ static struct stm_gmac_pin stxh415_ethernet_rmii_pad_configs[] = {
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 5, 1, RET_SE_NICLK_IO(0, 0)),/* TXEN */
 			DATA_OUT(1, 0, 1, RET_BYPASS(3)),/* MDIO */
-			CLOCK_OUT(1, 1, 1, RET_NICLK(0)),/* MDC */
+			CLOCK_OUT(1, 1, 1, RET_NICLK(0, 0)),/* MDC */
 			DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
 			DATA_IN(1, 4, 1, RET_SE_NICLK_IO(2, 1)),/* RXD[0] */
 			DATA_IN(1, 5, 1, RET_SE_NICLK_IO(2, 1)),/* RXD[1] */
 			DATA_IN(2, 0, 1, RET_SE_NICLK_IO(2, 1)),/* RXDV */
 			DATA_IN(2, 1, 1, RET_SE_NICLK_IO(2, 0)),/* RX_ER */
-			PHY_CLOCK(2, 3, 1, RET_NICLK(1)),/* PHYCLK */
+			PHY_CLOCK(2, 3, 1, RET_NICLK(0, 1)),/* PHYCLK */
 };
 static struct stm_pad_sysconf stxh415_ethernet_rmii_pad_sysconfs[] = {
 			/* EN_GMAC1 */
@@ -695,10 +695,10 @@ static struct stm_gmac_pin stxh415_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(14, 3, 2, RET_BYPASS(0)),/* TXD[3] */
 			DATA_OUT(15, 1, 2, RET_SE_NICLK_IO(0, 0)),/* TXER */
 			DATA_OUT(13, 7, 2, RET_SE_NICLK_IO(0, 0)),/* TXEN */
-			CLOCK_IN(15, 0, 2, RET_NICLK(0)),/* TXCLK */
+			CLOCK_IN(15, 0, 2, RET_NICLK(0, 0)),/* TXCLK */
 			DATA_OUT(15, 3, 3, RET_BYPASS(0)),/* COL */
 			DATA_OUT_PU(15, 4, 2, RET_BYPASS(2)),/* MDIO*/
-			CLOCK_IN(15, 5, 3, RET_NICLK(0)),/* MDC */
+			CLOCK_IN(15, 5, 3, RET_NICLK(0, 0)),/* MDC */
 			DATA_OUT(15, 2, 3, RET_BYPASS(0)),/* CRS */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)),/* MDINT */
 			DATA_IN(16, 0, 2, RET_SE_NICLK_IO(2, 0)),/* RXD[0] */
@@ -707,8 +707,8 @@ static struct stm_gmac_pin stxh415_ethernet_reverse_mii_pad_configs[] = {
 			DATA_IN(16, 3, 2, RET_SE_NICLK_IO(2, 0)),/* RXD[3] */
 			DATA_IN(15, 6, 2, RET_SE_NICLK_IO(2, 0)),/* RXDV */
 			DATA_IN(15, 7, 2, RET_SE_NICLK_IO(2, 0)),/* RX_ER */
-			CLOCK_IN(17, 0, 2, RET_NICLK(0)),/* RXCLK */
-			PHY_CLOCK(13, 5, 2, RET_NICLK(0)),/* PHYCLK */
+			CLOCK_IN(17, 0, 2, RET_NICLK(0, 0)),/* RXCLK */
+			PHY_CLOCK(13, 5, 2, RET_NICLK(0, 0)),/* PHYCLK */
 };
 static struct stm_pad_sysconf stxh415_ethernet_reverse_mii_pad_sysconfs[] = {
 			/* EN_GMAC0 */
@@ -730,14 +730,14 @@ static struct stm_gmac_pin stxh415_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(0, 3, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[3] */
 			DATA_OUT(0, 4, 1, RET_SE_NICLK_IO(0, 1)),/* TXER */
 			DATA_OUT(0, 5, 1, RET_SE_NICLK_IO(0, 1)),/* TXEN */
-			CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK */
+			CLOCK_IN(0, 6, 1, RET_NICLK(0, 0)),/* TXCLK */
 			DATA_OUT(0, 7, 2, RET_BYPASS(0)),/* COL */
 			DATA_IN(2, 0, 1, RET_SE_NICLK_IO(2, 1)),/* RXDV */
 			DATA_IN(2, 1, 1, RET_SE_NICLK_IO(2, 1)),/* RX_ER */
-			CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
-			PHY_CLOCK(2, 3, 1, RET_NICLK(0)),/* PHYCLK */
+			CLOCK_IN(2, 2, 1, RET_NICLK(0, 0)),/* RXCLK */
+			PHY_CLOCK(2, 3, 1, RET_NICLK(0, 0)),/* PHYCLK */
 			DATA_OUT_PU(1, 0, 1, RET_BYPASS(2)),/* MDIO */
-			CLOCK_IN(1, 1, 2, RET_NICLK(1)),/* MDC */
+			CLOCK_IN(1, 1, 2, RET_NICLK(0, 1)),/* MDC */
 			DATA_OUT(1, 2, 2, RET_BYPASS(0)),/* CRS */
 			DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
 			DATA_IN(1, 4, 1, RET_SE_NICLK_IO(2, 1)),/* RXD[0] */

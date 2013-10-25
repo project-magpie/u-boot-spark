@@ -419,10 +419,10 @@ static struct stm_gmac_pin stxh205_ethernet_mii_pad_configs[] = {
 		DATA_OUT(0, 3, 1, RET_BYPASS(0)),/* TXD[3] */
 		TXER(0, 4, 1, RET_BYPASS(0)),/* TXER */
 		DATA_OUT(0, 5, 1, RET_BYPASS(0)),/* TXEN */
-		CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK */
+		CLOCK_IN(0, 6, 1, RET_NICLK(0, 0)),/* TXCLK */
 		DATA_IN(0, 7, 1, RET_BYPASS(0)),/* COL */
 		DATA_OUT_PU(1, 0, 1, RET_BYPASS(0)),/* MDIO*/
-		CLOCK_OUT(1, 1, 1, RET_NICLK(0)),/* MDC */
+		CLOCK_OUT(1, 1, 1, RET_NICLK(0, 0)),/* MDC */
 		DATA_IN(1, 2, 1, RET_BYPASS(0)),/* CRS */
 		DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
 		DATA_IN(1, 4, 1, RET_BYPASS(0)),/* RXD[0] */
@@ -431,8 +431,8 @@ static struct stm_gmac_pin stxh205_ethernet_mii_pad_configs[] = {
 		DATA_IN(1, 7, 1, RET_BYPASS(0)),/* RXD[3] */
 		DATA_IN(2, 0, 1, RET_BYPASS(0)),/* RXDV */
 		DATA_IN(2, 1, 1, RET_BYPASS(0)),/* RX_ER */
-		CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
-		PHY_CLOCK(2, 3, 1, RET_NICLK(0)),/* PHYCLK */
+		CLOCK_IN(2, 2, 1, RET_NICLK(0, 0)),/* RXCLK */
+		PHY_CLOCK(2, 3, 1, RET_NICLK(0, 0)),/* PHYCLK */
 };
 static struct stm_pad_sysconf stxh205_ethernet_mii_pad_sysconfs[] = {
 		/* ETH_POWERDOWN_REQ */
@@ -456,13 +456,13 @@ static struct stm_gmac_pin stxh205_ethernet_rmii_pad_configs[] = {
 		DATA_OUT(0, 1, 1, RET_BYPASS(0)),/* TXD[1] */
 		DATA_OUT(0, 5, 1, RET_BYPASS(0)),/* TXEN */
 		DATA_OUT_PU(1, 0, 1, RET_BYPASS(0)),/* MDIO */
-		CLOCK_OUT(1, 1, 1, RET_NICLK(0)),/* MDC */
+		CLOCK_OUT(1, 1, 1, RET_NICLK(0, 0)),/* MDC */
 		DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
 		DATA_IN(1, 4, 1, RET_BYPASS(0)),/* RXD.0 */
 		DATA_IN(1, 5, 1, RET_BYPASS(0)),/* RXD.1 */
 		DATA_IN(2, 0, 1, RET_BYPASS(0)),/* RXDV */
 		DATA_IN(2, 1, 1, RET_BYPASS(0)),/* RX_ER */
-		PHY_CLOCK(2, 3, 2, RET_NICLK(0)),/* PHYCLK */
+		PHY_CLOCK(2, 3, 2, RET_NICLK(0, 0)),/* PHYCLK */
 };
 static struct stm_pad_sysconf stxh205_ethernet_rmii_pad_sysconfs[] = {
 		/* ETH_POWERDOWN_REQ */
@@ -489,10 +489,10 @@ static struct stm_gmac_pin stxh205_ethernet_reverse_mii_pad_configs[] = {
 		DATA_OUT(0, 3, 1, RET_BYPASS(0)),/* TXD[3] */
 		TXER(0, 4, 1, RET_BYPASS(0)),/* TXER */
 		DATA_OUT(0, 5, 1, RET_BYPASS(0)),/* TXEN */
-		CLOCK_IN(0, 6, 1, RET_NICLK(0)),/* TXCLK */
+		CLOCK_IN(0, 6, 1, RET_NICLK(0, 0)),/* TXCLK */
 		DATA_OUT(0, 7, 1, RET_BYPASS(0)),/* COL */
 		DATA_OUT_PU(1, 0, 1, RET_BYPASS(0)),/* MDIO*/
-		CLOCK_IN(1, 1, 1, RET_NICLK(0)),/* MDC */
+		CLOCK_IN(1, 1, 1, RET_NICLK(0, 0)),/* MDC */
 		DATA_OUT(1, 2, 1, RET_BYPASS(0)),/* CRS */
 		DATA_IN(1, 3, 1, RET_BYPASS(0)),/* MDINT */
 		DATA_IN(1, 4, 1, RET_BYPASS(0)),/* RXD[0] */
@@ -501,8 +501,8 @@ static struct stm_gmac_pin stxh205_ethernet_reverse_mii_pad_configs[] = {
 		DATA_IN(1, 7, 1, RET_BYPASS(0)),/* RXD[3] */
 		DATA_IN(2, 0, 1, RET_BYPASS(0)),/* RXDV */
 		DATA_IN(2, 1, 1, RET_BYPASS(0)),/* RX_ER */
-		CLOCK_IN(2, 2, 1, RET_NICLK(0)),/* RXCLK */
-		PHY_CLOCK(2, 3, 1, RET_NICLK(0)),/* PHYCLK */
+		CLOCK_IN(2, 2, 1, RET_NICLK(0, 0)),/* RXCLK */
+		PHY_CLOCK(2, 3, 1, RET_NICLK(0, 0)),/* PHYCLK */
 };
 static struct stm_pad_sysconf stxh205_ethernet_reverse_mii_pad_sysconfs[] = {
 		/* ETH_POWERDOWN_REQ */
