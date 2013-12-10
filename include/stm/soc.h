@@ -143,6 +143,17 @@ struct stxh205_ethernet_config {
 	int no_txer : 1;	/* boolean */
 	int phy_bus : 5;	/* 0x00 .. 0x1f */
 };
+struct stxh407_ethernet_config {
+	enum {
+		stxh407_ethernet_mode_mii,
+		stxh407_ethernet_mode_gmii,
+		stxh407_ethernet_mode_rmii,
+		stxh407_ethernet_mode_rgmii,
+		stxh407_ethernet_mode_reverse_mii
+	} mode;
+	int ext_clk : 1;	/* boolean */
+	int phy_bus : 5;	/* 0x00 .. 0x1f */
+};
 struct stxh415_ethernet_config {
 	enum {
 		stxh415_ethernet_mode_mii,
@@ -206,6 +217,8 @@ extern void fli7540_configure_ethernet(
 extern void stxh205_configure_ethernet(
 	const int port,
 	const struct stxh205_ethernet_config * const config);
+extern void stxh407_configure_ethernet(
+	const struct stxh407_ethernet_config * const config);
 extern void stxh415_configure_ethernet(
 	const int port,
 	const struct stxh415_ethernet_config * const config);

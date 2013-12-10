@@ -155,11 +155,25 @@
  */
 
 /*
- * QQQ - to do!
+ * On the STxH407 SoC there is only a single GMAC device (GMAC1) present.
+ * On the B2120 board, it is connected to an on-board RealTek RTL8367RB
+ * switch (UE1), which we use in RGMII mode, as a (dumb) "fixed PHY".
  */
 
 /* are we using the internal ST GMAC device ? */
-#undef CONFIG_DRIVER_NET_STM_GMAC
+#define CONFIG_DRIVER_NET_STM_GMAC
+
+/*
+ * Select the appropriate base address for the GMAC.
+ * Also, choose which PHY to use.
+ */
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+#	define CONFIG_SYS_STM_STMAC_BASE	0x09630000ul	/* GMAC #1 */
+#	define CONFIG_STMAC_RTL8367RB		/* RealTek RTL8367RB (UE1) */
+#	define CONFIG_STMAC_USE_RTL8367_SMI	/* Use (I2C-type) SMI with RTL8367RB */
+#	define CONFIG_STMAC_RTL8367_SMI_SDA	1, 0	/* use PIO1[0] */
+#	define CONFIG_STMAC_RTL8367_SMI_SCK	1, 1	/* use PIO1[1] */
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 /*  If this board does not have eeprom for ethernet address so allow the user
  *  to set it in the environment

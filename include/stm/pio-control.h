@@ -30,7 +30,7 @@ struct stm_pio_control_retime_config {
 #define STM_RETIME_VALUE_CLK_0			(0)
 #define STM_RETIME_VALUE_CLK_1			(1)
 	/* if the H/W bitfield is 2-bits wide ? */
-#if defined(CONFIG_STM_STXH416)
+#if defined(CONFIG_STM_STXH416) || defined(CONFIG_STM_STXH407)
 //#define STM_RETIME_VALUE_CLK_2		(2)
 //#define STM_RETIME_VALUE_CLK_3		(3)
 #endif	/* H/W bitfield is 2-bits wide */
@@ -38,6 +38,10 @@ struct stm_pio_control_retime_config {
 /*
  * list of valid values for the "delay" bitfield above
  */
+#if	defined(CONFIG_STM_STX7108) ||	\
+	defined(CONFIG_STM_STXH205) ||	\
+	defined(CONFIG_STM_STXH415) ||	\
+	defined(CONFIG_STM_STXH416)
 #define STM_RETIME_VALUE_DELAY_0		(0)
 #define STM_RETIME_VALUE_DELAY_1		(1)
 #define STM_RETIME_VALUE_DELAY_2		(2)
@@ -57,6 +61,23 @@ struct stm_pio_control_retime_config {
 //#define STM_RETIME_VALUE_DELAY_14		(14)
 //#define STM_RETIME_VALUE_DELAY_15		(15)
 #endif	/* H/W bitfield is 4-bits wide */
+#elif defined(CONFIG_STM_STXH407)
+#define STM_RETIME_VALUE_DELAY_0		(0)	/* no delay */
+#define STM_RETIME_VALUE_DELAY_300		(1)	/* delay 0.3 ns */
+#define STM_RETIME_VALUE_DELAY_500		(2)	/* delay 0.5 ns */
+#define STM_RETIME_VALUE_DELAY_750		(3)	/* delay 0.75 ns */
+#define STM_RETIME_VALUE_DELAY_1000		(4)	/* delay 1.0 ns */
+#define STM_RETIME_VALUE_DELAY_1250		(5)	/* delay 1.25 ns */
+#define STM_RETIME_VALUE_DELAY_1500		(6)	/* delay 1.5 ns */
+#define STM_RETIME_VALUE_DELAY_1750		(7)	/* delay 1.75 ns */
+#define STM_RETIME_VALUE_DELAY_2000		(8)	/* delay 2.0 ns */
+#define STM_RETIME_VALUE_DELAY_2250		(9)	/* delay 2.25 ns */
+#define STM_RETIME_VALUE_DELAY_2500		(10)	/* delay 2.5 ns */
+#define STM_RETIME_VALUE_DELAY_2750		(11)	/* delay 2.75 ns */
+#define STM_RETIME_VALUE_DELAY_3000		(12)	/* delay 3.0 ns */
+#define STM_RETIME_VALUE_DELAY_3250		(13)	/* delay 3.25 ns */
+		/* Note: 3.25 ns is the a maximum delay available */
+#endif	/* CONFIG_STM_STXH407 */
 
 
 /* 	Generic Retime Padlogic possible modes
