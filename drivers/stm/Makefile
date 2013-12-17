@@ -40,6 +40,7 @@ COBJS-$(CONFIG_STM_ASC_SERIAL) += stm-asc.o
 COBJS-$(CONFIG_STM_DTF_SERIAL) += stm-dtf.o
 COBJS-$(CONFIG_DRIVER_NETSTMAC)     += stm-stmac.o
 COBJS-$(CONFIG_DRIVER_NET_STM_GMAC) += stm-stmac.o
+COBJS-$(CONFIG_STMAC_USE_RTL8367_SMI) += rtl8367_smi.o
 
 ifdef CONFIG_CMD_NAND
 COBJS-y += ecc.o stm-nand.o

@@ -33,6 +33,7 @@
 #include <miiphy.h>
 #include "stm-stmac.h"
 #include <netdev.h>
+#include "rtl8367_smi.h"
 
 
 #if defined(CONFIG_ST40)			/* for ST40 cores … */
@@ -98,6 +99,9 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 struct stmac_private
 {
 	u32	id;		/* unique ID of MAC */
+#if defined(CONFIG_STMAC_USE_RTL8367_SMI)
+	struct rtl8367_smi rtl8367_smi;
+#endif	/* CONFIG_STMAC_USE_RTL8367_SMI */
 };
 
 #define likely(x)	__builtin_expect(!!(x), 1)
@@ -232,6 +236,15 @@ struct stmac_private
 #if !defined(CONFIG_STMAC_LINK_STATUS_TIMEOUT)
 #	define CONFIG_STMAC_LINK_STATUS_TIMEOUT	(CONFIG_SYS_HZ/20)	/* 50 ms*/
 #endif	/* CONFIG_STMAC_LINK_STATUS_TIMEOUT */
+
+#elif defined(CONFIG_STMAC_RTL8367RB)	/* REALTEK RTL8367RB */
+
+/* REALTEK RTL8367RB phy identifier values */
+#define RTL8367RB_PHY_ID	0x001cc980u
+#define RTL8367RB_PHY_ID_MASK	0xffffffffu
+
+/* Treat the REALTEK RTL8367RB switch as a (dumb) "fixed PHY" */
+#define CONFIG_STMAC_USE_FIXED_PHY
 
 #elif defined(CONFIG_STMAC_MARVELL)	/* MARVELL 88EC060 */
 
@@ -447,6 +460,19 @@ static unsigned int stmac_phy_get_addr(struct eth_device * const dev)
 #elif defined(CONFIG_STMAC_RTL8211E)
 		if ((id & RTL8211E_PHY_ID_MASK) == RTL8211E_PHY_ID) {
 			printf(STMAC "REALTEK RTL8211E(G) found\n");
+			return phyaddr;
+		}
+#elif defined(CONFIG_STMAC_RTL8367RB)
+		if ((id & RTL8367RB_PHY_ID_MASK) == RTL8367RB_PHY_ID) {
+			printf(STMAC "REALTEK RTL8367RB found\n");
+#if 0	/* QQQ */
+			/* QQQ: see comment in stmac_init() */
+			struct stmac_private * const priv = (struct stmac_private*)dev->priv;
+			/* now initialize the firmware on the switch */
+			if (rtl8367_smi_init_fw(&priv->rtl8367_smi) != 0)
+				return -1;	/* initialization failed! */
+			else
+#endif	/* QQQ */
 			return phyaddr;
 		}
 #elif defined(CONFIG_STMAC_MARVELL)
@@ -702,7 +728,21 @@ static unsigned int stmac_mii_read(struct eth_device * const dev, int phy_addr, 
 
 #if defined(CONFIG_STMAC_USE_FIXED_PHY)
 
+#if defined(CONFIG_STMAC_USE_RTL8367_SMI)
+
+	struct stmac_private * const priv = (struct stmac_private*)dev->priv;
+	struct rtl8367_smi * const smi = &priv->rtl8367_smi;
+	int result = rtl8367_smi_phy_read_reg(smi, phy_addr, reg, &val);
+	if (result)	/* failed ? */
+	{
+		val = 0xffffu;	/* report as if no PHY is present */
+	}
+
+#else	/* CONFIG_STMAC_USE_RTL8367_SMI */
+
 	printf("Error: \"mii read\" is not supported for this PHY\n");
+
+#endif	/* CONFIG_STMAC_USE_RTL8367_SMI */
 
 #else	/* CONFIG_STMAC_USE_FIXED_PHY */
 
@@ -984,6 +1024,11 @@ static void stmac_mac_core_init(struct eth_device * const dev)
 	/* Set the MAC control register with our default value */
 	value = (unsigned int)STMAC_READ(MAC_CONTROL);
 	value |= MAC_CORE_INIT;
+#if defined(CONFIG_STMAC_RTL8367RB)
+	/* force Gigabit & full-duplex with the RTL8367RB */
+	value |= MAC_CONTROL_DM;
+	value &= ~MAC_CONTROL_PS;
+#endif	/* CONFIG_STMAC_RTL8367RB */
 	STMAC_WRITE(value, MAC_CONTROL);
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -1570,6 +1615,21 @@ static int stmac_init(
 {
 	PRINTK(STMAC "entering %s()\n", __FUNCTION__);
 
+#if defined(CONFIG_STMAC_USE_RTL8367_SMI)
+	/*
+	 * This is not the best place for this, but …
+	 * It looks like we need to initialize the firmware on the
+	 * switch *before* we can call stmac_dma_reset(), otherwise
+	 * the S/W reset of the DMA does not complete! Presumably
+	 * as the switch is not generating the clock that the STMAC
+	 * expects it to be provided. Ideally, this initialization
+	 * should be done (whilst probing) in stmac_phy_get_addr().
+	 */
+	struct stmac_private * const priv = (struct stmac_private*)dev->priv;
+	if (rtl8367_smi_init_fw(&priv->rtl8367_smi) != 0)
+		return -1;	/* initialization failed! */
+#endif	/* CONFIG_STMAC_USE_RTL8367_SMI */
+
 	return stmac_reset_eth(dev);
 }
 
@@ -1646,6 +1706,18 @@ extern int stmac_eth_register(
 	/* initialize the "private" structure */
 	dev->priv = priv;
 	priv->id  = id;
+
+	/*
+	 * initialise the RTL8367 SMI, but back off,
+	 * if the initialization failed!
+	 */
+#if defined(CONFIG_STMAC_USE_RTL8367_SMI)
+	if (rtl8367_smi_init(&priv->rtl8367_smi) != 0) {
+		free(priv);
+		free(dev);
+		return -1;
+	}
+#endif	/* CONFIG_STMAC_USE_RTL8367_SMI */
 
 	/* also set up the call-back functions */
 	dev->init = stmac_init;
