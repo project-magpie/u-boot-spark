@@ -82,7 +82,6 @@ static int eth_phy_addr;
 
 static void stmac_mii_write(struct eth_device * const dev, int phy_addr, int reg, int value);
 static unsigned int stmac_mii_read(struct eth_device * const dev, int phy_addr, int reg);
-static void stmac_set_mac_mii_cap(struct eth_device * const dev, int full_duplex, unsigned int speed);
 
 /* DMA structure */
 struct dma_t
@@ -255,7 +254,11 @@ struct stmac_private
 #define MII_ADVERTISE_PAUSE	0x0400	/* supports the pause command */
 
 
-#ifndef CONFIG_PHY_LOOPBACK
+#if !defined(CONFIG_STMAC_USE_FIXED_PHY)
+static void stmac_set_mac_mii_cap(struct eth_device * const dev, int full_duplex, unsigned int speed);
+#endif	/* !CONFIG_STMAC_USE_FIXED_PHY */
+
+#if !defined(CONFIG_PHY_LOOPBACK) && !defined(CONFIG_STMAC_USE_FIXED_PHY)
 static int stmac_phy_negotiate(struct eth_device * const dev, int phy_addr)
 {
 	uint now, tmp, status;
@@ -348,7 +351,7 @@ static unsigned int stmac_phy_check_speed(struct eth_device * const dev, int phy
 	stmac_set_mac_mii_cap(dev, full_duplex, speed);
 	return 0;
 }
-#endif	/* CONFIG_PHY_LOOPBACK */
+#endif	/* !CONFIG_PHY_LOOPBACK && !CONFIG_STMAC_USE_FIXED_PHY */
 
 /* Automatically gets and returns the PHY device */
 static unsigned int stmac_phy_get_addr(struct eth_device * const dev)
@@ -479,12 +482,29 @@ static unsigned int stmac_phy_get_addr(struct eth_device * const dev)
 
 static int stmac_phy_init(struct eth_device * const dev)
 {
+#if !defined(CONFIG_STMAC_USE_FIXED_PHY)
 	uint advertised_caps, value;
+#endif	/* CONFIG_STMAC_USE_FIXED_PHY */
 
 	/* Obtain the PHY's address/id */
 	eth_phy_addr = stmac_phy_get_addr(dev);
 	if (eth_phy_addr < 0)
 		return -1;
+
+#if defined(CONFIG_STMAC_USE_FIXED_PHY)
+	/*
+	 * Using a similar convention to linux, we effectively treat
+	 * the STMAC as if it were connected to a "fixed PHY". This
+	 * means that at do not try and control it via writing to
+	 * the traditional IEEE PHY register set. Specifically, we
+	 * do not try and "reset" it, nor effect the AN status here.
+	 * Hence, we just "return", without doing anything more here!
+	 */
+#if defined(CONFIG_PHY_LOOPBACK)
+	#error CONFIG_PHY_LOOPBACK is not supported with a "fixed PHY"!
+#endif	/* CONFIG_PHY_LOOPBACK */
+
+#else	/* CONFIG_STMAC_USE_FIXED_PHY */
 
 	/* Now reset the PHY we just found */
 	if (miiphy_reset(dev->name, eth_phy_addr)< 0) {
@@ -615,6 +635,8 @@ static int stmac_phy_init(struct eth_device * const dev)
 
 #endif	/* CONFIG_PHY_LOOPBACK */
 
+#endif	/* CONFIG_STMAC_USE_FIXED_PHY */
+
 	return 0;
 }
 
@@ -623,6 +645,7 @@ static int stmac_phy_init(struct eth_device * const dev)
 				 MII Interface
    ---------------------------------------------------------------------------*/
 
+#if !defined(CONFIG_STMAC_USE_FIXED_PHY)
 static int stmac_mii_poll_busy(struct eth_device * const dev)
 {
 	/* arm simple, non interrupt dependent timer */
@@ -635,14 +658,21 @@ static int stmac_mii_poll_busy(struct eth_device * const dev)
 	printf(STMAC "stmac_mii_busy timeout\n");
 	return (0);
 }
+#endif	/* CONFIG_STMAC_USE_FIXED_PHY */
 
 static void stmac_mii_write(struct eth_device * const dev, int phy_addr, int reg, int value)
 {
-	int mii_addr;
-
 #if 0
 	printf("QQQ: %s(addr=%u, reg=%u, value=0x%04x)\n", __FUNCTION__, phy_addr, reg, value);
 #endif
+
+#if defined(CONFIG_STMAC_USE_FIXED_PHY)
+
+	printf("Error: \"mii write\" is not supported for this PHY\n");
+
+#else	/* CONFIG_STMAC_USE_FIXED_PHY */
+
+	int mii_addr;
 
 	/* Select register */
 	mii_addr =
@@ -662,13 +692,21 @@ static void stmac_mii_write(struct eth_device * const dev, int phy_addr, int reg
 	/* QQQ: is the following actually needed ? */
 	(void)stmac_mii_read(dev, phy_addr, reg);
 #endif	/* CONFIG_STMAC_STE10XP */
+
+#endif	/* CONFIG_STMAC_USE_FIXED_PHY */
 }
 
 static unsigned int stmac_mii_read(struct eth_device * const dev, int phy_addr, int reg)
 {
-	int mii_addr, val;
+	unsigned int val;
 
-	mii_addr =
+#if defined(CONFIG_STMAC_USE_FIXED_PHY)
+
+	printf("Error: \"mii read\" is not supported for this PHY\n");
+
+#else	/* CONFIG_STMAC_USE_FIXED_PHY */
+
+	const unsigned int mii_addr =
 		((phy_addr & MAC_MII_ADDR_PHY_MASK) << MAC_MII_ADDR_PHY_SHIFT)
 		| ((reg & MAC_MII_ADDR_REG_MASK) << MAC_MII_ADDR_REG_SHIFT)
 		| MAC_MII_ADDR_BUSY;
@@ -713,6 +751,8 @@ static unsigned int stmac_mii_read(struct eth_device * const dev, int phy_addr, 
 		val &= ~(1u<<15);		/* clear bit #15 */
 	}
 #endif	/* CONFIG_STM_STXH415 && CONFIG_STM_B2000 && ... */
+
+#endif	/* CONFIG_STMAC_USE_FIXED_PHY */
 
 #if 0
 	printf("QQQ: %s(addr=%u, reg=%u) --> value=0x%04x)\n", __FUNCTION__, phy_addr, reg, val);
@@ -873,6 +913,7 @@ static void stmac_set_rx_mode(struct eth_device * const dev)
 	return;
 }
 
+#if !defined(CONFIG_STMAC_USE_FIXED_PHY)
 static void stmac_set_mac_mii_cap(struct eth_device * const dev, int full_duplex, unsigned int speed)
 {
 	unsigned int flow = (unsigned int)STMAC_READ(MAC_FLOW_CONTROL);
@@ -933,6 +974,7 @@ static void stmac_set_mac_mii_cap(struct eth_device * const dev, int full_duplex
 
 	return;
 }
+#endif	/* !CONFIG_STMAC_USE_FIXED_PHY */
 
 /* This function provides the initial setup of the MAC controller */
 static void stmac_mac_core_init(struct eth_device * const dev)
