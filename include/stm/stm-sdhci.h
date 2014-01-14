@@ -1,0 +1,329 @@
+/*
+ * (C) Copyright 2013 STMicroelectronics
+ * Youssef TRIKI <youssef.triki@st.com>
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#ifndef _STM_SDHCI_H_
+#define _STM_SDHCI_H_
+
+#include <stm/pad.h>
+#include <stm/pio.h>
+#include <stm/pio-control.h>
+
+#define DEBUG_PAD_CONFIGS
+
+#define	FLASHSS_MMC_CORE_CONFIG_1			0x400
+#define FLASHSS_MMC_CORECFG_TIMEOUT_CLK_UNIT		24
+#define FLASHSS_MMC_CORECFG_TIMEOUT_CLK_UNIT_MHZ	1
+#define FLASHSS_MMC_CORECFG_TIMEOUT_CLK_UNIT_KHZ	0
+
+#define FLASHSS_MMC_CORECFG_TIMEOUT_CLK_FREQ		12
+#define FLASHSS_MMC_CORECFG_TIMEOUT_CLK_FREQ_MIN	1
+#define FLASHSS_MMC_CORECFG_TIMEOUT_CLK_FREQ_MAX	0x3F	/*63 */
+
+#define FLASHSS_MMC_CORECFG_TUNING_COUNT		4
+#define FLASHSS_MMC_CORECFG_TUNING_COUNT_MAX		0x10	/*16 */
+#define FLASHSS_MMC_CORECFG_TUNING_COUNT_MIN		0	/*1 */
+
+#define FLASHSS_MMC_CORECFG_ASYNC_WAKEUP_EN		0
+#define FLASHSS_MMC_CORECFG_SYNC_WAKEUP			0
+#define FLASHSS_MMC_CORECFG_ASYNC_WAKEUP		1
+
+#define STM_FLASHSS_MMC_CORE_CONFIG_1	\
+			((FLASHSS_MMC_CORECFG_TIMEOUT_CLK_UNIT_MHZ << 24) | \
+			(FLASHSS_MMC_CORECFG_TIMEOUT_CLK_FREQ_MIN << 12)  | \
+			(FLASHSS_MMC_CORECFG_TUNING_COUNT_MAX << 4)       | \
+			(FLASHSS_MMC_CORECFG_SYNC_WAKEUP << 0))
+
+#define FLASHSS_MMC_CORE_CONFIG_2			0x404
+
+#define FLASHSS_MMC_CORECFG_HIGH_SPEED_SUPPORT		28
+#define FLASHSS_MMC_CORECFG_HIGH_SPEED			1
+#define FLASHSS_MMC_CORECFG_NORMAL_SPEED		0
+
+#define FLASHSS_MMC_CORECFG_ADMA2_SUPPORT		24
+#define FLASHSS_MMC_CORECFG_ADMA2			1
+#define FLASHSS_MMC_CORECFG_NO_ADMA2			0
+
+#define FLASHSS_MMC_CORECFG_8BIT_SUPPORT		20
+#define FLASHSS_MMC_CORECFG_8BIT_EMMC			1
+#define FLASHSS_MMC_CORECFG_4BIT_SD			0
+
+#define FLASHSS_MMC_CORECFG_MAX_BLK_LENGTH		16
+#define MAX_BLK_LENGTH_512				0
+#define MAX_BLK_LENGTH_1024				1
+#define MAX_BLK_LENGTH_2048				2
+
+#define FLASHSS_MMC_CORECFG_BASE_CLK_FREQ		0
+#define BASE_CLK_FREQ_200				0xc8
+#define BASE_CLK_FREQ_50				0x32
+#define BASE_CLK_FREQ_MIN				0x1
+#define BASE_CLK_FREQ_MAX				0xff
+
+#define STM_FLASHSS_MMC43_CORE_CONFIG2	\
+				((FLASHSS_MMC_CORECFG_HIGH_SPEED << 28) | \
+				 (FLASHSS_MMC_CORECFG_NO_ADMA2 << 24)   | \
+				 (FLASHSS_MMC_CORECFG_8BIT_EMMC << 20)  | \
+				 (MAX_BLK_LENGTH_1024 << 16) 		| \
+				 (BASE_CLK_FREQ_200 << 0))
+
+#define STM_FLASHSS_MMC1_43_CORE_CONFIG2	\
+				((FLASHSS_MMC_CORECFG_HIGH_SPEED << 28) | \
+				 (FLASHSS_MMC_CORECFG_NO_ADMA2 << 24)   | \
+				 (FLASHSS_MMC_CORECFG_8BIT_EMMC << 20)  | \
+				 (MAX_BLK_LENGTH_1024 << 16) 		| \
+				 (BASE_CLK_FREQ_50 << 0))
+
+
+#define STM_FLASHSS_SD20_CORE_CONFIG2	\
+				((FLASHSS_MMC_CORECFG_HIGH_SPEED << 28) | \
+				 (FLASHSS_MMC_CORECFG_NO_ADMA2 << 24)   | \
+				 (FLASHSS_MMC_CORECFG_4BIT_SD << 20)  | \
+				 (MAX_BLK_LENGTH_1024 << 16) 		| \
+				 (BASE_CLK_FREQ_50 << 0))
+
+
+#define FLASHSS_MMC_CORE_CONFIG_3			0x408
+
+#define FLASHSS_MMC_CORECFG_SLOT_TYPE			28
+#define FLASHSS_MMC_CORECFG_SLOT_TYPE_SD		0
+#define FLASHSS_MMC_CORECFG_SLOT_TYPE_EMMC		1
+#define FLASHSS_MMC_CORECFG_SLOT_TYPE_SHARED		2
+
+#define FLASHSS_MMC_CORECFG_64BIT_BUS_SUPPORT		24
+#define FLASHSS_MMC_CORECFG_64BIT			1
+#define FLASHSS_MMC_CORECFG_32BIT			0
+
+#define FLASHSS_MMC_CORECFG_ASYNCH_INTR_SUPPORT		(1 << 20)
+
+#define FLASHSS_MMC_CORECFG_1P8_VOLT_SUPPORT		16
+#define FLASHSS_MMC_CORECFG_1P8_VOLT			1
+#define FLASHSS_MMC_CORECFG_NO_1P8_VOLT			0
+
+#define FLASHSS_MMC_CORECFG_3P0_VOLT_SUPPORT		12
+#define FLASHSS_MMC_CORECFG_3P0_VOLT			1
+#define FLASHSS_MMC_CORECFG_NO_3P0_VOLT			0
+
+#define FLASHSS_MMC_CORECFG_3P3_VOLT_SUPPORT		8
+#define FLASHSS_MMC_CORECFG_3P3_VOLT			1
+#define FLASHSS_MMC_CORECFG_NO_3P3_VOLT			0
+
+#define FLASHSS_MMC_CORECFG_SUSP_RES_SUPPORT		(1 << 4)
+
+#define FLASHSS_MMC_CORECFG_SDMA_SUPPORT		0
+#define FLASHSS_MMC_CORECFG_SDMA			1
+#define FLASHSS_MMC_CORECFG_NO_SDMA			0
+
+#define STM_FLASHSS_MMC43_CORE_CONFIG3	\
+			((FLASHSS_MMC_CORECFG_SLOT_TYPE_EMMC << 28)	| \
+			 (FLASHSS_MMC_CORECFG_32BIT << 24)		| \
+			 (FLASHSS_MMC_CORECFG_ASYNCH_INTR_SUPPORT)	| \
+			 (FLASHSS_MMC_CORECFG_1P8_VOLT<<16)		| \
+			 (FLASHSS_MMC_CORECFG_NO_3P0_VOLT << 12)	| \
+			 (FLASHSS_MMC_CORECFG_3P3_VOLT << 8)		| \
+			 (FLASHSS_MMC_CORECFG_SUSP_RES_SUPPORT) 	| \
+			 (FLASHSS_MMC_CORECFG_NO_SDMA << 0))
+
+#define STM_FLASHSS_SD20_CORE_CONFIG3	\
+			((FLASHSS_MMC_CORECFG_SLOT_TYPE_SD << 28)	| \
+			 (FLASHSS_MMC_CORECFG_32BIT << 24)		| \
+			 (FLASHSS_MMC_CORECFG_ASYNCH_INTR_SUPPORT)	| \
+			 (FLASHSS_MMC_CORECFG_NO_1P8_VOLT<<16)		| \
+			 (FLASHSS_MMC_CORECFG_NO_3P0_VOLT << 12)	| \
+			 (FLASHSS_MMC_CORECFG_3P3_VOLT << 8)		| \
+			 (FLASHSS_MMC_CORECFG_SUSP_RES_SUPPORT) 	| \
+			 (FLASHSS_MMC_CORECFG_NO_SDMA << 0))
+			 
+#define FLASHSS_MMC_CORE_CONFIG_4			0xc
+#define FLASHSS_MMC_CORECFG_D_DRIVER_SUPPORT		(1 << 20)
+#define FLASHSS_MMC_CORECFG_C_DRIVER_SUPPORT		(1 << 16)
+#define FLASHSS_MMC_CORECFG_A_DRIVER_SUPPORT		(1 << 12)
+#define FLASHSS_MMC_CORECFG_DDR50_SUPPORT		8
+#define FLASHSS_MMC_CORECFG_DDR50			1
+#define FLASHSS_MMC_CORECFG_NO_DDR50			0
+#define FLASHSS_MMC_CORECFG_SDR104_SUPPORT		4
+#define FLASHSS_MMC_CORECFG_SDR104			1
+#define FLASHSS_MMC_CORECFG_NO_SDR104			0
+#define FLASHSS_MMC_CORECFG_SDR50_SUPPORT		0
+#define FLASHSS_MMC_CORECFG_SDR50			1
+#define FLASHSS_MMC_CORECFG_NO_SDR50			0
+#define STM_FLASHSS_MMC43_CORE_CONFIG4	\
+			  (FLASHSS_MMC_CORECFG_D_DRIVER_SUPPORT		| \
+			   FLASHSS_MMC_CORECFG_C_DRIVER_SUPPORT		| \
+			   FLASHSS_MMC_CORECFG_A_DRIVER_SUPPORT		| \
+			   (FLASHSS_MMC_CORECFG_NO_DDR50 << 8)		| \
+			   (FLASHSS_MMC_CORECFG_NO_SDR104 << 4)		| \
+			   (FLASHSS_MMC_CORECFG_NO_SDR50 << 0))
+			   
+#define FLASHSS_MMC_CORE_CONFIG_5			0x410
+#define FLASHSS_MMC_CORECFG_CLOCK_MULTIPLIER		16
+#define CLOCK_MULTIPLIER_NONE				0
+#define FLASHSS_MMC_CORECFG_RETUNING_MODES		12
+#define FLASHSS_MMC_CORECFG_RETUNING_MODE0		0
+#define FLASHSS_MMC_CORECFG_TUNING_FOR_SDR50		8
+#define TUNING_FOR_SDR50				1
+#define TUNING_OFF_SDR50				0
+#define FLASHSS_MMC_CORECFG_RETUNING_TIMER_CNT		0
+#define RETUNING_TIMER_CNT_DISBLE			0
+#define RETUNING_TIMER_CNT_MAX				0xf
+
+#define STM_FLASHSS_MMC43_CORE_CONFIG5 \
+			 ((CLOCK_MULTIPLIER_NONE << 16)			| \
+			 (FLASHSS_MMC_CORECFG_RETUNING_MODE0 << 12)	| \
+			 (TUNING_OFF_SDR50 << 8)			| \
+			 (RETUNING_TIMER_CNT_DISBLE <<0))
+
+#define FLASHSS_MMC_CORE_CONFIG_6			0x414
+#define FLASHSS_MMC_CORECFG_SPI_BLK_MODE		(1 << 4)
+#define FLASHSS_MMC_CORECFG_SPI_SUPPORT			(1 << 0)
+#define FLASHSS_MMC_CORE_CONFIG_7			0x48
+#define FLASHSS_MMC_CORECFG_DSPD_PRESET_VAL		16
+#define FLASHSS_MMC_CORECFG_INIT_PRESETVAL		0
+#define FLASHSS_MMC_CORE_CONFIG_8			0x41c
+#define FLASHSS_MMC_CORECFG_SDR12_PRESETVAL		16
+#define FLASHSS_MMC_CORECFG_HSPD_PRESETVAL		0
+#define FLASHSS_MMC_CORE_CONFIG_9			0x420
+#define FLASHSS_MMC_CORECFG_SDR50_PRESETVAL		16
+#define FLASHSS_MMC_CORECFG_SDR25_PRESETVAL		0
+#define FLASHSS_MMC_CORE_CONFIG_10			0x424
+#define FLASHSS_MMC_CORECFG_DDR50_PRESETVAL		16
+#define FLASHSS_MMC_CORECFG_SDR104_PRESETVAL		0
+#define FLASHSS_MMC_CORE_CONFIG_11			0x428
+#define FLASHSS_MMC_CORECFG_MAXCURREN_T1P8V		0
+#define FLASHSS_MMC_CORE_CONFIG_12			0x42c
+#define FLASHSS_MMC_CORECFG_MAXCURREN_T3P0V		0
+#define FLASHSS_MMC_CORE_CONFIG_13			0x430
+#define FLASHSS_MMC_CORECFG_MAXCURREN_T3P3V
+#define FLASHSS_MMC_CORE_TOP_CONFIG			0x440
+#define POWER_DN_CNT_CFG				0
+#define FLASHSS_MMC_CORE_GP_OUTPUT			0x450
+#define GP_OUT						30
+#define GP_OUT_0					0
+#define STATUS_R					0x60
+
+/* FlashSS TOP registers offset */
+#define	TOP_FLASHSS_CONFIG				0x1000
+#define	TOP_FLASHSS_CONFIG_HAMMING_NOT_BCH		(0x1 << 0)
+#define	TOP_FLASHSS_CONFIG_CFG_EMMC_NOT_EMI		(0x1 << 1)
+#define	TOP_FLASHSS_CONFIG_EMMC_BOOT_CLK_DIV_BY_2	(0x1 << 2)
+
+#define	TOP_VSENSE_CONFIG				0x1004
+#define	TOP_VSENSE_CONFIG_REG_PSW_EMMC			(0x1 << 0)
+#define	TOP_VSENSE_CONFIG_ENB_REG_PSW_EMMC		(0x1 << 1)
+#define	TOP_VSENSE_CONFIG_REG_PSW_NAND			(0x1 << 8)
+#define	TOP_VSENSE_CONFIG_ENB_REG_PSW_NAND		(0x1 << 9)
+#define	TOP_VSENSE_CONFIG_REG_PSW_SPI			(0x1 << 16)
+#define	TOP_VSENSE_CONFIG_ENB_REG_PSW_SPI		(0x1 << 17)
+#define	TOP_VSENSE_CONFIG_LATCHED_PSW_EMMC		(0x1 << 24)
+#define	TOP_VSENSE_CONFIG_LATCHED_PSW_NAND		(0x1 << 25)
+#define	TOP_VSENSE_CONFIG_LATCHED_PSW_SPI		(0x1 << 26)
+
+/* eMMC registers */
+#define	TOP_EMMC_TX_CLK_DELAY				0x1008
+#define	TOP_EMMC_TX_CLK_DELAY_TX_CLK_DELAY		(0xf << 0)
+
+#define	TOP_EMMC_RX_CLK_DELAY				0x000c
+#define	TOP_EMMC_RX_CLK_DELAY_RX_CLK_DELAY		(0xf << 0)
+
+#define	TOP_EMMC_RX_DAT_DELAY_A				0x1010
+#define	TOP_EMMC_RX_DAT_DELAY_A_RX_DAT0_DELAY		(0xf << 0)
+#define	TOP_EMMC_RX_DAT_DELAY_A_RX_DAT1_DELAY		(0xf << 8)
+#define	TOP_EMMC_RX_DAT_DELAY_A_RX_DAT2_DELAY		(0xf << 16)
+#define	TOP_EMMC_RX_DAT_DELAY_A_RX_DAT3_DELAY		(0xf << 24)
+
+#define	TOP_EMMC_RX_DAT_DELAY_B				0x1014
+#define	TOP_EMMC_RX_DAT_DELAY_B_RX_DAT4_DELAY		(0xf << 0)
+#define	TOP_EMMC_RX_DAT_DELAY_B_RX_DAT5_DELAY		(0xf << 8)
+#define	TOP_EMMC_RX_DAT_DELAY_B_RX_DAT6_DELAY		(0xf << 16)
+#define	TOP_EMMC_RX_DAT_DELAY_B_RX_DAT7_DELAY		(0xf << 24)
+
+#define	TOP_EMMC_DELAY_CONTROL				0x1018
+#define	TOP_EMMC_DELAY_CONTROL_DLL_BYPASS_CMD		(0x1 << 0)
+#define	TOP_EMMC_DELAY_CONTROL_DLL_BYPASS_PH_SEL	(0x1 << 1)
+#define	TOP_EMMC_DELAY_CONTROL_TX_DLL_ENABLE		(0x1 << 8)
+#define	TOP_EMMC_DELAY_CONTROL_RX_DLL_ENABLE		(0x1 << 9)
+#define	TOP_EMMC_DELAY_CONTROL_AUTOTUNE_NOT_CFG_DELAY	(0x1 << 10)
+#define	TOP_EMMC_START_DLL_LOCK				(0x1 << 11)
+#define	TOP_EMMC_DELAY_CONTROL_DLL_BYPASS_CMD_VALUE	(0x3ff << 16)
+
+#define	TOP_EMMC_TX_DLL_STEP_DELAY			0x101c
+#define	TOP_EMMC_TX_DLL_STEP_DELAY_MAX_TX_DLL_STEP_DELAY	(0xf << 0)
+#define	TX_STEP_DEFAULT_DELAY	0x0	/* phase shift delay on the tx clk */
+
+#define	TOP_EMMC_RX_DLL_STEP_DELAY			0x1020
+#define	TOP_EMMC_RX_DLL_STEP_DELAY_MAX_RX_DLL_STEP_DELAY	(0xf << 0)
+#define	RX_STEP_DEFAULT_DELAY	0x0	/* phase shift delay on the rx clk */
+
+#define	TOP_EMMC_RX_CMD_DELAY				0x1024
+#define	TOP_EMMC_RX_CMD_DELAY_MAX_CMD_DLL_STEP_DELAY		(0xf << 0)
+#define	CMD_STEP_DEFAULT_DELAY	0x0	/* phase shift delay on the cmd */
+
+#define	FLASHSS_TIMEOUT				(HZ/50)
+
+/* Static delay table */
+/* 0000: 0.0 ns		*/
+/* 0001: 0.3 ns		*/
+/* 0010: 0.5 ns		*/
+/* 0011: 0.75 ns	*/
+/* 0100: 1.0 ns		*/
+/* 0101: 1.25 ns	*/
+/* 0110: 1.5 ns		*/
+/* 0111: 1.75 ns	*/
+/* 1000: 2.0 ns		*/
+/* 1001: 2.25 ns	*/
+/* 1010: 2.5 ns		*/
+/* 1011: 2.75 ns	*/
+/* 1100: 3.0 ns		*/
+/* 1101: 3.25 ns	*/
+/* 1110: 3.25 ns	*/
+/* 1111: 3.25 ns	*/
+
+/* --------------------------------------------------------------------
+ *	MMC resources (PAD and Retiming)
+ * --------------------------------------------------------------------*/
+
+#define MMC_IN(_port, _pin, _func) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = stm_pad_direction_input, \
+		.retime    = NULL, \
+	}
+
+#define MMC_OUT(_port, _pin, _func) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = stm_pad_direction_output, \
+		.retime    = NULL, \
+	}
+
+#define MMC_DATA_IN_PU(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = stm_pad_direction_input_with_pullup, \
+		.retime    = _retiming, \
+	}
+
+#define MMC_CLOCK_OUT(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = stm_pad_direction_output, \
+		.retime    = _retiming, \
+	}
+
+int stm_sdhci_init(int port,u32 regbase);
+extern void stxh407_mmc_core_config(int port, u32 regbase);
+
+#endif /*_STM_SDHCI_H_*/
+
