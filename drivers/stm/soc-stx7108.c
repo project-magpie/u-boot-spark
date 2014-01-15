@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2013 STMicroelectronics.
+ * (C) Copyright 2008-2014 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -344,7 +344,7 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 #define PHY_CLOCK(_gmac, _port, _pin, _retiming) \
 	{ \
 		.pio       = { _port, _pin, 0 /* filled in later */, }, \
-		.phy_clock = 1, \
+		.u.gmac.phy_clock = 1, \
 		.direction = stm_pad_direction_unknown, \
 		.retime    = _retiming, \
 	}
@@ -353,14 +353,14 @@ static void stx7108_pioalt_retime(const int port, const int pin,
 #define TX_CLOCK(_gmac, _port, _pin, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _gmac + 1, }, \
-		.tx_clock  = 1, \
+		.u.gmac.tx_clock = 1, \
 		.direction = stm_pad_direction_input, \
 		.retime    = _retiming, \
 	}
 
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stx7108_ethernet_mii_pad_configs[] = {
+static struct stm_pad_pin stx7108_ethernet_mii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 6, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[2] */
@@ -391,7 +391,7 @@ static struct stm_pad_sysconf stx7108_ethernet_mii_pad_sysconfs[] = {
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stx7108_ethernet_mii_pad_configs[] = {
+static struct stm_pad_pin stx7108_ethernet_mii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0, 0)),/* PHYCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(1, 15, 7, RET_SE_NICLK_IO(0, 1)),/* TXEN */
@@ -425,7 +425,7 @@ static struct stm_pad_sysconf stx7108_ethernet_mii_pad_sysconfs[] = {
 
 #if 0	/* assume not required in U-Boot */
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stx7108_ethernet_gmii_pad_configs[] = {
+static struct stm_pad_pin stx7108_ethernet_gmii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(3, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[1] */
 			DATA_OUT(0, 6, 2, RET_SE_NICLK_IO(3, 0)),/* TXD[2] */
@@ -464,7 +464,7 @@ static struct stm_pad_sysconf stx7108_ethernet_gmii_pad_sysconfs[] = {
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stx7108_ethernet_gmii_pad_configs[] = {
+static struct stm_pad_pin stx7108_ethernet_gmii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0, 1)), /* GTXCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(1, 15, 7, RET_SE_NICLK_IO(3, 1)),/* TXEN */
@@ -507,7 +507,7 @@ static struct stm_pad_sysconf stx7108_ethernet_gmii_pad_sysconfs[] = {
 
 #if 0	/* assume not required in U-Boot */
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stx7108_ethernet_rgmii_pad_configs[] = {
+static struct stm_pad_pin stx7108_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_DE_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_DE_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 6, 2, RET_DE_IO(0, 0)),/* TXD[2] */
@@ -536,7 +536,7 @@ static struct stm_pad_sysconf stx7108_ethernet_rgmii_pad_sysconfs[] = {
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stx7108_ethernet_rgmii_pad_configs[] = {
+static struct stm_pad_pin stx7108_ethernet_rgmii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0, 1)), /* GTXCLK*/
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(1, 15, 7, RET_DE_IO(0, 1)),/* TXEN */
@@ -568,7 +568,7 @@ static struct stm_pad_sysconf stx7108_ethernet_rgmii_pad_sysconfs[] = {
 #endif	/* if 0 */
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stx7108_ethernet_rmii_pad_configs[] = {
+static struct stm_pad_pin stx7108_ethernet_rmii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(0, 1)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[1] */
 			DATA_OUT(0, 7, 0, RET_SE_NICLK_IO(0, 1)),/* TXER */
@@ -593,7 +593,7 @@ static struct stm_pad_sysconf stx7108_ethernet_rmii_pad_sysconfs[] = {
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 1),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stx7108_ethernet_rmii_pad_configs[] = {
+static struct stm_pad_pin stx7108_ethernet_rmii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0, 0)),/* PHYCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(1, 15, 7, RET_SE_NICLK_IO(0, 0)),/* TXEN */
@@ -621,7 +621,7 @@ static struct stm_pad_sysconf stx7108_ethernet_rmii_pad_sysconfs[] = {
 
 #if 0	/* assume not required in U-Boot */
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stx7108_ethernet_reverse_mii_pad_configs[] = {
+static struct stm_pad_pin stx7108_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(0, 6, 0, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 6, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 6, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[2] */
@@ -652,7 +652,7 @@ static struct stm_pad_sysconf stx7108_ethernet_reverse_mii_pad_sysconfs[] = {
 			STM_PAD_SYS_CFG_BANK(2, 27, 5, 5, 0),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stx7108_ethernet_reverse_mii_pad_configs[] = {
+static struct stm_pad_pin stx7108_ethernet_reverse_mii_pad_configs[] = {
 			PHY_CLOCK(1, 15, 5, RET_NICLK(0, 0)),/* PHYCLK */
 			DATA_IN(1, 15, 6, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(1, 15, 7, RET_SE_NICLK_IO(0, 1)),/* TXEN */
@@ -732,8 +732,8 @@ extern void stx7108_configure_ethernet(
 	const int port,
 	const struct stx7108_ethernet_config * const config)
 {
-	struct stm_gmac_pin * pad_config;
-	struct stm_gmac_pin * phy_clock;
+	struct stm_pad_pin * pad_config;
+	struct stm_pad_pin * phy_clock;
 	const struct stm_pad_sysconf * sys_configs;
 	size_t num_pads, num_sys, i;
 
@@ -817,7 +817,7 @@ extern void stx7108_configure_ethernet(
 		/* now configure all the PIOs */
 	for (i = 0; i < num_pads; i++)
 	{
-		const struct stm_gmac_pin * const pad = &pad_config[i];
+		const struct stm_pad_pin * const pad = &pad_config[i];
 		const int portno = pad->pio.port;
 		const int pinno = pad->pio.pin;
 

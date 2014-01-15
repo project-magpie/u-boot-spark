@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2013 STMicroelectronics.
+ * (C) Copyright 2008-2014 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -424,14 +424,14 @@ extern void stxh416_pioalt_retime(int port, const int pin,
 #define PHY_CLOCK(_port, _pin, _func, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _func, }, \
-		.phy_clock = 1, \
+		.u.gmac.phy_clock = 1, \
 		.direction = stm_pad_direction_unknown, \
 		.retime    = _retiming, \
 	}
 
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stxh416_ethernet_mii_pad_configs[] = {
+static struct stm_pad_pin stxh416_ethernet_mii_pad_configs[] = {
 			DATA_OUT(14, 0, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(14, 1, 2, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(14, 2, 2, RET_SE_NICLK_IO(0, 1)),/* TXD[2] */
@@ -466,7 +466,7 @@ static struct stm_pad_sysconf stxh416_ethernet_mii_pad_sysconfs[] = {
 			STM_PAD_SYSCONF(SYSCONF(2559), 8, 8, 0),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stxh416_ethernet_mii_pad_configs[] = {
+static struct stm_pad_pin stxh416_ethernet_mii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[2] */
@@ -504,7 +504,7 @@ static struct stm_pad_sysconf stxh416_ethernet_mii_pad_sysconfs[] = {
 
 #if 0
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stxh416_ethernet_gmii_pad_configs[] = {
+static struct stm_pad_pin stxh416_ethernet_gmii_pad_configs[] = {
 			PHY_CLOCK(13, 5, 4, RET_NICLK(0, 1)),/* GTXCLK */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(13, 7, 2, RET_SE_NICLK_IO(3, 0)),/* TXEN */
@@ -548,7 +548,7 @@ static struct stm_pad_sysconf stxh416_ethernet_gmii_pad_sysconfs[] = {
 			STM_PAD_SYSCONF(SYSCONF(2559), 8, 8, 0),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stxh416_ethernet_gmii_pad_configs[] = {
+static struct stm_pad_pin stxh416_ethernet_gmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_SE_NICLK_IO(3, 0)),/* TXD[2] */
@@ -595,7 +595,7 @@ static struct stm_pad_sysconf stxh416_ethernet_gmii_pad_sysconfs[] = {
 #endif	/* 0 */
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stxh416_ethernet_rgmii_pad_configs[] = {
+static struct stm_pad_pin stxh416_ethernet_rgmii_pad_configs[] = {
 			PHY_CLOCK(13, 5, 2, RET_NICLK(0, 1)),/* GTXCLK */
 			DATA_OUT(13, 7, 2, RET_DE_IO(0, 0)),/* TXEN */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)), /* MDINT */
@@ -625,7 +625,7 @@ static struct stm_pad_sysconf stxh416_ethernet_rgmii_pad_sysconfs[] = {
 			/* Extra retime config base on speed */
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stxh416_ethernet_rgmii_pad_configs[] = {
+static struct stm_pad_pin stxh416_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_DE_IO(1, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_DE_IO(1, 0)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_DE_IO(1, 0)),/* TXD[2] */
@@ -661,7 +661,7 @@ static struct stm_pad_sysconf stxh416_ethernet_rgmii_pad_sysconfs[] = {
 #endif				/* CONFIG_SYS_STM_STMAC_BASE == GMAC #1 */
 
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stxh416_ethernet_rmii_pad_configs[] = {
+static struct stm_pad_pin stxh416_ethernet_rmii_pad_configs[] = {
 			PHY_CLOCK(13, 5, 2, RET_NICLK(0, 1)),/* PHYCLK */
 			DATA_IN(13, 6, 2, RET_BYPASS(0)),/* MDINT */
 			DATA_OUT(13, 7, 2, RET_SE_NICLK_IO(0, 0)),/* TXEN */
@@ -690,7 +690,7 @@ static struct stm_pad_sysconf stxh416_ethernet_rmii_pad_sysconfs[] = {
 			STM_PAD_SYSCONF(SYSCONF(2559), 8, 8, 1),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stxh416_ethernet_rmii_pad_configs[] = {
+static struct stm_pad_pin stxh416_ethernet_rmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 5, 1, RET_SE_NICLK_IO(0, 0)),/* TXEN */
@@ -719,7 +719,7 @@ static struct stm_pad_sysconf stxh416_ethernet_rmii_pad_sysconfs[] = {
 
 #if 0
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC0_BASE	/* GMAC #0 */
-static struct stm_gmac_pin stxh416_ethernet_reverse_mii_pad_configs[] = {
+static struct stm_pad_pin stxh416_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(14, 0, 2, RET_BYPASS(0)),/* TXD[0] */
 			DATA_OUT(14, 1, 2, RET_BYPASS(0)),/* TXD[1] */
 			DATA_OUT(14, 2, 2, RET_BYPASS(0)),/* TXD[2] */
@@ -754,7 +754,7 @@ static struct stm_pad_sysconf stxh416_ethernet_reverse_mii_pad_sysconfs[] = {
 			STM_PAD_SYSCONF(SYSCONF(2559), 8, 8, 0),
 };
 #elif CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* GMAC #1 */
-static struct stm_gmac_pin stxh416_ethernet_reverse_mii_pad_configs[] = {
+static struct stm_pad_pin stxh416_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[2] */
@@ -820,8 +820,8 @@ extern void stxh416_configure_ethernet(
 	const int port,
 	const struct stxh416_ethernet_config * const config)
 {
-	struct stm_gmac_pin * pad_config;
-	struct stm_gmac_pin * phy_clock;
+	struct stm_pad_pin * pad_config;
+	struct stm_pad_pin * phy_clock;
 	const struct stm_pad_sysconf * sys_configs;
 	size_t num_pads, num_sys, i;
 
@@ -906,7 +906,7 @@ extern void stxh416_configure_ethernet(
 		/* now configure all the PIOs */
 	for (i = 0; i < num_pads; i++)
 	{
-		const struct stm_gmac_pin * const pad = &pad_config[i];
+		const struct stm_pad_pin * const pad = &pad_config[i];
 		const int portno = pad->pio.port;
 		const int pinno = pad->pio.pin;
 

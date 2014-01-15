@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2012 STMicroelectronics.
+ * (C) Copyright 2008-2014 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -39,14 +39,18 @@ enum stm_pad_gpio_direction {
 };
 
 
-struct stm_gmac_pin {
+struct stm_pad_pin {
 	struct {
 		const unsigned char port, pin;
 		      unsigned char alt;
 	} pio;
-	const char phy_clock:1;
-	const char tx_clock:1;
-	const char txer:1;
+	const union {
+		struct { /* bit-fields for the GMAC */
+			const char phy_clock:1;
+			const char tx_clock:1;
+			const char txer:1;
+		} gmac;
+	} u;
 	enum stm_pad_gpio_direction direction;
 	const struct stm_pio_control_retime_config * const retime;
 };
@@ -74,15 +78,15 @@ struct stm_gmac_pin {
  * Find first pin which is tagged as being a "PHY CLOCK", and return it.
  * Otherwise return NULL, if none found!
  */
-static inline struct stm_gmac_pin * stm_gmac_find_phy_clock(
-	struct stm_gmac_pin * const array,
+static inline struct stm_pad_pin * stm_gmac_find_phy_clock(
+	struct stm_pad_pin * const array,
 	const size_t count)
 {
 	size_t i;
 
 	for(i=0; i<count; i++)
 	{
-		if (array[i].phy_clock)
+		if (array[i].u.gmac.phy_clock)
 			return &array[i];	/* found it */
 	}
 
@@ -95,15 +99,15 @@ static inline struct stm_gmac_pin * stm_gmac_find_phy_clock(
  * Find first pin which is tagged as being a "TXER", and return it.
  * Otherwise return NULL, if none found!
  */
-static inline struct stm_gmac_pin * stm_gmac_find_txer(
-	struct stm_gmac_pin * const array,
+static inline struct stm_pad_pin * stm_gmac_find_txer(
+	struct stm_pad_pin * const array,
 	const size_t count)
 {
 	size_t i;
 
 	for(i=0; i<count; i++)
 	{
-		if (array[i].txer)
+		if (array[i].u.gmac.txer)
 			return &array[i];	/* found it */
 	}
 
@@ -115,15 +119,15 @@ static inline struct stm_gmac_pin * stm_gmac_find_txer(
  * Find first pin which is tagged as being a "TX_CLOCK", and return it.
  * Otherwise return NULL, if none found!
  */
-static inline struct stm_gmac_pin * stm_gmac_find_tx_clock(
-	struct stm_gmac_pin * const array,
+static inline struct stm_pad_pin * stm_gmac_find_tx_clock(
+	struct stm_pad_pin * const array,
 	const size_t count)
 {
 	size_t i;
 
 	for(i=0; i<count; i++)
 	{
-		if (array[i].tx_clock)
+		if (array[i].u.gmac.tx_clock)
 			return &array[i];	/* found it */
 	}
 

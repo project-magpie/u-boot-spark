@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2013 STMicroelectronics.
+ * (C) Copyright 2008-2014 STMicroelectronics.
  *
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -418,13 +418,13 @@ extern void stxh407_pioalt_retime(int port, const int pin,
 #define PHY_CLOCK(_port, _pin, _func, _retiming) \
 	{ \
 		.pio       = { _port, _pin, _func, }, \
-		.phy_clock = 1, \
+		.u.gmac.phy_clock = 1, \
 		.direction = stm_pad_direction_unknown, \
 		.retime    = _retiming, \
 	}
 
 
-static struct stm_gmac_pin stxh407_ethernet_mii_pad_configs[] = {
+static struct stm_pad_pin stxh407_ethernet_mii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[2] */
@@ -460,7 +460,7 @@ static struct stm_pad_sysconf stxh407_ethernet_mii_pad_sysconfs[] = {
 };
 
 #if 0
-static struct stm_gmac_pin stxh407_ethernet_gmii_pad_configs[] = {
+static struct stm_pad_pin stxh407_ethernet_gmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(750, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(750, 0)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_SE_NICLK_IO(750, 0)),/* TXD[2] */
@@ -505,7 +505,7 @@ static struct stm_pad_sysconf stxh407_ethernet_gmii_pad_sysconfs[] = {
 };
 #endif	/* 0 */
 
-static struct stm_gmac_pin stxh407_ethernet_rgmii_pad_configs[] = {
+static struct stm_pad_pin stxh407_ethernet_rgmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_DE_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_DE_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_DE_IO(0, 0)),/* TXD[2] */
@@ -545,7 +545,7 @@ static struct stm_pad_sysconf stxh407_ethernet_rgmii_pad_sysconfs[] = {
 			STM_PAD_SYSCONF(SYSCONF(4032), 8, 8, 1),
 };
 
-static struct stm_gmac_pin stxh407_ethernet_rmii_pad_configs[] = {
+static struct stm_pad_pin stxh407_ethernet_rmii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 0)),/* TXD[1] */
 			DATA_OUT(0, 5, 1, RET_SE_NICLK_IO(0, 0)),/* TXEN */
@@ -572,7 +572,7 @@ static struct stm_pad_sysconf stxh407_ethernet_rmii_pad_sysconfs[] = {
 };
 
 #if 0
-static struct stm_gmac_pin stxh407_ethernet_reverse_mii_pad_configs[] = {
+static struct stm_pad_pin stxh407_ethernet_reverse_mii_pad_configs[] = {
 			DATA_OUT(0, 0, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[0] */
 			DATA_OUT(0, 1, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[1] */
 			DATA_OUT(0, 2, 1, RET_SE_NICLK_IO(0, 1)),/* TXD[2] */
@@ -636,8 +636,8 @@ static void stxh407_ethernet_bus_setup(void)
 extern void stxh407_configure_ethernet(
 	const struct stxh407_ethernet_config * const config)
 {
-	struct stm_gmac_pin * pad_config;
-	struct stm_gmac_pin * phy_clock;
+	struct stm_pad_pin * pad_config;
+	struct stm_pad_pin * phy_clock;
 	const struct stm_pad_sysconf * sys_configs;
 	size_t num_pads, num_sys, i;
 
@@ -707,7 +707,7 @@ extern void stxh407_configure_ethernet(
 		/* now configure all the PIOs */
 	for (i = 0; i < num_pads; i++)
 	{
-		const struct stm_gmac_pin * const pad = &pad_config[i];
+		const struct stm_pad_pin * const pad = &pad_config[i];
 		const int portno = pad->pio.port;
 		const int pinno = pad->pio.pin;
 
