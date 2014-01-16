@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2013 STMicroelectronics.
+ * (C) Copyright 2008-2014 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -368,6 +368,13 @@ extern int		stxh415_i2c_read(void);
 extern void		stxh416_i2c_scl(const int val);
 extern void		stxh416_i2c_sda(const int val);
 extern int		stxh416_i2c_read(void);
+
+
+/*
+ * MMC/SD initialization functions.
+ */
+extern int stm_sdhci_init(const int port, const u32 regbase);
+extern int stxh407_mmc_getcd(const int port);
 
 
 /*

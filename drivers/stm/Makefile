@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2008,2010-2013 STMicroelectronics.
+# (C) Copyright 2008,2010-2014 STMicroelectronics.
 # Sean McGoogan <Sean.McGoogan@st.com>
 #
 # See file CREDITS for list of people who contributed to this
@@ -41,6 +41,7 @@ COBJS-$(CONFIG_STM_DTF_SERIAL) += stm-dtf.o
 COBJS-$(CONFIG_DRIVER_NETSTMAC)     += stm-stmac.o
 COBJS-$(CONFIG_DRIVER_NET_STM_GMAC) += stm-stmac.o
 COBJS-$(CONFIG_STMAC_USE_RTL8367_SMI) += rtl8367_smi.o
+COBJS-$(CONFIG_STM_SDHCI) += stm-sdhci.o
 
 ifdef CONFIG_CMD_NAND
 COBJS-y += ecc.o stm-nand.o

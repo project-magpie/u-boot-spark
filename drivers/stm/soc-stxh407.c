@@ -4,6 +4,7 @@
  * Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  * Pawel Moll <pawel.moll@st.com>
+ * Youssef TRIKI <youssef.triki@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -35,6 +36,7 @@
 #include <stm/pad.h>
 #include <stm/pio-control.h>
 #include <stm/stm-sdhci.h>
+#include <mmc.h>
 #include <ata.h>
 #include <spi.h>
 #include <netdev.h>
@@ -243,6 +245,49 @@ extern void stxh407_pioalt_pad(int port, const int pin,
 		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
 }
+
+#if defined(CONFIG_DRIVER_NET_STM_GMAC) || defined(CONFIG_STM_SDHCI)
+static void stxh407_configure_pios(
+	const struct stm_pad_pin * const pad_config,
+	const size_t num_pads)
+{
+	size_t i;
+
+		/* now configure all the PIOs */
+	for (i = 0; i < num_pads; i++)
+	{
+		const struct stm_pad_pin * const pad = &pad_config[i];
+		const int portno = pad->pio.port;
+		const int pinno = pad->pio.pin;
+
+#ifdef DEBUG_PAD_CONFIGS
+	if (debug_pad_configs)
+		printf("%2u: PIO%03u[%u] %-7s, alt=%u, retime=%p\n",
+			i+1,
+			portno, pinno,
+			(pad->direction==stm_pad_direction_input) ? "in" :
+				(pad->direction==stm_pad_direction_input_with_pullup) ? "in+pu" :
+				(pad->direction==stm_pad_direction_output) ? "out" :
+				(pad->direction==stm_pad_direction_bidir_no_pullup) ? "bidir" :
+				(pad->direction==stm_pad_direction_bidir_with_pullup) ? "bidir+pu" :
+				(pad->direction==stm_pad_direction_ignored) ? "ignore" :
+				"BAD-BAD",
+			pad->pio.alt,
+			pad->retime
+		);
+#endif
+
+		if (pad->direction == stm_pad_direction_ignored)
+			continue;	/* skip all "ignored" pads */
+
+		stxh407_pioalt_select(portno, pinno, pad->pio.alt);
+		stxh407_pioalt_pad(portno, pinno, pad->direction);
+		if (pad->retime)
+			stxh407_pioalt_retime(portno, pinno, pad->retime, pad->direction);
+	}
+}
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC || CONFIG_STM_SDHCI */
+
 
 /* PIO retiming setup */
 
@@ -640,7 +685,7 @@ extern void stxh407_configure_ethernet(
 	struct stm_pad_pin * pad_config;
 	struct stm_pad_pin * phy_clock;
 	const struct stm_pad_sysconf * sys_configs;
-	size_t num_pads, num_sys, i;
+	size_t num_pads, num_sys;
 
 	BUG_ON(!config);
 
@@ -706,35 +751,7 @@ extern void stxh407_configure_ethernet(
 	}
 
 		/* now configure all the PIOs */
-	for (i = 0; i < num_pads; i++)
-	{
-		const struct stm_pad_pin * const pad = &pad_config[i];
-		const int portno = pad->pio.port;
-		const int pinno = pad->pio.pin;
-
-#ifdef DEBUG_PAD_CONFIGS
-	if (debug_pad_configs)
-		printf("%2u: PIO%03u[%u] %-7s, alt=%u, retime=%p\n",
-			i+1,
-			portno, pinno,
-			(pad->direction==stm_pad_direction_input) ? "in" :
-				(pad->direction==stm_pad_direction_input_with_pullup) ? "in+pu" :
-				(pad->direction==stm_pad_direction_output) ? "out" :
-				(pad->direction==stm_pad_direction_bidir_no_pullup) ? "bidir" :
-				(pad->direction==stm_pad_direction_ignored) ? "ignore" :
-				"BAD-BAD",
-			pad->pio.alt,
-			pad->retime
-		);
-#endif
-
-		if (pad->direction == stm_pad_direction_ignored)
-			continue;	/* skip all "ignored" pads */
-
-		stxh407_pioalt_select(portno, pinno, pad->pio.alt);
-		stxh407_pioalt_pad(portno, pinno, pad->direction);
-		stxh407_pioalt_retime(portno, pinno, pad->retime, pad->direction);
-	}
+	stxh407_configure_pios(pad_config, num_pads);
 
 		/* now configure the relevant SYS_CONFIGs */
 	stm_configure_sysconfs(sys_configs, num_sys);
@@ -997,169 +1014,289 @@ extern void spi_cs_deactivate(struct spi_slave * const slave)
 #endif	/* CONFIG_SPI && CONFIG_SOFT_SPI */
 
 
-#if defined (CONFIG_STM_SDHCI)
-extern int stxh407_mmc_getcd(int port)
+#if defined(CONFIG_STM_SDHCI)
+
+
+/* --------------------------------------------------------------------
+ *		MMC/SDHCI resources (PAD and Retiming)
+ * --------------------------------------------------------------------*/
+
+#define MMC_IN(_port, _pin, _func) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = stm_pad_direction_input, \
+		.retime    = NULL, \
+	}
+
+#define MMC_OUT(_port, _pin, _func) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = stm_pad_direction_output, \
+		.retime    = NULL, \
+	}
+
+#define MMC_DATA_IN_PU(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = stm_pad_direction_input_with_pullup, \
+		.retime    = _retiming, \
+	}
+
+#define MMC_CLOCK_OUT(_port, _pin, _func, _retiming) \
+	{ \
+		.pio       = { _port, _pin, _func, }, \
+		.direction = stm_pad_direction_output, \
+		.retime    = _retiming, \
+	}
+
+#define RET_NICLK2(_delay,_clk) (&(const struct stm_pio_control_retime_config){ \
+		.retime = 0, \
+		.clk = STM_RETIME_VALUE_CLK_ ## _clk, \
+		.clknotdata = 1, \
+		.double_edge = 0, \
+		.invertclk = 0, \
+		.delay = STM_RETIME_VALUE_DELAY_ ## _delay, \
+		})
+
+#if defined(CONFIG_STM_SDHCI_0)
+static const struct stm_pad_pin stxh407_mmc0_pad_configs[] = {
+			MMC_DATA_IN_PU(41, 0, 1, NULL),	/* DATA[0] */
+			MMC_DATA_IN_PU(41, 1, 1, NULL),	/* DATA[1] */
+			MMC_DATA_IN_PU(41, 2, 1, NULL),	/* DATA[2] */
+			MMC_DATA_IN_PU(41, 3, 1, NULL),	/* DATA[3] */
+			MMC_DATA_IN_PU(41, 4, 1, NULL),	/* DATA[4] */
+			MMC_DATA_IN_PU(41, 5, 1, NULL),	/* DATA[5] */
+			MMC_DATA_IN_PU(41, 6, 1, NULL),	/* DATA[6] */
+			MMC_DATA_IN_PU(41, 7, 1, NULL),	/* DATA[7] */
+			MMC_DATA_IN_PU(40, 7, 1, NULL),	/* CMD */
+			MMC_CLOCK_OUT(40, 6, 1, NULL),	/* Clock */
+			//MMC_OUT(42,3,2),/*V_SEL for SD config */
+};
+#endif	/* CONFIG_STM_SDHCI_0 */
+
+#if defined(CONFIG_STM_SDHCI_1)
+static const struct stm_pad_pin stxh407_mmc1_pad_configs[] = {
+			MMC_DATA_IN_PU(19, 4, 5, RET_BYPASS(3250)),	/* DATA[0] */
+			MMC_DATA_IN_PU(19, 5, 5, RET_BYPASS(3250)),	/* DATA[1] */
+			MMC_DATA_IN_PU(19, 6, 5, RET_BYPASS(3250)),	/* DATA[2] */
+			MMC_DATA_IN_PU(19, 7, 5, RET_BYPASS(3250)),	/* DATA[3] */
+			MMC_DATA_IN_PU(19, 2, 5, RET_BYPASS(3250)),	/* CMD */
+			MMC_CLOCK_OUT(19, 3, 5, RET_NICLK2(3250,1)),	/* Clock */
+			MMC_OUT(16, 7, 6),				/* MMC Card PWR */
+			MMC_OUT(16, 6, 6),				/* MMC LED ON */
+			MMC_DATA_IN_PU(19, 0, 6, NULL),			/* MMC Card Detect */
+			MMC_IN(19, 1, 6),				/* MMC Write Protect */
+};
+#endif	/* CONFIG_STM_SDHCI_1 */
+
+	/*
+	 * Returns the *raw* "CD" (Card Detect) siginal
+	 * for the appropriate MMC port #.
+	 * Note: The PIO should have a pull-up attached.
+	 * returns:	0 for card present, 1 for no card.
+	 */
+extern int stxh407_mmc_getcd(const int port)
 {
-	if (port==0)
+#if defined (CONFIG_STM_SDHCI_0)
+	if (port == 0)		/* MMC #0 ? */
 	{
-		return 1; /*eMMC is always present*/
+		return 0;	/* eMMC is always present */
 	}
-	if (port==1)
-	{	
-		return STPIO_GET_PIN(STM_PIO_BASE(19), (0)); /* for SD Config*/
+	else
+#endif	/* CONFIG_STM_SDHCI_0 */
+#if defined (CONFIG_STM_SDHCI_1)
+	if (port == 1)		/* MMC #1 ? */
+	{			/* for SD slot */
+		return STPIO_GET_PIN(STM_PIO_BASE(19), 0);
 	}
- 	return 0;
+	else
+#endif	/* CONFIG_STM_SDHCI_1 */
+	{
+		BUG();		/* should never get here! */
+	}
 }
 
-void stxh407_enable_mmc(int port, u32 regbase)
+static void stxh407_enable_mmc(const int port, const u32 regbase)
 {
-	if (port)
-	{	
+	if (port != 0)
+	{
 		unsigned long sysconf = readl(SYSCONF(5132));
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: status enable 0x%x\n",port, sysconf);
-#endif /*MMC_CORE_DEBUG*/
+		printf("mmc%d: status enable 0x%x\n", port, sysconf);
+#endif
 		SET_SYSCONF_BIT(sysconf,1,3);
 		writel(sysconf, SYSCONF(5132));
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: enable 0x%x\n",port, readl(SYSCONF(5132)));
-#endif /*MMC_CORE_DEBUG*/
+		printf("mmc%d: enable 0x%x\n", port, readl(SYSCONF(5132)));
+#endif
 	}
-	else
+	else	/* MMC #0 (i.e. the eMMC bootable device) */
 	{
 		unsigned long reg = readl(regbase + TOP_FLASHSS_CONFIG);
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: boot status 0x%x\n",port ,reg);
-#endif /*MMC_CORE_DEBUG*/
+		printf("mmc%d: boot status 0x%x\n", port, reg);
+#endif
 		SET_SYSCONF_BIT(reg,0,1);
 		writel(reg,regbase + TOP_FLASHSS_CONFIG);/* boot disable*/
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: boot status 0x%x\n",port ,readl(regbase + TOP_FLASHSS_CONFIG));
-#endif /*MMC_CORE_DEBUG*/
+		printf("mmc%d: boot status 0x%x\n", port, readl(regbase + TOP_FLASHSS_CONFIG));
+#endif
 
 		reg = readl(regbase + TOP_VSENSE_CONFIG);
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: vsense config at reset: 0x%x\n",port , reg);
-#endif /*MMC_CORE_DEBUG*/
+		printf("mmc%d: vsense config at reset: 0x%x\n", port, reg);
+#endif
 		SET_SYSCONF_BIT(reg,0,0); /*TOP_VSENSE_CONFIG_REG_PSW_EMMC*/
 		SET_SYSCONF_BIT(reg,1,1); /*TOP_VSENSE_CONFIG_ENB_REG_PSW_EMMC*/
 		writel(reg,regbase + TOP_VSENSE_CONFIG); /*switch to 1.8v pad config*/
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: vsense config at 1v8:  0x%x\n",port , readl(regbase + TOP_VSENSE_CONFIG));
-#endif /*MMC_CORE_DEBUG*/
+		printf("mmc%d: vsense config at 1v8: 0x%x\n", port, readl(regbase + TOP_VSENSE_CONFIG));
+#endif
 
 		reg = readl(regbase + TOP_EMMC_TX_CLK_DELAY);
-		writel(TOP_EMMC_TX_CLK_DELAY_TX_CLK_DELAY,regbase + TOP_EMMC_TX_CLK_DELAY);
+		writel(TOP_EMMC_TX_CLK_DELAY_TX_CLK_DELAY, regbase + TOP_EMMC_TX_CLK_DELAY);
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: delay TX :  0x%x\n",port , readl(regbase + TOP_EMMC_TX_CLK_DELAY));
-#endif /*MMC_CORE_DEBUG*/
+		printf("mmc%d: delay TX: 0x%x\n", port, readl(regbase + TOP_EMMC_TX_CLK_DELAY));
+#endif
 	}
 }
 
-extern struct stm_pad_pin stxh407_mmc0_pad_configs[10];
-extern struct stm_pad_pin stxh407_mmc1_pad_configs[10];
-
-void stxh407_configure_mmc(int port, u32 regbase)
+/**
+ * stxh407_mmc_core_config: configure the Arasan HC
+ * @ioaddr: base address
+ * Description: this function is to configure the Arasan MMC HC.
+ * This should be called when the system starts in case of, on the SoC,
+ * it is needed to configure the host controller.
+ * This happens on some SoCs, i.e. StiH407, where the MMC0 inside the flashSS
+ * needs to be configured as MMC 4.5 to have full capabilities.
+ * W/o these settings the SDHCI could configure and use the embedded controller
+ * with limited features.
+ */
+static void stxh407_mmc_core_config(const int port, const u32 regbase)
 {
-	struct stm_pad_pin * pad_config;
-	size_t num_pads, i;
+#ifdef MMC_CORE_DEBUG
+	printf("mmc%d: mmc%d core at reset ...\n", port, port);
+	printf("cfg1 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_1));
+	printf("cfg2 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_2));
+	printf("cfg3 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_3));
+	printf("cfg4 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_4));
+	printf("cfg5 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_5));
+	printf("cfg6 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_6));
+	printf("cfg7 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_7));
+	printf("cfg8 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_8));
+#endif /*MMC_CORE_DEBUG*/
 
+	writel(STM_FLASHSS_MMC_CORE_CONFIG_1,
+		regbase + FLASHSS_MMC_CORE_CONFIG_1);
+	(port)? writel(STM_FLASHSS_SD20_CORE_CONFIG2,
+			regbase + FLASHSS_MMC_CORE_CONFIG_2):/*STM_FLASHSS_SD20_CORE_CONFIG3*/
+		writel(STM_FLASHSS_MMC43_CORE_CONFIG2,
+			regbase + FLASHSS_MMC_CORE_CONFIG_2);
+
+	(port)? writel(STM_FLASHSS_SD20_CORE_CONFIG3,
+			regbase + FLASHSS_MMC_CORE_CONFIG_3):/*STM_FLASHSS_SD20_CORE_CONFIG3*/
+		writel(STM_FLASHSS_MMC43_CORE_CONFIG3,
+			regbase + FLASHSS_MMC_CORE_CONFIG_3);
+	writel(STM_FLASHSS_MMC43_CORE_CONFIG4,
+		regbase + FLASHSS_MMC_CORE_CONFIG_4);
+	writel(STM_FLASHSS_MMC43_CORE_CONFIG5,
+		regbase + FLASHSS_MMC_CORE_CONFIG_5);
+	writel(FLASHSS_MMC_CORE_CONFIG_6,
+		regbase + FLASHSS_MMC_CORE_CONFIG_6);
+	writel(FLASHSS_MMC_CORE_CONFIG_7,
+		regbase + FLASHSS_MMC_CORE_CONFIG_7);
+
+#ifdef MMC_CORE_DEBUG
+	printf("mmc%d: mmc%d core set SD2.0 ...\n", port, port);
+	printf("cfg1 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_1));
+	printf("cfg2 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_2));
+	printf("cfg3 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_3));
+	printf("cfg4 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_4));
+	printf("cfg5 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_5));
+	printf("cfg6 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_6));
+	printf("cfg7 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_7));
+	printf("cfg8 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_8));
+#endif /*MMC_CORE_DEBUG*/
+}
+
+static void stxh407_configure_mmc(const int port, const u32 regbase)
+{
+	const struct stm_pad_pin * pad_config;
+	size_t num_pads;
+
+#if defined(CONFIG_STM_SDHCI_0)
 	if (port==0)
 	{
 		stxh407_enable_mmc(port, regbase);
-		stxh407_mmc_core_config(port,regbase);
+		stxh407_mmc_core_config(port, regbase);
 		pad_config = stxh407_mmc0_pad_configs;
 		num_pads = ARRAY_SIZE(stxh407_mmc0_pad_configs);
 	}
-	else if (port==1)
+	else
+#endif	/* CONFIG_STM_SDHCI_0 */
+#if defined (CONFIG_STM_SDHCI_1)
+	if (port==1)
 	{
 		stxh407_enable_mmc(port, regbase);
-		stxh407_mmc_core_config(port,regbase);
+		stxh407_mmc_core_config(port, regbase);
 		pad_config = stxh407_mmc1_pad_configs;
 		num_pads = ARRAY_SIZE(stxh407_mmc1_pad_configs);
 	}
 	else
+#endif	/* CONFIG_STM_SDHCI_1 */
 	{
 		BUG();
 	}
 
-	/* now configure all the PIOs */
-	for (i = 0; i < num_pads; i++)
+		/* now configure all the PIOs */
+	stxh407_configure_pios(pad_config, num_pads);
+
+#if defined(CONFIG_STM_SDHCI_0)
+	if (port==0)	/* eMMC (MMC #0) ? */
 	{
-		const struct stm_pad_pin * const pad = &pad_config[i];
-		const int portno = pad->pio.port;
-		const int pinno = pad->pio.pin;
-
-#ifdef DEBUG_PAD_CONFIGS
-	if (debug_pad_configs)
-		printf("%2u: PIO%03u[%u] %-7s, alt=%u, retime=%p\n",
-			i+1,
-			portno, pinno,
-			(pad->direction==stm_pad_direction_input) ? "in" :
-				(pad->direction==stm_pad_direction_input_with_pullup) ? "in+pu" :
-				(pad->direction==stm_pad_direction_output) ? "out" :
-				(pad->direction==stm_pad_direction_bidir_no_pullup) ? "bidir" :
-				(pad->direction==stm_pad_direction_bidir_with_pullup) ? "bidir+pu" :
-				(pad->direction==stm_pad_direction_ignored) ? "ignore" :
-				"BAD-BAD",
-			pad->pio.alt,
-			pad->retime
-		);
-#endif
-
-		if (pad->direction == stm_pad_direction_ignored)
-			continue;	/* skip all "ignored" pads */
-
-		stxh407_pioalt_select(portno, pinno, pad->pio.alt);
-		stxh407_pioalt_pad(portno, pinno, pad->direction);
-
-		if (pad->retime)
-			stxh407_pioalt_retime(portno, pinno, pad->retime, pad->direction);
-	}
-	if (port==0)
-	{
-		/* set Pull up need more elaboration -> TRIKIY */
+		/*
+		 * For booting, the standard requires the CMD and DATAx
+		 * lines all have a pull-up attached. As a cost saving,
+		 * these pull-ups might not be on the board, so we will
+		 * explicitly enable the pad's pull-ups in the SoC.
+		 */
 		unsigned long sysconf = readl(SYSCONF(3080));
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: pull up config at reset 0x%x\n",port , sysconf);
-#endif /*MMC_CORE_DEBUG*/
-		SET_SYSCONF_BIT(sysconf,1,6);  /* CLK*/		
-		SET_SYSCONF_BIT(sysconf,1,7);  /* CMD*/
-		SET_SYSCONF_BIT(sysconf,1,8);  /*DATA0*/
-		SET_SYSCONF_BIT(sysconf,1,9);  /*DATA1*/
-		SET_SYSCONF_BIT(sysconf,1,10); /*DATA2*/
-		SET_SYSCONF_BIT(sysconf,1,11); /*DATA3*/
-		SET_SYSCONF_BIT(sysconf,1,12); /*DATA4*/
-		SET_SYSCONF_BIT(sysconf,1,13); /*DATA5*/
-		SET_SYSCONF_BIT(sysconf,1,14); /*DATA6*/
-		SET_SYSCONF_BIT(sysconf,1,15); /*DATA7*/
+		printf("mmc%d: pull up config at reset 0x%x\n", port, sysconf);
+#endif
+		SET_SYSCONF_BIT(sysconf,1,7);	/* CMD */
+		SET_SYSCONF_BIT(sysconf,1,8);	/* DATA0 */
+		SET_SYSCONF_BIT(sysconf,1,9);	/* DATA1 */
+		SET_SYSCONF_BIT(sysconf,1,10);	/* DATA2 */
+		SET_SYSCONF_BIT(sysconf,1,11);	/* DATA3 */
+		SET_SYSCONF_BIT(sysconf,1,12);	/* DATA4 */
+		SET_SYSCONF_BIT(sysconf,1,13);	/* DATA5 */
+		SET_SYSCONF_BIT(sysconf,1,14);	/* DATA6 */
+		SET_SYSCONF_BIT(sysconf,1,15);	/* DATA7 */
 
 		writel(sysconf, SYSCONF(3080));
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: pull up config 0x%x\n",port ,readl(SYSCONF(3080)));
-#endif /*MMC_CORE_DEBUG*/
+		printf("mmc%d: pull up config 0x%x\n", port, readl(SYSCONF(3080)));
+#endif
 	}
-		/* need to do this *after* the SYSCONF initialization! */
-		//stxh407_mmc_bus_setup(regbase);
+#endif	/* CONFIG_STM_SDHCI_0 */
 }
 
-extern int stxh407_mmc_init(int port)
+extern int cpu_mmc_init(bd_t *bis)
 {
-        switch(port)
-	{
-#if defined(CONFIG_SYS_MMC0_BASE)
-	  case 0  : return stm_sdhci_init(port,CONFIG_SYS_MMC0_BASE);
-	            break;
-#endif
-#if defined(CONFIG_SYS_MMC1_BASE)
-	  case 1  : return stm_sdhci_init(port,CONFIG_SYS_MMC1_BASE);
-	            break;
-#endif
-	  default : printf("Invalid eMMC port to be initialized\n");
-		    BUG();
-		    return -1;
-	}
+	int ret = 0;
 
-	return 0;
+#if defined(CONFIG_STM_SDHCI_0)
+	stxh407_configure_mmc(0, CONFIG_SYS_MMC0_BASE);
+	ret |= stm_sdhci_init(0, CONFIG_SYS_MMC0_BASE);
+#endif	/* CONFIG_STM_SDHCI_0 */
+
+#if defined (CONFIG_STM_SDHCI_1)
+	stxh407_configure_mmc(1, CONFIG_SYS_MMC1_BASE);
+	ret |= stm_sdhci_init(1, CONFIG_SYS_MMC1_BASE);
+#endif	/* CONFIG_STM_SDHCI_1 */
+
+	return ret;
 }
-#endif /*CONFIG_STM_SDHCI*/
+
+#endif	/* CONFIG_STM_SDHCI */

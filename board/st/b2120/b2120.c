@@ -29,8 +29,6 @@
 #include <asm/io.h>
 #include <stm/pio.h>
 #include <stm/sysconf.h>
-#include <stm/stm-sdhci.h>
-#include <mmc.h>
 
 
 void flashWriteEnable(void)
@@ -103,124 +101,6 @@ extern void stmac_phy_reset(void)
 	udelay(10000);				/* 10 ms */
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
-
-
-#ifdef CONFIG_GENERIC_MMC
-/**
- * stxh407_mmc_core_config: configure the Arasan HC
- * @ioaddr: base address
- * Description: this function is to configure the arasan MMC HC.
- * This should be called when the system starts in case of, on the SoC,
- * it is needed to configure the host controller.
- * This happens on some SoCs, i.e. StiH407, where the MMC0 inside the flashSS
- * needs to be configured as MMC 4.5 to have full capabilities.
- * W/o these settings the SDHCI could configure and use the embedded controller
- * with limited features.
- */
-extern void stxh407_mmc_core_config(int port, u32 regbase)
-{
-#ifdef MMC_CORE_DEBUG
-	printf("mmc%d: mmc%d core at reset ...\n", port, port);
-	printf("cfg1 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_1));
-	printf("cfg2 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_2));
-	printf("cfg3 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_3));
-	printf("cfg4 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_4));
-	printf("cfg5 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_5));
-	printf("cfg6 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_6));
-	printf("cfg7 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_7));
-	printf("cfg8 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_8));
-#endif /*MMC_CORE_DEBUG*/
-
-	writel(STM_FLASHSS_MMC_CORE_CONFIG_1,
-	       regbase + FLASHSS_MMC_CORE_CONFIG_1);
-	(port)? writel(STM_FLASHSS_SD20_CORE_CONFIG2,
-	       		regbase + FLASHSS_MMC_CORE_CONFIG_2):/*STM_FLASHSS_SD20_CORE_CONFIG3*/
-		writel(STM_FLASHSS_MMC43_CORE_CONFIG2,
-	       		regbase + FLASHSS_MMC_CORE_CONFIG_2);
-
-	(port)? writel(STM_FLASHSS_SD20_CORE_CONFIG3,
-	        	regbase + FLASHSS_MMC_CORE_CONFIG_3):/*STM_FLASHSS_SD20_CORE_CONFIG3*/
-	       	writel(STM_FLASHSS_MMC43_CORE_CONFIG3,
-	       		regbase + FLASHSS_MMC_CORE_CONFIG_3); 
-	writel(STM_FLASHSS_MMC43_CORE_CONFIG4,
-	       regbase + FLASHSS_MMC_CORE_CONFIG_4);
-	writel(STM_FLASHSS_MMC43_CORE_CONFIG5,
-	       regbase + FLASHSS_MMC_CORE_CONFIG_5);
-	writel(FLASHSS_MMC_CORE_CONFIG_6,
-	       regbase + FLASHSS_MMC_CORE_CONFIG_6);
-	writel(FLASHSS_MMC_CORE_CONFIG_7,
-	       regbase + FLASHSS_MMC_CORE_CONFIG_7);
-
-#ifdef MMC_CORE_DEBUG
-	printf("mmc%d: mmc%d core set SD2.0 ...\n", port, port);
-	printf("cfg1 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_1));
-	printf("cfg2 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_2));
-	printf("cfg3 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_3));
-	printf("cfg4 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_4));
-	printf("cfg5 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_5));
-	printf("cfg6 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_6));
-	printf("cfg7 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_7));
-	printf("cfg8 0x%x\n", readl(regbase + FLASHSS_MMC_CORE_CONFIG_8));
-#endif /*MMC_CORE_DEBUG*/
-}		
-
-struct stm_pad_pin stxh407_mmc0_pad_configs[] = {
-					MMC_DATA_IN_PU(41, 0, 1, NULL),/* DATA[0] */
-					MMC_DATA_IN_PU(41, 1, 1, NULL),/* DATA[1] */
-					MMC_DATA_IN_PU(41, 2, 1, NULL),/* DATA[2] */
-					MMC_DATA_IN_PU(41, 3, 1, NULL),/* DATA[3] */
-					MMC_DATA_IN_PU(41, 4, 1, NULL),/* DATA[4] */
-					MMC_DATA_IN_PU(41, 5, 1, NULL),/* DATA[5] */
-					MMC_DATA_IN_PU(41, 6, 1, NULL),/* DATA[6] */
-					MMC_DATA_IN_PU(41, 7, 1, NULL),/* DATA[7] */
-					MMC_DATA_IN_PU(40, 7, 1, NULL),/* CMD */
-					MMC_CLOCK_OUT(40, 6, 1, NULL),/*Clock*/
-					//MMC_OUT(42,3,2),/*V_SEL for SD config*/
-};
-
-struct stm_pad_pin stxh407_mmc1_pad_configs[] = {
-					MMC_DATA_IN_PU(19, 4, 5, RET_BYPASS(15)),/* DATA[0] */
-					MMC_DATA_IN_PU(19, 5, 5, RET_BYPASS(15)),/* DATA[1] */
-					MMC_DATA_IN_PU(19, 6, 5, RET_BYPASS(15)),/* DATA[2] */
-					MMC_DATA_IN_PU(19, 7, 5, RET_BYPASS(15)),/* DATA[3] */
-					MMC_DATA_IN_PU(19, 2, 5, RET_BYPASS(15)),/* CMD */
-					MMC_CLOCK_OUT(19, 3, 5, RET_NICLK2(15,1)),/*Clock*/
-					MMC_OUT(16, 7, 6),/*MMC Card PWR*/
-					MMC_OUT(16, 6, 6),/*MMC LED ON*/
-					MMC_DATA_IN_PU(19, 0, 6, NULL),/*MMC Card Detect*/
-					MMC_IN(19, 1, 6),/*MMC Write Protect*/
-};
-
-int board_mmc_init(bd_t *bis)
-{
-   	int ret=0;
-	
-#if defined(CONFIG_STM_SDHCI)
-#if defined(CONFIG_STM_SDHCI_0)
-   	stxh407_configure_mmc(0,CONFIG_SYS_MMC0_BASE);
-   	ret = stxh407_mmc_init(0);
-#endif
-#if defined (CONFIG_STM_SDHCI_1) 
- 	stxh407_configure_mmc(1,CONFIG_SYS_MMC1_BASE);
- 	ret |= stxh407_mmc_init(1);
-#endif  
-#endif  
-   	return ret;
-}
-
-int board_mmc_getcd(struct mmc *mmc)
-{
-	if (strcmp(mmc->name,"stm-sdhci0")==0)
-	{
-	return 1;
-	}
-	if (strcmp(mmc->name,"stm-sdhci1")==0)
-	{
-	return (stxh407_mmc_getcd(1)==0)?1:0;	
-	}
-	return 0;
-}
-#endif /*CONFIG_GENERIC_MMC*/
 
 
 extern int board_init(void)
