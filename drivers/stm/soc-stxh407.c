@@ -153,6 +153,32 @@ extern void stxh407_pioalt_pad(int port, const int pin,
 	int oe=0, pu=0, od=0;
 	unsigned long sysconf, *sysconfReg;
 
+	/*
+	 * NOTE: The PIO configuration for the PIO pins in the
+	 * "FLASH Bank" are different from all the other banks!
+	 * Specifically, the output-enable pad control register
+	 * (SYS_CFG_3040) and the pull-up pad control register
+	 * (SYS_CFG_3050), are both classed as being "reserved".
+	 * Hence, we do not write to these registers to configure
+	 * the OE and PU features for PIOs in this bank. However,
+	 * the open-drain pad control register (SYS_CFG_3060)
+	 * follows the style of the other banks, and so we can
+	 * treat that register normally.
+	 *
+	 * Being pedantic, we should configure the PU and PD features
+	 * in the "FLASH Bank" explicitly instead using the four
+	 * SYS_CFG registers: 3080, 3081, 3085, and 3086. However, this
+	 * would necessitate passing in the alternate function number
+	 * to this function, and adding some horrible complexity here.
+	 * Alternatively, we could just perform 4 32-bit "pokes" to
+	 * these four SYS_CFG registers early in the initialization.
+	 * In practice, these four SYS_CFG registers are correct
+	 * after a reset, and U-Boot does not need to change them, so
+	 * we (cheat and) rely on these registers being correct.
+	 * WARNING: Please be aware of this (pragmatic) behaviour!
+	 */
+	int flashSS = 0;	/* bool: PIO in the Flash Sub-System ? */
+
 	switch (direction) {
 	case stm_pad_direction_input:
 		oe = 0; pu = 0; od = 0;
@@ -194,7 +220,11 @@ extern void stxh407_pioalt_pad(int port, const int pin,
 		sysconfReg += port / 4;
 		break;
 	case 40 ... 42:		/* in "FLASH Bank" */
-		/* QQQ: for the time being, treat them as BUG()! */
+		port -= 40;
+		sysconfReg = (unsigned long*)STXH407_SYSCFG(3040);
+		sysconfReg += port / 4;
+		flashSS = 1;	/* pin is in the Flash Sub-System */
+		break;
 	default:
 		BUG();
 		return;
@@ -203,32 +233,38 @@ extern void stxh407_pioalt_pad(int port, const int pin,
 	bit = ((port * 8) + pin) % 32;
 
 		/* set the "Output Enable" pad control */
+	if (!flashSS)	/* but, do nothing if in the FlashSS */
+	{
 #ifdef DEBUG_PAD_CONFIGS
-	if (debug_pad_configs)
-		printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
+		if (debug_pad_configs)
+			printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
-	sysconf = readl(sysconfReg);
-	SET_SYSCONF_BIT(sysconf, oe, bit);
-	writel(sysconf, sysconfReg);
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, oe, bit);
+		writel(sysconf, sysconfReg);
 #ifdef DEBUG_PAD_CONFIGS
-	if (debug_pad_configs)
-		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
+		if (debug_pad_configs)
+			printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
+	}
 
 	sysconfReg += 10;	/* skip to next set of syscfg registers */
 
 		/* set the "Pull Up" pad control */
+	if (!flashSS)	/* but, do nothing if in the FlashSS */
+	{
 #ifdef DEBUG_PAD_CONFIGS
-	if (debug_pad_configs)
-		printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
+		if (debug_pad_configs)
+			printf("ante: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
-	sysconf = readl(sysconfReg);
-	SET_SYSCONF_BIT(sysconf, pu, bit);
-	writel(sysconf, sysconfReg);
+		sysconf = readl(sysconfReg);
+		SET_SYSCONF_BIT(sysconf, pu, bit);
+		writel(sysconf, sysconfReg);
 #ifdef DEBUG_PAD_CONFIGS
-	if (debug_pad_configs)
-		printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
+		if (debug_pad_configs)
+			printf("post: *%p = 0x%08lx\n", sysconfReg, *sysconfReg);
 #endif
+	}
 
 	sysconfReg += 10;	/* skip to next set of syscfg registers */
 
