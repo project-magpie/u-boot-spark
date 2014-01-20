@@ -2,6 +2,9 @@
  * Copyright 2008, Freescale Semiconductor, Inc
  * Andy Fleming
  *
+ * (C) Copyright 2014 STMicroelectronics.
+ * Sean McGoogan <Sean.McGoogan@st.com>
+ *
  * Based vaguely on the Linux code
  *
  * See file CREDITS for list of people who contributed to this
@@ -1518,13 +1521,17 @@ int mmc_boot_part_access(struct mmc *mmc, u8 ack, u8 part_num, u8 access)
 	}
 
 	if (access) {
-		/* 4bit transfer mode at booting time. */
+		/* A 1-bit or 4-bit transfer mode at booting time. */
 		cmd.cmdidx = MMC_CMD_SWITCH;
 		cmd.resp_type = MMC_RSP_R1b;
 
 		cmd.cmdarg = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
 				(EXT_CSD_BOOT_BUS_WIDTH << 16) |
-				((1 << 0) << 8);
+#if defined(CONFIG_MMC_BOOT_MODE_1_BIT)
+				((0 << 0) << 8);	/* 1-bit */
+#else
+				((1 << 0) << 8);	/* 4-bit */
+#endif
 
 		err = mmc_send_cmd(mmc, &cmd, NULL);
 		if (err) {
