@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2013 STMicroelectronics.
+ * (C) Copyright 2008-2014 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -244,12 +244,14 @@
  */
 
 /*
- * Choose if we want FLASH Support (eMMC and/or SPI devices).
+ * Choose if we want FLASH Support (eMMC/MMC/SD and/or SPI devices).
  * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
  */
 #undef CONFIG_CMD_FLASH		/* undefine it, define only if needed */
 #undef CONFIG_CMD_NAND		/* No NAND present on the B2120 board */
 #define CONFIG_SPI_FLASH	/* define for SPI serial flash */
+#define CONFIG_STM_SDHCI_0	/* define for MMC #0 (eMMC) */
+#define CONFIG_STM_SDHCI_1	/* define for MMC #1 (MMC/SD) */
 
 /*-----------------------------------------------------------------------
  * NOR FLASH organization
@@ -294,6 +296,25 @@
 #	define SPI_DELAY	do { udelay(1); } while (0)	/* Note: only 500 kHz! */
 #endif
 #endif	/* CONFIG_SPI_FLASH */
+
+/*-----------------------------------------------------------------------
+ * eMMC/MMC organization
+ */
+
+#if defined(CONFIG_STM_SDHCI_0) || defined(CONFIG_STM_SDHCI_1)
+#	define CONFIG_STM_SDHCI
+#	define CONFIG_SDHCI
+#	define CONFIG_MMC
+#	define CONFIG_GENERIC_MMC
+#	define CONFIG_CMD_MMC
+#	if defined(CONFIG_STM_SDHCI_0)
+#		define CONFIG_SYS_MMC0_BASE	0x09060000	/* MMC #0 is eMMC boot device */
+#		define CONFIG_SUPPORT_EMMC_BOOT
+#	endif	/* CONFIG_STM_SDHCI_0 */
+#	if defined(CONFIG_STM_SDHCI_1)
+#		define CONFIG_SYS_MMC1_BASE	0x09080000	/* MMC #1 is MMC/SD slot */
+#	endif	/* CONFIG_STM_SDHCI_1 */
+#endif	/* CONFIG_STM_SDHCI_0 || CONFIG_STM_SDHCI_1 */
 
 /*-----------------------------------------------------------------------
  * Address, size, & location of U-boot's Environment Sector
