@@ -1158,7 +1158,7 @@ static void stxh407_enable_mmc(const int port, const u32 regbase)
 	{
 		unsigned long sysconf = readl(SYSCONF(5132));
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: status enable 0x%x\n", port, sysconf);
+		printf("mmc%d: status enable 0x%lx\n", port, sysconf);
 #endif
 		SET_SYSCONF_BIT(sysconf,1,3);
 		writel(sysconf, SYSCONF(5132));
@@ -1170,7 +1170,7 @@ static void stxh407_enable_mmc(const int port, const u32 regbase)
 	{
 		unsigned long reg = readl(regbase + TOP_FLASHSS_CONFIG);
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: boot status 0x%x\n", port, reg);
+		printf("mmc%d: boot status 0x%lx\n", port, reg);
 #endif
 		SET_SYSCONF_BIT(reg,0,1);
 		writel(reg,regbase + TOP_FLASHSS_CONFIG);/* boot disable*/
@@ -1180,7 +1180,7 @@ static void stxh407_enable_mmc(const int port, const u32 regbase)
 
 		reg = readl(regbase + TOP_VSENSE_CONFIG);
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: vsense config at reset: 0x%x\n", port, reg);
+		printf("mmc%d: vsense config at reset: 0x%lx\n", port, reg);
 #endif
 		SET_SYSCONF_BIT(reg,0,0); /*TOP_VSENSE_CONFIG_REG_PSW_EMMC*/
 		SET_SYSCONF_BIT(reg,1,1); /*TOP_VSENSE_CONFIG_ENB_REG_PSW_EMMC*/
@@ -1298,7 +1298,7 @@ static void stxh407_configure_mmc(const int port, const u32 regbase)
 		 */
 		unsigned long sysconf = readl(SYSCONF(3080));
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: pull up config at reset 0x%x\n", port, sysconf);
+		printf("mmc%d: pull up config at reset 0x%lx\n", port, sysconf);
 #endif
 		SET_SYSCONF_BIT(sysconf,1,7);	/* CMD */
 		SET_SYSCONF_BIT(sysconf,1,8);	/* DATA0 */
