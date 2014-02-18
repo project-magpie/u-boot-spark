@@ -1322,6 +1322,23 @@ extern int cpu_mmc_init(bd_t *bis)
 {
 	int ret = 0;
 
+	/*
+	 * When we are booting from eMMC, then the H/W has a
+	 * requirement that there must be at least one eMMC
+	 * boot-mode "transaction", before we can initialize
+	 * the eMMC driver safely.
+	 * Hence, when in boot-from-eMMC mode, we will perform
+	 * a single "dummy" read to the boot region. We simply
+	 * read from physical address zero, and discard the
+	 * result.  This read only needs to be performed once.
+	 * This is only really an issue when booting via GDB/JTAG,
+	 * and when the mode-pins are in boot-from-eMMC mode,
+	 * when the boot-controller has not been exercised yet.
+	 */
+#if defined(CONFIG_SYS_BOOT_FROM_EMMC)
+	(void)*(volatile u32*)(0x0);
+#endif	/* CONFIG_SYS_BOOT_FROM_EMMC */
+
 #if defined(CONFIG_STM_SDHCI_0)
 	stxh407_configure_mmc(0, CONFIG_SYS_MMC0_BASE);
 	ret |= stm_sdhci_init(0, CONFIG_SYS_MMC0_BASE);
