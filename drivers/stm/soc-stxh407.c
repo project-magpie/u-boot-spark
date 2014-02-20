@@ -973,19 +973,48 @@ extern int i2c_set_bus_speed(unsigned int speed)
 #endif	/* CONFIG_I2C_CMD_TREE */
 
 
-#if defined(CONFIG_SPI) && defined(CONFIG_SOFT_SPI)
-	/*
-	 * We want to use "bit-banging" for SPI (not SSC, nor FSM).
-	 */
+#if defined(CONFIG_SPI)
+
+#define	SPI_nCS		40, 0		/* SPI Chip-Select */
 #define	SPI_CLK		40, 1		/* SPI Clock */
-#define	SPI_nCS		40, 0		/* SPI not-Chip-Select */
-#define	SPI_MISO	40, 3		/* Data: Master In, Slave Out */
-#define	SPI_MOSI	40, 2		/* Data: Master Out, Slave In */
+#define	SPI_MOSI	40, 2		/* D0 / Master Out, Slave In */
+#define	SPI_MISO	40, 3		/* D1 / Master In, Slave Out */
+#define	SPI_nWP		40, 4		/* D2 / SPI Write Protect */
+#define	SPI_HOLD	40, 5		/* D3 / SPI Hold */
 
 extern void stxh407_configure_spi(void)
 {
 	/*
-	 *	We set up the PIO pins correctly for SPI
+	 *	We will set up the PIO pins correctly for SPI
+	 */
+
+#if defined(CONFIG_STM_FSM_SPI)
+	/*
+	 * We want to use FSM for SPI (not SSC, nor "bit-banging").
+	 *
+	 * With the FlashSS, there is no need for software
+	 * to configure the OE (output-enable) or the OD
+	 * (open-drain) control lines, as the FlashSS IP
+	 * (FSM SPI Serial Flash) controller will take care
+	 * of them, as long as the alternate-function is right.
+	 * The PU/PD are S/W controllable, but are correct
+	 * following a reset, so again, we should be able
+	 * to rely on them being correct for U-Boot.
+	 * So, we only need to set the alternate-functions!
+	 *
+	 * Route PIO for SPI (alternate #1 in FlashSS)
+	 */
+	STXH407_PIOALT_SELECT(SPI_nCS,  1);	/* SPI_nCS */
+	STXH407_PIOALT_SELECT(SPI_CLK,  1);	/* SPI_CLK */
+	STXH407_PIOALT_SELECT(SPI_MOSI, 1);	/* SPI_D0 */
+	STXH407_PIOALT_SELECT(SPI_MISO, 1);	/* SPI_D1 */
+		/* following only really needed for x4 mode */
+	STXH407_PIOALT_SELECT(SPI_nWP,  1);	/* SPI_D2 */
+	STXH407_PIOALT_SELECT(SPI_HOLD, 1);	/* SPI_D3 */
+
+#elif defined(CONFIG_SOFT_SPI)
+	/*
+	 * We want to use "bit-banging" for SPI (not SSC, nor FSM).
 	 */
 
 	/* route PIO (alternate #0) */
@@ -1004,8 +1033,13 @@ extern void stxh407_configure_spi(void)
 	STPIO_SET_PIN2(SPI_MOSI, 0);		/* deassert SPI_MOSI */
 	STPIO_SET_PIN2(SPI_nCS,  1);		/* deassert SPI_nCS */
 	STPIO_SET_PIN2(SPI_CLK,  1);		/* assert SPI_CLK */
+
+#else
+#error Which DRIVER to use for SPI ?
+#endif
 }
 
+#if defined(CONFIG_SOFT_SPI)
 extern void stxh407_spi_scl(const int val)
 {
 	STPIO_SET_PIN2(SPI_CLK, val ? 1 : 0);
@@ -1020,6 +1054,7 @@ extern unsigned char stxh407_spi_read(void)
 {
 	return STPIO_GET_PIN2(SPI_MISO);
 }
+#endif	/* CONFIG_SOFT_SPI */
 
 #if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI)
 /*
@@ -1047,7 +1082,7 @@ extern void spi_cs_deactivate(struct spi_slave * const slave)
 }
 #endif	/* defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) */
 
-#endif	/* CONFIG_SPI && CONFIG_SOFT_SPI */
+#endif	/* CONFIG_SPI */
 
 
 #if defined(CONFIG_STM_SDHCI)

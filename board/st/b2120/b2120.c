@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2013 STMicroelectronics.
+ * (C) Copyright 2008-2014 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -156,7 +156,7 @@ int checkboard (void)
 #endif
 		"\n");
 
-#if defined(CONFIG_SOFT_SPI)
+#if defined(CONFIG_SPI)
 	/*
 	 * Configure for the SPI Serial Flash.
 	 * Note: for CONFIG_SYS_BOOT_FROM_SPI + CONFIG_ENV_IS_IN_EEPROM, this
