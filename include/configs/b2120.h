@@ -327,6 +327,11 @@
 #	define CONFIG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
 #	define CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN	/* immediately after u-boot.bin */
 #	define CONFIG_ENV_SIZE		CONFIG_ENV_SIZE_REQUIRED
+#elif 1 && defined(CONFIG_MMC)			/* eMMC/SD flash present ? */
+#	define CONFIG_ENV_IS_IN_MMC		/* ENV is stored in eMMC/SD flash */
+#	define CONFIG_SYS_MMC_ENV_DEV	0	/* use MMC(0), i.e. the first MMC device */
+#	define CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN	/* immediately after u-boot.bin */
+#	define CONFIG_ENV_SIZE		CONFIG_ENV_SIZE_REQUIRED
 #else
 #	define CONFIG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
 #	undef  CONFIG_CMD_SAVEENV		/* no need for "saveenv" */
