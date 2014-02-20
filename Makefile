@@ -1216,12 +1216,15 @@ b2116se_nand_config :		unconfig
 	 $(MKROMGEN) no-such-ip b2116stxh315 st40 se=0,boardrev=2)
 
 b2120a9_config			\
+b2120a9_emmc_config		\
 b2120a9_spi_config :		unconfig
 	@mkdir -p $(obj)include $(obj)board/st/b2120
 	@echo "#define CONFIG_STM_STXH407        1" >>$(obj)include/config.h
 	@echo "#define CONFIG_STM_B2120          1" >>$(obj)include/config.h
 	@echo "#define CONFIG_STM_CONTIG_MODE    1" >>$(obj)include/config.h
-	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h
+	$(if $(findstring _emmc_,$@), \
+	@echo "#define CONFIG_SYS_BOOT_FROM_EMMC 1" >>$(obj)include/config.h, \
+	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
 	@echo "CONFIG_SYS_TEXT_BASE = 0xBFF00000" >$(obj)board/st/b2120/config.tmp
 	@$(MKCONFIG) -a -n $@ b2120 arm armv7 b2120 st stxh407
 	@$(MKROMGEN) no-such-ip b2120stxh407 a9_0

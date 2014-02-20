@@ -84,13 +84,27 @@
 
 
 /*-----------------------------------------------------------------------
+ * Are we booting directly from an eMMC Flash device ?
+ * If so, then define the "CONFIG_SYS_BOOT_FROM_EMMC" macro,
+ * otherwise (e.g. for SPI Flash booting), do not define it.
+ * Note: this will be implicitly defined if "make b2120<xx>_emmc_config" is run.
+ */
+//#define CONFIG_SYS_BOOT_FROM_EMMC		/* define to build a eMMC-bootable image */
+
+
+/*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
 
-#if !defined(CONFIG_SYS_BOOT_FROM_SPI)			/* we are booting from SPI */
-#	error CONFIG_SYS_BOOT_FROM_SPI must be defined!
-#endif /* CONFIG_SYS_BOOT_FROM_SPI */
+#if defined(CONFIG_SYS_BOOT_FROM_SPI)			/* we are booting from SPI */
+#elif defined(CONFIG_SYS_BOOT_FROM_EMMC)		/* we are booting from eMMC */
+#else
+#	error Either CONFIG_SYS_BOOT_FROM_SPI or CONFIG_SYS_BOOT_FROM_EMMC must be defined!
+#endif /* CONFIG_SYS_BOOT_FROM_SPI || CONFIG_SYS_BOOT_FROM_EMMC */
+#if defined(CONFIG_SYS_BOOT_FROM_SPI) && defined(CONFIG_SYS_BOOT_FROM_EMMC)
+#	error Only one of CONFIG_SYS_BOOT_FROM_SPI or CONFIG_SYS_BOOT_FROM_EMMC must be defined!
+#endif /* CONFIG_SYS_BOOT_FROM_SPI && CONFIG_SYS_BOOT_FROM_EMMC */
 
 #define CONFIG_SYS_SDRAM_SIZE		0x80000000	/* 2 GiB of LMI SDRAM */
 

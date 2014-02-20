@@ -27,4 +27,4 @@
 # for actual build number, in the following identifier.
 # Regular Expression for string is:
 # 	"stm[2-9][0-9]-[2-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]"
-STM_IDENT_STRING="\"stm24-2014-02-18\""
+STM_IDENT_STRING="\"stm24-2014-02-20\""
