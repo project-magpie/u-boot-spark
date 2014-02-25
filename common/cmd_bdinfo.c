@@ -2,7 +2,7 @@
  * (C) Copyright 2003
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
  *
- * (C) Copyright 2009-2013 STMicroelectronics.
+ * (C) Copyright 2009-2014 STMicroelectronics.
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
@@ -389,6 +389,8 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #elif defined(CONFIG_STM_STXH407)
 	if (STXH407_DEVICEID_407(gd->stm_devid))
 		printf ("\nSTxH407 version %ld.x", STXH407_DEVICEID_CUT(gd->stm_devid));
+	else if (STXH407_DEVICEID_410(gd->stm_devid))
+		printf ("\nSTxH410 version %ld.x", STXH407_DEVICEID_CUT(gd->stm_devid));
 #elif defined(CONFIG_STM_STXH415)
 	if (STXH415_DEVICEID_415(gd->stm_devid))
 		printf ("\nSTxH415 version %ld.x", STXH415_DEVICEID_CUT(gd->stm_devid));

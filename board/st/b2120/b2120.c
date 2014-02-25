@@ -150,7 +150,12 @@ int checkboard (void)
 	}
 #endif	/* CONFIG_MACH_STM_STXH407_A9SS_VCORE_HACK */
 
-	printf ("\n\nBoard: B2120-STxH407"
+	printf ("\n\nBoard: B2120"
+#if defined(CONFIG_STM_STXH410)
+	"-STxH410"
+#elif defined(CONFIG_STM_STXH407)
+	"-STxH407"
+#endif	/* CONFIG_STM_STXH410 */
 #if defined(CONFIG_ARM)
 		"  [ARM]"
 #endif
