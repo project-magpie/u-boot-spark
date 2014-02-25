@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2004-2013
+# (C) Copyright 2004-2014
 # Andy Sturges, STMicroelectronics, andy.sturges@st.com
 # Sean McGoogan STMicroelectronics, <Sean.McGoogan@st.com>
 #
@@ -27,4 +27,4 @@
 # for actual build number, in the following identifier.
 # Regular Expression for string is:
 # 	"stm[2-9][0-9]-[2-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]"
-STM_IDENT_STRING="\"stm24-2014-02-20\""
+STM_IDENT_STRING="\"stm24-2014-02-25\""
