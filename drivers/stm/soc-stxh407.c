@@ -83,12 +83,12 @@ static void stxh407_clocks(void)
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 *
 	 * Note: for the ASC in the SBC, we expect this will always be 30MHz,
-	 *       otherwise we expect the ASC to be 100MHz.
+	 *       otherwise we expect the ASC to be 200MHz.
 	 */
 #if (CONFIG_SYS_STM_ASC_BASE==STXH407_SBC_ASC0_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH407_SBC_ASC1_BASE)
 	gd->stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
 #else
-	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->stm_uart_frq = 200ul * 1000000ul;	/* 200 MHz */
 #endif
 	gd->stm_ssc_frq  = 100ul * 1000000ul;	/* 100 MHz */
 }
@@ -1171,7 +1171,14 @@ extern int stxh407_mmc_getcd(const int port)
 #if defined (CONFIG_STM_SDHCI_0)
 	if (port == 0)		/* MMC #0 ? */
 	{
+#if defined(CONFIG_STM_B2120)	/* on a B2120 ? */
 		return 0;	/* eMMC is always present */
+#elif defined(CONFIG_STM_B2089)	/* on a B2089 ? */
+				/* SD_CD is connected to PIO42[4] (on CN64) */
+		return STPIO_GET_PIN(STM_PIO_BASE(42), 4);
+#else
+#error Which board for this SoC?
+#endif	/* CONFIG_STM_B2120 || CONFIG_STM_B2089 */
 	}
 	else
 #endif	/* CONFIG_STM_SDHCI_0 */
@@ -1388,3 +1395,46 @@ extern int cpu_mmc_init(bd_t *bis)
 }
 
 #endif	/* CONFIG_STM_SDHCI */
+
+
+#if defined(CONFIG_CMD_NAND)
+extern void stxh407_configure_nand(void)
+{
+	/*
+	 * We will set up the PIO pins correctly for NAND
+	 *
+	 * We want to use NAND on the FlashSS IP block
+	 *
+	 * With the FlashSS, there is no need for software
+	 * to configure the OE (output-enable) or the OD
+	 * (open-drain) control lines, as the FlashSS IP
+	 * (the NANDi) controller will take care of them,
+	 * as long as the alternate-function is right.
+	 * The PU/PD are S/W controllable, but are correct
+	 * following a reset, so again, we should be able
+	 * to rely on them being correct for U-Boot.
+	 * So, we only need to set the alternate-functions!
+	 *
+	 * Route PIO for NAND (alternate #3 in FlashSS)
+	 */
+//	stxh407_pioalt_select(40, 4, 3);	/* NAND_CSn2 */
+//	stxh407_pioalt_select(40, 5, 3);	/* NAND_CSn3 */
+//	stxh407_pioalt_select(40, 6, 3);	/* NAND_CSn1 */
+	stxh407_pioalt_select(40, 7, 3);	/* NAND_CSn0 */
+
+	stxh407_pioalt_select(41, 0, 3);	/* NAND_DQ0 */
+	stxh407_pioalt_select(41, 1, 3);	/* NAND_DQ1 */
+	stxh407_pioalt_select(41, 2, 3);	/* NAND_DQ2 */
+	stxh407_pioalt_select(41, 3, 3);	/* NAND_DQ3 */
+	stxh407_pioalt_select(41, 4, 3);	/* NAND_DQ4 */
+	stxh407_pioalt_select(41, 5, 3);	/* NAND_DQ5 */
+	stxh407_pioalt_select(41, 6, 3);	/* NAND_DQ6 */
+	stxh407_pioalt_select(41, 7, 3);	/* NAND_DQ7 */
+
+	stxh407_pioalt_select(42, 0, 3);	/* NAND_WEn */
+	stxh407_pioalt_select(42, 2, 3);	/* NAND_ALE */
+	stxh407_pioalt_select(42, 3, 3);	/* NAND_CLE */
+	stxh407_pioalt_select(42, 4, 3);	/* NAND_RnB */
+	stxh407_pioalt_select(42, 5, 3);	/* NAND_REn */
+}
+#endif	/* CONFIG_CMD_NAND */

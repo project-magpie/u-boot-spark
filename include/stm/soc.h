@@ -371,6 +371,12 @@ extern int		stxh416_i2c_read(void);
 
 
 /*
+ * NAND initialization functions.
+ */
+extern void		stxh407_configure_nand(void);
+
+
+/*
  * MMC/SD initialization functions.
  */
 extern int stm_sdhci_init(const int port, const u32 regbase);
