@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007,2009-2013 STMicroelectronics.
+ * (C) Copyright 2007,2009-2014 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -113,9 +113,12 @@
 #define OP_WRITE_STATUS		0x01u			/* Write Status Register */
 #define OP_READ_DEVID		0x9fu			/* Read ID */
 #define OP_READ_ARRAY		0x03u			/* Read Data Bytes */
+#define OP_READ_4BYTE		0x13u			/* Read Data Bytes, with 4-byte addressing */
 #define OP_WREN			0x06u			/* Write Enable */
 #define OP_SE			0x20u			/* Sector Erase */
+#define OP_SE_4BYTE		0x21u			/* Sector Erase, with 4-byte addressing */
 #define OP_PP			0x02u			/* Page Program */
+#define OP_PP_4BYTE		0x12u			/* Page Program, with 4-byte addressing */
 
 #define SR_WIP			(1u<<0)			/* Status Register Write In Progress bit */
 #define SR_BP_MASK		0x3c			/* Block Protect Bits (BP[3:0]) */
