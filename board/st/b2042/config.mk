@@ -29,11 +29,6 @@
 #	0x93F00000	29-bit mode (Traditional Mode)
 #	0x87F00000	32-bit mode (Space-Enhancement Mode)
 #
-# Note:	Alternative definitions of CONFIG_SYS_TEXT_BASE are put into
-#	'config.tmp' from the top-level 'Makefile'.
-#
-
-sinclude $(OBJTREE)/board/$(BOARDDIR)/config.tmp
 
 ifndef CONFIG_SYS_TEXT_BASE
 # Installs at eSTB BASE + 127 MiB in P1 (cachable)

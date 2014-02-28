@@ -28,11 +28,6 @@
 #
 #	0xBFF00000
 #
-# Note:	Alternative definitions of CONFIG_SYS_TEXT_BASE are put into
-#	'config.tmp' from the top-level 'Makefile'.
-#
-
-sinclude $(OBJTREE)/board/$(BOARDDIR)/config.tmp
 
 ifndef CONFIG_SYS_TEXT_BASE
 CONFIG_SYS_TEXT_BASE = 0xBFF00000
