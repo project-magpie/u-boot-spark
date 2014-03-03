@@ -5,23 +5,7 @@
  * (C) Copyright 2009-2013 STMicroelectronics.
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -54,6 +38,25 @@ static void print_eth(int idx)
 }
 
 __maybe_unused
+static void print_eths(void)
+{
+	struct eth_device *dev;
+	int i = 0;
+
+	do {
+		dev = eth_get_dev_by_index(i);
+		if (dev) {
+			printf("eth%dname    = %s\n", i, dev->name);
+			print_eth(i);
+			i++;
+		}
+	} while (dev);
+
+	printf("current eth = %s\n", eth_get_name());
+	printf("ip_addr     = %s\n", getenv("ipaddr"));
+}
+
+__maybe_unused
 static void print_lnum(const char *name, unsigned long long value)
 {
 	printf("%-12s= 0x%.8llX\t(", name, value);
@@ -70,6 +73,10 @@ static void print_mhz(const char *name, unsigned long hz)
 }
 
 #if defined(CONFIG_PPC)
+void __weak board_detail(void)
+{
+	/* Please define boot_detail() for your platform */
+}
 
 int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
@@ -90,7 +97,7 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	print_num("immr_base",		bd->bi_immr_base);
 #endif
 	print_num("bootflags",		bd->bi_bootflags);
-#if	defined(CONFIG_405CR) || defined(CONFIG_405EP) || \
+#if	defined(CONFIG_405EP) || \
 	defined(CONFIG_405GP) || \
 	defined(CONFIG_440EP) || defined(CONFIG_440EPX) || \
 	defined(CONFIG_440GR) || defined(CONFIG_440GRX) || \
@@ -104,7 +111,7 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	defined(CONFIG_440SPE) || defined(CONFIG_XILINX_405)
 	print_mhz("pci_busfreq",	bd->bi_pci_busfreq);
 #endif
-#else	/* ! CONFIG_405GP, CONFIG_405CR, CONFIG_405EP, CONFIG_XILINX_405, CONFIG_440EP CONFIG_440GR */
+#else	/* ! CONFIG_405GP, CONFIG_405EP, CONFIG_XILINX_405, CONFIG_440EP CONFIG_440GR */
 #if defined(CONFIG_CPM2)
 	print_mhz("vco",		bd->bi_vco);
 	print_mhz("sccfreq",		bd->bi_sccfreq);
@@ -115,14 +122,7 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	print_mhz("cpmfreq",		bd->bi_cpmfreq);
 #endif
 	print_mhz("busfreq",		bd->bi_busfreq);
-#endif /* CONFIG_405GP, CONFIG_405CR, CONFIG_405EP, CONFIG_XILINX_405, CONFIG_440EP CONFIG_440GR */
-#if defined(CONFIG_MPC8220)
-	print_mhz("inpfreq",		bd->bi_inpfreq);
-	print_mhz("flbfreq",		bd->bi_flbfreq);
-	print_mhz("pcifreq",		bd->bi_pcifreq);
-	print_mhz("vcofreq",		bd->bi_vcofreq);
-	print_mhz("pevfreq",		bd->bi_pevfreq);
-#endif
+#endif /* CONFIG_405GP, CONFIG_405EP, CONFIG_XILINX_405, CONFIG_440EP CONFIG_440GR */
 
 #ifdef CONFIG_ENABLE_36BIT_PHYS
 #ifdef CONFIG_PHYS_64BIT
@@ -155,6 +155,7 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	printf("IP addr     = %s\n", getenv("ipaddr"));
 	printf("baudrate    = %6u bps\n", bd->bi_baudrate);
 	print_num("relocaddr", gd->relocaddr);
+	board_detail();
 	return 0;
 }
 
@@ -200,10 +201,9 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	print_num("sram size      ",	(ulong)bd->bi_sramsize);
 #endif
 #if defined(CONFIG_CMD_NET)
-	print_eth(0);
-	printf("ip_addr     = %s\n", getenv("ipaddr"));
+	print_eths();
 #endif
-	printf("baudrate    = %u bps\n", (ulong)bd->bi_baudrate);
+	printf("baudrate    = %u bps\n", bd->bi_baudrate);
 	return 0;
 }
 
@@ -518,18 +518,19 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 
 #if defined(CONFIG_CMD_NET)
-	print_eth(0);
-	printf("ip_addr     = %s\n", getenv("ipaddr"));
+	print_eths();
 #endif
 	printf("baudrate    = %u bps\n", bd->bi_baudrate);
 #if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
-	print_num("TLB addr", gd->tlb_addr);
+	print_num("TLB addr", gd->arch.tlb_addr);
 #endif
 	print_num("relocaddr", gd->relocaddr);
 	print_num("reloc off", gd->reloc_off);
 	print_num("irq_sp", gd->irq_sp);	/* irq stack pointer */
 	print_num("sp start ", gd->start_addr_sp);
+#if defined(CONFIG_LCD) || defined(CONFIG_VIDEO)
 	print_num("FB base  ", gd->fb_base);
+#endif
 	/*
 	 * TODO: Currently only support for davinci SOC's is added.
 	 * Remove this check once all the board implement this.
@@ -615,7 +616,9 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	print_eth(0);
 	printf("ip_addr     = %s\n", getenv("ipaddr"));
 #endif
+#if defined(CONFIG_LCD) || defined(CONFIG_VIDEO)
 	print_num("FB base  ", gd->fb_base);
+#endif
 	return 0;
 }
 

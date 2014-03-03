@@ -9,23 +9,8 @@
  *  Copyright (c) 2013 STMicroelectronics Limited
  *	Sean McGoogan <Sean.McGoogan@st.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
+ * SPDX-License-Identifier:	GPL-2.0+
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
  */
 
 /*
@@ -57,6 +42,7 @@
 #include <fdtdec.h>
 #include <post.h>
 #include <logbuff.h>
+#include <asm/sections.h>
 
 #ifdef CONFIG_BITBANGMII
 #include <miiphy.h>
@@ -72,7 +58,7 @@ extern void dataflash_print_info(void);
 #endif
 
 #if defined(CONFIG_HARD_I2C) || \
-    defined(CONFIG_SOFT_I2C)
+	defined(CONFIG_SYS_I2C)
 #include <i2c.h>
 #endif
 
@@ -168,11 +154,15 @@ static int display_dram_config(void)
 	return (0);
 }
 
-#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SYS_I2C)
 static int init_func_i2c(void)
 {
 	puts("I2C:   ");
+#ifdef CONFIG_SYS_I2C
+	i2c_init_all();
+#else
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
+#endif
 	puts("ready\n");
 	return (0);
 }
@@ -271,7 +261,7 @@ init_fnc_t *init_sequence[] = {
 #if defined(CONFIG_DISPLAY_BOARDINFO)
 	checkboard,		/* display board info */
 #endif
-#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SYS_I2C)
 	init_func_i2c,
 #endif
 	dram_init,		/* configure available RAM banks */
@@ -359,14 +349,14 @@ void board_init_f(ulong bootflag)
 
 #if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
 	/* reserve TLB table */
-	gd->tlb_size = 4096 * 4;
-	addr -= gd->tlb_size;
+	gd->arch.tlb_size = PGTABLE_SIZE;
+	addr -= gd->arch.tlb_size;
 
 	/* round down to next 64 kB limit */
 	addr &= ~(0x10000 - 1);
 
-	gd->tlb_addr = addr;
-	debug("TLB table from %08lx to %08lx\n", addr, addr + gd->tlb_size);
+	gd->arch.tlb_addr = addr;
+	debug("TLB table from %08lx to %08lx\n", addr, addr + gd->arch.tlb_size);
 #endif
 
 	/* round down to next 4 kB limit */
@@ -434,6 +424,7 @@ void board_init_f(ulong bootflag)
 	}
 #endif
 
+#ifndef CONFIG_ARM64
 	/* setup stackpointer for exeptions */
 	gd->irq_sp = addr_sp;
 #ifdef CONFIG_USE_IRQ
@@ -446,6 +437,10 @@ void board_init_f(ulong bootflag)
 
 	/* 8-byte alignment for ABI compliance */
 	addr_sp &= ~0x07;
+#else	/* CONFIG_ARM64 */
+	/* 16-byte alignment for ABI compliance */
+	addr_sp &= ~0x0f;
+#endif	/* CONFIG_ARM64 */
 #else
 	addr_sp += 128;	/* leave 32 words for abort-stack   */
 	gd->irq_sp = addr_sp;
@@ -492,7 +487,7 @@ static char *failed = "*** failed ***\n";
 static int should_load_env(void)
 {
 #ifdef CONFIG_OF_CONTROL
-	return fdtdec_get_config_int(gd->fdt_blob, "load-environment", 0);
+	return fdtdec_get_config_int(gd->fdt_blob, "load-environment", 1);
 #elif defined CONFIG_DELAY_ENVIRONMENT
 	return 0;
 #else
@@ -716,10 +711,4 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	}
 
 	/* NOTREACHED - no way out of command loop except booting */
-}
-
-void hang(void)
-{
-	puts("### ERROR ### Please RESET the board ###\n");
-	for (;;);
 }

@@ -29,7 +29,8 @@
 #include <i2c.h>
 #include <twl4030.h>
 #include <twl6030.h>
-#include <twl6035.h>
+#include <palmas.h>
+#include <asm/gpio.h>
 #include <asm/io.h>
 #include <asm/arch/mmc_host_def.h>
 #include <asm/arch/sys_proto.h>
@@ -38,58 +39,95 @@
 #define SYSCTL_SRC	(1 << 25)
 #define SYSCTL_SRD	(1 << 26)
 
+struct omap_hsmmc_data {
+	struct hsmmc *base_addr;
+	int cd_gpio;
+	int wp_gpio;
+};
+
 /* If we fail after 1 second wait, something is really bad */
 #define MAX_RETRY_MS	1000
 
 static int mmc_read_data(struct hsmmc *mmc_base, char *buf, unsigned int size);
 static int mmc_write_data(struct hsmmc *mmc_base, const char *buf,
 			unsigned int siz);
-static struct mmc hsmmc_dev[2];
+static struct mmc hsmmc_dev[3];
+static struct omap_hsmmc_data hsmmc_dev_data[3];
+
+#if (defined(CONFIG_OMAP_GPIO) && !defined(CONFIG_SPL_BUILD)) || \
+	(defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_GPIO_SUPPORT))
+static int omap_mmc_setup_gpio_in(int gpio, const char *label)
+{
+	if (!gpio_is_valid(gpio))
+		return -1;
+
+	if (gpio_request(gpio, label) < 0)
+		return -1;
+
+	if (gpio_direction_input(gpio) < 0)
+		return -1;
+
+	return gpio;
+}
+
+static int omap_mmc_getcd(struct mmc *mmc)
+{
+	int cd_gpio = ((struct omap_hsmmc_data *)mmc->priv)->cd_gpio;
+	return gpio_get_value(cd_gpio);
+}
+
+static int omap_mmc_getwp(struct mmc *mmc)
+{
+	int wp_gpio = ((struct omap_hsmmc_data *)mmc->priv)->wp_gpio;
+	return gpio_get_value(wp_gpio);
+}
+#else
+static inline int omap_mmc_setup_gpio_in(int gpio, const char *label)
+{
+	return -1;
+}
+
+#define omap_mmc_getcd NULL
+#define omap_mmc_getwp NULL
+#endif
 
 #if defined(CONFIG_OMAP44XX) && defined(CONFIG_TWL6030_POWER)
 static void omap4_vmmc_pbias_config(struct mmc *mmc)
 {
 	u32 value = 0;
-	struct omap_sys_ctrl_regs *const ctrl =
-		(struct omap_sys_ctrl_regs *) SYSCTRL_GENERAL_CORE_BASE;
 
-
-	value = readl(&ctrl->control_pbiaslite);
+	value = readl((*ctrl)->control_pbiaslite);
 	value &= ~(MMC1_PBIASLITE_PWRDNZ | MMC1_PWRDNZ);
-	writel(value, &ctrl->control_pbiaslite);
+	writel(value, (*ctrl)->control_pbiaslite);
 	/* set VMMC to 3V */
 	twl6030_power_mmc_init();
-	value = readl(&ctrl->control_pbiaslite);
+	value = readl((*ctrl)->control_pbiaslite);
 	value |= MMC1_PBIASLITE_VMODE | MMC1_PBIASLITE_PWRDNZ | MMC1_PWRDNZ;
-	writel(value, &ctrl->control_pbiaslite);
+	writel(value, (*ctrl)->control_pbiaslite);
 }
 #endif
 
-#if defined(CONFIG_OMAP54XX) && defined(CONFIG_TWL6035_POWER)
+#if defined(CONFIG_OMAP54XX) && defined(CONFIG_PALMAS_POWER)
 static void omap5_pbias_config(struct mmc *mmc)
 {
 	u32 value = 0;
-	struct omap_sys_ctrl_regs *const ctrl =
-		(struct omap_sys_ctrl_regs *) SYSCTRL_GENERAL_CORE_BASE;
 
-	value = readl(&ctrl->control_pbias);
-	value &= ~(SDCARD_PWRDNZ | SDCARD_BIAS_PWRDNZ);
-	value |= SDCARD_BIAS_HIZ_MODE;
-	writel(value, &ctrl->control_pbias);
+	value = readl((*ctrl)->control_pbias);
+	value &= ~SDCARD_PWRDNZ;
+	writel(value, (*ctrl)->control_pbias);
+	udelay(10); /* wait 10 us */
+	value &= ~SDCARD_BIAS_PWRDNZ;
+	writel(value, (*ctrl)->control_pbias);
 
-	twl6035_mmc1_poweron_ldo();
+	palmas_mmc1_poweron_ldo();
 
-	value = readl(&ctrl->control_pbias);
-	value &= ~SDCARD_BIAS_HIZ_MODE;
-	value |= SDCARD_PBIASLITE_VMODE | SDCARD_PWRDNZ | SDCARD_BIAS_PWRDNZ;
-	writel(value, &ctrl->control_pbias);
-
-	value = readl(&ctrl->control_pbias);
-	if (value & (1 << 23)) {
-		value &= ~(SDCARD_PWRDNZ | SDCARD_BIAS_PWRDNZ);
-		value |= SDCARD_BIAS_HIZ_MODE;
-		writel(value, &ctrl->control_pbias);
-	}
+	value = readl((*ctrl)->control_pbias);
+	value |= SDCARD_BIAS_PWRDNZ;
+	writel(value, (*ctrl)->control_pbias);
+	udelay(150); /* wait 150 us */
+	value |= SDCARD_PWRDNZ;
+	writel(value, (*ctrl)->control_pbias);
+	udelay(150); /* wait 150 us */
 }
 #endif
 
@@ -138,7 +176,7 @@ unsigned char mmc_board_init(struct mmc *mmc)
 	if (mmc->block_dev.dev == 0)
 		omap4_vmmc_pbias_config(mmc);
 #endif
-#if defined(CONFIG_OMAP54XX) && defined(CONFIG_TWL6035_POWER)
+#if defined(CONFIG_OMAP54XX) && defined(CONFIG_PALMAS_POWER)
 	if (mmc->block_dev.dev == 0)
 		omap5_pbias_config(mmc);
 #endif
@@ -177,11 +215,12 @@ void mmc_init_stream(struct hsmmc *mmc_base)
 
 static int mmc_init_setup(struct mmc *mmc)
 {
-	struct hsmmc *mmc_base = (struct hsmmc *)mmc->priv;
+	struct hsmmc *mmc_base;
 	unsigned int reg_val;
 	unsigned int dsor;
 	ulong start;
 
+	mmc_base = ((struct omap_hsmmc_data *)mmc->priv)->base_addr;
 	mmc_board_init(mmc);
 
 	writel(readl(&mmc_base->sysconfig) | MMC_SOFTRESET,
@@ -249,6 +288,30 @@ static void mmc_reset_controller_fsm(struct hsmmc *mmc_base, u32 bit)
 
 	mmc_reg_out(&mmc_base->sysctl, bit, bit);
 
+	/*
+	 * CMD(DAT) lines reset procedures are slightly different
+	 * for OMAP3 and OMAP4(AM335x,OMAP5,DRA7xx).
+	 * According to OMAP3 TRM:
+	 * Set SRC(SRD) bit in MMCHS_SYSCTL register to 0x1 and wait until it
+	 * returns to 0x0.
+	 * According to OMAP4(AM335x,OMAP5,DRA7xx) TRMs, CMD(DATA) lines reset
+	 * procedure steps must be as follows:
+	 * 1. Initiate CMD(DAT) line reset by writing 0x1 to SRC(SRD) bit in
+	 *    MMCHS_SYSCTL register (SD_SYSCTL for AM335x).
+	 * 2. Poll the SRC(SRD) bit until it is set to 0x1.
+	 * 3. Wait until the SRC (SRD) bit returns to 0x0
+	 *    (reset procedure is completed).
+	 */
+#if defined(CONFIG_OMAP44XX) || defined(CONFIG_OMAP54XX) || \
+	defined(CONFIG_AM33XX)
+	if (!(readl(&mmc_base->sysctl) & bit)) {
+		start = get_timer(0);
+		while (!(readl(&mmc_base->sysctl) & bit)) {
+			if (get_timer(0) - start > MAX_RETRY_MS)
+				return;
+		}
+	}
+#endif
 	start = get_timer(0);
 	while ((readl(&mmc_base->sysctl) & bit) != 0) {
 		if (get_timer(0) - start > MAX_RETRY_MS) {
@@ -262,10 +325,11 @@ static void mmc_reset_controller_fsm(struct hsmmc *mmc_base, u32 bit)
 static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 			struct mmc_data *data)
 {
-	struct hsmmc *mmc_base = (struct hsmmc *)mmc->priv;
+	struct hsmmc *mmc_base;
 	unsigned int flags, mmc_stat;
 	ulong start;
 
+	mmc_base = ((struct omap_hsmmc_data *)mmc->priv)->base_addr;
 	start = get_timer(0);
 	while ((readl(&mmc_base->pstate) & (DATI_MASK | CMDI_MASK)) != 0) {
 		if (get_timer(0) - start > MAX_RETRY_MS) {
@@ -336,6 +400,7 @@ static int mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 	}
 
 	writel(cmd->cmdarg, &mmc_base->arg);
+	udelay(20);		/* To fix "No status update" error on eMMC */
 	writel((cmd->cmdidx << 24) | flags, &mmc_base->cmd);
 
 	start = get_timer(0);
@@ -440,7 +505,7 @@ static int mmc_write_data(struct hsmmc *mmc_base, const char *buf,
 	unsigned int count;
 
 	/*
-	 * Start Polled Read
+	 * Start Polled Write
 	 */
 	count = (size > MMCSD_SECTOR_SIZE) ? MMCSD_SECTOR_SIZE : size;
 	count /= 4;
@@ -489,10 +554,11 @@ static int mmc_write_data(struct hsmmc *mmc_base, const char *buf,
 
 static void mmc_set_ios(struct mmc *mmc)
 {
-	struct hsmmc *mmc_base = (struct hsmmc *)mmc->priv;
+	struct hsmmc *mmc_base;
 	unsigned int dsor = 0;
 	ulong start;
 
+	mmc_base = ((struct omap_hsmmc_data *)mmc->priv)->base_addr;
 	/* configue bus width */
 	switch (mmc->bus_width) {
 	case 8:
@@ -540,39 +606,57 @@ static void mmc_set_ios(struct mmc *mmc)
 	writel(readl(&mmc_base->sysctl) | CEN_ENABLE, &mmc_base->sysctl);
 }
 
-int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max)
+int omap_mmc_init(int dev_index, uint host_caps_mask, uint f_max, int cd_gpio,
+		int wp_gpio)
 {
-	struct mmc *mmc;
-
-	mmc = &hsmmc_dev[dev_index];
+	struct mmc *mmc = &hsmmc_dev[dev_index];
+	struct omap_hsmmc_data *priv_data = &hsmmc_dev_data[dev_index];
+	uint host_caps_val = MMC_MODE_4BIT | MMC_MODE_HS_52MHz | MMC_MODE_HS |
+			     MMC_MODE_HC;
 
 	sprintf(mmc->name, "OMAP SD/MMC");
 	mmc->send_cmd = mmc_send_cmd;
 	mmc->set_ios = mmc_set_ios;
 	mmc->init = mmc_init_setup;
-	mmc->getcd = NULL;
+	mmc->priv = priv_data;
 
 	switch (dev_index) {
 	case 0:
-		mmc->priv = (struct hsmmc *)OMAP_HSMMC1_BASE;
+		priv_data->base_addr = (struct hsmmc *)OMAP_HSMMC1_BASE;
 		break;
 #ifdef OMAP_HSMMC2_BASE
 	case 1:
-		mmc->priv = (struct hsmmc *)OMAP_HSMMC2_BASE;
+		priv_data->base_addr = (struct hsmmc *)OMAP_HSMMC2_BASE;
+#if (defined(CONFIG_OMAP44XX) || defined(CONFIG_OMAP54XX) || \
+     defined(CONFIG_DRA7XX)) && defined(CONFIG_HSMMC2_8BIT)
+		/* Enable 8-bit interface for eMMC on OMAP4/5 or DRA7XX */
+		host_caps_val |= MMC_MODE_8BIT;
+#endif
 		break;
 #endif
 #ifdef OMAP_HSMMC3_BASE
 	case 2:
-		mmc->priv = (struct hsmmc *)OMAP_HSMMC3_BASE;
+		priv_data->base_addr = (struct hsmmc *)OMAP_HSMMC3_BASE;
+#if defined(CONFIG_DRA7XX) && defined(CONFIG_HSMMC3_8BIT)
+		/* Enable 8-bit interface for eMMC on DRA7XX */
+		host_caps_val |= MMC_MODE_8BIT;
+#endif
 		break;
 #endif
 	default:
-		mmc->priv = (struct hsmmc *)OMAP_HSMMC1_BASE;
+		priv_data->base_addr = (struct hsmmc *)OMAP_HSMMC1_BASE;
 		return 1;
 	}
+	priv_data->cd_gpio = omap_mmc_setup_gpio_in(cd_gpio, "mmc_cd");
+	if (priv_data->cd_gpio != -1)
+		mmc->getcd = omap_mmc_getcd;
+
+	priv_data->wp_gpio = omap_mmc_setup_gpio_in(wp_gpio, "mmc_wp");
+	if (priv_data->wp_gpio != -1)
+		mmc->getwp = omap_mmc_getwp;
+
 	mmc->voltages = MMC_VDD_32_33 | MMC_VDD_33_34 | MMC_VDD_165_195;
-	mmc->host_caps = (MMC_MODE_4BIT | MMC_MODE_HS_52MHz | MMC_MODE_HS |
-				MMC_MODE_HC) & ~host_caps_mask;
+	mmc->host_caps = host_caps_val & ~host_caps_mask;
 
 	mmc->f_min = 400000;
 

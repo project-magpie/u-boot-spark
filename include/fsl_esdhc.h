@@ -4,23 +4,7 @@
  *
  * Copyright 2007-2008,2010-2011 Freescale Semiconductor, Inc
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
- *
- *-------------------------------------------------------------------
- *
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef  __FSL_ESDHC_H__
@@ -63,7 +47,9 @@
 #define IRQSTAT_CC		(0x00000001)
 
 #define CMD_ERR		(IRQSTAT_CIE | IRQSTAT_CEBE | IRQSTAT_CCE)
-#define DATA_ERR	(IRQSTAT_DEBE | IRQSTAT_DCE | IRQSTAT_DTOE)
+#define DATA_ERR	(IRQSTAT_DEBE | IRQSTAT_DCE | IRQSTAT_DTOE | \
+				IRQSTAT_DMAE)
+#define DATA_COMPLETE	(IRQSTAT_TC | IRQSTAT_DINT)
 
 #define IRQSTATEN		0x0002e034
 #define IRQSTATEN_DMAE		(0x10000000)
@@ -168,6 +154,7 @@
 struct fsl_esdhc_cfg {
 	u32	esdhc_base;
 	u32	sdhc_clk;
+	u8	max_bus_width;
 };
 
 /* Select the correct accessors depending on endianess */
@@ -195,5 +182,6 @@ void fdt_fixup_esdhc(void *blob, bd_t *bd);
 static inline int fsl_esdhc_mmc_init(bd_t *bis) { return -ENOSYS; }
 static inline void fdt_fixup_esdhc(void *blob, bd_t *bd) {}
 #endif /* CONFIG_FSL_ESDHC */
+void __noreturn mmc_boot(void);
 
 #endif  /* __FSL_ESDHC_H__ */

@@ -1,23 +1,7 @@
 /*
  * Copyright 2009-2012 Freescale Semiconductor, Inc.
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -38,6 +22,8 @@
 #define CONFIG_PBLRCW_CONFIG $(SRCTREE)/board/freescale/corenet_ds/rcw_p4080ds.cfg
 #elif defined(CONFIG_P5020DS)
 #define CONFIG_PBLRCW_CONFIG $(SRCTREE)/board/freescale/corenet_ds/rcw_p5020ds.cfg
+#elif defined(CONFIG_P5040DS)
+#define CONFIG_PBLRCW_CONFIG $(SRCTREE)/board/freescale/corenet_ds/rcw_p5040ds.cfg
 #endif
 #endif
 
@@ -56,7 +42,6 @@
 #define CONFIG_E500MC			/* BOOKE e500mc family */
 #define CONFIG_SYS_BOOK3E_HV		/* Category E.HV supported */
 #define CONFIG_MPC85xx			/* MPC85xx/PQ3 platform */
-#define CONFIG_FSL_CORENET		/* Freescale CoreNet platform */
 #define CONFIG_MP			/* support multiple processors */
 
 #ifndef CONFIG_SYS_TEXT_BASE
@@ -188,7 +173,7 @@
 #define CONFIG_CHIP_SELECTS_PER_CTRL	(4 * CONFIG_DIMM_SLOTS_PER_CTLR)
 
 #define CONFIG_DDR_SPD
-#define CONFIG_FSL_DDR3
+#define CONFIG_SYS_FSL_DDR3
 
 #define CONFIG_SYS_SPD_BUS_NUM	1
 #define SPD_EEPROM_ADDRESS1	0x51
@@ -360,14 +345,14 @@
 #define CONFIG_FIT_VERBOSE	/* enable fit_format_{error,warning}() */
 
 /* I2C */
-#define CONFIG_FSL_I2C		/* Use FSL common I2C driver */
-#define CONFIG_HARD_I2C		/* I2C with hardware support */
-#define CONFIG_I2C_MULTI_BUS
-#define CONFIG_I2C_CMD_TREE
-#define CONFIG_SYS_I2C_SPEED		400000	/* I2C speed and slave address */
-#define CONFIG_SYS_I2C_SLAVE		0x7F
-#define CONFIG_SYS_I2C_OFFSET		0x118000
-#define CONFIG_SYS_I2C2_OFFSET		0x118100
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_FSL
+#define CONFIG_SYS_FSL_I2C_SPEED	400000
+#define CONFIG_SYS_FSL_I2C_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C_OFFSET	0x118000
+#define CONFIG_SYS_FSL_I2C2_SPEED	400000
+#define CONFIG_SYS_FSL_I2C2_SLAVE	0x7F
+#define CONFIG_SYS_FSL_I2C2_OFFSET	0x118100
 
 /*
  * RapidIO
@@ -562,6 +547,7 @@
 #endif
 
 #ifdef CONFIG_PCI
+#define CONFIG_PCI_INDIRECT_BRIDGE
 #define CONFIG_PCI_PNP			/* do pci plug-and-play */
 #define CONFIG_E1000
 
@@ -667,7 +653,6 @@
 #define CONFIG_CMDLINE_EDITING			/* Command-line editing */
 #define CONFIG_AUTO_COMPLETE			/* add autocompletion support */
 #define CONFIG_SYS_LOAD_ADDR	0x2000000	/* default load address */
-#define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt */
 #ifdef CONFIG_CMD_KGDB
 #define CONFIG_SYS_CBSIZE	1024		/* Console I/O Buffer Size */
 #else
@@ -676,7 +661,6 @@
 #define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE+sizeof(CONFIG_SYS_PROMPT)+16) /* Print Buffer Size */
 #define CONFIG_SYS_MAXARGS	16		/* max number of command args */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE	/* Boot Argument Buffer Size */
-#define CONFIG_SYS_HZ		1000		/* decrementer freq: 1ms ticks */
 
 /*
  * For booting Linux, the board info and command line data
@@ -688,7 +672,6 @@
 
 #ifdef CONFIG_CMD_KGDB
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed to run kgdb serial port */
-#define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
 #endif
 
 /*
@@ -714,7 +697,8 @@
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
 	"hwconfig=fsl_ddr:ctlr_intlv=cacheline,"		\
 	"bank_intlv=cs0_cs1;"					\
-	"usb1:dr_mode=host,phy_type=" __stringify(__USB_PHY_TYPE) "\0"\
+	"usb1:dr_mode=host,phy_type=" __stringify(__USB_PHY_TYPE) ";"\
+	"usb2:dr_mode=peripheral,phy_type=" __stringify(__USB_PHY_TYPE) "\0"\
 	"netdev=eth0\0"						\
 	"uboot=" __stringify(CONFIG_UBOOTPATH) "\0"		\
 	"ubootaddr=" __stringify(CONFIG_SYS_TEXT_BASE) "\0"	\
@@ -758,8 +742,6 @@
 
 #define CONFIG_BOOTCOMMAND		CONFIG_HDBOOT
 
-#ifdef CONFIG_SECURE_BOOT
 #include <asm/fsl_secure_boot.h>
-#endif
 
 #endif	/* __CONFIG_H */

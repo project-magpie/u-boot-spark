@@ -13,31 +13,7 @@
  * All rights reserved.
  *
  * @par
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * @par
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
+ * SPDX-License-Identifier:	BSD-3-Clause
  * @par
  * -- End of Copyright Notice --
  */
@@ -144,7 +120,7 @@ void ixEthDBFeatureCapabilityScan(void)
 
                 /* find the traffic class definition index compatible with the current NPE A functionality ID */
                 for (trafficClassDefinitionIndex = 0 ;
-                    trafficClassDefinitionIndex < sizeof (ixEthDBTrafficClassDefinitions) / sizeof (ixEthDBTrafficClassDefinitions[0]);
+                    trafficClassDefinitionIndex < ARRAY_SIZE(ixEthDBTrafficClassDefinitions);
                     trafficClassDefinitionIndex++)
                 {
                     if (ixEthDBTrafficClassDefinitions[trafficClassDefinitionIndex][IX_ETH_DB_NPE_A_FUNCTIONALITY_ID_INDEX] == npeAImageId.functionalityId)
@@ -155,7 +131,7 @@ void ixEthDBFeatureCapabilityScan(void)
                 }
 
                 /* select the default case if we went over the array boundary */
-                if (trafficClassDefinitionIndex == sizeof (ixEthDBTrafficClassDefinitions) / sizeof (ixEthDBTrafficClassDefinitions[0]))
+                if (trafficClassDefinitionIndex == ARRAY_SIZE(ixEthDBTrafficClassDefinitions))
                 {
                     trafficClassDefinitionIndex = 0; /* the first record is the default case */
                 }
@@ -169,7 +145,7 @@ void ixEthDBFeatureCapabilityScan(void)
                 /* enable port, VLAN and Firewall feature bits to initialize QoS/VLAN/Firewall configuration */
                 portInfo->featureStatus |= IX_ETH_DB_VLAN_QOS;
                 portInfo->featureStatus |= IX_ETH_DB_FIREWALL;
-                portInfo->enabled        = TRUE;
+                portInfo->enabled        = true;
 
 #define CONFIG_WITH_VLAN  /* test-only: VLAN support not included to save space!!! */
 #ifdef CONFIG_WITH_VLAN /* test-only: VLAN support not included to save space!!! */
@@ -195,7 +171,7 @@ void ixEthDBFeatureCapabilityScan(void)
                     ixEthDBPortVlanMembershipRangeRemove(portIndex, 0, IX_ETH_DB_802_1Q_MAX_VLAN_ID);
 
                     /* clear TTI table - no VLAN tagged frames will be transmitted */
-                    ixEthDBEgressVlanRangeTaggingEnabledSet(portIndex, 0, 4094, FALSE);
+                    ixEthDBEgressVlanRangeTaggingEnabledSet(portIndex, 0, 4094, false);
 
                     /* set membership on 0, otherwise no Tx or Rx is working */
                     ixEthDBPortVlanMembershipAdd(portIndex, 0);
@@ -221,12 +197,12 @@ void ixEthDBFeatureCapabilityScan(void)
 #endif
 
                 /* by default we turn off invalid source MAC address filtering */
-                ixEthDBFirewallInvalidAddressFilterEnable(portIndex, FALSE);
+                ixEthDBFirewallInvalidAddressFilterEnable(portIndex, false);
 
                 /* disable port, VLAN, Firewall feature bits */
                 portInfo->featureStatus &= ~IX_ETH_DB_VLAN_QOS;
                 portInfo->featureStatus &= ~IX_ETH_DB_FIREWALL;
-                portInfo->enabled        = FALSE;
+                portInfo->enabled        = false;
 
                 /* enable filtering by default if present */
                 if ((portInfo->featureCapability & IX_ETH_DB_FILTERING) != 0)
@@ -271,7 +247,7 @@ IxEthDBStatus ixEthDBFeatureCapabilityGet(IxEthDBPortId portID, IxEthDBFeature *
  *
  * @param portID ID of the port
  * @param feature feature to enable or disable
- * @param enabled TRUE to enable the selected feature or FALSE to disable it
+ * @param enabled true to enable the selected feature or false to disable it
  *
  * Note that this function is documented in the main component
  * header file, IxEthDB.h.
@@ -333,7 +309,7 @@ IxEthDBStatus ixEthDBFeatureEnable(IxEthDBPortId portID, IxEthDBFeature feature,
     }
 
     /* force port enabled */
-    portInfo->enabled = TRUE;
+    portInfo->enabled = true;
 
     if (enable)
     {
@@ -399,7 +375,7 @@ IxEthDBStatus ixEthDBFeatureEnable(IxEthDBPortId portID, IxEthDBFeature feature,
             /* enable TPID port extraction */
             if (status == IX_ETH_DB_SUCCESS)
             {
-                status = ixEthDBVlanPortExtractionEnable(portID, TRUE);
+                status = ixEthDBVlanPortExtractionEnable(portID, true);
             }
         }
         else if (feature == IX_ETH_DB_FIREWALL)
@@ -414,7 +390,7 @@ IxEthDBStatus ixEthDBFeatureEnable(IxEthDBPortId portID, IxEthDBFeature feature,
 
                 if (status == IX_ETH_DB_SUCCESS)
                 {
-                    status = ixEthDBFirewallInvalidAddressFilterEnable(portID, FALSE);
+                    status = ixEthDBFirewallInvalidAddressFilterEnable(portID, false);
                 }
             }
         }
@@ -445,7 +421,7 @@ IxEthDBStatus ixEthDBFeatureEnable(IxEthDBPortId portID, IxEthDBFeature feature,
 
             if (status == IX_ETH_DB_SUCCESS)
             {
-                status = ixEthDBFirewallInvalidAddressFilterEnable(portID, FALSE);
+                status = ixEthDBFirewallInvalidAddressFilterEnable(portID, false);
             }
 
             if (status == IX_ETH_DB_SUCCESS)
@@ -515,7 +491,7 @@ IxEthDBStatus ixEthDBFeatureEnable(IxEthDBPortId portID, IxEthDBFeature feature,
             /* disable TPID port extraction */
             if (status == IX_ETH_DB_SUCCESS)
             {
-                status = ixEthDBVlanPortExtractionEnable(portID, FALSE);
+                status = ixEthDBVlanPortExtractionEnable(portID, false);
             }
         }
 #endif
@@ -538,9 +514,9 @@ IxEthDBStatus ixEthDBFeatureEnable(IxEthDBPortId portID, IxEthDBFeature feature,
  *
  * @param portID port ID
  * @param present location to store a boolean value indicating
- * if the feature is present (TRUE) or not (FALSE)
+ * if the feature is present (true) or not (false)
  * @param enabled location to store a booleam value indicating
- * if the feature is present (TRUE) or not (FALSE)
+ * if the feature is present (true) or not (false)
  *
  * Note that this function is documented in the main component
  * header file, IxEthDB.h.

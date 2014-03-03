@@ -4,23 +4,7 @@
 # (C) Copyright 2008 Freescale Semiconductor
 # (C) Copyright Sheldon Instruments, Inc. 2008
 #
-# See file CREDITS for list of people who contributed to this
-# project.
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of
-# the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307 USA
+# SPDX-License-Identifier:	GPL-2.0+
 #
 
 NAND_SPL := y
@@ -36,7 +20,7 @@ AFLAGS	+= -DCONFIG_NAND_SPL
 CFLAGS	+= -DCONFIG_NAND_SPL
 
 SOBJS	= start.o ticks.o
-COBJS	= nand_boot_fsl_elbc.o $(BOARD).o sdram.o ns16550.o nand_init.o \
+COBJS	= nand_boot_fsl_elbc.o $(BOARD).o sdram.o ns16550.o spl_minimal.o \
 	  time.o cache.o
 
 SRCS	:= $(addprefix $(obj),$(SOBJS:.o=.S) $(COBJS:.o=.c))
@@ -44,9 +28,7 @@ OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
 __OBJS	:= $(SOBJS) $(COBJS)
 LNDIR	:= $(nandobj)board/$(BOARDDIR)
 
-ALL	= $(nandobj)u-boot-spl $(nandobj)u-boot-spl.bin $(nandobj)u-boot-spl-16k.bin
-
-all:	$(obj).depend $(ALL)
+all: $(nandobj)u-boot-spl.bin $(nandobj)u-boot-spl-16k.bin
 
 $(nandobj)u-boot-spl-16k.bin:	$(nandobj)u-boot-spl
 	$(OBJCOPY) ${OBJCFLAGS} --pad-to=$(PAD_TO) -O binary $< $@
@@ -56,8 +38,7 @@ $(nandobj)u-boot-spl.bin:	$(nandobj)u-boot-spl
 
 $(nandobj)u-boot-spl:	$(OBJS) $(nandobj)u-boot.lds
 	cd $(LNDIR) && $(LD) $(LDFLAGS) $(__OBJS) $(PLATFORM_LIBS) \
-		-Map $(nandobj)u-boot-spl.map \
-		-o $(nandobj)u-boot-spl
+		-Map $(nandobj)u-boot-spl.map -o $@
 
 $(nandobj)u-boot.lds: $(LDSCRIPT)
 	$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ -P - <$^ >$@
@@ -84,9 +65,9 @@ $(obj)ns16550.c:
 	@rm -f $@
 	ln -s $(SRCTREE)/drivers/serial/ns16550.c $@
 
-$(obj)nand_init.c:
+$(obj)spl_minimal.c:
 	@rm -f $@
-	ln -s $(SRCTREE)/arch/powerpc/cpu/mpc83xx/nand_init.c $@
+	ln -s $(SRCTREE)/arch/powerpc/cpu/mpc83xx/spl_minimal.c $@
 
 $(obj)cache.c:
 	@rm -f $@

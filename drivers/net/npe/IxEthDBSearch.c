@@ -11,31 +11,7 @@
  * All rights reserved.
  * 
  * @par
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- * 
- * @par
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * 
+ * SPDX-License-Identifier:	BSD-3-Clause
  * @par
  * -- End of Copyright Notice --
  */
@@ -50,7 +26,7 @@ extern HashTable dbHashtable;
  * @param untypedReference record to match against
  * @param untypedEntry record to match
  *
- * @return TRUE if the match is successful or FALSE otherwise
+ * @return true if the match is successful or false otherwise
  *
  * @internal
  */
@@ -61,7 +37,7 @@ BOOL ixEthDBAddressRecordMatch(void *untypedReference, void *untypedEntry)
     MacDescriptor *reference = (MacDescriptor *) untypedReference;
     
     /* check accepted record types */
-    if ((entry->type & reference->type) == 0) return FALSE;
+    if ((entry->type & reference->type) == 0) return false;
        
     return (ixEthDBAddressCompare((UINT8 *) entry->macAddress, (UINT8 *) reference->macAddress) == 0);
 }
@@ -73,7 +49,7 @@ BOOL ixEthDBAddressRecordMatch(void *untypedReference, void *untypedEntry)
  * @param untypedReference record to match against
  * @param untypedEntry record to match
  *
- * @return TRUE if the match is successful or FALSE otherwise
+ * @return true if the match is successful or false otherwise
  *
  * @internal
  */
@@ -84,7 +60,7 @@ BOOL ixEthDBVlanRecordMatch(void *untypedReference, void *untypedEntry)
     MacDescriptor *reference = (MacDescriptor *) untypedReference;
     
     /* check accepted record types */
-    if ((entry->type & reference->type) == 0) return FALSE;
+    if ((entry->type & reference->type) == 0) return false;
     
     return (IX_ETH_DB_GET_VLAN_ID(entry->recordData.filteringVlanData.ieee802_1qTag) ==
         IX_ETH_DB_GET_VLAN_ID(reference->recordData.filteringVlanData.ieee802_1qTag)) &&
@@ -98,7 +74,7 @@ BOOL ixEthDBVlanRecordMatch(void *untypedReference, void *untypedEntry)
  * @param untypedReference record to match against
  * @param untypedEntry record to match
  *
- * @return TRUE if the match is successful or FALSE otherwise
+ * @return true if the match is successful or false otherwise
  *
  * @internal
  */
@@ -109,7 +85,7 @@ BOOL ixEthDBPortRecordMatch(void *untypedReference, void *untypedEntry)
     MacDescriptor *reference = (MacDescriptor *) untypedReference;
     
     /* check accepted record types */
-    if ((entry->type & reference->type) == 0) return FALSE;
+    if ((entry->type & reference->type) == 0) return false;
     
     return (entry->portID == reference->portID) &&
         (ixEthDBAddressCompare(entry->macAddress, reference->macAddress) == 0);
@@ -125,7 +101,7 @@ BOOL ixEthDBPortRecordMatch(void *untypedReference, void *untypedEntry)
  * array on invalid types. Calling it will display an 
  * error message, indicating an error in the component logic.
  *
- * @return FALSE
+ * @return false
  *
  * @internal
  */
@@ -137,7 +113,7 @@ BOOL ixEthDBNullMatch(void *reference, void *entry)
     ixOsalLog(IX_OSAL_LOG_LVL_WARNING, IX_OSAL_LOG_DEV_STDOUT, "DB: (Search) The NullMatch function was called, wrong key type?\n", 0, 0, 0, 0, 0, 0);
 
 
-    return FALSE;
+    return false;
 }
 
 /**

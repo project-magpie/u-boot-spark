@@ -13,23 +13,7 @@
  * Sysgo Real-Time Solutions, GmbH <www.elinos.com>
  * Alex Zuepke <azu@sysgo.de>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -70,23 +54,23 @@ unsigned long long get_ticks(void)
 
 	if (readl(IXP425_OSST) & IXP425_OSST_TIMER_TS_PEND) {
 		/* rollover of timestamp timer register */
-		gd->timestamp += (0xFFFFFFFF - gd->lastinc) + now + 1;
+		gd->arch.timestamp += (0xFFFFFFFF - gd->arch.lastinc) + now + 1;
 		writel(IXP425_OSST_TIMER_TS_PEND, IXP425_OSST);
 	} else {
 		/* move stamp forward with absolut diff ticks */
-		gd->timestamp += (now - gd->lastinc);
+		gd->arch.timestamp += (now - gd->arch.lastinc);
 	}
-	gd->lastinc = now;
-	return gd->timestamp;
+	gd->arch.lastinc = now;
+	return gd->arch.timestamp;
 }
 
 
 void reset_timer_masked(void)
 {
 	/* capture current timestamp counter */
-	gd->lastinc = readl(IXP425_OSTS_B);
+	gd->arch.lastinc = readl(IXP425_OSTS_B);
 	/* start "advancing" time stamp from 0 */
-	gd->timestamp = 0;
+	gd->arch.timestamp = 0;
 }
 
 ulong get_timer_masked(void)
