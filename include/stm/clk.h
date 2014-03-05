@@ -79,21 +79,21 @@ DECLARE_GLOBAL_DATA_PTR;
 	/* Return the UART's Clock Frequency (in Hz) */
 static inline unsigned long stm_get_uart_clk_rate(void)
 {
-	return gd->stm_uart_frq;
+	return gd->arch.stm_uart_frq;
 }
 
 #if defined(CONFIG_ST40)
 	/* Return the TMU's Clock Frequency (in Hz) */
 static inline unsigned long stm_get_tmu_clk_rate(void)
 {
-	return gd->stm_tmu_frq;
+	return gd->arch.stm_tmu_frq;
 }
 #endif /* CONFIG_ST40 */
 
 	/* Return the SSC's Clock Frequency (in Hz) */
 static inline unsigned long stm_get_ssc_clk_rate(void)
 {
-	return gd->stm_ssc_frq;
+	return gd->arch.stm_ssc_frq;
 }
 
 #endif /* __INCLUDE_STM_CLK_H */

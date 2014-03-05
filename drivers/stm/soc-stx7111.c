@@ -48,9 +48,9 @@ static void stx7111_clocks(void)
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
-	gd->stm_tmu_frq  = gd->stm_uart_frq;
-	gd->stm_ssc_frq  = gd->stm_uart_frq;
+	gd->arch.stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_tmu_frq  = gd->arch.stm_uart_frq;
+	gd->arch.stm_ssc_frq  = gd->arch.stm_uart_frq;
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
@@ -136,7 +136,7 @@ extern int arch_cpu_init(void)
 	stmac_eth_hw_setup();
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
-	gd->stm_devid = *STX7111_SYSCONF_DEVICEID_0;
+	gd->arch.stm_devid = *STX7111_SYSCONF_DEVICEID_0;
 
 	/*  Make sure reset period is shorter than WDT timeout */
 	*STX7111_SYSCONF_SYS_CFG09 = (*STX7111_SYSCONF_SYS_CFG09 & 0xFF000000) | 0x000A8C;

@@ -83,12 +83,12 @@ static void stxh205_clocks(void)
 	 *       otherwise we expect the ASC to be 100MHz.
 	 */
 #if (CONFIG_SYS_STM_ASC_BASE==STXH205_ASC10_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH205_ASC11_BASE)
-	gd->stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
+	gd->arch.stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
 #else
-	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
 #endif
-	gd->stm_tmu_frq  = 100ul * 1000000ul;	/* 100 MHz */
-	gd->stm_ssc_frq  = gd->stm_tmu_frq;
+	gd->arch.stm_tmu_frq  = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_ssc_frq  = gd->arch.stm_tmu_frq;
 }
 
 
@@ -667,7 +667,7 @@ extern int arch_cpu_init(void)
 {
 	stxh205_clocks();
 
-	gd->stm_devid = *STXH205_SYSCONF_DEVICEID_0;
+	gd->arch.stm_devid = *STXH205_SYSCONF_DEVICEID_0;
 
 	/*
 	 * Allow both the Manual + Watchdog resets *OUT* of the

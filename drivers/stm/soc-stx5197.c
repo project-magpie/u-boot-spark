@@ -47,9 +47,9 @@ static void stx5197_clocks(void)
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	gd->stm_uart_frq = 140ul * 1000000ul;	/* 140 MHz */
-	gd->stm_tmu_frq  = 200ul * 1000000ul;	/* 200 MHz */
-	gd->stm_ssc_frq  = gd->stm_uart_frq;
+	gd->arch.stm_uart_frq = 140ul * 1000000ul;	/* 140 MHz */
+	gd->arch.stm_tmu_frq  = 200ul * 1000000ul;	/* 200 MHz */
+	gd->arch.stm_ssc_frq  = gd->arch.stm_uart_frq;
 }
 
 
@@ -190,7 +190,7 @@ extern int arch_cpu_init(void)
 	stx5197_clocks();
 
 	/* obtain the chip cut + device id */
-	gd->stm_devid = *STX5197_HD_CONF_MON_CONFIG_MONITOR_H;
+	gd->arch.stm_devid = *STX5197_HD_CONF_MON_CONFIG_MONITOR_H;
 
 #ifdef CONFIG_DRIVER_NETSTMAC
 	stmac_eth_hw_setup(0, 1, 0);

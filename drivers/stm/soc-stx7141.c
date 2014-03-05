@@ -45,9 +45,9 @@ static void stx7141_clocks(void)
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
-	gd->stm_tmu_frq  = gd->stm_uart_frq;
-	gd->stm_ssc_frq  = gd->stm_uart_frq;
+	gd->arch.stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_tmu_frq  = gd->arch.stm_uart_frq;
+	gd->arch.stm_ssc_frq  = gd->arch.stm_uart_frq;
 }
 
 
@@ -323,7 +323,7 @@ extern void stx7141_configure_ethernet(
 
 	/* Cut 2 of 7141 has AHB wrapper bug for ethernet gmac */
 	/* Need to disable read-ahead - performance impact     */
-	if (STX7141_DEVICEID_CUT(gd->stm_devid) == 2)
+	if (STX7141_DEVICEID_CUT(gd->arch.stm_devid) == 2)
 	{
 		const unsigned long addr = CONFIG_SYS_STM_STMAC_BASE + AD_CONFIG_OFFSET;
 		writel(readl(addr) & READ_AHEAD_MASK, addr);
@@ -389,7 +389,7 @@ extern int arch_cpu_init(void)
 
 	stx7141_clocks();
 
-	gd->stm_devid = *STX7141_SYSCONF_DEVICEID_0;
+	gd->arch.stm_devid = *STX7141_SYSCONF_DEVICEID_0;
 
 	/*
 	 * Reset Generation Configuration
