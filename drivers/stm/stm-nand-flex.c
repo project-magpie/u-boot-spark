@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2013 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2014 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -26,7 +26,6 @@
 #include <stm/stm-nand.h>
 #include <stm/ecc.h>
 #include <asm/errno.h>
-#include <stm/stxxxxxreg.h>
 #include <asm/io.h>
 #include <stm/socregs.h>
 #include <asm/cache.h>
