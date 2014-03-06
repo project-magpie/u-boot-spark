@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2006 DENX Software Engineering
- * (C) Copyright 2008-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2014 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -91,7 +91,7 @@ static void mb628_cmd_ctrl (
  */
 extern int board_nand_init(struct nand_chip * const nand)
 {
-		/* initialize for "bit-banging" */
+		/* initialize for "EMI bit-banging" */
 	stm_default_board_nand_init(nand, mb628_cmd_ctrl, NULL);
 
 	nand->chip_delay = 25;

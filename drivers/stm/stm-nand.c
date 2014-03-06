@@ -855,7 +855,7 @@ extern void stm_default_board_nand_init(
 	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
 	nand->scan_bbt      = stm_nand_default_bbt;
 
-#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the "EMI bit-banging" driver */
 	nand->cmd_ctrl      = cmd_ctrl;
 	nand->dev_ready     = dev_ready;
 #elif defined(CONFIG_SYS_STM_NAND_USE_HAMMING)		/* for H/W Hamming ("flex") driver */
