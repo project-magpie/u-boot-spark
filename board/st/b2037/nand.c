@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2006 DENX Software Engineering
- * (C) Copyright 2008-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2014 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -30,12 +30,12 @@
 
 
 /*
- * hardware specific access to control-lines for "bit-banging".
+ * hardware specific access to control-lines for "EMI bit-banging".
  *	CL -> Emi_Addr(9)
  *	AL -> Emi_Addr(10)
  *	nCE is handled by EMI (not s/w controllable)
  */
-#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the "EMI bit-banging" driver */
 static void b2037_cmd_ctrl (
 	struct mtd_info * const mtd,
 	const int byte,
@@ -103,7 +103,7 @@ static int b2037_device_ready(struct mtd_info *mtd)
  */
 extern int board_nand_init(struct nand_chip * const nand)
 {
-#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the "EMI bit-banging" driver */
 	stm_default_board_nand_init(nand, b2037_cmd_ctrl, b2037_device_ready);
 #else						/* else, use a H/W driver */
 	stm_default_board_nand_init(nand, NULL, NULL);

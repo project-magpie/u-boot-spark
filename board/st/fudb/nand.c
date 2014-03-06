@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2006 DENX Software Engineering
- * (C) Copyright 2008-2012 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2014 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -34,8 +34,8 @@
  * We use a "generic" STM function stm_default_board_nand_init() to do it.
  * However, we can easily override anything locally, if required.
  */
-#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
-#error It is not possible to use bit-banging with NAND on the Freeman Ultra Development Board.
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the "EMI bit-banging" driver */
+#error It is not possible to use "EMI Bit-Banging" with NAND on this system!
 #else						/* else, use a H/W driver */
 extern int board_nand_init(struct nand_chip * const nand)
 {

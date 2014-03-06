@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2013 STMicroelectronics.
+ * (C) Copyright 2008-2014 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -250,7 +250,7 @@
  * NAND FLASH organization
  *
  * Only the FLEX controller can control the ALE and CLE signal.
- * As a result, it is *not* possible to use "bit-banging" to talk
+ * As a result, it is *not* possible to use "EMI bit-banging" to talk
  * to the NAND, hence the H/W FLEX controller must be used.
  */
 
@@ -270,7 +270,7 @@
 	/*
 	 * Currently, there are 2 main modes to read/write from/to
 	 * NAND devices on STM SoCs:
-	 *	1) using a S/W "bit-banging" driver
+	 *	1) using the "EMI bit-banging" driver
 	 *	   (can NOT be used with boot-from-NAND)
 	 *	2) using the H/W Hamming controller (flex-mode) driver
 	 *	   (only supported means for boot-from-NAND)
@@ -295,7 +295,7 @@
 	 * Do we want to use STMicroelectronics' proprietary AFM4 (4+3/512)
 	 * ECC format, instead of Linux's traditional S/W 3/256 ECC?
 	 * Note: This does *not* enable H/W AFM - you can use either
-	 * "bit-banging" or STM's "FLEX-mode", it is simply the addition
+	 * "EMI bit-banging" or STM's "FLEX-mode", it is simply the addition
 	 * of the AFM4 ECC algorithm+layout that is being supported here.
 	 * Note: We *can* use this H/W AFM4 (4+3/512) ECC in addition to
 	 * the H/W "boot-mode" (3+1/128) ECC, on the same NAND device,
