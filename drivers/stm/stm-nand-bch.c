@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011-2013 STMicroelectronics Limited
+ *  Copyright (c) 2011-2014 STMicroelectronics Limited
  *  Authors: Angus Clark <Angus.Clark@st.com>
  *           Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -29,7 +29,6 @@
 #include <stm/stm-nand.h>
 #include <stm/ecc.h>
 #include <asm/errno.h>
-#include <stm/stxxxxxreg.h>
 #include <asm/io.h>
 #include <stm/socregs.h>
 #include <asm/cache.h>
