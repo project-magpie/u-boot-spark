@@ -246,14 +246,6 @@
 /* Choose if we want to use a SATA HDD */
 #undef CONFIG_STM_SATA
 
-#if defined(CONFIG_STM_SATA) ||	\
-    defined(CONFIG_STM_USB)
-#	define CONFIG_SYS_64BIT_LBA
-#	define CONFIG_LBA48
-#	define CONFIG_DOS_PARTITION
-#	define CONFIG_CMD_EXT2
-#endif
-
 /*-----------------------------------------------------------------------
  * Miscellaneous configurable options
  */
@@ -609,6 +601,19 @@
 #	endif	/* defined(CONFIG_CMD_NAND) */
 #endif	/* CONFIG_CMD_JFFS2 */
 
+/*---------------------------------------------------------------
+ * Disk-based Partition and Filesystem configuration
+ */
+
+#if defined(CONFIG_STM_SATA) ||	\
+    defined(CONFIG_STM_USB)  ||	\
+    defined(CONFIG_MMC)
+#	define CONFIG_SYS_64BIT_LBA
+#	define CONFIG_LBA48
+#	define CONFIG_DOS_PARTITION
+#	define CONFIG_CMD_FAT
+#	define CONFIG_CMD_EXT2
+#endif
 
 /*----------------------------------------------------------------------
  * I2C configuration
