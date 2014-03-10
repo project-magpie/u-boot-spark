@@ -337,11 +337,21 @@
 #define STM_ASC_RXRESET(n)		STM_U32_REG(STM_ASC##n##_REGS_BASE + 0x24)
 #define STM_ASC_RETRIES(n)		STM_U32_REG(STM_ASC##n##_REGS_BASE + 0x28)
 
-/* EMISS/EMIPCISS register space */
+/* FlashSS or EMISS/EMIPCISS Register Configuration Space */
 #if defined(STM_EMISS_REGS_BASE)		/* using the (legacy) EMISS/EMIPCISS ? */
 #	define STM_FLASH_NAND_BCH_DMA_BASE	(STM_EMISS_REGS_BASE + 0x0800)
 #	define STM_FLASH_CONFIG			STM_U32_REG(STM_EMISS_REGS_BASE + 0x1000)
 #	define STM_FLASH_NAND_HAMMING_NOT_BCH	(1ul<<6)	/* bit #6 */
+#elif defined(CONFIG_STM_SOC_HAS_FLASHSS)	/* using the (newer) FlashSS IP block ? */
+#	define STM_FLASH_NAND_BCH_DMA_BASE	(CONFIG_SYS_STM_FLASHSS_PORT1_BASE + 0x0800)
+#	define STM_FLASH_CONFIG			STM_U32_REG(CONFIG_SYS_STM_FLASHSS_PORT1_BASE + 0x1000)
+#	define STM_FLASH_NAND_HAMMING_NOT_BCH	(1ul<<0)	/* bit #0 */
+#	define STM_EMI_REGS_BASE		CONFIG_SYS_STM_FLASHSS_PORT0_BASE
+#else
+	/*
+	 * Neither sub-system is present, so presumably no BCH is available!
+	 * So, we define nothing at all!
+	 */
 #endif	/* STM_EMISS_REGS_BASE */
 
 #endif /* __INCLUDE_STM_STXXXXX_H */

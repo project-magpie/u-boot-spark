@@ -316,8 +316,6 @@
 #if 1
 	/* Use H/W FSM SPI Controller (not H/W SSC, nor S/W "bit-banging") */
 #	define CONFIG_STM_FSM_SPI			/* Use the H/W FSM for SPI */
-#	define CONFIG_SYS_STM_SPI_FSM_BASE	\
-		(STXH407_FLASH_IF_REG0_BASE + 0x2000)	/* FSM SPI Controller Base */
 #	define CONFIG_SYS_STM_SPI_CLOCKDIV	4	/* set SPI_CLOCKDIV = 4 */
 #	undef CONFIG_CMD_SPI				/* SPI serial bus command support - NOT with FSM! */
 #else
@@ -341,13 +339,9 @@
 #	define CONFIG_GENERIC_MMC
 #	define CONFIG_CMD_MMC
 #	if defined(CONFIG_STM_SDHCI_0)
-#		define CONFIG_SYS_MMC0_BASE	0x09060000	/* MMC #0 is eMMC boot device */
 #		define CONFIG_SUPPORT_EMMC_BOOT
 #		define CONFIG_MMC_BOOT_MODE_1_BIT		/* use 1-bit boot-mode */
 #	endif	/* CONFIG_STM_SDHCI_0 */
-#	if defined(CONFIG_STM_SDHCI_1)
-#		define CONFIG_SYS_MMC1_BASE	0x09080000	/* MMC #1 is MMC/SD slot */
-#	endif	/* CONFIG_STM_SDHCI_1 */
 #endif	/* CONFIG_STM_SDHCI_0 || CONFIG_STM_SDHCI_1 */
 
 /*-----------------------------------------------------------------------
