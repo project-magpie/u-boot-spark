@@ -26,18 +26,38 @@
 #define STXH407_COMMS_BASE			0x09800000
 #endif
 
-/* EMISS (aka EMIPCISS) Register Configuration Space */
-//QQQ #define STM_EMISS_REGS_BASE			0xfef00000
+/* FLASHSS Register Configuration Space */
+#define CONFIG_STM_SOC_HAS_FLASHSS		/* The FlashSS is present on this SoC */
 
 /* Flash Interface, Control Registers (port 0) */
 #ifndef STXH407_FLASH_IF_REG0_BASE
 #define STXH407_FLASH_IF_REG0_BASE		0x09020000
+#endif
+#ifndef CONFIG_SYS_STM_FLASHSS_PORT0_BASE
+#define CONFIG_SYS_STM_FLASHSS_PORT0_BASE	STXH407_FLASH_IF_REG0_BASE
 #endif
 
 /* Flash Interface, Control Registers (port 1) */
 #ifndef STXH407_FLASH_IF_REG1_BASE
 #define STXH407_FLASH_IF_REG1_BASE		0x09060000
 #endif
+#ifndef CONFIG_SYS_STM_FLASHSS_PORT1_BASE
+#define CONFIG_SYS_STM_FLASHSS_PORT1_BASE	STXH407_FLASH_IF_REG1_BASE
+#endif
+
+/* FSM SPI Controller Base (in the FlashSS) */
+#ifndef CONFIG_SYS_STM_SPI_FSM_BASE
+#define CONFIG_SYS_STM_SPI_FSM_BASE		(CONFIG_SYS_STM_FLASHSS_PORT0_BASE + 0x2000)
+#endif
+
+/* MMC Controller Bases (in the FlashSS) */
+#ifndef CONFIG_SYS_MMC0_BASE
+#define CONFIG_SYS_MMC0_BASE			(CONFIG_SYS_STM_FLASHSS_PORT1_BASE + 0x0)	/* MMC #0 */
+#endif
+#ifndef CONFIG_SYS_MMC1_BASE
+#define CONFIG_SYS_MMC1_BASE			0x09080000	/* MMC #1 */
+#endif
+
 
 /* Low-Power Block */
 #ifndef STXH407_SBC_LPM_BASE
