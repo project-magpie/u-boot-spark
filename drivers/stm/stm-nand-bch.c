@@ -131,23 +131,23 @@ enum nandi_controllers {STM_NANDI_UNCONFIGURED,
 			STM_NANDI_BCH};
 
 
-static void emiss_nandi_select(const enum nandi_controllers controller)
+static void stm_flash_nandi_select(const enum nandi_controllers controller)
 {
 	unsigned v;
 
-	v = readl(STM_EMISS_CONFIG);
+	v = readl(STM_FLASH_CONFIG);
 
 	if (controller == STM_NANDI_HAMMING) {
-		if (v & STM_EMISS_NAND_HAMMING_NOT_BCH)
+		if (v & STM_FLASH_NAND_HAMMING_NOT_BCH)
 			return;		/* already selected Hamming */
-		v |= STM_EMISS_NAND_HAMMING_NOT_BCH;
+		v |= STM_FLASH_NAND_HAMMING_NOT_BCH;
 	} else {
-		if (!(v & STM_EMISS_NAND_HAMMING_NOT_BCH))
+		if (!(v & STM_FLASH_NAND_HAMMING_NOT_BCH))
 			return;		/* already selected BCH */
-		v &= ~STM_EMISS_NAND_HAMMING_NOT_BCH;
+		v &= ~STM_FLASH_NAND_HAMMING_NOT_BCH;
 	}
 
-	writel(v, STM_EMISS_CONFIG);	/* select the chosen controller */
+	writel(v, STM_FLASH_CONFIG);	/* select the chosen controller */
 
 	/*
 	 * Ensure the writel() has completed before we attempt to make
@@ -156,14 +156,14 @@ static void emiss_nandi_select(const enum nandi_controllers controller)
 	 * This was empirically required by Linux on the Freeman Ultra.
 	 * We will do this on all STMicroelectronics systems -- best to be safe!
 	 */
-	readl(STM_EMISS_CONFIG);
+	readl(STM_FLASH_CONFIG);
 }
 
 
 static void nandi_init_hamming(const int emi_bank)
 {
 	/* Initialise the Hamming Controller */
-	emiss_nandi_select(STM_NANDI_HAMMING);
+	stm_flash_nandi_select(STM_NANDI_HAMMING);
 
 	/* Reset and disable boot-mode controller */
 	writel(BOOT_CFG_RESET, STM_EMI_NAND_HAM_BOOTBANK_CFG);
@@ -195,7 +195,7 @@ static void nandi_init_hamming(const int emi_bank)
 static void nandi_init_bch(const int emi_bank)
 {
 	/* Initialise the BCH Controller */
-	emiss_nandi_select(STM_NANDI_BCH);
+	stm_flash_nandi_select(STM_NANDI_BCH);
 
 	/* Reset and disable boot-mode controller */
 	writel(BOOT_CFG_RESET, STM_EMI_NAND_BCH_BOOTBANK_CFG);
@@ -227,18 +227,18 @@ static void nandi_init_bch(const int emi_bank)
 	 */
 
 	/* Configure Read DMA Plugs (values supplied by Validation)*/
-	writel(0x00000005, STM_EMISS_NAND_RD_DMA_PAGE_SIZE);
-	writel(0x00000005, STM_EMISS_NAND_RD_DMA_MAX_OPCODE_SIZE);
-	writel(0x00000002, STM_EMISS_NAND_RD_DMA_MIN_OPCODE_SIZE);
-	writel(0x00000001, STM_EMISS_NAND_RD_DMA_MAX_CHUNK_SIZE);
-	writel(0x00000000, STM_EMISS_NAND_RD_DMA_MAX_MESSAGE_SIZE);
+	writel(0x00000005, STM_FLASH_NAND_RD_DMA_PAGE_SIZE);
+	writel(0x00000005, STM_FLASH_NAND_RD_DMA_MAX_OPCODE_SIZE);
+	writel(0x00000002, STM_FLASH_NAND_RD_DMA_MIN_OPCODE_SIZE);
+	writel(0x00000001, STM_FLASH_NAND_RD_DMA_MAX_CHUNK_SIZE);
+	writel(0x00000000, STM_FLASH_NAND_RD_DMA_MAX_MESSAGE_SIZE);
 
 	/* Configure Write DMA Plugs (values supplied by Validation) */
-	writel(0x00000005, STM_EMISS_NAND_WR_DMA_PAGE_SIZE);
-	writel(0x00000005, STM_EMISS_NAND_WR_DMA_MAX_OPCODE_SIZE);
-	writel(0x00000002, STM_EMISS_NAND_WR_DMA_MIN_OPCODE_SIZE);
-	writel(0x00000001, STM_EMISS_NAND_WR_DMA_MAX_CHUNK_SIZE);
-	writel(0x00000000, STM_EMISS_NAND_WR_DMA_MAX_MESSAGE_SIZE);
+	writel(0x00000005, STM_FLASH_NAND_WR_DMA_PAGE_SIZE);
+	writel(0x00000005, STM_FLASH_NAND_WR_DMA_MAX_OPCODE_SIZE);
+	writel(0x00000002, STM_FLASH_NAND_WR_DMA_MIN_OPCODE_SIZE);
+	writel(0x00000001, STM_FLASH_NAND_WR_DMA_MAX_CHUNK_SIZE);
+	writel(0x00000000, STM_FLASH_NAND_WR_DMA_MAX_MESSAGE_SIZE);
 
 	/* Enable the SEQ_NODES_OVER interrupt for the BCH (we will poll on it!) */
 	writel(NAND_INT_ENABLE | NANDBCH_INT_SEQNODESOVER,
@@ -325,7 +325,7 @@ static void flex_command_lp(
 		"***UNKNOWN***");
 #endif /* DEBUG_BCH */
 
-	emiss_nandi_select(STM_NANDI_HAMMING);
+	stm_flash_nandi_select(STM_NANDI_HAMMING);
 
 	/* Emulate NAND_CMD_READOOB */
 	if (command == NAND_CMD_READOOB) {
@@ -379,7 +379,7 @@ static void flex_command_lp(
 
 static uint8_t flex_read_byte(struct mtd_info * const mtd)
 {
-	emiss_nandi_select(STM_NANDI_HAMMING);
+	stm_flash_nandi_select(STM_NANDI_HAMMING);
 
 	return (uint8_t)(readl(STM_EMI_NAND_HAM_FLEX_DATA) & 0xff);
 }
@@ -389,7 +389,7 @@ static int flex_wait_func(
 	struct mtd_info * const mtd,
 	struct nand_chip * const chip)
 {
-	emiss_nandi_select(STM_NANDI_HAMMING);
+	stm_flash_nandi_select(STM_NANDI_HAMMING);
 
 	flex_wait_rbn(mtd);
 
@@ -413,7 +413,7 @@ static void flex_read_buf(
 	uint8_t *buf,
 	int len)
 {
-	emiss_nandi_select(STM_NANDI_HAMMING);
+	stm_flash_nandi_select(STM_NANDI_HAMMING);
 
 	/* Read bytes until buf is 4-byte aligned */
 	while (len && ((unsigned int)buf & 0x3)) {
@@ -449,7 +449,7 @@ static void flex_write_buf(
 	const uint8_t *buf,
 	int len)
 {
-	emiss_nandi_select(STM_NANDI_HAMMING);
+	stm_flash_nandi_select(STM_NANDI_HAMMING);
 
 	/* Write bytes until buf is 4-byte aligned */
 	while (len && ((unsigned int)buf & 0x3)) {
@@ -795,7 +795,7 @@ static int bch_ecc_read_page (
 #endif /* DEBUG_BCH */
 
 	/* Activate the BCH controller */
-	emiss_nandi_select(STM_NANDI_BCH);
+	stm_flash_nandi_select(STM_NANDI_BCH);
 
 	if (!dma_buffer)			/* no buffers yet ? */
 		bch_init_dma_buffers(mtd);	/* then allocate them ... */
@@ -1018,7 +1018,7 @@ static int bch_write_page (
 	BUG_ON(raw);
 
 	/* Activate the BCH controller */
-	emiss_nandi_select(STM_NANDI_BCH);
+	stm_flash_nandi_select(STM_NANDI_BCH);
 
 	if (!dma_buffer)			/* no buffers yet ? */
 		bch_init_dma_buffers(mtd);	/* then allocate them ... */
