@@ -205,9 +205,9 @@ static void init_flex_mode(void)
 	 * attempting to use FLEX-mode accesses to talk to the Hamming
 	 * controller, when the BCH is enabled must be avoided!
 	 */
-#if defined(STM_EMISS_REGS_BASE)
+#if defined(STM_FLASH_CONFIG)
 	/* enable the Hamming controller (and disable BCH) */
-	*STM_EMISS_CONFIG |= STM_EMISS_NAND_HAMMING_NOT_BCH;
+	*STM_FLASH_CONFIG |= STM_FLASH_NAND_HAMMING_NOT_BCH;
 #endif
 
 	/* Disable the BOOT-mode controller */
