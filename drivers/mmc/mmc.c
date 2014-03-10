@@ -250,7 +250,7 @@ mmc_berase(int dev_num, unsigned long start, lbaint_t blkcnt)
 		printf("\n\nCaution! Your devices Erase group is 0x%x\n"
 			"The erase range would be change to 0x%lx~0x%lx\n\n",
 		       mmc->erase_grp_size, start & ~(mmc->erase_grp_size - 1),
-		       ((start + blkcnt + mmc->erase_grp_size)
+		       (ulong)((start + blkcnt + mmc->erase_grp_size)
 		       & ~(mmc->erase_grp_size - 1)) - 1);
 
 	while (blk < blkcnt) {
@@ -279,7 +279,7 @@ mmc_write_blocks(struct mmc *mmc, ulong start, lbaint_t blkcnt, const void*src)
 
 	if ((start + blkcnt) > mmc->block_dev.lba) {
 		printf("MMC: block number 0x%lx exceeds max(0x%lx)\n",
-			start + blkcnt, mmc->block_dev.lba);
+			(ulong)(start + blkcnt), (ulong)mmc->block_dev.lba);
 		return 0;
 	}
 
@@ -401,7 +401,7 @@ static ulong mmc_bread(int dev_num, ulong start, lbaint_t blkcnt, void *dst)
 
 	if ((start + blkcnt) > mmc->block_dev.lba) {
 		printf("MMC: block number 0x%lx exceeds max(0x%lx)\n",
-			start + blkcnt, mmc->block_dev.lba);
+			(ulong)(start + blkcnt), (ulong)mmc->block_dev.lba);
 		return 0;
 	}
 
