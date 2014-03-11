@@ -21,70 +21,51 @@
 # MA 02111-1307 USA
 #
 
-include $(TOPDIR)/config.mk
-
-LIB	= $(obj)libstm.o
 
 # All the STMicroelectronics-specific stuff, which may be ARCH-agnostic
 ifdef CONFIG_STM
-COBJS-y += board.o
-COBJS-y += stm-sysconf.o
-COBJS-$(CONFIG_STM_USB) += usb.o
-COBJS-$(CONFIG_USB_EHCI_STM) += stm-ehci-host.o
-COBJS-$(CONFIG_STM_SATA) += sata-init.o sata-probe.o
-COBJS-$(CONFIG_CMD_STTESTS) += cmd_sttests.o st_mtests.o
-COBJS-$(CONFIG_STM_FSM_SPI) += stm_spi_fsm.o
-COBJS-$(CONFIG_SPI) += spi.o
-COBJS-$(CONFIG_ENV_IS_IN_EEPROM) += env_eeprom.o
-COBJS-$(CONFIG_STM_ASC_SERIAL) += stm-asc.o
-COBJS-$(CONFIG_STM_DTF_SERIAL) += stm-dtf.o
-COBJS-$(CONFIG_DRIVER_NETSTMAC)     += stm-stmac.o
-COBJS-$(CONFIG_DRIVER_NET_STM_GMAC) += stm-stmac.o
-COBJS-$(CONFIG_STMAC_USE_RTL8367_SMI) += rtl8367_smi.o
-COBJS-$(CONFIG_STM_SDHCI) += stm-sdhci.o
+obj-y += board.o
+obj-y += stm-sysconf.o
+obj-$(CONFIG_STM_USB) += usb.o
+obj-$(CONFIG_USB_EHCI_STM) += stm-ehci-host.o
+obj-$(CONFIG_STM_SATA) += sata-init.o sata-probe.o
+obj-$(CONFIG_CMD_STTESTS) += cmd_sttests.o st_mtests.o
+obj-$(CONFIG_STM_FSM_SPI) += stm_spi_fsm.o
+obj-$(CONFIG_SPI) += spi.o
+obj-$(CONFIG_ENV_IS_IN_EEPROM) += env_eeprom.o
+obj-$(CONFIG_STM_ASC_SERIAL) += stm-asc.o
+obj-$(CONFIG_STM_DTF_SERIAL) += stm-dtf.o
+obj-$(CONFIG_DRIVER_NETSTMAC)     += stm-stmac.o
+obj-$(CONFIG_DRIVER_NET_STM_GMAC) += stm-stmac.o
+obj-$(CONFIG_STMAC_USE_RTL8367_SMI) += rtl8367_smi.o
+obj-$(CONFIG_STM_SDHCI) += stm-sdhci.o
 
 ifdef CONFIG_CMD_NAND
-COBJS-y += ecc.o stm-nand.o
-COBJS-$(CONFIG_SYS_STM_NAND_USE_BCH) += stm-nand-bch.o
-COBJS-$(CONFIG_SYS_STM_NAND_USE_HAMMING) += stm-nand-flex.o
-COBJS-$(CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING) += cmd_copybbt.o
+obj-y += ecc.o stm-nand.o
+obj-$(CONFIG_SYS_STM_NAND_USE_BCH) += stm-nand-bch.o
+obj-$(CONFIG_SYS_STM_NAND_USE_HAMMING) += stm-nand-flex.o
+obj-$(CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING) += cmd_copybbt.o
 endif # CONFIG_CMD_NAND
 
 # finally, all the SoCs ...
-COBJS-$(CONFIG_STM_FLI7510) += soc-fli7510.o
-COBJS-$(CONFIG_STM_FLI7540) += soc-fli7540.o
-COBJS-$(CONFIG_STM_STX5197) += soc-stx5197.o
-COBJS-$(CONFIG_STM_STX5206) += soc-stx5206.o
-COBJS-$(CONFIG_STM_STX7105) += soc-stx7105.o
-COBJS-$(CONFIG_STM_STX7108) += soc-stx7108.o
-COBJS-$(CONFIG_STM_STX7111) += soc-stx7111.o
-COBJS-$(CONFIG_STM_STX7141) += soc-stx7141.o
-COBJS-$(CONFIG_STM_STX7200) += soc-stx7200.o
-COBJS-$(CONFIG_STM_STXH205) += soc-stxh205.o
-COBJS-$(CONFIG_STM_STXH407) += soc-stxh407.o
-COBJS-$(CONFIG_STM_STXH415) += soc-stxh415.o
-COBJS-$(CONFIG_STM_STXH416) += soc-stxh416.o
+obj-$(CONFIG_STM_FLI7510) += soc-fli7510.o
+obj-$(CONFIG_STM_FLI7540) += soc-fli7540.o
+obj-$(CONFIG_STM_STX5197) += soc-stx5197.o
+obj-$(CONFIG_STM_STX5206) += soc-stx5206.o
+obj-$(CONFIG_STM_STX7105) += soc-stx7105.o
+obj-$(CONFIG_STM_STX7108) += soc-stx7108.o
+obj-$(CONFIG_STM_STX7111) += soc-stx7111.o
+obj-$(CONFIG_STM_STX7141) += soc-stx7141.o
+obj-$(CONFIG_STM_STX7200) += soc-stx7200.o
+obj-$(CONFIG_STM_STXH205) += soc-stxh205.o
+obj-$(CONFIG_STM_STXH407) += soc-stxh407.o
+obj-$(CONFIG_STM_STXH415) += soc-stxh415.o
+obj-$(CONFIG_STM_STXH416) += soc-stxh416.o
 endif # CONFIG_STM
-
-COBJS	:= $(COBJS-y)
-SRCS	:= $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS))
-
-all:	$(LIB)
 
 ifdef CONFIG_ST40
 $(obj)stm-nand-flex.o: stm-nand-flex.c
 	$(CC) $(CFLAGS) -m4 -c -o $@ $<
 endif
 
-$(LIB):	$(obj).depend $(OBJS)
-	$(call cmd_link_o_target, $(OBJS))
 
-#########################################################################
-
-# defines $(obj).depend target
-include $(SRCTREE)/rules.mk
-
-sinclude $(obj).depend
-
-#########################################################################

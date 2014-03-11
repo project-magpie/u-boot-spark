@@ -21,34 +21,7 @@
 # MA 02111-1307 USA
 #
 
-include $(TOPDIR)/config.mk
+obj-y   := init-hdk5289.o
+obj-y   += hdk5289.o
+obj-$(CONFIG_CMD_NAND) += nand.o
 
-LIB	= $(obj)lib$(BOARD).o
-
-SOBJS-y	= init-$(BOARD).o
-
-COBJS-y	+= $(BOARD).o
-COBJS-$(CONFIG_CMD_NAND) += nand.o
-
-
-SRCS	:= $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS-y))
-SOBJS	:= $(addprefix $(obj),$(SOBJS-y))
-
-$(LIB):	$(obj).depend $(OBJS) $(SOBJS)
-	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
-
-#########################################################################
-
-# defines $(obj).depend target
-include $(SRCTREE)/rules.mk
-
-sinclude $(obj).depend
-
-#########################################################################

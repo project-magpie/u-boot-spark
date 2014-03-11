@@ -21,34 +21,10 @@
 # MA 02111-1307 USA
 #
 
-include $(TOPDIR)/config.mk
+obj-$(CONFIG_STM_B2057)   := init-b2057.o
+obj-$(CONFIG_STM_B2064)   := init-b2064.o
+obj-$(CONFIG_STM_B2067)   := init-b2067.o
+obj-$(CONFIG_STM_B2075)   := init-b2075.o
+obj-y   += b2057.o
+obj-$(CONFIG_CMD_NAND) += nand.o
 
-LIB	= $(obj)lib$(BOARD).o
-
-SOBJS-y	= init-$(TARGET).o
-
-COBJS-y	+= $(BOARD).o
-COBJS-$(CONFIG_CMD_NAND) += nand.o
-
-
-SRCS	:= $(SOBJS-y:.o=.S) $(COBJS-y:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS-y))
-SOBJS	:= $(addprefix $(obj),$(SOBJS-y))
-
-$(LIB):	$(obj).depend $(OBJS) $(SOBJS)
-	$(call cmd_link_o_target, $(OBJS) $(SOBJS))
-
-clean:
-	rm -f $(SOBJS) $(OBJS)
-
-distclean:	clean
-	rm -f $(LIB) core *.bak $(obj).depend
-
-#########################################################################
-
-# defines $(obj).depend target
-include $(SRCTREE)/rules.mk
-
-sinclude $(obj).depend
-
-#########################################################################

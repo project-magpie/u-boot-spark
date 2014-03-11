@@ -21,29 +21,6 @@
 # MA 02111-1307 USA
 #
 
-include $(TOPDIR)/config.mk
-
-LIB	= $(obj)lib$(CPU).o
-
-START	= start.o
-COBJS-y	= cpu.o interrupts.o cmd_pmb.o
-SOBJS	=
-
-SRCS	:= $(START:.o=.S) $(SOBJS:.o=.S) $(COBJS-y:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS-y) $(SOBJS))
-START	:= $(addprefix $(obj),$(START))
-
-all:	$(obj).depend $(START) $(LIB)
-
-$(LIB):	$(OBJS)
-	$(call cmd_link_o_target, $(OBJS))
-
-#########################################################################
-
-# defines $(obj).depend target
-include $(SRCTREE)/rules.mk
-
-sinclude $(obj).depend
-
-#########################################################################
+extra-y	= start.o
+obj-y	= cpu.o interrupts.o cmd_pmb.o
 
