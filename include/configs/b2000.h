@@ -610,7 +610,6 @@
 	/* Note: I2C Bus #1 "probes" devices when a suitable HDMI device is plugged in to CN5. */
 	/* It should be further noted that the I2C bus was run at 100kHz (and not 400kHz) */
 #	define CONFIG_I2C_BUS		1	/* Use I2C Bus associated with SSC #1 */
-#	define CONFIG_I2C_CMD_TREE		/* use a "i2c" root command */
 #	define CONFIG_SYS_I2C_SLAVE	0x7F	/* I2C slave address - Bogus: master-only in U-Boot */
 #	define CONFIG_SOFT_I2C			/* I2C with S/W bit-banging	*/
 #	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/

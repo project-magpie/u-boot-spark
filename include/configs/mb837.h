@@ -471,7 +471,6 @@
 
 #if defined(CONFIG_CMD_I2C)
 #	define CONFIG_I2C_BUS		2	/* Use I2C Bus associated with SSC #2 */
-#	define CONFIG_I2C_CMD_TREE		/* use a "i2c" root command */
 #	define CONFIG_SYS_I2C_SLAVE	0x7F	/* I2C slave address - Bogus: master-only in U-Boot */
 #	define CONFIG_SOFT_I2C			/* I2C with S/W bit-banging	*/
 #	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
