@@ -32,7 +32,7 @@
 #define mdelay(n) ({unsigned long msec=(n); while (msec--) udelay(1000);})
 
 
-#if (defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT)) || defined(CONFIG_USB_EHCI)
+#if (defined(CONFIG_USB_OHCI_NEW) && defined(CONFIG_SYS_USB_OHCI_CPU_INIT)) || defined(CONFIG_USB_EHCI) || defined(CONFIG_USB_XHCI)
 extern int usb_cpu_init(void)
 {
 #if defined(CONFIG_STM_STX5197)
@@ -96,6 +96,8 @@ extern int usb_cpu_init(void)
 #elif CONFIG_SYS_USB_BASE == CONFIG_SYS_USB3_BASE	/* USB #3 */
 	stxh416_usb_init(3);
 #endif
+#elif defined(CONFIG_STM_STXH407)
+	stxh407_usb_init(0);
 #else
 #error Missing Device Definitions!
 #endif

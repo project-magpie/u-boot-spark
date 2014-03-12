@@ -28,6 +28,7 @@ obj-y += board.o
 obj-y += stm-sysconf.o
 obj-$(CONFIG_STM_USB) += usb.o
 obj-$(CONFIG_USB_EHCI_STM) += stm-ehci-host.o
+obj-$(CONFIG_USB_XHCI_STM) += stm-xhci-host.o
 obj-$(CONFIG_STM_SATA) += sata-init.o sata-probe.o
 obj-$(CONFIG_CMD_STTESTS) += cmd_sttests.o st_mtests.o
 obj-$(CONFIG_STM_FSM_SPI) += stm_spi_fsm.o

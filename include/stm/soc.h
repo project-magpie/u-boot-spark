@@ -269,6 +269,7 @@ extern void fli7540_usb_init(const int port, const enum fli7540_usb_ovrcur_mode 
 extern int  stxh205_usb_init(const int port);
 extern int  stxh415_usb_init(const int port);
 extern int  stxh416_usb_init(const int port);
+extern int  stxh407_usb_init(const int port);
 
 
 /*

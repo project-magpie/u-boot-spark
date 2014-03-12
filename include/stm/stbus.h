@@ -48,6 +48,12 @@
 #	define AHB2STBUS_PROTOCOL_BASE		(CONFIG_SYS_USB_BASE + 0x000fff00)
 #endif
 
+#if defined(CONFIG_STM_STXH407) && defined(CONFIG_USB_XHCI)
+#	define STM_DWC3_CORE_BASE  0x09900000
+#	define STM_DWC3_GLUE_BASE  0x08f94000
+#	define MIPHY_USB3_UPORT_BASE 0x08f90000
+#	define MIPHY_USB3_PIPEW_BASE 0x08f95000
+#endif
 
 /* Protocol converter registers (separate registers) */
 

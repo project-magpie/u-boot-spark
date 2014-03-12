@@ -203,7 +203,26 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#undef CONFIG_STM_USB
+#define CONFIG_STM_USB
+
+#ifdef CONFIG_STM_USB
+#	define CONFIG_CMD_USB
+#	define CONFIG_CMD_FAT
+#	define CONFIG_USB_STORAGE
+#define CONFIG_SYS_USB_XHCI_MAX_ROOT_PORTS	2
+#define CONFIG_SYS_CACHELINE_SIZE      32
+#	if 0	/* use OHCI (USB 1.x) ? */
+#		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
+#		define CONFIG_SYS_USB_OHCI_CPU_INIT
+#		define CONFIG_SYS_USB_OHCI_REGS_BASE		AHB2STBUS_OHCI_BASE
+#		define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
+#		define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
+#	else	/* else, use EHCI (USB 2.0) */
+#		define CONFIG_USB_XHCI					/* enable USB 2.0, via EHCI */
+#		define CONFIG_USB_XHCI_STM				/* use EHCI for STMicroelectronics */
+#	endif	/* use OHCI/EHCI */
+#endif	/* ifdef CONFIG_STM_USB */
+
 
 /*---------------------------------------------------------------
  * SATA driver config

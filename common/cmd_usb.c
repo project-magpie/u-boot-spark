@@ -461,6 +461,9 @@ static int do_usb(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		if (usb_init() >= 0) {
 #ifdef CONFIG_USB_STORAGE
 			/* try to recognize storage devices immediately */
+#if defined(CONFIG_STM_USB) && defined(CONFIG_USB_XHCI)
+			udelay(10);
+#endif
 			usb_stor_curr_dev = usb_stor_scan(1);
 #endif
 #ifdef CONFIG_USB_HOST_ETHER
