@@ -1058,7 +1058,7 @@ extern void stxh415_configure_sata(void)
 #endif	/* CONFIG_STM_SATA */
 
 
-#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT)
 struct ssc_pios
 {
 	struct
@@ -1169,7 +1169,7 @@ extern int stxh415_i2c_read(void)
 	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
 	return STPIO_GET_PIN(STM_PIO_BASE(port), pin);
 }
-#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C) */
+#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT) */
 
 
 #if defined(CONFIG_I2C_CMD_TREE)

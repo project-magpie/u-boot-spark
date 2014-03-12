@@ -781,7 +781,7 @@ extern int stxh205_usb_init(const int port)
 #endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
-#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT)
 extern void stxh205_configure_i2c(void)
 {
 	SET_PIO_PIN2(STXH205_I2C_SCL, STPIO_BIDIR);	/* I2C_SCL */
@@ -805,7 +805,7 @@ extern int stxh205_i2c_read(void)
 	/* SSC's MTSR == I2C's SDA */
 	return STPIO_GET_PIN2(STXH205_I2C_SDA);
 }
-#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C) */
+#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT) */
 
 #if defined(CONFIG_I2C_CMD_TREE)
 extern unsigned int i2c_get_bus_speed(void)

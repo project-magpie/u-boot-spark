@@ -489,7 +489,7 @@
 
 #if defined(CONFIG_CMD_I2C)
 #	define CONFIG_SYS_I2C_SLAVE	0x7F	/* I2C slave address - Bogus: master-only in U-Boot */
-#	define CONFIG_SOFT_I2C			/* I2C with S/W bit-banging	*/
+#	define CONFIG_SYS_I2C_SOFT			/* I2C with S/W bit-banging	*/
 #	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
 #	define I2C_ACTIVE			/* open-drain, nothing to do */
 #	define I2C_TRISTATE			/* open-drain, nothing to do */
