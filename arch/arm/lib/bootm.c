@@ -336,7 +336,7 @@ extern	void prepare_hpen_for_linux(void (**stm_secondary_startup)(void));
 	prepare_hpen_for_linux(stm_secondary_startup);
 #endif	/* CONFIG_STM */
 
-	announce_and_cleanup();
+	announce_and_cleanup(fake);
 
 	if (!fake)
 		kernel_entry(0, machid, r2);

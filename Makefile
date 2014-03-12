@@ -228,8 +228,13 @@ HAVE_VENDOR_COMMON_LIB = $(if $(wildcard board/$(VENDOR)/common/Makefile),y,n)
 LIBS-y += lib/
 LIBS-$(HAVE_VENDOR_COMMON_LIB) += board/$(VENDOR)/common/
 LIBS-y += $(CPUDIR)/
+ifeq ($(CONFIG_STM),n)
+# For STMicroelectronics' SOCs, we disable building SOC specific
+# library.
+# QQQ: Need to revisit
 ifdef SOC
 LIBS-y += $(CPUDIR)/$(SOC)/
+endif
 endif
 LIBS-$(CONFIG_IXP4XX_NPE) += drivers/net/npe/
 LIBS-$(CONFIG_OF_EMBED) += dts/
@@ -291,7 +296,7 @@ LIBS-y += board/$(BOARDDIR)/
 ifeq ($(CONFIG_STM),y)
 LIBS-y += drivers/stm/
 LIBS-y += $(shell if [ -f $(CPUDIR)/stm/Makefile ]; then echo \
-	"$(CPUDIR)/stm/lib$(SOC).o"; fi)
+	"$(CPUDIR)/stm/"; fi)
 endif
 
 LIBS-y := $(patsubst %/, %/built-in.o, $(LIBS-y))

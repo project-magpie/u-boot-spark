@@ -357,6 +357,7 @@
  */
 
 #define CONFIG_CMD_I2C				/* do we want I2C support ? */
+#define CONFIG_SYS_I2C
 
 #if defined(CONFIG_CMD_I2C)
 	/* Note: I2C Bus #7 also "probes" devices when a suitable HDMI device is plugged in to CN6. */

@@ -847,9 +847,11 @@ extern void stm_default_board_nand_init(
 	/* free up private pointer for the real driver */
 	nand->priv = NULL;
 
+#if 0 // QQQQ
 	nand->options       = NAND_NO_AUTOINCR;
+#endif
 #if 1	/* Enable to use a NAND-resident (non-volatile) Bad Block Table (BBT) */
-	nand->options      |= NAND_USE_FLASH_BBT;
+	nand->bbt_options      = NAND_BBT_USE_FLASH;
 #endif
 	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
 	nand->scan_bbt      = stm_nand_default_bbt;
@@ -933,15 +935,19 @@ extern void stm_nand_scan_post_ident(
 	nand->ecc.mode      = NAND_ECC_HW;	/* compatible with AFM4 (4+3/512) ECC */
 	nand->ecc.size      = 512;
 	nand->ecc.bytes     = 7;
+	nand->ecc.strength  = 1;
 #elif defined(CONFIG_SYS_STM_NAND_USE_BCH)	/* for H/W BCH ("multi-bit ECC") driver */
 	nand->ecc.mode      = NAND_ECC_HW;	/* use ST's (off-die) on-SoC H/W ECC engine */
 	nand->ecc.size      = 1024;		/* BCH ECC only processes 1KiB sectors at a time */
 #	if defined(CONFIG_SYS_STM_NAND_USE_BCH_18_BIT_ECC)
 	nand->ecc.bytes     = 32;		/* 18-bits of BCH ECC needs 32-Bytes/1KiB sector */
+	nand->ecc.strength  = 18;
 #	elif defined(CONFIG_SYS_STM_NAND_USE_BCH_30_BIT_ECC)
 	nand->ecc.bytes     = 54;		/* 30-bits of BCH ECC needs 54-Bytes/1KiB sector */
+	nand->ecc.strength  = 30;
 #	elif defined(CONFIG_SYS_STM_NAND_USE_BCH_NO_ECC)
 	nand->ecc.bytes     = 0;		/* No ECC -- not recommended! */
+	nand->ecc.strength  = 0;
 #	else
 #	error Please specific the BCH ECC scheme to use (CONFIG_SYS_STM_NAND_USE_BCH_xxx_ECC)
 #	endif /* CONFIG_SYS_STM_NAND_USE_BCH_xxx_ECC */

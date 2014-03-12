@@ -360,51 +360,8 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				return 0;
 		}
 		return ret;
-		}
-
-		if ((part_num <= 0) || (part_num > MMC_NUM_BOOT_PARTITION)) {
-			printf("Invalid boot partition number:\n");
-			printf("Boot partition number cannot be <= 0\n");
-			printf("EMMC44 supports only 2 boot partitions\n");
-			return 1;
-		}
-
-		if (strcmp(argv[1], "open") == 0)
-			access = part_num; /* enable R/W access to boot part*/
-		else
-			access = 0; /* No access to boot partition */
-
-		/* acknowledge to be sent during boot operation */
-		return boot_part_access(mmc, 1, part_num, access);
-
-	} else if (strcmp(argv[1], "bootpart") == 0) {
-		int dev;
-		dev = simple_strtoul(argv[2], NULL, 10);
-
-		u32 bootsize = simple_strtoul(argv[3], NULL, 10);
-		u32 rpmbsize = simple_strtoul(argv[4], NULL, 10);
-		struct mmc *mmc = find_mmc_device(dev);
-		if (!mmc) {
-			printf("no mmc device at slot %x\n", dev);
-			return 1;
-		}
-
-		if (IS_SD(mmc)) {
-			printf("It is not a EMMC device\n");
-			return 1;
-		}
-
-		if (0 == mmc_boot_partition_size_change(mmc,
-							bootsize, rpmbsize)) {
-			printf("EMMC boot partition Size %d MB\n", bootsize);
-			printf("EMMC RPMB partition Size %d MB\n", rpmbsize);
-			return 0;
-		} else {
-			printf("EMMC boot partition Size change Failed.\n");
-			return 1;
-		}
-#endif /* CONFIG_SUPPORT_EMMC_BOOT */
 	}
+
 	state = MMC_INVALID;
 	if (argc == 5 && strcmp(argv[1], "read") == 0)
 		state = MMC_READ;

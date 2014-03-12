@@ -97,6 +97,7 @@ static int check_pattern_no_oob(uint8_t *buf, struct nand_bbt_descr *td)
  */
 static int check_pattern(uint8_t *buf, int len, int paglen, struct nand_bbt_descr *td)
 {
+	int i = 0;
 	int end = 0;
 	uint8_t *p = buf;
 

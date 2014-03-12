@@ -1497,7 +1497,11 @@ int mmc_boot_part_access(struct mmc *mmc, u8 ack, u8 part_num, u8 access)
 
 		cmd.cmdarg = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
 				(EXT_CSD_BOOT_BUS_WIDTH << 16) |
-				((1 << 0) << 8);
+#if defined(CONFIG_MMC_BOOT_MODE_1_BIT)
+				((0 << 0) << 8);	/* 1-bit */
+#else
+				((1 << 0) << 8);	/* 4-bit */
+#endif
 
 		err = mmc_send_cmd(mmc, &cmd, NULL);
 		if (err) {
@@ -1505,10 +1509,6 @@ int mmc_boot_part_access(struct mmc *mmc, u8 ack, u8 part_num, u8 access)
 			      part_num, err);
 			return err;
 		}
-	}
-	return 0;
-}
-#endif
 	}
 	return 0;
 }

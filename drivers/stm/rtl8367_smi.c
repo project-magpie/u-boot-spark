@@ -52,7 +52,10 @@
 
 #define dev_err(fmt, ...)
 
-typedef enum { false = 0, true = 1 } bool;
+typedef enum {
+	FALSE = 0,
+	TRUE = 1
+} bool_t;
 
 
 	/*******************************************************/
@@ -351,7 +354,7 @@ extern int rtl8367_smi_read_reg(struct rtl8367_smi *smi, u32 addr, u32 * data)
 }
 
 static inline int __rtl8367_smi_write_reg(struct rtl8367_smi *smi,
-				   u32 addr, u32 data, bool ack)
+				   u32 addr, u32 data, bool_t ack)
 {
 	int ret;
 
@@ -395,13 +398,13 @@ static inline int __rtl8367_smi_write_reg(struct rtl8367_smi *smi,
 
 extern int rtl8367_smi_write_reg(struct rtl8367_smi *smi, u32 addr, u32 data)
 {
-	return __rtl8367_smi_write_reg(smi, addr, data, true);
+	return __rtl8367_smi_write_reg(smi, addr, data, TRUE);
 }
 
 #if 0
 extern int rtl8367_smi_write_reg_noack(struct rtl8367_smi *smi, u32 addr, u32 data)
 {
-	return __rtl8367_smi_write_reg(smi, addr, data, false);
+	return __rtl8367_smi_write_reg(smi, addr, data, FALSE);
 }
 #endif
 

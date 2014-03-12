@@ -569,7 +569,7 @@
  */
 
 #define CONFIG_CMD_I2C				/* do we want I2C support ? */
-
+#define CONFIG_SYS_I2C
 #if defined(CONFIG_CMD_I2C)
 	/* Note: I2C Bus #1 "probes" devices when a suitable HDMI device is plugged in to CN5. */
 #	define CONFIG_I2C_BUS		1	/* Use I2C Bus associated with SSC #1 */
