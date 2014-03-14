@@ -773,6 +773,7 @@ static int bch_ecc_read_page (
 	struct mtd_info * const mtd,
 	struct nand_chip * const chip,
 	uint8_t * const buf,
+	int oob_required,
 	int page)
 {
 	const uint32_t page_size = mtd->writesize;
@@ -918,7 +919,7 @@ static int bch_ecc_read_page (
 #endif /* DEBUG_BCH */
 
 	/* now read what he hope is the BBT header from the *last* page in the same block */
-	status = bch_ecc_read_page (mtd, chip, (void*)header, page);
+	status = bch_ecc_read_page (mtd, chip, (void*)header, oob_required, page);
 
 	/*
 	 * Copy a sub-set of info from "inband" into the OOB region in the caller's buffer
@@ -952,6 +953,7 @@ extern int stm_bch_scan_read_raw(
 	struct nand_chip * const chip = mtd->priv;
 	const uint32_t page_size = mtd->writesize;
 	const int page = offs >> chip->page_shift;
+	int oob_required = 0; //QQQQ - Need to fix usage
 
 #if defined(DEBUG_BCH)
 	printf("info: stm_bch_scan_read_raw(mtd=%p, buf=%p, offs=0x%x, len=%u) ...\n", mtd, buf, (unsigned)offs, len);
@@ -961,14 +963,14 @@ extern int stm_bch_scan_read_raw(
 	BUG_ON((offs & (page_size-1)));		/* paranoia */
 
 	/* now read the page with the BCH controller ... */
-	return bch_ecc_read_page (mtd, chip, buf, page);
+	return bch_ecc_read_page (mtd, chip, buf, oob_required, page);
 }
 
 
 static void bch_ecc_write_page (
 	struct mtd_info * const mtd,
 	struct nand_chip * const chip,
-	const uint8_t * const buf)
+	const uint8_t * const buf, int oob_required)
 {
 #if defined(DEBUG_BCH)
 	printf("info: bch_ecc_write_page(mtd=%p, chip=%p, buf=%p)\n", mtd, chip, buf);
@@ -987,7 +989,7 @@ static void bch_ecc_write_page (
 static int bch_write_page (
 	struct mtd_info * const mtd,
 	struct nand_chip * const chip,
-	const uint8_t * const buf,
+	const uint8_t * const buf, int oob_required,
 	int page,
 	int cached,
 	int raw)
@@ -1128,7 +1130,7 @@ static int bch_write_page (
 	memcpy(header->author, author, sizeof(author));
 
 	/* now write the new BBT descriptor to the *last* page in the same block */
-	status = bch_write_page(mtd, chip, (void*)header, page, cached, raw);
+	status = bch_write_page(mtd, chip, (void*)header, oob_required, page, cached, raw);
 
 	free(bbt_buf);
 
