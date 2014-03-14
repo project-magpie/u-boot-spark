@@ -47,7 +47,6 @@ extern void nand_wait_ready(struct mtd_info *mtd);
  * is supported now. If you add a chip with bigger oobsize/page
  * adjust this accordingly.
  */
- #define NAND_MAX_OOBSIZE	640
 #if 0	/* QQQ - moved to include/linux/mtd/mtd-abi.h */
 #define NAND_MAX_OOBSIZE	576
 #define NAND_MAX_PAGESIZE	8192
