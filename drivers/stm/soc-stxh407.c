@@ -814,7 +814,7 @@ extern int cpu_eth_init(bd_t * const bis)
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
 //=================================================
-
+#ifdef CONFIG_STM_USB
 /* Reg glue registers */
 #define USB2_CLKRST_CTRL 0x00
 #define aux_clk_en(n) ((n)<<0)
@@ -1321,7 +1321,7 @@ extern int stxh407_usb_init(const int port)
 #endif
 	return 0;
 }
-
+#endif /*CONFIG_STM_USB*/
 extern int arch_cpu_init(void)
 {
 	stxh407_clocks();
