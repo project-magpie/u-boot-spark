@@ -1264,13 +1264,17 @@ static void scv_miphy_init(void)
     dwc3_stm_writel(USB2_CLKRST_CTRL, reg);
 
     reg = dwc3_stm_readl(USB2_VBUS_MNGMNT_SEL1);
-    reg |= SEL_OVERRIDE_VBUSVALID(1) | SEL_OVERRIDE_POWERPRESENT(2) |
+    reg |= SEL_OVERRIDE_VBUSVALID(1) | SEL_OVERRIDE_POWERPRESENT(1) |
         SEL_OVERRIDE_BVALID(1);
 
     dwc3_stm_writel(USB2_VBUS_MNGMNT_SEL1, reg);
     udelay(100);
 
-	/* Configure the Phy */
+	/* Configure the Phy */ // QQQQ
+
+	/*Need to update these sequences as amd when miPhy configuration
+	evolves for stable link*/
+
 	//miphy_config_1();
 	miphy_config_2();
 
@@ -1289,12 +1293,34 @@ void reset_usb_host(void)
 	unsigned long * sysconfReg ;
 	unsigned long sysconf ;
 
-	/**/
+#if 0
+	sysconfReg = (unsigned long*)STXH407_SYSCFG(5001);
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 1, 6);
+	writel(sysconf, sysconfReg);
+
+	mdelay(1000);
+#endif
+
+	/* Power up..*/
 	sysconfReg = (unsigned long*)STXH407_SYSCFG(5001);
 	sysconf = readl(sysconfReg);
 	SET_SYSCONF_BIT(sysconf, 0, 6);
 	writel(sysconf, sysconfReg);
+    udelay(1000);
 
+}
+
+
+static void deconfigure_usb_pio(void)
+{
+	stxh407_pioalt_select(35, 4, 0);
+	stxh407_pioalt_select(35, 5, 0);
+	stxh407_pioalt_select(35, 6, 0);
+
+	stxh407_pioalt_pad(35, 4, stm_pad_direction_output);
+	stxh407_pioalt_pad(35, 5, stm_pad_direction_input);
+	stxh407_pioalt_pad(35, 6, stm_pad_direction_output);
 }
 
 static void configure_usb_pio(void)
@@ -1310,6 +1336,11 @@ static void configure_usb_pio(void)
 
 extern int stxh407_usb_init(const int port)
 {
+#if 1
+	deconfigure_usb_pio();
+	mdelay(500);
+	mdelay(500);
+#endif
 	stxh407_init_miphy();
 	reset_usb_host();
 	stxh407_init_dwc3();
