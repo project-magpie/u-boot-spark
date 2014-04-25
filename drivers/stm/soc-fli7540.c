@@ -62,9 +62,9 @@ static void fli7540_clocks(void)
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
-	gd->stm_tmu_frq  = gd->stm_uart_frq;
-	gd->stm_ssc_frq  = gd->stm_uart_frq;
+	gd->arch.stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_tmu_frq  = gd->arch.stm_uart_frq;
+	gd->arch.stm_ssc_frq  = gd->arch.stm_uart_frq;
 }
 
 
@@ -450,7 +450,7 @@ extern int arch_cpu_init(void)
 	fli7540_clocks();
 
 	/* obtain the chip cut + device id */
-	gd->stm_devid = readl(CONFIG_SYS_DEVICE_ID);
+	gd->arch.stm_devid = readl(CONFIG_SYS_DEVICE_ID);
 
 	return 0;
 }

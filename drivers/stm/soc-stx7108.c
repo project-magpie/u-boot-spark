@@ -79,9 +79,9 @@ static void stx7108_clocks(void)
 	 * that U-Boot will use for computing the clock dividers later.
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 */
-	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
-	gd->stm_tmu_frq  = gd->stm_uart_frq;
-	gd->stm_ssc_frq  = gd->stm_uart_frq;
+	gd->arch.stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_tmu_frq  = gd->arch.stm_uart_frq;
+	gd->arch.stm_ssc_frq  = gd->arch.stm_uart_frq;
 }
 
 
@@ -704,7 +704,7 @@ static void stx7108_ethernet_bus_setup(void)
 	 *	1.1	|	0x00264006
 	 *	2.0	|	0x00264207
 	 */
-	if (STX7108_DEVICEID_CUT(gd->stm_devid) < 2)	/* for cut 1.x */
+	if (STX7108_DEVICEID_CUT(gd->arch.stm_devid) < 2)	/* for cut 1.x */
 		writel(0x00264006, CONFIG_SYS_STM_STMAC_BASE + GMAC_AHB_CONFIG);
 	else						/* for cut 2.x */
 		writel(0x00264207, CONFIG_SYS_STM_STMAC_BASE + GMAC_AHB_CONFIG);
@@ -878,7 +878,7 @@ extern int arch_cpu_init(void)
 {
 	stx7108_clocks();
 
-	gd->stm_devid = *STX7108_SYSCONF_DEVICEID_0;
+	gd->arch.stm_devid = *STX7108_SYSCONF_DEVICEID_0;
 
 	/* Make sure reset period is shorter than WDT time-out */
 	*STX7108_BANK0_SYSCFG(14) = 3000;	/* about 100 us */
@@ -980,7 +980,7 @@ extern void stx7108_configure_sata(void)
 #endif	/* CONFIG_STM_SATA */
 
 
-#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT)
 struct ssc_pios
 {
 	struct
@@ -1080,7 +1080,7 @@ extern int stx7108_i2c_read(void)
 	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
 	return STPIO_GET_PIN(STM_PIO_BASE(port), pin);
 }
-#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C) */
+#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT) */
 
 #if defined(CONFIG_I2C_CMD_TREE)
 extern unsigned int i2c_get_bus_speed(void)

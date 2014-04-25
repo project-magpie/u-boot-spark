@@ -84,16 +84,16 @@ static void stxh416_clocks(void)
 	 *       otherwise we expect the ASC to be 100MHz.
 	 */
 #if (CONFIG_SYS_STM_ASC_BASE==STXH416_SBC_ASC0_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH416_SBC_ASC1_BASE)
-	gd->stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
+	gd->arch.stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
 #else
-	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
 #endif
-	gd->stm_ssc_frq  = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_ssc_frq  = 100ul * 1000000ul;	/* 100 MHz */
 #if defined(CONFIG_ST40)
 #if defined(CONFIG_STM_STXH416)
-	gd->stm_tmu_frq  = 200ul * 1000000ul;	/* 200 MHz */
+	gd->arch.stm_tmu_frq  = 200ul * 1000000ul;	/* 200 MHz */
 #else
-	gd->stm_tmu_frq  = gd->stm_ssc_frq;
+	gd->arch.stm_tmu_frq  = gd->arch.stm_ssc_frq;
 #endif /* CONFIG_STM_STXH416 */
 #endif /* CONFIG_ST40 */
 }
@@ -969,7 +969,7 @@ extern int arch_cpu_init(void)
 {
 	stxh416_clocks();
 
-	gd->stm_devid = *STXH416_SYSCONF_DEVICEID;
+	gd->arch.stm_devid = *STXH416_SYSCONF_DEVICEID;
 
 #if 0	/* QQQ - TO IMPLEMENT */
 	/* Make sure reset period is shorter than WDT time-out */
@@ -1098,7 +1098,7 @@ extern void stxh416_configure_sata(void)
 #endif	/* CONFIG_STM_SATA */
 
 
-#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT)
 struct ssc_pios
 {
 	struct
@@ -1209,7 +1209,7 @@ extern int stxh416_i2c_read(void)
 	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
 	return STPIO_GET_PIN(STM_PIO_BASE(port), pin);
 }
-#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C) */
+#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT) */
 
 
 #if defined(CONFIG_I2C_CMD_TREE)

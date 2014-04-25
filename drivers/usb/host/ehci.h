@@ -22,25 +22,11 @@
 #ifndef USB_EHCI_H
 #define USB_EHCI_H
 
+#include <usb.h>
+
 #if !defined(CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS)
 #define CONFIG_SYS_USB_EHCI_MAX_ROOT_PORTS	2
 #endif
-
-/* (shifted) direction/type/recipient from the USB 2.0 spec, table 9.2 */
-#define DeviceRequest \
-	((USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_DEVICE) << 8)
-
-#define DeviceOutRequest \
-	((USB_DIR_OUT | USB_TYPE_STANDARD | USB_RECIP_DEVICE) << 8)
-
-#define InterfaceRequest \
-	((USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_INTERFACE) << 8)
-
-#define EndpointRequest \
-	((USB_DIR_IN | USB_TYPE_STANDARD | USB_RECIP_INTERFACE) << 8)
-
-#define EndpointOutRequest \
-	((USB_DIR_OUT | USB_TYPE_STANDARD | USB_RECIP_INTERFACE) << 8)
 
 /*
  * Register Space.
@@ -55,7 +41,7 @@ struct ehci_hccr {
 #define HCS_N_PORTS(p)		(((p) >> 0) & 0xf)
 	uint32_t cr_hccparams;
 	uint8_t cr_hcsp_portrt[8];
-};
+} __attribute__ ((packed, aligned(4)));
 
 struct ehci_hcor {
 	uint32_t or_usbcmd;
@@ -69,6 +55,7 @@ struct ehci_hcor {
 #define CMD_RUN		(1 << 0)		/* start/stop HC */
 	uint32_t or_usbsts;
 #define STS_ASS		(1 << 15)
+#define	STS_PSS		(1 << 14)
 #define STS_HALT	(1 << 12)
 	uint32_t or_usbintr;
 #define INTR_UE         (1 << 0)                /* USB interrupt enable */
@@ -94,7 +81,7 @@ struct ehci_hcor {
 #define PORTSC_PSPD_LS			0x1
 #define PORTSC_PSPD_HS			0x2
 	uint32_t or_systune;
-};
+} __attribute__ ((packed, aligned(4)));
 
 #define USBMODE		0x68		/* USB Device mode */
 #define USBMODE_SDIS	(1 << 3)	/* Stream disable */
@@ -245,11 +232,26 @@ struct QH {
 	 * Add dummy fill value to make the size of this struct
 	 * aligned to 32 bytes
 	 */
-	uint8_t fill[16];
+	union {
+		uint32_t fill[4];
+		void *buffer;
+	};
+};
+
+struct ehci_ctrl {
+	struct ehci_hccr *hccr;	/* R/O registers, not need for volatile */
+	struct ehci_hcor *hcor;
+	int rootdev;
+	uint16_t portreset;
+	struct QH qh_list __aligned(USB_DMA_MINALIGN);
+	struct QH periodic_queue __aligned(USB_DMA_MINALIGN);
+	uint32_t *periodic_list;
+	int ntds;
 };
 
 /* Low level init functions */
-int ehci_hcd_init(int index, struct ehci_hccr **hccr, struct ehci_hcor **hcor);
+int ehci_hcd_init(int index, enum usb_init_type init,
+		struct ehci_hccr **hccr, struct ehci_hcor **hcor);
 int ehci_hcd_stop(int index);
 
 #endif /* USB_EHCI_H */

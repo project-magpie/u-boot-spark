@@ -33,31 +33,7 @@
  * All rights reserved.
  * 
  * @par
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- * 
- * @par
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * 
+ * SPDX-License-Identifier:	BSD-3-Clause
  * @par
  * -- End of Copyright Notice --
  */
@@ -83,7 +59,7 @@
  *
  * @brief Scan the MDIO bus for PHYs
  *  This function scans PHY addresses 0 through 31, and sets phyPresent[n] to 
- *  TRUE if a phy is discovered at address n. 
+ *  true if a phy is discovered at address n.
  *
  * - Reentrant    - no
  * - ISR Callable - no
@@ -120,9 +96,9 @@ PUBLIC IX_STATUS ixEthMiiPhyScan(BOOL phyPresent[], UINT32 maxPhyCount);
  * @pre The MAC on Ethernet Port 2 (NPE C) must be initialised, and generating the MDIO clock.
  *   
  * @param phyAddr UINT32 [in] 
- * @param speed100 BOOL [in] - set to TRUE for 100Mbit/s operation, FALSE for 10Mbit/s
- * @param fullDuplex BOOL [in] - set to TRUE for Full Duplex, FALSE for Half Duplex
- * @param autonegotiate BOOL [in] - set to TRUE to enable autonegotiation
+ * @param speed100 BOOL [in] - set to true for 100Mbit/s operation, false for 10Mbit/s
+ * @param fullDuplex BOOL [in] - set to true for Full Duplex, false for Half Duplex
+ * @param autonegotiate BOOL [in] - set to true to enable autonegotiation
  *
  * @return IX_STATUS
  * - IX_SUCCESS
@@ -223,10 +199,10 @@ PUBLIC IX_STATUS ixEthMiiPhyReset(UINT32 phyAddr);
  * @pre The MAC on Ethernet Port 2 (NPE C) must be initialised, and generating the MDIO clock.
  *   
  * @param phyAddr UINT32 [in] - the address of the Ethernet PHY (0-31)
- * @param linkUp BOOL [out] - set to TRUE if the link is up
- * @param speed100 BOOL [out] - set to TRUE indicates 100Mbit/s, FALSE indicates 10Mbit/s
- * @param fullDuplex BOOL [out] - set to TRUE indicates Full Duplex, FALSE indicates Half Duplex
- * @param autoneg BOOL [out] - set to TRUE indicates autonegotiation is enabled, FALSE indicates autonegotiation is disabled
+ * @param linkUp BOOL [out] - set to true if the link is up
+ * @param speed100 BOOL [out] - set to true indicates 100Mbit/s, false indicates 10Mbit/s
+ * @param fullDuplex BOOL [out] - set to true indicates Full Duplex, false indicates Half Duplex
+ * @param autoneg BOOL [out] - set to true indicates autonegotiation is enabled, false indicates autonegotiation is disabled
  *
  * @return IX_STATUS
  * - IX_SUCCESS

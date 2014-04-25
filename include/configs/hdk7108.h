@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2013 STMicroelectronics.
+ * (C) Copyright 2008-2014 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -367,7 +367,7 @@
 	/*
 	 * Currently, there are (potentially) 3 main modes to read/write
 	 * from/to NAND devices on STM SoCs:
-	 *	1) using a S/W "bit-banging" driver
+	 *	1) using the "EMI bit-banging" driver
 	 *	   (can NOT be used with boot-from-NAND)
 	 *	2) using the H/W Hamming controller (flex-mode) driver
 	 *	   (also supports boot-from-NAND capability)
@@ -381,7 +381,7 @@
 	 * NOTE: The use of BCH is only supported on STx7108 on cut 2.x of the
 	 * STx7108.  That is, cut 1.x of the STx7108 does *not* support BCH.
 	 */
-//#	define CONFIG_SYS_STM_NAND_USE_BIT_BANGING		/* use S/W "bit-banging" driver */
+//#	define CONFIG_SYS_STM_NAND_USE_BIT_BANGING		/* use "EMI bit-banging" driver */
 #	define CONFIG_SYS_STM_NAND_USE_HAMMING			/* use H/W Hamming ("flex") driver */
 //#	define CONFIG_SYS_STM_NAND_USE_BCH			/* use H/W BCH ("multi-bit") driver */
 
@@ -415,7 +415,7 @@
 	 * Do we want to use STMicroelectronics' proprietary AFM4 (4+3/512)
 	 * ECC format, instead of Linux's traditional S/W 3/256 ECC?
 	 * Note: This does *not* enable H/W AFM - you can use either
-	 * "bit-banging" or STM's "FLEX-mode", it is simply the addition
+	 * "EMI bit-banging" or STM's "FLEX-mode", it is simply the addition
 	 * of the AFM4 ECC algorithm+layout that is being supported here.
 	 * Note: We *can* use this H/W AFM4 (4+3/512) ECC in addition to
 	 * the H/W "boot-mode" (3+1/128) ECC, on the same NAND device,
@@ -565,9 +565,8 @@
 
 #if defined(CONFIG_CMD_I2C)
 #	define CONFIG_I2C_BUS		5	/* Use I2C Bus associated with SSC #5 */
-#	define CONFIG_I2C_CMD_TREE		/* use a "i2c" root command */
 #	define CONFIG_SYS_I2C_SLAVE	0x7F	/* I2C slave address - Bogus: master-only in U-Boot */
-#	define CONFIG_SOFT_I2C			/* I2C with S/W bit-banging	*/
+#	define CONFIG_SYS_I2C_SOFT			/* I2C with S/W bit-banging	*/
 #	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
 #	define I2C_ACTIVE			/* open-drain, nothing to do */
 #	define I2C_TRISTATE			/* open-drain, nothing to do */

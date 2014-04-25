@@ -17,31 +17,7 @@
  * All rights reserved.
  * 
  * @par
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- * 
- * @par
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * 
+ * SPDX-License-Identifier:	BSD-3-Clause
  * @par
  * -- End of Copyright Notice --
 */
@@ -160,7 +136,7 @@ static IxQMgrQId priorityTable[IX_QMGR_MAX_NUM_QUEUES];
 /*
  * This flag indicates to the dispatcher that the priority table needs to be rebuilt.
  */
-static BOOL rebuildTable = FALSE;
+static BOOL rebuildTable = false;
 
 /* Dispatcher statistics */
 static IxQMgrDispatcherStats dispatcherStats;
@@ -197,7 +173,7 @@ ixQMgrDispatcherInit (void)
     int i;
     IxFeatureCtrlProductId productId = 0;
     IxFeatureCtrlDeviceId deviceId = 0;
-    BOOL stickyIntSilicon = TRUE; 
+    BOOL stickyIntSilicon = true;
 
     /* Set default priorities */
     for (i=0; i< IX_QMGR_MAX_NUM_QUEUES; i++)
@@ -226,7 +202,7 @@ ixQMgrDispatcherInit (void)
 	dispatcherStats.queueStats[i].priorityChangeCnt = 0;
 	dispatcherStats.queueStats[i].intNoCallbackCnt = 0;
 	dispatcherStats.queueStats[i].intLostCallbackCnt = 0;
-        dispatcherStats.queueStats[i].notificationEnabled = FALSE;
+        dispatcherStats.queueStats[i].notificationEnabled = false;
         dispatcherStats.queueStats[i].srcSel = 0;
 
     }
@@ -258,7 +234,7 @@ ixQMgrDispatcherInit (void)
         (IX_FEATURE_CTRL_SILICON_TYPE_A0 == 
         (IX_FEATURE_CTRL_SILICON_STEPPING_MASK & productId))) 
     {
-       stickyIntSilicon = FALSE;
+       stickyIntSilicon = false;
     }
 
     /*
@@ -293,7 +269,7 @@ ixQMgrDispatcherPrioritySet (IxQMgrQId qId,
     /* Change priority */
     dispatchQInfo[qId].priority = priority;
     /* Set flag */
-    rebuildTable = TRUE;
+    rebuildTable = true;
 
     ixOsalIrqUnlock(ixQMgrLockKey);
 
@@ -364,7 +340,7 @@ ixQMgrNotificationEnable (IxQMgrQId qId,
 #endif
 
 #ifndef NDEBUG
-    dispatcherStats.queueStats[qId].notificationEnabled = TRUE;
+    dispatcherStats.queueStats[qId].notificationEnabled = true;
     dispatcherStats.queueStats[qId].srcSel = srcSel;
 #endif
 
@@ -428,7 +404,7 @@ ixQMgrNotificationDisable (IxQMgrQId qId)
      * so need critical section
      */
 #ifndef NDEBUG
-    dispatcherStats.queueStats[qId].notificationEnabled = FALSE;
+    dispatcherStats.queueStats[qId].notificationEnabled = false;
 #endif
 
     ixQMgrLockKey = ixOsalIrqLock();
@@ -593,7 +569,7 @@ ixQMgrDispatcherLoopRunA0 (IxQMgrDispatchGroup group)
 	qIndex += IX_QMGR_MIN_QUEUPP_QID;
     }
 
-    if (statusChangeFlag == FALSE)
+    if (statusChangeFlag == false)
     {
 	/* check if the interrupt register contains 
 	 * only 1 bit set (happy day scenario)
@@ -800,7 +776,7 @@ ixQMgrDispatcherLoopRunB0 (IxQMgrDispatchGroup group)
              * For example:
              *                                        intRegVal = 0x0010
              *               currDispatchQInfo->intRegCheckMask = 0x0010
-             *    intRegVal == currDispatchQInfo->intRegCheckMask is TRUE.
+             *    intRegVal == currDispatchQInfo->intRegCheckMask is true.
              */
              currDispatchQInfo = &dispatchQInfo[qIndex];
              if (intRegVal == currDispatchQInfo->intRegCheckMask)
@@ -955,7 +931,7 @@ ixQMgrDispatcherLoopRunB0LLP (IxQMgrDispatchGroup group)
         * For example:
         *                                        intRegVal = 0x0010
         *               currDispatchQInfo->intRegCheckMask = 0x0010
-        *    intRegVal == currDispatchQInfo->intRegCheckMask is TRUE.
+        *    intRegVal == currDispatchQInfo->intRegCheckMask is true.
         */
         currDispatchQInfo = &dispatchQInfo[qIndex];
         if (intRegVal == currDispatchQInfo->intRegCheckMask)
@@ -1118,7 +1094,7 @@ ixQMgrDispatcherReBuildPriorityTable (void)
     int uppQuePriorityTableIndex = IX_QMGR_MIN_UPP_QUE_PRIORITY_TABLE_INDEX;
 
     /* Reset the rebuild flag */
-    rebuildTable = FALSE;
+    rebuildTable = false;
 
     /* initialize the mak used to identify the queues in the first half
      * of the priority table
@@ -1266,7 +1242,7 @@ ixQMgrPeriodicDone (void)
               * Update statistics 
               */
              dispatcherStats.queueStats[i].enableCount++;
-             dispatcherStats.queueStats[i].notificationEnabled = TRUE;
+             dispatcherStats.queueStats[i].notificationEnabled = true;
 #endif
         }
     }

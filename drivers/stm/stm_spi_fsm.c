@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2013 STMicroelectronics.
+ * (C) Copyright 2010-2014 STMicroelectronics.
  *
  * Angus Clark   <Angus.Clark@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -862,7 +862,7 @@ extern int fsm_init(void)
 /**********************************************************************/
 
 
-#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_SPANSION)
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_MXIC)
 /*
  * The probed SPI device is >16MiB, so we want to use 32-bit (4-byte)
  * addresses to access everything above the first 16MiB.
@@ -910,7 +910,7 @@ extern void fsm_init_4byte_mode(
 	seq_write_data.addr_cfg   ^= addr_xor;
 	seq_erase_sector.addr_cfg ^= addr_xor;
 }
-#endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_SPANSION */
+#endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_SPANSION || CONFIG_SPI_FLASH_MXIC */
 
 
 /**********************************************************************/

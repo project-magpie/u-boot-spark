@@ -83,14 +83,14 @@ static void stxh407_clocks(void)
 	 * WARNING: Getting these values wrong may result in strange behaviour!
 	 *
 	 * Note: for the ASC in the SBC, we expect this will always be 30MHz,
-	 *       otherwise we expect the ASC to be 100MHz.
+	 *       otherwise we expect the ASC to be 200MHz.
 	 */
 #if (CONFIG_SYS_STM_ASC_BASE==STXH407_SBC_ASC0_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH407_SBC_ASC1_BASE)
-	gd->stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
+	gd->arch.stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
 #else
-	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_uart_frq = 200ul * 1000000ul;	/* 200 MHz */
 #endif
-	gd->stm_ssc_frq  = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_ssc_frq  = 100ul * 1000000ul;	/* 100 MHz */
 }
 
 
@@ -813,12 +813,551 @@ extern int cpu_eth_init(bd_t * const bis)
 }
 #endif	/* CONFIG_DRIVER_NET_STM_GMAC */
 
+//=================================================
+#ifdef CONFIG_STM_USB
+/* Reg glue registers */
+#define USB2_CLKRST_CTRL 0x00
+#define aux_clk_en(n) ((n)<<0)
+#define sw_pipew_reset_n(n) ((n)<<4)
+#define ext_cfg_reset_n(n) ((n)<<8)
+#define xhci_revision(n) ((n)<<12)
 
+#define USB2_VBUS_MNGMNT_SEL1 0x2C
+
+/*
+ * 2'b00 : Override value from Reg 0x30 is selected
+ * 2'b01 : utmiotg_vbusvalid from usb3_top top is selected
+ * 2'b10 : pipew_powerpresent from PIPEW instance is selected
+ * 2'b11 : value is 1'b0
+ */
+#define SEL_OVERRIDE_VBUSVALID(n) ((n)<<0)
+#define SEL_OVERRIDE_POWERPRESENT(n) ((n)<<4)
+#define SEL_OVERRIDE_BVALID(n) ((n)<<8)
+
+#define USB2_VBUS_MNGMNT_VAL1 0x30
+#define OVERRIDE_VBUSVALID_VAL (1 << 0)
+#define OVERRIDE_POWERPRESENT_VAL (1 << 4)
+#define OVERRIDE_BVALID_VAL (1 << 8)
+
+
+#define MIPHY_VERSION   0xfe
+#define MIPHY_REVISION  0xff
+
+#define p4_inb(addr)        __raw_readb(addr)
+
+
+static void stm_miphy_pipe_write(u32 addr, u32 data)
+{
+	writeb(data & 0xff,  MIPHY_USB3_PIPEW_BASE + addr);
+}
+
+static u8 stm_miphy_read(u8 address)
+{
+    u8 data;
+    data = p4_inb(MIPHY_USB3_UPORT_BASE + address);
+    return data;
+}
+
+
+static void stm_miphy_write(u8 addr, u8 data)
+{
+	void __iomem *base;
+	base = (unsigned char*)( MIPHY_USB3_UPORT_BASE + addr);
+	writeb(data , (volatile unsigned char *) base);
+}
+
+static void miphy_config_2(void)
+{
+	/* Putting Macro in reset */
+	stm_miphy_write( 0x00, 0x01);
+	stm_miphy_write( 0x00, 0x03);
+
+	/* Wait for a while */
+	stm_miphy_write( 0x00, 0x01);
+	stm_miphy_write( 0x04, 0x1C);
+
+	/* PLL calibration */
+	stm_miphy_write( 0xEB, 0x1D);
+	stm_miphy_write( 0x0D, 0x1E);
+	stm_miphy_write( 0x0F, 0x00);
+	stm_miphy_write( 0xC2, 0x1B);
+	stm_miphy_write( 0xC4, 0x70);
+	stm_miphy_write( 0xC9, 0x02);
+	stm_miphy_write( 0xCA, 0x02);
+	stm_miphy_write( 0xCB, 0x02);
+	stm_miphy_write( 0xCC, 0x0A);
+
+	stm_miphy_write( 0xD4, 0xA6);
+	stm_miphy_write( 0xD5, 0xAA);
+	stm_miphy_write( 0xD6, 0xAA);
+	stm_miphy_write( 0xD7, 0x04);
+	stm_miphy_write( 0xD3, 0x00);
+	stm_miphy_write( 0x0F, 0x02);
+	stm_miphy_write( 0x0E, 0x0A);
+	stm_miphy_write( 0x0F, 0x01);
+	stm_miphy_write( 0x0E, 0x0A);
+	stm_miphy_write( 0x0F, 0x00);
+	stm_miphy_write( 0x0E, 0x0A);
+
+	/* Rx Channel compensation and calibration */
+	stm_miphy_write( 0xC2, 0x1C); /* Disable AUto Calibration for DC gain */
+	stm_miphy_write( 0x97, 0x51); /* Enable Fine Cal */
+	stm_miphy_write( 0x98, 0x70); /* Enable Fine Cal */
+	stm_miphy_write( 0x99, 0x5F);
+	stm_miphy_write( 0x9A, 0x22);
+	stm_miphy_write( 0x9F, 0x0E); /* Enable Fine Cal */
+	stm_miphy_write( 0x7A, 0x05); /* VGA GAIN, EQ GAIN set manaually */
+	stm_miphy_write( 0x7F, 0x78); /* EQU_GAIN_MAN = +5dB  */
+
+	stm_miphy_write( 0x30, 0x1B);
+
+	/* Enable GENSEL_SEL and SSC */
+	/* TX_SEL=0 swing preemp forced by pipe registres */
+	stm_miphy_write( 0x0A, 0x11);
+
+	/* MIPHY Bias boost */
+	stm_miphy_write( 0x0F, 0x00);
+	stm_miphy_write( 0x0E, 0x0A);
+	stm_miphy_write( 0x63, 0x00);
+	stm_miphy_write( 0x64, 0xA7);
+
+	/* MIPHY TX control */
+	stm_miphy_write( 0x0F, 0x00);
+	stm_miphy_write( 0x49, 0x01);
+
+	/*ssc modulation */
+	stm_miphy_write( 0x0C, 0x04); /* SSC_EN_SW=1 */
+	stm_miphy_write( 0x0F, 0x00);
+	stm_miphy_write( 0xE5, 0x5A);
+	stm_miphy_write( 0xE6, 0xA0);
+	stm_miphy_write( 0xE4, 0x3C);
+	stm_miphy_write( 0xE6, 0xA1);
+	stm_miphy_write( 0xE3, 0x00);
+	stm_miphy_write( 0xE3, 0x02);
+	stm_miphy_write( 0xE3, 0x00);
+
+	/* Rx PI controller settings */
+	stm_miphy_write( 0x78, 0xCA); /* autogain=1, Ki=4, Kp=A */
+
+	/* MIPHY RX input bridge control*/
+	/* INPUT_BRIDGE_EN_SW=1, manual input bridge control[0]=1 */
+	stm_miphy_write( 0xCD, 0x21);
+	stm_miphy_write( 0xCD, 0x29);
+	stm_miphy_write( 0xCE, 0x1A);
+
+	/* MIPHY Reset*/
+	stm_miphy_write( 0x00, 0x01);
+	stm_miphy_write( 0x00, 0x00); /* RST_APPLI_SW=0 */
+	stm_miphy_write( 0x01, 0x04);
+	stm_miphy_write( 0x01, 0x05);
+	stm_miphy_write( 0xE9, 0x00);
+	stm_miphy_write( 0x0D, 0x1E);
+	stm_miphy_write( 0x3A, 0x40);
+	stm_miphy_write( 0x01, 0x01);
+	stm_miphy_write( 0x01, 0x00);
+	stm_miphy_write( 0xE9, 0x40);
+	stm_miphy_write( 0x0F, 0x00);
+	stm_miphy_write( 0x0B, 0x00);
+	stm_miphy_write( 0x62, 0x00);
+	stm_miphy_write( 0x0F, 0x00);
+	stm_miphy_write( 0xE3, 0x02);
+	stm_miphy_write( 0x26, 0xa5);
+	stm_miphy_write( 0x0F, 0x00);
+
+	/* PIPE Wrapper Configuration */
+	stm_miphy_pipe_write(0x23, 0X68);
+	stm_miphy_pipe_write(0x24, 0X61);
+	stm_miphy_pipe_write(0x26, 0X68);
+	stm_miphy_pipe_write(0x27, 0X61);
+	stm_miphy_pipe_write( 0x29, 0X18);
+	stm_miphy_pipe_write( 0x2A, 0X61);
+
+	/*pipe Wrapper usb3 TX swing de-emph margin PREEMPH[7:4], SWING[3:0] */
+	stm_miphy_pipe_write( 0x68, 0x67); /* margin 0 */
+	stm_miphy_pipe_write( 0x69, 0x0D); /* margin 1 */
+	stm_miphy_pipe_write( 0x6A, 0x67); /* margin 2 */
+	stm_miphy_pipe_write( 0x6B, 0x0D); /* margin 3 */
+	stm_miphy_pipe_write( 0x6C, 0x67); /* margin 4 */
+	stm_miphy_pipe_write( 0x6D, 0x0D); /* margin 5 */
+	stm_miphy_pipe_write( 0x6E, 0x67); /* margin 6 */
+	stm_miphy_pipe_write( 0x6F, 0x0D); /* margin 7 */
+}
+
+static void miphy_config_1(void)
+{
+
+    /* Putting Macro in reset */
+    stm_miphy_write(0x00, 0x01);
+    stm_miphy_write(0x00, 0x03);
+
+    /* Wait for a while */
+    stm_miphy_write(0x00, 0x01);
+    stm_miphy_write(0x04, 0x14);
+
+    /* PLL calibration */
+    stm_miphy_write(0xEB, 0x1D);
+    stm_miphy_write(0x0D, 0x1E);
+    stm_miphy_write(0x0F, 0x00);
+
+#if 1
+    stm_miphy_write(0xC2, 0x1B);
+    stm_miphy_write(0xC4, 0x20);
+    stm_miphy_write(0xC9, 0x02),
+    stm_miphy_write(0xCA, 0x02),
+    stm_miphy_write(0xCB, 0x02),
+    stm_miphy_write(0xCC, 0x0A),
+#else
+    stm_miphy_write(0xC4, 0x70);
+    stm_miphy_write(0xC9, 0x02),
+    stm_miphy_write(0xCA, 0x02),
+    stm_miphy_write(0xCB, 0x02),
+    stm_miphy_write(0xCC, 0x0A),
+
+#endif
+
+
+    /* Writing The PLL Ratio */
+    stm_miphy_write(0xD4, 0xA6),
+    stm_miphy_write(0xD5, 0xAA),
+    stm_miphy_write(0xD6, 0xAA),
+    stm_miphy_write(0xD7, 0x04),
+    stm_miphy_write(0xD3, 0x00),
+    stm_miphy_write(0x0F, 0x02),
+    stm_miphy_write(0x0E, 0x0A),
+    stm_miphy_write(0x0F, 0x01),
+    stm_miphy_write(0x0E, 0x0A),
+    stm_miphy_write(0x0F, 0x00),
+    stm_miphy_write(0x0E, 0x0A),
+
+    /* Channel compensation and calibration */
+    stm_miphy_write(0x97, 0xF2),
+    stm_miphy_write(0x99, 0x5F);
+    stm_miphy_write(0x9A, 0x22);
+
+
+    stm_miphy_write(0x0A, 0x51);
+    stm_miphy_write(0x0F, 0x02);
+    stm_miphy_write(0x0E, 0x0A);
+    stm_miphy_write(0x63, 0x00);
+    stm_miphy_write(0x64, 0xA7);
+    stm_miphy_write(0x0F, 0x01);
+    stm_miphy_write(0x0E, 0x0A);
+    stm_miphy_write(0x63, 0x00);
+    stm_miphy_write(0x64, 0xA7);
+    stm_miphy_write(0x0F, 0x00);
+    stm_miphy_write(0x0E, 0x0A);
+    stm_miphy_write(0x63, 0x00);
+    stm_miphy_write(0x64, 0xA7);
+    stm_miphy_write(0x0F, 0x00);
+    stm_miphy_write(0x49, 0x07);
+    stm_miphy_write(0x0F, 0x01);
+    stm_miphy_write(0x49, 0x07);
+    stm_miphy_write(0x0F, 0x02);
+    stm_miphy_write(0x49, 0x07);
+    stm_miphy_write(0x0F, 0x03);
+    stm_miphy_write(0x49, 0x07);
+    stm_miphy_write(0x0F, 0x00);
+    stm_miphy_write(0x4A, 0x70);
+    stm_miphy_write(0x4B, 0x60);
+    stm_miphy_write(0x78, 0xC2);
+    stm_miphy_write(0x78, 0xCA);
+    stm_miphy_write(0x7A, 0x00);
+    stm_miphy_write(0x7B, 0x00);
+    stm_miphy_write(0x7A, 0x00);
+    stm_miphy_write(0x7F, 0x7D);
+    stm_miphy_write(0x7A, 0x00);
+    stm_miphy_write(0x7F, 0x7C);
+    stm_miphy_write(0x80, 0x0F);
+    stm_miphy_write(0xCD, 0x21);
+    stm_miphy_write(0x00, 0x01);
+
+    stm_miphy_write(0x00, 0x00);
+    stm_miphy_write(0x01, 0x04);
+    stm_miphy_write(0x01, 0x05);
+    stm_miphy_write(0xE9, 0x00);
+    stm_miphy_write(0x0D, 0x1E);
+    stm_miphy_write(0x3A, 0x40);
+    stm_miphy_write(0x01, 0x01);
+    stm_miphy_write(0x01, 0x00);
+    stm_miphy_write(0xE9, 0x40);
+    stm_miphy_write(0x0A, 0x51);
+    stm_miphy_write(0x0C, 0x04);
+    stm_miphy_write(0x0F, 0x00);
+    stm_miphy_write(0x0B, 0x00);
+    stm_miphy_write(0x62, 0x00);
+    stm_miphy_write(0x0F, 0x00);
+    stm_miphy_write(0xE3, 0x02);
+    stm_miphy_write(0x26, 0x27);
+    stm_miphy_write(0x26, 0x00);
+    stm_miphy_write(0x0F, 0x00);
+
+    /* PIPE Wrapper Configuration */
+    stm_miphy_pipe_write(0x23, 0X68);
+    stm_miphy_pipe_write(0x24, 0X61);
+    stm_miphy_pipe_write(0x26, 0X68);
+    stm_miphy_pipe_write(0x27, 0X61);
+    stm_miphy_pipe_write(0x29, 0X68);
+    stm_miphy_pipe_write(0x2A, 0X60);
+
+}
+
+static void stxh407_init_miphy(void)
+{
+	unsigned long * sysconfReg ;
+	unsigned long sysconf ;
+
+	/* To exit from the reset state : soft reset*/
+	sysconfReg = (unsigned long*)STXH407_SYSCFG(5132);
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 1, 22);
+	writel(sysconf, sysconfReg);
+
+	/* Enables the syncchar detection and synchronization, required for USB3 HDD*/
+	sysconfReg = (unsigned long*)STXH407_SYSCFG(5071);
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 1, 2);
+	writel(sysconf, sysconfReg);
+}
+
+
+static void stxh407_init_dwc3(void)
+{
+	unsigned long * sysconfReg ;
+	unsigned long sysconf ;
+
+	/*USB PicoPHY reset */
+	sysconfReg = (unsigned long*)STXH407_SYSCFG(5132);
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 1, 30);
+	writel(sysconf, sysconfReg);
+
+	/* Update control*/
+	sysconfReg = (unsigned long*)STXH407_SYSCFG(5068);
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 0, 0);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 0, 1);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 0, 2);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 0, 4);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 0, 5);
+	SET_SYSCONF_BIT(sysconf, 0, 6);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 0, 8);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 0, 9);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 0, 10);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 0, 11);
+	writel(sysconf, sysconfReg);
+
+	/* */
+	sysconfReg = (unsigned long*)STXH407_SYSCFG(5061);
+	sysconf = readl(sysconfReg);
+	/*PICOPHY_REFCLKSEL*/
+	SET_SYSCONF_BIT(sysconf,0 , 0);
+	SET_SYSCONF_BIT(sysconf,1 , 1);
+	writel(sysconf, sysconfReg);
+
+	/* PICOPHY_FSEL */
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,1 , 2);
+	SET_SYSCONF_BIT(sysconf,0 , 3);
+	SET_SYSCONF_BIT(sysconf,0 , 4);
+	writel(sysconf, sysconfReg);
+
+	/*PICOPHY_RESET2*/
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,0 , 7);
+	writel(sysconf, sysconfReg);
+
+	sysconfReg = (unsigned long*)STXH407_SYSCFG(5064);
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,0 , 0);
+	SET_SYSCONF_BIT(sysconf,0 , 1);
+	SET_SYSCONF_BIT(sysconf,1 , 2);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,1 , 3);
+	SET_SYSCONF_BIT(sysconf,1 , 4);
+	SET_SYSCONF_BIT(sysconf,0 , 5);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,1 , 6);
+	SET_SYSCONF_BIT(sysconf,1 , 7);
+	SET_SYSCONF_BIT(sysconf,0 , 8);
+	SET_SYSCONF_BIT(sysconf,0 , 9);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,1 , 10);
+	SET_SYSCONF_BIT(sysconf,0 , 11);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,0 , 12);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,1 , 13);
+	SET_SYSCONF_BIT(sysconf,0 , 14);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,1 , 15);
+	SET_SYSCONF_BIT(sysconf,0 , 16);
+	SET_SYSCONF_BIT(sysconf,1 , 17);
+	SET_SYSCONF_BIT(sysconf,1 , 18);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,1 , 19);
+	SET_SYSCONF_BIT(sysconf,1 , 20);
+	writel(sysconf, sysconfReg);
+
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf,1 , 21);
+	SET_SYSCONF_BIT(sysconf,0 , 22);
+	writel(sysconf, sysconfReg);
+
+}
+
+static inline u32 dwc3_stm_readl(u32 offset)
+{
+	return readl(STM_DWC3_GLUE_BASE + offset);
+}
+
+static inline void dwc3_stm_writel(u32 offset, u32 value)
+{
+    writel(value, STM_DWC3_GLUE_BASE + offset);
+}
+
+static void scv_miphy_init(void)
+{
+	u32 reg;
+
+    reg = dwc3_stm_readl(USB2_CLKRST_CTRL);
+
+    reg |= aux_clk_en(1) | ext_cfg_reset_n(1) | xhci_revision(1);
+    reg &= ~sw_pipew_reset_n(1);
+    dwc3_stm_writel(USB2_CLKRST_CTRL, reg);
+
+    reg = dwc3_stm_readl(USB2_VBUS_MNGMNT_SEL1);
+    reg |= SEL_OVERRIDE_VBUSVALID(1) | SEL_OVERRIDE_POWERPRESENT(1) |
+        SEL_OVERRIDE_BVALID(1);
+
+    dwc3_stm_writel(USB2_VBUS_MNGMNT_SEL1, reg);
+    udelay(100);
+
+	/* Configure the Phy */ // QQQQ
+
+	/*Need to update these sequences as amd when miPhy configuration
+	evolves for stable link*/
+
+	//miphy_config_1();
+	miphy_config_2();
+
+    reg = dwc3_stm_readl(USB2_CLKRST_CTRL);
+    reg |= sw_pipew_reset_n(1);
+
+    dwc3_stm_writel(USB2_CLKRST_CTRL, reg);
+
+    /* Use this delay to adjust for MiPHY HFCready assertion variation */
+    udelay(1000);
+
+}
+
+void reset_usb_host(void)
+{
+	unsigned long * sysconfReg ;
+	unsigned long sysconf ;
+
+#if 0
+	sysconfReg = (unsigned long*)STXH407_SYSCFG(5001);
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 1, 6);
+	writel(sysconf, sysconfReg);
+
+	mdelay(1000);
+#endif
+
+	/* Power up..*/
+	sysconfReg = (unsigned long*)STXH407_SYSCFG(5001);
+	sysconf = readl(sysconfReg);
+	SET_SYSCONF_BIT(sysconf, 0, 6);
+	writel(sysconf, sysconfReg);
+    udelay(1000);
+
+}
+
+
+static void deconfigure_usb_pio(void)
+{
+	stxh407_pioalt_select(35, 4, 0);
+	stxh407_pioalt_select(35, 5, 0);
+	stxh407_pioalt_select(35, 6, 0);
+
+	stxh407_pioalt_pad(35, 4, stm_pad_direction_output);
+	stxh407_pioalt_pad(35, 5, stm_pad_direction_input);
+	stxh407_pioalt_pad(35, 6, stm_pad_direction_output);
+}
+
+static void configure_usb_pio(void)
+{
+	stxh407_pioalt_select(35, 4, 1);
+	stxh407_pioalt_select(35, 5, 1);
+	stxh407_pioalt_select(35, 6, 1);
+
+	stxh407_pioalt_pad(35, 4, stm_pad_direction_input);
+	stxh407_pioalt_pad(35, 5, stm_pad_direction_output);
+	stxh407_pioalt_pad(35, 6, stm_pad_direction_input);
+}
+
+extern int stxh407_usb_init(const int port)
+{
+#if 1
+	deconfigure_usb_pio();
+	mdelay(500);
+	mdelay(500);
+#endif
+	stxh407_init_miphy();
+	reset_usb_host();
+	stxh407_init_dwc3();
+	scv_miphy_init();
+	configure_usb_pio();
+#if 0
+    printf("Miphy version: %d\n", stm_miphy_read(MIPHY_VERSION));
+    printf("Miphy revision: %d\n" , stm_miphy_read(MIPHY_REVISION));
+#endif
+	return 0;
+}
+#endif /*CONFIG_STM_USB*/
 extern int arch_cpu_init(void)
 {
 	stxh407_clocks();
 
-	gd->stm_devid = *STXH407_SYSCONF_DEVICEID;
+	gd->arch.stm_devid = *STXH407_SYSCONF_DEVICEID;
 
 #if 0	/* QQQ - TO IMPLEMENT */
 	/* Make sure reset period is shorter than WDT time-out */
@@ -861,7 +1400,7 @@ extern void stxh407_configure_sata(void)
 #endif	/* CONFIG_STM_SATA */
 
 
-#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT)
 struct ssc_pios
 {
 	struct
@@ -958,7 +1497,7 @@ extern int stxh407_i2c_read(void)
 	const int pin  = ssc_pios[CONFIG_I2C_BUS].pio[1].pin;
 	return STPIO_GET_PIN(STM_PIO_BASE(port), pin);
 }
-#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C) */
+#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT) */
 
 
 #if defined(CONFIG_I2C_CMD_TREE)
@@ -1171,7 +1710,14 @@ extern int stxh407_mmc_getcd(const int port)
 #if defined (CONFIG_STM_SDHCI_0)
 	if (port == 0)		/* MMC #0 ? */
 	{
+#if defined(CONFIG_STM_B2120)  /* on a B2120 ? */
 		return 0;	/* eMMC is always present */
+#elif defined(CONFIG_STM_B2089)        /* on a B2089 ? */
+		/* SD_CD is connected to PIO42[4] (on CN64) */
+		return STPIO_GET_PIN(STM_PIO_BASE(42), 4);
+#else
+#error Which board for this SoC?
+#endif /* CONFIG_STM_B2120 || CONFIG_STM_B2089 */
 	}
 	else
 #endif	/* CONFIG_STM_SDHCI_0 */
@@ -1388,3 +1934,46 @@ extern int cpu_mmc_init(bd_t *bis)
 }
 
 #endif	/* CONFIG_STM_SDHCI */
+
+
+#if defined(CONFIG_CMD_NAND)
+extern void stxh407_configure_nand(void)
+{
+	/*
+	 * We will set up the PIO pins correctly for NAND
+	 *
+	 * We want to use NAND on the FlashSS IP block
+	 *
+	 * With the FlashSS, there is no need for software
+	 * to configure the OE (output-enable) or the OD
+	 * (open-drain) control lines, as the FlashSS IP
+	 * (the NANDi) controller will take care of them,
+	 * as long as the alternate-function is right.
+	 * The PU/PD are S/W controllable, but are correct
+	 * following a reset, so again, we should be able
+	 * to rely on them being correct for U-Boot.
+	 * So, we only need to set the alternate-functions!
+	 *
+	 * Route PIO for NAND (alternate #3 in FlashSS)
+	 */
+//	stxh407_pioalt_select(40, 4, 3);	/* NAND_CSn2 */
+//	stxh407_pioalt_select(40, 5, 3);	/* NAND_CSn3 */
+//	stxh407_pioalt_select(40, 6, 3);	/* NAND_CSn1 */
+	stxh407_pioalt_select(40, 7, 3);	/* NAND_CSn0 */
+
+	stxh407_pioalt_select(41, 0, 3);	/* NAND_DQ0 */
+	stxh407_pioalt_select(41, 1, 3);	/* NAND_DQ1 */
+	stxh407_pioalt_select(41, 2, 3);	/* NAND_DQ2 */
+	stxh407_pioalt_select(41, 3, 3);	/* NAND_DQ3 */
+	stxh407_pioalt_select(41, 4, 3);	/* NAND_DQ4 */
+	stxh407_pioalt_select(41, 5, 3);	/* NAND_DQ5 */
+	stxh407_pioalt_select(41, 6, 3);	/* NAND_DQ6 */
+	stxh407_pioalt_select(41, 7, 3);	/* NAND_DQ7 */
+
+	stxh407_pioalt_select(42, 0, 3);	/* NAND_WEn */
+	stxh407_pioalt_select(42, 2, 3);	/* NAND_ALE */
+	stxh407_pioalt_select(42, 3, 3);	/* NAND_CLE */
+	stxh407_pioalt_select(42, 4, 3);	/* NAND_RnB */
+	stxh407_pioalt_select(42, 5, 3);	/* NAND_REn */
+}
+#endif	/* CONFIG_CMD_NAND */

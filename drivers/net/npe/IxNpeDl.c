@@ -18,31 +18,7 @@
  * All rights reserved.
  *
  * @par
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * @par
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
+ * SPDX-License-Identifier:	BSD-3-Clause
  * @par
  * -- End of Copyright Notice --
 */
@@ -89,9 +65,9 @@ typedef struct
  */
 static IxNpeDlNpeState ixNpeDlNpeState[IX_NPEDL_NPEID_MAX] =
 {
-    {FALSE, {IX_NPEDL_NPEID_MAX, 0, 0, 0}},
-    {FALSE, {IX_NPEDL_NPEID_MAX, 0, 0, 0}},
-    {FALSE, {IX_NPEDL_NPEID_MAX, 0, 0, 0}}
+    {false, {IX_NPEDL_NPEID_MAX, 0, 0, 0}},
+    {false, {IX_NPEDL_NPEID_MAX, 0, 0, 0}},
+    {false, {IX_NPEDL_NPEID_MAX, 0, 0, 0}}
 };
 
 static IxNpeDlStats ixNpeDlStats;
@@ -99,7 +75,7 @@ static IxNpeDlStats ixNpeDlStats;
 /*
  * Software guard to prevent NPE from being started multiple times.
  */
-static BOOL ixNpeDlNpeStarted[IX_NPEDL_NPEID_MAX] ={FALSE, FALSE, FALSE} ;
+static BOOL ixNpeDlNpeStarted[IX_NPEDL_NPEID_MAX] ={false, false, false} ;
 
 
 /*
@@ -195,7 +171,7 @@ ixNpeDlImageDownload (IxNpeDlImageId *imageIdPtr,
             if (IX_SUCCESS == status)
             {
                 ixNpeDlNpeState[npeId].imageId = *imageIdPtr;
-                ixNpeDlNpeState[npeId].validImage = TRUE;
+                ixNpeDlNpeState[npeId].validImage = true;
                 ixNpeDlStats.successfulDownloads++;
 
                 status =  ixNpeDlNpeExecutionStart (npeId);
@@ -204,7 +180,7 @@ ixNpeDlImageDownload (IxNpeDlImageId *imageIdPtr,
                      (status == IX_NPEDL_CRITICAL_MICROCODE_ERR))
             {
                 ixNpeDlNpeState[npeId].imageId = *imageIdPtr;
-                ixNpeDlNpeState[npeId].validImage = FALSE;
+                ixNpeDlNpeState[npeId].validImage = false;
                 ixNpeDlStats.criticalFailDownloads++;
             }
         } /* end of if(IX_SUCCESS) */ /* condition: image located successfully in microcode image */
@@ -507,7 +483,7 @@ ixNpeDlNpeStopAndReset (IxNpeDlNpeId npeId)
     if (IX_SUCCESS == status)
     {
         /* Indicate NPE has been stopped */
-        ixNpeDlNpeStarted[npeId] = FALSE ;
+        ixNpeDlNpeStarted[npeId] = false ;
     }
 
     return status;
@@ -573,7 +549,7 @@ ixNpeDlNpeExecutionStart (IxNpeDlNpeId npeId)
         } /* end of if-else(IX_NPEDL_NPEID_NPEC) */
     } /* end of if not IXP42x-A0 Silicon */
 
-    if (TRUE == ixNpeDlNpeStarted[npeId])
+    if (true == ixNpeDlNpeStarted[npeId])
     {
         /* NPE has been started. */
         return IX_SUCCESS ;
@@ -588,7 +564,7 @@ ixNpeDlNpeExecutionStart (IxNpeDlNpeId npeId)
     if (IX_SUCCESS == status)
     {
         /* Indicate NPE has started */
-        ixNpeDlNpeStarted[npeId] = TRUE ;
+        ixNpeDlNpeStarted[npeId] = true ;
     }
 
     IX_NPEDL_TRACE1 (IX_NPEDL_FN_ENTRY_EXIT,
@@ -674,7 +650,7 @@ ixNpeDlNpeExecutionStop (IxNpeDlNpeId npeId)
     if (IX_SUCCESS == status)
     {
         /* Indicate NPE has been stopped */
-        ixNpeDlNpeStarted[npeId] = FALSE ;
+        ixNpeDlNpeStarted[npeId] = false ;
     }
 
     return status;
@@ -840,10 +816,10 @@ ixNpeDlNpeInitAndStartInternal (UINT32 *imageLibrary,
              * currently loaded images. If a critical error occured
              * during download, record that the NPE has an invalid image
              */
-            status = ixNpeDlNpeMgrImageLoad (npeId, imageCodePtr, TRUE);
+            status = ixNpeDlNpeMgrImageLoad (npeId, imageCodePtr, true);
             if (IX_SUCCESS == status)
             {
-                ixNpeDlNpeState[npeId].validImage = TRUE;
+                ixNpeDlNpeState[npeId].validImage = true;
                 ixNpeDlStats.successfulDownloads++;
 
                 status = ixNpeDlNpeExecutionStart (npeId);
@@ -851,7 +827,7 @@ ixNpeDlNpeInitAndStartInternal (UINT32 *imageLibrary,
             else if ((status == IX_NPEDL_CRITICAL_NPE_ERR) ||
                      (status == IX_NPEDL_CRITICAL_MICROCODE_ERR))
             {
-                ixNpeDlNpeState[npeId].validImage = FALSE;
+                ixNpeDlNpeState[npeId].validImage = false;
                 ixNpeDlStats.criticalFailDownloads++;
             }
 

@@ -36,12 +36,18 @@ __memory_setup_table:
 	 * access to either a MicroConnect or a target board:
 	 *
 	 * host% romgen --show-comment dummy:b2120stxh407:a9_0
+	 * or
+	 * host% romgen --show-comment dummy:b2120stxh410:a9_0
 	 *
 	 * Where "dummy" need not correspond to any real IP address on
-	 * your network.  In addition, note that "b2120stxh407" should be
+	 * your network.  In addition, note that "b2120stxh4xx" should be
 	 * substituted if you have a custom target-pack connect command.
 	 */
-#include "b2120-stxh407.romgen"
+#if defined(CONFIG_STM_STXH410)
+#	include "b2120-stxh410.romgen"
+#elif defined(CONFIG_STM_STXH407)
+#	include "b2120-stxh407.romgen"
+#endif	/* CONFIG_STM_STXH410 */
 
 	END_MARKER
 

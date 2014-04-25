@@ -4,23 +4,7 @@
  *
  * Based (loosely) on the Linux code
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #ifndef _MMC_H_
@@ -68,6 +52,7 @@
 #define UNUSABLE_ERR		-17 /* Unusable Card */
 #define COMM_ERR		-18 /* Communications Error */
 #define TIMEOUT			-19
+#define IN_PROGRESS		-20 /* operation is in progress */
 
 #define MMC_CMD_GO_IDLE_STATE		0
 #define MMC_CMD_SEND_OP_COND		1
@@ -163,6 +148,7 @@
  * EXT_CSD fields
  */
 #define EXT_CSD_GP_SIZE_MULT		143	/* R/W */
+#define EXT_CSD_PARTITIONS_ATTRIBUTE	156	/* R/W */
 #define EXT_CSD_PARTITIONING_SUPPORT	160	/* RO */
 #define EXT_CSD_RPMB_MULT		168	/* RO */
 #define EXT_CSD_ERASE_GROUP_DEF		175	/* R/W */
@@ -225,6 +211,15 @@
 #define MMCPART_NOAVAILABLE	(0xff)
 #define PART_ACCESS_MASK	(0x7)
 #define PART_SUPPORT		(0x1)
+#define PART_ENH_ATTRIB		(0x1f)
+
+/* Maximum block size for MMC */
+#define MMC_MAX_BLOCK_LEN	512
+
+/* The number of MMC physical partitions.  These consist of:
+ * boot partitions (2), general purpose partitions (4) in MMC v4.4.
+ */
+#define MMC_NUM_BOOT_PARTITION	2
 
 /* Maximum block size for MMC */
 #define MMC_MAX_BLOCK_LEN	512
@@ -275,6 +270,8 @@ struct mmc {
 	uint card_caps;
 	uint host_caps;
 	uint ocr;
+	uint dsr;
+	uint dsr_imp;
 	uint scr[2];
 	uint csd[4];
 	uint cid[4];
@@ -296,7 +293,12 @@ struct mmc {
 	void (*set_ios)(struct mmc *mmc);
 	int (*init)(struct mmc *mmc);
 	int (*getcd)(struct mmc *mmc);
+	int (*getwp)(struct mmc *mmc);
 	uint b_max;
+	char op_cond_pending;	/* 1 if we are waiting on an op_cond command */
+	char init_in_progress;	/* 1 if we have done mmc_start_init() */
+	char preinit;		/* start init as early as possible */
+	uint op_cond_response;	/* the response byte from the last op_cond */
 };
 
 int mmc_register(struct mmc *mmc);
@@ -311,15 +313,45 @@ int get_mmc_num(void);
 int board_mmc_getcd(struct mmc *mmc);
 int mmc_switch_part(int dev_num, unsigned int part_num);
 int mmc_getcd(struct mmc *mmc);
-void spl_mmc_load(void) __noreturn;
+int mmc_getwp(struct mmc *mmc);
+int mmc_set_dsr(struct mmc *mmc, u16 val);
 /* Function to change the size of boot partition and rpmb partitions */
 int mmc_boot_partition_size_change(struct mmc *mmc, unsigned long bootsize,
 					unsigned long rpmbsize);
 /* Function to send commands to open/close the specified boot partition */
 int mmc_boot_part_access(struct mmc *mmc, u8 ack, u8 part_num, u8 access);
 
+/**
+ * Start device initialization and return immediately; it does not block on
+ * polling OCR (operation condition register) status.  Then you should call
+ * mmc_init, which would block on polling OCR status and complete the device
+ * initializatin.
+ *
+ * @param mmc	Pointer to a MMC device struct
+ * @return 0 on success, IN_PROGRESS on waiting for OCR status, <0 on error.
+ */
+int mmc_start_init(struct mmc *mmc);
+
+/**
+ * Set preinit flag of mmc device.
+ *
+ * This will cause the device to be pre-inited during mmc_initialize(),
+ * which may save boot time if the device is not accessed until later.
+ * Some eMMC devices take 200-300ms to init, but unfortunately they
+ * must be sent a series of commands to even get them to start preparing
+ * for operation.
+ *
+ * @param mmc		Pointer to a MMC device struct
+ * @param preinit	preinit flag value
+ */
+void mmc_set_preinit(struct mmc *mmc, int preinit);
+
 #ifdef CONFIG_GENERIC_MMC
+#ifdef CONFIG_MMC_SPI
 #define mmc_host_is_spi(mmc)	((mmc)->host_caps & MMC_MODE_SPI)
+#else
+#define mmc_host_is_spi(mmc)	0
+#endif
 struct mmc *mmc_spi_init(uint bus, uint cs, uint speed, uint mode);
 #else
 int mmc_legacy_init(int verbose);

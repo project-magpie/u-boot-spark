@@ -1,27 +1,11 @@
 #
-# (C) Copyright 2000-2012
+# (C) Copyright 2000-2013
 # Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
-# See file CREDITS for list of people who contributed to this
-# project.
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundatio; either version 2 of
-# the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307 USA
+# SPDX-License-Identifier:	GPL-2.0+
 #
 
-VERSION = 2013
+VERSION = 2014
 PATCHLEVEL = 01
 SUBLEVEL =
 EXTRAVERSION =
@@ -46,12 +30,7 @@ HOSTARCH := $(shell uname -m | \
 HOSTOS := $(shell uname -s | tr '[:upper:]' '[:lower:]' | \
 	    sed -e 's/\(cygwin\).*/cygwin/')
 
-# Set shell to bash if possible, otherwise fall back to sh
-SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
-	else if [ -x /bin/bash ]; then echo /bin/bash; \
-	else echo sh; fi; fi)
-
-export	HOSTARCH HOSTOS SHELL
+export	HOSTARCH HOSTOS
 
 # Deal with colliding definitions from tcsh etc.
 VENDOR=
@@ -66,13 +45,13 @@ endif
 
 #########################################################################
 #
-# U-boot build supports producing a object files to the separate external
+# U-boot build supports generating object files in a separate external
 # directory. Two use cases are supported:
 #
 # 1) Add O= to the make command line
 # 'make O=/tmp/build all'
 #
-# 2) Set environement variable BUILD_DIR to point to the desired location
+# 2) Set environment variable BUILD_DIR to point to the desired location
 # 'export BUILD_DIR=/tmp/build'
 # 'make'
 #
@@ -80,16 +59,14 @@ endif
 # 'export BUILD_DIR=/tmp/build'
 # './MAKEALL'
 #
-# Command line 'O=' setting overrides BUILD_DIR environent variable.
+# Command line 'O=' setting overrides BUILD_DIR environment variable.
 #
 # When none of the above methods is used the local build is performed and
 # the object files are placed in the source directory.
 #
 
-ifdef O
 ifeq ("$(origin O)", "command line")
 BUILD_DIR := $(O)
-endif
 endif
 
 # Call a source code checker (by default, "sparse") as part of the
@@ -123,20 +100,16 @@ endif # ifneq ($(BUILD_DIR),)
 
 OBJTREE		:= $(if $(BUILD_DIR),$(BUILD_DIR),$(CURDIR))
 SPLTREE		:= $(OBJTREE)/spl
+TPLTREE		:= $(OBJTREE)/tpl
 SRCTREE		:= $(CURDIR)
 TOPDIR		:= $(SRCTREE)
 LNDIR		:= $(OBJTREE)
-export	TOPDIR SRCTREE OBJTREE SPLTREE
+export	TOPDIR SRCTREE OBJTREE SPLTREE TPLTREE
 
 MKCONFIG	:= $(SRCTREE)/mkconfig
 MKROMGEN	:= $(SRCTREE)/mkromgen
 ROMGEN		:= $(SRCTREE)/romgen-wrapper
 export MKCONFIG
-
-ifneq ($(OBJTREE),$(SRCTREE))
-REMOTE_BUILD	:= 1
-export REMOTE_BUILD
-endif
 
 # $(obj) and (src) are defined in config.mk but here in main Makefile
 # we also need them before config.mk is included which is the case for
@@ -160,7 +133,6 @@ unexport CDPATH
 # The "examples" conditionally depend on U-Boot (say, when USE_PRIVATE_LIBGCC
 # is "yes"), so compile examples after U-Boot is compiled.
 SUBDIR_TOOLS = tools
-SUBDIR_EXAMPLES = examples/standalone examples/api
 SUBDIRS = $(SUBDIR_TOOLS)
 
 .PHONY : $(SUBDIRS) $(VERSION_FILE) $(TIMESTAMP_FILE)
@@ -174,8 +146,10 @@ all:
 sinclude $(obj)include/autoconf.mk.dep
 sinclude $(obj)include/autoconf.mk
 
+SUBDIR_EXAMPLES-y := examples/standalone
+SUBDIR_EXAMPLES-$(CONFIG_API) += examples/api
 ifndef CONFIG_SANDBOX
-SUBDIRS += $(SUBDIR_EXAMPLES)
+SUBDIRS += $(SUBDIR_EXAMPLES-y)
 endif
 
 # load TARGET, ARCH, BOARD, and CPU configuration
@@ -192,6 +166,16 @@ endif
 # load other configuration
 include $(TOPDIR)/config.mk
 
+# Targets which don't build the source code
+NON_BUILD_TARGETS = backup clean clobber distclean mrproper tidy unconfig
+
+# Only do the generic board check when actually building, not configuring
+ifeq ($(filter $(NON_BUILD_TARGETS),$(MAKECMDGOALS)),)
+ifeq ($(findstring _config,$(MAKECMDGOALS)),)
+$(CHECK_GENERIC_BOARD)
+endif
+endif
+
 # If board code explicitly specified LDSCRIPT or CONFIG_SYS_LDSCRIPT, use
 # that (or fail if absent).  Otherwise, search for a linker script in a
 # standard location.
@@ -202,7 +186,7 @@ ifndef LDSCRIPT
 	#LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot.lds.debug
 	ifdef CONFIG_SYS_LDSCRIPT
 		# need to strip off double quotes
-		LDSCRIPT := $(subst ",,$(CONFIG_SYS_LDSCRIPT))
+		LDSCRIPT := $(CONFIG_SYS_LDSCRIPT:"%"=%)
 	endif
 endif
 
@@ -233,149 +217,91 @@ endif
 #########################################################################
 # U-Boot objects....order is important (i.e. start must be first)
 
-OBJS  = $(CPUDIR)/start.o
-ifeq ($(CPU),x86)
-RESET_OBJS-$(CONFIG_X86_NO_RESET_VECTOR) += $(CPUDIR)/start16.o
-RESET_OBJS-$(CONFIG_X86_NO_RESET_VECTOR) += $(CPUDIR)/resetvec.o
-endif
-ifeq ($(CPU),ppc4xx)
-OBJS += $(CPUDIR)/resetvec.o
-endif
-ifeq ($(CPU),mpc85xx)
-OBJS += $(CPUDIR)/resetvec.o
-endif
+head-y := $(CPUDIR)/start.o
+head-$(CONFIG_4xx) += arch/powerpc/cpu/ppc4xx/resetvec.o
+head-$(CONFIG_MPC85xx) += arch/powerpc/cpu/mpc85xx/resetvec.o
 
-OBJS := $(addprefix $(obj),$(OBJS) $(RESET_OBJS-))
+OBJS := $(addprefix $(obj),$(head-y))
 
 HAVE_VENDOR_COMMON_LIB = $(if $(wildcard board/$(VENDOR)/common/Makefile),y,n)
 
-LIBS-y += lib/libgeneric.o
-LIBS-y += lib/lzma/liblzma.o
-LIBS-y += lib/lzo/liblzo.o
-LIBS-y += lib/zlib/libz.o
-LIBS-$(CONFIG_TIZEN) += lib/tizen/libtizen.o
-LIBS-$(HAVE_VENDOR_COMMON_LIB) += board/$(VENDOR)/common/lib$(VENDOR).o
-LIBS-y += $(CPUDIR)/lib$(CPU).o
+LIBS-y += lib/
+LIBS-$(HAVE_VENDOR_COMMON_LIB) += board/$(VENDOR)/common/
+LIBS-y += $(CPUDIR)/
+ifeq ($(CONFIG_STM),n)
+# For STMicroelectronics' SOCs, we disable building SOC specific
+# library.
+# QQQ: Need to revisit
 ifdef SOC
-LIBS-y += $(shell if [ -f $(CPUDIR)/$(SOC)/Makefile ]; then echo \
-	"$(CPUDIR)/$(SOC)/lib$(SOC).o"; fi)
+LIBS-y += $(CPUDIR)/$(SOC)/
 endif
-ifeq ($(CPU),ixp)
-LIBS-y += drivers/net/npe/libnpe.o
 endif
-LIBS-$(CONFIG_OF_EMBED) += dts/libdts.o
-LIBS-y += arch/$(ARCH)/lib/lib$(ARCH).o
-LIBS-y += fs/libfs.o \
-	fs/cbfs/libcbfs.o \
-	fs/cramfs/libcramfs.o \
-	fs/ext4/libext4fs.o \
-	fs/fat/libfat.o \
-	fs/fdos/libfdos.o \
-	fs/jffs2/libjffs2.o \
-	fs/reiserfs/libreiserfs.o \
-	fs/ubifs/libubifs.o \
-	fs/yaffs2/libyaffs2.o \
-	fs/zfs/libzfs.o
-LIBS-y += net/libnet.o
-LIBS-y += disk/libdisk.o
-LIBS-y += drivers/bios_emulator/libatibiosemu.o
-LIBS-y += drivers/block/libblock.o
-LIBS-$(CONFIG_BOOTCOUNT_LIMIT) += drivers/bootcount/libbootcount.o
-LIBS-y += drivers/dma/libdma.o
-LIBS-y += drivers/fpga/libfpga.o
-LIBS-y += drivers/gpio/libgpio.o
-LIBS-y += drivers/hwmon/libhwmon.o
-LIBS-y += drivers/i2c/libi2c.o
-LIBS-y += drivers/input/libinput.o
-LIBS-y += drivers/misc/libmisc.o
-LIBS-y += drivers/mmc/libmmc.o
-LIBS-y += drivers/mtd/libmtd.o
-LIBS-y += drivers/mtd/nand/libnand.o
-LIBS-y += drivers/mtd/onenand/libonenand.o
-LIBS-y += drivers/mtd/ubi/libubi.o
+LIBS-$(CONFIG_IXP4XX_NPE) += drivers/net/npe/
+LIBS-$(CONFIG_OF_EMBED) += dts/
+LIBS-y += arch/$(ARCH)/lib/
+LIBS-y += fs/
+LIBS-y += net/
+LIBS-y += disk/
+LIBS-y += drivers/
+LIBS-y += drivers/dma/
+LIBS-y += drivers/gpio/
+LIBS-y += drivers/i2c/
+LIBS-y += drivers/input/
+LIBS-y += drivers/mmc/
+LIBS-y += drivers/mtd/
+LIBS-$(CONFIG_CMD_NAND) += drivers/mtd/nand/
+LIBS-y += drivers/mtd/onenand/
+LIBS-$(CONFIG_CMD_UBI) += drivers/mtd/ubi/
 ifeq ($(CONFIG_STM),n)
 # For STMicroelectronics' SoCs, we will *temporarily* disable
 # U-Boot's MTD drivers on SPI, and use the older "eeprom" driver.
 # QQQ: Re-enable once STMicroelectronics' FSM has been ported.
-LIBS-y += drivers/mtd/spi/libspi_flash.o
+LIBS-y += drivers/mtd/spi/
 endif
-LIBS-y += drivers/net/libnet.o
-LIBS-y += drivers/net/phy/libphy.o
-LIBS-y += drivers/pci/libpci.o
-LIBS-y += drivers/pcmcia/libpcmcia.o
-LIBS-y += drivers/power/libpower.o \
-	drivers/power/fuel_gauge/libfuel_gauge.o \
-	drivers/power/pmic/libpmic.o \
-	drivers/power/battery/libbattery.o
-LIBS-y += drivers/spi/libspi.o
-LIBS-y += drivers/dfu/libdfu.o
-ifeq ($(CPU),mpc83xx)
-LIBS-y += drivers/qe/libqe.o
-LIBS-y += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
-LIBS-y += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
-endif
-ifeq ($(CPU),mpc85xx)
-LIBS-y += drivers/qe/libqe.o
-LIBS-y += drivers/net/fm/libfm.o
-LIBS-y += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
-LIBS-y += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
-endif
-ifeq ($(CPU),mpc86xx)
-LIBS-y += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
-LIBS-y += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
-endif
-LIBS-y += drivers/rtc/librtc.o
-LIBS-y += drivers/serial/libserial.o
-LIBS-y += drivers/sound/libsound.o
-LIBS-$(CONFIG_GENERIC_LPC_TPM) += drivers/tpm/libtpm.o
-LIBS-y += drivers/twserial/libtws.o
-LIBS-y += drivers/usb/eth/libusb_eth.o
-LIBS-y += drivers/usb/gadget/libusb_gadget.o
-LIBS-y += drivers/usb/host/libusb_host.o
-LIBS-y += drivers/usb/musb/libusb_musb.o
-LIBS-y += drivers/usb/musb-new/libusb_musb-new.o
-LIBS-y += drivers/usb/phy/libusb_phy.o
-LIBS-y += drivers/usb/ulpi/libusb_ulpi.o
-LIBS-y += drivers/video/libvideo.o
-LIBS-y += drivers/watchdog/libwatchdog.o
-LIBS-y += common/libcommon.o
-LIBS-y += lib/libfdt/libfdt.o
-LIBS-y += api/libapi.o
-LIBS-y += post/libpost.o
-LIBS-y += test/libtest.o
+LIBS-y += drivers/net/
+LIBS-y += drivers/net/phy/
+LIBS-y += drivers/pci/
+LIBS-y += drivers/power/ \
+	drivers/power/fuel_gauge/ \
+	drivers/power/mfd/ \
+	drivers/power/pmic/ \
+	drivers/power/battery/
+LIBS-y += drivers/spi/
+LIBS-$(CONFIG_FMAN_ENET) += drivers/net/fm/
+LIBS-$(CONFIG_SYS_FSL_DDR) += drivers/ddr/fsl/
+LIBS-y += drivers/serial/
+LIBS-y += drivers/usb/eth/
+LIBS-y += drivers/usb/gadget/
+LIBS-y += drivers/usb/host/
+LIBS-y += drivers/usb/musb/
+LIBS-y += drivers/usb/musb-new/
+LIBS-y += drivers/usb/phy/
+LIBS-y += drivers/usb/ulpi/
+LIBS-y += common/
+LIBS-y += lib/libfdt/
+LIBS-$(CONFIG_API) += api/
+LIBS-$(CONFIG_HAS_POST) += post/
+LIBS-y += test/
 
-ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
-LIBS-y += $(CPUDIR)/omap-common/libomap-common.o
+ifneq (,$(filter $(SOC), mx25 mx27 mx5 mx6 mx31 mx35 mxs vf610))
+LIBS-y += arch/$(ARCH)/imx-common/
 endif
 
-ifneq (,$(filter $(SOC), mx25 mx27 mx5 mx6 mx31 mx35))
-LIBS-y += arch/$(ARCH)/imx-common/libimx-common.o
-endif
+LIBS-$(CONFIG_ARM) += arch/arm/cpu/
+LIBS-$(CONFIG_PPC) += arch/powerpc/cpu/
 
-ifeq ($(SOC),s5pc1xx)
-LIBS-y += $(CPUDIR)/s5p-common/libs5p-common.o
-endif
-ifeq ($(SOC),exynos)
-LIBS-y += $(CPUDIR)/s5p-common/libs5p-common.o
-endif
-ifeq ($(SOC),tegra20)
-LIBS-y += arch/$(ARCH)/cpu/$(SOC)-common/lib$(SOC)-common.o
-LIBS-y += arch/$(ARCH)/cpu/tegra-common/libcputegra-common.o
-LIBS-y += $(CPUDIR)/tegra-common/libtegra-common.o
-endif
+LIBS-y += board/$(BOARDDIR)/
 
 # Add STMicroelectronics-specific "drivers" (nominally ARCH-agnostic).
 ifeq ($(CONFIG_STM),y)
-LIBS-y += drivers/stm/libstm.o
+LIBS-y += drivers/stm/
 LIBS-y += $(shell if [ -f $(CPUDIR)/stm/Makefile ]; then echo \
-	"$(CPUDIR)/stm/lib$(SOC).o"; fi)
+	"$(CPUDIR)/stm/"; fi)
 endif
 
+LIBS-y := $(patsubst %/, %/built-in.o, $(LIBS-y))
 LIBS := $(addprefix $(obj),$(sort $(LIBS-y)))
 .PHONY : $(LIBS)
-
-LIBBOARD = board/$(BOARDDIR)/lib$(BOARD).o
-LIBBOARD := $(addprefix $(obj),$(LIBBOARD))
 
 # Add GCC lib
 ifdef USE_PRIVATE_LIBGCC
@@ -400,7 +326,7 @@ LDPPFLAGS += \
 	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
 
 __OBJS := $(subst $(obj),,$(OBJS))
-__LIBS := $(subst $(obj),,$(LIBS)) $(subst $(obj),,$(LIBBOARD))
+__LIBS := $(subst $(obj),,$(LIBS))
 
 #########################################################################
 #########################################################################
@@ -420,28 +346,49 @@ else
 BOARD_SIZE_CHECK =
 endif
 
+# Statically apply RELA-style relocations (currently arm64 only)
+ifneq ($(CONFIG_STATIC_RELA),)
+# $(1) is u-boot ELF, $(2) is u-boot bin, $(3) is text base
+DO_STATIC_RELA = \
+	start=$$($(NM) $(1) | grep __rel_dyn_start | cut -f 1 -d ' '); \
+	end=$$($(NM) $(1) | grep __rel_dyn_end | cut -f 1 -d ' '); \
+	$(obj)tools/relocate-rela $(2) $(3) $$start $$end
+else
+DO_STATIC_RELA =
+endif
+
 # Always append ALL so that arch config.mk's can add custom ones
 ALL-y += $(obj)u-boot.srec $(obj)u-boot.bin $(obj)System.map
 
 ALL-$(CONFIG_NAND_U_BOOT) += $(obj)u-boot-nand.bin
 ALL-$(CONFIG_ONENAND_U_BOOT) += $(obj)u-boot-onenand.bin
+ALL-$(CONFIG_RAMBOOT_PBL) += $(obj)u-boot.pbl
 ALL-$(CONFIG_SPL) += $(obj)spl/u-boot-spl.bin
-ALL-$(CONFIG_SPL) += $(obj)$(subst ",,$(CONFIG_SPL_TARGET))
+ALL-$(CONFIG_SPL_FRAMEWORK) += $(obj)u-boot.img
+ALL-$(CONFIG_TPL) += $(obj)tpl/u-boot-tpl.bin
 ALL-$(CONFIG_OF_SEPARATE) += $(obj)u-boot.dtb $(obj)u-boot-dtb.bin
+ifneq ($(CONFIG_SPL_TARGET),)
+ALL-$(CONFIG_SPL) += $(obj)$(CONFIG_SPL_TARGET:"%"=%)
+endif
+ALL-$(CONFIG_REMAKE_ELF) += $(obj)u-boot.elf
 
 # enable combined SPL/u-boot/dtb rules for tegra
-ifeq ($(SOC),tegra20)
+ifneq ($(CONFIG_TEGRA),)
+ifeq ($(CONFIG_SPL),y)
 ifeq ($(CONFIG_OF_SEPARATE),y)
 ALL-y += $(obj)u-boot-dtb-tegra.bin
 else
 ALL-y += $(obj)u-boot-nodtb-tegra.bin
 endif
 endif
+endif
 
-all:		$(ALL-y) $(SUBDIR_EXAMPLES)
+build := -f $(TOPDIR)/scripts/Makefile.build -C
 
-$(obj)u-boot.dtb:	$(obj)u-boot
-		$(MAKE) -C dts binary
+all:		$(ALL-y) $(SUBDIR_EXAMPLES-y)
+
+$(obj)u-boot.dtb:	checkdtc $(obj)u-boot
+		$(MAKE) $(build) dts binary
 		mv $(obj)dts/dt.dtb $@
 
 $(obj)u-boot-dtb.bin:	$(obj)u-boot.bin $(obj)u-boot.dtb
@@ -451,10 +398,11 @@ $(obj)u-boot.hex:	$(obj)u-boot
 		$(OBJCOPY) ${OBJCFLAGS} -O ihex $< $@
 
 $(obj)u-boot.srec:	$(obj)u-boot
-		$(OBJCOPY) -O srec $< $@
+		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@
 
 $(obj)u-boot.bin:	$(obj)u-boot
 		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
+		$(call DO_STATIC_RELA,$<,$@,$(CONFIG_SYS_TEXT_BASE))
 		$(BOARD_SIZE_CHECK)
 
 $(obj)u-boot.ldr:	$(obj)u-boot
@@ -484,9 +432,8 @@ $(obj)u-boot.img:	$(obj)u-boot.bin
 			sed -e 's/"[	 ]*$$/ for $(BOARD) board"/') \
 		-d $< $@
 
-$(obj)u-boot.imx:       $(obj)u-boot.bin
-		$(obj)tools/mkimage -n  $(CONFIG_IMX_CONFIG) -T imximage \
-		-e $(CONFIG_SYS_TEXT_BASE) -d $< $@
+$(obj)u-boot.imx: $(obj)u-boot.bin depend
+		$(MAKE) $(build) $(SRCTREE)/arch/arm/imx-common $(OBJTREE)/u-boot.imx
 
 $(obj)u-boot.kwb:       $(obj)u-boot.bin
 		$(obj)tools/mkimage -n $(CONFIG_SYS_KWD_CONFIG) -T kwbimage \
@@ -503,10 +450,33 @@ $(obj)u-boot.sha1:	$(obj)u-boot.bin
 $(obj)u-boot.dis:	$(obj)u-boot
 		$(OBJDUMP) -d $< > $@
 
-$(obj)u-boot-with-spl.bin: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
-		$(OBJCOPY) ${OBJCFLAGS} --pad-to=$(PAD_TO) -O binary $(obj)spl/u-boot-spl $(obj)spl/u-boot-spl-pad.bin
-		cat $(obj)spl/u-boot-spl-pad.bin $(obj)u-boot.bin > $@
-		rm $(obj)spl/u-boot-spl-pad.bin
+# $@ is output, $(1) and $(2) are inputs, $(3) is padded intermediate,
+# $(4) is pad-to
+SPL_PAD_APPEND = \
+		$(OBJCOPY) ${OBJCFLAGS} --pad-to=$(4) -I binary -O binary \
+		$(1) $(obj)$(3); \
+		cat $(obj)$(3) $(2) > $@; \
+		rm $(obj)$(3)
+
+ifdef CONFIG_TPL
+SPL_PAYLOAD := $(obj)tpl/u-boot-with-tpl.bin
+else
+SPL_PAYLOAD := $(obj)u-boot.bin
+endif
+
+$(obj)u-boot-with-spl.bin: $(obj)spl/u-boot-spl.bin $(SPL_PAYLOAD)
+		$(call SPL_PAD_APPEND,$<,$(SPL_PAYLOAD),spl/u-boot-spl-pad.bin,$(CONFIG_SPL_PAD_TO))
+
+$(obj)tpl/u-boot-with-tpl.bin: $(obj)tpl/u-boot-tpl.bin $(obj)u-boot.bin
+		$(call SPL_PAD_APPEND,$<,$(obj)u-boot.bin,tpl/u-boot-tpl-pad.bin,$(CONFIG_TPL_PAD_TO))
+
+$(obj)u-boot-with-spl.imx: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
+		$(MAKE) $(build) $(SRCTREE)/arch/arm/imx-common \
+			$(OBJTREE)/u-boot-with-spl.imx
+
+$(obj)u-boot-with-nand-spl.imx: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
+		$(MAKE) $(build) $(SRCTREE)/arch/arm/imx-common \
+			$(OBJTREE)/u-boot-with-nand-spl.imx
 
 $(obj)u-boot.ubl:       $(obj)u-boot-with-spl.bin
 		$(obj)tools/mkimage -n $(UBL_CONFIG) -T ublimage \
@@ -524,12 +494,9 @@ $(obj)u-boot.ais:       $(obj)spl/u-boot-spl.bin $(obj)u-boot.img
 		cat $(obj)spl/u-boot-spl-pad.ais $(obj)u-boot.img > \
 			$(obj)u-boot.ais
 
-# Specify the target for use in elftosb call
-ELFTOSB_TARGET-$(CONFIG_MX28) = imx28
 
 $(obj)u-boot.sb:       $(obj)u-boot.bin $(obj)spl/u-boot-spl.bin
-		elftosb -zf $(ELFTOSB_TARGET-y) -c $(TOPDIR)/$(CPUDIR)/$(SOC)/u-boot-$(ELFTOSB_TARGET-y).bd \
-			-o $(obj)u-boot.sb
+		$(MAKE) $(build) $(SRCTREE)/$(CPUDIR)/$(SOC)/ $(OBJTREE)/u-boot.sb
 
 # On x600 (SPEAr600) U-Boot is appended to U-Boot SPL.
 # Both images are created using mkimage (crc etc), so that the ROM
@@ -540,30 +507,47 @@ $(obj)u-boot.sb:       $(obj)u-boot.bin $(obj)spl/u-boot-spl.bin
 $(obj)u-boot.spr:	$(obj)u-boot.img $(obj)spl/u-boot-spl.bin
 		$(obj)tools/mkimage -A $(ARCH) -T firmware -C none \
 		-a $(CONFIG_SPL_TEXT_BASE) -e $(CONFIG_SPL_TEXT_BASE) -n XLOADER \
-		-d $(obj)spl/u-boot-spl.bin $(obj)spl/u-boot-spl.img
-		tr "\000" "\377" < /dev/zero | dd ibs=1 count=$(CONFIG_SPL_PAD_TO) \
-			of=$(obj)spl/u-boot-spl-pad.img 2>/dev/null
-		dd if=$(obj)spl/u-boot-spl.img of=$(obj)spl/u-boot-spl-pad.img \
-			conv=notrunc 2>/dev/null
-		cat $(obj)spl/u-boot-spl-pad.img $(obj)u-boot.img > $@
+		-d $(obj)spl/u-boot-spl.bin $@
+		$(OBJCOPY) -I binary -O binary \
+			--pad-to=$(CONFIG_SPL_PAD_TO) --gap-fill=0xff $@
+		cat $(obj)u-boot.img >> $@
 
-ifeq ($(SOC),tegra20)
-ifeq ($(CONFIG_OF_SEPARATE),y)
-nodtb=dtb
-dtbfile=$(obj)u-boot.dtb
-else
-nodtb=nodtb
-dtbfile=
-endif
-
-$(obj)u-boot-$(nodtb)-tegra.bin: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin $(dtbfile)
+ifneq ($(CONFIG_TEGRA),)
+$(obj)u-boot-nodtb-tegra.bin: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
 		$(OBJCOPY) ${OBJCFLAGS} --pad-to=$(CONFIG_SYS_TEXT_BASE) -O binary $(obj)spl/u-boot-spl $(obj)spl/u-boot-spl-pad.bin
-		cat $(obj)spl/u-boot-spl-pad.bin $(obj)u-boot.bin $(dtbfile) > $@
+		cat $(obj)spl/u-boot-spl-pad.bin $(obj)u-boot.bin > $@
 		rm $(obj)spl/u-boot-spl-pad.bin
+
+ifeq ($(CONFIG_OF_SEPARATE),y)
+$(obj)u-boot-dtb-tegra.bin: $(obj)u-boot-nodtb-tegra.bin $(obj)u-boot.dtb
+		cat $(obj)u-boot-nodtb-tegra.bin $(obj)u-boot.dtb > $@
+endif
 endif
 
 $(obj)u-boot-img.bin: $(obj)spl/u-boot-spl.bin $(obj)u-boot.img
 		cat $(obj)spl/u-boot-spl.bin $(obj)u-boot.img > $@
+
+# PPC4xx needs the SPL at the end of the image, since the reset vector
+# is located at 0xfffffffc. So we can't use the "u-boot-img.bin" target
+# and need to introduce a new build target with the full blown U-Boot
+# at the start padded up to the start of the SPL image. And then concat
+# the SPL image to the end.
+$(obj)u-boot-img-spl-at-end.bin: $(obj)spl/u-boot-spl.bin $(obj)u-boot.img
+		$(OBJCOPY) -I binary -O binary --pad-to=$(CONFIG_UBOOT_PAD_TO) \
+			 --gap-fill=0xff $(obj)u-boot.img $@
+		cat $(obj)spl/u-boot-spl.bin >> $@
+
+# Create a new ELF from a raw binary file.  This is useful for arm64
+# where static relocation needs to be performed on the raw binary,
+# but certain simulators only accept an ELF file (but don't do the
+# relocation).
+# FIXME refactor dts/Makefile to share target/arch detection
+$(obj)u-boot.elf: $(obj)u-boot.bin
+	@$(OBJCOPY)  -B aarch64 -I binary -O elf64-littleaarch64 \
+		$< $(obj)u-boot-elf.o
+	@$(LD) $(obj)u-boot-elf.o -o $@ \
+		--defsym=_start=$(CONFIG_SYS_TEXT_BASE) \
+		-Ttext=$(CONFIG_SYS_TEXT_BASE)
 
 ifeq ($(CONFIG_SANDBOX),y)
 GEN_UBOOT = \
@@ -572,16 +556,14 @@ GEN_UBOOT = \
 			$(PLATFORM_LIBS) -Wl,-Map -Wl,u-boot.map -o u-boot
 else
 GEN_UBOOT = \
-		UNDEF_LST=`$(OBJDUMP) -x $(LIBBOARD) $(LIBS) | \
-		sed  -n -e 's/.*\($(SYM_PREFIX)_u_boot_list_.*\)/-u\1/p'|sort|uniq`;\
 		cd $(LNDIR) && $(LD) $(LDFLAGS) $(LDFLAGS_$(@F)) \
-			$$UNDEF_LST $(__OBJS) \
+			$(__OBJS) \
 			--start-group $(__LIBS) --end-group $(PLATFORM_LIBS) \
 			-Map u-boot.map -o u-boot
 endif
 
 $(obj)u-boot:	depend \
-		$(SUBDIR_TOOLS) $(OBJS) $(LIBBOARD) $(LIBS) $(LDSCRIPT) $(obj)u-boot.lds
+		$(SUBDIR_TOOLS) $(OBJS) $(LIBS) $(obj)u-boot.lds
 		$(GEN_UBOOT)
 ifeq ($(CONFIG_KALLSYMS),y)
 		smap=`$(call SYSTEM_MAP,$(obj)u-boot) | \
@@ -591,28 +573,18 @@ ifeq ($(CONFIG_KALLSYMS),y)
 		$(GEN_UBOOT) $(obj)common/system_map.o
 endif
 
-$(OBJS):	depend
-		$(MAKE) -C $(CPUDIR) $(if $(REMOTE_BUILD),$@,$(notdir $@))
+$(OBJS):
+	@:
 
 $(LIBS):	depend $(SUBDIR_TOOLS)
-		$(MAKE) -C $(dir $(subst $(obj),,$@))
-
-$(LIBBOARD):	depend $(LIBS)
-		$(MAKE) -C $(dir $(subst $(obj),,$@))
+		$(MAKE) $(build) $(dir $(subst $(obj),,$@))
 
 $(SUBDIRS):	depend
 		$(MAKE) -C $@ all
 
-$(SUBDIR_EXAMPLES): $(obj)u-boot
+$(SUBDIR_EXAMPLES-y): $(obj)u-boot
 
-$(LDSCRIPT):	depend
-		$(MAKE) -C $(dir $@) $(notdir $@)
-
-# The following line expands into whole rule which generates u-boot.lst,
-# the file containing u-boots LG-array linker section. This is included into
-# $(LDSCRIPT). The function make_u_boot_list is defined in helper.mk file.
-$(eval $(call make_u_boot_list, $(obj)include/u-boot.lst, $(LIBBOARD) $(LIBS)))
-$(obj)u-boot.lds: $(LDSCRIPT) $(obj)include/u-boot.lst
+$(obj)u-boot.lds: $(LDSCRIPT) depend
 		$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ -P - <$< >$@
 
 nand_spl:	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
@@ -624,17 +596,17 @@ $(obj)u-boot-nand.bin:	nand_spl $(obj)u-boot.bin
 $(obj)spl/u-boot-spl.bin:	$(SUBDIR_TOOLS) depend
 		$(MAKE) -C spl all
 
-updater:
-		$(MAKE) -C tools/updater all
+$(obj)tpl/u-boot-tpl.bin:	$(SUBDIR_TOOLS) depend
+		$(MAKE) -C spl all CONFIG_TPL_BUILD=y
 
 # Explicitly make _depend in subdirs containing multiple targets to prevent
 # parallel sub-makes creating .depend files simultaneously.
 depend dep:	$(TIMESTAMP_FILE) $(VERSION_FILE) \
+		$(obj)include/spl-autoconf.mk \
+		$(obj)include/tpl-autoconf.mk \
 		$(obj)include/autoconf.mk \
 		$(obj)include/generated/generic-asm-offsets.h \
 		$(obj)include/generated/asm-offsets.h
-		for dir in $(SUBDIRS) $(CPUDIR) $(LDSCRIPT_MAKEFILE_DIR) ; do \
-			$(MAKE) -C $$dir _depend ; done
 
 TAG_SUBDIRS = $(SUBDIRS)
 TAG_SUBDIRS += $(dir $(__LIBS))
@@ -646,7 +618,7 @@ FINDFLAGS := -L
 checkstack:
 		$(CROSS_COMPILE)objdump -d $(obj)u-boot \
 			`$(FIND) $(obj) -name u-boot-spl -print` | \
-			perl $(src)tools/checkstack.pl $(ARCH)
+			perl $(src)scripts/checkstack.pl $(ARCH)
 
 tags ctags:
 		ctags -w -o $(obj)ctags `$(FIND) $(FINDFLAGS) $(TAG_SUBDIRS) \
@@ -665,7 +637,7 @@ SYSTEM_MAP = \
 		grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | \
 		LC_ALL=C sort
 $(obj)System.map:	$(obj)u-boot
-		@$(call SYSTEM_MAP,$<) > $(obj)System.map
+		@$(call SYSTEM_MAP,$<) > $@
 
 checkthumb:
 	@if test $(call cc-version) -lt 0404; then \
@@ -684,6 +656,12 @@ checkgcc4:
 		false; \
 	fi
 
+checkdtc:
+	@if test $(call dtc-version) -lt 0104; then \
+		echo '*** Your dtc is too old, please upgrade to dtc 1.4 or newer'; \
+		false; \
+	fi
+
 #
 # Auto-generate the autoconf.mk file (which is included by all makefiles)
 #
@@ -692,37 +670,49 @@ checkgcc4:
 # to regenerate the autoconf.mk file.
 $(obj)include/autoconf.mk.dep: $(obj)include/config.h include/common.h
 	@$(XECHO) Generating $@ ; \
-	set -e ; \
 	: Generate the dependancies ; \
 	$(CC) -x c -DDO_DEPS_ONLY -M $(CFLAGS) $(CPPFLAGS) \
-		-MQ $(obj)include/autoconf.mk include/common.h > $@
+		-MQ $(obj)include/autoconf.mk include/common.h > $@ || \
+		rm $@
 
 $(obj)include/autoconf.mk: $(obj)include/config.h
 	@$(XECHO) Generating $@ ; \
-	set -e ; \
 	: Extract the config macros ; \
-	$(CPP) $(CFLAGS) -DDO_DEPS_ONLY -dM include/common.h | \
-		sed -n -f tools/scripts/define2mk.sed > $@.tmp && \
-	mv $@.tmp $@
+	$(CPP) $(CFLAGS) -DDO_DEPS_ONLY -dM include/common.h > $@.tmp && \
+		sed -n -f tools/scripts/define2mk.sed $@.tmp > $@; \
+	rm $@.tmp
 
-$(obj)include/generated/generic-asm-offsets.h:	$(obj)include/autoconf.mk.dep \
-	$(obj)lib/asm-offsets.s
+# Auto-generate the spl-autoconf.mk file (which is included by all makefiles for SPL)
+$(obj)include/tpl-autoconf.mk: $(obj)include/config.h
+	@$(XECHO) Generating $@ ; \
+	: Extract the config macros ; \
+	$(CPP) $(CFLAGS) -DCONFIG_TPL_BUILD  -DCONFIG_SPL_BUILD\
+			-DDO_DEPS_ONLY -dM include/common.h > $@.tmp && \
+		sed -n -f tools/scripts/define2mk.sed $@.tmp > $@; \
+	rm $@.tmp
+
+$(obj)include/spl-autoconf.mk: $(obj)include/config.h
+	@$(XECHO) Generating $@ ; \
+	: Extract the config macros ; \
+	$(CPP) $(CFLAGS) -DCONFIG_SPL_BUILD -DDO_DEPS_ONLY -dM include/common.h > $@.tmp && \
+		sed -n -f tools/scripts/define2mk.sed $@.tmp > $@; \
+	rm $@.tmp
+
+$(obj)include/generated/generic-asm-offsets.h: $(obj)lib/asm-offsets.s
 	@$(XECHO) Generating $@
 	tools/scripts/make-asm-offsets $(obj)lib/asm-offsets.s $@
 
-$(obj)lib/asm-offsets.s:	$(obj)include/autoconf.mk.dep \
-	$(src)lib/asm-offsets.c
+$(obj)lib/asm-offsets.s: $(obj)include/config.h $(src)lib/asm-offsets.c
 	@mkdir -p $(obj)lib
 	$(CC) -DDO_DEPS_ONLY \
 		$(CFLAGS) $(CFLAGS_$(BCURDIR)/$(@F)) $(CFLAGS_$(BCURDIR)) \
 		-o $@ $(src)lib/asm-offsets.c -c -S
 
-$(obj)include/generated/asm-offsets.h:	$(obj)include/autoconf.mk.dep \
-	$(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
+$(obj)include/generated/asm-offsets.h: $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
 	@$(XECHO) Generating $@
 	tools/scripts/make-asm-offsets $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s $@
 
-$(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep
+$(obj)$(CPUDIR)/$(SOC)/asm-offsets.s: $(obj)include/config.h
 	@mkdir -p $(obj)$(CPUDIR)/$(SOC)
 	if [ -f $(src)$(CPUDIR)/$(SOC)/asm-offsets.c ];then \
 		$(CC) -DDO_DEPS_ONLY \
@@ -737,7 +727,7 @@ else	# !config.mk
 all $(obj)u-boot.hex $(obj)u-boot.srec $(obj)u-boot.bin \
 $(obj)u-boot.img $(obj)u-boot.dis $(obj)u-boot \
 $(filter-out tools,$(SUBDIRS)) \
-updater depend dep tags ctags etags cscope $(obj)System.map:
+depend dep tags ctags etags cscope $(obj)System.map:
 	@echo "System not configured - see README" >&2
 	@ exit 1
 
@@ -745,9 +735,20 @@ tools: $(VERSION_FILE) $(TIMESTAMP_FILE)
 	$(MAKE) -C $@ all
 endif	# config.mk
 
+# ARM relocations should all be R_ARM_RELATIVE (32-bit) or
+# R_AARCH64_RELATIVE (64-bit).
+checkarmreloc: $(obj)u-boot
+	@RELOC="`$(CROSS_COMPILE)readelf -r -W $< | cut -d ' ' -f 4 | \
+		grep R_A | sort -u`"; \
+	if test "$$RELOC" != "R_ARM_RELATIVE" -a \
+		 "$$RELOC" != "R_AARCH64_RELATIVE"; then \
+		echo "$< contains unexpected relocations: $$RELOC"; \
+		false; \
+	fi
+
 $(VERSION_FILE):
 		@mkdir -p $(dir $(VERSION_FILE))
-		@( localvers='$(shell $(TOPDIR)/tools/setlocalversion $(TOPDIR))' ; \
+		@( localvers='$(shell $(TOPDIR)/scripts/setlocalversion $(TOPDIR))' ; \
 		   printf '#define PLAIN_VERSION "%s%s"\n' \
 			"$(U_BOOT_VERSION)" "$${localvers}" ; \
 		   printf '#define U_BOOT_VERSION "U-Boot %s%s"\n' \
@@ -787,37 +788,17 @@ include/license.h: tools/bin2header COPYING
 unconfig:
 	@rm -f $(obj)include/config.h $(obj)include/config.mk \
 		$(obj)board/*/config.tmp $(obj)board/*/*/config.tmp \
-		$(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
+		$(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep \
+		$(obj)include/spl-autoconf.mk \
+		$(obj)include/tpl-autoconf.mk
 
 %_config::	unconfig
 	@$(MKCONFIG) -A $(@:_config=)
 
 sinclude $(obj).boards.depend
 $(obj).boards.depend:	boards.cfg
-	@awk '(NF && $$1 !~ /^#/) { print $$1 ": " $$1 "_config; $$(MAKE)" }' $< > $@
+	@awk '(NF && $$1 !~ /^#/) { print $$7 ": " $$7 "_config; $$(MAKE)" }' $< > $@
 
-#
-# Functions to generate common board directory names
-#
-lcname	= $(shell echo $(1) | sed -e 's/\(.*\)_config/\L\1/')
-ucname	= $(shell echo $(1) | sed -e 's/\(.*\)_config/\U\1/')
-
-#########################################################################
-## ARM1176 Systems
-#########################################################################
-smdk6400_noUSB_config	\
-smdk6400_config	:	unconfig
-	@mkdir -p $(obj)include $(obj)board/samsung/smdk6400
-	@mkdir -p $(obj)nand_spl/board/samsung/smdk6400
-	@echo "#define CONFIG_NAND_U_BOOT" > $(obj)include/config.h
-	@echo "CONFIG_NAND_U_BOOT = y" >> $(obj)include/config.mk
-	@if [ -z "$(findstring smdk6400_noUSB_config,$@)" ]; then			\
-		echo "RAM_TEXT = 0x57e00000" >> $(obj)board/samsung/smdk6400/config.tmp;\
-	else										\
-		echo "RAM_TEXT = 0xc7e00000" >> $(obj)board/samsung/smdk6400/config.tmp;\
-	fi
-	@$(MKCONFIG) smdk6400 arm arm1176 smdk6400 samsung s3c64xx
-	@echo "CONFIG_NAND_U_BOOT = y" >> $(obj)include/config.mk
 
 
 #########################################################################
@@ -831,412 +812,13 @@ smdk6400_config	:	unconfig
 romgen:
 	$(ROMGEN) "$(TARGET)" "board/${BOARDDIR}/${TARGET}-${SOC}.romgen"
 
-mb618_config \
-mb618se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/mb618
-	@echo "#define CONFIG_STM_STX7111   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_MB618     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/mb618/config.tmp)
-	@$(MKCONFIG) -a -n $@ mb618 st40 st40 mb618 st stx7111
-
-hdk7111_config \
-hdk7111se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/hdk7111
-	@echo "#define CONFIG_STM_STX7111   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_HDK7111   1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7111/config.tmp)
-	@$(MKCONFIG) -a -n $@ hdk7111 st40 st40 hdk7111 st stx7111
-	@$(MKROMGEN) no-such-ip hdk7111 st40
-
-mb628_config \
-mb628se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/mb628
-	@echo "#define CONFIG_STM_STX7141   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_MB628     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x83700000" >$(obj)board/st/mb628/config.tmp)
-	@$(MKCONFIG) -a -n $@ mb628 st40 st40 mb628 st stx7141
-	@$(MKROMGEN) no-such-ip mb628 estb
-
-eud7141_config \
-eud7141se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/eud7141
-	@echo "#define CONFIG_STM_STX7141   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_EUD7141   1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/eud7141/config.tmp)
-	@$(MKCONFIG) -a -n $@ eud7141 st40 st40 eud7141 st stx7141
-
-b2042_config \
-b2042se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/b2042
-	@echo "#define CONFIG_STM_STX7141   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_B2042     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/b2042/config.tmp)
-	@$(MKCONFIG) -a -n $@ b2042 st40 st40 b2042 st stx7141
-
-mb671_config \
-mb671se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/mb671
-	@echo "#define CONFIG_STM_STX7200   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_MB671     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb671/config.tmp)
-	@$(MKCONFIG) -a -n $@ mb671 st40 st40 mb671 st stx7200
-	@$(MKROMGEN) no-such-ip mb671 st40
-
-mb680_config \
-mb680se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/mb680
-	@echo "#define CONFIG_STM_STX7105   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_MB680     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb680/config.tmp)
-	@$(MKCONFIG) -a -n $@ mb680 st40 st40 mb680 st stx7105
-	@$(MKROMGEN) no-such-ip mb680 st40
-
-hdk7106_config \
-hdk7106se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/hdk7106
-	@echo "#define CONFIG_STM_STX7105   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_HDK7106   1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/hdk7106/config.tmp)
-	@$(MKCONFIG) -a -n $@ hdk7106 st40 st40 hdk7106 st stx7105
-
-pdk7105_config \
-pdk7105se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/pdk7105
-	@echo "#define CONFIG_STM_STX7105   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_PDK7105   1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/pdk7105/config.tmp)
-	@$(MKCONFIG) -a -n $@ pdk7105 st40 st40 pdk7105 st stx7105
-	@$(MKROMGEN) no-such-ip hdk7105 st40
-
-ipidtv7105_config \
-ipidtv7105se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/pdk7105
-	@echo "#define CONFIG_STM_STX7105    1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_IPIDTV7105 1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE    1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/pdk7105/config.tmp)
-	@$(MKCONFIG) -a -n $@ ipidtv7105 st40 st40 pdk7105 st stx7105
-
-mb837se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/mb837
-	@echo "#define CONFIG_STM_STX7108    1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_MB837      1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE    1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/mb837/config.tmp)
-	@$(MKCONFIG) -a -n $@ mb837 st40 st40 mb837 st stx7108
-	@$(MKROMGEN) no-such-ip mb837stx7108 host se=0
-
-hdk7108se_512_config	\
-hdk7108se_256_config	\
-hdk7108se_128_config	\
-hdk7108se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/hdk7108
-	@echo "#define CONFIG_STM_STX7108    1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_HDK7108    1" >>$(obj)include/config.h
-	@echo "#define CONFIG_ST40_SE_MODE    1" >>$(obj)include/config.h
-	@case "$@" in \
-		hdk7108se_512_config)	CONFIG_SYS_TEXT_BASE=0x9FF00000;; \
-		hdk7108se_256_config)	CONFIG_SYS_TEXT_BASE=0x8FF00000;; \
-		hdk7108se_128_config)	CONFIG_SYS_TEXT_BASE=0x87F00000;; \
-		hdk7108se_config)	CONFIG_SYS_TEXT_BASE=0x87F00000;; \
-	esac; \
-	echo "CONFIG_SYS_TEXT_BASE = $${CONFIG_SYS_TEXT_BASE}" >$(obj)board/st/hdk7108/config.tmp
-	@$(MKCONFIG) -a -n $@ hdk7108 st40 st40 hdk7108 st stx7108
-	@$(MKROMGEN) no-such-ip hdk7108stx7108 host boardrev=3,se=0,spi_4x=1,lmi_contig=1
-
-mb903se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/mb903
-	@echo "#define CONFIG_STM_STX7108    1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_MB903      1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE    1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/mb903/config.tmp)
-	@$(MKCONFIG) -a -n $@ mb903 st40 st40 mb903 st stx7108
-	@$(MKROMGEN) no-such-ip mb903stx7108 host boot_companions=0,se=0
-
-b2037se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/b2037
-	@echo "#define CONFIG_STM_STX7108   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_B2037     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2037/config.tmp)
-	@$(MKCONFIG) -a -n $@ b2037 st40 st40 b2037 st stx7108
-	@$(MKROMGEN) no-such-ip b2037stxh205 host spi_4x=1,se=0
-
-mb704_config \
-mb704se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/mb704
-	@echo "#define CONFIG_STM_STX5197   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_MB704     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x83F00000" >$(obj)board/st/mb704/config.tmp)
-	@$(MKCONFIG) -a -n $@ mb704 st40 st40 mb704 st stx5197
-
-5197cab_config \
-5197cabse_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/5197cab
-	@echo "#define CONFIG_STM_STX5197   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_5197CAB   1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x83F00000" >$(obj)board/st/5197cab/config.tmp)
-	@$(MKCONFIG) -a -n $@ 5197cab st40 st40 5197cab st stx5197
-
-fldbse_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/fldb
-	@echo "#define CONFIG_STM_FLI7510   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_FLDB      1" >>$(obj)include/config.h
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h
-	@$(MKCONFIG) -a -n $@ fldb st40 st40 fldb st fli7510
-	@$(MKROMGEN) no-such-ip fldb_gpd201 st40host boot_companions=0
-
-fudbse_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/fudb
-	@echo "#define CONFIG_STM_FLI7540   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_FUDB      1" >>$(obj)include/config.h
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h
-	@$(MKCONFIG) -a -n $@ fudb st40 st40 fudb st fli7540
-	@$(MKROMGEN) no-such-ip fudb_gpd201 st40host boot_companions=0
-
-# QQQ following should have "CONFIG_SYS_TEXT_BASE = 0x8FF00000" for SE mode.
-# QQQ However, the current TargetPacks only define the PMB
-# QQQ for the first 128MiB region of RAM.
-# QQQ Hence, we need the targetpacks to be updated first!
-mb796_config \
-mb796se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/mb796
-	@echo "#define CONFIG_STM_STX5206   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_MB796     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/mb796/config.tmp)
-	@$(MKCONFIG) -a -n $@ mb796 st40 st40 mb796 st stx5206
-	@$(MKROMGEN) no-such-ip mb796stx5206 st40 boot_companions=0
-
-
-hdk5289_config \
-hdk5289se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/hdk5289
-	@echo "#define CONFIG_STM_STX5206   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_HDK5289   1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x87F00000" >$(obj)board/st/hdk5289/config.tmp)
-	@$(MKCONFIG) -a -n $@ hdk5289 st40 st40 hdk5289 st stx5206
-
-b2057se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/b2057
-	@echo "#define CONFIG_STM_STXH205   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_B2057     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
-	@$(MKCONFIG) -a -n $@ b2057 st40 st40 b2057 st stxh205
-	@$(MKROMGEN) no-such-ip b2057stxh205 st40 boot_companions=0,se=0
-
-b2064se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/b2057
-	@echo "#define CONFIG_STM_STXH205   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_B2064     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
-	@$(MKCONFIG) -a -n $@ b2064 st40 st40 b2057 st stxh205
-	@$(MKROMGEN) no-such-ip b2064stxh205 st40 boot_companions=0,se=0,lmi_16bits=1
-
-b2067se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/b2057
-	@echo "#define CONFIG_STM_STXH205   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_B2067     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
-	@$(MKCONFIG) -a -n $@ b2067 st40 st40 b2057 st stxh205
-	@$(MKROMGEN) no-such-ip b2067stxh205 st40 boot_companions=0,se=0,lmi_freq=266,lmi_16bits=1
-
-b2075se_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/b2057
-	@echo "#define CONFIG_STM_STXH205   1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_B2075     1" >>$(obj)include/config.h
-	$(if $(findstring se,$@), \
-	@echo "#define CONFIG_ST40_SE_MODE   1" >>$(obj)include/config.h)
-	$(if $(findstring se,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x8FF00000" >$(obj)board/st/b2057/config.tmp)
-	@$(MKCONFIG) -a -n $@ b2075 st40 st40 b2057 st stxh205
-	@$(MKROMGEN) no-such-ip b2075stxh205 st40 boot_companions=0,se=0
-
-b2000a9_config			\
-b2000a9_spi_config		\
-b2000a9_nand_config		\
-b2000stxh415a9_config		\
-b2000stxh415a9_spi_config	\
-b2000stxh415a9_nand_config	\
-b2000stxh416a9_config		\
-b2000stxh416a9_spi_config	\
-b2000stxh416a9_nand_config	\
-b2000se_config			\
-b2000se_spi_config		\
-b2000se_nand_config		\
-b2000stxh415se_config		\
-b2000stxh415se_spi_config	\
-b2000stxh415se_nand_config	\
-b2000stxh416se_config		\
-b2000stxh416se_spi_config	\
-b2000stxh416se_nand_config :	unconfig
-	@mkdir -p $(obj)include $(obj)board/st/b2000
-	@echo "#define CONFIG_STM_B2000          1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_CONTIG_MODE    1" >>$(obj)include/config.h
-	$(if $(findstring _nand_,$@), \
-	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
-	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
-	$(if $(findstring a9,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2000/config.tmp; \
-	$(if $(findstring stxh416,$@), \
-	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
-	 $(MKCONFIG) -a -n $@ b2000 arm armv7 b2000 st stxh416; \
-	 $(MKROMGEN) no-such-ip b2000stxh416 a9_0, \
-	 echo "#define CONFIG_STM_STXH415        1" >>$(obj)include/config.h; \
-	 $(MKCONFIG) -a -n $@ b2000 arm armv7 b2000 st stxh415; \
-	 $(MKROMGEN) no-such-ip b2000stxh415 a9_0), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2000/config.tmp; \
-	 echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
-	$(if $(findstring stxh416,$@), \
-	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
-	 $(MKCONFIG) -a -n $@ b2000 st40 st40 b2000 st stxh416; \
-	 $(MKROMGEN) no-such-ip b2000stxh416 st40 se=0, \
-	 echo "#define CONFIG_STM_STXH415        1" >>$(obj)include/config.h; \
-	 $(MKCONFIG) -a -n $@ b2000 st40 st40 b2000 st stxh415; \
-	 $(MKROMGEN) no-such-ip b2000stxh415 st40 se=0))
-
-b2020a9_config			\
-b2020a9_spi_config		\
-b2020a9_nand_config		\
-b2020stxh415a9_config		\
-b2020stxh415a9_spi_config	\
-b2020stxh415a9_nand_config	\
-b2020stxh416a9_config		\
-b2020stxh416a9_spi_config	\
-b2020stxh416a9_nand_config	\
-b2020se_config			\
-b2020se_spi_config		\
-b2020se_nand_config		\
-b2020stxh415se_config		\
-b2020stxh415se_spi_config	\
-b2020stxh415se_nand_config	\
-b2020stxh416se_config		\
-b2020stxh416se_spi_config	\
-b2020stxh416se_nand_config :	unconfig
-	@mkdir -p $(obj)include $(obj)board/st/b2020
-	@echo "#define CONFIG_STM_B2020          1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_CONTIG_MODE    1" >>$(obj)include/config.h
-	$(if $(findstring _nand_,$@), \
-	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
-	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
-	$(if $(findstring a9,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0xBFF00000" >$(obj)board/st/b2020/config.tmp; \
-	$(if $(findstring stxh416,$@), \
-	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
-	 $(MKCONFIG) -a -n $@ b2020 arm armv7 b2020 st stxh416; \
-	 $(MKROMGEN) no-such-ip b2020stxh416 a9_0, \
-	 echo "#define CONFIG_STM_STXH415        1" >>$(obj)include/config.h; \
-	 $(MKCONFIG) -a -n $@ b2020 arm armv7 b2020 st stxh415; \
-	 $(MKROMGEN) no-such-ip b2020stxh415 a9_0), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2020/config.tmp; \
-	 echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
-	$(if $(findstring stxh416,$@), \
-	 echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h; \
-	 $(MKCONFIG) -a -n $@ b2020 st40 st40 b2020 st stxh416; \
-	 $(MKROMGEN) no-such-ip b2020stxh416 st40 se=0, \
-	 echo "#define CONFIG_STM_STXH415        1" >>$(obj)include/config.h; \
-	 $(MKCONFIG) -a -n $@ b2020 st40 st40 b2020 st stxh415; \
-	 $(MKROMGEN) no-such-ip b2020stxh415 st40 se=0))
-
-b2116a9_config			\
-b2116a9_spi_config		\
-b2116a9_nand_config		\
-b2116se_config			\
-b2116se_spi_config		\
-b2116se_nand_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/b2116
-	@echo "#define CONFIG_STM_STXH416        1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_B2116          1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_CONTIG_MODE    1" >>$(obj)include/config.h
-	$(if $(findstring _nand_,$@), \
-	@echo "#define CONFIG_SYS_BOOT_FROM_NAND 1" >>$(obj)include/config.h, \
-	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
-	$(if $(findstring a9,$@), \
-	@echo "CONFIG_SYS_TEXT_BASE = 0xBFF00000" >$(obj)board/st/b2116/config.tmp; \
-	 $(MKCONFIG) -a -n $@ b2116 arm armv7 b2116 st stxh416; \
-	 $(MKROMGEN) no-such-ip b2116stxh315 a9_0 boardrev=2, \
-	@echo "CONFIG_SYS_TEXT_BASE = 0x9FF00000" >$(obj)board/st/b2116/config.tmp; \
-	 echo "#define CONFIG_ST40_SE_MODE       1" >>$(obj)include/config.h; \
-	 $(MKCONFIG) -a -n $@ b2116 st40 st40 b2116 st stxh416; \
-	 $(MKROMGEN) no-such-ip b2116stxh315 st40 se=0,boardrev=2)
-
-b2120a9_config			\
-b2120a9_emmc_config		\
-b2120a9_spi_config :		unconfig
-	@mkdir -p $(obj)include $(obj)board/st/b2120
-	@echo "#define CONFIG_STM_STXH407        1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_B2120          1" >>$(obj)include/config.h
-	@echo "#define CONFIG_STM_CONTIG_MODE    1" >>$(obj)include/config.h
-	$(if $(findstring _emmc_,$@), \
-	@echo "#define CONFIG_SYS_BOOT_FROM_EMMC 1" >>$(obj)include/config.h, \
-	@echo "#define CONFIG_SYS_BOOT_FROM_SPI  1" >>$(obj)include/config.h)
-	@echo "CONFIG_SYS_TEXT_BASE = 0xBFF00000" >$(obj)board/st/b2120/config.tmp
-	@$(MKCONFIG) -a -n $@ b2120 arm armv7 b2120 st stxh407
-	@$(MKROMGEN) no-such-ip b2120stxh407 a9_0
-
-
+romgen_prepare:
+	@$(MKROMGEN) `eval "sed -n -e '/#define CONFIG_ROMGEN_PARAMS/p' include/config.h | tr '#' ',' | tr '@' ' ' | sed -e 's/\(,define CONFIG_ROMGEN_PARAMS\t\"\)\(.*\)\"/\2/g'"`
 #########################################################################
 #########################################################################
 
 clean:
-	@rm -f $(obj)examples/standalone/82559_eeprom			  \
-	       $(obj)examples/standalone/atmel_df_pow2			  \
-	       $(obj)examples/standalone/eepro100_eeprom		  \
+	@rm -f $(obj)examples/standalone/atmel_df_pow2			  \
 	       $(obj)examples/standalone/hello_world			  \
 	       $(obj)examples/standalone/interrupt			  \
 	       $(obj)examples/standalone/mem_to_mem_idma2intr		  \
@@ -1246,21 +828,20 @@ clean:
 	       $(obj)examples/standalone/timer
 	@rm -f $(obj)examples/api/demo{,.bin}
 	@rm -f $(obj)tools/bmp_logo	   $(obj)tools/easylogo/easylogo  \
-	       $(obj)tools/env/{fw_printenv,fw_setenv}			  \
+	       $(obj)tools/env/fw_printenv				  \
 	       $(obj)tools/envcrc					  \
-	       $(obj)tools/gdb/{astest,gdbcont,gdbsend}			  \
+	       $(obj)tools/gdb/{gdbcont,gdbsend}			  \
 	       $(obj)tools/gen_eth_addr    $(obj)tools/img2srec		  \
+	       $(obj)tools/dump{env,}image		  \
 	       $(obj)tools/mk{env,}image   $(obj)tools/mpc86x_clk	  \
-	       $(obj)tools/mk{smdk5250,}spl				  \
+	       $(obj)tools/mk{$(BOARD),}spl				  \
 	       $(obj)tools/mxsboot					  \
 	       $(obj)tools/ncb		   $(obj)tools/ubsha1		  \
-	       $(obj)tools/kernel-doc/docproc
+	       $(obj)tools/kernel-doc/docproc				  \
+	       $(obj)tools/proftool
 	@rm -f $(obj)board/cray/L1/{bootscript.c,bootscript.image}	  \
 	       $(obj)board/matrix_vision/*/bootscript.img		  \
-	       $(obj)board/voiceblue/eeprom 				  \
 	       $(obj)u-boot.lds						  \
-	       $(obj)include/u-boot.lst			  		  \
-	       $(obj)arch/blackfin/cpu/bootrom-asm-offsets.[chs]	  \
 	       $(obj)arch/blackfin/cpu/init.{lds,elf}
 	@rm -f $(obj)include/bmp_logo.h
 	@rm -f $(obj)include/bmp_logo_data.h
@@ -1271,7 +852,8 @@ clean:
 	@$(MAKE) -s -C doc/DocBook/ cleandocs
 	@find $(OBJTREE) -type f \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' -o -name '*.su' \
-		-o -name '*.o'	-o -name '*.a' -o -name '*.exe'	\) -print \
+		-o -name '*.o'	-o -name '*.a' -o -name '*.exe' \
+		-o -name '*.cfgtmp' \) -print \
 		| xargs rm -f
 
 # Removes everything not needed for testing u-boot
@@ -1288,6 +870,8 @@ clobber:	tidy
 	@rm -f $(obj)u-boot.kwb
 	@rm -f $(obj)u-boot.pbl
 	@rm -f $(obj)u-boot.imx
+	@rm -f $(obj)u-boot-with-spl.imx
+	@rm -f $(obj)u-boot-with-nand-spl.imx
 	@rm -f $(obj)u-boot.ubl
 	@rm -f $(obj)u-boot.ais
 	@rm -f $(obj)u-boot.dtb
@@ -1296,12 +880,12 @@ clobber:	tidy
 	@rm -f $(obj)nand_spl/{u-boot.{lds,lst},System.map}
 	@rm -f $(obj)nand_spl/{u-boot-nand_spl.lds,u-boot-spl,u-boot-spl.map}
 	@rm -f $(obj)spl/{u-boot-spl,u-boot-spl.bin,u-boot-spl.map}
-	@rm -f $(obj)spl/{u-boot-spl.lds,u-boot.lst}
+	@rm -f $(obj)spl/u-boot-spl.lds
+	@rm -f $(obj)tpl/{u-boot-tpl,u-boot-tpl.bin,u-boot-tpl.map}
+	@rm -f $(obj)tpl/u-boot-spl.lds
 	@rm -f $(obj)MLO MLO.byteswap
 	@rm -f $(obj)SPL
 	@rm -f $(obj)tools/xway-swap-bytes
-	@rm -f $(obj)arch/powerpc/cpu/mpc824x/bedbug_603e.c
-	@rm -f $(obj)arch/powerpc/cpu/mpc83xx/ddr-gen?.c
 	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
 	@rm -fr $(obj)include/generated
 	@[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name "*" -type l -print | xargs rm -f

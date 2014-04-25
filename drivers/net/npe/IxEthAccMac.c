@@ -18,31 +18,7 @@
  * All rights reserved.
  *
  * @par
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * @par
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
+ * SPDX-License-Identifier:	BSD-3-Clause
  * @par
  * -- End of Copyright Notice --
  */
@@ -304,7 +280,7 @@ ixEthAccPortEnablePriv(IxEthAccPortId portId)
 
     /* set the global state */
     ixEthAccMacState[portId].portDisableState = ACTIVE;
-    ixEthAccMacState[portId].enabled = TRUE;
+    ixEthAccMacState[portId].enabled = true;
 
     /* rewrite the setup (including mac filtering) depending
      * on current options
@@ -515,7 +491,7 @@ ixEthAccPortDisableRxCallback (UINT32 cbTag,
     IxEthAccPortId portId = (IxEthAccPortId)cbTag;
 
     /* call the portDisable receive callback */
-   (ixEthAccPortDisableRxTable[portId])(portId, mBufPtr, FALSE);
+   (ixEthAccPortDisableRxTable[portId])(portId, mBufPtr, false);
 }
 
 PRIVATE void
@@ -527,7 +503,7 @@ ixEthAccPortDisableMultiBufferRxCallback (UINT32 cbTag,
     while (*mBufPtr)
     {
 	/* call the portDisable receive callback with one buffer at a time */
-	(ixEthAccPortDisableRxTable[portId])(portId, *mBufPtr++, TRUE);
+	(ixEthAccPortDisableRxTable[portId])(portId, *mBufPtr++, true);
     }
 }
 
@@ -820,7 +796,7 @@ ixEthAccPortDisablePriv(IxEthAccPortId portId)
     }
 
     /* disable MAC Tx and Rx services */
-    ixEthAccMacState[portId].enabled = FALSE;
+    ixEthAccMacState[portId].enabled = false;
     ixEthAccMacStateUpdate(portId);
 
     /* restore the Rx and TxDone callbacks (within a critical section) */
@@ -869,14 +845,14 @@ ixEthAccPortEnabledQueryPriv(IxEthAccPortId portId, BOOL *enabled)
         IX_ETH_ACC_WARNING_LOG("EthAcc: Unavailable Eth %d: Cannot enable port.\n",(INT32)portId,0,0,0,0,0);
 
         /* Since Eth NPE is not available, port must be disabled */
-        *enabled = FALSE ;
+        *enabled = false ;
         return IX_ETH_ACC_SUCCESS ;
     }
 
     if (!IX_ETH_IS_PORT_INITIALIZED(portId))
     {
         /* Since Eth NPE is not available, port must be disabled */
-        *enabled = FALSE ;
+        *enabled = false ;
 	return (IX_ETH_ACC_PORT_UNINITIALIZED);
     }
 
@@ -1259,7 +1235,7 @@ ixEthAccPortPromiscuousModeClearPriv(IxEthAccPortId portId)
 	      IX_ETH_ACC_MAC_RX_CNTRL1,
 	      regval | IX_ETH_ACC_RX_CNTRL1_ADDR_FLTR_EN);
 
-    ixEthAccMacState[portId].promiscuous = FALSE;
+    ixEthAccMacState[portId].promiscuous = false;
 
     ixEthAccMulticastAddressSet(portId);
 
@@ -1297,7 +1273,7 @@ ixEthAccPortPromiscuousModeSetPriv(IxEthAccPortId portId)
 	      IX_ETH_ACC_MAC_RX_CNTRL1,
 	      regval | IX_ETH_ACC_RX_CNTRL1_ADDR_FLTR_EN);
 
-    ixEthAccMacState[portId].promiscuous = TRUE;
+    ixEthAccMacState[portId].promiscuous = true;
 
     ixEthAccMulticastAddressSet(portId);
 
@@ -1361,7 +1337,7 @@ ixEthAccPortUnicastMacAddressSetPriv (IxEthAccPortId portId,
 		  IX_ETH_ACC_MAC_UNI_ADDR_1 + i*sizeof(UINT32),
 		  macAddr->macAddress[i]);
     }
-    ixEthAccMacState[portId].initDone = TRUE;
+    ixEthAccMacState[portId].initDone = true;
 
     return IX_ETH_ACC_SUCCESS;
 }
@@ -1552,7 +1528,7 @@ ixEthAccPortMulticastAddressJoinAllPriv (IxEthAccPortId portId)
 	   IX_IEEE803_MAC_ADDRESS_SIZE);
 
     ixEthAccMacState[portId].mcastAddrIndex = 1;
-    ixEthAccMacState[portId].joinAll = TRUE;
+    ixEthAccMacState[portId].joinAll = true;
 
     ixEthAccMulticastAddressSet(portId);
 
@@ -1599,7 +1575,7 @@ ixEthAccPortMulticastAddressLeavePriv (IxEthAccPortId portId,
 	{
 	    if(ixEthAccMacEqual(macAddr, &mcastMacAddr))
 	    {
-		ixEthAccMacState[portId].joinAll = FALSE;
+		ixEthAccMacState[portId].joinAll = false;
 	    }
 	    /*Decrement the index into the multicast address table
 	      for the current port*/
@@ -1643,7 +1619,7 @@ ixEthAccPortMulticastAddressLeaveAllPriv (IxEthAccPortId portId)
     }
 
     ixEthAccMacState[portId].mcastAddrIndex = 0;
-    ixEthAccMacState[portId].joinAll = FALSE;
+    ixEthAccMacState[portId].joinAll = false;
 
     ixEthAccMulticastAddressSet(portId);
 
@@ -1770,7 +1746,7 @@ ixEthAccPortDuplexModeSetPriv (IxEthAccPortId portId,
 	REG_WRITE(ixEthAccMacBase[portId],
 		  IX_ETH_ACC_MAC_RX_CNTRL1,
 		  rxregval | IX_ETH_ACC_RX_CNTRL1_PAUSE_EN);
-	ixEthAccMacState[portId].fullDuplex = TRUE;
+	ixEthAccMacState[portId].fullDuplex = true;
 
     }
     else if (mode ==  IX_ETH_ACC_HALF_DUPLEX)
@@ -1786,7 +1762,7 @@ ixEthAccPortDuplexModeSetPriv (IxEthAccPortId portId,
 		  IX_ETH_ACC_MAC_RX_CNTRL1,
 		  rxregval & ~IX_ETH_ACC_RX_CNTRL1_PAUSE_EN);
 
-	ixEthAccMacState[portId].fullDuplex = FALSE;
+	ixEthAccMacState[portId].fullDuplex = false;
     }
     else
     {
@@ -1876,7 +1852,7 @@ ixEthAccPortTxFrameAppendPaddingEnablePriv (IxEthAccPortId portId)
 	      regval |
 	      IX_ETH_ACC_TX_CNTRL1_PAD_EN);
 
-    ixEthAccMacState[portId].txPADAppend = TRUE;
+    ixEthAccMacState[portId].txPADAppend = true;
     return IX_ETH_ACC_SUCCESS;
 }
 
@@ -1908,7 +1884,7 @@ ixEthAccPortTxFrameAppendPaddingDisablePriv (IxEthAccPortId portId)
 	      IX_ETH_ACC_MAC_TX_CNTRL1,
 	      regval & ~IX_ETH_ACC_TX_CNTRL1_PAD_EN);
 
-    ixEthAccMacState[portId].txPADAppend = FALSE;
+    ixEthAccMacState[portId].txPADAppend = false;
     return IX_ETH_ACC_SUCCESS;
 }
 
@@ -1941,7 +1917,7 @@ ixEthAccPortTxFrameAppendFCSEnablePriv (IxEthAccPortId portId)
 	      IX_ETH_ACC_MAC_TX_CNTRL1,
 	      regval | IX_ETH_ACC_TX_CNTRL1_FCS_EN);
 
-    ixEthAccMacState[portId].txFCSAppend = TRUE;
+    ixEthAccMacState[portId].txFCSAppend = true;
     return IX_ETH_ACC_SUCCESS;
 }
 
@@ -1973,7 +1949,7 @@ ixEthAccPortTxFrameAppendFCSDisablePriv (IxEthAccPortId portId)
 	      IX_ETH_ACC_MAC_TX_CNTRL1,
 	      regval & ~IX_ETH_ACC_TX_CNTRL1_FCS_EN);
 
-    ixEthAccMacState[portId].txFCSAppend = FALSE;
+    ixEthAccMacState[portId].txFCSAppend = false;
     return IX_ETH_ACC_SUCCESS;
 }
 
@@ -2004,7 +1980,7 @@ ixEthAccPortRxFrameAppendFCSEnablePriv (IxEthAccPortId portId)
 	      IX_ETH_ACC_MAC_RX_CNTRL1,
 	      regval | IX_ETH_ACC_RX_CNTRL1_CRC_EN);
 
-    ixEthAccMacState[portId].rxFCSAppend = TRUE;
+    ixEthAccMacState[portId].rxFCSAppend = true;
     return IX_ETH_ACC_SUCCESS;
 }
 
@@ -2035,7 +2011,7 @@ ixEthAccPortRxFrameAppendFCSDisablePriv (IxEthAccPortId portId)
 	      IX_ETH_ACC_MAC_RX_CNTRL1,
 	      regval & ~IX_ETH_ACC_RX_CNTRL1_CRC_EN);
 
-    ixEthAccMacState[portId].rxFCSAppend = FALSE;
+    ixEthAccMacState[portId].rxFCSAppend = false;
     return IX_ETH_ACC_SUCCESS;
 }
 
@@ -2327,17 +2303,17 @@ ixEthAccMacInit(IxEthAccPortId portId)
         return IX_ETH_ACC_SUCCESS ;
     }
 
-    if(ixEthAccMacState[portId].macInitialised == FALSE)
+    if(ixEthAccMacState[portId].macInitialised == false)
     {
-	ixEthAccMacState[portId].fullDuplex  = TRUE;
-	ixEthAccMacState[portId].rxFCSAppend = TRUE;
-	ixEthAccMacState[portId].txFCSAppend = TRUE;
-	ixEthAccMacState[portId].txPADAppend = TRUE;
-	ixEthAccMacState[portId].enabled     = FALSE;
-	ixEthAccMacState[portId].promiscuous = TRUE;
-	ixEthAccMacState[portId].joinAll     = FALSE;
-	ixEthAccMacState[portId].initDone    = FALSE;
-	ixEthAccMacState[portId].macInitialised = TRUE;
+	ixEthAccMacState[portId].fullDuplex  = true;
+	ixEthAccMacState[portId].rxFCSAppend = true;
+	ixEthAccMacState[portId].txFCSAppend = true;
+	ixEthAccMacState[portId].txPADAppend = true;
+	ixEthAccMacState[portId].enabled     = false;
+	ixEthAccMacState[portId].promiscuous = true;
+	ixEthAccMacState[portId].joinAll     = false;
+	ixEthAccMacState[portId].initDone    = false;
+	ixEthAccMacState[portId].macInitialised = true;
 
         /* initialize MIB stats mutexes */
         ixOsalMutexInit(&ixEthAccMacState[portId].ackMIBStatsLock);
@@ -2417,7 +2393,7 @@ ixEthAccMacStateUpdate(IxEthAccPortId portId)
 {
     UINT32 regval;
 
-    if ( ixEthAccMacState[portId].enabled == FALSE )
+    if ( ixEthAccMacState[portId].enabled == false )
     {
 	/*  Just disable both the transmitter and reciver in the MAC.  */
         REG_READ(ixEthAccMacBase[portId],
@@ -2480,7 +2456,7 @@ ixEthAccMacStateUpdate(IxEthAccPortId portId)
 	ixEthAccPortPromiscuousModeClearPriv(portId);
     }
 
-    if ( ixEthAccMacState[portId].enabled == TRUE )
+    if ( ixEthAccMacState[portId].enabled == true )
     {
         /*   Enable both the transmitter and reciver in the MAC.  */
         REG_READ(ixEthAccMacBase[portId],
@@ -2509,10 +2485,10 @@ ixEthAccMacEqual(IxEthAccMacAddr *macAddr1,
     {
 	if(macAddr1->macAddress[i] != macAddr2->macAddress[i])
 	{
-	    return FALSE;
+	    return false;
 	}
     }
-    return TRUE;
+    return true;
 }
 
 PRIVATE void
@@ -2554,7 +2530,7 @@ ixEthAccMulticastAddressSet(IxEthAccPortId portId)
      * are set in the result
      */
 
-    if (ixEthAccMacState[portId].promiscuous == TRUE)
+    if (ixEthAccMacState[portId].promiscuous == true)
     {
 	/* Promiscuous Mode is set, and filtering
 	 * allow all packets, and enable the mcast and
@@ -2569,7 +2545,7 @@ ixEthAccMulticastAddressSet(IxEthAccPortId portId)
     }
     else
     {
-	if(ixEthAccMacState[portId].joinAll == TRUE)
+	if(ixEthAccMacState[portId].joinAll == true)
 	{
 	    /* Join all is set. The mask and address are
 	     * the multicast settings.

@@ -2,40 +2,26 @@
  * (C) Copyright 2004-2008 Texas Instruments, <www.ti.com>
  * Rohit Choraria <rohitkc@ti.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
 #include <asm/io.h>
 #include <asm/errno.h>
 #include <asm/arch/mem.h>
-#include <asm/arch/omap_gpmc.h>
+#include <asm/arch/cpu.h>
+#include <asm/omap_gpmc.h>
 #include <linux/mtd/nand_ecc.h>
+#include <linux/bch.h>
 #include <linux/compiler.h>
 #include <nand.h>
-#ifdef CONFIG_AM33XX
-#include <asm/arch/elm.h>
-#endif
+#include <asm/omap_elm.h>
+
+#define BADBLOCK_MARKER_LENGTH	2
+#define SECTOR_BYTES		512
 
 static uint8_t cs;
-static __maybe_unused struct nand_ecclayout hw_nand_oob =
-	GPMC_NAND_HW_ECC_LAYOUT;
+static __maybe_unused struct nand_ecclayout omap_ecclayout;
 
 /*
  * omap_nand_hwcontrol - Set the address pointers corretly for the
@@ -238,13 +224,14 @@ static void __maybe_unused omap_enable_hwecc(struct mtd_info *mtd, int32_t mode)
 }
 
 /*
- * BCH8 support (needs ELM and thus AM33xx-only)
+ * Generic BCH interface
  */
-#ifdef CONFIG_AM33XX
 struct nand_bch_priv {
 	uint8_t mode;
 	uint8_t type;
 	uint8_t nibbles;
+	struct bch_control *control;
+	enum omap_ecc ecc_scheme;
 };
 
 /* bch types */
@@ -252,20 +239,145 @@ struct nand_bch_priv {
 #define ECC_BCH8	1
 #define ECC_BCH16	2
 
+/* GPMC ecc engine settings */
+#define BCH_WRAPMODE_1		1	/* BCH wrap mode 1 */
+#define BCH_WRAPMODE_6		6	/* BCH wrap mode 6 */
+
 /* BCH nibbles for diff bch levels */
 #define NAND_ECC_HW_BCH ((uint8_t)(NAND_ECC_HW_OOB_FIRST) + 1)
 #define ECC_BCH4_NIBBLES	13
 #define ECC_BCH8_NIBBLES	26
 #define ECC_BCH16_NIBBLES	52
 
-static struct nand_ecclayout hw_bch8_nand_oob = GPMC_NAND_HW_BCH8_ECC_LAYOUT;
-
-static struct nand_bch_priv bch_priv = {
+/*
+ * This can be a single instance cause all current users have only one NAND
+ * with nearly the same setup (BCH8, some with ELM and others with sw BCH
+ * library).
+ * When some users with other BCH strength will exists this have to change!
+ */
+static __maybe_unused struct nand_bch_priv bch_priv = {
 	.mode = NAND_ECC_HW_BCH,
 	.type = ECC_BCH8,
-	.nibbles = ECC_BCH8_NIBBLES
+	.nibbles = ECC_BCH8_NIBBLES,
+	.control = NULL
 };
 
+/*
+ * omap_hwecc_init_bch - Initialize the BCH Hardware ECC for NAND flash in
+ *				GPMC controller
+ * @mtd:	MTD device structure
+ * @mode:	Read/Write mode
+ */
+__maybe_unused
+static void omap_hwecc_init_bch(struct nand_chip *chip, int32_t mode)
+{
+	uint32_t val;
+	uint32_t dev_width = (chip->options & NAND_BUSWIDTH_16) >> 1;
+	uint32_t unused_length = 0;
+	uint32_t wr_mode = BCH_WRAPMODE_6;
+	struct nand_bch_priv *bch = chip->priv;
+
+	/* Clear the ecc result registers, select ecc reg as 1 */
+	writel(ECCCLEAR | ECCRESULTREG1, &gpmc_cfg->ecc_control);
+
+	if (bch->ecc_scheme == OMAP_ECC_BCH8_CODE_HW) {
+		wr_mode = BCH_WRAPMODE_1;
+
+		switch (bch->nibbles) {
+		case ECC_BCH4_NIBBLES:
+			unused_length = 3;
+			break;
+		case ECC_BCH8_NIBBLES:
+			unused_length = 2;
+			break;
+		case ECC_BCH16_NIBBLES:
+			unused_length = 0;
+			break;
+		}
+
+		/*
+		 * This is ecc_size_config for ELM mode.  Here we are using
+		 * different settings for read and write access and also
+		 * depending on BCH strength.
+		 */
+		switch (mode) {
+		case NAND_ECC_WRITE:
+			/* write access only setup eccsize1 config */
+			val = ((unused_length + bch->nibbles) << 22);
+			break;
+
+		case NAND_ECC_READ:
+		default:
+			/*
+			 * by default eccsize0 selected for ecc1resultsize
+			 * eccsize0 config.
+			 */
+			val  = (bch->nibbles << 12);
+			/* eccsize1 config */
+			val |= (unused_length << 22);
+			break;
+		}
+	} else {
+		/*
+		 * This ecc_size_config setting is for BCH sw library.
+		 *
+		 * Note: we only support BCH8 currently with BCH sw library!
+		 * Should be really easy to adobt to BCH4, however some omap3
+		 * have flaws with BCH4.
+		 *
+		 * Here we are using wrapping mode 6 both for reading and
+		 * writing, with:
+		 *  size0 = 0  (no additional protected byte in spare area)
+		 *  size1 = 32 (skip 32 nibbles = 16 bytes per sector in
+		 *		spare area)
+		 */
+		val = (32 << 22) | (0 << 12);
+	}
+	/* ecc size configuration */
+	writel(val, &gpmc_cfg->ecc_size_config);
+
+	/*
+	 * Configure the ecc engine in gpmc
+	 * We assume 512 Byte sector pages for access to NAND.
+	 */
+	val  = (1 << 16);		/* enable BCH mode */
+	val |= (bch->type << 12);	/* setup BCH type */
+	val |= (wr_mode << 8);		/* setup wrapping mode */
+	val |= (dev_width << 7);	/* setup device width (16 or 8 bit) */
+	val |= (cs << 1);		/* setup chip select to work on */
+	debug("set ECC_CONFIG=0x%08x\n", val);
+	writel(val, &gpmc_cfg->ecc_config);
+}
+
+/*
+ * omap_enable_ecc_bch - This function enables the bch h/w ecc functionality
+ * @mtd:	MTD device structure
+ * @mode:	Read/Write mode
+ */
+__maybe_unused
+static void omap_enable_ecc_bch(struct mtd_info *mtd, int32_t mode)
+{
+	struct nand_chip *chip = mtd->priv;
+
+	omap_hwecc_init_bch(chip, mode);
+	/* enable ecc */
+	writel((readl(&gpmc_cfg->ecc_config) | 0x1), &gpmc_cfg->ecc_config);
+}
+
+/*
+ * omap_ecc_disable - Disable H/W ECC calculation
+ *
+ * @mtd:	MTD device structure
+ */
+static void __maybe_unused omap_ecc_disable(struct mtd_info *mtd)
+{
+	writel((readl(&gpmc_cfg->ecc_config) & ~0x1), &gpmc_cfg->ecc_config);
+}
+
+/*
+ * BCH support using ELM module
+ */
+#ifdef CONFIG_NAND_OMAP_ELM
 /*
  * omap_read_bch8_result - Read BCH result for BCH8 level
  *
@@ -302,18 +414,6 @@ static void omap_read_bch8_result(struct mtd_info *mtd, uint8_t big_endian,
 		ecc_code[i++] = readl(ptr) & 0xFF;
 		ecc_code[i++] = 0;	/* 14th byte is always zero */
 	}
-}
-
-/*
- * omap_ecc_disable - Disable H/W ECC calculation
- *
- * @mtd:	MTD device structure
- *
- */
-static void omap_ecc_disable(struct mtd_info *mtd)
-{
-	writel((readl(&gpmc_cfg->ecc_config) & ~0x1),
-		&gpmc_cfg->ecc_config);
 }
 
 /*
@@ -467,87 +567,18 @@ static int omap_correct_data_bch(struct mtd_info *mtd, uint8_t *dat,
 
 	return 0;
 }
-/*
- * omap_hwecc_init_bch - Initialize the BCH Hardware ECC for NAND flash in
- *				GPMC controller
- * @mtd:       MTD device structure
- * @mode:	Read/Write mode
- */
-static void omap_hwecc_init_bch(struct nand_chip *chip, int32_t mode)
-{
-	uint32_t val, dev_width = (chip->options & NAND_BUSWIDTH_16) >> 1;
-	uint32_t unused_length = 0;
-	struct nand_bch_priv *bch = chip->priv;
-
-	switch (bch->nibbles) {
-	case ECC_BCH4_NIBBLES:
-		unused_length = 3;
-		break;
-	case ECC_BCH8_NIBBLES:
-		unused_length = 2;
-		break;
-	case ECC_BCH16_NIBBLES:
-		unused_length = 0;
-		break;
-	}
-
-	/* Clear the ecc result registers, select ecc reg as 1 */
-	writel(ECCCLEAR | ECCRESULTREG1, &gpmc_cfg->ecc_control);
-
-	switch (mode) {
-	case NAND_ECC_WRITE:
-		/* eccsize1 config */
-		val = ((unused_length + bch->nibbles) << 22);
-		break;
-
-	case NAND_ECC_READ:
-	default:
-		/* by default eccsize0 selected for ecc1resultsize */
-		/* eccsize0 config */
-		val  = (bch->nibbles << 12);
-		/* eccsize1 config */
-		val |= (unused_length << 22);
-		break;
-	}
-	/* ecc size configuration */
-	writel(val, &gpmc_cfg->ecc_size_config);
-	/* by default 512bytes sector page is selected */
-	/* set bch mode */
-	val  = (1 << 16);
-	/* bch4 / bch8 / bch16 */
-	val |= (bch->type << 12);
-	/* set wrap mode to 1 */
-	val |= (1 << 8);
-	val |= (dev_width << 7);
-	val |= (cs << 1);
-	writel(val, &gpmc_cfg->ecc_config);
-}
-
-/*
- * omap_enable_ecc_bch- This function enables the bch h/w ecc functionality
- * @mtd:        MTD device structure
- * @mode:       Read/Write mode
- *
- */
-static void omap_enable_ecc_bch(struct mtd_info *mtd, int32_t mode)
-{
-	struct nand_chip *chip = mtd->priv;
-
-	omap_hwecc_init_bch(chip, mode);
-	/* enable ecc */
-	writel((readl(&gpmc_cfg->ecc_config) | 0x1), &gpmc_cfg->ecc_config);
-}
 
 /**
  * omap_read_page_bch - hardware ecc based page read function
  * @mtd:	mtd info structure
  * @chip:	nand chip info structure
  * @buf:	buffer to store read data
+ * @oob_required: caller expects OOB data read to chip->oob_poi
  * @page:	page number to read
  *
  */
 static int omap_read_page_bch(struct mtd_info *mtd, struct nand_chip *chip,
-				uint8_t *buf, int page)
+				uint8_t *buf, int oob_required, int page)
 {
 	int i, eccsize = chip->ecc.size;
 	int eccbytes = chip->ecc.bytes;
@@ -599,78 +630,333 @@ static int omap_read_page_bch(struct mtd_info *mtd, struct nand_chip *chip,
 	}
 	return 0;
 }
-#endif /* CONFIG_AM33XX */
+#endif /* CONFIG_NAND_OMAP_ELM */
+
+/*
+ * OMAP3 BCH8 support (with BCH library)
+ */
+#ifdef CONFIG_BCH
+/*
+ *  omap_calculate_ecc_bch_sw - Read BCH ECC result
+ *
+ *  @mtd:	MTD device structure
+ *  @dat:	The pointer to data on which ecc is computed (unused here)
+ *  @ecc:	The ECC output buffer
+ */
+static int omap_calculate_ecc_bch_sw(struct mtd_info *mtd, const uint8_t *dat,
+				uint8_t *ecc)
+{
+	int ret = 0;
+	size_t i;
+	unsigned long nsectors, val1, val2, val3, val4;
+
+	nsectors = ((readl(&gpmc_cfg->ecc_config) >> 4) & 0x7) + 1;
+
+	for (i = 0; i < nsectors; i++) {
+		/* Read hw-computed remainder */
+		val1 = readl(&gpmc_cfg->bch_result_0_3[i].bch_result_x[0]);
+		val2 = readl(&gpmc_cfg->bch_result_0_3[i].bch_result_x[1]);
+		val3 = readl(&gpmc_cfg->bch_result_0_3[i].bch_result_x[2]);
+		val4 = readl(&gpmc_cfg->bch_result_0_3[i].bch_result_x[3]);
+
+		/*
+		 * Add constant polynomial to remainder, in order to get an ecc
+		 * sequence of 0xFFs for a buffer filled with 0xFFs.
+		 */
+		*ecc++ = 0xef ^ (val4 & 0xFF);
+		*ecc++ = 0x51 ^ ((val3 >> 24) & 0xFF);
+		*ecc++ = 0x2e ^ ((val3 >> 16) & 0xFF);
+		*ecc++ = 0x09 ^ ((val3 >> 8) & 0xFF);
+		*ecc++ = 0xed ^ (val3 & 0xFF);
+		*ecc++ = 0x93 ^ ((val2 >> 24) & 0xFF);
+		*ecc++ = 0x9a ^ ((val2 >> 16) & 0xFF);
+		*ecc++ = 0xc2 ^ ((val2 >> 8) & 0xFF);
+		*ecc++ = 0x97 ^ (val2 & 0xFF);
+		*ecc++ = 0x79 ^ ((val1 >> 24) & 0xFF);
+		*ecc++ = 0xe5 ^ ((val1 >> 16) & 0xFF);
+		*ecc++ = 0x24 ^ ((val1 >> 8) & 0xFF);
+		*ecc++ = 0xb5 ^ (val1 & 0xFF);
+	}
+
+	/*
+	 * Stop reading anymore ECC vals and clear old results
+	 * enable will be called if more reads are required
+	 */
+	omap_ecc_disable(mtd);
+
+	return ret;
+}
+
+/**
+ * omap_correct_data_bch_sw - Decode received data and correct errors
+ * @mtd: MTD device structure
+ * @data: page data
+ * @read_ecc: ecc read from nand flash
+ * @calc_ecc: ecc read from HW ECC registers
+ */
+static int omap_correct_data_bch_sw(struct mtd_info *mtd, u_char *data,
+				 u_char *read_ecc, u_char *calc_ecc)
+{
+	int i, count;
+	/* cannot correct more than 8 errors */
+	unsigned int errloc[8];
+	struct nand_chip *chip = mtd->priv;
+	struct nand_bch_priv *chip_priv = chip->priv;
+	struct bch_control *bch = chip_priv->control;
+
+	count = decode_bch(bch, NULL, 512, read_ecc, calc_ecc, NULL, errloc);
+	if (count > 0) {
+		/* correct errors */
+		for (i = 0; i < count; i++) {
+			/* correct data only, not ecc bytes */
+			if (errloc[i] < 8*512)
+				data[errloc[i]/8] ^= 1 << (errloc[i] & 7);
+			printf("corrected bitflip %u\n", errloc[i]);
+#ifdef DEBUG
+			puts("read_ecc: ");
+			/*
+			 * BCH8 have 13 bytes of ECC; BCH4 needs adoption
+			 * here!
+			 */
+			for (i = 0; i < 13; i++)
+				printf("%02x ", read_ecc[i]);
+			puts("\n");
+			puts("calc_ecc: ");
+			for (i = 0; i < 13; i++)
+				printf("%02x ", calc_ecc[i]);
+			puts("\n");
+#endif
+		}
+	} else if (count < 0) {
+		puts("ecc unrecoverable error\n");
+	}
+	return count;
+}
+
+/**
+ * omap_free_bch - Release BCH ecc resources
+ * @mtd: MTD device structure
+ */
+static void __maybe_unused omap_free_bch(struct mtd_info *mtd)
+{
+	struct nand_chip *chip = mtd->priv;
+	struct nand_bch_priv *chip_priv = chip->priv;
+	struct bch_control *bch = NULL;
+
+	if (chip_priv)
+		bch = chip_priv->control;
+
+	if (bch) {
+		free_bch(bch);
+		chip_priv->control = NULL;
+	}
+}
+#endif /* CONFIG_BCH */
+
+/**
+ * omap_select_ecc_scheme - configures driver for particular ecc-scheme
+ * @nand: NAND chip device structure
+ * @ecc_scheme: ecc scheme to configure
+ * @pagesize: number of main-area bytes per page of NAND device
+ * @oobsize: number of OOB/spare bytes per page of NAND device
+ */
+static int omap_select_ecc_scheme(struct nand_chip *nand,
+	enum omap_ecc ecc_scheme, unsigned int pagesize, unsigned int oobsize) {
+	struct nand_bch_priv	*bch		= nand->priv;
+	struct nand_ecclayout	*ecclayout	= &omap_ecclayout;
+	int eccsteps = pagesize / SECTOR_BYTES;
+	int i;
+
+	switch (ecc_scheme) {
+	case OMAP_ECC_HAM1_CODE_SW:
+		debug("nand: selected OMAP_ECC_HAM1_CODE_SW\n");
+		/* For this ecc-scheme, ecc.bytes, ecc.layout, ... are
+		 * initialized in nand_scan_tail(), so just set ecc.mode */
+		bch_priv.control	= NULL;
+		bch_priv.type		= 0;
+		nand->ecc.mode		= NAND_ECC_SOFT;
+		nand->ecc.layout	= NULL;
+		nand->ecc.size		= 0;
+		bch->ecc_scheme		= OMAP_ECC_HAM1_CODE_SW;
+		break;
+
+	case OMAP_ECC_HAM1_CODE_HW:
+		debug("nand: selected OMAP_ECC_HAM1_CODE_HW\n");
+		/* check ecc-scheme requirements before updating ecc info */
+		if ((3 * eccsteps) + BADBLOCK_MARKER_LENGTH > oobsize) {
+			printf("nand: error: insufficient OOB: require=%d\n", (
+				(3 * eccsteps) + BADBLOCK_MARKER_LENGTH));
+			return -EINVAL;
+		}
+		bch_priv.control	= NULL;
+		bch_priv.type		= 0;
+		/* populate ecc specific fields */
+		memset(&nand->ecc, 0, sizeof(struct nand_ecc_ctrl));
+		nand->ecc.mode		= NAND_ECC_HW;
+		nand->ecc.strength	= 1;
+		nand->ecc.size		= SECTOR_BYTES;
+		nand->ecc.bytes		= 3;
+		nand->ecc.hwctl		= omap_enable_hwecc;
+		nand->ecc.correct	= omap_correct_data;
+		nand->ecc.calculate	= omap_calculate_ecc;
+		/* define ecc-layout */
+		ecclayout->eccbytes	= nand->ecc.bytes * eccsteps;
+		for (i = 0; i < ecclayout->eccbytes; i++) {
+			if (nand->options & NAND_BUSWIDTH_16)
+				ecclayout->eccpos[i] = i + 2;
+			else
+				ecclayout->eccpos[i] = i + 1;
+		}
+		ecclayout->oobfree[0].offset = i + BADBLOCK_MARKER_LENGTH;
+		ecclayout->oobfree[0].length = oobsize - ecclayout->eccbytes -
+						BADBLOCK_MARKER_LENGTH;
+		bch->ecc_scheme		= OMAP_ECC_HAM1_CODE_HW;
+		break;
+
+	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
+#ifdef CONFIG_BCH
+		debug("nand: selected OMAP_ECC_BCH8_CODE_HW_DETECTION_SW\n");
+		/* check ecc-scheme requirements before updating ecc info */
+		if ((13 * eccsteps) + BADBLOCK_MARKER_LENGTH > oobsize) {
+			printf("nand: error: insufficient OOB: require=%d\n", (
+				(13 * eccsteps) + BADBLOCK_MARKER_LENGTH));
+			return -EINVAL;
+		}
+		/* check if BCH S/W library can be used for error detection */
+		bch_priv.control = init_bch(13, 8, 0x201b);
+		if (!bch_priv.control) {
+			printf("nand: error: could not init_bch()\n");
+			return -ENODEV;
+		}
+		bch_priv.type = ECC_BCH8;
+		/* populate ecc specific fields */
+		memset(&nand->ecc, 0, sizeof(struct nand_ecc_ctrl));
+		nand->ecc.mode		= NAND_ECC_HW;
+		nand->ecc.strength	= 8;
+		nand->ecc.size		= SECTOR_BYTES;
+		nand->ecc.bytes		= 13;
+		nand->ecc.hwctl		= omap_enable_ecc_bch;
+		nand->ecc.correct	= omap_correct_data_bch_sw;
+		nand->ecc.calculate	= omap_calculate_ecc_bch_sw;
+		/* define ecc-layout */
+		ecclayout->eccbytes	= nand->ecc.bytes * eccsteps;
+		ecclayout->eccpos[0]	= BADBLOCK_MARKER_LENGTH;
+		for (i = 1; i < ecclayout->eccbytes; i++) {
+			if (i % nand->ecc.bytes)
+				ecclayout->eccpos[i] =
+						ecclayout->eccpos[i - 1] + 1;
+			else
+				ecclayout->eccpos[i] =
+						ecclayout->eccpos[i - 1] + 2;
+		}
+		ecclayout->oobfree[0].offset = i + BADBLOCK_MARKER_LENGTH;
+		ecclayout->oobfree[0].length = oobsize - ecclayout->eccbytes -
+						BADBLOCK_MARKER_LENGTH;
+		omap_hwecc_init_bch(nand, NAND_ECC_READ);
+		bch->ecc_scheme		= OMAP_ECC_BCH8_CODE_HW_DETECTION_SW;
+		break;
+#else
+		printf("nand: error: CONFIG_BCH required for ECC\n");
+		return -EINVAL;
+#endif
+
+	case OMAP_ECC_BCH8_CODE_HW:
+#ifdef CONFIG_NAND_OMAP_ELM
+		debug("nand: selected OMAP_ECC_BCH8_CODE_HW\n");
+		/* check ecc-scheme requirements before updating ecc info */
+		if ((14 * eccsteps) + BADBLOCK_MARKER_LENGTH > oobsize) {
+			printf("nand: error: insufficient OOB: require=%d\n", (
+				(14 * eccsteps) + BADBLOCK_MARKER_LENGTH));
+			return -EINVAL;
+		}
+		/* intialize ELM for ECC error detection */
+		elm_init();
+		bch_priv.type		= ECC_BCH8;
+		/* populate ecc specific fields */
+		memset(&nand->ecc, 0, sizeof(struct nand_ecc_ctrl));
+		nand->ecc.mode		= NAND_ECC_HW;
+		nand->ecc.strength	= 8;
+		nand->ecc.size		= SECTOR_BYTES;
+		nand->ecc.bytes		= 14;
+		nand->ecc.hwctl		= omap_enable_ecc_bch;
+		nand->ecc.correct	= omap_correct_data_bch;
+		nand->ecc.calculate	= omap_calculate_ecc_bch;
+		nand->ecc.read_page	= omap_read_page_bch;
+		/* define ecc-layout */
+		ecclayout->eccbytes	= nand->ecc.bytes * eccsteps;
+		for (i = 0; i < ecclayout->eccbytes; i++)
+			ecclayout->eccpos[i] = i + BADBLOCK_MARKER_LENGTH;
+		ecclayout->oobfree[0].offset = i + BADBLOCK_MARKER_LENGTH;
+		ecclayout->oobfree[0].length = oobsize - ecclayout->eccbytes -
+						BADBLOCK_MARKER_LENGTH;
+		bch->ecc_scheme		= OMAP_ECC_BCH8_CODE_HW;
+		break;
+#else
+		printf("nand: error: CONFIG_NAND_OMAP_ELM required for ECC\n");
+		return -EINVAL;
+#endif
+
+	default:
+		debug("nand: error: ecc scheme not enabled or supported\n");
+		return -EINVAL;
+	}
+
+	/* nand_scan_tail() sets ham1 sw ecc; hw ecc layout is set by driver */
+	if (ecc_scheme != OMAP_ECC_HAM1_CODE_SW)
+		nand->ecc.layout = ecclayout;
+
+	return 0;
+}
 
 #ifndef CONFIG_SPL_BUILD
 /*
- * omap_nand_switch_ecc - switch the ECC operation b/w h/w ecc and s/w ecc.
- * The default is to come up on s/w ecc
+ * omap_nand_switch_ecc - switch the ECC operation between different engines
+ * (h/w and s/w) and different algorithms (hamming and BCHx)
  *
- * @hardware - 1 -switch to h/w ecc, 0 - s/w ecc
- *
+ * @hardware		- true if one of the HW engines should be used
+ * @eccstrength		- the number of bits that could be corrected
+ *			  (1 - hamming, 4 - BCH4, 8 - BCH8, 16 - BCH16)
  */
-void omap_nand_switch_ecc(int32_t hardware)
+int __maybe_unused omap_nand_switch_ecc(uint32_t hardware, uint32_t eccstrength)
 {
 	struct nand_chip *nand;
 	struct mtd_info *mtd;
+	int err = 0;
 
 	if (nand_curr_device < 0 ||
 	    nand_curr_device >= CONFIG_SYS_MAX_NAND_DEVICE ||
 	    !nand_info[nand_curr_device].name) {
-		printf("Error: Can't switch ecc, no devices available\n");
-		return;
+		printf("nand: error: no NAND devices found\n");
+		return -ENODEV;
 	}
 
 	mtd = &nand_info[nand_curr_device];
 	nand = mtd->priv;
-
 	nand->options |= NAND_OWN_BUFFERS;
-
-	/* Reset ecc interface */
-	nand->ecc.read_page = NULL;
-	nand->ecc.write_page = NULL;
-	nand->ecc.read_oob = NULL;
-	nand->ecc.write_oob = NULL;
-	nand->ecc.hwctl = NULL;
-	nand->ecc.correct = NULL;
-	nand->ecc.calculate = NULL;
-
+	nand->options &= ~NAND_SUBPAGE_READ;
 	/* Setup the ecc configurations again */
-	if (hardware == 1) {
-		nand->ecc.mode = NAND_ECC_HW;
-		nand->ecc.layout = &hw_nand_oob;
-		nand->ecc.size = 512;
-		nand->ecc.bytes = 3;
-		nand->ecc.hwctl = omap_enable_hwecc;
-		nand->ecc.correct = omap_correct_data;
-		nand->ecc.calculate = omap_calculate_ecc;
-		omap_hwecc_init(nand);
-		printf("HW ECC selected\n");
-#ifdef CONFIG_AM33XX
-	} else if (hardware == 2) {
-		nand->ecc.mode = NAND_ECC_HW;
-		nand->ecc.layout = &hw_bch8_nand_oob;
-		nand->ecc.size = 512;
-		nand->ecc.bytes = 14;
-		nand->ecc.read_page = omap_read_page_bch;
-		nand->ecc.hwctl = omap_enable_ecc_bch;
-		nand->ecc.correct = omap_correct_data_bch;
-		nand->ecc.calculate = omap_calculate_ecc_bch;
-		omap_hwecc_init_bch(nand, NAND_ECC_READ);
-		printf("HW BCH8 selected\n");
-#endif
+	if (hardware) {
+		if (eccstrength == 1) {
+			err = omap_select_ecc_scheme(nand,
+					OMAP_ECC_HAM1_CODE_HW,
+					mtd->writesize, mtd->oobsize);
+		} else if (eccstrength == 8) {
+			err = omap_select_ecc_scheme(nand,
+					OMAP_ECC_BCH8_CODE_HW,
+					mtd->writesize, mtd->oobsize);
+		} else {
+			printf("nand: error: unsupported ECC scheme\n");
+			return -EINVAL;
+		}
 	} else {
-		nand->ecc.mode = NAND_ECC_SOFT;
-		/* Use mtd default settings */
-		nand->ecc.layout = NULL;
-		nand->ecc.size = 0;
-		printf("SW ECC selected\n");
+		err = omap_select_ecc_scheme(nand, OMAP_ECC_HAM1_CODE_SW,
+					mtd->writesize, mtd->oobsize);
 	}
 
 	/* Update NAND handling after ECC mode switch */
-	nand_scan_tail(mtd);
-
-	nand->options &= ~NAND_OWN_BUFFERS;
+	if (!err)
+		err = nand_scan_tail(mtd);
+	return err;
 }
 #endif /* CONFIG_SPL_BUILD */
 
@@ -693,7 +979,7 @@ int board_nand_init(struct nand_chip *nand)
 {
 	int32_t gpmc_config = 0;
 	cs = 0;
-
+	int err = 0;
 	/*
 	 * xloader/Uboot's gpmc configuration would have configured GPMC for
 	 * nand type of memory. The following logic scans and latches on to the
@@ -710,7 +996,7 @@ int board_nand_init(struct nand_chip *nand)
 		cs++;
 	}
 	if (cs >= GPMC_MAX_CS) {
-		printf("NAND: Unable to find NAND settings in "
+		printf("nand: error: Unable to find NAND settings in "
 			"GPMC Configuration - quitting\n");
 		return -ENODEV;
 	}
@@ -722,48 +1008,27 @@ int board_nand_init(struct nand_chip *nand)
 
 	nand->IO_ADDR_R = (void __iomem *)&gpmc_cfg->cs[cs].nand_dat;
 	nand->IO_ADDR_W = (void __iomem *)&gpmc_cfg->cs[cs].nand_cmd;
-
-	nand->cmd_ctrl = omap_nand_hwcontrol;
-	nand->options = NAND_NO_PADDING | NAND_CACHEPRG | NAND_NO_AUTOINCR;
+	nand->priv	= &bch_priv;
+	nand->cmd_ctrl	= omap_nand_hwcontrol;
+	nand->options	|= NAND_NO_PADDING | NAND_CACHEPRG;
 	/* If we are 16 bit dev, our gpmc config tells us that */
 	if ((readl(&gpmc_cfg->cs[cs].config1) & 0x3000) == 0x1000)
 		nand->options |= NAND_BUSWIDTH_16;
 
 	nand->chip_delay = 100;
+	nand->ecc.layout = &omap_ecclayout;
 
-#ifdef CONFIG_AM33XX
-	/* required in case of BCH */
-	elm_init();
-
-	/* BCH info that will be correct for SPL or overridden otherwise. */
-	nand->priv = &bch_priv;
-#endif
-
-	/* Default ECC mode */
-#ifdef CONFIG_AM33XX
-	nand->ecc.mode = NAND_ECC_HW;
-	nand->ecc.layout = &hw_bch8_nand_oob;
-	nand->ecc.size = CONFIG_SYS_NAND_ECCSIZE;
-	nand->ecc.bytes = CONFIG_SYS_NAND_ECCBYTES;
-	nand->ecc.hwctl = omap_enable_ecc_bch;
-	nand->ecc.correct = omap_correct_data_bch;
-	nand->ecc.calculate = omap_calculate_ecc_bch;
-	nand->ecc.read_page = omap_read_page_bch;
-	omap_hwecc_init_bch(nand, NAND_ECC_READ);
+	/* select ECC scheme */
+#if defined(CONFIG_NAND_OMAP_ECCSCHEME)
+	err = omap_select_ecc_scheme(nand, CONFIG_NAND_OMAP_ECCSCHEME,
+			CONFIG_SYS_NAND_PAGE_SIZE, CONFIG_SYS_NAND_OOBSIZE);
 #else
-#if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_NAND_SOFTECC)
-	nand->ecc.mode = NAND_ECC_SOFT;
-#else
-	nand->ecc.mode = NAND_ECC_HW;
-	nand->ecc.layout = &hw_nand_oob;
-	nand->ecc.size = CONFIG_SYS_NAND_ECCSIZE;
-	nand->ecc.bytes = CONFIG_SYS_NAND_ECCBYTES;
-	nand->ecc.hwctl = omap_enable_hwecc;
-	nand->ecc.correct = omap_correct_data;
-	nand->ecc.calculate = omap_calculate_ecc;
-	omap_hwecc_init(nand);
+	/* pagesize and oobsize are not required to configure sw ecc-scheme */
+	err = omap_select_ecc_scheme(nand, OMAP_ECC_HAM1_CODE_SW,
+			0, 0);
 #endif
-#endif
+	if (err)
+		return err;
 
 #ifdef CONFIG_SPL_BUILD
 	if (nand->options & NAND_BUSWIDTH_16)

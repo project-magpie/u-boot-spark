@@ -269,6 +269,7 @@ extern void fli7540_usb_init(const int port, const enum fli7540_usb_ovrcur_mode 
 extern int  stxh205_usb_init(const int port);
 extern int  stxh415_usb_init(const int port);
 extern int  stxh416_usb_init(const int port);
+extern int  stxh407_usb_init(const int port);
 
 
 /*
@@ -368,6 +369,12 @@ extern int		stxh415_i2c_read(void);
 extern void		stxh416_i2c_scl(const int val);
 extern void		stxh416_i2c_sda(const int val);
 extern int		stxh416_i2c_read(void);
+
+
+/*
+ * NAND initialization functions.
+ */
+extern void		stxh407_configure_nand(void);
 
 
 /*

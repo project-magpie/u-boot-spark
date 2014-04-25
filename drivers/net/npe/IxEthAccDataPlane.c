@@ -19,31 +19,7 @@
  * All rights reserved.
  *
  * @par
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * @par
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
+ * SPDX-License-Identifier:	BSD-3-Clause
  * @par
  * -- End of Copyright Notice --
  */
@@ -948,7 +924,7 @@ IxEthAccStatus ixEthAccPortRxCallbackRegister(IxEthAccPortId portId,
 	for (port = 0; port < IX_ETH_ACC_NUMBER_OF_PORTS; port++)
 	{
 	    if ((ixEthAccMacState[port].portDisableState == ACTIVE)
-		&& (ixEthAccPortData[port].ixEthAccRxData.rxMultiBufferCallbackInUse == TRUE))
+		&& (ixEthAccPortData[port].ixEthAccRxData.rxMultiBufferCallbackInUse == true))
 	    {
 		/* one of the active ports has a different rx callback type.
 		 * Changing the callback type when the port is enabled
@@ -977,7 +953,7 @@ IxEthAccStatus ixEthAccPortRxCallbackRegister(IxEthAccPortId portId,
 	return (IX_ETH_ACC_INVALID_ARG);
     }
 
-    ixEthAccPortData[portId].ixEthAccRxData.rxMultiBufferCallbackInUse = FALSE;
+    ixEthAccPortData[portId].ixEthAccRxData.rxMultiBufferCallbackInUse = false;
 
     return (IX_ETH_ACC_SUCCESS);
 }
@@ -1025,7 +1001,7 @@ IxEthAccStatus ixEthAccPortMultiBufferRxCallbackRegister(
 	for (port = 0; port < IX_ETH_ACC_NUMBER_OF_PORTS; port++)
 	{
 	    if ((ixEthAccMacState[port].portDisableState == ACTIVE)
-		&& (ixEthAccPortData[port].ixEthAccRxData.rxMultiBufferCallbackInUse == FALSE))
+		&& (ixEthAccPortData[port].ixEthAccRxData.rxMultiBufferCallbackInUse == false))
 	    {
 		/* one of the active ports has a different rx callback type.
 		 * Changing the callback type when the port is enabled
@@ -1055,7 +1031,7 @@ IxEthAccStatus ixEthAccPortMultiBufferRxCallbackRegister(
 	return (IX_ETH_ACC_INVALID_ARG);
     }
 
-    ixEthAccPortData[portId].ixEthAccRxData.rxMultiBufferCallbackInUse = TRUE;
+    ixEthAccPortData[portId].ixEthAccRxData.rxMultiBufferCallbackInUse = true;
 
     return (IX_ETH_ACC_SUCCESS);
 }
@@ -1456,7 +1432,7 @@ ixEthRxFrameProcess(IxEthAccPortId portId, IX_OSAL_MBUF *mbufPtr)
 	IX_ETH_ACC_FATAL_LOG(
 	     "ixEthRxFrameProcess: Illegal port: %u\n",
 	     (UINT32)portId, 0, 0, 0, 0, 0);
-	return FALSE;
+	return false;
     }
 #endif
 
@@ -1468,7 +1444,7 @@ ixEthRxFrameProcess(IxEthAccPortId portId, IX_OSAL_MBUF *mbufPtr)
     if ((flags & (IX_ETHACC_NE_FILTERMASK | IX_ETHACC_NE_NEWSRCMASK)) == 0)
     {
 	/* "best case" scenario : nothing special to do for this frame */
-	return TRUE;
+	return true;
     }
 
 #ifdef CONFIG_IXP425_COMPONENT_ETHDB
@@ -1540,10 +1516,10 @@ ixEthRxFrameProcess(IxEthAccPortId portId, IX_OSAL_MBUF *mbufPtr)
         RX_STATS_INC(portId, rxFiltered);
 
         /* indicate that frame should not be subjected to further processing */
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 

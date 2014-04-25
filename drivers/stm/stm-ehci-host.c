@@ -38,7 +38,7 @@
  * a new EHCI host controller.
  */
 extern int ehci_hcd_init(
-	const int index,
+	const int index, enum usb_init_type init,
 	struct ehci_hccr ** const hccr,
 	struct ehci_hcor ** const hcor)
 {

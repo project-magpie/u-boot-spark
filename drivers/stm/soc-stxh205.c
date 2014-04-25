@@ -83,12 +83,12 @@ static void stxh205_clocks(void)
 	 *       otherwise we expect the ASC to be 100MHz.
 	 */
 #if (CONFIG_SYS_STM_ASC_BASE==STXH205_ASC10_BASE) || (CONFIG_SYS_STM_ASC_BASE==STXH205_ASC11_BASE)
-	gd->stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
+	gd->arch.stm_uart_frq =  30ul * 1000000ul;	/*  30 MHz */
 #else
-	gd->stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_uart_frq = 100ul * 1000000ul;	/* 100 MHz */
 #endif
-	gd->stm_tmu_frq  = 100ul * 1000000ul;	/* 100 MHz */
-	gd->stm_ssc_frq  = gd->stm_tmu_frq;
+	gd->arch.stm_tmu_frq  = 100ul * 1000000ul;	/* 100 MHz */
+	gd->arch.stm_ssc_frq  = gd->arch.stm_tmu_frq;
 }
 
 
@@ -667,7 +667,7 @@ extern int arch_cpu_init(void)
 {
 	stxh205_clocks();
 
-	gd->stm_devid = *STXH205_SYSCONF_DEVICEID_0;
+	gd->arch.stm_devid = *STXH205_SYSCONF_DEVICEID_0;
 
 	/*
 	 * Allow both the Manual + Watchdog resets *OUT* of the
@@ -781,7 +781,7 @@ extern int stxh205_usb_init(const int port)
 #endif /* defined(CONFIG_USB_OHCI_NEW) || defined(CONFIG_USB_EHCI) */
 
 
-#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT)
 extern void stxh205_configure_i2c(void)
 {
 	SET_PIO_PIN2(STXH205_I2C_SCL, STPIO_BIDIR);	/* I2C_SCL */
@@ -805,7 +805,7 @@ extern int stxh205_i2c_read(void)
 	/* SSC's MTSR == I2C's SDA */
 	return STPIO_GET_PIN2(STXH205_I2C_SDA);
 }
-#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SOFT_I2C) */
+#endif	/* defined(CONFIG_CMD_I2C) && defined(CONFIG_SYS_I2C_SOFT) */
 
 #if defined(CONFIG_I2C_CMD_TREE)
 extern unsigned int i2c_get_bus_speed(void)

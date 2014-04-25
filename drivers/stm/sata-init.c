@@ -1,7 +1,7 @@
 /*
  * STM SATA initialization
  *
- * Copyright (C) 2007,2009-2010 STMicroelectronics Limited
+ * Copyright (C) 2007,2009-2014 STMicroelectronics Limited
  * Author: Stuart Menefy <stuart.menefy@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -15,7 +15,6 @@
 
 #include <common.h>
 #include <asm/errno.h>
-#include <stm/stxxxxxreg.h>
 #include <asm/io.h>
 #include <stm/soc.h>
 #include <stm/socregs.h>

@@ -19,31 +19,7 @@
  * All rights reserved.
  * 
  * @par
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- * 
- * @par
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * 
+ * SPDX-License-Identifier:	BSD-3-Clause
  * @par
  * -- End of Copyright Notice --
  */
@@ -65,7 +41,7 @@ PRIVATE UINT32 ixEthMiiPhyId[IXP425_ETH_ACC_MII_MAX_ADDR];
  * Scan for PHYs on the MII bus. This function returns
  * an array of booleans, one for each PHY address.
  * If a PHY is found at a particular address, the
- * corresponding entry in the array is set to TRUE.
+ * corresponding entry in the array is set to true.
  *
  */
 
@@ -89,7 +65,7 @@ ixEthMiiPhyScan(BOOL phyPresent[], UINT32 maxPhyCount)
         i<IXP425_ETH_ACC_MII_MAX_ADDR;
 	i++)
     {
-	phyPresent[i] = FALSE;
+	phyPresent[i] = false;
     }
 
     /* iterate through the PHY addresses */
@@ -119,7 +95,7 @@ ixEthMiiPhyScan(BOOL phyPresent[], UINT32 maxPhyCount)
 		    )
 		{
 		    /* supported phy */
-		    phyPresent[i] = TRUE;
+		    phyPresent[i] = true;
 		} /* end of if(ixEthMiiPhyId) */
 		else
 		{
@@ -131,7 +107,7 @@ ixEthMiiPhyScan(BOOL phyPresent[], UINT32 maxPhyCount)
 				    "ixEthMiiPhyScan : unexpected Mii PHY ID %8.8x\n", 
 				    ixEthMiiPhyId[i], 2, 3, 4, 5, 6);
 			ixEthMiiPhyId[i] = IX_ETH_MII_UNKNOWN_PHY_ID;
-			phyPresent[i] = TRUE;
+			phyPresent[i] = true;
 		    }
 		} 
 	    }
@@ -347,10 +323,10 @@ ixEthMiiLinkStatus(UINT32 phyAddr,
 	return IX_FAIL;
     }
 
-    *linkUp = FALSE;
-    *speed100 = FALSE;
-    *fullDuplex = FALSE;
-    *autoneg = FALSE;
+    *linkUp = false;
+    *speed100 = false;
+    *fullDuplex = false;
+    *autoneg = false;
 
     if ((phyAddr < IXP425_ETH_ACC_MII_MAX_ADDR) &&
 	(ixEthMiiPhyId[phyAddr] != IX_ETH_MII_INVALID_PHY_ID))
@@ -406,20 +382,20 @@ ixEthMiiLinkStatus(UINT32 phyAddr,
 		    if ((regval & IX_ETH_MII_SR_TX_FULL_DPX) != 0)
 		    {
 			/* 100 Base X full dplx */
-			*speed100 = TRUE;
-			*fullDuplex = TRUE;
+			*speed100 = true;
+			*fullDuplex = true;
 			return IX_SUCCESS;
 		    }
 		    if ((regval & IX_ETH_MII_SR_TX_HALF_DPX) != 0)
 		    {
 			/* 100 Base X half dplx */
-			*speed100 = TRUE;
+			*speed100 = true;
 			return IX_SUCCESS;
 		    }
 		    if ((regval & IX_ETH_MII_SR_10T_FULL_DPX) != 0)
 		    {
 			/* 10 mb full dplx */
-			*fullDuplex = TRUE;
+			*fullDuplex = true;
 			return IX_SUCCESS;
 		    }
 		    if ((regval & IX_ETH_MII_SR_10T_HALF_DPX) != 0)

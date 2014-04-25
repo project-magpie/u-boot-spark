@@ -203,7 +203,26 @@
  */
 
 /* Choose if we want USB Mass-Storage Support */
-#undef CONFIG_STM_USB
+#define CONFIG_STM_USB
+
+#ifdef CONFIG_STM_USB
+#	define CONFIG_CMD_USB
+#	define CONFIG_CMD_FAT
+#	define CONFIG_USB_STORAGE
+#define CONFIG_SYS_USB_XHCI_MAX_ROOT_PORTS	2
+#define CONFIG_SYS_CACHELINE_SIZE      32
+#	if 0	/* use OHCI (USB 1.x) ? */
+#		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
+#		define CONFIG_SYS_USB_OHCI_CPU_INIT
+#		define CONFIG_SYS_USB_OHCI_REGS_BASE		AHB2STBUS_OHCI_BASE
+#		define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
+#		define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
+#	else	/* else, use EHCI (USB 2.0) */
+#		define CONFIG_USB_XHCI					/* enable USB 2.0, via EHCI */
+#		define CONFIG_USB_XHCI_STM				/* use EHCI for STMicroelectronics */
+#	endif	/* use OHCI/EHCI */
+#endif	/* ifdef CONFIG_STM_USB */
+
 
 /*---------------------------------------------------------------
  * SATA driver config
@@ -297,8 +316,6 @@
 #if 1
 	/* Use H/W FSM SPI Controller (not H/W SSC, nor S/W "bit-banging") */
 #	define CONFIG_STM_FSM_SPI			/* Use the H/W FSM for SPI */
-#	define CONFIG_SYS_STM_SPI_FSM_BASE	\
-		(STXH407_FLASH_IF_REG0_BASE + 0x2000)	/* FSM SPI Controller Base */
 #	define CONFIG_SYS_STM_SPI_CLOCKDIV	4	/* set SPI_CLOCKDIV = 4 */
 #	undef CONFIG_CMD_SPI				/* SPI serial bus command support - NOT with FSM! */
 #else
@@ -322,13 +339,9 @@
 #	define CONFIG_GENERIC_MMC
 #	define CONFIG_CMD_MMC
 #	if defined(CONFIG_STM_SDHCI_0)
-#		define CONFIG_SYS_MMC0_BASE	0x09060000	/* MMC #0 is eMMC boot device */
 #		define CONFIG_SUPPORT_EMMC_BOOT
 #		define CONFIG_MMC_BOOT_MODE_1_BIT		/* use 1-bit boot-mode */
 #	endif	/* CONFIG_STM_SDHCI_0 */
-#	if defined(CONFIG_STM_SDHCI_1)
-#		define CONFIG_SYS_MMC1_BASE	0x09080000	/* MMC #1 is MMC/SD slot */
-#	endif	/* CONFIG_STM_SDHCI_1 */
 #endif	/* CONFIG_STM_SDHCI_0 || CONFIG_STM_SDHCI_1 */
 
 /*-----------------------------------------------------------------------
@@ -357,13 +370,13 @@
  */
 
 #define CONFIG_CMD_I2C				/* do we want I2C support ? */
+#define CONFIG_SYS_I2C
 
 #if defined(CONFIG_CMD_I2C)
 	/* Note: I2C Bus #7 also "probes" devices when a suitable HDMI device is plugged in to CN6. */
 #	define CONFIG_I2C_BUS		5	/* Use I2C Bus associated with SSC #5 */
-#	define CONFIG_I2C_CMD_TREE		/* use a "i2c" root command */
 #	define CONFIG_SYS_I2C_SLAVE	0x7F	/* I2C slave address - Bogus: master-only in U-Boot */
-#	define CONFIG_SOFT_I2C			/* I2C with S/W bit-banging	*/
+#	define CONFIG_SYS_I2C_SOFT			/* I2C with S/W bit-banging	*/
 #	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
 #	define I2C_ACTIVE			/* open-drain, nothing to do */
 #	define I2C_TRISTATE			/* open-drain, nothing to do */

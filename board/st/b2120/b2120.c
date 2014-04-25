@@ -3,23 +3,7 @@
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -63,21 +47,45 @@ extern int board_early_init_f(void)
 {
 	/* Setup PIOs for ASC device */
 
-#if CONFIG_SYS_STM_ASC_BASE == STXH407_SBC_ASC0_BASE
+#if CONFIG_SYS_STM_ASC_BASE == STXH407_SBC_ASC0_BASE	/* a.k.a. UART #10 */
 
 	/* Route SBC_UART0 via PIO3 for TX, RX, CTS & RTS (Alternative #1) */
 	PIOALT(3, 4, 1, stm_pad_direction_output);	/* SBC_UART0-TX */
 	PIOALT(3, 5, 1, stm_pad_direction_input);	/* SBC_UART0-RX */
-//	PIOALT(3, 7, 1, stm_pad_direction_output);	/* SBC_UART0-RTS */
 //	PIOALT(3, 6, 1, stm_pad_direction_input);	/* SBC_UART0-CTS */
+//	PIOALT(3, 7, 1, stm_pad_direction_output);	/* SBC_UART0-RTS */
 
-#elif CONFIG_SYS_STM_ASC_BASE == STXH407_SBC_ASC1_BASE
+#elif CONFIG_SYS_STM_ASC_BASE == STXH407_SBC_ASC1_BASE	/* a.k.a. UART #11 */
 
 	/* Route SBC_UART1 via PIO2,3 for TX, RX, CTS & RTS (Alternative #3) */
 	PIOALT(2, 6, 3, stm_pad_direction_output);	/* SBC_UART1-TX */
 	PIOALT(2, 7, 3, stm_pad_direction_input);	/* SBC_UART1-RX */
-//	PIOALT(3, 1, 3, stm_pad_direction_output);	/* SBC_UART1-RTS */
 //	PIOALT(3, 0, 3, stm_pad_direction_input);	/* SBC_UART1-CTS */
+//	PIOALT(3, 1, 3, stm_pad_direction_output);	/* SBC_UART1-RTS */
+
+#elif CONFIG_SYS_STM_ASC_BASE == STXH407_ASC0_BASE	/* a.k.a. UART #0 */
+
+	/* Route UART0 via PIO17 for TX, RX, CTS & RTS (Alternative #1) */
+	PIOALT(17, 0, 1, stm_pad_direction_output);	/* UART0-TX */
+	PIOALT(17, 1, 1, stm_pad_direction_input);	/* UART0-RX */
+//	PIOALT(17, 2, 1, stm_pad_direction_input);	/* UART0-CTS */
+//	PIOALT(17, 3, 1, stm_pad_direction_output);	/* UART0-RTS */
+
+#elif CONFIG_SYS_STM_ASC_BASE == STXH407_ASC1_BASE	/* a.k.a. UART #1 */
+
+	/* Route UART1 via PIO16 for TX, RX, CTS & RTS (Alternative #1) */
+	PIOALT(16, 0, 1, stm_pad_direction_output);	/* UART1-TX */
+	PIOALT(16, 1, 1, stm_pad_direction_input);	/* UART1-RX */
+//	PIOALT(16, 2, 1, stm_pad_direction_input);	/* UART1-CTS */
+//	PIOALT(16, 3, 1, stm_pad_direction_output);	/* UART1-RTS */
+
+#elif CONFIG_SYS_STM_ASC_BASE == STXH407_ASC3_BASE	/* a.k.a. UART #3 */
+
+	/* Route UART3 via PIO31 for TX, RX, CTS & RTS (Alternative #1) */
+	PIOALT(31, 3, 1, stm_pad_direction_output);	/* UART3-TX */
+	PIOALT(31, 4, 1, stm_pad_direction_input);	/* UART3-RX */
+//	PIOALT(31, 5, 1, stm_pad_direction_input);	/* UART3-CTS */
+//	PIOALT(31, 6, 1, stm_pad_direction_output);	/* UART3-RTS */
 
 #else
 #error Unknown ASC port selected!
@@ -133,6 +141,13 @@ extern int board_init(void)
 	stxh407_configure_i2c();
 #endif	/* CONFIG_CMD_I2C */
 
+#if defined(CONFIG_CMD_NAND)
+	/*
+	 * Configure the PIO signals (in the FlashSS) for NAND.
+	 */
+	stxh407_configure_nand();
+#endif	/* CONFIG_CMD_NAND */
+
 	return 0;
 }
 
@@ -150,7 +165,19 @@ int checkboard (void)
 	}
 #endif	/* CONFIG_MACH_STM_STXH407_A9SS_VCORE_HACK */
 
-	printf ("\n\nBoard: B2120-STxH407"
+	printf("\n\nBoard: "
+#if defined(CONFIG_STM_B2120)			/* B2120 ? */
+	"B2120"
+#elif defined(CONFIG_STM_B2089)			/* B2089 ? */
+	"B2089"
+#else
+#	error Unknown BOARD Variant for B2120!
+#endif	/* CONFIG_STM_B2120 */
+#if defined(CONFIG_STM_STXH410)
+	"-STxH410"
+#elif defined(CONFIG_STM_STXH407)
+	"-STxH407"
+#endif	/* CONFIG_STM_STXH410 */
 #if defined(CONFIG_ARM)
 		"  [ARM]"
 #endif

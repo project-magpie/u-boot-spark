@@ -13,31 +13,7 @@
  * All rights reserved.
  * 
  * @par
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- * 
- * @par
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * 
+ * SPDX-License-Identifier:	BSD-3-Clause
  * @par
  * -- End of Copyright Notice --
  *
@@ -229,7 +205,7 @@ typedef enum
   IX_ETH_DB_INTEGER_PROPERTY  = 0x1, /**< 4 byte unsigned integer type */
   IX_ETH_DB_STRING_PROPERTY   = 0x2, /**< NULL-terminated string type of maximum 255 characters (including the terminator) */
   IX_ETH_DB_MAC_ADDR_PROPERTY = 0x3, /**< 6 byte MAC address type */
-  IX_ETH_DB_BOOL_PROPERTY     = 0x4  /**< 4 byte boolean type; can contain only TRUE and FALSE values */
+  IX_ETH_DB_BOOL_PROPERTY     = 0x4  /**< 4 byte boolean type; can contain only true and false values */
 } IxEthDBPropertyType;
 
 /* list of supported properties for the IX_ETH_DB_VLAN_QOS feature */
@@ -1427,8 +1403,8 @@ IxEthDBStatus ixEthDBPriorityMappingClassGet(IxEthDBPortId portID, IxEthDBPriori
  *
  * @param portID @ref IxEthDBPortId [in] - ID of the port to enable or disable the VLAN ID Egress tagging on
  * @param vlanID @ref IxEthDBVlanId [in] - VLAN ID to be matched against outgoing frames
- * @param enabled BOOL [in] - TRUE to enable Egress VLAN tagging on the port and given VLAN, and
- *                FALSE to disable Egress VLAN tagging
+ * @param enabled BOOL [in] - true to enable Egress VLAN tagging on the port and given VLAN, and
+ *                false to disable Egress VLAN tagging
  *
  * @retval IX_ETH_DB_SUCCESS operation completed successfully
  * @retval IX_ETH_DB_INVALID_PORT portID is not a valid port identifier
@@ -1450,8 +1426,8 @@ IxEthDBStatus ixEthDBEgressVlanEntryTaggingEnabledSet(IxEthDBPortId portID, IxEt
  * @param portID [in] - ID of the port to extract the Egress VLAN ID tagging status from
  * @param vlanID VLAN [in] - ID whose tagging status is to be extracted
  * @param enabled [in] - user-specifed location where the status is copied to; following
- * the successfull execution of this function the value will be TRUE if Egress VLAN 
- * tagging is enabled for the given port and VLAN ID, and FALSE otherwise                                                 
+ * the successfull execution of this function the value will be true if Egress VLAN
+ * tagging is enabled for the given port and VLAN ID, and false otherwise
  *
  * - Reentrant    - no
  * - ISR Callable - no
@@ -1486,8 +1462,8 @@ IxEthDBStatus ixEthDBEgressVlanEntryTaggingEnabledGet(IxEthDBPortId portID, IxEt
  * @param portID @ref IxEthDBPortId [in] - ID of the port to enable or disable the VLAN ID Egress tagging on
  * @param vlanIDMin @ref IxEthDBVlanId [in] - start of the VLAN range to be matched against outgoing frames
  * @param vlanIDMax @ref IxEthDBVlanId [in] - end of the VLAN range to be matched against outgoing frames
- * @param enabled BOOL [in] - TRUE to enable Egress VLAN tagging on the port and given VLAN range,
- *                and FALSE to disable Egress VLAN tagging
+ * @param enabled BOOL [in] - true to enable Egress VLAN tagging on the port and given VLAN range,
+ *                and false to disable Egress VLAN tagging
  * 
  * @retval IX_ETH_DB_SUCCESS operation completed successfully
  * @retval IX_ETH_DB_INVALID_PORT portID is not a valid port identifier
@@ -1640,7 +1616,7 @@ IxEthDBStatus ixEthDBIngressVlanTaggingEnabledGet(IxEthDBPortId portID, IxEthDBT
  * This feature is disabled by default.
  *
  * @param portID ID of the port to configure port ID extraction on
- * @param enable TRUE to enable port ID extraction and FALSE to disable it
+ * @param enable true to enable port ID extraction and false to disable it
  * 
  * @retval IX_ETH_DB_SUCCESS operation completed successfully
  * @retval IX_ETH_DB_INVALID_PORT portID is not a valid port identifier
@@ -1759,7 +1735,7 @@ IxEthDBStatus ixEthDBFeatureCapabilityGet(IxEthDBPortId portID, IxEthDBFeature *
  *
  * @param portID @ref IxEthDBPortId [in] - ID of the port to enable or disable the features on (use IX_ETH_DB_ALL_PORTS for all the ports)
  * @param feature @ref IxEthDBFeature [in] - feature or feature set to enable or disable
- * @param enabled BOOL [in] - TRUE to enable the feature and FALSE to disable it
+ * @param enabled BOOL [in] - true to enable the feature and false to disable it
  * 
  * @note Certain features, from a functional point of view, cannot be disabled as such at NPE level;
  * when such features are set to <i>disabled</i> using the EthDB API they will be configured in such
@@ -1786,7 +1762,7 @@ IxEthDBStatus ixEthDBFeatureEnable(IxEthDBPortId portID, IxEthDBFeature feature,
  *
  * This function returns the availability and status for a feature set.
  * Note that if more than one feature is selected (e.g. IX_ETH_DB_LEARNING | IX_ETH_DB_FILTERING)
- * the "present" and "enabled" return values will be set to TRUE only if all the features in the 
+ * the "present" and "enabled" return values will be set to true only if all the features in the
  * feature set are present and enabled (not only some). 
  * 
  * @param portID @ref IxEthDBPortId [in] - ID of the port 
@@ -1873,7 +1849,7 @@ IxEthDBStatus ixEthDBFeaturePropertyGet(IxEthDBPortId portID, IxEthDBFeature fea
  *   - IX_ETH_DB_INTEGER_PROPERTY   - 4 bytes are copied from the source location
  *   - IX_ETH_DB_STRING_PROPERTY    - the source string will be copied up to the NULL '\0' string terminator, maximum of 255 characters
  *   - IX_ETH_DB_MAC_ADDR_PROPERTY  - 6 bytes are copied from the source location
- *   - IX_ETH_DB_BOOL_PROPERTY      - 4 bytes are copied from the source location; the only allowed values are TRUE (1L) and false (0L)
+ *   - IX_ETH_DB_BOOL_PROPERTY      - 4 bytes are copied from the source location; the only allowed values are true (1L) and false (0L)
  *
  * @see ixEthDBFeaturePropertySet
  *
@@ -2134,7 +2110,7 @@ IxEthDBStatus ixEthDBWiFiBBSIDSet(IxEthDBPortId portID, IxEthDBMacAddr *bbsid);
  * @brief Sets the STP blocked/unblocked state for a port
  *
  * @param portID @ref IxEthDBPortId [in] - ID of the port 
- * @param blocked BOOL [in] - TRUE to set the port as STP blocked, FALSE to set it as unblocked
+ * @param blocked BOOL [in] - true to set the port as STP blocked, false to set it as unblocked
  * 
  * @retval IX_ETH_DB_SUCCESS operation completed successfully
  * @retval IX_ETH_DB_INVALID_PORT portID is not a valid port identifier
@@ -2153,7 +2129,7 @@ IxEthDBStatus ixEthDBSpanningTreeBlockingStateSet(IxEthDBPortId portID, BOOL blo
  * @brief Retrieves the STP blocked/unblocked state for a port
  *
  * @param portID @ref IxEthDBPortId [in] - ID of the port 
- * @param blocked BOOL * [in] - set to TRUE if the port is STP blocked, FALSE otherwise
+ * @param blocked BOOL * [in] - set to true if the port is STP blocked, false otherwise
  * 
  * @retval IX_ETH_DB_SUCCESS operation completed successfully
  * @retval IX_ETH_DB_INVALID_PORT portID is not a valid port identifier
@@ -2214,7 +2190,7 @@ IxEthDBStatus ixEthDBFirewallModeSet(IxEthDBPortId portID, IxEthDBFirewallMode m
  * NPE image.
  *
  * @param portID ID of the port 
- * @param enable TRUE to enable invalid MAC address filtering and FALSE to disable it
+ * @param enable true to enable invalid MAC address filtering and false to disable it
  * 
  * @retval IX_ETH_DB_SUCCESS operation completed successfully
  * @retval IX_ETH_DB_INVALID_PORT portID is not a valid port identifier

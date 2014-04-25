@@ -17,31 +17,7 @@
  * All rights reserved.
  * 
  * @par
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Intel Corporation nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- * 
- * @par
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * 
+ * SPDX-License-Identifier:	BSD-3-Clause
  * @par
  * -- End of Copyright Notice --
 */
@@ -72,7 +48,7 @@ IX_OSAL_WRITE_LONG(ixFeatureCtrlRegister, (value)); \
 
 
 /* Boolean to mark the fact that the EXP_CONFIG address space was mapped */
-PRIVATE BOOL ixFeatureCtrlExpCfgRegionMapped = FALSE;
+PRIVATE BOOL ixFeatureCtrlExpCfgRegionMapped = false;
 
 /* Pointer holding the virtual address of the Feature Control Register */
 PRIVATE VUINT32 *ixFeatureCtrlRegister = NULL;
@@ -81,7 +57,7 @@ PRIVATE VUINT32 *ixFeatureCtrlRegister = NULL;
 PRIVATE BOOL swConfiguration[IX_FEATURECTRL_SWCONFIG_MAX];
 
 /* Flag to control swConfiguration[] is initialized once */
-PRIVATE BOOL swConfigurationFlag = FALSE ;
+PRIVATE BOOL swConfigurationFlag = false ;
 
 /* Array containing component mask values */
 #ifdef __ixp42X
@@ -158,7 +134,7 @@ void ixFeatureCtrlExpMap(void)
 
     /* If the EXP Configuration space has already been mapped then
      * return */
-    if (ixFeatureCtrlExpCfgRegionMapped == TRUE)
+    if (ixFeatureCtrlExpCfgRegionMapped == true)
     {
 	return;
     }
@@ -176,7 +152,7 @@ void ixFeatureCtrlExpMap(void)
 	(VUINT32 *) (expCfgBaseAddress + IX_FEATURE_CTRL_REG_OFFSET);
 
     /* Mark the fact that the EXP_CONFIG space has already been mapped */
-    ixFeatureCtrlExpCfgRegionMapped = TRUE;
+    ixFeatureCtrlExpCfgRegionMapped = true;
 }
 
 /**
@@ -186,15 +162,15 @@ void ixFeatureCtrlExpMap(void)
 PRIVATE void ixFeatureCtrlSwConfigurationInit(void)
 {
   UINT32 i;
-  if (FALSE == swConfigurationFlag)
+  if (false == swConfigurationFlag)
   {
     for (i=0; i<IX_FEATURECTRL_SWCONFIG_MAX ; i++)
     {
         /* By default, all software configuration are enabled */
-        swConfiguration[i]= TRUE ;
+        swConfiguration[i]= true ;
     }
     /*Make sure this function only initializes swConfiguration[] once*/
-    swConfigurationFlag = TRUE ;
+    swConfigurationFlag = true ;
   }  
 }
 
@@ -326,7 +302,7 @@ ixFeatureCtrlProductIdRead ()
     extern  IxFeatureCtrlProductId AsmixFeatureCtrlProductIdRead();
     
 #ifndef IN_KERNEL
-    mode = SetKMode(TRUE);
+    mode = SetKMode(true);
 #endif
     pdId = AsmixFeatureCtrlProductIdRead();
 #ifndef IN_KERNEL
@@ -372,7 +348,7 @@ ixFeatureCtrlSwConfigurationCheck (IxFeatureCtrlSwConfig swConfigType)
   ixFeatureCtrlSwConfigurationInit();
   
   /* Check and return software configuration */
-  return  ((swConfiguration[(UINT32)swConfigType] == TRUE) ? IX_FEATURE_CTRL_SWCONFIG_ENABLED: IX_FEATURE_CTRL_SWCONFIG_DISABLED);
+  return  ((swConfiguration[(UINT32)swConfigType] == true) ? IX_FEATURE_CTRL_SWCONFIG_ENABLED: IX_FEATURE_CTRL_SWCONFIG_DISABLED);
 }
 
 /**

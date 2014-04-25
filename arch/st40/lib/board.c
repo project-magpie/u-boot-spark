@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2004-2013 STMicroelectronics.
+ * (C) Copyright 2004-2014 STMicroelectronics.
  *
  * Andy Sturges <andy.sturges@st.com>
  * Sean McGoogan <Sean.McGoogan@st.com>
@@ -38,7 +38,6 @@
 #include <spi.h>
 #endif
 #include <stm/socregs.h>
-#include <stm/stxxxxxreg.h>
 #include <asm/addrspace.h>
 #include <stm/soc.h>
 

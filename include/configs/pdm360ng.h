@@ -2,23 +2,7 @@
  * (C) Copyright 2009-2010
  * Michael Weiß, ifm ecomatic gmbh, michael.weiss@ifm.com
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /*
@@ -68,7 +52,6 @@
 
 #define CONFIG_SYS_MPC512X_CLKIN	33333333	/* in Hz */
 
-#define CONFIG_BOARD_EARLY_INIT_F	/* call board_early_init_f() */
 #define CONFIG_MISC_INIT_R
 
 #define CONFIG_SYS_IMMR			0x80000000
@@ -206,6 +189,9 @@
 #define CONFIG_SYS_SRAM_BASE		0x50000000
 #define CONFIG_SYS_SRAM_SIZE		0x00020000	/* 128 KB */
 
+#define CONFIG_SYS_CS1_START		CONFIG_SYS_FLASH1_BASE
+#define CONFIG_SYS_CS1_SIZE		CONFIG_SYS_FLASH_SIZE
+
 /* ALE active low, data size 4 bytes */
 #define CONFIG_SYS_CS0_CFG		0x05059350
 /* ALE active low, data size 4 bytes */
@@ -213,6 +199,9 @@
 
 #define CONFIG_SYS_MRAM_BASE		0x50040000
 #define CONFIG_SYS_MRAM_SIZE		0x00020000
+#define CONFIG_SYS_CS2_START		CONFIG_SYS_MRAM_BASE
+#define CONFIG_SYS_CS2_SIZE		CONFIG_SYS_MRAM_SIZE
+
 /* ALE active low, data size 4 bytes */
 #define CONFIG_SYS_CS2_CFG		0x05059110
 
@@ -296,6 +285,23 @@
 #define CONSOLE_FIFO_RX_ADDR	FIFOC_PSC6_RX_ADDR
 
 /*
+ * Clocks in use
+ */
+#define SCCR1_CLOCKS_EN	(CLOCK_SCCR1_CFG_EN |				\
+			 CLOCK_SCCR1_LPC_EN |				\
+			 CLOCK_SCCR1_NFC_EN |				\
+			 CLOCK_SCCR1_PSC_EN(CONFIG_PSC_CONSOLE) |	\
+			 CLOCK_SCCR1_PSCFIFO_EN |			\
+			 CLOCK_SCCR1_DDR_EN |				\
+			 CLOCK_SCCR1_FEC_EN |				\
+			 CLOCK_SCCR1_TPR_EN)
+
+#define SCCR2_CLOCKS_EN	(CLOCK_SCCR2_MEM_EN |		\
+			 CLOCK_SCCR2_SPDIF_EN |		\
+			 CLOCK_SCCR2_DIU_EN |		\
+			 CLOCK_SCCR2_I2C_EN)
+
+/*
  * Used PSC UART devices
  */
 #define CONFIG_SYS_PSC1
@@ -317,6 +323,11 @@
 /* I2C speed and slave address */
 #define CONFIG_SYS_I2C_SPEED		100000
 #define CONFIG_SYS_I2C_SLAVE		0x7F
+
+/*
+ * IIM - IC Identification Module
+ */
+#undef CONFIG_FSL_IIM
 
 /*
  * EEPROM configuration
@@ -380,6 +391,8 @@
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_REGINFO
 
+#undef CONFIG_CMD_FUSE
+
 #ifdef CONFIG_VIDEO
 #define CONFIG_CMD_BMP
 #endif
@@ -389,7 +402,6 @@
  */
 #define CONFIG_SYS_LONGHELP			/* undef to save memory */
 #define CONFIG_SYS_LOAD_ADDR	0x2000000	/* default load address */
-#define CONFIG_SYS_PROMPT	"=> "		/* Monitor Command Prompt */
 
 #ifdef CONFIG_CMD_KGDB
 	#define CONFIG_SYS_CBSIZE	1024	/* Console I/O Buffer Size */
@@ -404,7 +416,6 @@
 /* Boot Argument Buffer Size */
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE
 /* Decrementer freq: 1ms ticks */
-#define CONFIG_SYS_HZ		1000
 
 /*
  * For booting Linux, the board info and command line data
@@ -430,7 +441,6 @@
 
 #ifdef CONFIG_CMD_KGDB
 #define CONFIG_KGDB_BAUDRATE	230400	/* speed of kgdb serial port */
-#define CONFIG_KGDB_SER_INDEX	2	/* which serial port to use */
 #endif
 
 /* POST support */

@@ -3,23 +3,7 @@
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -198,7 +182,7 @@ static void configSpi(void)
 #endif	/* CONFIG_SPI */
 
 
-#if defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_SYS_I2C_SOFT)
 static void configI2c(void)
 {
 	/*
@@ -257,7 +241,7 @@ extern int stx7105_i2c_read(void)
 	return STPIO_GET_PIN(PIO_PORT(3), 7);
 #endif
 }
-#endif	/* CONFIG_SOFT_I2C */
+#endif	/* CONFIG_SYS_I2C_SOFT */
 
 #if defined(CONFIG_I2C_CMD_TREE)
 extern unsigned int i2c_get_bus_speed(void)
@@ -341,10 +325,10 @@ extern int board_init(void)
 	configSpi();
 #endif	/* CONFIG_SPI */
 
-#if defined(CONFIG_SOFT_I2C)
+#if defined(CONFIG_SYS_I2C_SOFT)
 	/* Configuration for the I2C bus */
 	configI2c();
-#endif	/* CONFIG_SOFT_I2C */
+#endif	/* CONFIG_SYS_I2C_SOFT */
 
 #if defined(CONFIG_STM_SATA)
 	stx7105_configure_sata ();

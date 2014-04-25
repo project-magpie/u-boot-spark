@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007,2009-2013 STMicroelectronics.
+ * (C) Copyright 2007,2009-2014 STMicroelectronics.
  *
  * Sean McGoogan <Sean.McGoogan@st.com>
  *
@@ -134,10 +134,10 @@ static unsigned deviceSize;	/* Size of the device in Bytes */
 static const char * deviceName;	/* Name of the device */
 
 #if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND) || defined(CONFIG_SPI_FLASH_SPANSION)
-#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) || defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_SPANSION)
+#if defined(CONFIG_SOFT_SPI) || defined(CONFIG_STM_SSC_SPI) || defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_MXIC)
 static unsigned char op_write = OP_PP;		/* default write command opcode to use */
 static unsigned char op_erase = OP_SE;		/* default erase command opcode to use */
-#endif	/* CONFIG_SOFT_SPI || CONFIG_STM_SSC_SPI || CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_SPANSION */
+#endif	/* CONFIG_SOFT_SPI || CONFIG_STM_SSC_SPI || FLASH_ST || FLASH_SPANSION || FLASH_MXIC */
 #endif
 static unsigned char op_read  = OP_READ_ARRAY;	/* default read command opcode to use */
 
@@ -1066,13 +1066,38 @@ static int spi_probe_serial_flash(
 	else if (
 		(devid[1] == 0xc2u)	&&	/* Manufacturer ID */
 		(devid[2] == 0x20u)	&&	/* Memory Type */
-		(devid[3] == 0x16u)		/* MX25L3206E */
+		(				/* Memory Capacity */
+			(devid[3] == 0x16u) ||	/* MX25L3206E */
+			(devid[3] == 0x19u)	/* MX25L25635 */
+		)
 	   )
 	{
 		pageSize   = 256u;
 		eraseSize  = 4u<<10;			/* 4 KiB, 16 pages/sector */
 		deviceSize = 1u<<devid[3];		/* Memory Capacity */
-		deviceName = "MXIC MX25L3206E";		/* 32 Mbit == 4 MiB */
+		if (devid[3] == 0x16u)
+		{
+			deviceName = "MXIC MX25L3206E";		/* 32 Mbit == 4 MiB */
+		}
+		else if (devid[3] == 0x19u)
+		{
+			/*
+			 * NOTE: the MX25L25635E and the MX25L25635F report
+			 * having the exact same Device ID, but the MX25L25635E
+			 * does *not* support the 4-byte addressing instructions!
+			 */
+			if (1)	/* is a MX25L25635F ? */
+			{
+				deviceName = "MXIC MX25L25635F";/* 256 Mbit == 32 MiB */
+				op_read  = OP_READ_4BYTE;	/* use 4-byte addressing for READ */
+				op_write = OP_PP_4BYTE;		/* use 4-byte addressing for WRITE */
+				op_erase = OP_SE_4BYTE;		/* use 4-byte addressing for ERASE */
+			}
+			else	/* is a MX25L25635E ? */
+			{
+				deviceName = "MXIC MX25L25635E";/* 256 Mbit == 32 MiB */
+			}
+		}
 	}
 	else
 	{
@@ -1346,14 +1371,14 @@ extern void spi_init(void)
 	spi_probe_serial_flash(MyDefaultSlave);
 
 #if defined(CONFIG_STM_FSM_SPI)		/* Use the H/W FSM for SPI */
-#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_SPANSION)
+#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_SPANSION) || defined(CONFIG_SPI_FLASH_MXIC)
 	/* Enable support for 4-Byte Address mode, if we need to */
 	if (NUM_ADDRESS_BYTES() == 4)	/* using 4-byte addressing ? */
 	{
 		/* configure FSM driver to use opcodes with 32-bit addresses */
 		fsm_init_4byte_mode(op_read, op_write, op_erase);
 	}
-#endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_SPANSION */
+#endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_SPANSION || CONFIG_SPI_FLASH_MXIC */
 #endif	/* CONFIG_STM_FSM_SPI */
 }
 

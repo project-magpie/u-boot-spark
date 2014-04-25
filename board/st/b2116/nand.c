@@ -1,24 +1,8 @@
 /*
  * (C) Copyright 2006 DENX Software Engineering
- * (C) Copyright 2008-2013 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2014 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
- * MA 02111-1307 USA
+ * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
@@ -30,12 +14,12 @@
 
 
 /*
- * hardware specific access to control-lines for "bit-banging".
+ * hardware specific access to control-lines for "EMI bit-banging".
  *	CL -> Emi_Addr(17)
  *	AL -> Emi_Addr(18)
  *	nCE is handled by EMI (not s/w controllable)
  */
-#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the "EMI bit-banging" driver */
 static void b2116_cmd_ctrl (
 	struct mtd_info * const mtd,
 	const int byte,
@@ -103,7 +87,7 @@ static int b2116_device_ready(struct mtd_info *mtd)
  */
 extern int board_nand_init(struct nand_chip * const nand)
 {
-#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the "EMI bit-banging" driver */
 	stm_default_board_nand_init(nand, b2116_cmd_ctrl, b2116_device_ready);
 #else						/* else, use a H/W driver */
 	stm_default_board_nand_init(nand, NULL, NULL);
