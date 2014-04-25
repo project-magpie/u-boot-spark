@@ -51,7 +51,11 @@ do							\
  *	MII1: PIO3[0] = RGMII1_notRESET
  */
 #if CONFIG_SYS_STM_STMAC_BASE == CONFIG_SYS_STM_STMAC1_BASE	/* MII1, on U77 */
+#if defined(CONFIG_STM_B2020_REVE)
+#	define GMII_PHY_NOT_RESET	0, 7
+#else
 #	define GMII_PHY_NOT_RESET	3, 0
+#endif
 #else
 #	error GMAC #0 is not usable on the B2020 board!
 #endif
