@@ -1,5 +1,5 @@
 /*
- * Copyright (C) STMicroelectronics Ltd. 2008,2010-2014
+ * Copyright (C) STMicroelectronics Ltd. 2008,2010-2013
  *
  * All rights reserved.
  */
@@ -26,38 +26,18 @@
 #define STXH407_COMMS_BASE			0x09800000
 #endif
 
-/* FLASHSS Register Configuration Space */
-#define CONFIG_STM_SOC_HAS_FLASHSS		/* The FlashSS is present on this SoC */
+/* EMISS (aka EMIPCISS) Register Configuration Space */
+//QQQ #define STM_EMISS_REGS_BASE			0xfef00000
 
 /* Flash Interface, Control Registers (port 0) */
 #ifndef STXH407_FLASH_IF_REG0_BASE
 #define STXH407_FLASH_IF_REG0_BASE		0x09020000
-#endif
-#ifndef CONFIG_SYS_STM_FLASHSS_PORT0_BASE
-#define CONFIG_SYS_STM_FLASHSS_PORT0_BASE	STXH407_FLASH_IF_REG0_BASE
 #endif
 
 /* Flash Interface, Control Registers (port 1) */
 #ifndef STXH407_FLASH_IF_REG1_BASE
 #define STXH407_FLASH_IF_REG1_BASE		0x09060000
 #endif
-#ifndef CONFIG_SYS_STM_FLASHSS_PORT1_BASE
-#define CONFIG_SYS_STM_FLASHSS_PORT1_BASE	STXH407_FLASH_IF_REG1_BASE
-#endif
-
-/* FSM SPI Controller Base (in the FlashSS) */
-#ifndef CONFIG_SYS_STM_SPI_FSM_BASE
-#define CONFIG_SYS_STM_SPI_FSM_BASE		(CONFIG_SYS_STM_FLASHSS_PORT0_BASE + 0x2000)
-#endif
-
-/* MMC Controller Bases (in the FlashSS) */
-#ifndef CONFIG_SYS_MMC0_BASE
-#define CONFIG_SYS_MMC0_BASE			(CONFIG_SYS_STM_FLASHSS_PORT1_BASE + 0x0)	/* MMC #0 */
-#endif
-#ifndef CONFIG_SYS_MMC1_BASE
-#define CONFIG_SYS_MMC1_BASE			0x09080000	/* MMC #1 */
-#endif
-
 
 /* Low-Power Block */
 #ifndef STXH407_SBC_LPM_BASE
@@ -303,15 +283,13 @@
 #define STXH407_SYSCONF_DEVICEID	STXH407_SYSSTS(5568)
 
 /* Device ID values, masks & predicates */
-#define STXH407_DEVID_407_VAL		0x050	/* Device ID for the STxH407 */
-#define STXH407_DEVID_410_VAL		0x056	/* Device ID for the STxH410 */
+#define STXH407_DEVID_VAL		0x050
 #define STXH407_DEVID_ID_SHIFT		12
 #define STXH407_DEVID_ID_MASK		0x3ff
 #define STXH407_DEVID_CUT_SHIFT		28
 #define STXH407_DEVID_CUT_MASK		0xf
 
-#define STXH407_DEVICEID_407(ID)	((((ID) >> STXH407_DEVID_ID_SHIFT) & STXH407_DEVID_ID_MASK) == STXH407_DEVID_407_VAL)
-#define STXH407_DEVICEID_410(ID)	((((ID) >> STXH407_DEVID_ID_SHIFT) & STXH407_DEVID_ID_MASK) == STXH407_DEVID_410_VAL)
+#define STXH407_DEVICEID_407(ID)	((((ID) >> STXH407_DEVID_ID_SHIFT) & STXH407_DEVID_ID_MASK) == STXH407_DEVID_VAL)
 #define STXH407_DEVICEID_CUT(ID)	((((ID) >> STXH407_DEVID_CUT_SHIFT) & STXH407_DEVID_CUT_MASK) + 1)
 
 #endif /* __INCLUDE_STM_STXH407REG_H */

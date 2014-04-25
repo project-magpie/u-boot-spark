@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008-2014 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
+ * (C) Copyright 2008-2013 STMicroelectronics, Sean McGoogan <Sean.McGoogan@st.com>
  *
  * See file CREDITS for list of people who contributed to this
  * project.
@@ -26,6 +26,7 @@
 #include <stm/stm-nand.h>
 #include <stm/ecc.h>
 #include <asm/errno.h>
+#include <stm/stxxxxxreg.h>
 #include <asm/io.h>
 #include <stm/socregs.h>
 
@@ -853,7 +854,7 @@ extern void stm_default_board_nand_init(
 	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
 	nand->scan_bbt      = stm_nand_default_bbt;
 
-#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the "EMI bit-banging" driver */
+#if defined(CONFIG_SYS_STM_NAND_USE_BIT_BANGING)	/* use the S/W "bit-banging" driver */
 	nand->cmd_ctrl      = cmd_ctrl;
 	nand->dev_ready     = dev_ready;
 #elif defined(CONFIG_SYS_STM_NAND_USE_HAMMING)		/* for H/W Hamming ("flex") driver */
