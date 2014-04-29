@@ -62,6 +62,7 @@ obj-$(CONFIG_STM_STXH205) += soc-stxh205.o
 obj-$(CONFIG_STM_STXH407) += soc-stxh407.o
 obj-$(CONFIG_STM_STXH415) += soc-stxh415.o
 obj-$(CONFIG_STM_STXH416) += soc-stxh416.o
+obj-$(CONFIG_STM_STXH301) += soc-stxh301.o
 endif # CONFIG_STM
 
 ifdef CONFIG_ST40

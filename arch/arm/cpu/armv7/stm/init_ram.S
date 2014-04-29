@@ -135,6 +135,8 @@ poketable_start_address:.long CONFIG_STM_SRAM_POKE_STORAGE + __memory_setup_tabl
 deviceid_address:
 #if defined(CONFIG_STM_STXH407)
 		STXH407_SYSCONF_DEVICEID
+#elif defined(CONFIG_STM_STXH301)
+		STXH301_SYSCONF_DEVICEID
 #elif defined(CONFIG_STM_STXH415)
 		STXH415_SYSCONF_DEVICEID
 #elif defined(CONFIG_STM_STXH416)

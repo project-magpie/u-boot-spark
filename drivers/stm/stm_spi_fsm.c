@@ -835,7 +835,6 @@ extern int fsm_write(const uint8_t * const buf, const uint32_t bufsize, uint32_t
 extern int fsm_init(void)
 {
 	DEBUG("debug: in %s()\n", __FUNCTION__);
-
 		/* perform a soft reset of the FSM controller */
 	fsm_write_reg(SPI_FAST_SEQ_CFG, SEQ_CFG_SWRESET);
 	udelay(1);	/* QQQ - is this long enough ??? */

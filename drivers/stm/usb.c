@@ -98,6 +98,8 @@ extern int usb_cpu_init(void)
 #endif
 #elif defined(CONFIG_STM_STXH407)
 	stxh407_usb_init(0);
+#elif defined(CONFIG_STM_STXH301)
+	stxh301_usb_init(0);
 #else
 #error Missing Device Definitions!
 #endif

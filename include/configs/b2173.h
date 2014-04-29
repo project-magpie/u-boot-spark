@@ -1,0 +1,632 @@
+/*
+ * (C) Copyright 2008-2014 STMicroelectronics.
+ *
+ * Imran Khan <imran.khan@st.com>
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+#ifndef __CONFIG_H
+#define __CONFIG_H
+
+/*
+ * High Level Configuration Options
+ * (easy to change)
+ */
+
+#define CONFIG_STM	1		/* The SoC is from STMicroelectronics	*/
+#if defined(CONFIG_ST40)		/* It must not be an ST40		*/
+#  error CONFIG_ST40 must not be defined for this board!
+#endif
+
+
+/*-----------------------------------------------------------------------
+ *	Jumper settings to select between the SoC's main boot-modes:
+ *		*) boot from 8-bit NAND (with the Hamming or BCH controller)
+ *		*) boot from SPI serial flash (NOR)
+ *		*) boot from MMC/eMMC (v4.4, or v4.5)
+ *
+ *	In the following, NAND is always assumed to be 8-bits wide.
+ *	The following table only covers *some* of the more likely
+ *	configurations. Please consult the full boot-device selection
+ *	encoding table, for the other options for MODE[6-2].
+ *
+ *	There are 5 jumpers for the boot device (SW1-3 to SW1-7)
+ *
+ *					MODE	1-7 1-6 1-5 1-4 1-3
+ *	Flash Boot Configuration	[6-2]	[6] [5] [4] [3] [2]
+ *	------------------------	------	--- --- --- --- ---
+ *	NAND  2k, 5 cycles, 18-bit BCH	00101	 ON  ON off  ON off
+ *	NAND  2k, 5 cycles, 30-bit BCH	00110	 ON  ON off off  ON
+ *	NAND  4k, 5 cycles, 18-bit BCH	01001	 ON off  ON  ON off
+ *	NAND  4k, 5 cycles, 30-bit BCH	01010	 ON off  ON off  ON
+ *	NAND 512, 4 cycles, Hamming	10010	off  ON  ON off  ON
+ *	NAND  2k, 5 cycles, Hamming	10100	off  ON off  ON  ON
+ *	SPI (NOR) (divide by 4)		11010	off off  ON off  ON
+ *	MMC (v4.4, or v4.5)		11110	off off off off  ON
+ *
+ */
+
+
+/*-----------------------------------------------------------------------
+ * For ARM CPUs, to boot linux, we also need a "Machine ID",
+ * which uniquely identifies this specific class of board.
+ * See http://www.arm.linux.org.uk/developer/machines
+ */
+#define CONFIG_MACH_STM_B2120	4747		/* MACH_TYPE_STM_B2120 */
+#define CONFIG_MACH_TYPE	CONFIG_MACH_STM_B2120	/* For the time being. */
+
+
+/*-----------------------------------------------------------------------
+ * Are we booting directly from a SPI Serial Flash device ?
+ * If so, then define the "CONFIG_SYS_BOOT_FROM_SPI" macro,
+ * otherwise (e.g. for eMMC Flash booting), do not define it.
+ * Note: this will be implicitly defined if "make b2173<xx>_spi_config" is run.
+ */
+//#define CONFIG_SYS_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
+
+
+/*-----------------------------------------------------------------------
+ * Are we booting directly from an eMMC Flash device ?
+ * If so, then define the "CONFIG_SYS_BOOT_FROM_EMMC" macro,
+ * otherwise (e.g. for SPI Flash booting), do not define it.
+ * Note: this will be implicitly defined if "make b2173<xx>_emmc_config" is run.
+ */
+//#define CONFIG_SYS_BOOT_FROM_EMMC		/* define to build a eMMC-bootable image */
+
+
+/*-----------------------------------------------------------------------
+ * Start addresses for the final memory configuration
+ * Assume we run out of uncached memory for the moment
+ */
+
+#if defined(CONFIG_SYS_BOOT_FROM_SPI)			/* we are booting from SPI */
+#elif defined(CONFIG_SYS_BOOT_FROM_EMMC)		/* we are booting from eMMC */
+#elif defined(CONFIG_SYS_BOOT_FROM_NAND)		/* we are booting from NAND */
+#else
+#	error Either CONFIG_SYS_BOOT_FROM_SPI or CONFIG_SYS_BOOT_FROM_EMMC must be defined!
+#endif /* CONFIG_SYS_BOOT_FROM_SPI || CONFIG_SYS_BOOT_FROM_EMMC */
+#if	(defined(CONFIG_SYS_BOOT_FROM_SPI)  && defined(CONFIG_SYS_BOOT_FROM_EMMC))	|| \
+	(defined(CONFIG_SYS_BOOT_FROM_SPI)  && defined(CONFIG_SYS_BOOT_FROM_NAND))	|| \
+	(defined(CONFIG_SYS_BOOT_FROM_EMMC) && defined(CONFIG_SYS_BOOT_FROM_NAND))
+#	error Only one of CONFIG_SYS_BOOT_FROM_SPI or CONFIG_SYS_BOOT_FROM_EMMC or CONFIG_SYS_BOOT_FROM_NAND may be defined!
+#endif
+
+#define CONFIG_SYS_SDRAM_SIZE		0x20000000	/* 512MB of LMI SDRAM */
+
+#if defined(CONFIG_SYS_BOOT_FROM_SPI)			/* we are booting from SPI */
+#	define CONFIG_SYS_EMI_SPI_BASE	0x00000000	/* CSA: SPI Flash,  Physical 0x00000000 (4MiB) */
+#endif	/* CONFIG_SYS_BOOT_FROM_SPI */
+#define CONFIG_L2_OFF					/* Disable the L2 caches */
+#define CONFIG_NR_DRAM_BANKS		1		/* Number of memory banks */
+#define CONFIG_SYS_SDRAM_BASE		0x40000000	/* Start of LMI RAM (identity mapped) */
+/* Cortex-A9 CPU clock, ideally it should be read dynamically, but for now set to fixed */
+#define CONFIG_SYS_CPU_CLK		1000000000	/* 1 GHz */
+
+#define CONFIG_SYS_MONITOR_LEN		0x00080000	/* Reserve 512 KiB for Monitor */
+#define CONFIG_SYS_MALLOC_LEN		(4 << 20)	/* Reserve 4 MiB for malloc */
+#define CONFIG_SYS_GBL_DATA_SIZE	(1024-8)	/* Global data structures */
+
+#define CONFIG_SYS_MEMTEST_START	CONFIG_SYS_SDRAM_BASE
+#define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_TEXT_BASE - CONFIG_SYS_MALLOC_LEN - (1 << 20))
+
+#define CONFIG_BAUDRATE			115200
+#define CONFIG_SYS_BAUDRATE_TABLE	{ 9600, 19200, 38400, 57600, 115200 }
+
+#define XSTR(s) STR(s)
+#define STR(s) #s
+
+#define BOARD b2173
+
+#define CONFIG_EXTRA_ENV_SETTINGS \
+		"board=" XSTR(BOARD) "\0" \
+		"load_addr=" XSTR(CONFIG_SYS_LOAD_ADDR) "\0"
+
+/*--------------------------------------------------------------
+ * Command line configuration.
+ */
+
+#include <config_cmd_default.h>
+
+#define CONFIG_CMD_ASKENV
+#define CONFIG_CMD_NFS
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_DHCP
+#define CONFIG_CMD_MII
+
+/*--------------------------------------------------------------
+ * Serial console info
+ */
+
+/*
+ * Use the (normal hardware) internal ST ASC UART as the console.
+ */
+#define CONFIG_STM_ASC_SERIAL	/* use a ST ASC UART */
+
+/* choose which ST ASC UART to use */
+#if 1
+#	define CONFIG_SYS_STM_ASC_BASE	STXH301_SBC_ASC0_BASE	/* SBC_UART0 on J12 (off-board) */ //imran cmntd
+//bcoz I m testing on b2089
+//#	define CONFIG_SYS_STM_ASC_BASE	STXH301_ASC1_BASE	/* SBC_UART0 on J12 (off-board) */ //imran added
+//bcoz I m testing on b2089
+#else
+#	define CONFIG_SYS_STM_ASC_BASE	STXH301_SBC_ASC1_BASE	/* SBC_UART1 on J13 (off-board) */
+#endif
+
+/*---------------------------------------------------------------
+ * Ethernet driver config
+ */
+
+/*
+ * On the STxH301 SoC there is only a single GMAC device (GMAC1) present.
+ * On the B2173 board, it is connected to an on-board RealTek RTL8211RB
+ * switch (UE1), which we use in RGMII mode, as a (dumb) "fixed PHY".
+ */
+
+/* are we using the internal ST GMAC device ? */
+#define CONFIG_DRIVER_NET_STM_GMAC
+
+/*
+ * Select the appropriate base address for the GMAC.
+ * Also, choose which PHY to use.
+ */
+#ifdef CONFIG_DRIVER_NET_STM_GMAC
+#	define CONFIG_SYS_STM_STMAC_BASE	0x09630000ul	/* GMAC #1 */
+#	define CONFIG_STMAC_RTL8211E		/* Realtek RTL8211 */
+#endif	/* CONFIG_DRIVER_NET_STM_GMAC */
+
+/*  If this board does not have eeprom for ethernet address so allow the user
+ *  to set it in the environment
+ */
+#define CONFIG_ENV_OVERWRITE
+
+/*---------------------------------------------------------------
+ * USB driver config
+ */
+
+/*
+ * QQQ - to do!
+ */
+
+/* Choose if we want USB Mass-Storage Support */
+#define CONFIG_STM_USB
+
+#ifdef CONFIG_STM_USB
+#	define CONFIG_CMD_USB
+#	define CONFIG_CMD_FAT
+#	define CONFIG_USB_STORAGE
+#define CONFIG_SYS_USB_XHCI_MAX_ROOT_PORTS	2
+#define CONFIG_SYS_CACHELINE_SIZE      32
+#	if 0	/* use OHCI (USB 1.x) ? */
+#		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
+#		define CONFIG_SYS_USB_OHCI_CPU_INIT
+#		define CONFIG_SYS_USB_OHCI_REGS_BASE		AHB2STBUS_OHCI_BASE
+#		define CONFIG_SYS_USB_OHCI_SLOT_NAME		"ohci"
+#		define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	1
+#	else	/* else, use EHCI (USB 2.0) */
+#		define CONFIG_USB_XHCI					/* enable USB 2.0, via EHCI */
+#		define CONFIG_USB_XHCI_STM				/* use EHCI for STMicroelectronics */
+#	endif	/* use OHCI/EHCI */
+#endif	/* ifdef CONFIG_STM_USB */
+
+
+/*---------------------------------------------------------------
+ * SATA driver config
+ */
+
+/*
+ * QQQ - to do!
+ */
+
+/* Choose if we want to use a SATA HDD */
+#undef CONFIG_STM_SATA
+
+/*-----------------------------------------------------------------------
+ * Miscellaneous configurable options
+ */
+
+#define CONFIG_SYS_HUSH_PARSER		1
+#define CONFIG_AUTO_COMPLETE		1
+#define CONFIG_SYS_LONGHELP		1			/* undef to save memory		*/
+#define CONFIG_SYS_PROMPT		"B2173> "		/* Monitor Command Prompt	*/
+#define CONFIG_SYS_PROMPT_HUSH_PS2	"> "
+#define CONFIG_SYS_HZ			1000			/* HZ for timer ticks	*/
+#define CONFIG_SYS_LOAD_ADDR		CONFIG_SYS_SDRAM_BASE	/* default load address		*/
+#define CONFIG_BOOTDELAY		10			/* default delay before executing bootcmd */
+#define CONFIG_ZERO_BOOTDELAY_CHECK
+
+#define CONFIG_CMDLINE_EDITING
+
+	/*
+	 * Do we want to decrease Vcore for the A9 sub-system?
+	 * To boot linux reliably, we may need to decrease the voltage of the A9
+	 * sub-system (i.e. Vcore) to a nominal value of 1.10V.
+	 * This is due to an issue in the JTAG-A9 connection whereby it appears
+	 * some samples need to be powered at 1.30V, but this elevated voltage
+	 * can create problems for some IP blocks (e.g. PL310 L2$ controller).
+	 * This is just a temporary software work-around for such samples.
+	 * WARNING: After the Vcore voltage is decreased, JTAG connections can be lost.
+	 * Enable this option if you have a sample affected by such an issue.
+	 */
+//#define CONFIG_MACH_STM_STXH301_A9SS_VCORE_HACK
+
+/*-----------------------------------------------------------------------
+ * FLASH organization
+ */
+
+/*
+ * Choose if we want FLASH Support (eMMC/MMC/SD and/or SPI devices).
+ * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
+ */
+#undef CONFIG_CMD_FLASH	/* define only when needed */
+#undef CONFIG_CMD_NAND		/* NAND present on the B2173 board */
+#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
+//#define CONFIG_STM_SDHCI_0	/* define for MMC #0 (eMMC) */
+#define CONFIG_STM_SDHCI_1	/* define for MMC #1 (MMC/SD) */
+
+#if defined(CONFIG_SYS_BOOT_FROM_NAND)
+#	define CONFIG_CMD_NAND		/* define for boot-from-NAND */
+#endif	/* CONFIG_SYS_BOOT_FROM_NAND */
+/*-----------------------------------------------------------------------
+ * NOR FLASH organization
+ */
+
+#ifdef CONFIG_CMD_FLASH				/* NOR flash present ? */
+	/* There is no support for parallel NOR flashes on this board. */
+#else
+#	undef CONFIG_CMD_IMLS			/* NOR-flash specific */
+#	define CONFIG_SYS_NO_FLASH		/* NOR-flash specific */
+#endif	/* CONFIG_CMD_FLASH */
+
+/*-----------------------------------------------------------------------
+ * NAND FLASH organization
+ */
+
+#ifdef CONFIG_CMD_NAND				/* NAND flash present ? */
+#	define CONFIG_SYS_MAX_NAND_DEVICE	1
+#	define CONFIG_SYS_NAND0_BASE		CONFIG_SYS_EMI_NAND_BASE
+#	define CONFIG_SYS_NAND_BASE_LIST	{ CONFIG_SYS_NAND0_BASE }
+
+#if defined(CONFIG_SYS_BOOT_FROM_NAND)	/* booting from NAND ? */
+#	define MTDPARTS_NAND						\
+	"gen_nand.1:"		/* First NAND flash device */		\
+	"1M(uboot)"		/* reserve some space for uboot */	\
+	",8M(kernel)"		/* kernel space */			\
+	",-(rootfs)"		/* rootfs */
+#else
+#	define MTDPARTS_NAND						\
+	"gen_nand.1:"		/* First NAND flash device */		\
+	"8M(kernel)"		/* kernel space */			\
+	",-(rootfs)"		/* rootfs */
+#endif
+
+#	define MTDIDS_NAND						\
+	"nand0=gen_nand.1"	/* First NAND flash device */
+
+	/*
+	 * Enable this, if support for probing of ONFI complaint NAND
+	 * devices is also required (typically recommended).
+	 */
+#	define CONFIG_SYS_NAND_ONFI_DETECTION	/* define for probing ONFI devices */
+
+	/*
+	 * With modern large NAND devices, we need to ensure that (if the
+	 * environment is stored in NAND) that it is in its own dedicated "block".
+	 * Hence, we need to define the erase size of the NAND device being used,
+	 * so that the environment section always starts on an erase-block boundary,
+	 * AND is a multiple of erase blocks.
+	 * In practice for a NAND device with an erase size of >= 256KiB,
+	 * a single dedicated block should always be sufficient!
+	 */
+#	define CONFIG_SYS_NAND_ERASE_SIZE	(512 << 10)	/* NAND erase block size is 512 KiB */
+
+	/*
+	 * Currently, there are 3 main modes to read/write from/to
+	 * NAND devices on STM SoCs:
+	 *	1) using the "EMI bit-banging" driver
+	 *	   (can NOT be used with boot-from-NAND)
+	 *	2) using the H/W Hamming controller (flex-mode) driver
+	 *	   (also supports boot-from-NAND capability)
+	 *	3) using the H/W BCH controller (multi-bit ECC) driver
+	 *	   (also supports boot-from-NAND capability)
+	 * Either CONFIG_SYS_STM_NAND_USE_BIT_BANGING, or CONFIG_SYS_STM_NAND_USE_HAMMING,
+	 * or CONFIG_SYS_STM_NAND_USE_BCH should be defined, to select a single NAND driver.
+	 * However, the SoCs on the B2089 board uses the "FlashSS" IP block, which does
+	 * *NOT* support the "EMI bit-banging" driver, hence Hamming or BCH must be used.
+	 * If we are using FLEX or BCH, we still need to #define the
+	 * address CONFIG_SYS_EMI_NAND_BASE, although the value is ignored!
+	 */
+//#	define CONFIG_SYS_STM_NAND_USE_HAMMING			/* use H/W Hamming ("flex") driver */
+#	define CONFIG_SYS_STM_NAND_USE_BCH			/* use H/W BCH ("multi-bit") driver */
+#	define CONFIG_SYS_EMI_NAND_BASE		0xDEADBEEF	/* for FLEX/BCH, we do not care! */
+
+	/*
+	 * If using BCH, then we also need choose the "potency" of the ECC
+	 * scheme to use. The BCH controller can correct up to a maximum of
+	 * either 18-bits, or 30-bits, (both per 1024 byte sector).
+	 * 18-bits of correction requires 32 bytes of OOB per 1KiB of data.
+	 * 30-bits of correction requires 54 bytes of OOB per 1KiB of data.
+	 * For BCH, please choose *only* ONE of the following ECC schemes.
+	 */
+//#	define CONFIG_SYS_STM_NAND_USE_BCH_NO_ECC		/* use BCH with-OUT ECC -- not recommended! */
+#	define CONFIG_SYS_STM_NAND_USE_BCH_18_BIT_ECC		/* use BCH with 18-bit/1KiB sector ECC */
+//#	define CONFIG_SYS_STM_NAND_USE_BCH_30_BIT_ECC		/* use BCH with 30-bit/1KiB sector ECC */
+
+	/*
+	 * Do we want to read/write NAND Flash compatible with the ST40's
+	 * NAND Hamming H/W IP block for "boot-mode"? If we want
+	 * to read/write NAND flash that is meant to support booting
+	 * from NAND, then we need to use 3 bytes of ECC per 128 byte
+	 * record.  If so, then define the "CONFIG_SYS_NAND_ECC_HW3_128" macro.
+	 * Note: do *not* define this if CONFIG_SYS_STM_NAND_USE_BCH is defined,
+	 * as the Hamming boot-mode ECC is different to that of the BCH.
+	 */
+#	define CONFIG_SYS_NAND_ECC_HW3_128	/* define for "boot-from-NAND" compatibility */
+#	if defined(CONFIG_SYS_STM_NAND_USE_BCH)
+#	undef CONFIG_SYS_NAND_ECC_HW3_128	/* explicitly un-define if using BCH */
+#	endif /* CONFIG_SYS_NAND_ECC_HW3_128 */
+
+	/*
+	 * Do we want to use STMicroelectronics' proprietary AFM4 (4+3/512)
+	 * ECC format, instead of Linux's traditional S/W 3/256 ECC?
+	 * Note: This does *not* enable H/W AFM - you can use STM's
+	 * "FLEX-mode", it is simply the addition of the AFM4 ECC
+	 * algorithm+layout that is being supported here.
+	 * Note: We *can* use this H/W AFM4 (4+3/512) ECC in addition to
+	 * the H/W "boot-mode" (3+1/128) ECC, on the same NAND device,
+	 * to partition it, set CONFIG_SYS_NAND_STM_BOOT_MODE_BOUNDARY appropriately.
+	 */
+#	undef CONFIG_SYS_NAND_ECC_AFM4		/* define for AFM4 (4+3/512) ECC compatibility */
+
+	/*
+	 * If using CONFIG_SYS_NAND_ECC_HW3_128, then we must also define
+	 * where the (high watermark) boundary is. That is, the
+	 * NAND offset, below which we are in "boot-mode", and
+	 * must use 3 bytes of ECC for each 128 byte record.
+	 * For this offset (and above) we can use any supported
+	 * ECC configuration (e.g 3/256 S/W, or 3/512 H/W).
+	 */
+#	define CONFIG_SYS_NAND_STM_BOOT_MODE_BOUNDARY (1ul << 20)	/* 1 MiB */
+
+	/*
+	 * If we want to store the U-boot environment variables in
+	 * the NAND device, then we also need to specify *where* the
+	 * environment variables will be stored. Typically this
+	 * would be immediately after the U-boot monitor itself.
+	 * However, that *may* be a bad block. Define the following
+	 * to place the environment in an appropriate good block.
+	 */
+#	define CONFIG_SYS_NAND_ENV_OFFSET	roundup(CONFIG_SYS_MONITOR_LEN, CONFIG_SYS_NAND_ERASE_SIZE)
+#endif	/* CONFIG_CMD_NAND */
+
+#if 0 && defined(CONFIG_SYS_BOOT_FROM_NAND)		/* we are booting from NAND */
+	/*
+	 * If we want to store "u-boot.bin" in NAND flash starting at
+	 * physical block #0, but there are Bad Blocks in the first
+	 * few blocks that we need to "skip" over, then we need
+	 * to define CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING to allow
+	 * skipping of these bad blocks for u-boot to relocate itself.
+	 * In addition, we also need to tell U-boot the block size,
+	 * and provide it a local abridged copy of the master Bad Block
+	 * Table (BBT), which must also be stored in physical block #0
+	 * - see "arch/st40/cpu/start.S" for details.
+	 * Also, CONFIG_SYS_NAND_SKIP_BLOCK_COUNT defines the number of blocks
+	 * stored in the abridged copy of the master BBT.
+	 */
+#	define CONFIG_SYS_NAND_SKIP_BAD_BLOCKS_ON_RELOCATING	/* define for skipping */
+#	define CONFIG_SYS_NAND_SKIP_BLOCK_SIZE		(128<<10)/* Block Size = 128 KiB */
+#	define CONFIG_SYS_NAND_SKIP_BLOCK_COUNT		8	/* entries in the array */
+#endif /* CONFIG_SYS_BOOT_FROM_NAND */
+
+/*-----------------------------------------------------------------------
+ * SPI SERIAL FLASH organization
+ */
+
+/*
+ *	Name	Manuf		Device
+ *	-----	-----		------
+ *	U25	ST		N25Q256
+ */
+#if defined(CONFIG_SPI_FLASH)				/* SPI serial flash present ? */
+#	define CONFIG_SPI_FLASH_ST			/* ST N25Q256 */
+#	define CONFIG_SPI				/* enable the SPI driver */
+#	define CONFIG_CMD_EEPROM			/* enable the "eeprom" command set */
+#	define CONFIG_SYS_I2C_FRAM			/* to minimize performance degradation */
+#	undef  CONFIG_SYS_EEPROM_PAGE_WRITE_DELAY_MS	/* to minimize performance degradation */
+
+#if 1
+	/* Use H/W FSM SPI Controller (not H/W SSC, nor S/W "bit-banging") */
+#	define CONFIG_STM_FSM_SPI			/* Use the H/W FSM for SPI */
+#	define CONFIG_SYS_STM_SPI_CLOCKDIV	4	/* set SPI_CLOCKDIV = 4 */
+#	undef CONFIG_CMD_SPI				/* SPI serial bus command support - NOT with FSM! */
+#else
+	/* Use S/W "bit-banging", (not H/W FSM, nor H/W SSC) */
+#	define CONFIG_SOFT_SPI			/* Use "bit-banging" PIO */
+#	define SPI_SCL(val)	do { stxh301_spi_scl((val)); } while (0)
+#	define SPI_SDA(val)	do { stxh301_spi_sda((val)); } while (0)
+#	define SPI_READ		stxh301_spi_read()
+#	define SPI_DELAY	do { udelay(1); } while (0)	/* Note: only 500 kHz! */
+#endif
+#endif	/* CONFIG_SPI_FLASH */
+
+/*-----------------------------------------------------------------------
+ * eMMC/MMC organization
+ */
+
+#if defined(CONFIG_STM_SDHCI_0) || defined(CONFIG_STM_SDHCI_1)
+#	define CONFIG_STM_SDHCI
+#	define CONFIG_SDHCI
+#	define CONFIG_MMC
+#	define CONFIG_GENERIC_MMC
+#	define CONFIG_CMD_MMC
+#	if defined(CONFIG_STM_SDHCI_0)
+#		define CONFIG_SUPPORT_EMMC_BOOT
+#		define CONFIG_MMC_BOOT_MODE_1_BIT		/* use 1-bit boot-mode */
+#	endif	/* CONFIG_STM_SDHCI_0 */
+#endif	/* CONFIG_STM_SDHCI_0 || CONFIG_STM_SDHCI_1 */
+
+/*-----------------------------------------------------------------------
+ * Address, size, & location of U-boot's Environment Sector
+ */
+
+#define CONFIG_ENV_SIZE_REQUIRED	0x4000	/* 16 KiB of environment data required */
+
+#if 1 && defined(CONFIG_SYS_BOOT_FROM_NAND) &&	/* booting from NAND ? */ \
+	defined(CONFIG_CMD_NAND)		/* NAND flash present ? */
+#	define CONFIG_ENV_IS_IN_NAND		/* environment in NAND flash */
+#	define CONFIG_ENV_OFFSET	CONFIG_SYS_NAND_ENV_OFFSET
+#	define CONFIG_ENV_SIZE		roundup(CONFIG_ENV_SIZE_REQUIRED,CONFIG_SYS_NAND_ERASE_SIZE)
+#elif 1 && defined(CONFIG_SPI_FLASH)		/* SPI serial flash present ? */
+#	define CONFIG_ENV_IS_IN_EEPROM		/* ENV is stored in SPI Serial Flash */
+#	define CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN	/* immediately after u-boot.bin */
+#	define CONFIG_ENV_SIZE		CONFIG_ENV_SIZE_REQUIRED
+#elif 1 && defined(CONFIG_MMC)			/* eMMC/SD flash present ? */
+#	define CONFIG_ENV_IS_IN_MMC		/* ENV is stored in eMMC/SD flash */
+#	define CONFIG_SYS_MMC_ENV_DEV	0	/* use MMC(0), i.e. the first MMC device */
+#	define CONFIG_ENV_OFFSET	CONFIG_SYS_MONITOR_LEN	/* immediately after u-boot.bin */
+#	define CONFIG_ENV_SIZE		CONFIG_ENV_SIZE_REQUIRED
+#else
+#	define CONFIG_ENV_IS_NOWHERE		/* ENV is stored in volatile RAM */
+#	undef  CONFIG_CMD_SAVEENV		/* no need for "saveenv" */
+#endif	/* CONFIG_CMD_NAND */
+
+/*----------------------------------------------------------------------
+ * JFFS2 + MTD Partition support
+ */
+
+#if 0 && defined(CONFIG_CMD_NAND)
+#	define CONFIG_CMD_JFFS2			/* enable JFFS2 support */
+#	define CONFIG_CMD_UBI
+#	define CONFIG_RBTREE
+#	define CONFIG_MTD_PARTITIONS
+#endif
+
+#if defined(CONFIG_CMD_JFFS2)
+#	define CONFIG_CMD_MTDPARTS		/* mtdparts command line support */
+#	define CONFIG_MTD_DEVICE		/* needed for mtdparts commands */
+#	define CONFIG_JFFS2_NAND		/* JFFS2 support on NAND Flash */
+#	if defined(CONFIG_CMD_NAND)		/* Only NAND flash devices */
+#		define MTDPARTS_DEFAULT	"mtdparts=" MTDPARTS_NAND
+#		define MTDIDS_DEFAULT	MTDIDS_NAND
+#	endif	/* defined(CONFIG_CMD_NAND) */
+#endif	/* CONFIG_CMD_JFFS2 */
+
+
+/*---------------------------------------------------------------
+ * Disk-based Partition and Filesystem configuration
+ */
+
+#if defined(CONFIG_STM_SATA) ||	\
+    defined(CONFIG_STM_USB)  ||	\
+    defined(CONFIG_MMC)
+#	define CONFIG_SYS_64BIT_LBA
+#	define CONFIG_LBA48
+#	define CONFIG_DOS_PARTITION
+#	define CONFIG_CMD_FAT
+#	define CONFIG_CMD_EXT2
+#endif
+
+/*----------------------------------------------------------------------
+ * I2C configuration
+ */
+
+#define CONFIG_CMD_I2C				/* do we want I2C support ? */
+#define CONFIG_SYS_I2C
+
+#if defined(CONFIG_CMD_I2C)
+	/* Note: I2C Bus #7 also "probes" devices when a suitable HDMI device is plugged in to CN6. */
+#	define CONFIG_I2C_BUS		7	/* Use I2C Bus associated with SSC #5 */
+#	define CONFIG_SYS_I2C_SLAVE	0x7F	/* I2C slave address - Bogus: master-only in U-Boot */
+#	define CONFIG_SOFT_I2C			/* I2C with S/W bit-banging	*/
+#	undef  CONFIG_HARD_I2C			/* I2C withOUT hardware support	*/
+
+#	define CONFIG_SYS_I2C_SOFT
+#	define CONFIG_SYS_I2C_SOFT_SLAVE	0x7F
+#	define I2C_ACTIVE			/* open-drain, nothing to do */
+#	define I2C_TRISTATE			/* open-drain, nothing to do */
+#	define I2C_SCL(val)		do { stxh301_i2c_scl((val)); } while (0)
+#	define I2C_SDA(val)		do { stxh301_i2c_sda((val)); } while (0)
+#	define I2C_READ			stxh301_i2c_read()
+
+	/*
+	 * The "BOGOS" for NDELAY() may be calibrated using the
+	 * following code fragment, and measuring (using an oscilloscope)
+	 * the frequency of the I2C SCL pin, and adjusting
+	 * NDELAY_BOGOS, until the SCL is approximately 100 kHz.
+	 * (100kHz has a period of 5us + 5us).
+	 *
+	 *	printf("just toggling I2C SCL (100kHz frequency) ...\n");
+	 *	while (1)
+	 *	{
+	 *		I2C_SCL(1); NDELAY(5000);
+	 *		I2C_SCL(0); NDELAY(5000);
+	 *	}
+	 */
+#	define NDELAY_BOGOS		20	/* Empirical measurement for 1ns on B2020 */
+#	define NDELAY(ns)						\
+		do {							\
+			const unsigned n_bogo = NDELAY_BOGOS;		\
+			const unsigned n_ticks =			\
+				((ns)<n_bogo) ? 1u : (ns)/n_bogo;	\
+			volatile unsigned n_count;			\
+			for(n_count=0; n_count<n_ticks; n_count++)	\
+				;	/* do nothing */		\
+		} while(0)
+
+	/*
+	 * Note there are 4 * I2C_DELAY per I2C clock cycle
+	 * So, 100kHz requires an I2C delay of 2,500 ns,
+	 * whereas, 400 kHz requires an I2C delay of 625 ns.
+	 * However, this calculation only works if the S/W
+	 * overhead in I2C bit-banging is negligible - which it is not!
+	 * So, in practice, either I2C_DELAY or CONFIG_SYS_I2C_SPEED will be lower.
+	 * The higher the clock frequency, the greater the difference.
+	 * Empirical measurement/adjustment is recommended.
+	 */
+#	if 0	/* run the I2C bus clock at 400 kHz ? */
+#		define CONFIG_SYS_I2C_SOFT_SPEED	400000			/* I2C clock speed (400 kHz) */
+#		define I2C_DELAY	do { NDELAY(625); } while (0)	/* 625 ns */
+#	else	/* else, run the I2C bus clock at 100 kHz */
+#		define CONFIG_SYS_I2C_SOFT_SPEED	100000			/* I2C clock speed (100 kHz) */
+#		define I2C_DELAY	do { NDELAY(625*4); } while (0)	/* 2,500 ns */
+#	endif	/* 100kHz or 400kHz */
+
+#endif	/* CONFIG_CMD_I2C */
+
+#define CONFIG_DISPLAY_BOARDINFO
+#define CONFIG_SYS_DRAM_TEST
+/*----------------------------------------------------------------------
+ * Support for Linux Hibernation-on-Memory (HoM)
+ */
+
+	/*
+	 * Define the following only if we want to use the
+	 * Linux Hibernation-on-Memory (HoM) capability.
+	 */
+#undef CONFIG_HIBERNATION_ON_MEMORY
+
+	/*
+	 * If we are using HoM, we need to tell U-Boot where the
+	 * special "tag" is located in memory. This must be the
+	 * same address as configured for the linux kernel.
+	 */
+#undef CONFIG_HOM_TAG_VIRTUAL_ADDRESS
+
+
+#endif	/* __CONFIG_H */

@@ -142,7 +142,7 @@
 	 */
 #if defined(CONFIG_ARM)
 #if !defined(CONFIG_STM_SRAM_START)
-#if defined(CONFIG_STM_STXH407)
+#if defined(CONFIG_STM_STXH407) || defined(CONFIG_STM_STXH301)
 #	define CONFIG_STM_SRAM_START		0x06000000	/* Start of ERAM_0 (256KiB) */
 #elif defined(CONFIG_STM_STXH415) || defined(CONFIG_STM_STXH416)
 #	define CONFIG_STM_SRAM_START		0xc00c0000	/* Start of HVA_eRAM (256KiB) */

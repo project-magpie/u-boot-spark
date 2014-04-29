@@ -96,6 +96,20 @@ extern void stxh416_pioalt_retime(
 	const enum stm_pad_gpio_direction direction);
 #define STXH416_PIOALT_SELECT(PAIR, ALT) stxh416_pioalt_select(PAIR, (ALT))
 
+extern void stxh301_pioalt_pad(
+	int port,
+	const int pin,
+	const enum stm_pad_gpio_direction direction);
+extern void stxh301_pioalt_select(
+	const int port,
+	const int pin,
+	const int alt);
+extern void stxh301_pioalt_retime(
+	const int port,
+	const int pin,
+	const struct stm_pio_control_retime_config * const cfg,
+	const enum stm_pad_gpio_direction direction);
+#define STXH301_PIOALT_SELECT(PAIR, ALT) stxh301_pioalt_select(PAIR, (ALT))
 
 /*
  * STMAC data types
@@ -154,6 +168,16 @@ struct stxh407_ethernet_config {
 	int ext_clk : 1;	/* boolean */
 	int phy_bus : 5;	/* 0x00 .. 0x1f */
 };
+
+struct stxh301_ethernet_config {
+	enum {
+		stxh301_ethernet_mode_rgmii,
+	} mode;
+	int ext_clk : 1;	/* boolean */
+	int phy_bus : 5;	/* 0x00 .. 0x1f */
+};
+
+
 struct stxh415_ethernet_config {
 	enum {
 		stxh415_ethernet_mode_mii,
@@ -219,6 +243,8 @@ extern void stxh205_configure_ethernet(
 	const struct stxh205_ethernet_config * const config);
 extern void stxh407_configure_ethernet(
 	const struct stxh407_ethernet_config * const config);
+extern void stxh301_configure_ethernet(
+	const struct stxh301_ethernet_config * const config);
 extern void stxh415_configure_ethernet(
 	const int port,
 	const struct stxh415_ethernet_config * const config);
@@ -270,6 +296,7 @@ extern int  stxh205_usb_init(const int port);
 extern int  stxh415_usb_init(const int port);
 extern int  stxh416_usb_init(const int port);
 extern int  stxh407_usb_init(const int port);
+extern int  stxh301_usb_init(const int port);
 
 
 /*
@@ -277,6 +304,7 @@ extern int  stxh407_usb_init(const int port);
  */
 extern void		stxh205_configure_spi(void);
 extern void		stxh407_configure_spi(void);
+extern void		stxh301_configure_spi(void);
 extern void		stxh415_configure_spi(void);
 extern void		stxh416_configure_spi(void);
 extern void		stx7108_configure_spi(void);
@@ -317,6 +345,10 @@ extern void		stxh407_spi_scl(const int val);
 extern void		stxh407_spi_sda(const int val);
 extern unsigned char	stxh407_spi_read(void);
 
+extern void		stxh301_spi_scl(const int val);
+extern void		stxh301_spi_sda(const int val);
+extern unsigned char	stxh301_spi_read(void);
+
 extern void		stxh415_spi_scl(const int val);
 extern void		stxh415_spi_sda(const int val);
 extern unsigned char	stxh415_spi_read(void);
@@ -331,6 +363,7 @@ extern unsigned char	stxh416_spi_read(void);
 extern void		stx7108_configure_i2c(void);
 extern void		stxh205_configure_i2c(void);
 extern void		stxh407_configure_i2c(void);
+extern void		stxh301_configure_i2c(void);
 extern void		stxh415_configure_i2c(void);
 extern void		stxh416_configure_i2c(void);
 
@@ -362,6 +395,10 @@ extern void		stxh407_i2c_scl(const int val);
 extern void		stxh407_i2c_sda(const int val);
 extern int		stxh407_i2c_read(void);
 
+extern void		stxh301_i2c_scl(const int val);
+extern void		stxh301_i2c_sda(const int val);
+extern int		stxh301_i2c_read(void);
+
 extern void		stxh415_i2c_scl(const int val);
 extern void		stxh415_i2c_sda(const int val);
 extern int		stxh415_i2c_read(void);
@@ -375,6 +412,7 @@ extern int		stxh416_i2c_read(void);
  * NAND initialization functions.
  */
 extern void		stxh407_configure_nand(void);
+extern void		stxh301_configure_nand(void);
 
 
 /*
@@ -382,6 +420,7 @@ extern void		stxh407_configure_nand(void);
  */
 extern int stm_sdhci_init(const int port, const u32 regbase);
 extern int stxh407_mmc_getcd(const int port);
+extern int stxh301_mmc_getcd(const int port);
 
 
 /*

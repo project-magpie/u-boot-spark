@@ -391,6 +391,9 @@ int do_bdinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		printf ("\nSTxH407 version %ld.x", STXH407_DEVICEID_CUT(gd->arch.stm_devid));
 	else if (STXH407_DEVICEID_410(gd->arch.stm_devid))
 		printf ("\nSTxH410 version %ld.x", STXH407_DEVICEID_CUT(gd->arch.stm_devid));
+#elif defined(CONFIG_STM_STXH301)
+	if (STXH301_DEVICEID_301(gd->arch.stm_devid))
+		printf ("\nSTxH301 version %ld.x", STXH301_DEVICEID_CUT(gd->arch.stm_devid));
 #elif defined(CONFIG_STM_STXH415)
 	if (STXH415_DEVICEID_415(gd->arch.stm_devid))
 		printf ("\nSTxH415 version %ld.x", STXH415_DEVICEID_CUT(gd->arch.stm_devid));

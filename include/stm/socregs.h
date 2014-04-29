@@ -49,6 +49,8 @@
 #	include <stm/stxh205reg.h>
 #elif defined(CONFIG_STM_STXH407)
 #	include <stm/stxh407reg.h>
+#elif defined(CONFIG_STM_STXH301)
+#	include <stm/stxh301reg.h>
 #elif defined(CONFIG_STM_STXH415)
 #	include <stm/stxh415reg.h>
 #elif defined(CONFIG_STM_STXH416)

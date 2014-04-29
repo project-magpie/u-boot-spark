@@ -244,8 +244,9 @@ struct stmac_private
 #define RTL8367RB_PHY_ID_MASK	0xffffffffu
 
 /* Treat the REALTEK RTL8367RB switch as a (dumb) "fixed PHY" */
+#ifdef CONFIG_STM_STXH407
 #define CONFIG_STMAC_USE_FIXED_PHY
-
+#endif
 #elif defined(CONFIG_STMAC_MARVELL)	/* MARVELL 88EC060 */
 
 /* MARVELL 88EC060 phy identifier values */

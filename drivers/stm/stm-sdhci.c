@@ -31,6 +31,8 @@ typedef int (*const stm_getcd_fn)(const int port);
 static stm_getcd_fn getcd =
 #if defined(CONFIG_STM_STXH407)
 	stxh407_mmc_getcd;
+#elif defined(CONFIG_STM_STXH301)
+	stxh301_mmc_getcd;
 #else
 #	error Missing xxx_mmc_getcd() for this SoC!
 #endif	/* CONFIG_STM_STxxxxx */
@@ -89,7 +91,7 @@ extern int stm_sdhci_init(const int port, const u32 regbase)
 	host->version   = sdhci_readw(host, SDHCI_HOST_VERSION);
 	host->host_caps = MMC_MODE_HC /* | MMC_MODE_8BIT*/;
 
-#if defined(CONFIG_STM_STXH407)
+#if defined(CONFIG_STM_STXH407) || defined(CONFIG_STM_STXH301)
 	if (port == 0)
 	{
 		host->voltages = MMC_VDD_165_195;
@@ -97,16 +99,16 @@ extern int stm_sdhci_init(const int port, const u32 regbase)
 		return add_sdhci(host, 50*1000*1000, 400*1000);
 	}
 	else if (port == 1)
-#endif	/* CONFIG_STM_STXH407 */
+#endif	/* CONFIG_STM_STXH407 || CONFIG_STM_STXH301 */
 	{
 		host->voltages = MMC_VDD_32_33 | MMC_VDD_33_34;
 		return add_sdhci(host, 50*1000*1000, 400*1000);
 	}
-#if defined(CONFIG_STM_STXH407)
+#if defined(CONFIG_STM_STXH407) || defined(CONFIG_STM_STXH301)
 	else
 	{
 		printf("stm_sdhci_init() no such port! (port=%u)\n", port);
 		return -1;	/* return an error */
 	}
-#endif	/* CONFIG_STM_STXH407 */
+#endif	/* CONFIG_STM_STXH407 || CONFIG_STM_STXH301 */
 }

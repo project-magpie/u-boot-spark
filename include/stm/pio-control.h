@@ -30,7 +30,7 @@ struct stm_pio_control_retime_config {
 #define STM_RETIME_VALUE_CLK_0			(0)
 #define STM_RETIME_VALUE_CLK_1			(1)
 	/* if the H/W bitfield is 2-bits wide ? */
-#if defined(CONFIG_STM_STXH416) || defined(CONFIG_STM_STXH407)
+#if defined(CONFIG_STM_STXH416) || defined(CONFIG_STM_STXH407) || defined(CONFIG_STM_STXH301)
 //#define STM_RETIME_VALUE_CLK_2		(2)
 //#define STM_RETIME_VALUE_CLK_3		(3)
 #endif	/* H/W bitfield is 2-bits wide */
@@ -61,7 +61,7 @@ struct stm_pio_control_retime_config {
 //#define STM_RETIME_VALUE_DELAY_14		(14)
 //#define STM_RETIME_VALUE_DELAY_15		(15)
 #endif	/* H/W bitfield is 4-bits wide */
-#elif defined(CONFIG_STM_STXH407)
+#elif defined(CONFIG_STM_STXH407) || defined(CONFIG_STM_STXH301)
 #define STM_RETIME_VALUE_DELAY_0		(0)	/* no delay */
 #define STM_RETIME_VALUE_DELAY_300		(1)	/* delay 0.3 ns */
 #define STM_RETIME_VALUE_DELAY_500		(2)	/* delay 0.5 ns */
@@ -77,7 +77,7 @@ struct stm_pio_control_retime_config {
 #define STM_RETIME_VALUE_DELAY_3000		(12)	/* delay 3.0 ns */
 #define STM_RETIME_VALUE_DELAY_3250		(13)	/* delay 3.25 ns */
 		/* Note: 3.25 ns is the a maximum delay available */
-#endif	/* CONFIG_STM_STXH407 */
+#endif	/* CONFIG_STM_STXH407 || CONFIG_STM_STXH301 */
 
 
 /* 	Generic Retime Padlogic possible modes
