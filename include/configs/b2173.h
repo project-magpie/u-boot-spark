@@ -74,24 +74,6 @@
 
 
 /*-----------------------------------------------------------------------
- * Are we booting directly from a SPI Serial Flash device ?
- * If so, then define the "CONFIG_SYS_BOOT_FROM_SPI" macro,
- * otherwise (e.g. for eMMC Flash booting), do not define it.
- * Note: this will be implicitly defined if "make b2173<xx>_spi_config" is run.
- */
-//#define CONFIG_SYS_BOOT_FROM_SPI		/* define to build a SPI-bootable image */
-
-
-/*-----------------------------------------------------------------------
- * Are we booting directly from an eMMC Flash device ?
- * If so, then define the "CONFIG_SYS_BOOT_FROM_EMMC" macro,
- * otherwise (e.g. for SPI Flash booting), do not define it.
- * Note: this will be implicitly defined if "make b2173<xx>_emmc_config" is run.
- */
-//#define CONFIG_SYS_BOOT_FROM_EMMC		/* define to build a eMMC-bootable image */
-
-
-/*-----------------------------------------------------------------------
  * Start addresses for the final memory configuration
  * Assume we run out of uncached memory for the moment
  */
@@ -275,8 +257,8 @@
  * Note: by default CONFIG_CMD_FLASH is defined in config_cmd_default.h
  */
 #undef CONFIG_CMD_FLASH	/* define only when needed */
-#undef CONFIG_CMD_NAND		/* NAND present on the B2173 board */
-#define CONFIG_SPI_FLASH	/* define for SPI serial flash */
+#undef CONFIG_CMD_NAND	/* define only when needed */
+#undef CONFIG_SPI_FLASH	/* SPI NOR absent in b2173 */
 //#define CONFIG_STM_SDHCI_0	/* define for MMC #0 (eMMC) */
 #define CONFIG_STM_SDHCI_1	/* define for MMC #1 (MMC/SD) */
 
