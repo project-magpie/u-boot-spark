@@ -1749,32 +1749,23 @@ static void stxh407_enable_mmc(const int port, const u32 regbase)
 	}
 	else	/* MMC #0 (i.e. the eMMC bootable device) */
 	{
-		unsigned long reg = readl(regbase + TOP_FLASHSS_CONFIG);
+		unsigned long reg;
+		if(STXH407_DEVICEID_407(gd->arch.stm_devid)){
+			reg = readl(regbase + TOP_FLASHSS_CONFIG);
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: boot status 0x%lx\n", port, reg);
+			printf("mmc%d: boot status 0x%lx\n", port, reg);
 #endif
-		SET_SYSCONF_BIT(reg,0,1);
-		writel(reg,regbase + TOP_FLASHSS_CONFIG);/* boot disable*/
+			SET_SYSCONF_BIT(reg,0,1);
+			writel(reg,regbase + TOP_FLASHSS_CONFIG);/* boot disable*/
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: boot status 0x%x\n", port, readl(regbase + TOP_FLASHSS_CONFIG));
+			printf("mmc%d: boot status 0x%x\n", port, readl(regbase + TOP_FLASHSS_CONFIG));
 #endif
-
-		reg = readl(regbase + TOP_VSENSE_CONFIG);
+			reg = readl(regbase + TOP_EMMC_TX_CLK_DELAY);
+			writel(TOP_EMMC_TX_CLK_DELAY_TX_CLK_DELAY, regbase + TOP_EMMC_TX_CLK_DELAY);
 #ifdef MMC_CORE_DEBUG
-		printf("mmc%d: vsense config at reset: 0x%lx\n", port, reg);
+			printf("mmc%d: delay TX: 0x%x\n", port, readl(regbase + TOP_EMMC_TX_CLK_DELAY));
 #endif
-		SET_SYSCONF_BIT(reg,0,0); /*TOP_VSENSE_CONFIG_REG_PSW_EMMC*/
-		SET_SYSCONF_BIT(reg,1,1); /*TOP_VSENSE_CONFIG_ENB_REG_PSW_EMMC*/
-		writel(reg,regbase + TOP_VSENSE_CONFIG); /*switch to 1.8v pad config*/
-#ifdef MMC_CORE_DEBUG
-		printf("mmc%d: vsense config at 1v8: 0x%x\n", port, readl(regbase + TOP_VSENSE_CONFIG));
-#endif
-
-		reg = readl(regbase + TOP_EMMC_TX_CLK_DELAY);
-		writel(TOP_EMMC_TX_CLK_DELAY_TX_CLK_DELAY, regbase + TOP_EMMC_TX_CLK_DELAY);
-#ifdef MMC_CORE_DEBUG
-		printf("mmc%d: delay TX: 0x%x\n", port, readl(regbase + TOP_EMMC_TX_CLK_DELAY));
-#endif
+		}
 	}
 }
 
@@ -1818,10 +1809,8 @@ static void stxh407_mmc_core_config(const int port, const u32 regbase)
 		regbase + FLASHSS_MMC_CORE_CONFIG_4);
 	writel(STM_FLASHSS_MMC43_CORE_CONFIG5,
 		regbase + FLASHSS_MMC_CORE_CONFIG_5);
-	writel(FLASHSS_MMC_CORE_CONFIG_6,
+	writel(STM_FLASHSS_MMC43_CORE_CONFIG6,
 		regbase + FLASHSS_MMC_CORE_CONFIG_6);
-	writel(FLASHSS_MMC_CORE_CONFIG_7,
-		regbase + FLASHSS_MMC_CORE_CONFIG_7);
 
 #ifdef MMC_CORE_DEBUG
 	printf("mmc%d: mmc%d core set SD2.0 ...\n", port, port);
