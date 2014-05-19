@@ -136,6 +136,8 @@
 		"board=" XSTR(BOARD) "\0" \
 		"load_addr=" XSTR(CONFIG_SYS_LOAD_ADDR) "\0"
 
+#define CONFIG_SYS_CACHELINE_SIZE	32
+
 /*--------------------------------------------------------------
  * Command line configuration.
  */
@@ -210,7 +212,6 @@
 #	define CONFIG_CMD_FAT
 #	define CONFIG_USB_STORAGE
 #define CONFIG_SYS_USB_XHCI_MAX_ROOT_PORTS	2
-#define CONFIG_SYS_CACHELINE_SIZE      32
 #	if 0	/* use OHCI (USB 1.x) ? */
 #		define CONFIG_USB_OHCI_NEW				/* enable USB 1.x, via OHCI */
 #		define CONFIG_SYS_USB_OHCI_CPU_INIT

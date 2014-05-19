@@ -37,6 +37,14 @@ extern void dram_init_banksize(void)
 }
 
 
+#ifndef CONFIG_SYS_DCACHE_OFF
+extern void enable_caches(void)
+{
+	/* Enable D-cache. I-cache is already enabled in start.S */
+	dcache_enable();
+}
+#endif
+
 #if defined(CONFIG_MISC_INIT_R)
 	/* miscellaneous platform dependent initialisations */
 extern int misc_init_r(void)

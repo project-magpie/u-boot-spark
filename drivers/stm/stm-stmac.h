@@ -153,8 +153,10 @@
 #define DMA_STATUS			0x00001014	/* Status Register */
 #define DMA_CONTROL			0x00001018	/* Control (Operational Mode) */
 #define DMA_INTR_ENA			0x0000101c	/* Interrupt Enable */
-//#define DMA_CUR_TX_BUF_ADDR		0x00001050	/* Current Host Transmit Buffer */
-//#define DMA_CUR_RX_BUF_ADDR		0x00001054	/* Current Host Receive Buffer */
+#define DMA_CUR_TX_DESC_ADDR		0x00001048	/* Current Host Transmit Descriptor */
+#define DMA_CUR_RX_DESC_ADDR		0x0000104c	/* Current Host Receive Descriptor */
+#define DMA_CUR_TX_BUF_ADDR		0x00001050	/* Current Host Transmit Buffer */
+#define DMA_CUR_RX_BUF_ADDR		0x00001054	/* Current Host Receive Buffer */
 
 /* DMA Bus Mode Register defines */
 //#define DMA_BUS_MODE_DBO		0x00100000	/* Descriptor Byte Ordering */
@@ -194,6 +196,7 @@
 /* DMA Control (Operation Mode) Register defines */
 #define DMA_CONTROL_ST			0x00002000	/* Start/Stop Transmission */
 #define DMA_CONTROL_SR			0x00000002	/* Start/Stop Receive */
+#define DMA_CONTROL_DFF			0x01000000	/* Disable Flush of receive FIFO */
 
 
 /*----------------------------------------------------------------------------

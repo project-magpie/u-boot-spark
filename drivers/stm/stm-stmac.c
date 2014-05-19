@@ -87,9 +87,9 @@ static unsigned int stmac_mii_read(struct eth_device * const dev, int phy_addr, 
 /* DMA structure */
 struct dma_t
 {
+	uchar rx_buff[CONFIG_DMA_RX_SIZE * (PKTSIZE_ALIGN + 2 * L1_CACHE_BYTES) ];
 	stmac_dma_des desc_rx[CONFIG_DMA_RX_SIZE];
 	stmac_dma_des desc_tx[CONFIG_DMA_TX_SIZE];
-	uchar rx_buff[CONFIG_DMA_RX_SIZE *(PKTSIZE_ALIGN)];
 	uchar _dummy[L1_CACHE_BYTES];
 } __attribute__ ((aligned(L1_CACHE_BYTES)))dma;
 
@@ -1069,16 +1069,26 @@ static void init_rx_desc(volatile stmac_dma_des * p,
 	unsigned int ring_size, void **buffers)
 {
 	int i;
+	stmac_dma_des * first = (stmac_dma_des *)p;
+	stmac_dma_des * next  = (stmac_dma_des *)p;
 
 	for (i = 0; i < ring_size; i++) {
 		p->des01.u.des0 = p->des01.u.des1 = 0;
 		p->des01.rx.own = 1;
 		p->des01.rx.buffer1_size = PKTSIZE_ALIGN;
 		p->des01.rx.disable_ic = 1;
-		if (i == ring_size - 1)
-			p->des01.rx.end_ring = 1;
-		p->des2 = ((void *)(PHYSADDR(buffers[i])));
-		p->des3 = NULL;
+		p->des01.rx.second_address_chained = 1; // Set mode in chained mode rather than ring (this enable us to be same size as cache line)
+		if (i == ring_size - 1) {
+        		p->des01.rx.end_ring = 1;
+			p->des3 =  ((void *)(PHYSADDR (first)));
+		}
+		else {
+			next = (stmac_dma_des *)p;
+			next++;
+			p->des3 =  ((void *)(PHYSADDR (next)));
+		}
+		p->des2 = ((void *) (PHYSADDR (buffers[i])));
+		flush_dcache_all();
 		p++;
 	}
 	return;
@@ -1094,6 +1104,7 @@ static void init_tx_desc(volatile stmac_dma_des * p, unsigned int ring_size)
 			p->des01.tx.end_ring = 1;
 		p->des2 = NULL;
 		p->des3 = NULL;
+		flush_dcache_all();
 		p++;
 	}
 	return;
@@ -1106,15 +1117,15 @@ static void init_tx_desc(volatile stmac_dma_des * p, unsigned int ring_size)
 static void init_dma_desc_rings(void)
 {
 	int i;
+	unsigned int start_address;
 
 	PRINTK(STMAC "allocate and init the DMA RX/TX lists\n");
 
-	/* Clean out uncached buffers */
-	flush_cache((unsigned long)&dma, sizeof(struct dma_t));
+	flush_dcache_all();
 
 	/* Allocate memory for the DMA RX/TX buffer descriptors */
-	dma_rx = (volatile stmac_dma_des *)P2SEGADDR(&dma.desc_rx[0]);
-	dma_tx = (volatile stmac_dma_des *)P2SEGADDR(&dma.desc_tx[0]);
+	dma_rx = (volatile stmac_dma_des *)  (&dma.desc_rx[0]);
+	dma_tx = (volatile stmac_dma_des *)  (&dma.desc_tx[0]);
 
 	cur_rx = 0;
 
@@ -1126,16 +1137,19 @@ static void init_dma_desc_rings(void)
 	}
 
 	/* Note: we want to pass CACHED addresses to init_rx_desc() */
-	for (i = 0; i < CONFIG_DMA_RX_SIZE; i++)
-		rx_packets[i] = (void *)(dma.rx_buff + (PKTSIZE_ALIGN * i));
+	for (i = 0; i < CONFIG_DMA_RX_SIZE; i++){
+		/* Set received buffer address aligned on cache line size */
+		//start_address = ((unsigned int)dma.rx_buff + (PKTSIZE_ALIGN + L1_CACHE_BYTES * 2 ) * i + L1_CACHE_BYTES ) & ~(L1_CACHE_BYTES-1) ; 
+		start_address = ((unsigned int)dma.rx_buff + (PKTSIZE_ALIGN + L1_CACHE_BYTES * 2 ) * i) & ~(L1_CACHE_BYTES-1) ; 
+		rx_packets[i] = (void *)(start_address);
+	}
 
 	/* Initialize the contents of the DMA buffers */
 	init_rx_desc(dma_rx, CONFIG_DMA_RX_SIZE, rx_packets);
 	init_tx_desc(dma_tx, CONFIG_DMA_TX_SIZE);
 
-	/* now, we want UN-cached addresses in the array rx_packets[] */
-	for (i = 0; i < CONFIG_DMA_RX_SIZE; i++)
-		rx_packets[i] = (void *)P2SEGADDR(rx_packets[i]);
+    	/* Clean out uncached buffers */
+	flush_dcache_all();
 
 #ifdef DEBUG
 	printf(STMAC "RX descriptor ring:\n");
@@ -1206,7 +1220,7 @@ static void stmac_dma_start_rx(struct eth_device * const dev)
 	unsigned int value;
 
 	value = (unsigned int)STMAC_READ(DMA_CONTROL);
-	value |= DMA_CONTROL_SR;
+	value |= (DMA_CONTROL_SR | DMA_CONTROL_DFF);
 	STMAC_WRITE(value, DMA_CONTROL);
 
 	return;
@@ -1252,8 +1266,8 @@ static int stmac_dma_init(struct eth_device * const dev)
 	STMAC_WRITE(0, DMA_INTR_ENA);
 
 	/* The base address of the RX/TX descriptor */
-	STMAC_WRITE(PHYSADDR(dma_tx), DMA_TX_BASE_ADDR);
-	STMAC_WRITE(PHYSADDR(dma_rx), DMA_RCV_BASE_ADDR);
+	STMAC_WRITE ((unsigned int)(PHYSADDR (dma_tx)), DMA_TX_BASE_ADDR);
+	STMAC_WRITE ((unsigned int)(PHYSADDR (dma_rx)), DMA_RCV_BASE_ADDR);
 
 	return (0);
 }
@@ -1409,7 +1423,8 @@ static int stmac_eth_tx(struct eth_device * const dev, volatile uchar * data, in
 	uint now = get_timer(0);
 	uint status = 0;
 	u32 end_ring;
-
+	unsigned long aligned_data;
+	int aligned_len;
 	while (p->des01.tx.own
 	       && (get_timer(now) < CONFIG_STMAC_TX_TIMEOUT)) {
 		;
@@ -1420,9 +1435,10 @@ static int stmac_eth_tx(struct eth_device * const dev, volatile uchar * data, in
 		return -1;
 	}
 
+	aligned_data = (unsigned long)data;
 	/* Make sure data is in real memory */
-	flush_cache((ulong)data, len);
-	p->des2 = (void *)PHYSADDR(data);
+	flush_dcache_all();
+	p->des2 = (void *)PHYSADDR(ALIGN(aligned_data, L1_CACHE_BYTES));
 
 	/* Clean and set the TX descriptor */
 	end_ring = p->des01.tx.end_ring;
@@ -1441,9 +1457,10 @@ static int stmac_eth_tx(struct eth_device * const dev, volatile uchar * data, in
 #endif
 
 	/* CSR1 enables the transmit DMA to check for new descriptor */
+	mdelay(1);
+	flush_dcache_all();
 	STMAC_WRITE(DMA_STATUS_TI, DMA_STATUS);
 	STMAC_WRITE(1, DMA_XMT_POLL_DEMAND);
-
 	now = get_timer(0);
 	while (get_timer(now) < CONFIG_STMAC_TX_TIMEOUT) {
 		status = STMAC_READ(DMA_STATUS);
@@ -1474,6 +1491,10 @@ static void stmac_eth_rx(struct eth_device * const dev)
 #endif	/* DEBUG */
 	}
 
+	/* Need to invalidate rx descriptor te read correct values in RAM */ 
+	invalidate_dcache_range(ALIGN((unsigned long)drx, L1_CACHE_BYTES),
+					ALIGN((unsigned long)drx + sizeof (stmac_dma_des), L1_CACHE_BYTES));
+	mdelay(1);
 	if (!(drx->des01.rx.own) && (drx->des01.rx.last_descriptor)) {
 #ifdef DEBUG
 		PRINTK(STMAC "RX descriptor ring:\n");
@@ -1490,11 +1511,18 @@ static void stmac_eth_rx(struct eth_device * const dev)
 			 * the CRC */
 			frame_len = drx->des01.rx.frame_length;
 			if ((frame_len >= 0) && (frame_len <= PKTSIZE_ALIGN)) {
+			/* Need to invalidate the buffer to read correct values in RAM */ 
+			/*invalidate_dcache_range(ALIGN((unsigned long)rx_packets[cur_rx], L1_CACHE_BYTES),
+					ALIGN((unsigned long)rx_packets[cur_rx] + (frame_len), L1_CACHE_BYTES));*/
+			invalidate_dcache_range(ALIGN((unsigned long)rx_packets[cur_rx], L1_CACHE_BYTES),
+				ALIGN((unsigned long)rx_packets[cur_rx] + (PKTSIZE_ALIGN + L1_CACHE_BYTES * 2), 
+												L1_CACHE_BYTES));
 #if defined(DEBUG) || defined(CONFIG_PHY_LOOPBACK) || defined(DUMP_ENCAPSULATION_HEADER)
 				const unsigned char * const p = rx_packets[cur_rx];
 				printf("\nRX[%d]:  0x%08x DA=%pM SA=%pM Type=%04x\n",
 					cur_rx, (unsigned int)p, p, p+6, p[12]<<8|p[13]);
 #endif
+				mdelay(2);
 				memcpy((void*)NetRxPackets[0], rx_packets[cur_rx],
 					frame_len);
 				NetReceive(NetRxPackets[0], frame_len);
@@ -1503,6 +1531,8 @@ static void stmac_eth_rx(struct eth_device * const dev)
 					__FUNCTION__, frame_len);
 			}
 			drx->des01.rx.own = 1;
+			flush_dcache_all();
+			mdelay(2);
 #ifdef DEBUG
 			PRINTK(STMAC "%s: frame received \n", __FUNCTION__);
 #endif
@@ -1519,6 +1549,7 @@ static void stmac_eth_rx(struct eth_device * const dev)
 
 	} else {
 		STMAC_WRITE(1, DMA_RCV_POLL_DEMAND);	/* request input */
+		mdelay(2);
 	}
 	return;
 }
@@ -1664,7 +1695,7 @@ static int stmac_send(
 	const int length)
 {
 	PRINTK(STMAC "entering %s()\n", __FUNCTION__);
-
+	mdelay(1);
 #if defined(DEBUG) || defined(CONFIG_PHY_LOOPBACK) || defined(DUMP_ENCAPSULATION_HEADER)
 	const unsigned char * const p = (const unsigned char*)packet;
 	printf("TX   :  0x%08x DA=%pM SA=%pM Type=%04x\n",
