@@ -1,11 +1,11 @@
-# Compilation with Open Embedded/Yocto Toolchain
+# Compilation with Yocto/OE Toolchain
 
 The u-boot source can be compiled in this way with the yocto toolchain:
 
 ```bash
 $ source /opt/poky/1.5.1/environment-setup-sh4-poky-linux
 # For  more details on this please read:
-# [http://www.denx.de/wiki/view/ELDK-5/FrequentlyAskedQuestionsAndAnswers#Compiling_U_Boot_or_Linux_fails](http://www.denx.de/wiki/view/ELDK-5/FrequentlyAskedQuestionsAndAnswers#Compiling_U_Boot_or_Linux_fails)
+# http://www.denx.de/wiki/view/ELDK-5/FrequentlyAskedQuestionsAndAnswers#Compiling_U_Boot_or_Linux_fails
 $ unset LDFLAGS
 $ export CROSS_COMPILE=sh4-poky-linux-
 $ make clean
