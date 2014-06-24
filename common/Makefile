@@ -132,7 +132,9 @@ COBJS-y += crc16.o
 COBJS-y += xyzModem.o
 COBJS-y += cmd_mac.o
 COBJS-$(CONFIG_CMD_MFSL) += cmd_mfsl.o
-
+# YWDRIVER_MODI add for update module begin
+COBJS-y += cmd_update.o
+# YWDRIVER_MODI add for update module end
 COBJS	:= $(COBJS-y)
 SRCS	:= $(AOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(AOBJS) $(COBJS))

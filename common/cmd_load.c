@@ -499,7 +499,6 @@ int do_load_serial_bin (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 			printf ("## Binary (kermit) download aborted\n");
 			rcode = 1;
 		} else {
-			printf ("## Start Addr      = 0x%08lX\n", addr);
 			load_addr = addr;
 		}
 	}
@@ -551,8 +550,6 @@ static ulong load_serial_bin (ulong offset)
 	}
 
 	flush_cache (offset, size);
-
-	printf("## Total Size      = 0x%08x = %d Bytes\n", size, size);
 	sprintf(buf, "%X", size);
 	setenv("filesize", buf);
 
@@ -982,6 +979,33 @@ static int getcxmodem(void) {
 		return (getc());
 	return -1;
 }
+
+// YWDRIVER_MODI changed by cc 2010/09/03 for upgrade progress begin
+#if defined(YW_CONFIG_VFD)
+#include "vfd.h"
+static void flicker_LOAD(void)
+{
+	static int flag = 0;
+	if(flag & 04)
+	{
+		YWVFD_Print ("LOAD");
+	}
+	else
+	{
+		YWVFD_Print ("");
+	}
+	flag++;
+}
+#endif
+static void show_progress(void)
+{
+	printf(".");
+#if defined(YW_CONFIG_VFD)
+	flicker_LOAD();
+#endif
+}
+// YWDRIVER_MODI changed by cc 2010/09/03 for upgrade progress end
+
 static ulong load_serial_ymodem (ulong offset)
 {
 	int size;
@@ -1018,6 +1042,9 @@ static ulong load_serial_ymodem (ulong offset)
 			{
 				memcpy ((char *) (store_addr), ymodemBuf,
 					res);
+// YWDRIVER_MODI cc add 2010/09/15 begin
+				show_progress();
+// YWDRIVER_MODI cc add 2010/09/15 end
 			}
 
 		}

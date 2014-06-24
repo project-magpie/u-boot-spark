@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2002 Thomas Gleixner (tglx@linutronix.de)
   *
- * $Id: nand_ids.c,v 1.10 2004/05/26 13:40:12 gleixner Exp $
+ * $Id: nand_ids.c,v 1.3 2011/03/22 11:01:33 d27lwj Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -35,7 +35,12 @@ struct nand_flash_dev nand_flash_ids[] = {
 	{"NAND 1MiB 3,3V 8-bit", 	0xe8, 256, 1, 0x1000, 0},
 	{"NAND 1MiB 3,3V 8-bit", 	0xec, 256, 1, 0x1000, 0},
 	{"NAND 2MiB 3,3V 8-bit", 	0xea, 256, 2, 0x1000, 0},
+	/*****     2012-04-12     *****/
+	//YWDRIVER_MODI del by lf for 和后面的冲突 start
+	#if 0
 	{"NAND 4MiB 3,3V 8-bit", 	0xd5, 512, 4, 0x2000, 0},
+	#endif
+	//YWDRIVER_MODI del by lf end
 	{"NAND 4MiB 3,3V 8-bit", 	0xe3, 512, 4, 0x2000, 0},
 	{"NAND 4MiB 3,3V 8-bit", 	0xe5, 512, 4, 0x2000, 0},
 	{"NAND 8MiB 3,3V 8-bit", 	0xd6, 512, 8, 0x2000, 0},
@@ -67,7 +72,7 @@ struct nand_flash_dev nand_flash_ids[] = {
 
 	{"NAND 256MiB 3,3V 8-bit", 	0x71, 512, 256, 0x4000, 0},
 
-	{"NAND 512MiB 3,3V 8-bit", 	0xDC, 512, 512, 0x4000, 0},
+//	{"NAND 512MiB 3,3V 8-bit", 	0xDC, 512, 512, 0x4000, 0},  此处与后边的ID有冲突  //YWDRIVER_MODI lwj remove
 
 	/* These are the new chips with large page size. The pagesize
 	* and the erasesize is determined from the extended id bytes

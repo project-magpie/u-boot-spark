@@ -1545,7 +1545,14 @@ int submit_common_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
 	if (usb_pipetype (pipe) == PIPE_BULK)
 		timeout = BULK_TO;
 	else
+		/*****     2011-12-09     *****/
+		//YWDRIVER_MODI modify by lf for 为了能认出一些不能认的到的U盘，增加延时 start
+		#if 1
+		timeout = BULK_TO;
+		#else
 		timeout = 100;
+		#endif
+		//YWDRIVER_MODI modify by lf end
 #ifdef CONFIG_USB_AGGRESSIVE_MINIMAL_DELAYS
 	/* use units of 100us, instead of 1ms */
 	timeout *= 10;

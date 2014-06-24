@@ -1,0 +1,7 @@
+### run 'sh4-linux-gdb -x u-boot.cmd' from host
+###----------u-boot.cmd-----------------------
+sh4tp 192.168.40.24:cab7167:st40,ic_wa=1,seuc=1
+posixconsole 0
+load u-boot
+c
+

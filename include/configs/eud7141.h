@@ -158,7 +158,7 @@
 	 * has *not* been tested, as no suitable H/W was
 	 * provided to use with the supplied 7141EUD board.
 	 * The GMAC #0 functionally is provided only on a
-	 * "best-endeavours" basis. Also, phy_reset() will
+	 * "best-endeavours" basis. Also, stmac_phy_reset() will
 	 * need to be modified to reset the external PHY!
 	 */
 #	define CFG_STM_STMAC_BASE	 CFG_STM_STMAC0_BASE	/* MAC = STM GMAC#0 */

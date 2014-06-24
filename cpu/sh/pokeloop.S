@@ -109,7 +109,7 @@ SwitchJumpTable:
 
 	.balign	2
 #if (MUST_RUN_FROM_ICACHE != 0)
-8:	bt	8f 
+8:	bt	8f
 #endif /* MUST_RUN_FROM_ICACHE != 0 */
 
 /* END_MARKER */
@@ -167,7 +167,7 @@ DoUpdate8:
 	  mov.b	r3, @r1		/* *A = ((*A & AND) | OR) */
 
 #if (MUST_RUN_FROM_ICACHE != 0)
-8:	bt	8f 
+8:	bt	8f
 #endif /* MUST_RUN_FROM_ICACHE != 0 */
 
 /* UPDATE16(A, AND, OR) */
@@ -208,8 +208,8 @@ DoPokeUpdate32:
 DoWhileNe8:
 	mov.l	@r4+, r7	/* read VAL */
 1:	mov.b	@r1, r3		/* *A */
-	extu.b	r3, r3		/* 32bit(*A) */ 
-	and	r2, r3		/* *A & AND */    
+	extu.b	r3, r3		/* 32bit(*A) */
+	and	r2, r3		/* *A & AND */
 	cmp/eq	r3, r7		/* if ((*A & AND) == VAL) */
 	bf	1b		/* loop if false */
 	bt	DoPoking
@@ -222,8 +222,8 @@ DoWhileNe8:
 DoWhileNe16:
 	mov.l	@r4+, r7	/* read VAL */
 1:	mov.w	@r1, r3		/* *A */
-	extu.w	r3, r3		/* 32bit(*A) */ 
-	and	r2, r3		/* *A & AND */    
+	extu.w	r3, r3		/* 32bit(*A) */
+	and	r2, r3		/* *A & AND */
 	cmp/eq	r3, r7		/* if ((*A & AND) == VAL) */
 	bf	1b		/* loop if false */
 	bt	DoPoking

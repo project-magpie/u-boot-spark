@@ -1,0 +1,28 @@
+#!/bin/sh
+# Print additional version information for non-release trees.
+
+usage() {
+	echo "Usage: $0 [srctree] new old" >&2
+	exit 1
+}
+
+cd "${1:-.}" || usage
+
+if [ -z $2 ]; then
+	usage
+fi
+
+if [ -f $2 ]; then
+	:
+else
+	touch $2
+fi
+
+git_version=`$1/tools/setlocaldescribe $1`
+new_describle="#define YW_GIT_VERSION \"$git_version\""
+old_describle=`cat $2`
+#echo $new_describle > new_describle
+#echo $old_describle > old_describle
+if [ "$old_describle" != "$new_describle" ]; then
+	echo $new_describle > $2
+fi

@@ -1,0 +1,20 @@
+1、how to config uboot?
+
+   make pdk7105se_config
+
+2、how to make uboot?
+
+   source make.sh
+
+3、how to release uboot?
+
+   source release.sh
+
+4、how to enable overcloek?
+
+   source overclock_on.sh
+
+5、how to enable xprog on?
+
+   source xprog_on.sh
+

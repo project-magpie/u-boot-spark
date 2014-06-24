@@ -50,7 +50,13 @@
 # endif
 # if (CFG_ENV_ADDR >= CFG_MONITOR_BASE) && \
      ((CFG_ENV_ADDR + CFG_ENV_SIZE) <= (CFG_MONITOR_BASE + CFG_MONITOR_LEN))
+/***** YWDRIVER_MODI 2010-10-11 D26LF Del:
+    Description:防止Uboot使用1024K时把环境变量也内置
+*/
+#if 0
 #  define ENV_IS_EMBEDDED	1
+#endif
+/***** 2010-10-11 D26LF Del end ****/
 # endif
 # if defined(CFG_ENV_ADDR_REDUND) || defined(CFG_ENV_OFFSET_REDUND)
 #  define CFG_REDUNDAND_ENVIRONMENT	1

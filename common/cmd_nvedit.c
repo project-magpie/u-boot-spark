@@ -396,7 +396,12 @@ int _do_setenv (int flag, int argc, char *argv[])
 
 void setenv (char *varname, char *varvalue)
 {
-	char *argv[4] = { "setenv", varname, varvalue, NULL };
+// YWDRIVER_MODI cc changed 2010/09/15 to fix bug when varvalue in environment space
+	char var_tmp[512];
+	char *argv[4] = { "setenv", varname, var_tmp, NULL };
+
+	strcpy(var_tmp, varvalue);
+// YWDRIVER_MODI cc changed 2010/09/15 to fix bug when varvalue in environment space
 	if (varvalue == NULL)
 		_do_setenv (0, 2, argv);
 	else

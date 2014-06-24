@@ -30,6 +30,7 @@
 #include <asm/sh4reg.h>
 #include <asm/addrspace.h>
 #include <asm/pmb.h>
+#include <asm/soc.h>
 
 #ifdef CONFIG_SHOW_BOOT_PROGRESS
 # include <status_led.h>
@@ -37,6 +38,9 @@
 #else
 # define SHOW_BOOT_PROGRESS(arg)
 #endif
+//YWDRIVER_MODI lwj add begin
+unsigned int stmac_phy_get_addr (void);
+//YWDRIVER_MODI lwj add end
 
 int gunzip (void *, int, unsigned char *, int *);
 
@@ -70,6 +74,184 @@ extern void sh_toggle_pmb_cacheability(void);
 #define CURRENT_SE_MODE 29	/* 29-bit (Traditional) Mode */
 #endif	/* CONFIG_SH_SE_MODE */
 
+void YW_auto_phy_addr(char *commandline)
+{
+    char tempbuf[512];
+    unsigned int phyaddr;
+    char	*pstr1;
+
+    memset(tempbuf,0,sizeof(tempbuf));
+
+    phyaddr = stmac_phy_get_addr();
+    if (phyaddr >=0 && phyaddr < 32)
+    {
+		pstr1 = commandline;
+    	for(pstr1 = commandline; pstr1; pstr1++)
+    	{
+    		if(!strncmp(pstr1, "phyaddr", strlen("phyaddr")))
+    		{
+    		    sprintf(tempbuf, "%d", phyaddr);
+
+                if ((*(pstr1+9) >= '0') && (*(pstr1+9) <= '9'))
+                {
+					if(phyaddr > 10)
+					{
+						strcpy(tempbuf+2, 10+pstr1);
+					}
+					else
+					{
+						strcpy(tempbuf+1, 10+pstr1);
+					}
+					strcpy (8+pstr1, tempbuf);
+					break;
+                }
+                else
+                {
+					if(phyaddr > 10)
+					{
+						strcpy(tempbuf+2, 9+pstr1);
+					}
+					else
+					{
+						strcpy(tempbuf+1, 9+pstr1);
+					}
+					strcpy (8+pstr1, tempbuf);
+					break;
+                }
+    		}
+    	}
+    }
+}
+
+void YW_stb_id(char *commandline, char *extra)
+{
+	#define	NWHWCONF_LEN	46
+	uint	LICENSE_GetSTBMacAndSnString( unsigned char * stb_id, unsigned char * stb_mac, char * stb_sn_string );
+	uchar * IDENT_GetStbID( void );
+
+	char	std_sn_string[100];
+	char	mac_str[18];
+	uchar	mac[6];
+	uchar	*stb_id;
+	char	*pstr = commandline;
+
+	stb_id = IDENT_GetStbID();
+    printf("stb_id = %x%x%x%x%x%x%x\n",stb_id[0],stb_id[1],stb_id[2],stb_id[3],stb_id[4],stb_id[5],stb_id[6]);//don't remove
+	if(memcmp(stb_id, "\xff\xff\xff\xff\xff\xff\xff", 7))
+	{
+		// remove parameter "nwhwconf" from bootargs
+		for(pstr = commandline; pstr; pstr++)
+		{
+			if(!strncmp(pstr, "nwhwconf", strlen("nwhwconf")))
+			{
+				strcpy(pstr, pstr+NWHWCONF_LEN);
+				break;
+			}
+		}
+		LICENSE_GetSTBMacAndSnString(stb_id, (uchar *)mac, std_sn_string);
+		sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X",
+			mac[0],
+			mac[1],
+			mac[2],
+			mac[3],
+			mac[4],
+			mac[5]
+			);
+		mac_str[17] = 0;
+//		printf("mac: %s\n", mac_str);
+
+		sprintf(extra,
+			" nwhwconf=device:eth0,hwaddr:%s Manufacture=%s STB_ID=%02X:%02X:%02X:%02X:%02X:%02X:%02X",
+			mac_str,
+			std_sn_string,
+			stb_id[0],
+			stb_id[1],
+			stb_id[2],
+			stb_id[3],
+			stb_id[4],
+			stb_id[5],
+			stb_id[6]
+			);
+	}
+	else
+	{
+		printf("GetStbID Failed\n");
+	}
+}
+
+/*****     2012-12-05     *****/
+//YWDRIVER_MODI add by lf for set ethaddr to bootargs start
+
+void YW_turn_string_into_mac_value(uchar *v_env_mac, char *s)
+{
+	int reg;
+	char *e;
+
+	for (reg = 0; reg < 6; ++reg) {	/* turn string into mac value */
+		v_env_mac[reg] = s ? simple_strtoul (s, &e, 16) : 0;
+		if (s)
+			s = (*e) ? e + 1 : e;
+	}
+}
+
+int YW_check_mac_value_is_all_ff(uchar *v_env_mac)
+{
+	int reg;
+	int bIsAllFF = 1;
+
+	for (reg = 0; reg < 6; ++reg) {
+		if (v_env_mac[reg] != 0xff)
+		{
+		    bIsAllFF = 0;
+			break;
+		}
+	}
+
+	return bIsAllFF;
+}
+
+void YW_change_bootargs_hwaddr_by_env_ethaddr_for_ipguard(char * command_line)
+{
+	int env_size, env_present = 0;
+	char *s = NULL, es[] = "11:22:33:44:55:66";
+	char s_env_mac[64];
+	uchar v_env_mac[6];
+	char *hwaddr = NULL;
+	int bIsAllFF = 1;
+
+	env_size = getenv_r ("ethaddr", s_env_mac, sizeof (s_env_mac));
+	if ((env_size > 0) && (env_size < sizeof (es))) {	/* exit if env is bad */
+		printf ("\n*** ERROR: ethaddr is not set properly!!\n");
+		return;
+	}
+
+	if (env_size > 0) {
+		env_present = 1;
+		s = s_env_mac;
+		//printf("ethaddr = %s\n", s);
+	}
+
+	YW_turn_string_into_mac_value(v_env_mac, s);
+
+	bIsAllFF = YW_check_mac_value_is_all_ff(v_env_mac);
+	if (bIsAllFF) {
+	    return;
+	}
+
+	hwaddr = strstr(command_line, "hwaddr:");
+	if (!hwaddr) {
+		return;
+	}
+
+	//printf("hwaddr = %s\n", hwaddr);
+	if (env_present) {
+		//printf("s_env_mac = %s\n", s_env_mac);
+		memcpy(&hwaddr[7], s_env_mac, 2 * 6 + 5);
+	}
+}
+
+//YWDRIVER_MODI add by lf end
+
 void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 		     ulong addr, ulong * len_ptr, int verify)
 {
@@ -83,6 +265,15 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	char *commandline = getenv ("bootargs");
 	char extra[128];	/* Extra command line args */
 	extra[0] = 0;
+#if 1
+    //YWDRIVER_MODI lwj add begin for auto phy addr
+    YW_auto_phy_addr(commandline);
+	//YWDRIVER_MODI lwj add end
+	// YWDRIVER_MODI cc changed for STB_ID begin
+	YW_stb_id(commandline, extra);
+	// YWDRIVER_MODI cc changed for STB_ID end
+#endif
+
 #ifdef CONFIG_SH_SE_MODE
 	size_t i;
 #endif	/* CONFIG_SH_SE_MODE */
@@ -272,6 +463,11 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 	if (*extra)
 		strcpy (COMMAND_LINE + strlen (commandline), extra);
 
+	/*****     2012-12-05     *****/
+	//YWDRIVER_MODI add by lf for set ethaddr to bootargs start
+	YW_change_bootargs_hwaddr_by_env_ethaddr_for_ipguard(COMMAND_LINE);
+	//YWDRIVER_MODI add by lf end
+
 	/* linux_params_init (gd->bd->bi_boot_params, commandline); */
 
 	printf ("\nStarting kernel %s - 0x%08x - %d ...\n\n", COMMAND_LINE,
@@ -291,6 +487,34 @@ void do_bootm_linux (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[],
 
 	/* Invalidate both instruction and data caches */
 	sh_cache_set_op(SH4_CCR_OCI|SH4_CCR_ICI);
+
+#if 0
+	/*
+	 * In order to measure boot-times reasonably accurately,
+	 * it is desirable to toggle some pin/signal to indicate
+	 * that the period we wish to measure has started and
+	 * terminated. We can then attach some probes from a
+	 * digital oscilloscope (or logic analyser) and measure
+	 * the time between the two transitions.
+	 *
+	 * In the case of measuring the time for U-Boot from "reset"
+	 * to "ready to pass control to linux", then *now* would be a
+	 * good opportunity to toggle a PIO pin to indicate that
+	 * we can stop measuring time. We ideally want to do this
+	 * before we irretrievably "damage" the PMB configuration.
+	 *
+	 * In this case, we call stmac_phy_reset() before retuning
+	 * to the caller. It should be noted that although we are calling
+	 * stmac_phy_reset(), our intention is *not* to reset the PHY,
+	 * but it is purely to effect a transition on a pin that we can
+	 * easily add a probe to. The fact that the PHY has been reset
+	 * is just be a benign by-product of this "signalling" mechanism.
+	 */
+	stmac_phy_reset();
+	printf("info: Not passing control to linux "
+		"- just called stmac_phy_reset() instead!\n");
+	return;
+#endif
 
 #ifdef CONFIG_SH_SE_MODE
 	/*

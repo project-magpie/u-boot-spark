@@ -51,6 +51,9 @@ extern int  eeprom_write (unsigned dev_addr, unsigned offset,
 			  uchar *buffer, unsigned cnt);
 #if defined(CFG_EEPROM_WREN)
 extern int eeprom_write_enable (unsigned dev_addr, int state);
+
+extern unsigned int YW_read_eeprom_status(void);
+
 #endif
 #endif
 
@@ -129,6 +132,14 @@ int do_eeprom ( cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 #endif	/* CONFIG_MEASURE_TIME */
 			return rcode;
 		}
+	}
+
+	//add by yanbin for test
+	else if (argc == 2 && strcmp(argv[1], "ywstatus") == 0)
+	{
+		unsigned int status = YW_read_eeprom_status();
+		printf("The eeprom current status is 0x%x\n",status);
+		return 1;
 	}
 
 	printf ("Usage:\n%s\n", cmdtp->usage);
@@ -448,9 +459,11 @@ void eeprom_init  (void)
  */
 #endif
 
+
 /***************************************************/
 
 #if defined(CONFIG_CMD_EEPROM)
+
 
 #ifdef CFG_I2C_MULTI_EEPROMS
 U_BOOT_CMD(
@@ -467,6 +480,8 @@ U_BOOT_CMD(
 	"read  addr off cnt\n"
 	"eeprom write addr off cnt\n"
 	"       - read/write `cnt' bytes at EEPROM offset `off'\n"
+	"eeprom ywstatus\n"
+	"       - read EEPROM current status"
 );
 #endif /* CFG_I2C_MULTI_EEPROMS */
 

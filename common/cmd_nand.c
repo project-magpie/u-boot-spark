@@ -10,7 +10,10 @@
 
 #include <common.h>
 
-
+// YWDRIVER_MODI D02SH 2009/06/17 add begin
+#define CFG_NAND_YAFFS2_WRITE
+#undef CFG_NAND_LEGACY //add for make sure YWDRIVER_MODI
+// YWDRIVER_MODI D02SH 2009/06/17 add end
 #ifndef CFG_NAND_LEGACY
 /*
  *
@@ -267,6 +270,13 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 		opts.quiet  = quiet;
 
 		if (scrub) {
+            /***** YWDRIVER_MODI 2010-09-29 D26LF Modi:
+			    Description:为了起机时擦除坏块，不询问用户
+			*/
+			#if 1
+			opts.scrub = 1;
+			#else
+
 			puts("Warning: "
 			     "scrub option will erase all factory set "
 			     "bad blocks!\n"
@@ -285,6 +295,8 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 				puts("scrub aborted\n");
 				return -1;
 			}
+            #endif
+            /***** 2010-09-29 D26LF Modi end ****/
 		}
 		ret = nand_erase_opts(nand, &opts);
 		printf("%s\n", ret ? "ERROR" : "OK");
@@ -362,7 +374,34 @@ int do_nand(cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 				duration = get_timer(0);	/* stop measuring */
 #endif	/* CONFIG_MEASURE_TIME */
 			}
+		}
+//YWDRIVER_MODI D02SH 2009/06/17 add begin
+//Description:add for yaffs1
+#ifdef CFG_NAND_YAFFS2_WRITE
+		else if (!read && s != NULL && (!strcmp(s, ".yaffs1") || !strcmp(s, ".yaffs2")))
+        {
+            nand_write_options_t opts;
+            memset(&opts, 0, sizeof(opts));
+            opts.buffer    = (u_char*) addr;
+            opts.length    = size;
+            opts.offset    = off;
+            opts.pad    = 0;
+            opts.blockalign = 1;
+            opts.quiet = quiet;
+            opts.writeoob    = 1;
+            opts.autoplace    = MTD_NANDECC_PLACE;
+			opts.noecc	= 1; //YWDRIVER_MODI d48zm 2010/2/24 add
+            if (s[6] == '1')
+                opts.forceyaffs = 1;
+            else if(s[6] == '2')
+                opts.forceyaffs = 2;
+            ret = nand_write_opts(nand, &opts);
+#endif
+//YWDRIVER_MODI D02SH 2009/06/17 add end
+
 		} else {
+
+
 #if defined(CONFIG_MEASURE_TIME)
 			set_timer(0);				/* start measuring */
 #endif	/* CONFIG_MEASURE_TIME */
@@ -482,6 +521,14 @@ U_BOOT_CMD(nand, 5, 1, do_nand,
 	"nand read[.jffs2]     - addr off|partition size\n"
 	"nand write[.jffs2]    - addr off|partition size - read/write `size' bytes starting\n"
 	"    at offset `off' to/from memory address `addr'\n"
+// YWDRIVER_MODI D02SH 2009/06/17 add begin
+#ifdef CFG_NAND_YAFFS2_WRITE
+    "nand write[.yaffs[1|2]] - addr off|partition size - write `size' byte yaffs image\n"
+    " starting at offset `off' from memory address `addr' (.yaffs1 for 512+16 NAND)|(.yaffs2 \n"
+    "for 2048+64 NAND)\n"
+#endif
+// YWDRIVER_MODI D02SH 2009/06/17 add end
+
 	"nand erase [clean] [off size] - erase `size' bytes from\n"
 	"    offset `off' (entire device if not specified)\n"
 	"nand bad - show bad blocks\n"

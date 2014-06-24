@@ -1,0 +1,26 @@
+#!/bin/sh
+# Print additional version information for non-release trees.
+
+usage() {
+	echo "Usage: $0 [srctree]" >&2
+	exit 1
+}
+
+cd "${1:-.}" || usage
+
+# Check for git and a git repo.
+if head=`git rev-parse --verify HEAD 2>/dev/null`; then
+	if describe=`git describe 2>/dev/null`; then
+		if ref=`git symbolic-ref HEAD 2>/dev/null`; then
+	    	branch=${ref#refs/heads/}
+	    	if [ $branch = "master" ]; then
+				printf '%s' $describe
+			else
+				printf '%s-b%s' $describe $branch
+			fi
+		else
+			printf '%s' $describe
+		fi
+	fi
+
+fi

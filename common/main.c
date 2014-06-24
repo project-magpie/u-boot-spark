@@ -40,15 +40,35 @@
 
 #include <post.h>
 
+#ifdef YW_CONFIG_VFD
+#include "vfd.h"
+#endif
+
 #ifdef CONFIG_SILENT_CONSOLE
 DECLARE_GLOBAL_DATA_PTR;
 #endif
+
+//#define YW_CONFIG_ABORT_BY_KEYBOARD
+
+//YWDRIVER_MODI D02SH 2009/09/08 add end
+#define COMMAND_SUCCESS	0
+#define COMMAND_FAIL	1
+int Call_command (char *cmd, int flag);
+// YWDRIVER_MODI add end
 
 /*
  * Board-specific Platform code can reimplement show_boot_progress () if needed
  */
 void inline __show_boot_progress (int val) {}
+/*****     2012-05-09     *****/
+//YWDRIVER_MODI modify by lf for 消除编译告警 start
+//错误：内联函数‘show_boot_progress’不能声明为有弱链接
+#if 1
+void show_boot_progress (int val) __attribute__((weak, alias("__show_boot_progress")));
+#else
 void inline show_boot_progress (int val) __attribute__((weak, alias("__show_boot_progress")));
+#endif
+//YWDRIVER_MODI modify by lf end
 
 #if defined(CONFIG_BOOT_RETRY_TIME) && defined(CONFIG_RESET_TO_RETRY)
 extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);		/* for do_reset() prototype */
@@ -57,6 +77,7 @@ extern int do_reset (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);		/* fo
 extern int do_bootd (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[]);
 
 
+#define ESC                 0x1B
 #define MAX_DELAY_STOP_STR 32
 
 static int parse_line (char *, char *[]);
@@ -88,6 +109,22 @@ static int      retry_time = -1; /* -1 so can call readline before main_loop */
 #ifdef CONFIG_MODEM_SUPPORT
 int do_mdm_init = 0;
 extern void mdm_init(void); /* defined in board.c */
+#endif
+
+void YW_auto_update_kernel(void);
+
+#ifdef YW_CONFIG_VFD
+void YW_detect_key_before_count(int *pBootdelay, int *pAbort);
+void YW_detect_key_between_count(int *pBootdelay, int *pAbort);
+#ifdef CONFIG_MENUKEY
+static int force_system_mode(void);
+static int set_system_spark(void);
+static int set_system_enigma2(void);
+static int rs232_upgrade_uboot(void);
+static int force_factory_mode(void);
+static int factory_update_kernel(void);
+static int factory_update_userfs(void);
+#endif
 #endif
 
 /***************************************************************************
@@ -214,10 +251,19 @@ static __inline__ int abortboot(int bootdelay)
 {
 	int abort = 0;
 
+//YWDRIVER_MODI d48zm 2009/12/18 for bootdelay begin
+	int udelay_num_max = 100;
+#ifdef YW_CONFIG_VFD
+	if(YWVFD_IsStandbyTypeVfd())
+	{
+		udelay_num_max = 30;
+	}
+#endif
+//YWDRIVER_MODI d48zm 2009/12/18 for bootdelay end
 #ifdef CONFIG_MENUPROMPT
 	printf(CONFIG_MENUPROMPT, bootdelay);
 #else
-	printf("Hit any key to stop autoboot: %2d ", bootdelay);
+	printf("Hit ESC to stop autoboot: %2d ", bootdelay);
 #endif
 
 #if defined CONFIG_ZERO_BOOTDELAY_CHECK
@@ -226,20 +272,27 @@ static __inline__ int abortboot(int bootdelay)
 	 * Don't check if bootdelay < 0
 	 */
 	if (bootdelay >= 0) {
+        #ifdef YW_CONFIG_ABORT_BY_KEYBOARD
 		if (tstc()) {	/* we got a key press	*/
 			(void) getc();  /* consume input	*/
 			puts ("\b\b\b 0");
 			abort = 1;	/* don't auto boot	*/
 		}
+        #endif
+
+        #ifdef YW_CONFIG_VFD
+		YW_detect_key_before_count(&bootdelay, &abort);
+        #endif
 	}
-#endif
+#endif	//CONFIG_ZERO_BOOTDELAY_CHECK
 
 	while ((bootdelay > 0) && (!abort)) {
 		int i;
 
 		--bootdelay;
 		/* delay 100 * 10ms */
-		for (i=0; !abort && i<100; ++i) {
+		for (i=0; !abort && i< udelay_num_max; ++i) {
+			#ifdef YW_CONFIG_ABORT_BY_KEYBOARD
 			if (tstc()) {	/* we got a key press	*/
 				abort  = 1;	/* don't auto boot	*/
 				bootdelay = 0;	/* no more delay	*/
@@ -250,6 +303,11 @@ static __inline__ int abortboot(int bootdelay)
 # endif
 				break;
 			}
+			#endif
+
+            #ifdef YW_CONFIG_VFD
+			YW_detect_key_between_count(&bootdelay, &abort);
+            #endif
 			udelay(10000);
 		}
 
@@ -387,12 +445,14 @@ void main_loop (void)
 		int prev = disable_ctrlc(1);	/* disable Control C checking */
 # endif
 
+		s = getenv ("bootcmd");	// must reget it, because env changed in abortboot
 # ifndef CFG_HUSH_PARSER
 		run_command (s, 0);
 # else
 		parse_string_outer(s, FLAG_PARSE_SEMICOLON |
 				    FLAG_EXIT_FROM_LOOP);
 # endif
+		YW_auto_update_kernel();
 
 # ifdef CONFIG_AUTOBOOT_KEYED
 		disable_ctrlc(prev);	/* restore Control C checking */
@@ -511,7 +571,7 @@ void reset_cmd_timeout(void)
 
 #define CTL_CH(c)		((c) - 'a' + 1)
 
-#define MAX_CMDBUF_SIZE		256
+#define MAX_CMDBUF_SIZE		1024 //YWDRIVER_MODI lwj change 256 to 1024 to ex-long the env for kernel start parms
 
 #define CTL_BACKSPACE		('\b')
 #define DEL			((char)255)
@@ -1401,3 +1461,642 @@ int do_run (cmd_tbl_t * cmdtp, int flag, int argc, char *argv[])
 	return 0;
 }
 #endif
+
+//YWDRIVER_MODI d48zm 2010/4/2 add begin
+void YW_auto_update_kernel(void)
+{
+	char *s;
+	ssize_t ret = -1;
+
+	s = getenv("boot_system");
+    if(!strcmp(s, "spark"))
+	{//kernel image may be incorrect try to update
+		int i=0;
+		ulong addr = 0;
+		size_t update_try_num = 2;
+		char *addr_str = getenv("load_addr");
+		image_header_t img_header;
+		image_header_t *hdrtmp = &img_header;
+		char* cmd[2][2] = {{"update_kernel", "up--"}, {"bootcmd", "boot"}};
+
+		while (ret != 0) {
+			if (addr_str != NULL) {
+				addr = simple_strtoul (addr_str, NULL, 16);
+			} else {
+				addr = CFG_LOAD_ADDR;
+			}
+
+			#ifdef YW_CONFIG_VFD
+			YWVFD_Print("load");
+			#endif
+
+			while(1) {
+				s = "loady"; //use ymodem to transmit new image
+				#ifndef CFG_HUSH_PARSER
+				run_command (s, 0);
+				#else
+				parse_string_outer(s, FLAG_PARSE_SEMICOLON |
+					    FLAG_EXIT_FROM_LOOP);
+				#endif
+
+				s = getenv("filesize");	//"loady" command set it
+
+				if (*s != '0') { //ymodem has transmit some data,we check it
+					ulong checksum;
+
+					/* Copy header so we can blank CRC field for re-calculation */
+					memmove (hdrtmp, (char*)addr, sizeof(image_header_t));
+					checksum = ntohl(hdrtmp->ih_hcrc);
+ 					hdrtmp->ih_hcrc = 0;
+
+					if (ntohl(((image_header_t*)hdrtmp)->ih_magic) != IH_MAGIC) {
+						puts ("Bad Magic Number\n");
+					}
+					else if (crc32 (0, (uchar*)hdrtmp, sizeof(image_header_t)) != checksum) {
+						puts ("Bad Header Checksum\n");
+					}
+					else if (crc32 (0, (uchar*)(addr + sizeof(image_header_t)),\
+							ntohl(hdrtmp->ih_size)) != ntohl(hdrtmp->ih_dcrc) ) {
+						puts ("Bad Data CRC\n");
+					}
+					else break; //check pass
+				}
+			}
+
+			//here image has been read in memery
+			while (update_try_num !=0){
+				ret = 0;
+				for (i=0; i<2 && ret==0; ++i) { //copy image to flash then boot from flash
+
+					#ifdef YW_CONFIG_VFD
+					YWVFD_Print(cmd[i][1]);
+					#endif
+
+					s = getenv(cmd[i][0]);
+					if (NULL == s){
+						printf("Warning: env %s is not set use default!\n", cmd[i][0]);
+						switch(i)
+						{
+							case 0:
+							{
+								s = CFG_YW_UPDATE_KERNEL;
+								break;
+							}
+							case 1:
+							{
+								s = CFG_YW_BOOTCMD;
+								break;
+							}
+							default :
+							{
+								break;
+							}
+						}
+					}
+
+					#ifndef CFG_HUSH_PARSER
+					ret = run_command (s, 0);
+					#else
+					ret = parse_string_outer(s, FLAG_PARSE_SEMICOLON |
+						    FLAG_EXIT_FROM_LOOP);
+					#endif
+				}
+
+				//If update failed, try to reset update env and retry
+				puts("Error! reset env and try again\n");
+				setenv("update_kernel", CFG_YW_UPDATE_KERNEL);
+				setenv("bootcmd", CFG_YW_BOOTCMD);
+				--update_try_num;
+			}
+		}
+	}
+}
+//YWDRIVER_MODI d48zm 2010/4/2 add end
+
+
+#ifdef YW_CONFIG_VFD
+void YW_detect_key_before_count(int *pBootdelay, int *pAbort)
+{
+    int key = 0;
+
+    if(YWVFD_HasKeyPress(&key))
+    {
+		if((RAW_KEY_OK == key))	// OK key
+		{
+			if(force_system_mode())
+			{
+				#ifdef YW_CONFIG_VFD
+				YWVFD_Print("Err");
+				#endif
+				printf("Err\n");
+				while(1);
+			}
+			#ifdef YW_CONFIG_VFD
+			YWVFD_Print("SUCC");
+			#endif
+			printf("SUCC\n");
+			(*pBootdelay) = 3; // delay 3 seconds
+		}
+		else if (RAW_KEY_MENU == key)
+		{
+			(*pAbort)  = 1; /* don't auto boot	*/
+            #ifdef CONFIG_MENUKEY
+			menukey = CONFIG_MENUKEY;
+            #endif
+		}
+    }
+}
+
+void YW_detect_key_between_count(int *pBootdelay, int *pAbort)
+{
+    int key = 0;
+
+    if(YWVFD_HasKeyPress(&key))
+    {
+        if (RAW_KEY_MENU == key)
+		{
+            (*pAbort) = 1;	/* don't auto boot	*/
+            (*pBootdelay) = 0;	/* no more delay	*/
+            #ifdef CONFIG_MENUKEY
+            menukey = CONFIG_MENUKEY;
+            #endif
+		}
+    }
+}
+
+#ifdef CONFIG_MENUKEY
+// YWDRIVER_MODI sqy 2008/12/2 begin
+static int force_system_mode(void)
+{
+	char*	p;
+    int ikey = 0x00;
+
+	p = getenv("boot_system");
+
+	#ifdef YW_CONFIG_VFD
+	YWVFD_Print(p);
+	#endif
+    udelay(500000);
+
+	#ifdef YW_CONFIG_VFD
+	YWVFD_Print("Forc");
+	#endif
+	printf("\nForce command mode:");
+	printf("Select boot (current boot system : %s):\n"
+            "1. spark(up key)\n"
+            "2. enigma2(down key)\n"
+		    "3. RS232 Upgrade u-boot(left key)\n"
+		    "4. Force into factory mode(right key)\n"
+		    "Input Select:\n",
+		    p);
+	while(1)
+	{
+        YWVFD_WaitNewKeyPress(&ikey);
+		p = getenv("boot_system");
+		switch (ikey)
+		{
+    		case	RAW_KEY_UP:
+    			if(set_system_spark())
+    			{
+    				goto error;
+    			}
+    			break;
+    		case	RAW_KEY_DOWN:
+    			if(set_system_enigma2())
+    			{
+    				goto error;
+    			}
+    			break;
+    		case	RAW_KEY_LEFT:
+                if (rs232_upgrade_uboot())
+                {
+    				goto error;
+                }
+    			return 0;
+    			//break;		// no need break;
+    		case	RAW_KEY_RIGHT:
+    			if(force_factory_mode())
+    			{
+    				goto error;
+    			}
+    			return 0;
+    			//break;
+    		case	RAW_KEY_OK:
+    			saveenv();
+    			return 0;
+    			//break;
+		    default:
+
+		        break;
+		}
+	}
+error:
+	return -1;
+}// YWDRIVER_MODI sqy 2008/12/2 end
+
+static int set_system_spark(void)
+{
+	char*	p = NULL;
+
+	p = getenv("boot_system");
+
+	#ifdef YW_CONFIG_VFD
+	YWVFD_Print("SPAr");
+	#endif
+
+	if(p && !strcmp(p, "spark"))
+	{
+		p = getenv("bootargs");
+	}
+	else
+	{
+		p = getenv("bootargs_spark");
+	}
+
+	if(p)
+	{
+		printf("set bootargs to bootargs_spark\n");
+		setenv("bootargs", p);
+	}
+	else
+	{
+		printf("set bootargs to bootargs_spark default\n");
+		setenv("bootargs", YWCFG_BOOTARGS_SPARK);
+		setenv("bootargs_spark", YWCFG_BOOTARGS_SPARK);
+	}
+
+	p = getenv("kernel_base_spark");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("kernel_base", p);
+
+
+	p = getenv("kernel_len_spark");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("kernel_len", p);
+
+	//setenv("boot_system", "spark");
+
+	p = getenv("kernel_name_spark");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("kernel_name", p);
+
+    p = getenv("tftp_kernel_name_spark");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("tftp_kernel_name", p);
+
+
+	p = getenv("userfs_name_spark");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("userfs_name", p);
+
+
+	p = getenv("tftp_userfs_name_spark");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("tftp_userfs_name", p);
+
+
+	p = getenv("userfs_len_spark");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("userfs_len", p);
+
+
+	p = getenv("userfs_base_spark");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("userfs_base", p);
+
+	p = getenv("bootcmd_spark");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("bootcmd", p);
+
+	setenv("boot_system", "spark");
+	return 0;
+error:
+	return -1;
+}
+
+
+static int set_system_enigma2(void)
+{
+	char*	p = NULL;
+
+	p = getenv("boot_system");
+
+	#ifdef YW_CONFIG_VFD
+	YWVFD_Print("ENIG");
+	#endif
+
+	if(p && !strcmp(p, "enigma2"))
+	{
+		p = getenv("bootargs");
+	}
+	else
+	{
+		p = getenv("bootargs_enigma2");
+	}
+	if(p)
+	{
+		printf("set bootargs to bootargs_enigma2\n");
+		setenv("bootargs", p);
+	}
+	else
+	{
+		printf("set bootargs to bootargs_enigma2 default\n");
+		setenv("bootargs", YWCFG_BOOTARGS_ENIGMA2);
+		setenv("bootargs_enigma2", YWCFG_BOOTARGS_ENIGMA2);
+	}
+	p = getenv("kernel_base_enigma2");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("kernel_base", p);
+
+	p = getenv("kernel_len_enigma2");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("kernel_len", p);
+
+
+	p = getenv("kernel_name_enigma2");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("kernel_name", p);
+
+	p = getenv("userfs_name_enigma2");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("userfs_name", p);
+
+	p = getenv("tftp_kernel_name_enigma2");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("tftp_kernel_name", p);
+
+	p = getenv("tftp_userfs_name_enigma2");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("tftp_userfs_name", p);
+
+	p = getenv("userfs_len_enigma2");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("userfs_len", p);
+
+	p = getenv("userfs_base_enigma2");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("userfs_base", p);
+
+	p = getenv("bootcmd_enigma2");
+	if(!p)
+	{
+		goto error;
+	}
+	setenv("bootcmd", p);
+
+	setenv("boot_system", "enigma2");
+	return 0;
+error:
+	return -1;
+}
+
+static int rs232_upgrade_uboot(void)
+{
+	char*	p = NULL;
+	int     rcode;
+    long    filesize=0;
+	printf("Force rs232 upgrade u-boot, need %d Bytes(%dkB)\n",
+            CFG_MONITOR_LEN, CFG_MONITOR_LEN / 1024);
+	#ifdef YW_CONFIG_VFD
+	YWVFD_Print ("r232");
+	#endif
+	rcode = Call_command("loady", 0);
+	if(rcode != 0)
+	{
+		goto error;
+	}
+	p = getenv("filesize");
+	if(!p)
+	{
+		goto error;
+	}
+    filesize = p ? simple_strtol(p, NULL, 16) : 0;
+
+    if (0 == filesize)
+    {
+        printf("\n Transmit filesize is 0, please check your choiced file\n");
+		goto error;
+    }
+    if (CFG_MONITOR_LEN != filesize)
+    {
+        printf("\n Transmit filesize is not " XSTR(CFG_MONITOR_LEN)
+                "(%d Bytes)(%dkB), please check your choiced file\n",
+                CFG_MONITOR_LEN, CFG_MONITOR_LEN / 1024);
+		goto error;
+    }
+
+   	rcode = Call_command(CFG_YW_UPDATE_UBOOT, 0);
+	if(rcode != 0)
+	{
+		goto error;
+	}
+
+    return 0;
+
+    error:
+    	return -1;
+}
+
+static int force_factory_mode(void)
+{
+	int rcode;
+
+	printf("Force Factory mode\n");
+	#ifdef YW_CONFIG_VFD
+	YWVFD_Print ("Fact");
+	#endif
+
+	rcode = Call_command ( "usb start", 0 );
+	if(rcode != 0)
+	{
+		goto error;
+	}
+
+	rcode = factory_update_kernel();
+	if(rcode != 0)
+	{
+		goto error;
+	}
+
+	rcode = factory_update_userfs();
+	if(rcode != 0)
+	{
+		goto error;
+	}
+
+	#ifdef YW_CONFIG_VFD
+	YWVFD_Print("SUCC");
+	#endif
+	setenv("fuseburned","true");
+	saveenv();
+	return 0;
+error:
+	#ifdef YW_CONFIG_VFD
+	YWVFD_Print("Err");
+	#endif
+	while(1);
+	return -1;
+}
+
+static int factory_update_kernel(void)
+{
+	int rcode;
+	char*	p = NULL;
+
+	rcode = Call_command ( CFG_YW_LOADU_KERNEL, 0 );
+	if(rcode != 0)
+	{
+	    rcode = Call_command ( CFG_YW_TFTP_KERNEL, 0 );
+        if (rcode != 0)
+        {
+		    goto error;
+        }
+	}
+	p = getenv("boot_system");
+	if(!strcmp(p, "spark"))
+	{
+        #if defined(CFG_BOOT_FROM_NAND) || defined(CFG_BOOT_FROM_SPI)
+		rcode = Call_command("nand erase $kernel_base $kernel_len", 0);
+		if(rcode != 0)
+		{
+			goto error;
+		}
+		rcode = Call_command ("nand write.i $load_addr $kernel_base $kernel_len", 0 );
+		if(rcode != 0)
+		{
+			goto error;
+		}
+        #else
+		rcode = Call_command("protect off all;erase $kernel_sec;cp.b $load_addr $kernel_base $filesize", 0);
+		if(rcode != 0)
+		{
+			goto error;
+		}
+        #endif
+	}
+	else
+	{
+		rcode = Call_command("nand erase $kernel_base $kernel_len", 0);
+		if(rcode != 0)
+		{
+			goto error;
+		}
+		rcode = Call_command ("nand write.i $load_addr $kernel_base $kernel_len", 0 );
+		if(rcode != 0)
+		{
+			goto error;
+		}
+	}
+
+	return 0;
+
+error:
+	return -1;
+}
+
+static int factory_update_userfs(void)
+{
+	int rcode;
+	char*	p = NULL;
+
+	rcode = Call_command ( CFG_YW_LOADU_USERFS, 0 );
+	if(rcode != 0)
+	{
+	    rcode = Call_command (CFG_YW_TFTP_USERFS, 0 );
+        if (rcode != 0)
+        {
+		    goto error;
+        }
+	}
+	rcode = Call_command ("nand erase $userfs_base $userfs_len", 0);
+	if(rcode != 0)
+	{
+		goto error;
+	}
+	p = getenv("boot_system");
+	if(!strcmp(p, "spark"))
+	{
+		rcode = Call_command (CFG_YW_WRITE_USERFS_SPARK_CMD" $load_addr $userfs_base $filesize", 0 );
+	}
+	else
+	{
+		rcode = Call_command (CFG_YW_WRITE_USERFS_ENIGMA2_CMD" $load_addr $userfs_base $filesize", 0 );
+	}
+	if(rcode != 0)
+	{
+		goto error;
+	}
+
+	return 0;
+
+error:
+	return -1;
+}
+
+#endif
+#endif
+
+int Call_command ( char *cmd, int flag)
+{
+#ifndef CFG_HUSH_PARSER
+    if (run_command (cmd, flag) == -1)
+    	return COMMAND_FAIL;
+#else
+    if (parse_string_outer(cmd,
+        FLAG_PARSE_SEMICOLON | FLAG_EXIT_FROM_LOOP) != 0)
+    	return COMMAND_FAIL;
+#endif
+    return COMMAND_SUCCESS;
+}
+

@@ -186,8 +186,68 @@ int saveenv(void)
 	return ret;
 }
 #else /* ! CFG_ENV_OFFSET_REDUND */
-int saveenv(void)
+int saveenv(void)  //YWDRIVER_MODI lwj :这里需要注意，还需要加一些代码，否则如果要保存环境变量的地方是坏块的话，就会出问题的。
 {
+	//YWDRIVER_MODI 2010/3/5 d48zm modify
+	#if 0
+	int ret = 0;
+	int blockstart = -1;
+	ulong erasesize_blockalign = nand_info[0].erasesize;
+	u_char* data_ptr = (u_char*)env_ptr;
+	ssize_t offset = CFG_ENV_OFFSET;
+	ssize_t envlen = CFG_ENV_SIZE;
+	ulong writelen = erasesize_blockalign;
+	ulong checklen = erasesize_blockalign;
+	ssize_t boundbegin = CFG_ENV_OFFSET + YW_CFG_NAND_ENV_BOUND - erasesize_blockalign;
+
+	while ((envlen > 0) && (offset <= boundbegin)){
+
+		if (envlen < erasesize_blockalign){
+			checklen = envlen;
+			writelen = envlen;
+		}
+
+		/*
+		 * new eraseblock, check for bad block(s). Stay in the
+		 * loop to be sure if the offset changes because of
+		 * a bad block, that the next block that will be
+		 * written to is also checked. Thus avoiding errors if
+		 * the block(s) after the skipped block(s) is also bad
+		 * (number of blocks depending on the blockalign
+		 */
+		while (blockstart != (offset & (~erasesize_blockalign+1))) {
+			blockstart = offset & (~erasesize_blockalign+1);
+
+			int ret = nand_block_isbad(&nand_info[0], offset);
+
+			if (ret < 0) {
+				printf("Bad block check failed\n");
+				return 1;
+			}
+			if (ret == 1) {
+				offset = blockstart
+					+ erasesize_blockalign;
+				printf("\rBad block at 0x%lx "
+					   "in erase block from "
+					   "0x%x will be skipped\n",
+					   (long) offset,
+					   blockstart);
+			}
+		}
+		printf ("Erasing Nand block at 0x%lx...", offset);
+		if (nand_erase(&nand_info[0], offset, erasesize_blockalign))
+			return 1;
+
+		puts ("Writing to Nand block... ");
+		ret = nand_write(&nand_info[0], offset, &writelen, data_ptr);
+		if (ret || writelen != checklen)
+			return 1;
+
+		envlen -= writelen;
+		data_ptr += writelen;
+		offset += writelen;
+	}
+	#else
 	ulong total;
 	int ret = 0;
 
@@ -200,6 +260,8 @@ int saveenv(void)
 	ret = nand_write(&nand_info[0], CFG_ENV_OFFSET, &total, (u_char*)env_ptr);
 	if (ret || total != CFG_ENV_SIZE)
 		return 1;
+	#endif
+	//YWDRIVER_MODI end
 
 	puts ("done\n");
 	return ret;
@@ -268,6 +330,65 @@ void env_relocate_spec (void)
 void env_relocate_spec (void)
 {
 #if !defined(ENV_IS_EMBEDDED)
+	//YWDRIVER_MODI 2010/3/5 d48zm modify
+	#if 0
+	int ret;
+	int blockstart = -1;
+	ulong erasesize_blockalign = nand_info[0].erasesize;
+	u_char* data_ptr = (u_char*)env_ptr;
+	ssize_t offset = CFG_ENV_OFFSET;
+	ssize_t envlen = CFG_ENV_SIZE;
+	ulong readlen = erasesize_blockalign;
+	ulong checklen = erasesize_blockalign;
+	ssize_t boundbegin = CFG_ENV_OFFSET + YW_CFG_NAND_ENV_BOUND - erasesize_blockalign;
+
+	while ((envlen > 0) && (offset <= boundbegin)){
+
+		if (envlen < erasesize_blockalign){
+			checklen = envlen;
+			readlen = envlen;
+		}
+
+		/*
+		 * new eraseblock, check for bad block(s). Stay in the
+		 * loop to be sure if the offset changes because of
+		 * a bad block, that the next block that will be
+		 * written to is also checked. Thus avoiding errors if
+		 * the block(s) after the skipped block(s) is also bad
+		 * (number of blocks depending on the blockalign
+		 */
+		while (blockstart != (offset & (~erasesize_blockalign+1))) {
+			blockstart = offset & (~erasesize_blockalign+1);
+
+			ret = nand_block_isbad(&nand_info[0], offset);
+
+			if (ret < 0) {
+				printf("Bad block check failed\n");
+				return 1;
+			}
+			if (ret == 1) {
+				offset = blockstart
+					+ erasesize_blockalign;
+				printf("\rBad block at 0x%lx "
+					   "in erase block from "
+					   "0x%x will be skipped\n",
+					   (long) offset,
+					   blockstart);
+			}
+		}
+
+		ret = nand_read(&nand_info[0], offset, &readlen, data_ptr);
+  		if (ret || readlen != checklen)
+			return use_default();
+
+		envlen -= readlen;
+		data_ptr += readlen;
+		offset += readlen;
+	}
+
+	if (crc32(0, env_ptr->data, ENV_SIZE) != env_ptr->crc)
+		return use_default();
+	#else
 	ulong total;
 	int ret;
 
@@ -278,6 +399,8 @@ void env_relocate_spec (void)
 
 	if (crc32(0, env_ptr->data, ENV_SIZE) != env_ptr->crc)
 		return use_default();
+	#endif
+	//YWDRIVER_MODI 2010/3/5 d48zm modify end
 #endif /* ! ENV_IS_EMBEDDED */
 }
 #endif /* CFG_ENV_OFFSET_REDUND */

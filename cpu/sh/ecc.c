@@ -1,7 +1,7 @@
 /*
  * Synopsis : Error Correction Codes (ECC) Algorithms.
  *
- * Copyright (c) 2008-2009 STMicroelectronics Limited.  All right reserved.
+ * Copyright (c) 2008-2010 STMicroelectronics Limited.  All right reserved.
  *
  * See ecc.h for a description of this module.
  *
@@ -30,6 +30,45 @@
 
 #include <asm/ecc.h>
 
+
+const unsigned char  ecc_bit_count_table[256] =   /* Parity look up table */
+{
+  0, 1, 1, 2, 1, 2, 2, 3,
+  1, 2, 2, 3, 2, 3, 3, 4,
+  1, 2, 2, 3, 2, 3, 3, 4,
+  2, 3, 3, 4, 3, 4, 4, 5,
+  1, 2, 2, 3, 2, 3, 3, 4,
+  2, 3, 3, 4, 3, 4, 4, 5,
+  2, 3, 3, 4, 3, 4, 4, 5,
+  3, 4, 4, 5, 4, 5, 5, 6,
+  1, 2, 2, 3, 2, 3, 3, 4,
+  2, 3, 3, 4, 3, 4, 4, 5,
+  2, 3, 3, 4, 3, 4, 4, 5,
+  3, 4, 4, 5, 4, 5, 5, 6,
+  2, 3, 3, 4, 3, 4, 4, 5,
+  3, 4, 4, 5, 4, 5, 5, 6,
+  3, 4, 4, 5, 4, 5, 5, 6,
+  4, 5, 5, 6, 5, 6, 6, 7,
+  1, 2, 2, 3, 2, 3, 3, 4,
+  2, 3, 3, 4, 3, 4, 4, 5,
+  2, 3, 3, 4, 3, 4, 4, 5,
+  3, 4, 4, 5, 4, 5, 5, 6,
+  2, 3, 3, 4, 3, 4, 4, 5,
+  3, 4, 4, 5, 4, 5, 5, 6,
+  3, 4, 4, 5, 4, 5, 5, 6,
+  4, 5, 5, 6, 5, 6, 6, 7,
+  2, 3, 3, 4, 3, 4, 4, 5,
+  3, 4, 4, 5, 4, 5, 5, 6,
+  3, 4, 4, 5, 4, 5, 5, 6,
+  4, 5, 5, 6, 5, 6, 6, 7,
+  3, 4, 4, 5, 4, 5, 5, 6,
+  4, 5, 5, 6, 5, 6, 6, 7,
+  4, 5, 5, 6, 5, 6, 6, 7,
+  5, 6, 6, 7, 6, 7, 7, 8
+};
+
+
+#if defined(CFG_NAND_ECC_HW3_128)
 
 static const unsigned char byte_parity_table[] =   /* Parity look up table */
 {
@@ -65,42 +104,6 @@ static const unsigned char byte_parity_table[] =   /* Parity look up table */
   0x7E, 0x55, 0x53, 0x78, 0x4D, 0x66, 0x60, 0x4B,
   0x00, 0x2B, 0x2D, 0x06, 0x33, 0x18, 0x1E, 0x35,
   0x35, 0x1E, 0x18, 0x33, 0x06, 0x2D, 0x2B, 0x00
-};
-
-static const unsigned char  bit_count_table[] =   /* Parity look up table */
-{
-  0, 1, 1, 2, 1, 2, 2, 3,
-  1, 2, 2, 3, 2, 3, 3, 4,
-  1, 2, 2, 3, 2, 3, 3, 4,
-  2, 3, 3, 4, 3, 4, 4, 5,
-  1, 2, 2, 3, 2, 3, 3, 4,
-  2, 3, 3, 4, 3, 4, 4, 5,
-  2, 3, 3, 4, 3, 4, 4, 5,
-  3, 4, 4, 5, 4, 5, 5, 6,
-  1, 2, 2, 3, 2, 3, 3, 4,
-  2, 3, 3, 4, 3, 4, 4, 5,
-  2, 3, 3, 4, 3, 4, 4, 5,
-  3, 4, 4, 5, 4, 5, 5, 6,
-  2, 3, 3, 4, 3, 4, 4, 5,
-  3, 4, 4, 5, 4, 5, 5, 6,
-  3, 4, 4, 5, 4, 5, 5, 6,
-  4, 5, 5, 6, 5, 6, 6, 7,
-  1, 2, 2, 3, 2, 3, 3, 4,
-  2, 3, 3, 4, 3, 4, 4, 5,
-  2, 3, 3, 4, 3, 4, 4, 5,
-  3, 4, 4, 5, 4, 5, 5, 6,
-  2, 3, 3, 4, 3, 4, 4, 5,
-  3, 4, 4, 5, 4, 5, 5, 6,
-  3, 4, 4, 5, 4, 5, 5, 6,
-  4, 5, 5, 6, 5, 6, 6, 7,
-  2, 3, 3, 4, 3, 4, 4, 5,
-  3, 4, 4, 5, 4, 5, 5, 6,
-  3, 4, 4, 5, 4, 5, 5, 6,
-  4, 5, 5, 6, 5, 6, 6, 7,
-  3, 4, 4, 5, 4, 5, 5, 6,
-  4, 5, 5, 6, 5, 6, 6, 7,
-  4, 5, 5, 6, 5, 6, 6, 7,
-  5, 6, 6, 7, 6, 7, 7, 8
 };
 
 /*******************************************************************************/
@@ -287,16 +290,16 @@ enum ecc_check ecc_correct(unsigned char* p_data,
        0xAA = 10101010
        0x55 = 01010101
      */
-    bit_cnt02  = bit_count_table[ ((ecc_xor[0] & 0xAA) >> 1) ^ (ecc_xor[0] & 0x55) ];
-    bit_cnt02 += bit_count_table[ ((ecc_xor[1] & 0xAA) >> 1) ^ (ecc_xor[1] & 0x55) ];
-    bit_cnt02 += bit_count_table[ ((ecc_xor[2] & 0xAA) >> 1) ^ (ecc_xor[2] & 0x55) ];
+    bit_cnt02  = ecc_bit_count_table[ ((ecc_xor[0] & 0xAA) >> 1) ^ (ecc_xor[0] & 0x55) ];
+    bit_cnt02 += ecc_bit_count_table[ ((ecc_xor[1] & 0xAA) >> 1) ^ (ecc_xor[1] & 0x55) ];
+    bit_cnt02 += ecc_bit_count_table[ ((ecc_xor[2] & 0xAA) >> 1) ^ (ecc_xor[2] & 0x55) ];
   }
   else
   {
     /* Counts the number of bits set in ecc code */
-    bit_cnt02  = bit_count_table[ ecc_xor[0] ];
-    bit_cnt02 += bit_count_table[ ecc_xor[1] ];
-    bit_cnt02 += bit_count_table[ ecc_xor[2] ];
+    bit_cnt02  = ecc_bit_count_table[ ecc_xor[0] ];
+    bit_cnt02 += ecc_bit_count_table[ ecc_xor[1] ];
+    bit_cnt02 += ecc_bit_count_table[ ecc_xor[2] ];
   }
 
   if (bit_cnt02 == error_bit_count)
@@ -485,5 +488,6 @@ int main()
 
   return 0;
 }
-#endif
+#endif	/* TESTING */
+#endif	/* CFG_NAND_ECC_HW3_128 */
 #endif	/* CONFIG_CMD_NAND */

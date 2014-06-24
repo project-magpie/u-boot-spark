@@ -211,8 +211,8 @@ int soc_init(void)
 extern int stx7105_usb_init(int port, int over_current, int power_ctrl)
 {
 	unsigned long reg;
-	const unsigned char oc_pins[2]    = {4, 6};	/* PIO4 */
-	const unsigned char power_pins[2] = {5, 7};	/* PIO4 */
+	const unsigned char oc_pins[2]    = {6, 4};	/* PIO4 */
+	const unsigned char power_pins[2] = {7, 5};	/* PIO4 */
 
 	if (port >= sizeof(oc_pins))	/* invalid port number ? */
 		return -1;		/* failed to initialize! */
@@ -256,7 +256,8 @@ extern int stx7105_usb_init(int port, int over_current, int power_ctrl)
 		reg |=   0x0101ul<<(power_pins[port]);	/* OR=3 */
 		writel(reg, STX7105_SYSCONF_SYS_CFG34);
 		/* set PIO directionality, for POWER as ALT_OUT */
-		SET_PIO_PIN(PIO_PORT(4), power_pins[port], STPIO_ALT_OUT);
+		SET_PIO_PIN(PIO_PORT(4), power_pins[port], STPIO_OUT);
+		STPIO_SET_PIN(PIO_PORT(4), power_pins[port], 1);
 	}
 
 	/* start the USB Wrapper Host Controller */

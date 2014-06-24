@@ -11,7 +11,7 @@
  *
  *  Copyright (C) 2000 Steven J. Hill (sjhill@realitydiluted.com)
  * 		  2002 Thomas Gleixner (tglx@linutronix.de)
- *		  2009 STMicroelectronics. (Sean McGoogan <Sean.McGoogan@st.com>)
+ *		  2009-2011 STMicroelectronics. (Sean McGoogan <Sean.McGoogan@st.com>)
  *
  *
  *  02-06-2009  SMG: added support for 3 bytes of ECC per 128 byte record.
@@ -45,7 +45,7 @@
  *	The AG-AND chips have nice features for speed improvement,
  *	which are not supported yet. Read / program 4 pages in one go.
  *
- * $Id: nand_base.c,v 1.126 2004/12/13 11:22:25 lavinen Exp $
+ * $Id: nand_base.c,v 1.2 2011/10/31 06:02:25 d26lf Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -1777,6 +1777,9 @@ extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t *
 
 	DEBUG (MTD_DEBUG_LEVEL3, "nand_write_oob: to = 0x%08x, len = %i\n", (unsigned int) to, (int) len);
 
+	/* ensure padded_buf[] will not overflow */
+	if ( (len>NAND_MAX_OOBSIZE) || (mtd->oobsize>NAND_MAX_OOBSIZE) ) BUG();
+
 	/* Shift to get page */
 	page = (int) (to >> this->page_shift);
 	chipnr = (int) (to >> this->chip_shift);
@@ -1815,14 +1818,17 @@ extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t *
 		this->pagebuf = -1;
 
 	if (NAND_MUST_PAD(this)) {
+		u_char padded_buf[NAND_MAX_OOBSIZE];
 		/* Write out desired data */
 		this->cmdfunc (mtd, NAND_CMD_SEQIN, mtd->oobblock, page & this->pagemask);
 		/* prepad 0xff for partial programming */
-		this->write_buf(mtd, ffchars, column);
-		/* write data */
-		this->write_buf(mtd, buf, len);
+		memcpy(padded_buf, ffchars, column);
+		/* main data */
+		memcpy(padded_buf+column, buf, len);
 		/* postpad 0xff for partial programming */
-		this->write_buf(mtd, ffchars, mtd->oobsize - (len+column));
+		memcpy(padded_buf+column+len, ffchars, mtd->oobsize - (len+column));
+		/* now write all the padded data */
+		this->write_buf(mtd, padded_buf, mtd->oobsize);
 	} else {
 		/* Write out desired data */
 		this->cmdfunc (mtd, NAND_CMD_SEQIN, mtd->oobblock + column, page & this->pagemask);
@@ -1842,7 +1848,7 @@ extern int nand_write_oob (struct mtd_info *mtd, loff_t to, size_t len, size_t *
 	}
 	/* Return happy */
 	*retlen = len;
-
+#define CONFIG_MTD_NAND_VERIFY_WRITE //YWDRIVER_MODI d02sh add for yaffs2 write
 #ifdef CONFIG_MTD_NAND_VERIFY_WRITE
 	/* Send command to read back the data */
 	this->cmdfunc (mtd, NAND_CMD_READOOB, column, page & this->pagemask);
@@ -2659,8 +2665,16 @@ int nand_scan (struct mtd_info *mtd, int maxchips)
 	mtd->owner = THIS_MODULE;
 #endif
 
-	/* Build bad block table */
+/* Build bad block table */
+
+// YWDRIVER_MODI lwj modify begin 到这一部了不能认为是错，否则bbt失败后，NAND也不可写了 
+#if 0
 	return this->scan_bbt (mtd);
+#else
+	this->scan_bbt (mtd);
+	return 0;
+#endif
+//YWDRIVER_MODI lwj modify end
 }
 
 /**

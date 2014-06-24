@@ -105,15 +105,17 @@ extern int board_nand_init(struct nand_chip *nand)
 	nand->write_byte    = stm_flex_write_byte;
 	nand->read_buf      = stm_flex_read_buf;
 	nand->write_buf     = stm_flex_write_buf;
+    nand->verify_buf    = stm_flex_verify_buf;
 #else				/* for "bit-banging" (c.f. STM "flex-mode")  */
 	nand->dev_ready     = pdk7105_device_ready;
 	nand->hwcontrol     = pdk7105_hwcontrol;
 #endif /* CFG_NAND_FLEX_MODE */
 
-#if 1
-	/* Enable the following to use a Bad Block Table (BBT) */
-	nand->options      |= NAND_USE_FLASH_BBT;
+	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
 	nand->scan_bbt      = stm_nand_default_bbt;
+
+#if 1	/* Enable to use a NAND-resident (non-volatile) Bad Block Table (BBT) */
+	nand->options      |= NAND_USE_FLASH_BBT;
 #endif
 
 	return 0;

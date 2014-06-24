@@ -190,6 +190,9 @@ static void *rx_packets[CONFIG_DMA_RX_SIZE];
 static int stmac_phy_negotiate (int phy_addr)
 {
 	uint now, tmp, status;
+	//2010/02/04 YWDRIVER_MODI zm add
+	char *s;
+	//2010/02/04 YWDRIVER_MODI zm add end
 
 	status = 0;
 
@@ -198,7 +201,16 @@ static int stmac_phy_negotiate (int phy_addr)
 	stmac_mii_write (phy_addr, MII_BMCR, tmp);
 
 	now = get_timer (0);
-	while (get_timer (now) < CONFIG_STMAC_AUTONEG_TIMEOUT) {
+   //2010/02/04 YWDRIVER_MODI zm modify
+    #if 1
+    s = getenv ("netdelay");
+    while (get_timer (now) < (s ? ((int)simple_strtol(s, NULL, 10) + 1) * CFG_HZ: 
+    	CONFIG_STMAC_AUTONEG_TIMEOUT))
+    #else
+        while (get_timer (now) < CONFIG_STMAC_AUTONEG_TIMEOUT)
+    #endif
+        {      
+    //2010/02/04 YWDRIVER_MODI zm modify end
 		status = stmac_mii_read (phy_addr, MII_BMSR);
 		if (status & BMSR_ANEGCOMPLETE) {
 			break;
@@ -267,7 +279,11 @@ static unsigned int stmac_phy_check_speed (int phy_addr)
 #endif	/* CONFIG_PHY_LOOPBACK */
 
 /* Automatically gets and returns the PHY device */
+#if 0  //YWDRIVER_MODI lwj modify begin
 static unsigned int stmac_phy_get_addr (void)
+#else
+unsigned int stmac_phy_get_addr (void)
+#endif
 {
 	unsigned int i, id;
 
@@ -277,6 +293,16 @@ static unsigned int stmac_phy_get_addr (void)
 		unsigned int id2 = stmac_mii_read (phyaddr, MII_PHYSID2);
 		id  = (id1 << 16) | (id2);
 		/* Make sure it is a valid (known) identifier */
+
+// YWDRIVER_MODI lwj 20110114 add for different phy chip begin
+        if((id1 | id2) && (id1 != 0xffff))
+        {
+            printf("found phy at addres = %d\n", phyaddr);
+            printf("%s(): id1 = 0x%x, id2 = 0x%x\n", __FUNCTION__, id1, id2);
+            return phyaddr;
+        }
+// YWDRIVER_MODI lwj 20110114 add for different phy chip end
+            printf("%s(): id1 = 0x%x, id2 = 0x%x\n", __FUNCTION__, id1, id2);
 #if defined(CONFIG_STMAC_STE10XP)
 		if ((id & STE101P_PHY_ID_MASK) == STE101P_PHY_ID) {
 			printf (STMAC "STe101P found\n");
@@ -309,7 +335,7 @@ static unsigned int stmac_phy_get_addr (void)
 		if ((id & TERIDIAN_PHY_ID_MASK) == TERIDIAN_PHY_ID) {
 			printf (STMAC "TERIDIAN 78Q2123 found\n");
 			return phyaddr;
-		}
+		}       
 #else
 #error Need to define which PHY to use
 #endif	/* CONFIG_STMAC_STE10XP */

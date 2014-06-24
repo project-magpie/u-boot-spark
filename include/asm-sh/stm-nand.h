@@ -133,6 +133,12 @@ extern void stm_flex_write_buf(
 	const u_char *buf,
 	const int len);
 
+//YWDRIVER_MODI d48zm 2010/3/12 add for nand verifybuf
+extern int stm_flex_verify_buf(
+	struct mtd_info *mtd, 
+	const u_char *buf, 
+	const int len);
+//YWDRIVER_MODI d48zm end
 
 #endif /* CFG_NAND_FLEX_MODE */
 

@@ -6,7 +6,7 @@
  *
  *  Copyright (C) 2004 Thomas Gleixner (tglx@linutronix.de)
  *
- * $Id: nand_bbt.c,v 1.28 2004/11/13 10:19:09 gleixner Exp $
+ * $Id: nand_bbt.c,v 1.2 2011/08/30 06:57:20 d26lf Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -63,6 +63,10 @@
 
 #include <asm/errno.h>
 
+#if defined(CONFIG_SH4)
+#include <asm-sh/ecc.h>
+#endif	/* CONFIG_SH4 */
+
 /**
  * check_pattern - [GENERIC] check if a pattern is in the buffer
  * @buf:	the buffer to search
@@ -93,7 +97,7 @@ static int check_pattern (uint8_t *buf, int len, int paglen, struct nand_bbt_des
 	/* Compare the pattern */
 	for (i = 0; i < td->len; i++) {
 		if (p[i] != td->pattern[i])
-			return -1;
+			goto check_failed;
 	}
 
 	p += td->len;
@@ -105,6 +109,45 @@ static int check_pattern (uint8_t *buf, int len, int paglen, struct nand_bbt_des
 		}
 	}
 	return 0;
+
+check_failed:
+#if defined(CONFIG_SH4)
+	if (td->options & NAND_BBT_SCANSTMBOOTECC)	/* is it "Boot-Mode+B" (3+1/128) ? */
+	{	/* Check for STM "Boot-Mode+B" ECC... */
+		int e = 0;
+		for (i = paglen+3; i < len; i += 4)
+		{	/* check: OOB[n*4+3] == 'B', for n=0,1,2,... */
+			e += ecc_bit_count_table[buf[i] ^ 'B'];
+		}
+		/* Tolerate a single bit-error across all the 'B' markers in one page */
+		if (e <= 1)
+		{
+#if 0
+			printf("info: page recognised as good \"Boot-Mode+B\" (e=%u)\n", e);
+#endif
+			return 0;	/* treat as a "good" match */
+		}
+	}
+	if (td->options & NAND_BBT_SCANSTMAFMECC)	/* is it "AFM4" (4+3/512) ? */
+	{	/* Check for STM "AFM4" ECC... */
+		int e = 0;
+		for (i = paglen+3; i < len; i += 16)
+		{	/* check: OOB[n*16+3:n*16+5] == "AFM", for n=0,1,2,... */
+			e += ecc_bit_count_table[buf[i+0] ^ 'A'];
+			e += ecc_bit_count_table[buf[i+1] ^ 'F'];
+			e += ecc_bit_count_table[buf[i+2] ^ 'M'];
+		}
+		/* Tolerate a single bit-error across all the "AFM" markers in one page */
+		if (e <= 1)
+		{
+#if 0
+			printf("info: page recognised as good \"AFM4\" (e=%u)\n", e);
+#endif
+			return 0;	/* treat as a "good" match */
+		}
+	}
+#endif	/* CONFIG_SH4 */
+	return -1;	/* patterns failed to match! */
 }
 
 /**
@@ -159,8 +202,14 @@ static int read_bbt (struct mtd_info *mtd, uint8_t *buf, int page, int num,
 				}
 				/* Leave it for now, if its matured we can move this
 				 * message to MTD_DEBUG_LEVEL0 */
+				/***** 2011-08-30 YWDRIVER_MODI D26LF Del:
+				    Description:取消开机时坏块打印
+				*/
+				#if 0
 				printk (KERN_DEBUG "nand_read_bbt: Bad block at 0x%08x\n",
 					((offs << 2) + (act >> 1)) << this->bbt_erase_shift);
+				#endif
+				/***** 2011-08-30 YWDRIVER_MODI D26LF Del end ****/
 				/* Factory marked bad or worn out ? */
 				if (tmp == 0)
 					this->bbt[offs + (act >> 3)] |= 0x3 << (act & 0x06);
@@ -590,8 +639,13 @@ static int nand_memory_bbt (struct mtd_info *mtd, struct nand_bbt_descr *bd)
 {
 	struct nand_chip *this = mtd->priv;
 
-	/* Ensure that we only scan for the pattern and nothing else */
-	bd->options = 0;
+	/*
+	 * Ensure that we only scan for the pattern and nothing else.
+	 * Although, we also permit a block to be recognised as "good"
+	 * even if the bad block marker says otherwise, *if* it matches
+	 * one of other known "special" OOB signatures.
+	 */
+	bd->options &= NAND_BBT_SCANSTMBOOTECC|NAND_BBT_SCANSTMAFMECC;
 	create_bbt (mtd, this->data_buf, bd, -1);
 	return 0;
 }

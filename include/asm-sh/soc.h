@@ -97,6 +97,7 @@ struct stx7108_ethernet_config
  */
 extern int  stmac_default_pbl (void);
 extern void stmac_set_mac_speed (int speed);
+extern void stmac_phy_reset (void);
 
 
 /*

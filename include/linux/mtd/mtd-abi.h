@@ -1,5 +1,5 @@
 /*
- * $Id: mtd-abi.h,v 1.7 2004/11/23 15:37:32 gleixner Exp $
+ * $Id: mtd-abi.h,v 1.1.1.1 2010/12/27 05:46:46 d27lwj Exp $
  *
  * Portions of MTD ABI definition which are shared by kernel and user space
  */
@@ -90,7 +90,7 @@ struct region_info_user {
 #define MEMSETBADBLOCK		_IOW('M', 12, loff_t)
 
 #define MTD_NANDECC_MAX_OOBFREE	16	/* 16 for STMicroelectronics STi7xxx */
-#define MTD_NANDECC_MAX_ECCPOS	48	/* 48 for STMicroelectronics STi7xxx */
+#define MTD_NANDECC_MAX_ECCPOS	64	/* 64 for STMicroelectronics "Boot-Mode+B" (3+1/128) */
 struct nand_oobinfo {
 	uint32_t useecc;
 	uint32_t eccbytes;

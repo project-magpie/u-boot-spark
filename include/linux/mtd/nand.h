@@ -5,7 +5,7 @@
  *		       Steven J. Hill <sjhill@realitydiluted.com>
  *		       Thomas Gleixner <tglx@linutronix.de>
  *
- * $Id: nand.h,v 1.68 2004/11/12 10:40:37 gleixner Exp $
+ * $Id: nand.h,v 1.1.1.1 2010/12/27 05:46:46 d27lwj Exp $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -460,6 +460,9 @@ struct nand_bbt_descr {
 #define NAND_BBT_SAVECONTENT	0x00002000
 /* Search good / bad pattern on the first and the second page */
 #define NAND_BBT_SCAN2NDPAGE	0x00004000
+/* Handle STMicroelectronics H/W ECC schemes (boot-mode, AFM4) */
+#define NAND_BBT_SCANSTMBOOTECC	0x00010000
+#define NAND_BBT_SCANSTMAFMECC	0x00020000
 
 /* The maximum number of blocks to scan for a bbt */
 #define NAND_BBT_SCAN_MAXBLOCKS 4

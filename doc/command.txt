@@ -1,0 +1,42 @@
+sh4-linux-gdb -ex "sh4tp 192.168.40.33:sdk7105:st40,no_convertor_abort=1,seuc=1" -ex load -exec u-boot
+
+在uboot里烧写uboot:
+nfs 80000000 192.168.40.19:/home/d27lwj/workspace/target/root/BIN7167/u-boot.bin
+或者
+tftp 80000000 u-boot.bin
+nand erase 0 100000
+nand write.i 0x80000000 0 $filesize
+
+内核启动后烧uboot的命令：
+flash_eraseall /dev/mtd0
+nandwrite -a -p /dev/mtd0 u-boot.bin
+
+mImage
+flash_eraseall /dev/mtd1
+nandwrite -a -p /dev/mtd1 mImage
+
+
+tftp 80000000 mImage.7167
+nand erase 100000 700000
+nand write.i 80000000 00100000 $filesize
+
+set bootcmd nboot.i 80000000 0 100000 \;\ bootm 80000000
+
+
+//烧写userfs 
+flash_eraseall /dev/mtd2
+nandwrite -a -o  /dev/mtd2 userfs.img.7167
+mount -t yaffs2 /dev/mtdblock2 /mnt
+cd /mnt
+touch userfs_flag
+
+
+(1)
+/opt/STM/STLinux-2.3/host/stmc/bin/romgen --output=cab7167_init.S --show-comment --target_connect 192.168.40.33:sdk7105:st40
+
+Warning: Invalid directory /opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7200, specified in file /opt/STM/STLinux-2.3/host/stmc/targetpack/sttp.xml, line $STTPROOT/socs/stx7200
+
+romgen error: Fatal Error: TargetPack error: global name 'lmi_frequency' is not defined
+
+所以修改了/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/stx7105/stx7105.py，将'lmi_frequency' 直接返回800.
+(2)

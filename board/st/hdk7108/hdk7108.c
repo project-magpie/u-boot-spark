@@ -92,7 +92,7 @@ static void configPIO(void)
 }
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
-static void phy_reset(void)
+extern void stmac_phy_reset(void)
 {
 	/*
 	 * Reset the Ethernet PHY.
@@ -118,7 +118,7 @@ extern int board_init(void)
 
 #ifdef CONFIG_DRIVER_NET_STM_GMAC
 	/* Reset the PHY */
-	phy_reset();
+	stmac_phy_reset();
 #if CFG_STM_STMAC_BASE == CFG_STM_STMAC0_BASE		/* MII0, on MII JP2 */
 	stx7108_configure_ethernet(0, &(struct stx7108_ethernet_config) {
 			.mode = stx7108_ethernet_mode_mii,

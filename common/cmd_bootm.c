@@ -163,9 +163,21 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 	int	(*appl)(int, char *[]);
 	image_header_t *hdr = &header;
 
+//YWDRIVER_MODI 2010/6/2 d48zm add
+#ifdef YW_CONFIG_VFD
+{
+	extern void YWVFD_Print(char* str);
+	YWVFD_Print("boot");
+}
+#endif
+//add end
+
 	s = getenv ("verify");
 	verify = (s && (*s == 'n')) ? 0 : 1;
-
+//YWDRIVER_MODI D02SH 2009/06/22 add begin
+    //verify = 0;
+    verify = 1; //lwj
+//YWDRIVER_MODI D02SH 2009/06/22 add end
 	if (argc < 2) {
 		addr = load_addr;
 	} else {
@@ -348,6 +360,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		break;
 	case IH_COMP_GZIP:
 		printf ("   Uncompressing %s ... ", name);
+#if 0 //YWDRIVER_MODI lwj remove or there will be error, such as "reset the board"
 #if defined(CONFIG_SH4)
 {
 		const uchar * const isizep =		/* pointer to ISIZE */
@@ -411,6 +424,7 @@ int do_bootm (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
 		unc_len = Usize;	/* we now know that it will fit okay */
 }
 #endif	/* CONFIG_SH4 */
+#endif
 		if (gunzip ((void *)ntohl(hdr->ih_load), unc_len,
 			    (uchar *)data, &len) != 0) {
 			puts ("GUNZIP ERROR - must RESET board to recover\n");
@@ -547,7 +561,14 @@ U_BOOT_CMD(
 static void
 fixup_silent_linux ()
 {
+//YWDRIVER_MODI lwj 2010/12/02 modify begin
+//Description:exlong the env
+#if 0
 	char buf[256], *start, *end;
+#else
+	char buf[1024], *start, *end;
+#endif
+//YWDRIVER_MODI lwj 2010/12/02 modify end
 	char *cmdline = getenv ("bootargs");
 
 	/* Only fix cmdline when requested */

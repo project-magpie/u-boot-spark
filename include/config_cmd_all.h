@@ -78,5 +78,8 @@
 #define CONFIG_CMD_VFD		/* VFD support (TRAB)		*/
 #define CONFIG_CMD_XIMG		/* Load part of Multi Image	*/
 #define CONFIG_CMD_AT91_SPIMUX	/* AT91 MMC/SPI Mux Support     */
-
+//YWDRIVER_MODI D02SH 2009/07/20 add begin
+//Description:add for cmd update added by sparker
+#define CONFIG_CMD_UPDATE   /*for update FULAN SPARK*/
+//YWDRIVER_MODI D02SH 2009/07/20 add end
 #endif	/* _CONFIG_CMD_ALL_H */

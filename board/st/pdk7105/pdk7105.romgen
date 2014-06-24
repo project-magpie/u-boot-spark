@@ -1,41 +1,85 @@
-/* sdk7105 connect start - parameters {'no_devid_validate': '1', 'no_convertor_abort': '1', 'no_devid_abort': '1'}
- */
-/* Initialization TCK frequency set to 1562500 Hz
- */
-/* Device id  0x1d43e041
- */
-/* tapmux connect(): boot mode single core setup
- */
-/* tapmux setup to bypass to core st40, channel 1
- */
-/* sdk7105 initialization start ...
- */
-/* sdk7105_setup - parameters {'tapmux_bypass_init': u'st40', 'no_devid_validate': '1', 'no_convertor_abort': '1', 'reset_low_period': 360000, 'no_devid_abort': '1'}
- */
-/* Chip infos
- */
+/*
+This file was automatically generated on Thu 05 May 11 at 18:07:10 by user d42cjun, host LinuxServer3 using romgen R1.4.0 with the ST TargetPack adt7167 using the option --target-connect with the ST Micro Connect 192.168.40.33
+
+TargetPack files used:
+/home/d42cjun/workspace/stapisdk_a33/stapp/platform/adt7167/7105/targetpack/adt7167.py
+/home/d42cjun/workspace/stapisdk_a33/stapp/platform/adt7167/7105/targetpack/adt7167.xml
+/home/d42cjun/workspace/stapisdk_a33/stapp/platform/adt7167/7105/targetpack/adt7167_design.xml
+/home/d42cjun/workspace/stapisdk_a33/stapp/platform/adt7167/7105/targetpack/stx7105.pyc
+/home/d42cjun/workspace/stapisdk_a33/stapp/platform/adt7167/7105/targetpack/stx7105.xml
+/home/d42cjun/workspace/stapisdk_a33/stapp/platform/adt7167/7105/targetpack/stx7105_audio_regs.xml
+/home/d42cjun/workspace/stapisdk_a33/stapp/platform/adt7167/7105/targetpack/stx7105_clockgena_regs.xml
+/home/d42cjun/workspace/stapisdk_a33/stapp/platform/adt7167/7105/targetpack/stx7105_clockgenb_regs.xml
+/home/d42cjun/workspace/stapisdk_a33/stapp/platform/adt7167/7105/targetpack/stx7105_design.xml
+/home/d42cjun/workspace/stapisdk_a33/stapp/platform/adt7167/7105/targetpack/stx7105_sysconf_regs.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st231.pyc
+/opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st231.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st40_200.pyc
+/opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st40_200.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st40_200_design.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st40_ccn_regs.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st40_pmb_addr_array_regs.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st40_pmb_data_array_regs.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/cores/st40_pmb_regs.pyc
+/opt/STM/STLinux-2.3/host/stmc/targetpack/debug/tapmux.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/peripherals/st40_emi_regs.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/peripherals/st40_lmigp_regs.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/peripherals/st40_pio.xml
+/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/peripherals/tapmux.pyc
+/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/tap/__init__.pyc
+/opt/STM/STLinux-2.3/host/stmc/targetpack/socs/tap/jtag.pyc
+/opt/STM/STLinux-2.3/host/stmc/targetpack/utilities/utilities.pyc
+*/
+POKE32(0xfe702010, 0x00000004)
+POKE32(0xfe702018, 0x00000002)
+POKE32(0xfe702020, 0x00020011)
 
 
 /*
 stx7105_sysconf_regs.SYSCONF_DEVICEID0
 */
-/* PEEK(0xfe001000) (used target peek value 0x1d43e041) */
-/*   Device ID = 0x1D43E041 ==> STi7105 cut 2
- */
+/* PEEK(0xfe001000) (used target peek value 0x2d43e041) */
 
 
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
-/*   Mode pins = 0x00001015 ==> ClockgenA ref : SYSCLKIN/OSC
- */
-/*                              Boot mode ... : ST40 first
- */
-/*                              Boot port size: 16-bits
- */
-/*                              Boot device . : NOR flash
- */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
+
+
+/*
+stx7105_sysconf_regs.SYSCONF_CFG40
+*/
+/* PEEK(0xfe0011a0) (used target peek value 0x00000004) */
+
+
+/*
+stx7105_sysconf_regs.SYSCONF_CFG40
+*/
+POKE32(0xfe0011a0, 0x00000004)
+
+
+/*
+stx7105_sysconf_regs.SYSCONF_DEVICEID0
+*/
+/* PEEK(0xfe001000) (used target peek value 0x2d43e041) */
+
+
+/*
+stx7105_sysconf_regs.SYSCONF_CFG04
+*/
+/* PEEK(0xfe001110) (used target peek value 0x00000126) */
+
+
+/*
+stx7105_sysconf_regs.SYSCONF_CFG04
+*/
+POKE32(0xfe001110, 0x000001a6)
+POKE32(0xfe000010, 0x0000c0de)
+POKE32(0xfe0000b8, 0x00000001)
+POKE32(0xfe000010, 0x0000c1a0)
+/* PEEK(0xfe210000) (used target peek value 0x00000000) */
+POKE32(0xfe210000, 0x00000000)
 
 
 /*
@@ -51,39 +95,21 @@ POKE32(0xfe0011a0, 0x00000005)
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG40
-*/
-/* PEEK(0xfe0011a0) (used target peek value 0x00000005) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG40
-*/
-POKE32(0xfe0011a0, 0x00000005)
-
-
-/*
 stx7105_sysconf_regs.SYSCONF_DEVICEID0
 */
-/* PEEK(0xfe001000) (used target peek value 0x1d43e041) */
+/* PEEK(0xfe001000) (used target peek value 0x2d43e041) */
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG04
+stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
-/* PEEK(0xfe001110) (used target peek value 0x00000126) */
+POKE32(0xfe213014, 0x00000000)
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG04
+stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG2
 */
-POKE32(0xfe001110, 0x000001a6)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_DEVICEID0
-*/
-/* PEEK(0xfe001000) (used target peek value 0x1d43e041) */
+POKE32(0xfe213024, 0x00000000)
 
 
 /*
@@ -195,6 +221,66 @@ POKE32(0xfe213004, 0x80102803)
 
 
 /*
+stx7105_clockgena_regs.CKGA_POWER_CFG
+*/
+/* PEEK(0xfe213010) (used target peek value 0x00000000) */
+
+
+/*
+stx7105_clockgena_regs.CKGA_POWER_CFG
+*/
+POKE32(0xfe213010, 0x00000002)
+
+
+/*
+stx7105_clockgena_regs.CKGA_PLL1_CFG
+*/
+/* PEEK(0xfe213004) (used target peek value 0x00182803) */
+
+
+/*
+stx7105_clockgena_regs.CKGA_PLL1_CFG
+*/
+POKE32(0xfe213004, 0x00182803)
+
+
+/*
+stx7105_clockgena_regs.CKGA_POWER_CFG
+*/
+/* PEEK(0xfe213010) (used target peek value 0x00000002) */
+
+
+/*
+stx7105_clockgena_regs.CKGA_POWER_CFG
+*/
+POKE32(0xfe213010, 0x00000000)
+
+
+/*
+stx7105_clockgena_regs.CKGA_PLL1_CFG
+*/
+/* PEEK(0xfe213004) (used target peek value 0x80102803) */
+
+
+/*
+stx7105_clockgena_regs.CKGA_PLL1_CFG
+*/
+WHILE_NE32(0xfe213004, 0x80000000, 0x80000000)
+
+
+/*
+stx7105_clockgena_regs.CKGA_PLL1_CFG
+*/
+/* PEEK(0xfe213004) (used target peek value 0x80102803) */
+
+
+/*
+stx7105_clockgena_regs.CKGA_PLL1_CFG
+*/
+POKE32(0xfe213004, 0x80002803)
+
+
+/*
 stx7105_clockgena_regs.CKGA_PLL1_DIV0_CFG
 */
 POKE32(0xfe213b00, 0x00000001)
@@ -303,66 +389,6 @@ POKE32(0xfe213b44, 0x00000103)
 
 
 /*
-stx7105_clockgena_regs.CKGA_POWER_CFG
-*/
-/* PEEK(0xfe213010) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_clockgena_regs.CKGA_POWER_CFG
-*/
-POKE32(0xfe213010, 0x00000002)
-
-
-/*
-stx7105_clockgena_regs.CKGA_PLL1_CFG
-*/
-/* PEEK(0xfe213004) (used target peek value 0x00182803) */
-
-
-/*
-stx7105_clockgena_regs.CKGA_PLL1_CFG
-*/
-POKE32(0xfe213004, 0x00182803)
-
-
-/*
-stx7105_clockgena_regs.CKGA_POWER_CFG
-*/
-/* PEEK(0xfe213010) (used target peek value 0x00000002) */
-
-
-/*
-stx7105_clockgena_regs.CKGA_POWER_CFG
-*/
-POKE32(0xfe213010, 0x00000000)
-
-
-/*
-stx7105_clockgena_regs.CKGA_PLL1_CFG
-*/
-/* PEEK(0xfe213004) (used target peek value 0x80102803) */
-
-
-/*
-stx7105_clockgena_regs.CKGA_PLL1_CFG
-*/
-WHILE_NE32(0xfe213004, 0x80000000, 0x80000000)
-
-
-/*
-stx7105_clockgena_regs.CKGA_PLL1_CFG
-*/
-/* PEEK(0xfe213004) (used target peek value 0x80102803) */
-
-
-/*
-stx7105_clockgena_regs.CKGA_PLL1_CFG
-*/
-POKE32(0xfe213004, 0x80002803)
-
-
-/*
 stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 POKE32(0xfe213014, 0xa6aa59aa)
@@ -372,12 +398,6 @@ POKE32(0xfe213014, 0xa6aa59aa)
 stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG2
 */
 POKE32(0xfe213024, 0x0000000a)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_DEVICEID0
-*/
-/* PEEK(0xfe001000) (used target peek value 0x1d43e041) */
 
 
 /*
@@ -419,35 +439,25 @@ POKE32(0xfe00112c, 0x000006a0)
 /*
 stx7105_sysconf_regs.SYSCONF_STA3
 */
-/* PEEK(0xfe001014) (used target peek value 0x1f1016a4) */
+/* PEEK(0xfe001014) (used target peek value 0x1e0841c0) */
 
 
 /*
 stx7105_sysconf_regs.SYSCONF_STA3
 */
 WHILE_NE32(0xfe001014, 0x00000001, 0x00000000)
-/* set_lmi2x_freq: freq=800.000 rdiv=0x3, ddiv=0x50
- */
-/* Clock frequencies
- */
 
 
 /*
 stx7105_clockgena_regs.CKGA_PLL0_CFG
 */
 /* PEEK(0xfe213000) (used target peek value 0x80000f01) */
-/*   CKGA_PLL0HS     = 900.0 MHz
- */
-/*   CKGA_PLL0LS     = 450.0 MHz
- */
 
 
 /*
 stx7105_clockgena_regs.CKGA_PLL1_CFG
 */
 /* PEEK(0xfe213004) (used target peek value 0x80002803) */
-/*   CKGA_PLL1       = 800.0 MHz
- */
 
 
 /*
@@ -465,7 +475,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -473,8 +483,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213a10) (used target peek value 0x00010100) */
-/*   ST40 ICK        = 450.0 MHz
- */
 
 
 /*
@@ -492,7 +500,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -500,8 +508,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213a18) (used target peek value 0x00010100) */
-/*   LX DMU          = 450.0 MHz
- */
 
 
 /*
@@ -519,7 +525,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -527,8 +533,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213a1c) (used target peek value 0x00010100) */
-/*   LX AUD          = 450.0 MHz
- */
 
 
 /*
@@ -546,7 +550,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -554,8 +558,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b04) (used target peek value 0x00000001) */
-/*   FDMA0           = 400.0 MHz
- */
 
 
 /*
@@ -573,7 +575,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -581,8 +583,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b08) (used target peek value 0x00000001) */
-/*   FDMA1           = 400.0 MHz
- */
 
 
 /*
@@ -600,7 +600,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -608,8 +608,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b00) (used target peek value 0x00000001) */
-/*   STNOC           = 400.0 MHz
- */
 
 
 /*
@@ -627,7 +625,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -635,8 +633,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b20) (used target peek value 0x00000103) */
-/*   IC_BDISP_200    = 200.0 MHz
- */
 
 
 /*
@@ -654,7 +650,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -662,8 +658,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b24) (used target peek value 0x00000103) */
-/*   IC_DISP_200     = 200.0 MHz
- */
 
 
 /*
@@ -681,7 +675,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -689,8 +683,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b28) (used target peek value 0x00000103) */
-/*   IC_TS_200       = 200.0 MHz
- */
 
 
 /*
@@ -708,7 +700,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -716,8 +708,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG2
 */
 /* PEEK(0xfe213024) (used target peek value 0x0000000a) */
 /* PEEK(0xfe213b40) (used target peek value 0x00000103) */
-/*   IC_COMPO_200    = 200.0 MHz
- */
 
 
 /*
@@ -735,7 +725,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -743,8 +733,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG2
 */
 /* PEEK(0xfe213024) (used target peek value 0x0000000a) */
 /* PEEK(0xfe213b44) (used target peek value 0x00000103) */
-/*   IC_IF_200       = 200.0 MHz
- */
 
 
 /*
@@ -762,7 +750,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -770,8 +758,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b14) (used target peek value 0x00000307) */
-/*   IC_IF_100       = 100.0 MHz
- */
 
 
 /*
@@ -789,7 +775,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -797,8 +783,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b2c) (used target peek value 0x00000103) */
-/*   DISP_PIPE_200   = 200.0 MHz
- */
 
 
 /*
@@ -816,7 +800,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -824,10 +808,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b30) (used target peek value 0x00000102) */
-/*   BLIT_PROC       = 266.7 MHz
- */
-/*   IC_DELTA_200    = 266.7 MHz
- */
 
 
 /*
@@ -845,7 +825,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -853,8 +833,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213a34) (used target peek value 0x00000811) */
-/*   ETHERNET        = 25.0 MHz
- */
 
 
 /*
@@ -872,7 +850,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -880,8 +858,6 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b38) (used target peek value 0x0000050b) */
-/*   PCI             = 66.7 MHz
- */
 
 
 /*
@@ -899,7 +875,7 @@ stx7105_clockgena_regs.CKGA_PLL1_CFG
 /*
 stx7105_sysconf_regs.SYSCONF_STA1
 */
-/* PEEK(0xfe00100c) (used target peek value 0x00001015) */
+/* PEEK(0xfe00100c) (used target peek value 0x00041015) */
 
 
 /*
@@ -907,16 +883,12 @@ stx7105_clockgena_regs.CKGA_CLKOPSRC_SWITCH_CFG
 */
 /* PEEK(0xfe213014) (used target peek value 0xa6aa59aa) */
 /* PEEK(0xfe213b3c) (used target peek value 0x00000307) */
-/*   EMI MASTER      = 100.0 MHz
- */
 
 
 /*
 stx7105_sysconf_regs.SYSCONF_CFG11
 */
 /* PEEK(0xfe00112c) (used target peek value 0x000006a0) */
-/*   LMI2X           = 800.0 MHz
- */
 
 
 /*
@@ -941,570 +913,37 @@ stx7105_sysconf_regs.SYSCONF_CFG11
 stx7105_sysconf_regs.SYSCONF_CFG11
 */
 POKE32(0xfe00112c, 0x080006a1)
+DELAY(200)
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG12
+stx7105_sysconf_regs.SYSCONF_CFG04
 */
-/* PEEK(0xfe001130) (used target peek value 0xa000380f) */
+/* PEEK(0xfe001110) (used target peek value 0x000001a2) */
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG12
+stx7105_sysconf_regs.SYSCONF_CFG04
 */
-POKE32(0xfe001130, 0xa000380f)
+POKE32(0xfe001110, 0x000001a6)
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG12
+stx7105_sysconf_regs.SYSCONF_STA3
 */
-/* PEEK(0xfe001130) (used target peek value 0xa000380f) */
+/* PEEK(0xfe001014) (used target peek value 0x1e1df5ca) */
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG12
+stx7105_sysconf_regs.SYSCONF_STA3
 */
-POKE32(0xfe001130, 0xa000380f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa000380f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa000380f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa000380f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa000380f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa000380f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa000380f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa000380f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa000380f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa000380f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200380f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200380f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200380f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200380f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200380f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200380f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200380f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200380f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200380f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200380f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200780f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200780f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200780f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200780f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200680f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200680f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200680f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200680f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200680f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200680f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200680f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200680f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200680f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200680f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200684f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200684f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200686f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200686f) */
+WHILE_NE32(0xfe001014, 0x00100400, 0x00100400)
 
 
 /*
 stx7105_sysconf_regs.SYSCONF_CFG12
 */
 POKE32(0xfe001130, 0xa200687f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200687f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200687f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200687f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200687f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200687f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200687f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-/* PEEK(0xfe001130) (used target peek value 0xa200687f) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG12
-*/
-POKE32(0xfe001130, 0xa200687f)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-/* PEEK(0xfe001134) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-POKE32(0xfe001134, 0x00400000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-/* PEEK(0xfe001134) (used target peek value 0x00400000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-POKE32(0xfe001134, 0x00600000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-/* PEEK(0xfe001134) (used target peek value 0x00600000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-POKE32(0xfe001134, 0x00600000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-/* PEEK(0xfe001134) (used target peek value 0x00600000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-POKE32(0xfe001134, 0x00600000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-/* PEEK(0xfe001134) (used target peek value 0x00600000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-POKE32(0xfe001134, 0x00600000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-/* PEEK(0xfe001134) (used target peek value 0x00600000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-POKE32(0xfe001134, 0x00600000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-/* PEEK(0xfe001134) (used target peek value 0x00600000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-POKE32(0xfe001134, 0x00600000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-/* PEEK(0xfe001134) (used target peek value 0x00600000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-POKE32(0xfe001134, 0x00600000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-/* PEEK(0xfe001134) (used target peek value 0x00600000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-POKE32(0xfe001134, 0x00600000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-/* PEEK(0xfe001138) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-POKE32(0xfe001138, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-/* PEEK(0xfe001138) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-POKE32(0xfe001138, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-/* PEEK(0xfe001138) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-POKE32(0xfe001138, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-/* PEEK(0xfe001138) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-POKE32(0xfe001138, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-/* PEEK(0xfe001138) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-POKE32(0xfe001138, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-/* PEEK(0xfe001138) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-POKE32(0xfe001138, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-POKE32(0xfe001198, 0x0000fe00)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-/* PEEK(0xfe001198) (used target peek value 0x0000fe00) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-POKE32(0xfe001198, 0x0000fe00)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-/* PEEK(0xfe001198) (used target peek value 0x0000fe00) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-POKE32(0xfe001198, 0x0000fe00)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-/* PEEK(0xfe001198) (used target peek value 0x0000fe00) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-POKE32(0xfe001198, 0x0020fe00)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-/* PEEK(0xfe001198) (used target peek value 0x0020fe00) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-POKE32(0xfe001198, 0x0020fe00)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-/* PEEK(0xfe001198) (used target peek value 0x0020fe00) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-POKE32(0xfe001198, 0x002cfe00)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-/* PEEK(0xfe001198) (used target peek value 0x002cfe00) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-POKE32(0xfe001198, 0x002ffe00)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG38
-*/
-/* PEEK(0xfe001198) (used target peek value 0x002ffe00) */
 
 
 /*
@@ -1514,358 +953,9 @@ POKE32(0xfe001198, 0x002ffe0c)
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG40
-*/
-/* PEEK(0xfe0011a0) (used target peek value 0x00000005) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG40
-*/
-POKE32(0xfe0011a0, 0x00000005)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-/* PEEK(0xfe0011a8) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-POKE32(0xfe0011a8, 0x20000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-/* PEEK(0xfe0011a8) (used target peek value 0x20000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-POKE32(0xfe0011a8, 0x28000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-/* PEEK(0xfe0011a8) (used target peek value 0x28000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-POKE32(0xfe0011a8, 0x2fb80000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-/* PEEK(0xfe0011a8) (used target peek value 0x2fb80000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-POKE32(0xfe0011a8, 0x2fbbdc00)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-/* PEEK(0xfe0011a8) (used target peek value 0x2fbbdc00) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-POKE32(0xfe0011a8, 0x2fbbddee)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-/* PEEK(0xfe0011ac) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-POKE32(0xfe0011ac, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-/* PEEK(0xfe0011ac) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-POKE32(0xfe0011ac, 0x18000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-/* PEEK(0xfe0011ac) (used target peek value 0x18000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-POKE32(0xfe0011ac, 0x18a00000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-/* PEEK(0xfe0011ac) (used target peek value 0x18a00000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-POKE32(0xfe0011ac, 0x18a001ee)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG51
-*/
-/* PEEK(0xfe0011cc) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG51
-*/
-POKE32(0xfe0011cc, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG51
-*/
-/* PEEK(0xfe0011cc) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG51
-*/
-POKE32(0xfe0011cc, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG52
-*/
-/* PEEK(0xfe0011d0) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG52
-*/
-POKE32(0xfe0011d0, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG52
-*/
-/* PEEK(0xfe0011d0) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG52
-*/
-POKE32(0xfe0011d0, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x00002000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x00002000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x00002000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x00002000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x00002000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x00002000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x00002000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x07fc2000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x07fc2000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x07fc2000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x07fc2000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x07fc2000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x07fc2000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x07fc2000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x07fc2000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x07fc2280)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x07fc2280) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x07fc22c0)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x07fc22c0) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x07fc22c0)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x07fc22c0) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-POKE32(0xfe0011dc, 0x07fc22c4)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG04
-*/
-/* PEEK(0xfe001110) (used target peek value 0x000001a2) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG04
-*/
-POKE32(0xfe001110, 0x000001a6)
-DELAY(10)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_STA3
-*/
-/* PEEK(0xfe001014) (used target peek value 0x1e166c50) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_STA3
-*/
-/* PEEK(0xfe001014) (used target peek value 0x1e166450) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG11
-*/
-/* PEEK(0xfe00112c) (used target peek value 0x080006a1) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG11
-*/
-/* PEEK(0xfe00112c) (used target peek value 0x080006a1) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG13
-*/
-/* PEEK(0xfe001134) (used target peek value 0x00600000) */
-
-
-/*
 stx7105_sysconf_regs.SYSCONF_CFG13
 */
 POKE32(0xfe001134, 0x00600000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG14
-*/
-/* PEEK(0xfe001138) (used target peek value 0x00000000) */
 
 
 /*
@@ -1875,198 +965,33 @@ POKE32(0xfe001138, 0x00000000)
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-/* PEEK(0xfe0011a8) (used target peek value 0x2fbbddee) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-POKE32(0xfe0011a8, 0x2fbbddee)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-/* PEEK(0xfe0011a8) (used target peek value 0x2fbbddee) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-POKE32(0xfe0011a8, 0x2fbbddee)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-/* PEEK(0xfe0011a8) (used target peek value 0x2fbbddee) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG42
-*/
-POKE32(0xfe0011a8, 0x2fbbddee)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-/* PEEK(0xfe0011ac) (used target peek value 0x18a001ee) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-POKE32(0xfe0011ac, 0x18a001ee)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-/* PEEK(0xfe0011ac) (used target peek value 0x18a001ee) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG43
-*/
-POKE32(0xfe0011ac, 0x18a001ee)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG51
-*/
-/* PEEK(0xfe0011cc) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG51
-*/
-POKE32(0xfe0011cc, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG51
-*/
-/* PEEK(0xfe0011cc) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG51
-*/
-POKE32(0xfe0011cc, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG52
-*/
-/* PEEK(0xfe0011d0) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG52
-*/
-POKE32(0xfe0011d0, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG52
-*/
-/* PEEK(0xfe0011d0) (used target peek value 0x00000000) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG52
-*/
-POKE32(0xfe0011d0, 0x00000000)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG55
-*/
-/* PEEK(0xfe0011dc) (used target peek value 0x07fc22c4) */
-
-
-/*
 stx7105_sysconf_regs.SYSCONF_CFG55
 */
 POKE32(0xfe0011dc, 0x07fc22c4)
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG04
+stx7105_sysconf_regs.SYSCONF_CFG42
 */
-/* PEEK(0xfe001110) (used target peek value 0x000001a6) */
+POKE32(0xfe0011a8, 0x07bbddee)
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG04
+stx7105_sysconf_regs.SYSCONF_CFG43
 */
-POKE32(0xfe001110, 0x000001a2)
+POKE32(0xfe0011ac, 0x180001ee)
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG11
+stx7105_sysconf_regs.SYSCONF_CFG51
 */
-/* PEEK(0xfe00112c) (used target peek value 0x080006a1) */
+POKE32(0xfe0011cc, 0x00000000)
 
 
 /*
-stx7105_sysconf_regs.SYSCONF_CFG11
+stx7105_sysconf_regs.SYSCONF_CFG52
 */
-POKE32(0xfe00112c, 0x000006a1)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG11
-*/
-/* PEEK(0xfe00112c) (used target peek value 0x000006a1) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG11
-*/
-POKE32(0xfe00112c, 0x000006a0)
-DELAY(10)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG11
-*/
-/* PEEK(0xfe00112c) (used target peek value 0x000006a0) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG11
-*/
-POKE32(0xfe00112c, 0x080006a0)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG11
-*/
-/* PEEK(0xfe00112c) (used target peek value 0x080006a0) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG11
-*/
-POKE32(0xfe00112c, 0x080006a1)
-DELAY(10)
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG04
-*/
-/* PEEK(0xfe001110) (used target peek value 0x000001a2) */
-
-
-/*
-stx7105_sysconf_regs.SYSCONF_CFG04
-*/
-POKE32(0xfe001110, 0x000001a6)
-DELAY(10)
+POKE32(0xfe0011d0, 0x00000000)
 
 
 /*
@@ -2246,7 +1171,7 @@ POKE32(0xfe901008, 0x0b30017b)
 /*
 st40_lmigp_regs.LMI_MIM_1
 */
-POKE32(0xfe90100c, 0x000000b0)
+POKE32(0xfe90100c, 0xffff0500)
 
 
 /*
@@ -2566,8 +1491,6 @@ POKE32(0xfe901010, 0x00020021)
 st40_lmigp_regs.LMI_GCC_0
 */
 POKE32(0xfe901028, 0x00000000)
-/* Info: correcting interco reset setup
- */
 POKE32(0xfe20d200, 0x00000005)
 POKE32(0xfe20d204, 0x00000004)
 POKE32(0xfe20d208, 0x00000003)
@@ -2642,13 +1565,6 @@ POKE32(0xfd102024, 0x0003c000)
 POKE32(0xfe001180, 0x00000b05)
 POKE32(0xfe1fff04, 0x00254608)
 POKE32(0xfeafff04, 0x00254608)
-/* PEEK(0xfe00111c) (used target peek value 0x08081508) */
-POKE32(0xfe00111c, 0x08091508)
-POKE32(0xfd117000, 0x0025c608)
-POKE32(0xfd111000, 0x00201004)
-/* PEEK(0xfe001180) (used target peek value 0x00000b05) */
-POKE32(0xfe001180, 0x00000b01)
-POKE32(0xfe401744, 0x0025c005)
 
 
 /*
@@ -2715,8 +1631,6 @@ stx7105_sysconf_regs.SYSCONF_CFG27
 stx7105_sysconf_regs.SYSCONF_CFG27
 */
 POKE32(0xfe00116c, 0x00001fd0)
-/* stx7105: booted audio companion
- */
 
 
 /*
@@ -2777,11 +1691,3 @@ stx7105_sysconf_regs.SYSCONF_CFG29
 stx7105_sysconf_regs.SYSCONF_CFG29
 */
 POKE32(0xfe001174, 0x00001fcc)
-/* stx7105: booted video companion
- */
-/* TCK frequency set to 12500000 Hz
- */
-/* tapmux complete_connect(): single core setup
- */
-/* sdk7105 initialization complete
- */

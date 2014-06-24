@@ -30,19 +30,19 @@
 #include <asm/pio.h>
 #include <i2c.h>
 
-
+#define CONFIG_DRIVER_NETSTMAC ////YWDRIVER_MODI add for mac
 void flashWriteEnable(void)
 {
 	/* Enable Vpp for writing to flash */
 	/* FLASH_WP# = PIO6[4] = 1 */
-	STPIO_SET_PIN(PIO_PORT(6), 4, 1);
+	//STPIO_SET_PIN(PIO_PORT(6), 4, 1);//YWDRIVER_MODI lwj remove for demo board dtt7167
 }
 
 void flashWriteDisable(void)
 {
 	/* Disable Vpp for writing to flash */
 	/* FLASH_WP# = PIO6[4] = 0 */
-	STPIO_SET_PIN(PIO_PORT(6), 4, 0);
+	//STPIO_SET_PIN(PIO_PORT(6), 4, 0);//YWDRIVER_MODI lwj remove for demo board dtt7167
 }
 
 static void configEthernet(void)
@@ -110,12 +110,21 @@ static void configEthernet(void)
 	SET_PIO_PIN(PIO_PORT(9),6,STPIO_IN);
 
 	/* Setup PIO for the PHY's reset */
+    #if 0 //YWDRIVER_MODI lwj modify for our board
 	SET_PIO_PIN(PIO_PORT(15), 5, STPIO_OUT);
-
-	/* Finally, toggle the PHY Reset pin ("RST#") */
+    /* Finally, toggle the PHY Reset pin ("RST#") */
 	STPIO_SET_PIN(PIO_PORT(15), 5, 0);
 	udelay(100);	/* small delay */
 	STPIO_SET_PIN(PIO_PORT(15), 5, 1);
+    #else
+    SET_PIO_PIN(PIO_PORT(5), 7, STPIO_OUT);
+    /* Finally, toggle the PHY Reset pin ("RST#") */
+	STPIO_SET_PIN(PIO_PORT(5), 7, 1);
+    udelay(1000);
+    STPIO_SET_PIN(PIO_PORT(5), 7, 0);
+	udelay(2000);	/* small delay */
+	STPIO_SET_PIN(PIO_PORT(5), 7, 1);
+    #endif
 }
 
 #if defined(CONFIG_SPI)
@@ -174,6 +183,15 @@ static void configSpi(void)
 	/* drive outputs with sensible initial values */
 	STPIO_SET_PIN(PIO_PORT(15), 0, 1);	/* assert SPI_CLK */
 	STPIO_SET_PIN(PIO_PORT(15), 1, 0);	/* deassert SPI_DOUT */
+
+	/***** 2011-11-03 YWDRIVER_MODI D26LF Add:
+	    Description:用于spi flash写保护
+	*/
+	#ifdef CFG_EEPROM_WREN
+	SET_PIO_PIN(PIO_PORT(5), 4, STPIO_OUT);
+	STPIO_SET_PIN(PIO_PORT(5), 4, 0);
+	#endif
+	/***** 2011-11-03 D26LF Add end ****/
 #elif defined(CONFIG_STM_SSC_SPI)		/* Use the H/W SSC for SPI */
 	/* Set PIO2_ALTFOP to AltFunction #3 (SSC) */
 	sysconf = *STX7105_SYSCONF_SYS_CFG21;
@@ -220,8 +238,13 @@ static void configI2c(void)
 #elif defined(CONFIG_I2C_BUS_D)			/* Use I2C Bus "D" */
 	SET_PIO_PIN(PIO_PORT(3),6,STPIO_BIDIR);	/* I2C_SCLD */
 	SET_PIO_PIN(PIO_PORT(3),7,STPIO_BIDIR);	/* I2C_SDAD */
+//YWDRIVER_MODI lwj add begin
+#elif defined(CONFIG_PANEL_SOFT_I2C)
+    SET_PIO_PIN(PIO_PORT(2),0,STPIO_BIDIR);	/* I2C_SCLD */
+	SET_PIO_PIN(PIO_PORT(2),1,STPIO_BIDIR);	/* I2C_SDAD */
+//YWDRIVER_MODI lwj add end
 #else
-#error Unknown I2C Bus!
+    #error Unknown I2C Bus!
 #endif
 }
 
@@ -233,6 +256,11 @@ extern void stx7105_i2c_scl(const int val)
 	STPIO_SET_PIN(PIO_PORT(3), 4, (val) ? 1 : 0);
 #elif defined(CONFIG_I2C_BUS_D)			/* Use I2C Bus "D" */
 	STPIO_SET_PIN(PIO_PORT(3), 6, (val) ? 1 : 0);
+//YWDRIVER_MODI lwj add begin
+#elif defined(CONFIG_PANEL_SOFT_I2C)
+	STPIO_SET_PIN(PIO_PORT(2), 0, (val) ? 1 : 0);
+//YWDRIVER_MODI lwj add end
+
 #endif
 }
 
@@ -244,6 +272,11 @@ extern void stx7105_i2c_sda(const int val)
 	STPIO_SET_PIN(PIO_PORT(3), 5, (val) ? 1 : 0);
 #elif defined(CONFIG_I2C_BUS_D)			/* Use I2C Bus "D" */
 	STPIO_SET_PIN(PIO_PORT(3), 7, (val) ? 1 : 0);
+//YWDRIVER_MODI lwj add begin
+#elif defined(CONFIG_PANEL_SOFT_I2C)
+	STPIO_SET_PIN(PIO_PORT(2), 1, (val) ? 1 : 0);
+//YWDRIVER_MODI lwj add end
+
 #endif
 }
 
@@ -255,6 +288,10 @@ extern int stx7105_i2c_read(void)
 	return STPIO_GET_PIN(PIO_PORT(3), 5);
 #elif defined(CONFIG_I2C_BUS_D)			/* Use I2C Bus "D" */
 	return STPIO_GET_PIN(PIO_PORT(3), 7);
+//YWDRIVER_MODI lwj add begin
+#elif defined(CONFIG_PANEL_SOFT_I2C)
+	return STPIO_GET_PIN(PIO_PORT(2), 1);
+//YWDRIVER_MODI lwj add end
 #endif
 }
 #endif	/* CONFIG_SOFT_I2C */
@@ -326,7 +363,7 @@ static void configPIO(void)
 #endif	/* CFG_STM_ASC_BASE == ST40_ASCx_REGS_BASE */
 
 	/* Setup PIO for FLASH_WP# (Active-Low WriteProtect) */
-	SET_PIO_PIN(PIO_PORT(6), 4, STPIO_OUT);
+	//SET_PIO_PIN(PIO_PORT(6), 4, STPIO_OUT);//YWDRIVER_MODI lwj remove for demo board dtt7167
 
 	/* Configure & Reset the Ethernet PHY */
 	configEthernet();

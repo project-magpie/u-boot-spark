@@ -183,11 +183,41 @@ block_dev_desc_t *usb_stor_get_dev(int index)
 	return (index < USB_MAX_STOR_DEV) ? &usb_dev_desc[index] : NULL;
 }
 
+// YWDRIVER_MODI changed by cc 2010/09/03 for upgrade progress begin
+#if defined(YW_CONFIG_VFD)
+#include "vfd.h"
+static void flicker_U_Ld(void)
+{
+	static int flag = 0;
+    static int bOn = TRUE;
 
+	if(flag & 32)
+	{
+        if (!bOn)
+        {
+		    YWVFD_Print ("U Ld");
+            bOn = TRUE;
+        }
+	}
+	else
+	{
+        if (bOn)
+        {
+		    YWVFD_Print ("U   ");
+            bOn = FALSE;
+        }
+	}
+	flag++;
+}
+#endif
 void usb_show_progress(void)
 {
 	printf(".");
+#if defined(YW_CONFIG_VFD)
+	flicker_U_Ld();
+#endif
 }
+// YWDRIVER_MODI changed by cc 2010/09/03 for upgrade progress end
 
 /*********************************************************************************
  * show info on storage devices; 'usb start/init' must be invoked earlier
@@ -985,7 +1015,15 @@ unsigned long usb_stor_read(int device, lbaint_t blknr, unsigned long blkcnt, vo
 			sh_enable_data_caches();
 		printf("Device NOT ready\n   Request Sense returned %02X %02X %02X\n",
 			srb->sense_buf[2],srb->sense_buf[12],srb->sense_buf[13]);
+		/***** YWDRIVER_MODI 2010-10-18 D26LF Modi:
+		    Description:如果设备没有准备好则返回-1
+		*/
+		#if 1
+		return -1;
+		#else
 		return 0;
+		#endif
+		/***** YWDRIVER_MODI 2010-10-18 D26LF Modi end ****/
 	}
 	USB_STOR_PRINTF("\nusb_read: dev %d startblk %lx, blccnt %lx buffer %lx\n",device,start,blks, buf_addr);
 	do {

@@ -214,6 +214,8 @@ ifeq ($(PCI_CLOCK),PCI_66M)
 CFLAGS := $(CFLAGS) -DPCI_66M
 endif
 
+CFLAGS += -Werror
+
 #########################################################################
 
 export	CONFIG_SHELL HPATH HOSTCC HOSTCFLAGS CROSS_COMPILE \

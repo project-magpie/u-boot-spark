@@ -187,6 +187,7 @@ static void send_ack(int ack)
 	I2C_SCL(1);
 	I2C_DELAY;
 	I2C_DELAY;
+	I2C_TRISTATE;
 	I2C_SCL(0);
 	I2C_DELAY;
 }
@@ -222,6 +223,7 @@ static int write_byte(uchar data)
 	/*
 	 * Look for an <ACK>(negative logic) and return it.
 	 */
+	I2C_TRISTATE;
 	I2C_SCL(0);
 	I2C_DELAY;
 	I2C_SDA(1);
@@ -230,10 +232,16 @@ static int write_byte(uchar data)
 	I2C_SCL(1);
 	I2C_DELAY;
 	I2C_DELAY;
+//YWDRIVER_MODI add begin
+	I2C_INPUT;
+	I2C_DELAY;
+	I2C_DELAY;
 	nack = I2C_READ;
+	I2C_TRISTATE;
+//YWDRIVER_MODI end
 	I2C_SCL(0);
 	I2C_DELAY;
-	I2C_ACTIVE;
+	//I2C_ACTIVE;
 
 	return(nack);	/* not a nack is an ack */
 }
@@ -258,7 +266,10 @@ static uchar read_byte(int ack)
 	 * Read 8 bits, MSB first.
 	 */
 	I2C_TRISTATE;
+	I2C_SDA(1);
 	data = 0;
+  //YWDRIVER_MODI
+	I2C_INPUT;
 	for(j = 0; j < 8; j++) {
 		I2C_SCL(0);
 		I2C_DELAY;
@@ -268,6 +279,11 @@ static uchar read_byte(int ack)
 		data |= I2C_READ;
 		I2C_DELAY;
 	}
+//YWDRIVER_MODI lwj add begin //如果没有下面这段话，读面板按键值时会不成功
+	I2C_TRISTATE;
+    I2C_SCL(0);
+    I2C_DELAY;
+//YWDRIVER_MODI lwj add end
 	send_ack(ack);
 
 	return(data);

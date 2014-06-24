@@ -39,6 +39,9 @@
 #endif
 #include <asm/socregs.h>
 #include <asm/st40reg.h>
+#if defined(YW_CONFIG_VFD)
+#include <vfd.h>
+#endif
 
 /*
  * Currently, there are several macros which define where SDRAM
@@ -106,8 +109,28 @@ ulong monitor_flash_len;
 #define CONFIG_IDENT_STRING ""
 #endif
 
+#ifdef CONFIG_YW_XPROG
+#define CONFIG_YW_XPROG_STRING " xprog"
+#else
+#define CONFIG_YW_XPROG_STRING ""
+#endif
+
+#ifdef CONFIG_YW_VERSION_ON_ARG
+#define CONFIG_YW_VERSION " - " CONFIG_YW_VERSION_ON_ARG
+#else
+#define CONFIG_YW_VERSION ""
+#endif
+
+#ifdef CONFIG_YW_OVER_CLOCK
+#define CONFIG_YW_OVER_CLOCK_STRING " overclock"
+#else
+#define CONFIG_YW_OVER_CLOCK_STRING ""
+#endif
+
 const char version_string[] =
-	U_BOOT_VERSION" (" __DATE__ " - " __TIME__ ") - " CONFIG_IDENT_STRING ;
+	U_BOOT_VERSION" (" __DATE__ " - " __TIME__ ") - " CONFIG_IDENT_STRING
+	CONFIG_YW_VERSION CONFIG_YW_OVER_CLOCK_STRING CONFIG_YW_XPROG_STRING;
+	//YWDRIVER_MODI lwj add for YW version
 
 /*
  * Begin and End of memory area for malloc(), and current "brk"
@@ -123,6 +146,11 @@ extern int soc_init (void); 	/* Detect/set SOC settings  */
 extern int board_init (void);   /* Set up board             */
 extern int timer_init (void);
 extern int checkboard (void);   /* Give info about board    */
+
+//YWDRIVER_MODI  add begin
+void IDENT_Init(void);
+//YWDRIVER_MODI add end
+
 extern int env_init_after_spi_done (void);
 
 static void mem_malloc_init (void)
@@ -264,6 +292,15 @@ void start_sh4boot (void)
 		}
 	}
 
+/***** 2011-11-11 D26LF Add:
+    Description:把启机显示提前
+*/
+#ifdef YW_CONFIG_VFD
+    YWVFD_Init();
+	YWVFD_LBD_PowerOff();
+#endif
+/***** 2011-11-11 D26LF Add end ****/
+
 	gd->reloc_off = 0;
 	gd->flags |= GD_FLG_RELOC;	/* tell others: relocation done */
 
@@ -273,6 +310,7 @@ void start_sh4boot (void)
 	flashWriteEnable();
 #ifndef CFG_NO_FLASH
 	size = flash_init ();
+    //puts("flash---\n");
 	display_flash_config (size);
 #endif /* CFG_NO_FLASH */
 
@@ -361,6 +399,10 @@ void start_sh4boot (void)
 #endif
 	eth_initialize(gd->bd);
 #endif
+
+//YWDRIVER_MODI D02SH 2009/06/22 add begin
+	IDENT_Init();
+//YWDRIVER_MODI D02SH 2009/06/22 add end
 
 	/* main_loop() can return to retry autoboot, if so just run it again. */
 	for (;;) {

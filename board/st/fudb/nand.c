@@ -61,10 +61,11 @@ extern int board_nand_init(struct nand_chip *nand)
 	nand->read_buf      = stm_flex_read_buf;
 	nand->write_buf     = stm_flex_write_buf;
 
-#if 1
-	/* Enable the following to use a Bad Block Table (BBT) */
-	nand->options      |= NAND_USE_FLASH_BBT;
+	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
 	nand->scan_bbt      = stm_nand_default_bbt;
+
+#if 1	/* Enable to use a NAND-resident (non-volatile) Bad Block Table (BBT) */
+	nand->options      |= NAND_USE_FLASH_BBT;
 #endif
 
 	return 0;

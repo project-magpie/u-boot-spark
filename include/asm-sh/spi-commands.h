@@ -120,9 +120,6 @@
 #define SR_WIP			(1u<<0)		/* Status Register Write In Progress bit */
 #define SR_BP_MASK		0x1c		/* Block Protect Bits (BP[2:0]) */
 
-
-#else					/******************************/
-
 #error Please specify which SPI Serial Flash is being used
 
 #endif	/* defined(CONFIG_STM_SPI_xxxxxx) */

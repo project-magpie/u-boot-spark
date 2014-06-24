@@ -17,7 +17,15 @@
 #define WELL_KNOWN_PORT	69		/* Well known TFTP port #		*/
 #define TIMEOUT		5UL		/* Seconds to timeout for a lost pkt	*/
 #ifndef	CONFIG_NET_RETRY_COUNT
+/***** YWDRIVER_MODI 2010-10-19 D26LF Modi:
+    Description:增加超时重连次数
+*/
+#if 1
+# define TIMEOUT_COUNT	20		/* # of timeouts before giving up  */
+#else
 # define TIMEOUT_COUNT	10		/* # of timeouts before giving up  */
+#endif
+/***** YWDRIVER_MODI 2010-10-19 D26LF Modi end ****/
 #else
 # define TIMEOUT_COUNT  (CONFIG_NET_RETRY_COUNT * 2)
 #endif
@@ -234,6 +242,52 @@ TftpSend (void)
 	NetSendUDPPacket(NetServerEther, NetServerIP, TftpServerPort, TftpOurPort, len);
 }
 
+// YWDRIVER_MODI changed by lf 2010/10/09 for upgrade progress begin
+#include "vfd.h"
+void TftpTimeout_show_progress(void)
+{
+	static int flag = 0;
+	if(flag & 1)
+	{
+		YWVFD_Print ("T TO");
+	}
+	else
+	{
+		YWVFD_Print ("T   ");
+	}
+	flag++;
+}
+
+void TftpLoad_show_progress(void)
+{
+	static int flag = 0;
+	if(flag & 1)
+	{
+		YWVFD_Print ("T Ld");
+	}
+	else
+	{
+		YWVFD_Print ("T   ");
+	}
+	flag++;
+}
+
+void TftpLoad_show_error(int iErrorNo)
+{
+	static int flag = 0;
+    char        BootFile[5];
+	if(flag & 1)
+	{
+		YWVFD_Print ("T   ");
+	}
+	else
+	{
+        sprintf(BootFile, "TE%02d", iErrorNo);
+        YWVFD_Print (BootFile);
+	}
+	flag++;
+}
+// YWDRIVER_MODI changed by lf 2010/10/09 for upgrade progress end
 
 static void
 TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
@@ -319,8 +373,14 @@ TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
 		} else {
 			if (((TftpBlock - 1) % 10) == 0) {
 				putc ('#');
+                // YWDRIVER_MODI changed by lf 2010/10/09 for upgrade progress begin
+                //TftpLoad_show_progress();
+                // YWDRIVER_MODI changed by lf 2010/10/09 for upgrade progress end
 			} else if ((TftpBlock % (10 * HASHES_PER_LINE)) == 0) {
 				puts ("\n\t ");
+                // YWDRIVER_MODI changed by lf 2010/10/09 for upgrade progress begin
+                TftpLoad_show_progress();
+                // YWDRIVER_MODI changed by lf 2010/10/09 for upgrade progress end
 			}
 		}
 
@@ -419,6 +479,12 @@ TftpHandler (uchar * pkt, unsigned dest, unsigned src, unsigned len)
 	case TFTP_ERROR:
 		printf ("\nTFTP error: '%s' (%d)\n",
 					pkt + 2, ntohs(*(ushort *)pkt));
+        /***** YWDRIVER_MODI 2010-10-18 D26LF Add:
+            Description:增加面板出错提示
+        */
+        TftpLoad_show_error(ntohs(*(ushort *)pkt));
+        /***** YWDRIVER_MODI 2010-10-18 D26LF Add end ****/
+
 		puts ("Starting again\n\n");
 #ifdef CONFIG_MCAST_TFTP
 		mcast_cleanup();
@@ -440,6 +506,9 @@ TftpTimeout (void)
 		NetStartAgain ();
 	} else {
 		puts ("T ");
+        // YWDRIVER_MODI changed by lf 2010/10/09 for upgrade progress begin
+        TftpTimeout_show_progress();
+        // YWDRIVER_MODI changed by lf 2010/10/09 for upgrade progress begin
 		NetSetTimeout (TIMEOUT * CFG_HZ, TftpTimeout);
 		TftpSend ();
 	}

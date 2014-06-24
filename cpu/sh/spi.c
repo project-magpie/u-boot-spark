@@ -30,6 +30,9 @@
 #include <asm/clk.h>
 #include <asm/spi-commands.h>
 #include "stm_spi_fsm.h"
+#ifdef CONFIG_SH4
+#include <asm/pio.h>
+#endif
 
 
 /**********************************************************************/
@@ -37,6 +40,15 @@
 
 #if defined(CONFIG_SPI)
 
+/***** 2011-11-10 YWDRIVER_MODI D26LF Add:
+    Description:for progress display
+*/
+#if defined(YW_CONFIG_VFD)
+#include "vfd.h"
+
+static void YW_disp_spi_progress(int percent);
+#endif
+/***** 2011-11-10 YWDRIVER_MODI D26LF Add end ****/
 
 /**********************************************************************/
 
@@ -136,7 +148,18 @@ static unsigned eraseSize;	/* smallest supported erase size */
 static unsigned deviceSize;	/* Size of the device in Bytes */
 static const char * deviceName;	/* Name of the device */
 
-#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
+/*****     2012-06-19     *****/
+//YWDRIVER_MODI add by lf for 增加at25df161标志 start
+static unsigned	IsAt25df161 = 0;
+
+//add by yanbinL 增加型号En25QH16标志
+static unsigned IsEn25QH16  = 0;
+//YWDRIVER_MODI add by lf end
+
+
+#if defined(CONFIG_SPI_FLASH_ST) ||			\
+	defined(CONFIG_SPI_FLASH_MXIC) ||		\
+	defined(CONFIG_SPI_FLASH_WINBOND)
 static unsigned char op_erase = OP_SE;	/* erase command opcode to use */
 #endif
 
@@ -179,6 +202,65 @@ static void hexdump(
 }
 #endif
 
+
+#ifdef CFG_EEPROM_WREN
+
+static unsigned int spi_read_status(spi_chipsel_type const chipsel);
+
+
+extern int eeprom_write_enable (unsigned dev_addr, int state)
+{
+	unsigned char enable[1] = { OP_WREN };
+	unsigned char unlock[2] = { OP_WRITE_STATUS, 0x00 };
+	unsigned char lock[2]	= { OP_WRITE_STATUS, 0x9c };
+	unsigned char lock_at25df161[2]	= { OP_WRITE_STATUS, 0xbc };
+	spi_chipsel_type const chipsel = spi_chipsel[0];	/* SPI Device #0 */
+	//printf("state = %d\n", state);
+	if (state)
+	{
+		STPIO_SET_PIN(PIO_PORT(5), 4, 1);
+
+		spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
+		spi_xfer(chipsel, sizeof(unlock)*8, unlock, NULL);
+		/*****     2012-06-19     *****/
+        //YWDRIVER_MODI add by lf for at25df161 start
+        // at25df161 need to change SPRL to 0 first
+		if (IsAt25df161)
+		{
+			spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
+			spi_xfer(chipsel, sizeof(unlock)*8, unlock, NULL);
+		}
+		//YWDRIVER_MODI add by lf end
+		udelay(2 * 1000);	/* 2 ms */
+	}
+	else
+	{
+		/*****     2012-06-19     *****/
+		//YWDRIVER_MODI add by lf for at25df161 start
+		if (IsAt25df161)
+		{
+			spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
+			spi_xfer(chipsel, sizeof(unlock)*8, lock_at25df161, NULL);
+		}
+		else
+		{
+			spi_xfer(chipsel, sizeof(enable)*8, enable, NULL);
+			spi_xfer(chipsel, sizeof(unlock)*8, lock, NULL);
+		}
+		//YWDRIVER_MODI add by lf end
+		udelay(2 * 1000);	/* 2 ms */
+
+		STPIO_SET_PIN(PIO_PORT(5), 4, 0);
+	}
+	if(IsEn25QH16)
+	{
+		udelay(15 * 1000); /* 10ms */
+	}
+	//unsigned int status = spi_read_status(chipsel);
+	//printf("SPI Device current status = 0x%02x\n",status);
+	return 0;
+}
+#endif
 
 /**********************************************************************/
 
@@ -356,7 +438,9 @@ extern void spi_wait_till_ready(
 #if defined(CONFIG_SPI_FLASH_ATMEL)
 	while (!(spi_read_status(chipsel) & SR_READY))
 		;	/* do nothing */
-#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
+#elif defined(CONFIG_SPI_FLASH_ST) ||			\
+		defined(CONFIG_SPI_FLASH_MXIC) ||		\
+		defined(CONFIG_SPI_FLASH_WINBOND)
 	while (spi_read_status(chipsel) & SR_WIP)
 		;	/* do nothing */
 #else
@@ -391,6 +475,7 @@ static int spi_probe_serial_flash(
 			status);
 		return -1;
 	}
+    printf("SPI Device  status = 0x%02x \n",status);
 
 	/*
 	 * if we get here, then we think we may have a SPI
@@ -495,11 +580,110 @@ static int spi_probe_serial_flash(
 			deviceName = "ST M25PX64";	/* 64 Mbit == 8 MiB */
 		}
 	}
+	else if (
+		(devid[1] == 0x20u)	&&	/* Manufacturer ID */
+		(devid[2] == 0xBAu)	&&	/* Memory Type */
+		(				/* Memory Capacity */
+			(devid[3] == 0x16u) ||	/* N25Q032 */
+			(devid[3] == 0x18u)	/* N25Q128 */
+		)
+	   )
+	{
+		pageSize   = 256u;
+		eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
+		deviceSize = 1u<<devid[3];		/* Memory Capacity */
+		if (devid[3] == 0x16u)
+		{
+			deviceName = "ST N25Q032";	/* 32 Mbit == 4 MiB */
+		}
+		else if (devid[3] == 0x18u)
+		{
+			deviceName = "ST N25Q128";	/* 128 Mbit == 16 MiB */
+		}
+	}
+	else if (
+        (devid[1] == 0x1cu) &&  /* Manufacturer ID */
+		(devid[3] == 0x15u)		/* Code + Version */
+		)
+	{
+        if(devid[2] == 0x31u)  /* Memory Type */
+		{
+			pageSize = 256u;
+			eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
+			deviceSize = 8192u * pageSize;
+			deviceName = "En25F16-100";
+		}
+		else if(devid[2] == 0x70u)
+		{
+			pageSize = 256u;
+			eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
+			deviceSize = 8192u * pageSize;
+			deviceName = "En25QH16";
+			IsEn25QH16 = 1;
+        }
+
+	}
+	else if (
+		(devid[1] == 0xefu)	&&	/* Manufacturer ID */
+		(devid[2] == 0x40u)	&&	/* Memory Type */
+		(devid[3] == 0x15u)		/* Code + Version */
+	   )
+	{
+		pageSize = 256u;
+		eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
+		deviceSize = 8192u * pageSize;
+		deviceName = "S25FL016K";
+	}
+	/*****     2012-06-18     *****/
+	//YWDRIVER_MODI add by lf for at25df161 start
+	else if (
+		(devid[1] == 0x1fu)	&&	/* Manufacturer ID */
+		(devid[2] == 0x46u)	&&	/* Memory Type */
+		(devid[3] == 0x02u)		/* Code + Version */
+	   )
+	{
+		pageSize = 256u;
+		eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
+		deviceSize = 8192u * pageSize;
+		deviceName = "AT25DF161";
+
+		IsAt25df161 = 1;
+	}
+	//YWDRIVER_MODI add by lf end
+
+	#if 1
+	/*****     2012-11-20     *****/
+	//YWDRIVER_MODI add by lf for s25sl016a start
+	else if (
+		(devid[1] == 0x01u)	&&	/* Manufacturer ID */
+		(devid[2] == 0x02u)	&&	/* Memory Type */
+		(devid[3] == 0x14u)		/* Code + Version */
+	   )
+	{
+		pageSize = 256u;
+		eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
+		deviceSize = 8192u * pageSize;
+		deviceName = "s25sl016a";
+
+	}
+	//YWDRIVER_MODI add by lf end
+	#endif  /* 0 */
+
 	else
 	{
 		printf("ERROR: Unknown SPI Device detected, devid = 0x%02x, 0x%02x, 0x%02x\n",
 			devid[1], devid[2], devid[3]);
+		/*****     2012-11-20     *****/
+		//YWDRIVER_MODI modify by lf for 使用默认配置 start
+		#if 1
+		pageSize = 256u;
+		eraseSize  = 64u<<10;			/* 64 KiB, 256 pages/sector */
+		deviceSize = 8192u * pageSize;
+		deviceName = "Unknown";
+		#else
 		return -1;
+		#endif
+		//YWDRIVER_MODI modify by lf end
 	}
 
 #elif defined(CONFIG_SPI_FLASH_MXIC)
@@ -589,8 +773,12 @@ static int spi_probe_serial_flash(
 		eraseSize);		/* in bytes */
 #endif
 
-#if defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
+#if defined(CONFIG_SPI_FLASH_ST) ||			\
+	defined(CONFIG_SPI_FLASH_MXIC) ||		\
+	defined(CONFIG_SPI_FLASH_WINBOND)
 	/* is the device in a write protected mode ? */
+     printf("SPI device status=0x%02x\n",
+			status);
 	if (status & SR_BP_MASK)	/* BPx != 0 ? */
 	{
 		printf( "warning: "
@@ -628,7 +816,11 @@ static int spi_probe_serial_flash(
 #endif	/* unlock it */
 	}
 #endif	/* CONFIG_SPI_FLASH_ST || CONFIG_SPI_FLASH_MXIC || defined(CONFIG_SPI_FLASH_WINBOND) */
-
+#if defined(CONFIG_SPI_FLASH_ST)
+#ifdef CFG_EEPROM_WREN
+	eeprom_write_enable(CFG_DEF_EEPROM_ADDR, 0);
+#endif
+#endif
 	return 0;
 }
 
@@ -918,7 +1110,9 @@ static void my_spi_write(
 	spi_wait_till_ready(chipsel);
 #endif	/* CONFIG_STM_FSM_SPI */
 }
-#elif defined(CONFIG_SPI_FLASH_ST) || defined(CONFIG_SPI_FLASH_MXIC) || defined(CONFIG_SPI_FLASH_WINBOND)
+#elif defined(CONFIG_SPI_FLASH_ST) ||			\
+		defined(CONFIG_SPI_FLASH_MXIC) ||		\
+		defined(CONFIG_SPI_FLASH_WINBOND)
 {
 	const unsigned pages       = eraseSize / pageSize;
 	const unsigned long sector = (address / eraseSize) * eraseSize;
@@ -1064,7 +1258,13 @@ extern ssize_t spi_write (
 			deviceSize-1ul);
 		return 0;
 	}
-
+	/***** 2011-11-10 YWDRIVER_MODI D26LF Add:
+	    Description:for progress display
+	*/
+	#if defined(YW_CONFIG_VFD)
+	YW_disp_spi_progress(0);
+	#endif
+	/***** 2011-11-10 YWDRIVER_MODI D26LF Add end ****/
 	/* process up to end of first erase block */
 	if (byte != 0)
 	{
@@ -1076,6 +1276,13 @@ extern ssize_t spi_write (
 		ptr += size;
 		buffer += size;
 		written += size;
+		/***** 2011-11-10 YWDRIVER_MODI D26LF Add:
+		    Description:for progress display
+		*/
+		#if defined(YW_CONFIG_VFD)
+		YW_disp_spi_progress((ptr - first) * 100 / len);
+		#endif
+		/***** 2011-11-10 YWDRIVER_MODI D26LF Add end ****/
 	}
 
 	/* process each whole erase block in turn */
@@ -1094,6 +1301,13 @@ extern ssize_t spi_write (
 		sector++;
 		ptr += eraseSize;
 		buffer += eraseSize;
+		/***** 2011-11-10 YWDRIVER_MODI D26LF Add:
+		    Description:for progress display
+		*/
+		#if defined(YW_CONFIG_VFD)
+		YW_disp_spi_progress((ptr - first) * 100 / len);
+		#endif
+		/***** 2011-11-10 YWDRIVER_MODI D26LF Add end ****/
 
 	}
 	printf("\n");	/* terminate any row of printed dots */
@@ -1102,6 +1316,13 @@ extern ssize_t spi_write (
 	if (ptr <= last)
 	{
 		my_spi_write(chipsel, ptr, buffer, last-ptr+1u);
+		/***** 2011-11-10 YWDRIVER_MODI D26LF Add:
+		    Description:for progress display
+		*/
+		#if defined(YW_CONFIG_VFD)
+		YW_disp_spi_progress(100);
+		#endif
+		/***** 2011-11-10 YWDRIVER_MODI D26LF Add end ****/
 	}
 
 	return len;
@@ -1110,7 +1331,32 @@ extern ssize_t spi_write (
 
 /**********************************************************************/
 
+/***** 2011-11-10 YWDRIVER_MODI D26LF Add:
+    Description:for progress display
+*/
+#if defined(YW_CONFIG_VFD)
+static void YW_disp_spi_progress(int percent)
+{
+	char	str[20];
+
+	sprintf(str, "B%03d", percent);
+	YWVFD_Print(str);
+}
+#endif
+/***** 2011-11-10 YWDRIVER_MODI D26LF Add end ****/
 
 #endif	/* defined(CONFIG_SPI) */
+
+
+
+/*add by yanbinL for test read eeprom status*/
+
+unsigned int YW_read_eeprom_status(void)
+{
+	spi_chipsel_type const chipsel = spi_chipsel[0];
+	unsigned char data[2] = { OP_READ_STATUS, 0x00 };
+	spi_xfer(chipsel, sizeof(data)*8, data, data);
+	return data[1];
+}
 
 

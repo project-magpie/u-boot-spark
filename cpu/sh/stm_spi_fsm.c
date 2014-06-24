@@ -354,7 +354,6 @@ extern int fsm_read_jedec(const size_t bytes, uint8_t *const jedec)
 {
 	const struct fsm_seq * const seq = &seq_read_jedec;
 	uint8_t tmp[8];		/* multiple of 4 */
-
 	assert( bytes <= sizeof(tmp) );
 
 	fsm_load_seq(seq);

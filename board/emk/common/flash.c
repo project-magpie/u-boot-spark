@@ -97,6 +97,7 @@ unsigned long flash_init (void)
 	extern void flash_afterinit(uint, ulong, ulong);
 	ulong flashbase = CFG_FLASH_BASE;
 
+    printf("flashbase= 0x%x\n",flashbase);
 	flash_preinit();
 
 	/* There is only ONE FLASH device */

@@ -31,6 +31,13 @@
  */
 
 #include <common.h>
+// YWDRIVER_MODI cc 2010/09/06 add for multi-boot begin
+#if defined(YW_CONFIG_VFD)
+#include "vfd.h"
+#endif
+#define CFG_NAND_YAFFS2_WRITE
+// YWDRIVER_MODI cc 2010/09/06 add for multi-boot end
+
 
 #if defined(CONFIG_CMD_NAND) && !defined(CFG_NAND_LEGACY)
 
@@ -54,6 +61,43 @@ static int nand_block_bad_scrub(struct mtd_info *mtd, loff_t ofs, int getchip)
 {
 	return 0;
 }
+
+#if defined(YW_CONFIG_VFD)
+static void YW_print_percent(int percent, char c)
+{
+	int		disp_percent = 0;
+	char	str[20];
+	char	*p = NULL;
+
+	if(percent < 100)
+	{
+		disp_percent = percent;
+	}
+	else
+	{
+	    disp_percent = 99;
+	}
+
+	p = getenv("boot_system");
+	if (!p)
+	{
+	    return;
+	}
+
+	sprintf(str, "%c%c%02d", p[0], c, disp_percent);
+	YWVFD_Print(str);
+}
+
+static void YW_print_erase_percent(int percent)
+{
+	YW_print_percent(percent, '1');
+}
+
+static void YW_print_write_percent(int percent)
+{
+	YW_print_percent(percent, '2');
+}
+#endif
 
 /**
  * nand_erase_opts: - erase NAND flash with support for various options
@@ -79,6 +123,23 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 	int percent_complete = -1;
 	int (*nand_block_bad_old)(struct mtd_info *, loff_t, int) = NULL;
 	const char *mtd_device = meminfo->name;
+
+	/*
+	 * it is best (to minimise confusion) if the erase length
+	 * and the erase start addresses *ARE* both explicitly
+	 * aligned by the user to the erase block boundary.
+	 * It saves the user erasing more than he expected!
+	 */
+	if (opts->length % meminfo->erasesize) {
+		printf("ERROR: erase length is not block aligned (0x%x)\n",
+			meminfo->erasesize);
+		return -1;
+	}
+	if (opts->offset % meminfo->erasesize) {
+		printf("ERROR: erase address is not block aligned (0x%x)\n",
+			meminfo->erasesize);
+		return -1;
+	}
 
 	memset(&erase, 0, sizeof(erase));
 
@@ -162,11 +223,17 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 		if (!opts->scrub && bbtest) {
 			int ret = meminfo->block_isbad(meminfo, erase.addr);
 			if (ret > 0) {
+				/***** 2011-08-30 YWDRIVER_MODI D26LF Del:
+				    Description:É¾³ý»µ¿é´òÓ¡ÐÅÏ¢
+				*/
+				#if 0
 				if (!opts->quiet)
 					printf("\rSkipping bad block at  "
 					       "0x%08x                   "
 					       "                         \n",
 					       erase.addr);
+				#endif
+				/***** 2011-08-30 YWDRIVER_MODI D26LF Del end ****/
 				continue;
 
 			} else if (ret < 0) {
@@ -230,6 +297,12 @@ int nand_erase_opts(nand_info_t *meminfo, const nand_erase_options_t *opts)
 				if (opts->jffs2 && result == 0)
 					printf(" Cleanmarker written at 0x%x.",
 					       erase.addr);
+// YWDRIVER_MODI cc 2010/09/06 add for multi-boot begin
+				#if defined(YW_CONFIG_VFD)
+				YW_print_erase_percent(percent);
+				#endif
+// YWDRIVER_MODI cc 2010/09/06 add for multi-boot begin
+
 			}
 		}
 	}
@@ -271,6 +344,20 @@ static struct nand_oobinfo yaffs_oobinfo = {
 	.eccbytes = 6,
 	.eccpos = { 8, 9, 10, 13, 14, 15}
 };
+
+//YWDRVIER_MODI d02sh add for yaffs2 oob start
+#ifdef CFG_NAND_YAFFS2_WRITE
+static struct nand_oobinfo yaffs2_oobinfo = {
+       .useecc = MTD_NANDECC_PLACE,
+       .eccbytes = 24,
+       .eccpos = {
+               40, 41, 42, 43, 44, 45, 46, 47,
+               48, 49, 50, 51, 52, 53, 54, 55,
+               56, 57, 58, 59, 60, 61, 62, 63},
+       .oobfree = { {2, 38} }
+};
+#endif
+//YWDRVIER_MODI d02sh add for yaffs2 oob end
 
 static struct nand_oobinfo autoplace_oobinfo = {
 	.useecc = MTD_NANDECC_AUTOPLACE
@@ -346,10 +433,18 @@ int nand_write_opts(nand_info_t *meminfo, const nand_write_options_t *opts)
 	if (opts->forcejffs2 || opts->forceyaffs) {
 		struct nand_oobinfo *oobsel =
 			opts->forcejffs2 ? &jffs2_oobinfo : &yaffs_oobinfo;
+//YWDRVIER_MODI d02sh add for yaffs2 oob start
+#ifdef  CFG_NAND_YAFFS2_WRITE
+        if(opts->forceyaffs == 2)
+        {
+            oobsel = &yaffs2_oobinfo;
+        }
+#endif
+//YWDRVIER_MODI d02sh add for yaffs2 oob end
 
 		if (meminfo->oobsize == 8) {
 			if (opts->forceyaffs) {
-				printf("YAFSS cannot operate on "
+				printf("YAFFS cannot operate on "
 				       "256 Byte page size\n");
 				goto restoreoob;
 			}
@@ -413,12 +508,18 @@ int nand_write_opts(nand_info_t *meminfo, const nand_write_options_t *opts)
 				}
 				if (ret == 1) {
 					baderaseblock = 1;
+					/***** 2011-08-30 YWDRIVER_MODI D26LF Del:
+					    Description:É¾³ý»µ¿é´òÓ¡ÐÅÏ¢
+					*/
+					#if 0
 					if (!opts->quiet)
 						printf("\rBad block at 0x%lx "
 						       "in erase block from "
 						       "0x%x will be skipped\n",
 						       (long) offs,
 						       blockstart);
+					#endif
+					/***** 2011-08-30 YWDRIVER_MODI D26LF Del end ****/
 				}
 
 				if (baderaseblock) {
@@ -446,6 +547,49 @@ int nand_write_opts(nand_info_t *meminfo, const nand_write_options_t *opts)
 			 * on failure */
 			memcpy(oob_buf, buffer, meminfo->oobsize);
 			buffer += meminfo->oobsize;
+//YWDRVIER_MODI d02sh add for yaffs2 oob modify start
+            if (opts->forceyaffs) {
+#ifdef  CFG_NAND_YAFFS2_WRITE
+               if (opts->forceyaffs == 2) {
+                       //set the ECC bytes to 0xff so MTD will calculate it
+/*  2009-06-25@17:17:06 D02SH Remark
+                       int i;
+                       for (i = 0; i < meminfo->oobinfo.eccbytes; i++)
+                               oob_buf[meminfo->oobinfo.eccpos[i]] = 0xff;
+*/
+                    //-for test
+/*  2009-06-25@09:39:02 D02SH Remark
+                        for(i=meminfo->oobsize-1;i>=0;i--)
+                        {
+                            oob_buf[i] = oob_buf[i-2];
+                            if(i<2)
+                                oob_buf[i] = 0xff;
+                        }
+*/
+/*  2009-06-25@09:39:27 D02SH Remark
+                       for(i=0;i<meminfo->oobsize;i++)
+                            printf("oob_buf[%d]=[0x%x]\n",i,oob_buf[i]);
+*/
+             }
+#else
+/*  2009-06-25@09:39:46 D02SH Remark
+                if (opts->forceyaffs == 1){
+                //translate OOB for yaffs1 on Linux 2.6.18+
+                oob_buf[15] = oob_buf[12];
+                oob_buf[14] = oob_buf[11];
+                oob_buf[13] = (oob_buf[7] & 0x3f)
+                    | (oob_buf[5] == 'Y' ? 0 : 0x80)
+                    | (oob_buf[4] == 0 ? 0 : 0x40);
+                oob_buf[12] = oob_buf[6];
+                oob_buf[11] = oob_buf[3];
+                oob_buf[10] = oob_buf[2];
+                oob_buf[9] = oob_buf[1];
+                oob_buf[8] = oob_buf[0];
+                memset(oob_buf, 0xff, 8);}
+*/
+#endif
+            }
+//YWDRVIER_MODI d02sh add for yaffs2 oob modify end
 
 			/* write OOB data first, as ecc will be placed
 			 * in there*/
@@ -495,6 +639,11 @@ int nand_write_opts(nand_info_t *meminfo, const nand_write_options_t *opts)
 				       "-- %3d%% complete.",
 				       mtdoffset, percent);
 				percent_complete = percent;
+// YWDRIVER_MODI cc 2010/09/06 add for multi-boot begin
+				#if defined(YW_CONFIG_VFD)
+				YW_print_write_percent(percent);
+				#endif
+// YWDRIVER_MODI cc 2010/09/06 add for multi-boot begin
 			}
 		}
 
@@ -593,12 +742,18 @@ int nand_read_opts(nand_info_t *meminfo, const nand_read_options_t *opts)
 				}
 				if (ret == 1) {
 					baderaseblock = 1;
+					/***** 2011-08-30 YWDRIVER_MODI D26LF Del:
+					    Description:É¾³ý»µ¿é´òÓ¡
+					*/
+					#if 0
 					if (!opts->quiet)
 						printf("\rBad block at 0x%lx "
 						       "in erase block from "
 						       "0x%x will be skipped\n",
 						       (long) offs,
 						       blockstart);
+					#endif
+					/***** 2011-08-30 YWDRIVER_MODI D26LF Del end ****/
 				}
 
 				if (baderaseblock) {

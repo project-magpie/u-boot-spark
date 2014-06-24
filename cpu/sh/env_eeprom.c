@@ -126,7 +126,16 @@ extern int env_init(void)
 	while (len > 0)
 	{
 		int n = (len > sizeof(buf)) ? sizeof(buf) : len;
+		/*****     2012-05-09     *****/
+		//YWDRIVER_MODI modify by lf for 防止编译告警 start
+		//错误：提领类型双关的指针将破坏强重叠规则
+		#if 1
+		ulong *pUlong = (ulong *)buf;
+		*pUlong = spiboot_get_u32(off);
+		#else
 		*(ulong*)buf = spiboot_get_u32(off);
+		#endif
+		//YWDRIVER_MODI modify by lf end
 		new = crc32 (new, buf, n);
 		len -= n;
 		off += n;

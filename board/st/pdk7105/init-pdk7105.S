@@ -57,7 +57,11 @@ __memory_setup_table:
 	 * only in 29-bit mode - even if U-Boot will be built for 32-bit mode.
 	 * That is, do not use the "seuc=1" (or similar) option with "romgen".
 	 */
+#ifdef CONFIG_YW_OVER_CLOCK
+#include "pdk7105_overclock.romgen"
+#else
 #include "pdk7105.romgen"
+#endif	/* CONFIG_SH_SE_MODE */
 
 #ifdef CONFIG_SH_SE_MODE
 	/*
@@ -69,8 +73,8 @@ __memory_setup_table:
 	/* Change LMI upper bound addresses
 	 * Upper LMI addr=0x40000000 + 512MiB=0x60000000
 	 */
-	UPDATE32(ST40_LMI_SDRA0_0(), 0x001FFFFF, 0x60000000)
-	UPDATE32(ST40_LMI_SDRA1_0(), 0x001FFFFF, 0x60000000)
+	UPDATE32(ST40_LMI_SDRA0_0(), 0x001FFFFF, 0x50000000) //YWDRIVER_MODI lwj change from 0x60000000 to 0x50000000
+	UPDATE32(ST40_LMI_SDRA1_0(), 0x001FFFFF, 0x50000000) //YWDRIVER_MODI lwj change from 0x60000000 to 0x50000000
 #endif	/* CONFIG_SH_SE_MODE */
 
 	END_MARKER

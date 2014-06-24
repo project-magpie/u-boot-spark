@@ -110,10 +110,11 @@ extern int board_nand_init(struct nand_chip *nand)
 	nand->hwcontrol     = fldb_hwcontrol;
 #endif /* CFG_NAND_FLEX_MODE */
 
-#if 1
-	/* Enable the following to use a Bad Block Table (BBT) */
-	nand->options      |= NAND_USE_FLASH_BBT;
+	/* override scan_bbt(), even if not using a Bad Block Table (BBT) */
 	nand->scan_bbt      = stm_nand_default_bbt;
+
+#if 1	/* Enable to use a NAND-resident (non-volatile) Bad Block Table (BBT) */
+	nand->options      |= NAND_USE_FLASH_BBT;
 #endif
 
 	return 0;
