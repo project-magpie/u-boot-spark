@@ -11,7 +11,8 @@ include $(TOPDIR)/config.mk
 CFLAGS = -I$(TOPDIR)/include -D__KERNEL__ -O0 -g
 
 
-CFLAGS += -Wall -Werror -fno-builtin
+#CFLAGS += -Wall -Werror -fno-builtin
+CFLAGS += -Wall -fno-builtin
 
 LIB 	:= $(obj)libencrypt.a
 

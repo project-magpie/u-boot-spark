@@ -214,7 +214,7 @@ ifeq ($(PCI_CLOCK),PCI_66M)
 CFLAGS := $(CFLAGS) -DPCI_66M
 endif
 
-CFLAGS += -Werror
+#CFLAGS += -Werror
 
 #########################################################################
 
